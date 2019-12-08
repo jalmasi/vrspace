@@ -1,0 +1,332 @@
+package org.vrspace.server;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.vrspace.server.dto.Add;
+import org.vrspace.server.dto.ClientResponse;
+import org.vrspace.server.dto.Remove;
+import org.vrspace.server.dto.Welcome;
+import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.VRObject;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class SessionManagerTest {
+
+  @Mock
+  private WebSocketSession session;
+
+  @Autowired
+  private SessionManager sessionManager;
+
+  @Autowired
+  private World world;
+
+  @Autowired
+  private VRObjectRepository repo;
+
+  @Captor
+  private ArgumentCaptor<WebSocketMessage<?>> message;
+
+  @Autowired
+  private ObjectMapper mapper;
+
+  private Client testUser;
+
+  @Before
+  public void setUp() throws Exception {
+    mockup(this.session, "testSession");
+    createTestUser();
+  }
+
+  private WebSocketSession mockup(WebSocketSession session, String sessionId) throws Exception {
+    when(session.getId()).thenReturn(sessionId);
+    doNothing().when(session).sendMessage(message.capture());
+    return session;
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    repo.delete(testUser);
+    // System.err.println("Database objects after: " + repo.count());
+  }
+
+  @Test
+  @Transactional
+  public void testAnonymousLogin() throws Exception {
+    world.setGuestAllowed(true);
+    when(session.getPrincipal()).thenReturn(null);
+
+    login();
+  }
+
+  @Test
+  public void testNamedLogin() throws Exception {
+    world.setGuestAllowed(false);
+    login();
+  }
+
+  private void createTestUser() throws Exception {
+    when(session.getPrincipal()).thenReturn(new Principal() {
+      @Override
+      public String getName() {
+        return "tester";
+      }
+    });
+    testUser = new Client();
+    testUser.setName("tester");
+    testUser.setPosition(new Point(1, 2, 3));
+    testUser = repo.save(testUser);
+  }
+
+  private Long login(WebSocketSession session) throws Exception {
+    sessionManager.afterConnectionEstablished(session);
+    // verify Welcome message
+    verify(session, times(1)).sendMessage(any(TextMessage.class));
+    String welcomeMsg = getMessage();
+    Welcome welcome = mapper.readValue(welcomeMsg, Welcome.class);
+    System.err.println(welcome);
+    assertNotNull(welcome.getClient());
+    assertNotNull(welcome.getClient().getId());
+    return welcome.getClient().getId();
+  }
+
+  private Long login() throws Exception {
+    return login(this.session);
+  }
+
+  @Test
+  public void testAnonymousLoginFail() throws Exception {
+    world.setGuestAllowed(false);
+    when(session.getPrincipal()).thenReturn(null);
+    sessionManager.afterConnectionEstablished(session);
+
+    String errorMsg = getMessage();
+    assertTrue(errorMsg.contains("ERROR"));
+    assertTrue(errorMsg.contains("Unauthorized"));
+    verify(session, times(1)).close();
+  }
+
+  @Test
+  public void testInvalidLoginFail() throws Exception {
+    world.setGuestAllowed(false);
+    when(session.getPrincipal()).thenReturn(new Principal() {
+      @Override
+      public String getName() {
+        return "unknown";
+      }
+    });
+    sessionManager.afterConnectionEstablished(session);
+
+    String errorMsg = getMessage();
+    assertTrue(errorMsg.contains("ERROR"));
+    assertTrue(errorMsg.contains("Unauthorized"));
+    verify(session, times(1)).close();
+  }
+
+  @Test
+  public void testWrongClient() throws Exception {
+    Long clientId = login();
+    String string = "{\"object\":{\"Client\":" + (clientId + 1)
+        + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
+    sendMessage(string);
+    String errorMsg = getMessage();
+    assertTrue(errorMsg.contains("ERROR"));
+    assertTrue(errorMsg.contains("Object not found in the scene"));
+  }
+
+  private void sendMessage(WebSocketSession session, String msg) throws Exception {
+    System.err.println(msg);
+    TextMessage message = new TextMessage(msg);
+    sessionManager.handleMessage(session, message);
+  }
+
+  private void sendMessage(String msg) throws Exception {
+    sendMessage(this.session, msg);
+  }
+
+  private String getMessage() {
+    String msg = ((TextMessage) message.getValue()).getPayload();
+    System.err.println(msg);
+    return msg;
+  }
+
+  @Test
+  @Transactional
+  public void testChangeOwnProperty() throws Exception {
+    Long clientId = login();
+    assertEquals(1, testUser.getPosition().getX(), 0.01);
+    assertEquals(2, testUser.getPosition().getY(), 0.01);
+    assertEquals(3, testUser.getPosition().getZ(), 0.01);
+
+    String string = "{\"object\":{\"Client\":" + clientId
+        + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
+    System.err.println(string);
+    sendMessage(string);
+
+    assertNotNull(testUser.getPosition());
+    assertEquals(3, testUser.getPosition().getX(), 0.01);
+    assertEquals(2, testUser.getPosition().getY(), 0.01);
+    assertEquals(1, testUser.getPosition().getZ(), 0.01);
+  }
+
+  @Test
+  @Transactional
+  public void testAddRemove() throws Exception {
+    login();
+
+    String add = "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":1,\"y\":2,\"z\":3}}}, {\"VRObject\":{}}]}}}";
+    sendMessage(add);
+
+    // response to add + scene update
+    verify(session, times(3)).sendMessage(any(TextMessage.class));
+
+    // verify response to add command
+    List<WebSocketMessage<?>> values = message.getAllValues();
+    String addResponse = ((TextMessage) values.get(1)).getPayload();
+    ClientResponse r = mapper.readValue(addResponse, ClientResponse.class);
+    @SuppressWarnings("unchecked")
+    List<Map<String, Long>> ids = (List<Map<String, Long>>) r.getResponse();
+    assertEquals(2, ids.size());
+
+    // verify received add command
+    String addToScene = getMessage();
+    Add addCommand = mapper.readValue(addToScene, Add.class);
+    assertEquals(2, addCommand.getObjects().size());
+    assertEquals(ids.iterator().next().values().iterator().next(), addCommand.getObjects().iterator().next().getId());
+
+    // verify objects exist in the database
+    assertTrue(repo.findById(ids.get(0).values().iterator().next()).isPresent());
+    assertTrue(repo.findById(ids.get(1).values().iterator().next()).isPresent());
+
+    // verify ownership
+    assertEquals(2, testUser.getOwned().size());
+
+    // verify scene members
+    testUser.getScene().update();
+
+    verify(session, times(3)).sendMessage(any(TextMessage.class));
+    assertEquals(2, testUser.getScene().size());
+    String sceneMessage = getMessage();
+
+    // verify remove command
+    Add addCmd = mapper.readValue(sceneMessage, Add.class);
+    assertEquals(2, addCmd.getObjects().size());
+    VRObject added = addCmd.getObjects().iterator().next();
+    assertEquals(ids.get(0).values().iterator().next(), added.getId());
+    assertNotNull(added.getPosition());
+
+    String remove = "{\"command\":{\"Remove\":{\"objects\":[{\"VRObject\":"
+        + ids.iterator().next().values().iterator().next() + "}]}}}";
+    sendMessage(remove);
+
+    // verify response received
+    verify(session, times(4)).sendMessage(any(TextMessage.class));
+
+    // verify object removed from the database
+    assertFalse(repo.findById(ids.get(0).values().iterator().next()).isPresent());
+    assertTrue(repo.findById(ids.get(1).values().iterator().next()).isPresent());
+
+    // verify ownership
+    assertEquals(1, testUser.getOwned().size());
+
+    // verify scene members
+    testUser.getScene().update();
+
+    verify(session, times(4)).sendMessage(any(TextMessage.class));
+    assertEquals(1, testUser.getScene().size());
+    sceneMessage = getMessage();
+
+    // verify remove command
+    Remove removeCmd = mapper.readValue(sceneMessage, Remove.class);
+    assertEquals(1, removeCmd.getObjects().size());
+    assertEquals(ids.get(0).values().iterator().next(), removeCmd.next().getId());
+  }
+
+  @Test
+  @Transactional
+  public void testMulticast() throws Exception {
+    world.setGuestAllowed(true);
+
+    WebSocketSession session1 = mockup(mock(WebSocketSession.class), "session1");
+    WebSocketSession session2 = mockup(mock(WebSocketSession.class), "session2");
+
+    Long clientId = login();
+    Long cid1 = login(session1);
+    Long cid2 = login(session2);
+    Client client = sessionManager.getClient(clientId);
+    Client user1 = sessionManager.getClient(cid1);
+    Client user2 = sessionManager.getClient(cid2);
+    assertNotNull(client);
+    assertNotNull(user1);
+    assertNotNull(user2);
+
+    // assert they all see each other
+    client.getScene().update();
+    assertEquals(2, client.getScene().size());
+    assertNotNull(client.getScene().get(user1.getObjectId()));
+    assertNotNull(client.getScene().get(user2.getObjectId()));
+    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+
+    user1.getScene().update();
+    assertEquals(2, user1.getScene().size());
+    assertNotNull(user1.getScene().get(client.getObjectId()));
+    assertNotNull(user1.getScene().get(user2.getObjectId()));
+    verify(session1, times(2)).sendMessage(any(WebSocketMessage.class));
+
+    user2.getScene().update();
+    assertEquals(2, user2.getScene().size());
+    assertNotNull(user2.getScene().get(client.getObjectId()));
+    assertNotNull(user2.getScene().get(user1.getObjectId()));
+    verify(session2, times(2)).sendMessage(any(WebSocketMessage.class));
+
+    assertEquals(2, user1.getListeners().size());
+    assertEquals(2, user2.getListeners().size());
+    assertEquals(2, client.getListeners().size());
+
+    // move and verify movement received by listeners but not by self
+    String string = "{\"object\":{\"Client\":" + clientId
+        + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
+    sendMessage(string);
+
+    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+    verify(session1, times(3)).sendMessage(any(WebSocketMessage.class));
+    verify(session2, times(3)).sendMessage(any(WebSocketMessage.class));
+
+    // verify that client's properties have changed in other scenes
+    Point expected = new Point(3, 2, 1);
+    assertEquals(expected, client.getPosition());
+    assertEquals(expected, user1.getScene().get(client.getObjectId()).getPosition());
+    assertEquals(expected, user2.getScene().get(client.getObjectId()).getPosition());
+  }
+}

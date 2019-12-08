@@ -1,0 +1,107 @@
+package org.vrspace.server;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.vrspace.server.dto.VREvent;
+import org.vrspace.server.obj.VRObject;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+
+public class Dispatcher {
+  private static final Log LOG = LogFactory.getLog(Dispatcher.class);
+
+  private ObjectMapper objectMapper = new ObjectMapper();
+
+  // cache of all fields annotated with @Private
+  private Map<Class<?>, Set<String>> privateFields = new ConcurrentHashMap<Class<?>, Set<String>>();
+  // cache of all fields annotated with @Owned
+  private Map<Class<?>, Set<String>> ownedFields = new ConcurrentHashMap<Class<?>, Set<String>>();
+
+  protected void dispatch(VREvent event) throws JsonProcessingException, IOException {
+    // sanity check
+    if (event.getChanges().size() == 0) {
+      throw new IllegalArgumentException("Event must contain changes");
+    }
+    if (event.getChanges().containsKey("id")) {
+      throw new IllegalArgumentException("Object id cannot change");
+    }
+    if (event.getSource() == null) {
+      throw new IllegalArgumentException("Source of event is null");
+    }
+    VRObject source = event.getSource();
+
+    // ownership check
+    if (!event.getClient().isOwner(source)) {
+      if (source.getClass().isAnnotationPresent(Owned.class)) {
+        throw new SecurityException("Cannot change owned object'");
+      } else {
+        declaredFields(source.getClass(), Owned.class, ownedFields).forEach(key -> {
+          if (event.getChanges().containsKey(key)) {
+            throw new SecurityException("Cannot change owned field '" + key + "'");
+          }
+        });
+      }
+    }
+
+    String payload = event.getPayload();
+    String changes = null;
+
+    if (payload == null) {
+      // internally generated event
+      changes = objectMapper.writeValueAsString(event.getChanges());
+    } else {
+      // this came over client connection
+      // something like
+      // {"object":{"VRObject":1},"changes":{"field1":"value2","field2":5,...}}
+      // so we speed it up a bit
+      try {
+        changes = payload.substring(payload.indexOf("{", payload.indexOf("}")), payload.length() - 1);
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Invalid event payload: " + payload, e);
+      }
+      LOG.debug("Processing changes " + changes);
+    }
+
+    // merge changes
+    ObjectReader reader = objectMapper.readerForUpdating(source);
+    reader.readValue(changes);
+
+    // remove all private changes before dispatching
+    declaredFields(source.getClass(), Private.class, privateFields).forEach(event.getChanges()::remove);
+
+    // and then notify listeners
+    if (event.getChanges().size() > 0) {
+      source.notifyListeners(event);
+    }
+  }
+
+  // returns Set of annotated private fields on class
+  private Set<String> declaredFields(Class<?> cls, Class<? extends Annotation> annotation,
+      Map<Class<?>, Set<String>> fieldCache) {
+    Set<String> ret = fieldCache.get(cls);
+    if (ret == null) {
+      ret = new LinkedHashSet<String>(1);
+      if (cls.getSuperclass() != null) {
+        ret = declaredFields(cls.getSuperclass(), annotation, fieldCache);
+      }
+      for (Field f : cls.getDeclaredFields()) {
+        if (f.getAnnotation(annotation) != null) {
+          ret.add(f.getName());
+        }
+      }
+      fieldCache.put(cls, ret);
+    }
+    return ret;
+  }
+
+}

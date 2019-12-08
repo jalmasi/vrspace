@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Files</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="d-flex float-right bg-white" style="position: sticky; top: 0;">
+<label class="btn btn-primary">upload<input id="uploadFiles" type="file" hidden multiple onchange="upload()"></label>
+</div>
+
+<div class="d-flex" id="buttons" style="position: sticky; top: 0;">
+</div>
+
+<div class="table-responsive">
+	<table class="table table-sm table-fixed">
+    <thead id="tableHead" hidden>
+      <tr><th colspan=3>
+        <div class="progress">
+          <div id="uploadProgress" class="progress-bar progress-bar-striped" role="progressbar" style="width:40%">
+          </div>
+        </div>
+      </th></tr>
+    </thead>
+	  <tbody id="files" style="overflow-y:auto;">
+	  </tbody>
+	</table>
+</div>
+
+</div>
+
+
+<script>
+var root = "/pub/";
+var response;
+var dirs=[root];
+var selected=0;
+
+var xhr = new XMLHttpRequest();
+xhr.open("POST", root);
+
+xhr.onload = function() {
+	console.log(xhr.responseText);
+  if ( xhr.status == 200 ) {
+	  
+	  var contentType = xhr.getResponseHeader("Content-Type");
+	  if ( "application/json" === contentType ) {
+	    response = JSON.parse(xhr.responseText);
+	    //console.log(response.path+":"+response.contentList.length);
+	  
+	    var html = "";
+	    var path = getPath();
+	    for ( var i = 0; i < response.contentList.length; i++ ) {
+	      var file = response.contentList[i];
+	      if( 'dir' === file.contentType ) {
+          html += '<tr><td><a href="javascript:cd('+i+')">'+file.fileName+'</a></td><td>'+file.contentType+'</td><td>'+file.length+'</td></tr>';
+	      } else {
+          html += '<tr><td><a href="'+path+file.fileName+'">'+file.fileName+'</a></td><td>'+file.contentType+'</td><td>'+file.length+'</td></tr>';
+	      }
+	    }
+	    document.getElementById('files').innerHTML = html;
+	    drawButtons();
+	  } else {
+		  // TODO report errors
+	  }
+	} else {
+		// TODO report errors
+	}
+}
+xhr.send();
+
+function cd(index) {
+	var dir = response.contentList[index].fileName;
+	if ( selected < dirs.length - 1 ) {
+		dirs = dirs.slice(0,selected+1);
+	}
+	dirs.push(dir);
+	var path = getPath();
+	console.log("cd "+dir+" -> "+path);
+	xhr.open("POST",path);
+	xhr.send();
+  selected = dirs.length-1;
+}
+
+function dl(index) {
+  var file = getPath()+response.contentList[index].fileName;
+  console.log("get "+file);
+  xhr.open("GET",file);
+  xhr.send();
+}
+
+function getPath(depth) {
+	if ( typeof depth === 'undefined') {
+		depth = dirs.length-1;
+	}
+  var path = root;
+  for ( var i = 1; i <= depth; i++ ) {
+    path += dirs[i]+"/";
+  }
+  return path;
+}
+
+function setDir(index) {
+	var path = getPath(index);
+  console.log("setDir "+index+" -> "+path);
+  selected = index;
+  xhr.open("POST",path);
+  xhr.send();
+}
+
+function drawButtons() {
+	var div = document.getElementById("buttons");
+	var html = "";
+	for ( var i = 0; i < dirs.length; i++ ) {
+		if ( i == selected ) {
+		  html += '<button class="btn btn-primary" type="button" onclick="javascript:setDir('+(dirs.length-1)+')">'+dirs[i]+'</button>';
+		} else {
+	    html += '<button class="btn btn-light" type="button" onclick="javascript:setDir('+i+')">'+dirs[i]+'</button>';
+		}
+	}
+	div.innerHTML = html;
+}
+
+var loading = 0;
+var loaded = 0;
+
+function startProgress() {
+	if ( document.getElementById("tableHead").hidden ) {
+    document.getElementById("tableHead").hidden=false;
+	}
+	showProgress();
+}
+function endProgress() {
+	loaded++;
+	showProgress();
+	if ( loading <= loaded ) {
+		loading = 0;
+		loaded = 0;
+		document.getElementById("tableHead").hidden=true;
+	}
+}
+function showProgress() {
+	var bar = document.getElementById("uploadProgress");
+	bar.style = "width:"+(loaded/loading*100)+"%;";
+	bar.innerHTML=loaded+"/"+loading;
+}
+
+function upload() {
+	console.log("uploading...");
+	var input = document.getElementById("uploadFiles");
+	var files = input.files;
+	const path = getPath(selected);
+	loading = 0;
+	for ( var i = 0; i < files.length; i++ ) {
+		loading++;
+		const file = files[i];
+		console.log(file.name+" "+file.size);
+		const reader = new FileReader();
+		reader.onload = function(e) {
+      var form = new FormData();
+      form.append("fileName", file.name);
+      form.append("fileSize", file.size);
+      form.append("fileData", new Blob([e.target.result]));
+      var put = new XMLHttpRequest();
+      put.onloadstart = function(e) {
+    	  startProgress();
+    	}
+    	put.onloadend = function(e) {
+        endProgress();
+    	}
+			put.open("PUT",path);
+			put.send(form);
+		};
+		reader.readAsArrayBuffer(file);
+	}
+}
+
+</script>
+</body>
