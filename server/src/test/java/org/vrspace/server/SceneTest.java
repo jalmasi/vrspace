@@ -79,13 +79,13 @@ public class SceneTest {
     assertEquals(2, add.getObjects().size());
 
     VRObject t = add.getObjects().get(0);
-    assertEquals(new Long(1), t.getId());
+    assertEquals(Long.valueOf(1), t.getId());
 
     assertNotNull(t.getChildren());
     assertEquals(1, t.getChildren().size());
-    assertEquals(new Long(11), t.getChildren().get(0).getId());
+    assertEquals(Long.valueOf(11), t.getChildren().get(0).getId());
 
-    assertEquals(new Long(2), add.getObjects().get(1).getId());
+    assertEquals(Long.valueOf(2), add.getObjects().get(1).getId());
 
     // verify that client is event listener on parent and child
     assertNotNull(t.getListeners());
@@ -127,11 +127,11 @@ public class SceneTest {
 
     // verify order of elements (transform comes last)
     assertEquals("VRObject", first.getClassName());
-    assertEquals(new Long(11), first.getId());
+    assertEquals(Long.valueOf(11), first.getId());
 
     ID last = new ID(it.next());
     assertEquals("VRObject", last.getClassName());
-    assertEquals(new Long(1), last.getId());
+    assertEquals(Long.valueOf(1), last.getId());
 
     // verify that client is NOT event listener on transform and child
     assertNotNull(t.getListeners());
@@ -151,9 +151,9 @@ public class SceneTest {
     Scene scene = new Scene(world, client);
     scene.update();
     VRObject closest = scene.getClosest(0, 0, 0);
-    assertEquals(new Long(1), closest.getId());
+    assertEquals(Long.valueOf(1), closest.getId());
     closest = scene.getClosest(2, 0, 0);
-    assertEquals(new Long(2), closest.getId());
+    assertEquals(Long.valueOf(2), closest.getId());
     assertNotNull(closest.getPosition());
   }
 
