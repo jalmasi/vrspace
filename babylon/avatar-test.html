@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+    <head>
+      <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+      <meta content="utf-8" http-equiv="encoding">
+    <title>VRSpace Avatar test</title>
+    ﻿<style type="text/css">
+    html, body {
+      width: 100%;
+      height:100%;
+      margin: 0px;
+      padding: 0px;
+    }
+    canvas {
+      width: 98%;
+      height:96%;
+      padding-left: 0;
+      padding-right: 0;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+    }
+    </style>﻿
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+        <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+        <script src="./avatar.js"></script>
+        <script src="./vrspace-ui.js"></script>
+    </head>
+  <body>
+
+  <canvas id="renderCanvas" touch-action="none"></canvas>
+
+<script>
+var character;
+
+var canvas = document.getElementById("renderCanvas"); // Get the canvas element
+//canvas.style.width = '90%';
+//canvas.style.height = '60%';
+var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var shadowGenerator;
+var camera;
+
+var createScene = function () {
+
+  // Create the scene space
+  var scene = new BABYLON.Scene(engine);
+  scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
+
+  // Add a camera to the scene and attach it to the canvas
+  //var camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 2, -10), scene);
+  camera = new BABYLON.ArcRotateCamera("Camera", 0, 2, -3, new BABYLON.Vector3(0, 1, 0), scene);
+  camera.setPosition(new BABYLON.Vector3(0, 2, -3));
+  //var camera = new BABYLON.FlyCamera("FlyCamera", new BABYLON.Vector3(0, 5, -10), scene);
+  camera.maxZ = 100000;
+  camera.setTarget(BABYLON.Vector3.Zero());
+  camera.attachControl(canvas, true);
+  camera.applyGravity = true;
+  //Set the ellipsoid around the camera (e.g. your player's size)
+  //camera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
+  //camera.ellipsoidOffset = -0.2
+  scene.collisionsEnabled = true;
+  camera.checkCollisions = true;
+
+  // Add lights to the scene
+  var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
+  var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), scene);
+
+  // Shadows
+  shadowGenerator = new BABYLON.ShadowGenerator(1024, light2);
+  shadowGenerator.useBlurExponentialShadowMap = true;
+  shadowGenerator.blurKernel = 32;
+
+  // Fog
+  //scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
+
+  // Skybox
+  //var envTexture = new BABYLON.CubeTexture("skybox/horizon_4", scene);
+  //var envTexture = new BABYLON.CubeTexture("mp_drakeq/drakeq", scene);
+  //scene.createDefaultSkybox(envTexture, true, 1000);
+
+  var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, scene);
+  var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+  skyboxMaterial.backFaceCulling = false;
+  skyboxMaterial.disableLighting = true;
+  skybox.material = skyboxMaterial;
+  skybox.infiniteDistance = true;
+  skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../content/skybox/mp_drakeq/drakeq", scene);
+  //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("skybox/horizon_4", scene);
+  skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+
+  //Ground
+  var ground = BABYLON.Mesh.CreatePlane("ground", 200.0, scene);
+  ground.material = new BABYLON.StandardMaterial("groundMat", scene);
+  ground.material.diffuseColor = new BABYLON.Color3(.5, 1, .5);
+  ground.material.backFaceCulling = false;
+  ground.material.alpha = 0.5;
+  //ground.position = new BABYLON.Vector3(0, -1, 0);
+  ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+  ground.checkCollisions = true;
+  ground.receiveShadows = true;
+
+  return scene;
+};
+
+var animationButtons = function(avatar) {
+  var animations = document.getElementById("animations");
+  var html = ""
+  for ( i = 0; i < avatar.character.animationGroups.length; i++ ) {
+    var group = avatar.character.animationGroups[i];
+    //console.log("Animation group: "+group.name+" "+group.isPlaying);
+    var checked = "";
+    if ( group.isPlaying ) {
+      checked="checked";
+    }
+    avatar.processAnimations(group.targetedAnimations);
+    html = html +'<div style="background:rgba(100,100,100,0.5);color:white;"><input type="checkbox" '+checked+' onClick="startAnimation(\''+group.name+'\')"/>'+group.name+'</div>';
+  }
+  animations.innerHTML = html;
+}
+
+var startAnimation = function(animationName) {
+  character.startAnimation(animationName);
+  // TODO don't draw buttons every time?
+  animationButtons(character);
+}
+
+var angle = 0;
+var characters;
+
+var replaceAvatar = function() {
+  var index = document.getElementById("avatarName").value;
+  var folder = characters[index];
+  console.log(folder);
+  var loaded = new Avatar(scene, folder, shadowGenerator);
+  loaded.debug = true;
+  loaded.load((c) => {
+    angle = 0;
+    character = loaded.replace(character);
+    animationButtons(character);
+  } );
+};
+
+VRSPACEUI.listCharacters( '../content/char', function(avatars) {
+  characters = avatars;
+  for ( var i=0; i < avatars.length; i++ ) {
+    var sel = document.getElementById("avatarName");
+    sel.children[0].disabled = true;
+    var opt = document.createElement('option');
+    opt.appendChild( document.createTextNode(i+". "+avatars[i].name ));
+    opt.value=i;
+    sel.appendChild(opt);
+  }
+});
+
+var scene = createScene();
+var leftSphere = BABYLON.MeshBuilder.CreateSphere("leftTarget", {diameter:0.2}, scene);
+var rightSphere = BABYLON.MeshBuilder.CreateSphere("rightTarget", {diameter:0.2}, scene);
+leftSphere.position = new BABYLON.Vector3(-0.3,1.5,-0.4)
+rightSphere.position = new BABYLON.Vector3(0.3,1.8,-0.1)
+
+scene.onPointerPick = (e,p) => {
+  if ( p.pickedMesh == leftSphere ) {
+    character.body.leftArm.pointerQuat = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,angle);
+    console.log("Angle: "+angle);
+    angle += .1;
+    //character.userHeight = 2.5;
+    //character.resize();
+    //character.crouch(0.5);
+    character.reachFor(character.body.leftArm, leftSphere.position);
+    character.lookAt(leftSphere.position);
+  }
+  if ( p.pickedMesh == rightSphere ) {
+    character.body.rightArm.pointerQuat = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,angle);
+    console.log("Angle: "+angle);
+    angle += .1;
+    //character.userHeight = 1.2;
+    //character.resize();
+    //character.standUp();
+    //character.rise(0.5);
+    character.reachFor(character.body.rightArm, rightSphere.position);
+    character.lookAt(rightSphere.position);
+  }
+}
+
+// Register a render loop to repeatedly render the scene
+engine.runRenderLoop(function () {
+    scene.render();
+});
+
+// Watch for browser/canvas resize events
+window.addEventListener("resize", function () {
+    engine.resize();
+});
+
+function debugOnOff() {
+  console.log("Debug: "+scene.debugLayer.isVisible());
+  if ( scene.debugLayer.isVisible() ) {
+    scene.debugLayer.hide();
+  } else {
+    scene.debugLayer.show();
+  }
+}
+
+</script>
+<div style="position: absolute;top:10px;left: 40%;">
+  <select id="avatarName" name="avatarName" onChange="replaceAvatar()">
+    <option selected>Avatar</option>
+  </select>
+</div>
+<div id="animations" style="position: absolute;top:10px;text-align: left;right:20%;width: 15%; float:right;">
+</div>
+<div style="position:absolute;bottom:10px;right:50%;">
+<button onClick="debugOnOff()">Debug</button>
+</div>
+</body>
+</html>

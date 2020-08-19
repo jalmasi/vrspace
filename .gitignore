@@ -29,3 +29,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### VRSpace temporary files ###
+vrspace.db

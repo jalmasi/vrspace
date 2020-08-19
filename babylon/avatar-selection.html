@@ -1,0 +1,515 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+    <head>
+      <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+      <meta content="utf-8" http-equiv="encoding">
+    <title>VRSpace:Selection</title>
+    <style type="text/css">
+    html, body {
+      width: 100%;
+      height:100%;
+      margin: 0px;
+      padding: 0px;
+    }
+    canvas {
+      width: 98%;
+      height:96%;
+      padding-left: 0;
+      padding-right: 0;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+    }
+    </style>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="./avatar.js"></script>
+    <script src="./vrspace-ui.js"></script>
+    </head>
+  <body>
+
+  <!-- canvas is not focusable by default, tabIndex does that -->
+  <canvas id="renderCanvas" touch-action="none" tabIndex=0></canvas>
+
+<script>
+var canvas = document.getElementById("renderCanvas"); // Get the canvas element
+// focus canvas so we get keyboard events, otherwise need to click on it first
+canvas.focus();
+var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var scene;
+var ground;
+var character;
+var animationSelection;
+
+var leftController;
+var rightController;
+
+var trackTime = Date.now();
+//var trackDelay = 1000; // 1 fps
+//var trackDelay = 100; // 10 fps
+//var trackDelay = 40; // 25 fps
+var trackDelay = 20; // 50 fps
+
+var maxCameraPos;
+var prevCameraPos;
+var jumping;
+
+var vrHelper;
+var inXR = false;
+var mirror = true;
+
+var initXR = async function(scene) {
+  const xrHelper = await scene.createDefaultXRExperienceAsync({floorMeshes:[ground]});
+
+  console.log(xrHelper);
+
+  vrHelper = xrHelper;
+
+  if (xrHelper.baseExperience) {
+    console.log("Using XR helper");
+
+    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+        console.log( "State: "+state );
+        switch (state) {
+            case BABYLON.WebXRState.IN_XR:
+                // XR is initialized and already submitted one frame
+                console.log( "Entered VR" );
+                // Workaround for teleporation/selection bug
+                xrHelper.teleportation.setSelectionFeature(null);
+                // track controllers and camera
+                scene.registerBeforeRender(trackXrDevices);
+                inXR = true;
+                // copy location from web camera
+                //xrHelper.baseExperience.camera.setTransformationFromNonVRCamera(camera);
+                break;
+            case BABYLON.WebXRState.ENTERING_XR:
+                // xr is being initialized, enter XR request was made
+                console.log( "Entering VR" );
+                break;
+            case BABYLON.WebXRState.EXITING_XR:
+                // edge has issues with this, before entering it exits
+                // xr exit request was made. not yet done.
+                scene.unregisterBeforeRender(trackXrDevices);
+                console.log( "Exiting VR" );
+                inXR = false;
+                // make HUD track UniversalCamera
+                //scene.unregisterBeforeRender(trackXrCamera);
+                //scene.registerBeforeRender(trackWebCamera);
+                break;
+            case BABYLON.WebXRState_NOT_IN_XR:
+                console.log( "Not in VR" );
+                // self explanatory - either out or not yet in XR
+                break;
+        }
+    });
+
+    xrHelper.input.onControllerAddedObservable.add((xrController /* WebXRController instance */ ) => {
+      console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
+      console.log(xrController);
+      if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
+        leftController = xrController;
+      } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
+        rightController = xrController;
+      } else {
+        log("ERROR: don't know how to handle controller");
+      }
+    });
+
+    var trackXrDevices = function() {
+      if ( trackTime + trackDelay < Date.now()
+          && character
+          && character.body
+          && character.body.processed
+          && ! character.activeAnimation
+        ) {
+        trackTime = Date.now();
+        // CHECKME: mirror left-right
+        if ( leftController ) {
+          if ( mirror ) {
+            var leftPos = calcControllerPos( character.body.leftArm, leftController );
+            character.reachFor( character.body.leftArm, leftPos );
+          } else {
+            var leftPos = calcControllerPos( character.body.rightArm, leftController );
+            character.reachFor( character.body.rightArm, leftPos );
+          }
+        }
+        if ( rightController ) {
+          if ( mirror ) {
+            var rightPos = calcControllerPos( character.body.rightArm, rightController );
+            character.reachFor( character.body.rightArm, rightPos );
+          } else {
+            var rightPos = calcControllerPos( character.body.leftArm, rightController );
+            character.reachFor( character.body.leftArm, rightPos );
+          }
+        }
+        character.lookAt( calcCameraTarget() );
+        trackHeight();
+      }
+    }
+
+    var trackHeight = function() {
+      //var cameraPos = xrHelper.input.xrCamera.position.y;
+      var cameraPos = xrHelper.input.xrCamera.realWorldHeight;
+      if ( maxCameraPos ) {
+        var delta = cameraPos-prevCameraPos;
+        var speed = delta/trackDelay*1000;
+        if ( cameraPos > maxCameraPos && Math.abs(speed) > 1 ) {
+          character.jump(cameraPos - maxCameraPos);
+          jumping = Date.now();
+        } else if ( jumping ) {
+          var delay = Date.now() - jumping;
+          if ( cameraPos <= maxCameraPos && delay > 300 ) {
+            character.standUp();
+            jumping = null;
+          } else {
+            character.jump(cameraPos - maxCameraPos);
+          }
+        } else {
+          if ( delta > 0 ) {
+            character.rise(delta);
+          } else if ( delta < 0 ) {
+            character.crouch(-delta);
+          }
+        }
+
+      } else {
+        maxCameraPos = cameraPos;
+      }
+      prevCameraPos = cameraPos;
+    }
+
+    var calcCameraTarget = function() {
+      var cameraQuat = xrHelper.input.xrCamera.rotationQuaternion;
+      var target = new BABYLON.Vector3(0,xrHelper.input.xrCamera.realWorldHeight,1);
+      target.rotateByQuaternionAroundPointToRef(cameraQuat,character.headPos(),target);
+      if ( mirror ) {
+        target.z = -target.z;
+      }
+      return target;
+    }
+
+    var calcControllerPos = function( arm, xrController ) {
+      var cameraPos = xrHelper.input.xrCamera.position;
+      // this calc swaps front-back, like mirror image
+      var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
+      var armLength = arm.lowerArmLength+arm.upperArmLength;
+      if ( mirror ) {
+        pos.z = - pos.z;
+      }
+
+      var pointerQuat = xrController.pointer.rotationQuaternion;
+      arm.pointerQuat = pointerQuat;
+
+      return pos;
+    }
+
+
+  } else {
+    vrHelper = scene.createDefaultVRExperience({createDeviceOrientationCamera: false });
+    console.log("Using VR helper");
+  }
+
+};
+
+var createScene = async function () {
+
+  // Create the scene space
+  var scene = new BABYLON.Scene(engine);
+  scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
+
+  // Add a camera to the scene and attach it to the canvas
+   camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 2, -3), scene);
+  //camera = new BABYLON.ArcRotateCamera("Camera", 0, 2, -3, new BABYLON.Vector3(0, 1, 0), scene);
+  //camera.setPosition(new BABYLON.Vector3(0, 2, -3));
+  //var camera = new BABYLON.FlyCamera("FlyCamera", new BABYLON.Vector3(0, 5, -10), scene);
+  camera.maxZ = 100000;
+  camera.minZ = 0;
+  camera.setTarget(new BABYLON.Vector3(0,1.5,0));
+  camera.attachControl(canvas, true);
+  camera.applyGravity = false;
+  //Set the ellipsoid around the camera (e.g. your player's size)
+  //camera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
+  //camera.ellipsoidOffset = -0.2
+  scene.collisionsEnabled = true;
+  camera.checkCollisions = true;
+
+  // Add lights to the scene
+  var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
+  var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), scene);
+
+  // Shadows
+  shadowGenerator = new BABYLON.ShadowGenerator(1024, light2);
+  shadowGenerator.useBlurExponentialShadowMap = true;
+  shadowGenerator.blurKernel = 32;
+
+  var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, scene);
+  skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
+  var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+  skyboxMaterial.backFaceCulling = false;
+  skyboxMaterial.disableLighting = true;
+  skybox.material = skyboxMaterial;
+  skybox.infiniteDistance = true;
+  skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../content/skybox/mp_drakeq/drakeq", scene);
+  //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("skybox/horizon_4", scene);
+  skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+
+  //Ground
+  ground = BABYLON.Mesh.CreatePlane("ground", 20, scene);
+  ground.material = new BABYLON.StandardMaterial("groundMat", scene);
+  var groundTexture = new BABYLON.CloudProceduralTexture("cloud", 1024, scene);
+  ground.material.ambientTexture = groundTexture;
+
+  //ground.material.diffuseColor = new BABYLON.Color3(.5, 1, .5);
+  //ground.material.backFaceCulling = false;
+  ground.material.alpha = 0.5;
+  ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+  ground.checkCollisions = true;
+  ground.receiveShadows = true;
+
+  // Register a render loop to repeatedly render the scene
+  engine.runRenderLoop(function () {
+    if (scene) scene.render();
+  });
+
+  return scene;
+}
+
+class Buttons {
+  constructor(scene,title,options,callback,property) {
+    this.scene = scene;
+    this.title = title;
+    this.options = options;
+    this.callback = callback;
+    this.property = property;
+    this.buttonHeight = 1;
+    this.group = new BABYLON.TransformNode(this.title, scene);
+    this.groupWidth = 0;
+    this.buttons = [];
+    this.selectedOption = -1;
+    this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    this.turOff = false;
+    this.display();
+  }
+
+  setHeight(height) {
+    var scale = height/this.options.length;
+    this.group.scaling = new BABYLON.Vector3(scale, scale, scale);
+  }
+
+  display() {
+    var buttonHeight = 1;
+    var spacing = 1.1;
+
+    var selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", scene);
+    selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
+    var unselectedMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
+    unselectedMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.2);
+
+    if ( this.title && this.title.length > 0 ) {
+      var titleText = new BABYLON.GUI.TextBlock();
+      titleText.text = this.title;
+      titleText.textHorizontalAlignment = this.horizontalAlignment;
+      titleText.textVerticalAlignment = this.verticalAlignment;
+      titleText.color = "white";
+
+      var titlePlane = BABYLON.MeshBuilder.CreatePlane("Text"+this.title, {height:2,width:this.title.length*2}, scene);
+      titlePlane.parent = this.group;
+      titlePlane.position = new BABYLON.Vector3(this.title.length,spacing*2,0);
+
+      var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
+        titlePlane,
+        titleText.fontSizeInPixels * titleText.text.length,
+        titleText.fontSizeInPixels,
+        false // mouse events disabled
+      );
+      titleTexture.addControl(titleText);
+    }
+
+    for ( var i = 0; i < this.options.length; i ++ ) {
+      if ( this.property ) {
+        var option = this.options[i][this.property];
+      } else {
+        var option = this.options[i];
+      }
+      this.groupWidth = Math.max( this.groupWidth, option.length);
+      var buttonText = new BABYLON.GUI.TextBlock();
+      buttonText.text = option;
+      buttonText.textHorizontalAlignment = this.horizontalAlignment;
+      buttonText.textVerticalAlignment = this.verticalAlignment;
+
+      var buttonWidth = buttonText.text.length;
+      var buttonPlane = BABYLON.MeshBuilder.CreatePlane("Text"+option, {height:1,width:buttonWidth}, scene);
+      buttonPlane.position = new BABYLON.Vector3(buttonWidth/2+buttonHeight,-i*spacing,0);
+      buttonText.color="white";
+      buttonPlane.parent = this.group;
+
+      var aTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
+        buttonPlane,
+        buttonText.fontSizeInPixels*buttonText.text.length,
+        buttonText.fontSizeInPixels+2, // CHECKME: padding or something?
+        false // mouse events disabled
+      );
+      aTexture.addControl(buttonText);
+
+      var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:buttonHeight*.8}, scene);
+      button.material = unselectedMaterial;
+      button.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
+      button.position = new BABYLON.Vector3(buttonHeight/2, -i*spacing, 0);
+      button.parent = this.group;
+      this.buttons.push(button);
+    }
+
+    scene.onPointerObservable.add( (e) => {
+      if(e.type == BABYLON.PointerEventTypes.POINTERDOWN){
+        var p = e.pickInfo;
+        for ( var i = 0; i < this.options.length; i++ ) {
+          if ( p.pickedMesh == this.buttons[i] ) {
+            // we may want to handle double click somehow
+            if ( i != this.selectedOption || this.turnOff) {
+              console.log("Selected: "+this.options[i]);
+              if ( this.callback ) {
+                this.callback(this.options[i]);
+              }
+              this.buttons[i].material = selectedMaterial;
+              if ( this.selectedOption > -1 ) {
+                this.buttons[this.selectedOption].material = unselectedMaterial;
+              }
+              if ( i != this.selectedOption ) {
+                this.selectedOption = i;
+              } else {
+                this.selectedOption = -1;
+              }
+            }
+            break;
+          }
+        }
+      }
+    });
+
+    //this.group.position = new BABYLON.Vector3(0,this.options.length,0);
+    console.log("Group width: "+this.groupWidth);
+  }
+
+  dispose() {
+    this.group.dispose();
+  }
+
+}
+
+function createSelection(scene) {
+  VRSPACEUI.listCharacters( '../content/char', function(avatars) {
+    var buttons = new Buttons(scene,"Avatars",avatars,loadCharacter,"name");
+    buttons.setHeight(2);
+    buttons.group.position = new BABYLON.Vector3(1,2.2,-.5);
+  });
+}
+
+function loadCharacter(dir) {
+  console.log("Loading character from "+dir);
+  var loaded = new Avatar(scene, dir, shadowGenerator);
+  loaded.load( (c) => {
+    if ( ! character ) {
+      addCharacterButtons(scene);
+    }
+    character = loaded.replace(character);
+    animationButtons(character);
+  });
+}
+
+function animationButtons(avatar) {
+  var names = []
+  var playing;
+  for ( i = 0; i < avatar.getAnimationGroups().length; i++ ) {
+    var group = avatar.getAnimationGroups()[i];
+    names.push(group.name);
+    //console.log("Animation group: "+group.name+" "+group.isPlaying);
+    if ( group.isPlaying ) {
+      playing = i;
+    }
+    avatar.processAnimations(group.targetedAnimations);
+  }
+  console.log("Animations: "+names);
+  if ( animationSelection ) {
+    animationSelection.dispose();
+  }
+  animationSelection = new Buttons(scene,"Animations",names, startAnimation);
+  animationSelection.turnOff = true;
+  animationSelection.setHeight(Math.min(2,names.length/10));
+  animationSelection.group.position = new BABYLON.Vector3(-2,2.2,-.5);
+}
+
+function startAnimation(name) {
+  character.startAnimation(name);
+}
+
+// Watch for browser/canvas resize events
+window.addEventListener("resize", function () {
+  engine.resize();
+});
+
+function addCharacterButtons() {
+  var manager = new BABYLON.GUI.GUI3DManager(scene);
+  var resizeButton = new BABYLON.GUI.HolographicButton("resizeButton");
+  resizeButton.contentResolution = 128;
+  resizeButton.contentScaleRatio = 1;
+  resizeButton.text = "Resize";
+  manager.addControl(resizeButton);
+
+  resizeButton.position = new BABYLON.Vector3( -0.5,0,-1 );
+  resizeButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
+  resizeButton.onPointerDownObservable.add( function() {
+    if ( inXR ) {
+      var cameraPos = vrHelper.input.xrCamera.realWorldHeight;
+      character.userHeight = cameraPos;
+      character.resize();
+      maxCameraPos = null;
+    }
+  });
+
+  var mirrorButton = new BABYLON.GUI.HolographicButton("mirrorButton");
+  mirrorButton.contentResolution = 128;
+  mirrorButton.contentScaleRatio = 1;
+  mirrorButton.text = "Mirroring";
+  manager.addControl(mirrorButton);
+
+  mirrorButton.position = new BABYLON.Vector3( 0.5,0,-1 );
+  mirrorButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
+  mirrorButton.onPointerDownObservable.add( function() {
+      // TODO: rotate character, (un)set mirror var
+      if ( mirrorButton.text == "Mirroring" ) {
+        mirrorButton.text = "Copying";
+        mirror = false;
+        character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, 0);
+      } else {
+        mirrorButton.text = "Mirroring";
+        mirror = true;
+        character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI);
+      }
+  });
+}
+
+createScene().then( (s) => {
+  scene = s;
+  initXR(scene);
+  createSelection(scene);
+});
+
+function debugOnOff() {
+  console.log("Debug: "+scene.debugLayer.isVisible());
+  if ( scene.debugLayer.isVisible() ) {
+    scene.debugLayer.hide();
+  } else {
+    scene.debugLayer.show();
+  }
+}
+
+</script>
+<div style="position:absolute;bottom:10px;right:50%;">
+<button onClick="debugOnOff()">Debug</button>
+</div>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+    <head>
+      <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+      <meta content="utf-8" http-equiv="encoding">
+    <title>VRSpace:Console</title>
+    <style type="text/css">
+    html, body {
+      width: 100%;
+      height:100%;
+      margin: 0px;
+      padding: 0px;
+    }
+    canvas {
+      width: 98%;
+      height:96%;
+      padding-left: 0;
+      padding-right: 0;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+    }
+    </style>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    </head>
+  <body>
+
+  <!-- canvas is not focusable by default, tabIndex does that -->
+  <canvas id="renderCanvas" touch-action="none" tabIndex=0></canvas>
+
+<script>
+var canvas = document.getElementById("renderCanvas"); // Get the canvas element
+// focus canvas so we get keyboard events, otherwise need to click on it first
+canvas.focus();
+var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var scene;
+var consoleText = "";
+var textBlock;
+var trackCamera = true;
+
+var createScene = async function () {
+
+  // Create the scene space
+  var scene = new BABYLON.Scene(engine);
+  //scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
+
+  // Add a camera to the scene and attach it to the canvas
+  var camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 2, -2), scene);
+  //var camera = new BABYLON.FlyCamera("FlyCamera", new BABYLON.Vector3(0, 5, -10), scene);
+  camera.maxZ = 100000;
+  camera.minZ = 0;
+  camera.setTarget(BABYLON.Vector3.Zero());
+  camera.attachControl(canvas, true);
+  camera.applyGravity = false;
+  //Set the ellipsoid around the camera (e.g. your player's size)
+  //camera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
+  //camera.ellipsoidOffset = -0.2
+  scene.collisionsEnabled = true;
+  camera.checkCollisions = true;
+
+  // Add lights to the scene
+  var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
+  var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), scene);
+
+  scene.onKeyboardObservable.add((kbInfo) => {
+    switch (kbInfo.type) {
+        case BABYLON.KeyboardEventTypes.KEYDOWN:
+            console.log("KEY DOWN: ", kbInfo.event.key);
+            switch (kbInfo.event.key) {
+              case "Shift":
+                break;
+              case "CapsLock":
+                break;
+              case "Alt":
+                break;
+              case "Control":
+                break;
+              case "Tab": // TODO
+                break;
+              case "Insert":
+                break;
+              case "Delete":
+                break;
+              case "ArrowLeft":
+                break;
+              case "ArrowRight":
+                break;
+              case "ArrowUp":
+                break;
+              case "ArrowDown":
+                break;
+              case "Backspace": // intercepted by browser, history back
+                break;
+              case "PrintScreen": // intercepted by windows
+                break;
+              case "Fsometing": // (some) function keys intercepted by browser
+                break;
+              case "NumLock":
+                break;
+              case "Home":
+                break;
+              case "End":
+                break;
+              case "PageUp":
+                break;
+              case "PageDown":
+                break;
+              case "Pause":
+                break;
+              case "OS": // windows/meta
+                break;
+              case "ContextMenu": // windows something
+                break;
+              case "Enter":
+                consoleText += "\n";
+                textBlock.text = consoleText;
+                break;
+              default:
+                // hopefully only normal keys remaining
+                consoleText += kbInfo.event.key;
+                textBlock.text = consoleText;
+                break;
+            }
+            break;
+        case BABYLON.KeyboardEventTypes.KEYUP:
+            console.log("KEY UP: ", kbInfo.event.keyCode);
+            break;
+    }
+  });
+
+  var reference = BABYLON.Mesh.CreateSphere();
+
+  var consoleSize = .2;
+  var consoleX = -.05;
+  var consoleZ = .3;
+
+  // entire HUD moves along with camera
+  var hud = new BABYLON.TransformNode("HUD", scene);
+  // group contains all console meshes
+  var consoleGroup = new BABYLON.TransformNode("ConsoleGroup", scene);
+  consoleGroup.parent = hud;
+  consoleGroup.position = new BABYLON.Vector3(consoleX, 0, consoleZ);
+
+  var hudMaterial = new BABYLON.StandardMaterial("hudMaterial", scene);
+  hudMaterial.alpha = .7;
+  hudMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.3);
+
+  var selectedMaterial = new BABYLON.StandardMaterial("selectedMaterial", scene);
+  selectedMaterial.alpha = .7;
+  selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
+
+  var alertMaterial = new BABYLON.StandardMaterial("selectedMaterial", scene);
+  alertMaterial.alpha = .7;
+  alertMaterial.diffuseColor = new BABYLON.Color3(.3, 0, 0);
+
+  var hudConsole = BABYLON.Mesh.CreatePlane("console", consoleSize, scene);
+  //hudConsole.position = new BABYLON.Vector3(consoleX, 0, consoleZ);
+  hudConsole.parent = consoleGroup;
+
+  var hudBackground = BABYLON.Mesh.CreatePlane("consoleBackground", consoleSize*1.05, scene);
+  //hudBackground.position = new BABYLON.Vector3(consoleX, 0, consoleZ+consoleSize/100);
+  hudBackground.position = new BABYLON.Vector3(0, 0, consoleSize/100);
+  hudBackground.parent = consoleGroup;
+  hudBackground.material = hudMaterial;
+
+  var leftHandle = BABYLON.Mesh.CreateSphere("leftHandle");
+  leftHandle.scaling = new BABYLON.Vector3(consoleSize/50,consoleSize,consoleSize/50);
+  //leftHandle.position = new BABYLON.Vector3(consoleX-consoleSize/2-consoleSize/20, 0, consoleZ);
+  leftHandle.position = new BABYLON.Vector3(-consoleSize/2-consoleSize/20, 0, 0);
+  leftHandle.parent = consoleGroup;
+  leftHandle.material = hudMaterial;
+
+  var rightHandle = BABYLON.Mesh.CreateSphere("rightHandle");
+  rightHandle.scaling = new BABYLON.Vector3(consoleSize/50,consoleSize,consoleSize/50);
+  //rightHandle.position = new BABYLON.Vector3(consoleX+consoleSize/2+consoleSize/20, 0, consoleZ);
+  rightHandle.position = new BABYLON.Vector3(consoleSize/2+consoleSize/20, 0, 0);
+  rightHandle.parent = consoleGroup;
+  rightHandle.material = hudMaterial;
+
+  var topHandle = BABYLON.Mesh.CreateSphere("topHandle");
+  topHandle.scaling = new BABYLON.Vector3(consoleSize,consoleSize/50,consoleSize/50);
+  //topHandle.position = new BABYLON.Vector3(consoleX, consoleSize/2+consoleSize/20, consoleZ);
+  topHandle.position = new BABYLON.Vector3(0, consoleSize/2+consoleSize/20, 0);
+  topHandle.parent = consoleGroup;
+  topHandle.material = hudMaterial;
+
+  var bottomHandle = BABYLON.Mesh.CreateSphere("bottomHandle");
+  bottomHandle.scaling = new BABYLON.Vector3(consoleSize,consoleSize/50,consoleSize/50);
+  //bottomHandle.position = new BABYLON.Vector3(consoleX, -consoleSize/2-consoleSize/20, consoleZ);
+  bottomHandle.position = new BABYLON.Vector3(0, -consoleSize/2-consoleSize/20, 0);
+  bottomHandle.parent = consoleGroup;
+  bottomHandle.material = hudMaterial;
+
+  bottomHandle.opposite = topHandle;
+  topHandle.opposite = bottomHandle;
+  leftHandle.opposite = rightHandle;
+  rightHandle.opposite = leftHandle;
+
+  var handles = [ leftHandle, topHandle, rightHandle, bottomHandle ];
+
+  var trackWebCamera = function () {
+    if ( trackCamera ) {
+      hud.position = camera.position;
+      hud.rotation = camera.rotation;
+      //textBlock.text = "Camera:\nPos="+camera.position+"\nRot="+camera.rotation;
+    }
+  }
+  scene.registerBeforeRender(trackWebCamera);
+
+  var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
+    hudConsole,
+    512,
+    512,
+    false // mouse events disabled
+  );
+
+  textBlock = new BABYLON.GUI.TextBlock();
+
+  const xrHelper = await scene.createDefaultXRExperienceAsync();
+
+  console.log(xrHelper);
+
+  var trackXrCamera = function () {
+    if ( trackCamera ) {
+      // stopped working on 15/02
+      //var cameraPos = xrHelper.baseExperience.camera.getFrontPosition(0);
+      //var cameraRot = xrHelper.baseExperience.camera.rotationQuaternion;
+      var cameraPos = xrHelper.input.xrCamera.position;
+      var cameraRot = xrHelper.input.xrCamera.rotationQuaternion;
+
+      var x = cameraPos.x.toFixed(3);
+      var y = cameraPos.y.toFixed(3);
+      var z = cameraPos.z.toFixed(3);
+      var rotx = cameraRot.x.toFixed(3);
+      var roty = cameraRot.y.toFixed(3);
+      var rotz = cameraRot.z.toFixed(3);
+      var rotw = cameraRot.w.toFixed(3);
+      //textBlock.text = "XR Camera:\nPos="+x+","+y+","+z+"\nRot="+rotx+","+roty+","+rotz+","+rotw
+      hud.position = cameraPos;
+      hud.rotationQuaternion = cameraRot;
+    }
+  }
+
+  var vrHelper = xrHelper;
+  if (xrHelper.baseExperience) {
+    textBlock.text = "Using XR helper";
+    console.log("Using XR helper");
+    //scene.unregisterBeforeRender(trackWebCamera);
+    //scene.registerBeforeRender(trackXrCamera);
+
+    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+        textBlock.text = "State: "+state;
+        switch (state) {
+            case BABYLON.WebXRState.IN_XR:
+                // XR is initialized and already submitted one frame
+                textBlock.text = "Entered VR";
+                // make HUD track XR camera
+                scene.unregisterBeforeRender(trackWebCamera);
+                scene.registerBeforeRender(trackXrCamera);
+                // copy location from web camera
+                //xrHelper.baseExperience.camera.setTransformationFromNonVRCamera(camera);
+            case BABYLON.WebXRState.ENTERING_XR:
+                // xr is being initialized, enter XR request was made
+            case BABYLON.WebXRState.EXITING_XR:
+                // edge has issues with this, before entering it exits
+                // xr exit request was made. not yet done.
+                textBlock.text = "Exited VR";
+                // make HUD track UniversalCamera
+                //scene.unregisterBeforeRender(trackXrCamera);
+                //scene.registerBeforeRender(trackWebCamera);
+            case BABYLON.WebXRState_NOT_IN_XR:
+                // self explanatory - either out or not yet in XR
+        }
+    });
+
+    var initialPosition = null;
+    var trackedController = null;
+    var secondPosition = null;
+    var secondController = null;
+    var invalidController = null;
+
+    var trackController = function() {
+      if ( initialPosition && trackedController ) {
+        var diff = trackedController.grip.absolutePosition.subtract(initialPosition);
+        //debug(diff);
+        consoleGroup.position = diff.add(consoleGroup.position);
+        initialPosition = new BABYLON.Vector3( trackedController.grip.absolutePosition.x, trackedController.grip.absolutePosition.y, trackedController.grip.absolutePosition.z );
+      }
+    }
+
+    var trackResizing = function() {
+      if ( trackedController && secondController ) {
+        var oldDiff = initialPosition.subtract(secondPosition);
+        initialPosition = new BABYLON.Vector3( trackedController.grip.absolutePosition.x, trackedController.grip.absolutePosition.y, trackedController.grip.absolutePosition.z );
+        secondPosition = new BABYLON.Vector3( secondController.grip.absolutePosition.x, secondController.grip.absolutePosition.y, secondController.grip.absolutePosition.z );
+        var newDiff = initialPosition.subtract(secondPosition);
+        // and now we scale for new diff?
+        var scale = 1;
+        if ( trackedController.selectedHandle == rightHandle || trackedController.selectedHandle == leftHandle ) {
+          scale = newDiff.x/oldDiff.x;
+        } else if (trackedController.selectedHandle == topHandle || trackedController.selectedHandle == bottomHandle) {
+          scale = newDiff.y/oldDiff.y;
+        } else {
+          debug("ERROR: can't scale "+trackedController.selectedHandle+" and "+secondController.selectedHandle);
+        }
+        consoleGroup.scaling = consoleGroup.scaling.scale(scale);
+      }
+    }
+
+    // swap tracked controller if button on tracked controller is unsqueezed
+    var checkTrackedController = function( currentController, otherController ) {
+      if ( trackedController == currentController ) {
+        trackedController = otherController;
+        initialPosition = new BABYLON.Vector3( otherController.grip.absolutePosition.x, otherController.grip.absolutePosition.y, otherController.grip.absolutePosition.z );
+      }
+    }
+
+    var isSqueezed = function( controller, handle ) {
+      // motionController.rootMesh can be used instead, same results
+      return controller.grip && controller.grip.intersectsMesh(handle);
+    }
+
+    var findSqueezedHandle = function( controller ) {
+      for ( var i = 0; i < handles.length; i++ ) {
+        if ( isSqueezed( controller, handles[i] ) ) {
+          debug("Found squeezed "+handles[i].name);
+          return handles[i];
+        }
+      }
+    }
+
+    var squeezedAny = function( controller ) {
+      for ( var i = 0; i < handles.length; i++ ) {
+        if ( isSqueezed( controller, handles[i] ) ) {
+          debug("Squeezed "+handles[i].name);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    confirmationPulse = function(motionController) {
+      motionController.pulse(.5,20); // does not work on windows?
+    }
+
+    alertPulse = function(motionController) {
+      motionController.pulse(1,100); // does not work on windows?
+    }
+
+    markSelectedHandle = function(controller, material, handle) {
+      if ( ! handle ) {
+        if ( controller["selectedHandle"] ) {
+          handle = controller.selectedHandle;
+        } else {
+          handle = findSqueezedHandle(controller);
+        }
+      }
+      if ( handle ) {
+        controller.selectedHandle = handle;
+        handle.material = material;
+      } else {
+        debug("WARNING: handle to mark is null");
+      }
+      return handle;
+    }
+
+    unmarkHandle = function(controller) {
+      if ( controller["selectedHandle"] ) {
+        controller.selectedHandle.material = hudMaterial;
+        delete controller.selectedHandle;
+      } else {
+        debug("WARNING: handle to unmark is null");
+      }
+    }
+
+    xrHelper.input.onControllerAddedObservable.add((xrController /* WebXRController instance */ ) => {
+      textBlock.text += "\nController: ";
+      xrController.onMotionControllerInitObservable.add( (motionController) => {
+        textBlock.text += "\nMotionController: ";
+        const squeeze = motionController.getComponentOfType(BABYLON.WebXRControllerComponent.SQUEEZE_TYPE);
+        textBlock.text += "\nSqueeze"+squeeze;
+        squeeze.onButtonStateChangedObservable.add((component /* WebXRControllerComponent */ ) => {
+            // check for changes:
+            // pressed changed?
+            if (component.changes.pressed) {
+              if ( component.pressed ) {
+                // take
+                if ( squeezedAny( xrController )) {
+                  trackCamera = false;
+                  hudMaterial.alpha = 1;
+                  if ( trackedController == null ) {
+                    confirmationPulse(motionController);
+                    // moving
+                    debug("Moving console");
+                    markSelectedHandle(xrController, selectedMaterial);
+                    trackedController = xrController;
+                    initialPosition = new BABYLON.Vector3( xrController.grip.absolutePosition.x, xrController.grip.absolutePosition.y, xrController.grip.absolutePosition.z );
+                    scene.registerBeforeRender(trackController);
+                  } else {
+                    // resizing!
+                    // we can only use the opposite handle for resizing
+                    var selectedHandle = findSqueezedHandle(xrController);
+                    if ( selectedHandle == trackedController.selectedHandle.opposite ) {
+                      confirmationPulse(motionController);
+                      debug("Resizing console");
+                      markSelectedHandle(xrController, selectedMaterial, selectedHandle);
+                      scene.unregisterBeforeRender(trackController);
+                      secondController = xrController;
+                      secondPosition = new BABYLON.Vector3( xrController.grip.absolutePosition.x, xrController.grip.absolutePosition.y, xrController.grip.absolutePosition.z );
+                      scene.registerBeforeRender(trackResizing);
+                    } else {
+                      // error
+                      debug("Wrong handle");
+                      alertPulse(motionController);
+                      markSelectedHandle(xrController, alertMaterial, selectedHandle);
+                      invalidController = xrController;
+                      scene.unregisterBeforeRender(trackController);
+                    }
+                  }
+                }
+              } else if ( trackedController ) {
+                // released
+                if ( secondController != null ) {
+                  debug("Resizing finished");
+                  unmarkHandle(xrController);
+                  confirmationPulse(motionController);
+                  checkTrackedController(xrController, secondController);
+                  // both controllers were used (resizing console)
+                  scene.unregisterBeforeRender(trackResizing);
+                  scene.registerBeforeRender(trackController);
+                  secondController = null;
+                  secondPosition = null;
+                } else if ( invalidController != null ) {
+                  debug("Moving resumes");
+                  markSelectedHandle(invalidController, selectedMaterial);
+                  unmarkHandle(xrController);
+                  confirmationPulse(motionController);
+                  checkTrackedController(xrController, invalidController);
+                  scene.registerBeforeRender(trackController);
+                  invalidController = null;
+                } else if ( trackedController == xrController ) {
+                  debug("Moving finished");
+                  confirmationPulse(motionController);
+                  unmarkHandle(xrController);
+                  // only one controller was used (moving console)
+                  //debug(xrController.grip.absolutePosition);
+                  trackCamera = true;
+                  scene.unregisterBeforeRender(trackController);
+                  trackedController = null;
+                  initialPosition = null;
+                  hudMaterial.alpha = 0.7;
+                } else {
+                  // nothing, squeezed elsewhere
+                }
+              }
+            }
+        });
+      });
+    });
+
+  } else {
+    vrHelper = scene.createDefaultVRExperience({createDeviceOrientationCamera: false });
+    console.log("Using VR helper");
+    textBlock.text = "Using VR helper";
+  }
+
+  //textBlock.text = "Hello world\ntype something";
+  textBlock.color = "white";
+  //textBlock.fontSize = 20; // 25 rows, 22? some 40 chars per row
+  textBlock.fontSize = 16; // 28 rows, 53 chars
+  textBlock.fontFamily = "monospace";
+  textBlock.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+  textBlock.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+  advancedTexture.addControl(textBlock);
+
+  var debug = function( string ) {
+    textBlock.text += "\n"+string;
+  }
+
+  var dump = function( obj ) {
+    for ( var field in obj ) {
+      textBlock.text += "\n"+field+"="+obj[field];
+    }
+  }
+
+  var printVector = function( vector ) {
+    var x = vector.x.toFixed(3);
+    var y = vector.y.toFixed(3);
+    var z = vector.z.toFixed(3);
+    debug("x="+x+",y="+y+",z="+z);
+  }
+
+  // Register a render loop to repeatedly render the scene
+  engine.runRenderLoop(function () {
+    if (scene) scene.render();
+  });
+
+  return scene;
+};
+
+createScene().then( (s) => scene = s );
+
+// Watch for browser/canvas resize events
+window.addEventListener("resize", function () {
+  engine.resize();
+});
+
+</script>
+</body>
+</html>
