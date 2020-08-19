@@ -10,14 +10,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This keeps track of objects visible to the Client.<br>
@@ -26,9 +26,8 @@ import org.vrspace.server.obj.VRObject;
  * Scene is updated when client moves more than <b>resolution</b> meters, or
  * when <b>timeout</b> occurs.<br>
  */
+@Slf4j
 public class Scene {
-  private static final Log LOG = LogFactory.getLog(Scene.class);
-
   private Point oldPos = new Point();
 
   private HashSet<VRObject> members = new HashSet<VRObject>(); // non-permanent transforms
@@ -116,7 +115,7 @@ public class Scene {
         lastUpdate = System.currentTimeMillis();
       }
     } catch (Exception e) {
-      LOG.error("Scene for " + client, e);
+      log.error("Scene for " + client, e);
       throw (e);
     }
     active = false;
@@ -185,7 +184,7 @@ public class Scene {
       allObjects = null;
       members = null;
     } catch (Throwable e) {
-      LOG.error("Error during removal", e);
+      log.error("Error during removal", e);
     }
   }
 

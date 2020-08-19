@@ -5,24 +5,24 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Adds static content to Spring resource path, and makes sure it's not cached.
  * TODO: paths should be configurable
  */
 @Configuration
+@Slf4j
 public class ContentConfiguration implements WebMvcConfigurer {
-  private static final Log LOG = LogFactory.getLog(ServerApplication.class);
 
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     String className = ContentConfiguration.class.getName().replace(".", "/") + ".class";
     URL classUrl = ContentConfiguration.class.getClassLoader().getResource(className);
-    LOG.debug("Location of " + className + ":" + classUrl);
+    log.debug("Location of " + className + ":" + classUrl);
 
     String path = classUrl.getPath();
     int pos = path.indexOf("server/target/classes");
@@ -41,9 +41,9 @@ public class ContentConfiguration implements WebMvcConfigurer {
       in.close();
       registry.addResourceHandler(dest + "/**").addResourceLocations(dir).setCachePeriod(0);
     } catch (MalformedURLException mue) {
-      LOG.error("Invalid content url", mue);
+      log.error("Invalid content url", mue);
     } catch (IOException ioe) {
-      LOG.error("Non-existing directory", ioe);
+      log.error("Non-existing directory", ioe);
     }
   }
 }

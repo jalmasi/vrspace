@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.VRObject;
 
@@ -17,9 +15,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
-public class Dispatcher {
-  private static final Log LOG = LogFactory.getLog(Dispatcher.class);
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+public class Dispatcher {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   // cache of all fields annotated with @Private
@@ -69,7 +68,7 @@ public class Dispatcher {
       } catch (Exception e) {
         throw new IllegalArgumentException("Invalid event payload: " + payload, e);
       }
-      LOG.debug("Processing changes " + changes);
+      log.debug("Processing changes " + changes);
     }
 
     // merge changes

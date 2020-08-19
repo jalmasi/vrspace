@@ -6,8 +6,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +24,11 @@ import org.vrspace.server.obj.VRObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Component("world")
+@Slf4j
 public class World {
-  private static final Log LOG = LogFactory.getLog(World.class);
 
   @Autowired
   private VRObjectRepository db;
@@ -206,7 +206,7 @@ public class World {
       // takes typically 10 ms
       long time = System.currentTimeMillis();
       db.save(event.getSource());
-      LOG.debug(new ID(event.getSource()) + " saved in " + (System.currentTimeMillis() - time) + " ms");
+      log.debug(new ID(event.getSource()) + " saved in " + (System.currentTimeMillis() - time) + " ms");
     }
     client.getScene().update();
   }

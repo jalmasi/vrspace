@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Transient;
@@ -23,14 +21,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = false)
 @NodeEntity
 @Owned
+@Slf4j
 public class Client extends VRObject {
-  private static final Log LOG = LogFactory.getLog(VRObject.class);
 
   @Index(unique = true)
   private String name;
@@ -92,10 +91,10 @@ public class Client extends VRObject {
   public void sendMessage(Object obj) {
     try {
       String json = mapper.writeValueAsString(obj);
-      LOG.debug(getObjectId() + " Received " + json);
+      log.debug(getObjectId() + " Received " + json);
       session.sendMessage(new TextMessage(json));
     } catch (IOException e) {
-      LOG.error("Can't send message " + obj, e);
+      log.error("Can't send message " + obj, e);
     }
   }
 

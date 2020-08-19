@@ -7,8 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.vrspace.server.World;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
@@ -21,8 +19,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Describe implements Command {
-  private static final Log LOG = LogFactory.getLog(World.class);
-
   private String className;
 
   @Override

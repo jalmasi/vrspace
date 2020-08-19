@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,10 +24,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.vrspace.server.dto.FileList;
 import org.vrspace.server.obj.Content;
 
-@RestController
-public class ContentManager {
-  static final Log LOG = LogFactory.getLog(ContentManager.class);
+import lombok.extern.slf4j.Slf4j;
 
+@RestController
+@Slf4j
+public class ContentManager {
   public static final String root = ".";
 
   private String getPath(String path) {
@@ -52,7 +51,7 @@ public class ContentManager {
     FileList ret = new FileList();
     String path = getPath(request.getRequestURI());
     ret.setPath(path);
-    LOG.debug("list " + path);
+    log.debug("list " + path);
     File dir = new File(path);
     List<Content> dirs = new ArrayList<Content>();
     List<Content> files = new ArrayList<Content>();
@@ -79,7 +78,7 @@ public class ContentManager {
     FileList ret = new FileList();
     String path = getPath(request.getRequestURI());
     ret.setPath(path);
-    LOG.debug("get " + path);
+    log.debug("get " + path);
     File file = new File(path);
     if (file.exists()) {
       HttpHeaders headers = new HttpHeaders();
@@ -99,6 +98,6 @@ public class ContentManager {
   public void upload(HttpServletRequest request, String fileName, int fileSize, MultipartFile fileData)
       throws IOException {
     String path = getPath(request.getRequestURI());
-    LOG.debug("uploading to " + path + ": " + fileName + " " + fileSize + " " + fileData.getSize());
+    log.debug("uploading to " + path + ": " + fileName + " " + fileSize + " " + fileData.getSize());
   }
 }

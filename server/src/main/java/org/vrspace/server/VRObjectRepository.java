@@ -5,8 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.util.StringUtils;
@@ -20,7 +20,7 @@ import org.vrspace.server.obj.VRObject;
  * https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#neo4j.repositories
  */
 public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
-  static final Log LOG = LogFactory.getLog(VRObjectRepository.class);
+  static final Logger log = LoggerFactory.getLogger(VRObjectRepository.class);
 
   @Query("MATCH (o:VRObject) WHERE o.permanent RETURN o")
   Set<VRObject> getPermanents();
@@ -41,7 +41,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
     try {
       deleteMembers(o.getClass(), o);
     } catch (Exception e) {
-      LOG.error("Cannot delete members of " + o.getClass().getSimpleName() + " " + o.getId(), e);
+      log.error("Cannot delete members of " + o.getClass().getSimpleName() + " " + o.getId(), e);
     }
     deleteById(o.getId());
   }
@@ -56,7 +56,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
         Method getter = cls.getMethod("get" + StringUtils.capitalize(f.getName()));
         Embedded e = (Embedded) getter.invoke(obj);
         if (e != null && e.getId() != null) {
-          LOG.debug("Deleting " + f.getName() + " of " + obj.getClass().getSimpleName() + " " + obj.getId());
+          log.debug("Deleting " + f.getName() + " of " + obj.getClass().getSimpleName() + " " + obj.getId());
           deleteById(e.getId());
         }
       }

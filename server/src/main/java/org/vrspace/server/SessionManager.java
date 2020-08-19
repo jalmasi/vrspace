@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -19,10 +17,11 @@ import org.vrspace.server.obj.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
-public class SessionManager extends TextWebSocketHandler {
-  private static final Log LOG = LogFactory.getLog(SessionManager.class);
+import lombok.extern.slf4j.Slf4j;
 
+@Component
+@Slf4j
+public class SessionManager extends TextWebSocketHandler {
   private ConcurrentHashMap<String, Client> sessions = new ConcurrentHashMap<String, Client>();
   private ConcurrentHashMap<Long, Client> clients = new ConcurrentHashMap<Long, Client>();
 
@@ -40,11 +39,11 @@ public class SessionManager extends TextWebSocketHandler {
       String payload = message.getPayload();
       ClientRequest req = mapper.readValue(payload, ClientRequest.class);
       req.setPayload(payload);
-      LOG.debug("Request: " + req);
+      log.debug("Request: " + req);
       req.setClient(client);
       world.dispatch(req);
     } catch (Exception e) {
-      LOG.error("Error processing message from client " + client.getId() + ":" + message.getPayload(), e);
+      log.error("Error processing message from client " + client.getId() + ":" + message.getPayload(), e);
       client.sendMessage(error(e));
     }
   }
@@ -63,15 +62,15 @@ public class SessionManager extends TextWebSocketHandler {
       clients.put(welcome.getClient().getId(), welcome.getClient());
       welcome.getClient().sendMessage(welcome);
       // welcome.getClient().getScene().update(); // CHECKME: send right away?
-      LOG.info("New session: " + session.getId() + " on " + session.getLocalAddress() + " from "
+      log.info("New session: " + session.getId() + " on " + session.getLocalAddress() + " from "
           + session.getRemoteAddress() + " user " + session.getPrincipal() + " sessions active " + sessions.size());
     } catch (SecurityException se) {
       try {
-        LOG.error("Invalid login from session " + session.getId() + "/" + session.getRemoteAddress() + " - " + se);
+        log.error("Invalid login from session " + session.getId() + "/" + session.getRemoteAddress() + " - " + se);
         session.sendMessage(new TextMessage(mapper.writeValueAsString(error(se))));
         session.close();
       } catch (IOException e) {
-        LOG.error(e);
+        log.error("Unexpected error ", e);
       }
     }
   }
@@ -80,7 +79,7 @@ public class SessionManager extends TextWebSocketHandler {
   public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
     Client client = sessions.remove(session.getId());
     clients.remove(client.getId());
-    LOG.info("Session closed: " + session.getId() + " on " + session.getLocalAddress() + " from "
+    log.info("Session closed: " + session.getId() + " on " + session.getLocalAddress() + " from "
         + session.getRemoteAddress() + " user " + session.getPrincipal() + " reason " + status + " remaining sessions "
         + sessions.size());
     world.logout(client);

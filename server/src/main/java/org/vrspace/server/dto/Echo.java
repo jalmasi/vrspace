@@ -1,7 +1,5 @@
 package org.vrspace.server.dto;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.vrspace.server.CustomTypeIdResolver;
 import org.vrspace.server.World;
 import org.vrspace.server.obj.Client;
@@ -25,8 +23,6 @@ import lombok.NoArgsConstructor;
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 public class Echo implements Command {
-  private static final Log LOG = LogFactory.getLog(Echo.class);
-
   @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
   @JsonTypeIdResolver(CustomTypeIdResolver.class)
   public Command command;

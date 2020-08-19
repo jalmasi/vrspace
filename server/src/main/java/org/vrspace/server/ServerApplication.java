@@ -5,18 +5,17 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.config.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootApplication
-public class ServerApplication {
-  private static final Log LOG = LogFactory.getLog(ServerApplication.class);
+import lombok.extern.slf4j.Slf4j;
 
+@SpringBootApplication
+@Slf4j
+public class ServerApplication {
   @Value("${spring.data.neo4j.uri:default}")
   private String neoUri;
   @Value("${spring.data.neo4j.auto-index:update}")
@@ -31,13 +30,13 @@ public class ServerApplication {
     String path = neoUri;
     Configuration.Builder builder = new Configuration.Builder();
     if (!"default".equals(path)) {
-      LOG.info("Configured database uri: " + path);
+      log.info("Configured database uri: " + path);
       path = path.replace('\\', '/');
       URI uri = new URI(path);
       if ("file".equals(uri.getScheme())) {
         File file = new File(uri.getSchemeSpecificPart());
         path = "file:///" + file.getCanonicalFile().getAbsolutePath().replace('\\', '/');
-        LOG.info("Absolute database path: " + path);
+        log.info("Absolute database path: " + path);
       }
       builder.uri(path);
     }
