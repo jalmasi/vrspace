@@ -50,7 +50,7 @@ public class SessionManagerTest {
   private SessionManager sessionManager;
 
   @Autowired
-  private World world;
+  private WorldManager world;
 
   @Autowired
   private VRObjectRepository repo;
@@ -205,10 +205,10 @@ public class SessionManagerTest {
   public void testAddRemove() throws Exception {
     login();
 
-    String add = "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":1,\"y\":2,\"z\":3}}}, {\"VRObject\":{}}]}}}";
+    String add = "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}}, {\"VRObject\":{}}]}}}";
     sendMessage(add);
 
-    // response to add + scene update
+    // response to add + scene update, called from Client.sendMessage()
     verify(session, times(3)).sendMessage(any(TextMessage.class));
 
     // verify response to add command
@@ -219,11 +219,10 @@ public class SessionManagerTest {
     List<Map<String, Long>> ids = (List<Map<String, Long>>) r.getResponse();
     assertEquals(2, ids.size());
 
-    // verify received add command
-    String addToScene = getMessage();
-    Add addCommand = mapper.readValue(addToScene, Add.class);
+    // verify received add command as result of scene update
+    String sceneMessage = getMessage();
+    Add addCommand = mapper.readValue(sceneMessage, Add.class);
     assertEquals(2, addCommand.getObjects().size());
-    assertEquals(ids.iterator().next().values().iterator().next(), addCommand.getObjects().iterator().next().getId());
 
     // verify objects exist in the database
     assertTrue(repo.findById(ids.get(0).values().iterator().next()).isPresent());
@@ -232,20 +231,26 @@ public class SessionManagerTest {
     // verify ownership
     assertEquals(2, testUser.getOwned().size());
 
-    // verify scene members
+    // verify scene members match response to add command
+    int ok = 0;
+    for (Map<String, Long> id : ids) {
+      for (VRObject obj : addCommand.getObjects()) {
+        if (id.get("VRObject").equals(obj.getId())) {
+          assertNotNull("Object must have position" + obj, obj.getPosition());
+          ok++;
+          break;
+        }
+      }
+    }
+    assertEquals("Returned VRObject IDs don't match the scene", 2, ok);
+
+    // verify that scene does not update
     testUser.getScene().update();
 
     verify(session, times(3)).sendMessage(any(TextMessage.class));
     assertEquals(2, testUser.getScene().size());
-    String sceneMessage = getMessage();
 
     // verify remove command
-    Add addCmd = mapper.readValue(sceneMessage, Add.class);
-    assertEquals(2, addCmd.getObjects().size());
-    VRObject added = addCmd.getObjects().iterator().next();
-    assertEquals(ids.get(0).values().iterator().next(), added.getId());
-    assertNotNull(added.getPosition());
-
     String remove = "{\"command\":{\"Remove\":{\"objects\":[{\"VRObject\":"
         + ids.iterator().next().values().iterator().next() + "}]}}}";
     sendMessage(remove);
@@ -290,6 +295,9 @@ public class SessionManagerTest {
     assertNotNull(client);
     assertNotNull(user1);
     assertNotNull(user2);
+    assertNotNull(client.getWorld());
+    assertEquals(client.getWorld(), user1.getWorld());
+    assertEquals(client.getWorld(), user2.getWorld());
 
     // assert they all see each other
     client.getScene().update();

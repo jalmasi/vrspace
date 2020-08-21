@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.vrspace.server.ID;
-import org.vrspace.server.World;
+import org.vrspace.server.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
 
@@ -54,7 +54,7 @@ public class Remove implements Command {
   }
 
   @Override
-  public ClientResponse execute(World world, Client client) {
+  public ClientResponse execute(WorldManager world, Client client) {
     objects.forEach(o -> o.forEach((cls, id) -> world.remove(client, cls, id)));
     client.getScene().setDirty();
     return null;

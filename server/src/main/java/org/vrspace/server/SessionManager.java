@@ -26,7 +26,7 @@ public class SessionManager extends TextWebSocketHandler {
   private ConcurrentHashMap<Long, Client> clients = new ConcurrentHashMap<Long, Client>();
 
   @Autowired
-  private World world;
+  private WorldManager worldManager;
   private ObjectMapper mapper = new ObjectMapper();
 
   @Override
@@ -41,7 +41,7 @@ public class SessionManager extends TextWebSocketHandler {
       req.setPayload(payload);
       log.debug("Request: " + req);
       req.setClient(client);
-      world.dispatch(req);
+      worldManager.dispatch(req);
     } catch (Exception e) {
       log.error("Error processing message from client " + client.getId() + ":" + message.getPayload(), e);
       client.sendMessage(error(e));
@@ -57,7 +57,7 @@ public class SessionManager extends TextWebSocketHandler {
   @Override
   public void afterConnectionEstablished(WebSocketSession session) {
     try {
-      Welcome welcome = world.login(session);
+      Welcome welcome = worldManager.login(session);
       sessions.put(session.getId(), welcome.getClient());
       clients.put(welcome.getClient().getId(), welcome.getClient());
       welcome.getClient().sendMessage(welcome);
@@ -82,7 +82,7 @@ public class SessionManager extends TextWebSocketHandler {
     log.info("Session closed: " + session.getId() + " on " + session.getLocalAddress() + " from "
         + session.getRemoteAddress() + " user " + session.getPrincipal() + " reason " + status + " remaining sessions "
         + sessions.size());
-    world.logout(client);
+    worldManager.logout(client);
   }
 
   public Client getClient(Long id) {

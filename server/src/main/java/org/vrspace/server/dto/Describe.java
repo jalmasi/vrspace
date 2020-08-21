@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.vrspace.server.World;
+import org.vrspace.server.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
 
@@ -22,7 +22,7 @@ public class Describe implements Command {
   private String className;
 
   @Override
-  public ClientResponse execute(World world, Client client) throws ClassNotFoundException {
+  public ClientResponse execute(WorldManager world, Client client) throws ClassNotFoundException {
     if (className == null) {
       Map<String, String> ret = world.listClasses().stream()
           .collect(Collectors.toMap(Class::getSimpleName, c -> c.getSuperclass().getSimpleName()));

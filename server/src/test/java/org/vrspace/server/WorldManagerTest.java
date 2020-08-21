@@ -20,9 +20,10 @@ import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.obj.World;
 
 @RunWith(SpringRunner.class)
-public class WorldTest {
+public class WorldManagerTest {
 
   @Mock
   WebSocketSession session;
@@ -31,11 +32,12 @@ public class WorldTest {
   VRObjectRepository repo;
 
   @InjectMocks
-  World world;
+  WorldManager world;
 
   @Before
   public void setUp() {
-    when(repo.getPermanents()).thenReturn(new HashSet<VRObject>());
+    when(repo.getPermanents(any(Long.class))).thenReturn(new HashSet<VRObject>());
+    when(repo.save(any(World.class))).thenReturn(new World("test"));
     when(repo.save(any(Client.class))).thenReturn(new Client());
   }
 

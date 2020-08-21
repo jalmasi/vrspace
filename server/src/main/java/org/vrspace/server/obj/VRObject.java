@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.Transient;
@@ -32,6 +33,11 @@ public class VRObject extends Entity {
 
   private List<VRObject> children;
 
+  @JsonIgnore
+  @Relationship(type = "IN_WORLD", direction = Relationship.OUTGOING)
+  @Index
+  private World world;
+
   @JsonMerge
   @Relationship(type = "HAS_POSITION", direction = Relationship.OUTGOING)
   private Point position;
@@ -56,8 +62,13 @@ public class VRObject extends Entity {
   @Transient
   private ConcurrentHashMap<ID, VRObject> listeners;
 
+  public VRObject(World world) {
+    setWorld(world);
+  }
+
   public VRObject(Long id, VRObject... vrObjects) {
     super(id);
+    setWorld(world);
     addChildren(vrObjects);
   }
 
@@ -67,7 +78,12 @@ public class VRObject extends Entity {
   }
 
   public VRObject(double x, double y, double z) {
-    this.position = new Point(x, y, z);
+    setPosition(new Point(x, y, z));
+  }
+
+  public VRObject(World world, double x, double y, double z) {
+    this(world);
+    setPosition(new Point(x, y, z));
   }
 
   public void addChildren(VRObject... vrObjects) {

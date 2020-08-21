@@ -33,7 +33,7 @@ public class Scene {
   private HashSet<VRObject> members = new HashSet<VRObject>(); // non-permanent transforms
   private HashMap<ID, VRObject> allObjects = new HashMap<ID, VRObject>(); // all objects in the world
 
-  private World world;
+  private WorldManager world;
   private Client client;
 
   private long lastUpdate = 0;
@@ -49,7 +49,7 @@ public class Scene {
   /**
    * Creates new Scene for Client <b>client</b><br>
    */
-  public Scene(World world, Client client) {
+  public Scene(WorldManager world, Client client) {
     this.world = world;
     this.client = client;
     this.props = client.getSceneProperties();
@@ -162,6 +162,17 @@ public class Scene {
     remove(t, true);
   }
 
+  /**
+   * Removes an object from the scene.
+   * 
+   * @param removeReference specifies whether object reference is to be removed
+   *                        internally, and this influences what happens during
+   *                        next update(): If the reference is kept and object is
+   *                        in range, nothing will happen, but if reference is
+   *                        removed, object will be re-added. If reference is
+   *                        removed, and object is not in range, it will be
+   *                        removed during next update().
+   */
   public void remove(VRObject t, boolean removeReference) throws Exception {
     Remove remove = new Remove();
     remove(remove, t);
@@ -173,16 +184,14 @@ public class Scene {
   }
 
   /**
-   * Remove all objects from the scene.
+   * Remove all objects from the scene. Next call to update() will cause sending
+   * removal messages to the client.
    */
   public void removeAll() {
     try {
       for (VRObject t : members) {
         remove(t, false);
       }
-
-      allObjects = null;
-      members = null;
     } catch (Throwable e) {
       log.error("Error during removal", e);
     }

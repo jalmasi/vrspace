@@ -22,6 +22,7 @@ import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.obj.World;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -72,9 +73,12 @@ public class DBTest {
   @Test
   @Transactional
   public void testGetRange() throws Exception {
-    VRObject o1 = new VRObject(0, 0, 0);
-    VRObject o2 = new VRObject(10.0, 0, 0);
+    World world = new World("test");
+    world = repo.save(world);
+    VRObject o1 = new VRObject(world, 0, 0, 0);
+    VRObject o2 = new VRObject(world, 10.0, 0, 0);
     Client c1 = new Client();
+    c1.setWorld(world);
     c1.setPosition(new Point(5, 0, 0));
     c1.setScale(new Point(1, 1, 1));
 
@@ -82,33 +86,99 @@ public class DBTest {
     o2 = repo.save(o2);
     c1 = repo.save(c1);
 
-    Set<VRObject> ret = repo.getRange(new Point(-1, -1, -1), new Point(1, 1, 1));
+    Set<VRObject> ret = repo.getRange(world.getId(), new Point(-1, -1, -1), new Point(1, 1, 1));
     System.err.println(ret);
 
     assertEquals(1, ret.size());
 
-    ret = repo.getRange(new Point(-1, -1, -1), new Point(5, 1, 1));
+    ret = repo.getRange(world.getId(), new Point(-1, -1, -1), new Point(5, 1, 1));
     System.err.println(ret);
     assertEquals(2, ret.size());
 
-    ret = repo.getRange(new Point(-1, -1, -1), new Point(10, 1, 1));
+    ret = repo.getRange(world.getId(), new Point(-1, -1, -1), new Point(10, 1, 1));
     System.err.println(ret);
     assertEquals(3, ret.size());
   }
 
   @Test
   @Transactional
+  public void testGetWorldRange() throws Exception {
+    World world1 = new World("test1");
+    world1 = repo.save(world1);
+    World world2 = new World("test2");
+    world2 = repo.save(world2);
+
+    VRObject o1 = new VRObject(world1, 0, 0, 0);
+    VRObject o2 = new VRObject(world1, 10.0, 0, 0);
+    VRObject o3 = new VRObject(world2, 10.0, 0, 0);
+
+    o1 = repo.save(o1);
+    o2 = repo.save(o2);
+    o3 = repo.save(o3);
+
+    Set<VRObject> ret = repo.getRange(world1.getId(), new Point(-1, -1, -1), new Point(1, 1, 1));
+    System.err.println(ret);
+    assertEquals(1, ret.size());
+
+    ret = repo.getRange(world1.getId(), new Point(-1, -1, -1), new Point(10, 1, 1));
+    System.err.println(ret);
+    assertEquals(2, ret.size());
+
+    ret = repo.getRange(world2.getId(), new Point(-1, -1, -1), new Point(1, 1, 1));
+    System.err.println(ret);
+    assertEquals(0, ret.size());
+
+    ret = repo.getRange(world2.getId(), new Point(-1, -1, -1), new Point(10, 1, 1));
+    System.err.println(ret);
+    assertEquals(1, ret.size());
+
+  }
+
+  @Test
+  @Transactional
   public void testGetPermanents() throws Exception {
-    VRObject o1 = new VRObject();
+    World world = new World("test");
+    world = repo.save(world);
+    VRObject o1 = new VRObject(world);
     o1.setPermanent(true);
-    VRObject o2 = new VRObject(10.0, 0, 0);
+    VRObject o2 = new VRObject(world, 10.0, 0, 0);
     o1 = repo.save(o1);
     repo.save(o2);
-    Set<VRObject> ret = repo.getPermanents();
+    Set<VRObject> ret = repo.getPermanents(world.getId());
     System.err.println(ret);
 
     assertEquals(1, ret.size());
     assertEquals(o1, ret.iterator().next());
+  }
+
+  @Test
+  @Transactional
+  public void testGetWorldPermanents() throws Exception {
+    World world1 = new World("test1");
+    world1 = repo.save(world1);
+
+    World world2 = new World("test2");
+    world2 = repo.save(world2);
+
+    VRObject o1 = new VRObject(world1);
+    o1.setPermanent(true);
+    o1 = repo.save(o1);
+
+    VRObject o2 = new VRObject(world2);
+    o2.setPermanent(true);
+    o2 = repo.save(o2);
+
+    Set<VRObject> ret1 = repo.getPermanents(world1.getId());
+    System.err.println(ret1);
+
+    assertEquals(1, ret1.size());
+    assertEquals(o1, ret1.iterator().next());
+
+    Set<VRObject> ret2 = repo.getPermanents(world2.getId());
+    System.err.println(ret2);
+
+    assertEquals(1, ret2.size());
+    assertEquals(o2, ret2.iterator().next());
   }
 
   @Test

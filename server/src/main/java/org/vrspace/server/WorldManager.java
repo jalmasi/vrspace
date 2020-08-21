@@ -21,6 +21,7 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.obj.World;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component("world")
 @Slf4j
-public class World {
+public class WorldManager {
 
   @Autowired
   private VRObjectRepository db;
@@ -51,6 +52,8 @@ public class World {
   @Autowired
   private SessionFactory sessionFactory;
 
+  private World defaultWorld;
+
   // CHECKME: should this be here?
   public List<Class<?>> listClasses() {
     // gotta love oneliners :)
@@ -64,14 +67,14 @@ public class World {
   }
 
   public Set<VRObject> getPermanents(Client client) {
-    return db.getPermanents();
+    return db.getPermanents(client.getWorld().getId());
   }
 
   public Set<VRObject> getRange(Client client, Point from, Point to) {
     // CHECKME: what to do with client here?
     HashSet<VRObject> ret = new HashSet<VRObject>();
     // takes typically 10 ms
-    Set<VRObject> inRange = db.getRange(from, to);
+    Set<VRObject> inRange = db.getRange(client.getWorld().getId(), from, to);
     for (VRObject o : inRange) {
       ID id = new ID(o);
       VRObject cached = cache.get(id);
@@ -99,6 +102,7 @@ public class World {
       if (o.getPosition() == null && client.getPosition() != null) {
         o.setPosition(new Point(client.getPosition()));
       }
+      o.setWorld(client.getWorld());
       o = db.save(o);
       client.addOwned(o);
       ID id = new ID(o);
@@ -140,15 +144,36 @@ public class World {
       client.setMesh("dolphin.glb"); // FIXME
       client = db.save(client);
     }
-    client.setActive(true);
     client.setMapper(jackson);
     client.setSceneProperties(sceneProperties.newInstance());
     cache.put(new ID(client), client);
 
+    return enter(client, defaultWorld());
+  }
+
+  public World defaultWorld() {
+    if (defaultWorld == null) {
+      synchronized (this) {
+        defaultWorld = db.getWorldByName("default");
+        if (defaultWorld == null) {
+          defaultWorld = db.save(new World("default"));
+          log.info("Created default world: " + defaultWorld);
+        }
+      }
+    }
+    return defaultWorld;
+  }
+
+  public Welcome enter(Client client, World world) {
+    client.setActive(true);
+    client.setWorld(world);
+    db.save(client);
     // create scene, TODO: scene filters
-    Scene scene = new Scene(this, client);
-    scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
-    client.setScene(scene);
+    if (client.getScene() == null) {
+      Scene scene = new Scene(this, client);
+      scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
+      client.setScene(scene);
+    }
 
     Welcome ret = new Welcome(client, getPermanents(client));
     return ret;
@@ -156,6 +181,15 @@ public class World {
 
   @Transactional
   public void logout(Client client) {
+    exit(client);
+    // delete guest client
+    if (client.isGuest()) {
+      cache.remove(new ID(client));
+      db.delete(client);
+    }
+  }
+
+  public void exit(Client client) {
     // first clear the scene, so other active objects (clients) don't keep reference
     // to the client and send it events
     client.getScene().removeAll();
@@ -165,11 +199,6 @@ public class World {
     e.addChange("active", false);
     client.notifyListeners(e);
     client.setListeners(null);
-    // delete guest client
-    if (client.isGuest()) {
-      cache.remove(new ID(client));
-      db.delete(client);
-    }
   }
 
   @Transactional

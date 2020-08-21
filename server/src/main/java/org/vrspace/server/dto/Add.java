@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.vrspace.server.ID;
-import org.vrspace.server.World;
+import org.vrspace.server.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
 
@@ -41,7 +41,7 @@ public class Add implements Command {
   }
 
   @Override
-  public ClientResponse execute(World world, Client client) {
+  public ClientResponse execute(WorldManager world, Client client) {
     List<Map<String, Long>> ret = world.add(client, objects).stream().map(ID::map).collect(Collectors.toList());
     client.getScene().setDirty();
     return new ClientResponse(ret);

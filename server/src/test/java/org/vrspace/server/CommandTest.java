@@ -34,7 +34,7 @@ public class CommandTest {
   private VRObjectRepository repo;
 
   @InjectMocks
-  private World world;
+  private WorldManager world;
 
   @Mock
   private Scene scene;

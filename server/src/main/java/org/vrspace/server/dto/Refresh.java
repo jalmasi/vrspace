@@ -1,6 +1,6 @@
 package org.vrspace.server.dto;
 
-import org.vrspace.server.World;
+import org.vrspace.server.WorldManager;
 import org.vrspace.server.obj.Client;
 
 import lombok.Data;
@@ -9,7 +9,7 @@ import lombok.Data;
 public class Refresh implements Command {
 
   @Override
-  public ClientResponse execute(World world, Client client) {
+  public ClientResponse execute(WorldManager world, Client client) {
     client.getScene().setDirty();
     client.getScene().update();
     return null;

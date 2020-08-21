@@ -32,7 +32,7 @@ import org.vrspace.server.obj.VRObject;
 public class SceneTest {
 
   @Mock
-  World world;
+  WorldManager world;
 
   @Mock
   Client client;

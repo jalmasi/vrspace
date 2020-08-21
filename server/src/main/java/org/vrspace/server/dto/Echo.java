@@ -1,7 +1,7 @@
 package org.vrspace.server.dto;
 
 import org.vrspace.server.CustomTypeIdResolver;
-import org.vrspace.server.World;
+import org.vrspace.server.WorldManager;
 import org.vrspace.server.obj.Client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -37,7 +37,7 @@ public class Echo implements Command {
   }
 
   @Override
-  public ClientResponse execute(World world, Client client) {
+  public ClientResponse execute(WorldManager world, Client client) {
     if (command != null) {
       // return command;
       client.sendMessage(command);
