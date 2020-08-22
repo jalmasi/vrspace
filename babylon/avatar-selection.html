@@ -106,6 +106,13 @@ var initXR = async function(scene) {
         }
     });
 
+    scene.pointerMovePredicate = (mesh) => {
+      return isSelectableMesh(mesh);
+    };
+    xrHelper.pointerSelection.raySelectionPredicate = (mesh) => {
+      return isSelectableMesh(mesh);
+    };
+
     xrHelper.input.onControllerAddedObservable.add((xrController /* WebXRController instance */ ) => {
       console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
       console.log(xrController);
@@ -214,6 +221,10 @@ var initXR = async function(scene) {
 
 };
 
+function isSelectableMesh(mesh) {
+  return mesh == ground || mesh.name && mesh.name.startsWith("Button");;
+}
+
 var createScene = async function () {
 
   // Create the scene space
@@ -221,7 +232,7 @@ var createScene = async function () {
   scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
 
   // Add a camera to the scene and attach it to the canvas
-   camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 2, -3), scene);
+   camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 2, -5), scene);
   //camera = new BABYLON.ArcRotateCamera("Camera", 0, 2, -3, new BABYLON.Vector3(0, 1, 0), scene);
   //camera.setPosition(new BABYLON.Vector3(0, 2, -3));
   //var camera = new BABYLON.FlyCamera("FlyCamera", new BABYLON.Vector3(0, 5, -10), scene);
@@ -229,7 +240,7 @@ var createScene = async function () {
   camera.minZ = 0;
   camera.setTarget(new BABYLON.Vector3(0,1.5,0));
   camera.attachControl(canvas, true);
-  camera.applyGravity = false;
+  camera.applyGravity = true;
   //Set the ellipsoid around the camera (e.g. your player's size)
   //camera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
   //camera.ellipsoidOffset = -0.2
@@ -242,8 +253,12 @@ var createScene = async function () {
 
   // Shadows
   shadowGenerator = new BABYLON.ShadowGenerator(1024, light2);
-  shadowGenerator.useBlurExponentialShadowMap = true;
-  shadowGenerator.blurKernel = 32;
+  shadowGenerator.useExponentialShadowMap = true;
+  // slower:
+  //shadowGenerator.useBlurExponentialShadowMap = true;
+  //shadowGenerator.blurKernel = 32;
+  // hair is usually semi-transparent, this allows it to cast shadow:
+  shadowGenerator.transparencyShadow = true;
 
   var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, scene);
   skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
@@ -256,27 +271,43 @@ var createScene = async function () {
   //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("skybox/horizon_4", scene);
   skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
 
-  //Ground
-  ground = BABYLON.Mesh.CreatePlane("ground", 20, scene);
-  ground.material = new BABYLON.StandardMaterial("groundMat", scene);
-  var groundTexture = new BABYLON.CloudProceduralTexture("cloud", 1024, scene);
-  ground.material.ambientTexture = groundTexture;
-
-  //ground.material.diffuseColor = new BABYLON.Color3(.5, 1, .5);
-  //ground.material.backFaceCulling = false;
-  ground.material.alpha = 0.5;
-  ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
-  ground.checkCollisions = true;
-  ground.receiveShadows = true;
-
   // Register a render loop to repeatedly render the scene
   engine.runRenderLoop(function () {
     if (scene) scene.render();
   });
 
+  await VRSPACEUI.init();
+
+  var diameter = 20;
+  var floorGroup = new BABYLON.TransformNode("Floor");
+
+  // ground, used for teleportation/pointer
+  ground = BABYLON.MeshBuilder.CreateDisc("ground", {}, scene);
+  ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
+  ground.position = new BABYLON.Vector3( 0, 0.05, 0 );
+  ground.parent = floorGroup;
+  ground.isVisible = false;
+  ground.checkCollisions = true;
+
+  // mesh that we display as floor
+  VRSPACEUI.receiveShadows( VRSPACEUI.logo, true );
+  var floorMesh = VRSPACEUI.copyMesh(VRSPACEUI.logo, floorGroup);
+
+  // walls, used for collisions, to limit the movement
+  var walls = BABYLON.MeshBuilder.CreateCylinder("FloorWalls", {height:4,diameter:1,sideOrientation:BABYLON.Mesh.BACKSIDE}, scene);
+  walls.checkCollisions = true;
+  walls.isVisible = false;
+  walls.position = new BABYLON.Vector3(0,2,0);
+  walls.parent = floorGroup;
+
+  floorGroup.scaling = new BABYLON.Vector3(diameter,2,diameter);
+  floorGroup.position = new BABYLON.Vector3( 0, -0.05, 0 );
+  scene.addTransformNode(floorGroup);
+
   return scene;
 }
 
+// TODO: move to vrspace-ui.js
 class Buttons {
   constructor(scene,title,options,callback,property) {
     this.scene = scene;
@@ -459,7 +490,7 @@ function addCharacterButtons() {
   resizeButton.text = "Resize";
   manager.addControl(resizeButton);
 
-  resizeButton.position = new BABYLON.Vector3( -0.5,0,-1 );
+  resizeButton.position = new BABYLON.Vector3( -0.5,0.2,-1 );
   resizeButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
   resizeButton.onPointerDownObservable.add( function() {
     if ( inXR ) {
@@ -476,7 +507,7 @@ function addCharacterButtons() {
   mirrorButton.text = "Mirroring";
   manager.addControl(mirrorButton);
 
-  mirrorButton.position = new BABYLON.Vector3( 0.5,0,-1 );
+  mirrorButton.position = new BABYLON.Vector3( 0.5,0.2,-1 );
   mirrorButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
   mirrorButton.onPointerDownObservable.add( function() {
       // TODO: rotate character, (un)set mirror var

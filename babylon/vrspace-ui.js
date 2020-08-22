@@ -89,6 +89,44 @@ class VRSpaceUI {
       callback(avatars);
     });
   }
+  
+  // utility methods to manipulate meshes
+  receiveShadows( node, shadows ) {
+    node.receiveShadows = shadows;
+    if ( node.material ) {
+      if ( node.material.getClassName() == "PBRMaterial" ) {
+        // something to do with inverse square root of physical material
+        node.material.usePhysicalLightFalloff = false;
+      }
+    }
+    var children = node.getChildMeshes();
+    for ( var i = 0; i < children.length; i++ ) {
+      // Instances should only be created for meshes with geometry.
+      this.receiveShadows(children[i], shadows);
+    }
+  }
+
+  copyMesh(mesh, parent) {
+    if ( mesh.geometry ) {
+      var copy = mesh.createInstance(mesh.name+"-copy");
+      copy.parent = parent;
+    } else if (parent) {
+      copy = parent;
+    } else {
+      var copy = mesh.clone( mesh.name+"-copy", parent, true, false );
+      copy.parent = parent;
+    }
+    var children = mesh.getChildMeshes();
+    for ( var i = 0; i < children.length; i++ ) {
+      // Instances should only be created for meshes with geometry.
+      if ( children[i].geometry ) {
+        this.copyMesh(children[i], copy);
+      }
+    }
+    return copy;
+  }
+
+  
 }
 
 class CharacterFolder {
