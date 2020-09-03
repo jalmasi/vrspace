@@ -1,4 +1,4 @@
-class VRSpaceUI {
+export class VRSpaceUI {
   constructor( ) {
     this.scene = null;
     this.logo = null;
@@ -59,15 +59,16 @@ class VRSpaceUI {
         if ( link.baseURI.length > link.href.length ) {
           continue;
         }
-        if ( link.href.endsWith("-fixes.json") ) {
+        if ( link.href.endsWith('-fixes.json') ) {
           fixes.push(href.substring(link.baseURI.length));
           continue;
         }
-        if ( ! link.href.endsWith("/") ) {
+        if ( ! link.href.endsWith('/') ) {
           continue;
         }
         href = href.substring(link.baseURI.length);
-        ui.log(link.baseURI+" "+href);
+        href = href.substring(0,href.indexOf('/'));
+        ui.log(link.baseURI+' '+href);
         files.push(href);
       }
 
@@ -75,9 +76,7 @@ class VRSpaceUI {
       var avatars = [];
       for ( var i = 0; i < files.length; i++ ) {
         var fix = null;
-        var pos = files[i].indexOf("/");
-        var avatarName = files[i].substring(0,pos);
-        var fixName = avatarName+"-fixes.json";
+        var fixName = files[i]+"-fixes.json";
         var index = fixes.indexOf(fixName);
         if ( index >= 0) {
           fix = fixes[index];
@@ -125,9 +124,10 @@ class VRSpaceUI {
     }
     return copy;
   }
-
   
 }
+
+export const VRSPACEUI = new VRSpaceUI();
 
 class CharacterFolder {
   constructor( baseUrl, name, fixFile ) {
@@ -137,7 +137,7 @@ class CharacterFolder {
   }
 }
 
-class LoadProgressIndicator {
+export class LoadProgressIndicator {
   constructor(scene, camera) {
     this.scene = scene;
     this.camera = camera;
@@ -229,7 +229,7 @@ class LoadProgressIndicator {
   }
 }
 
-class FloorRibbon {
+export class FloorRibbon {
   constructor( scene, size ) {
     // parameters
     this.scene = scene;
@@ -601,4 +601,324 @@ class FloorRibbon {
   }
 }
 
-VRSPACEUI = new VRSpaceUI();
+export class Buttons {
+  constructor(scene,title,options,callback,property) {
+    this.scene = scene;
+    this.title = title;
+    this.options = options;
+    this.callback = callback;
+    this.property = property;
+    this.buttonHeight = 1;
+    this.group = new BABYLON.TransformNode(this.title, scene);
+    this.groupWidth = 0;
+    this.buttons = [];
+    this.selectedOption = -1;
+    this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    this.turOff = false;
+    this.display();
+  }
+
+  setHeight(height) {
+    var scale = height/this.options.length;
+    this.group.scaling = new BABYLON.Vector3(scale, scale, scale);
+  }
+
+  display() {
+    var buttonHeight = 1;
+    var spacing = 1.1;
+
+    var selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", scene);
+    selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
+    var unselectedMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
+    unselectedMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.2);
+
+    if ( this.title && this.title.length > 0 ) {
+      var titleText = new BABYLON.GUI.TextBlock();
+      titleText.text = this.title;
+      titleText.textHorizontalAlignment = this.horizontalAlignment;
+      titleText.textVerticalAlignment = this.verticalAlignment;
+      titleText.color = "white";
+
+      var titlePlane = BABYLON.MeshBuilder.CreatePlane("Text"+this.title, {height:2,width:this.title.length*2}, scene);
+      titlePlane.parent = this.group;
+      titlePlane.position = new BABYLON.Vector3(this.title.length,spacing*2,0);
+
+      var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
+        titlePlane,
+        titleText.fontSizeInPixels * titleText.text.length,
+        titleText.fontSizeInPixels,
+        false // mouse events disabled
+      );
+      titleTexture.addControl(titleText);
+    }
+
+    for ( var i = 0; i < this.options.length; i ++ ) {
+      if ( this.property ) {
+        var option = this.options[i][this.property];
+      } else {
+        var option = this.options[i];
+      }
+      this.groupWidth = Math.max( this.groupWidth, option.length);
+      var buttonText = new BABYLON.GUI.TextBlock();
+      buttonText.text = option;
+      buttonText.textHorizontalAlignment = this.horizontalAlignment;
+      buttonText.textVerticalAlignment = this.verticalAlignment;
+
+      var buttonWidth = buttonText.text.length;
+      var buttonPlane = BABYLON.MeshBuilder.CreatePlane("Text"+option, {height:1,width:buttonWidth}, scene);
+      buttonPlane.position = new BABYLON.Vector3(buttonWidth/2+buttonHeight,-i*spacing,0);
+      buttonText.color="white";
+      buttonPlane.parent = this.group;
+
+      var aTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
+        buttonPlane,
+        buttonText.fontSizeInPixels*buttonText.text.length,
+        buttonText.fontSizeInPixels+2, // CHECKME: padding or something?
+        false // mouse events disabled
+      );
+      aTexture.addControl(buttonText);
+
+      var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:buttonHeight*.8}, scene);
+      button.material = unselectedMaterial;
+      button.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
+      button.position = new BABYLON.Vector3(buttonHeight/2, -i*spacing, 0);
+      button.parent = this.group;
+      this.buttons.push(button);
+    }
+
+    scene.onPointerObservable.add( (e) => {
+      if(e.type == BABYLON.PointerEventTypes.POINTERDOWN){
+        var p = e.pickInfo;
+        for ( var i = 0; i < this.options.length; i++ ) {
+          if ( p.pickedMesh == this.buttons[i] ) {
+            // we may want to handle double click somehow
+            if ( i != this.selectedOption || this.turnOff) {
+              console.log("Selected: "+this.options[i].name);
+              if ( this.callback ) {
+                this.callback(this.options[i]);
+              }
+              this.buttons[i].material = selectedMaterial;
+              if ( this.selectedOption > -1 ) {
+                this.buttons[this.selectedOption].material = unselectedMaterial;
+              }
+              if ( i != this.selectedOption ) {
+                this.selectedOption = i;
+              } else {
+                this.selectedOption = -1;
+              }
+            }
+            break;
+          }
+        }
+      }
+    });
+
+    //this.group.position = new BABYLON.Vector3(0,this.options.length,0);
+    console.log("Group width: "+this.groupWidth);
+  }
+
+  dispose() {
+    this.group.dispose();
+  }
+
+}
+
+// this is intended to be overridden
+export class World {
+  async init(engine, name) {
+    this.engine = engine;
+    this.scene = await this.createScene(engine);
+    this.indicator = new LoadProgressIndicator(this.scene, this.camera);
+    this.registerRenderLoop();
+    this.createTerrain();
+    this.load(name);
+    return this.scene;
+  }
+  async createScene(engine) {
+    alert('Please override createScene(engine) method');
+  }
+  
+  async initXR() {
+    const xrHelper = await this.scene.createDefaultXRExperienceAsync({floorMeshes: this.getFloorMeshes()});
+
+    this.vrHelper = xrHelper;
+
+    if (xrHelper.baseExperience) {
+      console.log("Using XR helper");
+
+      xrHelper.baseExperience.onInitialXRPoseSetObservable.add( (xrCamera) => {
+          xrCamera.position.y = this.camera.position.y - this.camera.ellipsoid.y*2;
+      });
+
+      var tracker = () => this.trackXrDevices();
+      xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+        console.log( "State: "+state );
+        switch (state) {
+          case BABYLON.WebXRState.IN_XR:
+            // XR is initialized and already submitted one frame
+            console.log( "Entered VR" );
+            scene.registerBeforeRender(tracker);
+            // Workaround for teleporation/selection bug
+            xrHelper.teleportation.setSelectionFeature(null);
+            this.inXR = true;
+            break;
+          case BABYLON.WebXRState.ENTERING_XR:
+            // xr is being initialized, enter XR request was made
+            console.log( "Entering VR" );
+            this.collisions(false);
+            break;
+          case BABYLON.WebXRState.EXITING_XR:
+            console.log( "Exiting VR" );
+            scene.unregisterBeforeRender(tracker);
+            // doesn't do anything
+            //camera.position.y = xrHelper.baseExperience.camera.position.y + 3; //camera.ellipsoid.y*2;
+            this.collisions(true);
+            this.inXR = false;
+            break;
+          case BABYLON.WebXRState_NOT_IN_XR:
+            console.log( "Not in VR" );
+            // self explanatory - either out or not yet in XR
+            break;
+        }
+      });
+
+      // CHECKME: really ugly way to make it work
+      this.scene.pointerMovePredicate = (mesh) => {
+        return this.isSelectableMesh(mesh);
+      };
+      xrHelper.pointerSelection.raySelectionPredicate = (mesh) => {
+        return this.isSelectableMesh(mesh);
+      };
+
+      xrHelper.teleportation.rotationEnabled = false; // CHECKME
+      //xrHelper.teleportation.parabolicRayEnabled = false; // CHECKME
+
+      // TODO: trying to update terrain after teleport
+      xrHelper.baseExperience.sessionManager.onXRReferenceSpaceChanged.add( (xrReferenceSpace) => {
+        var targetPosition = xrHelper.baseExperience.camera.position;
+        this.camera.globalPosition.x = targetPosition.x;
+        this.camera.globalPosition.y = targetPosition.y;
+        this.camera.globalPosition.z = targetPosition.z;
+        if ( this.terrain ) {
+          terrain.update(false);
+        }
+        // TODO we can modify camera y here, adding terrain height on top of ground height
+      });
+      
+      xrHelper.input.onControllerAddedObservable.add((xrController /* WebXRController instance */ ) => {
+        console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
+        console.log(xrController);
+        if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
+          this.leftController = xrController;
+        } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
+          this.rightController = xrController;
+        } else {
+          log("ERROR: don't know how to handle controller");
+        }
+      });
+      
+      
+    } else {
+      // obsolete and unsupported TODO REMOVEME
+      this.vrHelper = this.scene.createDefaultVRExperience({createDeviceOrientationCamera: false });
+      //vrHelper.enableInteractions();
+      this.vrHelper.webVRCamera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
+      this.vrHelper.onEnteringVRObservable.add(()=>{this.collisions(false)});
+      this.vrHelper.onExitingVRObservable.add(()=>{this.collisions(true);});
+
+      this.vrHelper.enableTeleportation({floorMeshes: this.getFloorMeshes(this.scene)});
+      this.vrHelper.raySelectionPredicate = (mesh) => {
+        return this.isSelectableMesh(mesh);
+      };
+      
+      this.vrHelper.onBeforeCameraTeleport.add((targetPosition) => {
+        this.camera.globalPosition.x = targetPosition.x;
+        this.camera.globalPosition.y = targetPosition.y;
+        this.camera.globalPosition.z = targetPosition.z;
+        if ( this.terrain ) {
+          terrain.update(true);
+        }
+      });
+      
+    }
+  }
+
+  trackXrDevices() {
+  }
+  
+  isSelectableMesh(mesh) {
+    return this.floorMeshes && this.floorMeshes.includes(mesh);
+  }
+
+  getFloorMeshes() {
+    return this.floorMeshes;
+  }
+  
+  collisions(state) {
+    this._collisions( this.floorMeshes, state );
+    this._collisions( this.sceneMeshes, state );
+    this.camera.applyGravity = state;
+    this.camera._needMoveForGravity = state;
+  }
+  
+  _collisions( meshes, state ) {
+    if ( meshes ) {
+      for ( var i=0; i<meshes.length; i++ ) {
+        meshes[i].checkCollisions = state;
+      }
+    }
+  }
+  
+  load( name, file ) {
+    if ( ! file ) {
+      file = "scene.gltf";
+    }
+    var indicator = this.indicator;
+    indicator.add(name);
+
+    BABYLON.SceneLoader.LoadAssetContainer("",
+      file,
+      this.scene,
+      // onSuccess:
+      (container) => {
+        this.sceneMeshes = container.meshes;
+        this.container = container;
+
+        // Adds all elements to the scene
+        var mesh = container.createRootMesh();
+        mesh.name = name;
+        container.addAllToScene();
+      
+        this.loaded( file, mesh );
+
+        // do something with the scene
+        VRSPACEUI.log("World loaded");
+        this.indicator.remove(name);
+        //floor = new FloorRibbon(scene);
+        //floor.showUI();
+        this.collisions(true);
+    },
+    // onProgress:
+    (evt) => { indicator.progress( evt, name ) }
+    );
+    
+    return this;
+  }
+  
+  loaded( file, mesh ) {
+    this.initXR();
+  }
+  
+  registerRenderLoop() {
+    var scene = this.scene;
+    // Register a render loop to repeatedly render the scene
+    engine.runRenderLoop(function () {
+        scene.render();
+    });
+  }
+
+  createTerrain() {
+  }
+}
+
