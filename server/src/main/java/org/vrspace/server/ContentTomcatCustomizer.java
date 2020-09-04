@@ -34,6 +34,7 @@ public class ContentTomcatCustomizer implements WebServerFactoryCustomizer<Tomca
           defServlet.addInitParameter("debug", "1");
           defServlet.addMapping("/content/*");
           defServlet.addMapping("/babylon/*");
+          defServlet.addMapping("/web/*");
         }
       });
     }
