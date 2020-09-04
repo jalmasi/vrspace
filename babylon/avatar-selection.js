@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LoadProgressIndicator } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();
@@ -196,17 +196,21 @@ export class AvatarSelection extends World {
   }
   
   createSelection() {
+    this.indicator = new LoadProgressIndicator(scene, this.camera);
     VRSPACEUI.listCharacters( '../content/char/', (avatars) => {
       var buttons = new Buttons(scene,"Avatars",avatars,(dir) => this.loadCharacter(dir),"name");
-      buttons.setHeight(2);
-      buttons.group.position = new BABYLON.Vector3(1,2.2,-.5);
+      buttons.setHeight(2.6);
+      buttons.group.position = new BABYLON.Vector3(1,3,-.5);
     });
   }
 
   loadCharacter(dir) {
+    this.indicator.add(dir);
+    this.indicator.animate();
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(scene, dir, this.shadowGenerator);
     loaded.load( (c) => {
+      this.indicator.remove(dir);
       if ( ! this.character ) {
         this.addCharacterButtons();
       }

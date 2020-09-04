@@ -195,8 +195,17 @@ export class LoadProgressIndicator {
     this.log("Finished "+this.currentItem+"/"+this.totalItems);
     if ( this.totalItems <= this.currentItem && this.mesh ) {
       this.mesh.setEnabled(false);
+      if ( this.animation ) {
+        scene.unregisterBeforeRender(this.animation);
+        delete this.animation;
+      }
       this._init();
     }
+  }
+  animate() {
+    this.trackItems = false;
+    this.animation = () => { this._update() };
+    this.scene.registerBeforeRender( this.animation );
   }
   progress(evt, item) {
     this.trackItems = false;
