@@ -1,7 +1,9 @@
 export class VRSpaceUI {
+
   constructor( ) {
     this.scene = null;
     this.logo = null;
+    this.portal = null;
     this.initialized = false;
     this.debug = false;
   }
@@ -16,6 +18,7 @@ export class VRSpaceUI {
         container.meshes[i].checkCollisions = false;
       }
       this.logo.name = "VRSpace.org Logo";
+      await this.loadPortal(scene);
       this.initialized = true;
     }
     return this;
@@ -27,6 +30,21 @@ export class VRSpaceUI {
     }
   }
 
+  async loadPortal(scene) {
+    if ( ! this.portal ) {
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync("/babylon/portal/", "scene.gltf", scene)
+      container.materials[0].albedoColor = BABYLON.Color3.FromHexString('#B3EEF3');
+      container.materials[0].metallic = 0.85;
+      
+      this.portal = container.createRootMesh();
+      this.portal.rotation = new BABYLON.Vector3(0,Math.PI/2,0);
+      this.portal.name = 'Portal';
+      //container.addAllToScene();
+    }
+    return this.portal;
+  }
+
+  // lists files on a server directory
   listFiles(theUrl, callback){
     this.log("Fetching "+theUrl);
     var xmlHttp = new XMLHttpRequest();
@@ -40,10 +58,25 @@ export class VRSpaceUI {
     xmlHttp.send(null);
     return xmlHttp;
   }
+  
+  // list folders with their jpg thumbnails
+  listThumbnails(dir, callback) {
+    this.listMatchingFiles( dir, callback, '.jpg' )
+  }
 
+  // list character folders and their fix files
   listCharacters(dir, callback) {
+    this.listMatchingFiles( dir, callback, '-fixes.json' )
+  }
+  
+  // list server folders along with their matching files
+  // i.e. files with the same name, plus given suffix
+  listMatchingFiles(dir, callback, suffix) {
+    if ( !dir.endsWith('/') ) {
+      dir += '/';
+    }
     var ui = this;
-    return this.listFiles(dir, function(xmlHttp) {
+    return this.listFiles(dir, (xmlHttp) => {
       var links = xmlHttp.responseXML.links;
       var files = [];
       var fixes = [];
@@ -59,7 +92,7 @@ export class VRSpaceUI {
         if ( link.baseURI.length > link.href.length ) {
           continue;
         }
-        if ( link.href.endsWith('-fixes.json') ) {
+        if ( link.href.endsWith(suffix) ) {
           fixes.push(href.substring(link.baseURI.length));
           continue;
         }
@@ -72,20 +105,20 @@ export class VRSpaceUI {
         files.push(href);
       }
 
-      // second pass: match avatars with fixes
-      var avatars = [];
+      // second pass: match folders with related files
+      var folders = [];
       for ( var i = 0; i < files.length; i++ ) {
         var fix = null;
-        var fixName = files[i]+"-fixes.json";
+        var fixName = files[i]+suffix;
         var index = fixes.indexOf(fixName);
         if ( index >= 0) {
           fix = fixes[index];
         }
-        avatars.push(new CharacterFolder( dir, files[i], fix ));
+        folders.push(new ServerFolder( dir, files[i], fix ));
       }
       
-      ui.log(avatars);
-      callback(avatars);
+      ui.log(folders);
+      callback(folders);
     });
   }
   
@@ -98,29 +131,25 @@ export class VRSpaceUI {
         node.material.usePhysicalLightFalloff = false;
       }
     }
-    var children = node.getChildMeshes();
+    var children = node.getChildren();
     for ( var i = 0; i < children.length; i++ ) {
-      // Instances should only be created for meshes with geometry.
       this.receiveShadows(children[i], shadows);
     }
   }
 
-  copyMesh(mesh, parent) {
+  copyMesh(mesh, parent, replaceParent) {
     if ( mesh.geometry ) {
       var copy = mesh.createInstance(mesh.name+"-copy");
       copy.parent = parent;
-    } else if (parent) {
+    } else if (replaceParent && parent) {
       copy = parent;
     } else {
       var copy = mesh.clone( mesh.name+"-copy", parent, true, false );
       copy.parent = parent;
     }
-    var children = mesh.getChildMeshes();
+    var children = mesh.getChildren();
     for ( var i = 0; i < children.length; i++ ) {
-      // Instances should only be created for meshes with geometry.
-      if ( children[i].geometry ) {
-        this.copyMesh(children[i], copy);
-      }
+      this.copyMesh(children[i], copy, replaceParent);
     }
     return copy;
   }
@@ -129,11 +158,123 @@ export class VRSpaceUI {
 
 export const VRSPACEUI = new VRSpaceUI();
 
-class CharacterFolder {
-  constructor( baseUrl, name, fixFile ) {
+// room with logo as floor and invisible walls
+export class LogoRoom {
+  constructor( scene ) {
+    this.scene = scene;
+    this.diameter = 20;
+    this.shadows = true;
+  }
+  async load() {
+    this.floorGroup = new BABYLON.TransformNode("Floor");
+    // ground, used for teleportation/pointer
+    this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {}, scene);
+    this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
+    this.ground.position = new BABYLON.Vector3( 0, 0.05, 0 );
+    this.ground.parent = this.floorGroup;
+    this.ground.isVisible = false;
+    this.ground.checkCollisions = true;
+
+    // mesh that we display as floor
+    await VRSPACEUI.init(scene); // wait for logo to load
+    VRSPACEUI.receiveShadows( VRSPACEUI.logo, this.shadows );
+    VRSPACEUI.copyMesh(VRSPACEUI.logo, this.floorGroup, true);
+
+    // walls, used for collisions, to limit the movement
+    var walls = BABYLON.MeshBuilder.CreateCylinder("FloorWalls", {height:4,diameter:1,sideOrientation:BABYLON.Mesh.BACKSIDE}, scene);
+    walls.checkCollisions = true;
+    walls.isVisible = false;
+    walls.position = new BABYLON.Vector3(0,2,0);
+    walls.parent = this.floorGroup;
+
+    this.setDiameter(this.diameter);
+    this.floorGroup.position = new BABYLON.Vector3( 0, -0.05, 0 );
+    this.scene.addTransformNode(this.floorGroup);
+    
+    return this;
+  }
+  setDiameter( diameter ) {
+    this.diameter = diameter;
+    this.floorGroup.scaling = new BABYLON.Vector3(this.diameter,2,this.diameter);
+  }
+  getDiameter() {
+    return this.diameter;
+  }
+}
+
+export class Portal {
+  constructor( scene, name, thumbnail, shadowGenerator ) {
+    this.scene = scene;
+    this.name = name;
+    this.thumbnail = new BABYLON.Texture(thumbnail);
+    this.shadowGenerator = shadowGenerator;
+  }
+  async loadAt(x,y,z,angle) {
+    this.group = new BABYLON.TransformNode('Portal:'+this.name);
+    this.group.position = new BABYLON.Vector3(x,y,z);
+    this.group.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle);
+
+    if (this.shadowGenerator) {
+      var clone = VRSPACEUI.portal.clone();
+      clone.parent = this.group;
+      var meshes = clone.getChildMeshes();
+      for ( var i = 0; i < meshes.length; i++ ) {
+        this.shadowGenerator.getShadowMap().renderList.push(meshes[i]);
+      }
+    } else {
+      VRSPACEUI.copyMesh(VRSPACEUI.portal, this.group);
+    }
+
+    var plane = BABYLON.Mesh.CreatePlane("PortalEntrance:"+this.name, 1.60, scene);
+    plane.parent = this.group;
+    plane.position = new BABYLON.Vector3(0,1.32,0);
+
+    this.material = new BABYLON.StandardMaterial(this.name+"-noise", scene);
+    plane.material = this.material;
+
+    this.material.disableLighting = true;
+    this.material.backFaceCulling = false;
+    var noiseTexture = new BABYLON.NoiseProceduralTexture("perlin", 256, scene);
+    this.material.lightmapTexture = noiseTexture;
+    noiseTexture.octaves = 4;
+    noiseTexture.persistence = 1.2;
+    noiseTexture.animationSpeedFactor = 2;
+    plane.visibility = 0.85;
+
+    this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:1,width:2}, scene);
+    this.title.parent = this.group;
+    this.title.position = new BABYLON.Vector3(0,2.5,0);
+    this.title.isVisible = false;
+
+    var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 128,128);
+    
+    var titleText = new BABYLON.GUI.TextBlock();
+    titleText.text = this.name;
+    titleText.color = "white";
+
+    titleTexture.addControl(titleText);
+    
+    return this;
+  }
+  enabled(enable) {
+    if ( enable ) {
+      this.material.emissiveTexture = this.thumbnail;
+    } else {
+      this.material.emissiveTexture = null;
+    }
+    this.title.isVisible = enable;
+  }
+}
+
+// a folder with a related file
+class ServerFolder {
+  constructor( baseUrl, name, related ) {
     this.baseUrl = baseUrl;
     this.name = name;
-    this.fixFile = fixFile;
+    this.related = related;
+  }
+  relatedUrl() {
+    return this.baseUrl+this.related;
   }
 }
 

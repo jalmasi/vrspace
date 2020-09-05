@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LoadProgressIndicator } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();
@@ -58,37 +58,13 @@ export class AvatarSelection extends World {
     //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("skybox/horizon_4", scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
 
+    this.room = await new LogoRoom(scene).load();
+    this.ground = this.room.ground;
+    
     // Register a render loop to repeatedly render the scene
     engine.runRenderLoop(function () {
       if (scene) scene.render();
     });
-
-    var diameter = 20;
-    this.floorGroup = new BABYLON.TransformNode("Floor");
-
-    // ground, used for teleportation/pointer
-    this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {}, scene);
-    this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
-    this.ground.position = new BABYLON.Vector3( 0, 0.05, 0 );
-    this.ground.parent = this.floorGroup;
-    this.ground.isVisible = false;
-    this.ground.checkCollisions = true;
-
-    // mesh that we display as floor
-    await VRSPACEUI.init(scene); // wait for logo to load
-    VRSPACEUI.receiveShadows( VRSPACEUI.logo, true );
-    var floorMesh = VRSPACEUI.copyMesh(VRSPACEUI.logo, this.floorGroup);
-
-    // walls, used for collisions, to limit the movement
-    var walls = BABYLON.MeshBuilder.CreateCylinder("FloorWalls", {height:4,diameter:1,sideOrientation:BABYLON.Mesh.BACKSIDE}, scene);
-    walls.checkCollisions = true;
-    walls.isVisible = false;
-    walls.position = new BABYLON.Vector3(0,2,0);
-    walls.parent = this.floorGroup;
-
-    this.floorGroup.scaling = new BABYLON.Vector3(diameter,2,diameter);
-    this.floorGroup.position = new BABYLON.Vector3( 0, -0.05, 0 );
-    scene.addTransformNode(this.floorGroup);
 
     return scene;
   }
@@ -213,6 +189,7 @@ export class AvatarSelection extends World {
       this.indicator.remove(dir);
       if ( ! this.character ) {
         this.addCharacterButtons();
+        this.portalsEnabled(true);
       }
       this.character = loaded.replace(this.character);
       this.animationButtons(this.character);
@@ -284,6 +261,33 @@ export class AvatarSelection extends World {
           this.character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI);
         }
     });
+  }
+  
+  showPortals() {
+    this.portals = [];
+    VRSPACEUI.listThumbnails('../content/worlds', (worlds) => {
+      var radius = this.room.diameter/2;
+      var angleIncrement = 2*Math.PI/worlds.length;
+      var angle = 0;
+      for ( var i=0; i < worlds.length; i++ ) {
+        var x = Math.sin(angle)*radius;
+        var z = Math.cos(angle)*radius;
+        // heavy performance impact
+        //new Portal( scene, worlds[i].name, worlds[i].relatedUrl(), this.shadowGenerator).loadAt( x,0,z, angle);
+        var portal = new Portal( scene, worlds[i].name, worlds[i].relatedUrl());
+        this.portals.push(portal);
+        portal.loadAt( x,0,z, angle);
+        angle += angleIncrement;
+      }
+    });
+  }
+
+  portalsEnabled(enable) {
+    if (this.portals) {
+      for ( var i = 0; i < this.portals.length; i++ ) {
+        this.portals[i].enabled(enable);
+      }
+    }
   }
 
 }

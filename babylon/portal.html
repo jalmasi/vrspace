@@ -37,7 +37,9 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 // focus canvas so we get keyboard events, otherwise need to click on it first
 canvas.focus();
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+
 var scene;
+var ground;
 
 import("./avatar-selection.js").then( (module) =>{
   
@@ -45,16 +47,11 @@ import("./avatar-selection.js").then( (module) =>{
 
   world.init(engine, 'avatar').then((s) => {
     scene = s;
-    world.createSelection();
-    world.showPortals();
+     world.showPortals();
+     setTimeout(() => world.portalsEnabled(true),3000);
   });
 
 })
-
-//Watch for browser/canvas resize events
-window.addEventListener("resize", function () {
-  engine.resize();
-});
 
 function debugOnOff() {
   console.log("Debug: "+scene.debugLayer.isVisible());

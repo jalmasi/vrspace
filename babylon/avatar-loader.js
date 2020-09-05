@@ -9,13 +9,14 @@ export class AvatarLoader extends AvatarSelection {
     var indicator = new LoadProgressIndicator(scene, this.camera);
     var manager = new BABYLON.GUI.GUI3DManager(scene);
     VRSPACEUI.debug = true;
+    var room = this.room;
     VRSPACEUI.listCharacters( '../content/char/', (avatars) => {
         console.log("Avatars available: "+avatars.length);
         var circumference = 2*avatars.length; // 2m for each avatar
         var radius = circumference/Math.PI/2;
         var angleIncrement = 2*Math.PI/avatars.length;
         var angle = 0;
-        this.floorGroup.scaling = new BABYLON.Vector3(2.2*radius,2,2.2*radius);
+        room.setDiameter(2.2*radius);
         for ( var i=0; i < avatars.length; i++ ) {
           var x = Math.sin(angle)*radius;
           var z = Math.cos(angle)*radius;

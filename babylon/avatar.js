@@ -207,9 +207,9 @@ export class Avatar {
   }
 
   async loadFixes() {
-    if ( this.folder.fixFile ) {
-      this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.fixFile);
-      return fetch(this.folder.baseUrl+"/"+this.folder.fixFile, {cache: 'no-cache'})
+    if ( this.folder.related ) {
+      this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.related);
+      return fetch(this.folder.baseUrl+"/"+this.folder.related, {cache: 'no-cache'})
       .then(response => response.json())
       .then(json => {
           this.fixes = json;
