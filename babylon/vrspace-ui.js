@@ -878,6 +878,8 @@ export class Buttons {
 export class World {
   async init(engine, name) {
     this.engine = engine;
+    this.gravityEnabled = true;
+    this.collisionsEnabled = true;
     this.scene = await this.createScene(engine);
     this.indicator = new LoadProgressIndicator(this.scene, this.camera);
     this.registerRenderLoop();
@@ -923,7 +925,7 @@ export class World {
             scene.unregisterBeforeRender(tracker);
             // doesn't do anything
             //camera.position.y = xrHelper.baseExperience.camera.position.y + 3; //camera.ellipsoid.y*2;
-            this.collisions(true);
+            this.collisions(this.collisionsEnabled);
             this.inXR = false;
             break;
           case BABYLON.WebXRState_NOT_IN_XR:
@@ -975,7 +977,7 @@ export class World {
       //vrHelper.enableInteractions();
       this.vrHelper.webVRCamera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
       this.vrHelper.onEnteringVRObservable.add(()=>{this.collisions(false)});
-      this.vrHelper.onExitingVRObservable.add(()=>{this.collisions(true);});
+      this.vrHelper.onExitingVRObservable.add(()=>{this.collisions(this.collisionsEnabled);});
 
       this.vrHelper.enableTeleportation({floorMeshes: this.getFloorMeshes(this.scene)});
       this.vrHelper.raySelectionPredicate = (mesh) => {
@@ -1006,10 +1008,10 @@ export class World {
   }
   
   collisions(state) {
-    this._collisions( this.floorMeshes, state );
-    this._collisions( this.sceneMeshes, state );
-    this.camera.applyGravity = state;
-    this.camera._needMoveForGravity = state;
+    this._collisions( this.floorMeshes, this.collisionsEnabled && state );
+    this._collisions( this.sceneMeshes, this.collisionsEnabled && state );
+    this.camera.applyGravity = this.gravityEnabled && state;
+    this.camera._needMoveForGravity = this.gravityEnabled && state;
   }
   
   _collisions( meshes, state ) {
@@ -1047,7 +1049,7 @@ export class World {
         this.indicator.remove(name);
         //floor = new FloorRibbon(scene);
         //floor.showUI();
-        this.collisions(true);
+        this.collisions(this.collisionsEnabled);
     },
     // onProgress:
     (evt) => { indicator.progress( evt, name ) }
