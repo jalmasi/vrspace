@@ -1,0 +1,440 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 324,
+      "max": [
+        1.221297025680542,
+        1.8435378074645996,
+        2.5271916389465332
+      ],
+      "min": [
+        -0.72499179840087891,
+        -0.0044093029573559761,
+        0.73298490047454834
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 3888,
+      "componentType": 5126,
+      "count": 324,
+      "max": [
+        0.97734510898590088,
+        0.99571019411087036,
+        0.9999459981918335
+      ],
+      "min": [
+        -0.87905114889144897,
+        -0.60650759935379028,
+        -0.37349039316177368
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 324,
+      "max": [
+        1,
+        0.99730181694030762,
+        0.88353729248046875,
+        1
+      ],
+      "min": [
+        -0.9910617470741272,
+        -0.9945642352104187,
+        -0.85653245449066162,
+        1
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 324,
+      "max": [
+        1,
+        1
+      ],
+      "min": [
+        0.3999728262424469,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 972,
+      "max": [
+        323
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 7776,
+      "componentType": 5126,
+      "count": 99,
+      "max": [
+        0.30129531025886536,
+        0.94545173645019531,
+        1.5790550708770752
+      ],
+      "min": [
+        -0.1288699209690094,
+        -0.11359374970197678,
+        -0.070076540112495422
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 8964,
+      "componentType": 5126,
+      "count": 99,
+      "max": [
+        0.98913377523422241,
+        0.9693373441696167,
+        0.9339679479598999
+      ],
+      "min": [
+        -0.98631823062896729,
+        -0.9481775164604187,
+        -0.63027876615524292
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 5184,
+      "componentType": 5126,
+      "count": 99,
+      "max": [
+        0.98372733592987061,
+        0.8758355975151062,
+        0.8981252908706665,
+        1
+      ],
+      "min": [
+        -0.99578350782394409,
+        -0.96094489097595215,
+        -0.54802364110946655,
+        -1
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 2592,
+      "componentType": 5126,
+      "count": 99,
+      "max": [
+        0.33643859624862671,
+        1
+      ],
+      "min": [
+        0.060256928205490112,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 3888,
+      "componentType": 5125,
+      "count": 264,
+      "max": [
+        98
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "TheHyperChimp (https://sketchfab.com/TheHyperChimp)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/models/cec4254d14e9443d9f299c6247628ebf",
+      "title": "Phoenix Palm: Cities Skylines"
+    },
+    "generator": "Sketchfab-3.19.6",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 4944,
+      "byteOffset": 0,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3384,
+      "byteOffset": 4944,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10152,
+      "byteOffset": 8328,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6768,
+      "byteOffset": 18480,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 25248,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/PhoenixPalm_d_baseColor.png"
+    },
+    {
+      "uri": "textures/PhoenixPalm_d_normal.png"
+    },
+    {
+      "uri": "textures/NPalmTree02_D_normal.png"
+    },
+    {
+      "uri": "textures/NPalmTree02_D_baseColor.png"
+    }
+  ],
+  "materials": [
+    {
+      "alphaCutoff": 0.2395198171,
+      "alphaMode": "MASK",
+      "doubleSided": true,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "name": "PhoenixPalm_d",
+      "normalTexture": {
+        "index": 1,
+        "scale": 1,
+        "texCoord": 0
+      },
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "baseColorTexture": {
+          "index": 0,
+          "texCoord": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0.59999999999999998
+      }
+    },
+    {
+      "alphaCutoff": 0,
+      "alphaMode": "MASK",
+      "doubleSided": false,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "name": "NPalmTree02_D",
+      "normalTexture": {
+        "index": 2,
+        "scale": 1,
+        "texCoord": 0
+      },
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "baseColorTexture": {
+          "index": 3,
+          "texCoord": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0.59999999999999998
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "PhoenixPalm_d.010_PhoenixPalm_d_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3
+          },
+          "indices": 4,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "PhoenixPalm_d.010_NPalmTree02_D_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 6,
+            "POSITION": 5,
+            "TANGENT": 7,
+            "TEXCOORD_0": 8
+          },
+          "indices": 9,
+          "material": 1,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "name": "RootNode (gltf orientation matrix)",
+      "rotation": [
+        -0.70710678118654746,
+        -0,
+        -0,
+        0.70710678118654757
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "name": "RootNode (model correction matrix)"
+    },
+    {
+      "children": [
+        3
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "name": "PhoenixPalm.fbx"
+    },
+    {
+      "children": [
+        4
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        5,
+        6
+      ],
+      "matrix": [
+        401.99343868678176,
+        59.323019026081703,
+        -297.60448049258281,
+        0,
+        -284.41661055131743,
+        245.8783213805398,
+        -335.16755793698644,
+        0,
+        105.8054874961189,
+        435.55825823467615,
+        229.74029986898273,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "name": "PhoenixPalm_d.010"
+    },
+    {
+      "mesh": 0,
+      "name": "PhoenixPalm_d.010_PhoenixPalm_d_0"
+    },
+    {
+      "mesh": 1,
+      "name": "PhoenixPalm_d.010_NPalmTree02_D_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "OSG_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    },
+    {
+      "sampler": 0,
+      "source": 3
+    }
+  ]
+}
+

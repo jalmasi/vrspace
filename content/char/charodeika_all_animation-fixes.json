@@ -1,0 +1,26 @@
+{
+  "standing": 0.5,
+  "beforeAnimation": 0,
+  "loopAnimations": true,
+  "animationGroups": [
+    {
+      "name": "Walk",
+      "source": "Take 01",
+      "start": 0.01,
+      "end": 1
+    },
+    {
+      "name": "Idle",
+      "source": "Take 01",
+      "start": 1.01,
+      "end": 4.04
+    },
+    {
+      "name": "Die",
+      "source": "Take 01",
+      "start": 4.05,
+      "end": 10,
+      "loop": false
+    }
+  ]
+}
