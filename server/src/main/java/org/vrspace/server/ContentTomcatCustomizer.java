@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 public class ContentTomcatCustomizer implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
   @Override
   public void customize(TomcatServletWebServerFactory factory) {
-    String serverDir = ClassUtil.serverDirectory();
+    String serverDir = ClassUtil.projectHomeDirectory();
     if (serverDir != null) {
       File contentDir = new File(serverDir);
       factory.setDocumentRoot(contentDir);

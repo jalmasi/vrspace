@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ContentConfiguration implements WebMvcConfigurer {
 
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    String serverDir = ClassUtil.serverDirectory();
+    String serverDir = ClassUtil.projectHomeDirectory();
     if (serverDir != null) {
       String projectPath = "file://" + serverDir;
       // under that there's server, content, babylon (client) subdirs
