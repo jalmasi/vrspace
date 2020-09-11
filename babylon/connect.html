@@ -74,8 +74,7 @@ var createScene = function () {
   skyboxMaterial.disableLighting = true;
   skybox.material = skyboxMaterial;
   skybox.infiniteDistance = true;
-  skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("skybox/mp_orbital/orbital-element", scene);
-  //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("skybox/mp_drakeq/drakeq", scene);
+  skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("//www.babylonjs.com/assets/skybox/TropicalSunnyDay", scene);
   skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
 
   return scene;

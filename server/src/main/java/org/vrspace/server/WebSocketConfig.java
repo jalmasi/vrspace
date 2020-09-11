@@ -13,6 +13,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
   SessionManager sessionManager;
 
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(sessionManager, "/vrspace");
+    // setAllowedOrigins or 403 forbidden when behind proxy
+    registry.addHandler(sessionManager, "/vrspace").setAllowedOrigins("*");
   }
 }
