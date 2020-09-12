@@ -45,7 +45,9 @@ import("./avatar-selection.js").then( (module) =>{
 
   world.init(engine, 'avatar').then((s) => {
     scene = s;
-    world.createSelection();
+    world.createSelection((avatar)=>{
+      console.log("Selected avatar: "+avatar.getUrl());
+    });
     world.showPortals();
   });
 

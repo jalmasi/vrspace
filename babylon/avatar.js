@@ -292,12 +292,16 @@ export class Avatar {
     return this.animationGroups;
   }
 
+  getUrl() {
+    return this.folder.baseUrl+this.folder.name+"/scene.gltf";
+  }
+  
   load(success, progress, failure) {
     this.loadFixes().then( () => {
       this.log("loading from "+this.folder.name);
       var avatar = this;
       var plugin = BABYLON.SceneLoader.LoadAssetContainer(
-        this.folder.baseUrl+"/"+this.folder.name+"/",
+        this.folder.baseUrl+this.folder.name+"/",
         "scene.gltf",
         this.scene,
         // onSuccess:

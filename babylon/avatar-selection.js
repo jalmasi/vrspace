@@ -171,7 +171,8 @@ export class AvatarSelection extends World {
     return pos;
   }
   
-  createSelection() {
+  createSelection(selectionCallback) {
+    this.selectionCallback = selectionCallback;
     this.indicator = new LoadProgressIndicator(scene, this.camera);
     VRSPACEUI.listCharacters( '../content/char/', (avatars) => {
       var buttons = new Buttons(scene,"Avatars",avatars,(dir) => this.loadCharacter(dir),"name");
@@ -193,6 +194,7 @@ export class AvatarSelection extends World {
       }
       this.character = loaded.replace(this.character);
       this.animationButtons(this.character);
+      this.selectionCallback(this.character);
     });
   }
 
