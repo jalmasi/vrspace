@@ -98,7 +98,7 @@ function debugOnOff() {
   }
 }
 
-class Something {
+class WorldManager {
   constructor(vrSpace) {
     this.vrSpace = vrSpace;
     this.oldx = null;
@@ -277,14 +277,15 @@ class Something {
 scene = createScene();
 
 import('./vrspace.js').then((vrspace) => {
-  var something = new Something(vrspace.VRSPACE);
+  var world = new WorldManager(vrspace.VRSPACE);
   
-  vrspace.VRSPACE.addConnectionListener((connected) => something.setConnected(connected));
-  vrspace.VRSPACE.addSceneListener((e) => something.sceneChanged(e));
+  vrspace.VRSPACE.addConnectionListener((connected) => world.setConnected(connected));
+  vrspace.VRSPACE.addWelcomeListener(() => vrspace.VRSPACE.sendMy("mesh", "dolphin.glb"));
+  vrspace.VRSPACE.addSceneListener((e) => world.sceneChanged(e));
 
   vrspace.VRSPACE.connect();
 
-  setInterval(() => something.position(), 1000/FPS);
+  setInterval(() => world.position(), 1000/FPS);
 });
 
 </script>

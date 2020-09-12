@@ -145,7 +145,7 @@ public class WorldManager {
       client = new Client(session);
       client.setPosition(new Point());
       client.setGuest(true);
-      client.setMesh("dolphin.glb"); // FIXME
+      // client.setMesh("dolphin.glb"); // FIXME
       client = db.save(client);
     }
     client.setMapper(jackson);

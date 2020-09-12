@@ -103,6 +103,8 @@ class VRSpace {
     this.connectionListeners = [];
     this.dataListeners = [];
     this.sceneListeners = [];
+    this.welcomeListeners = [];
+    this.errorListeners = [];
     this.responseListener = null;
   }
   
@@ -123,7 +125,15 @@ class VRSpace {
   addSceneListener(callback) {
     this.addListener( this.sceneListeners, callback);
   }
+
+  addWelcomeListener(callback) {
+    this.addListener( this.welcomeListeners, callback);
+  }
   
+  addErrorListener(callback) {
+    this.addListener( this.errorListeners, callback);
+  }
+
   getScene( filter ) {
     // if ( typeof filter === 'function ') // TODO eval?
   // if ( typeof filter === 'object') // TODO instanceof?
@@ -205,8 +215,15 @@ class VRSpace {
   
   sendMy(what,value) {
     if ( this.me != null) {
-      var msg = '{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":'+this.stringifyVector(value)+'}}';
-      this.send(msg);
+      if ( typeof value == "string") {
+        this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":"'+value+'"}}');
+      } else if ( typeof value == 'object') {
+        this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":'+this.stringifyVector(value)+'}}');
+      } else {
+        console.log("Unsupported datatype, ignored user event "+what+"="+value);
+      }
+    } else {
+      console.log("No my ID yet, ignored user event "+what+"="+value);
     }
   }
 
@@ -294,10 +311,12 @@ class VRSpace {
     } else if ("ERROR" in obj){
       // TODO: error listener(s)
       console.log(obj.ERROR);
+      this.errorListeners.forEach((listener)=>listener(obj.ERROR));
     } else if ( "Welcome" in obj) {
       var welcome = obj.Welcome;
       console.log("welcome "+welcome.client.id);
       this.me = Object.assign(Client,welcome.client);
+      this.welcomeListeners.forEach((listener)=>listener(welcome));
     } else if ( "response" in obj) {
       console.log("Response to command");
       if ( typeof this.responseListener === 'function') {
