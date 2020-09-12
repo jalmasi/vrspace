@@ -92,6 +92,8 @@ class SceneEvent {
   }
 }
 
+const classes = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent };
+
 class VRSpace {
   constructor() {
     this.ws = null;
@@ -152,16 +154,15 @@ class VRSpace {
     url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace'; // ws://localhost:8080/vrspace
     console.log("Connecting to "+url);
     this.ws = new WebSocket(url);
-    const vrspace = this;
-    this.ws.onopen = function() {
-      vrspace.connectionListeners.forEach(function(listener){listener(true);});
+    this.ws.onopen = () => {
+      this.connectionListeners.forEach(function(listener){listener(true);});
     }
-    this.ws.close = function() {
-      vrspace.connectionListeners.forEach(function(listener){listener(false);});
+    this.ws.close = () => {
+      this.connectionListeners.forEach(function(listener){listener(false);});
     }
-    this.ws.onmessage = function(data){
-      vrspace.receive(data.data);
-      vrspace.dataListeners.forEach(function(listener){listener(data.data);}); 
+    this.ws.onmessage = (data) => {
+      this.receive(data.data);
+      this.dataListeners.forEach(function(listener){listener(data.data);}); 
     }
     console.log("Connected!")
   }
@@ -218,7 +219,8 @@ class VRSpace {
   }
   
   addToScene(className, object) {
-    var classInstance = (Function('return new ' + className))();
+    //var classInstance = (Function('return new ' + className))();
+    var classInstance = new classes[className];
     Object.assign(classInstance,object);
     var id = new ID(className,object.id);
     this.scene.set(id.toString(), classInstance);
@@ -308,4 +310,4 @@ class VRSpace {
   }
 }
 
-VRSPACE = new VRSpace();
+export const VRSPACE = new VRSpace();

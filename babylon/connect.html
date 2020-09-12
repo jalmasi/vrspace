@@ -26,7 +26,6 @@
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
-    <script src="vrspace.js"></script>
   </head>
 
 <body>
@@ -99,178 +98,194 @@ function debugOnOff() {
   }
 }
 
-function setConnected(connected) {
-  console.log("Connected: "+connected);
-}
-
-function sceneChanged(e) {
-  if (e.added != null) {
-    console.log("ADDED " + e.objectId + " new size " + e.scene.size);
-    loadMesh(e.added);
-  } else if (e.removed != null) {
-    console.log("REMOVED " + e.objectId + " new size " + e.scene.size)
-    removeMesh( e.removed );
-  } else {
-    console.log("ERROR: invalid scene event");
+class Something {
+  constructor(vrSpace) {
+    this.vrSpace = vrSpace;
+    this.oldx = null;
+    this.oldy = null;
+    this.oldz = null;
+    this.oldrx = null;
+    this.oldry = null;
+    this.oldrz = null;
   }
-}
+  
+  setConnected(connected) {
+    console.log("Connected: "+connected);
+  }
 
-function loadMesh(obj) {
-  console.log("loading "+obj.mesh);
-  BABYLON.SceneLoader.LoadAssetContainerAsync("", obj.mesh, scene).then(function (container) {
-    console.log("loaded "+obj.mesh);
-
-    var bbox = boundingBox(container);
-
-    // Adds all elements to the scene
-    var mesh = container.createRootMesh();
-    mesh.name = obj.mesh;
-    mesh.id = obj.constructor.name+" "+obj.id;
-    
-    container.addAllToScene();
-
-    obj.container = container;
-    
-    console.log("Added "+obj.mesh);
-    
-    // TODO: add listener to process changes
-    obj.addListener(changeObject);
-  });
-}
-
-function changeObject(obj,changes) {
-  for ( field in changes ) {
-    var node = obj.container.meshes[0];
-    if ( 'position' === field ) {
-      if ( ! obj.translate ) {
-        obj.translate = createAnimation(node, "position");
-      }
-      updateAnimation(obj.translate, node.position, obj.position);
-    } else if ( 'rotation' === field ) {
-      if ( ! obj.rotate ) {
-        obj.rotate = createAnimation(node, "rotation");
-      }
-      updateAnimation(obj.rotate, node.rotation, obj.rotation);
+  sceneChanged(e) {
+    if (e.added != null) {
+      console.log("ADDED " + e.objectId + " new size " + e.scene.size);
+      this.loadMesh(e.added);
+    } else if (e.removed != null) {
+      console.log("REMOVED " + e.objectId + " new size " + e.scene.size)
+      this.removeMesh( e.removed );
+    } else {
+      console.log("ERROR: invalid scene event");
     }
   }
-}
 
-function updateAnimation(group, from, to) {
-  if ( group.isPlaying ) {
-    group.stop();
+  // TODO loader UI
+  loadMesh(obj) {
+    console.log("loading "+obj.mesh);
+    BABYLON.SceneLoader.LoadAssetContainerAsync("", obj.mesh, scene).then((container) => {
+      console.log("loaded "+obj.mesh);
+
+      var bbox = this.boundingBox(container);
+
+      // Adds all elements to the scene
+      var mesh = container.createRootMesh();
+      mesh.name = obj.mesh;
+      mesh.id = obj.constructor.name+" "+obj.id;
+      
+      container.addAllToScene();
+
+      obj.container = container;
+      
+      console.log("Added "+obj.mesh);
+      
+      // TODO: add listener to process changes
+      obj.addListener((obj, changes) => this.changeObject(obj, changes));
+    });
   }
-  var xAnim = group.targetedAnimations[0].animation;
-  xAnim.getKeys()[0].value = from.x;
-  xAnim.getKeys()[1].value = to.x;
-  var yAnim = group.targetedAnimations[1].animation;
-  yAnim.getKeys()[0].value = from.y;
-  yAnim.getKeys()[1].value = to.y;
-  var zAnim = group.targetedAnimations[2].animation;
-  zAnim.getKeys()[0].value = from.z;
-  zAnim.getKeys()[1].value = to.z;
-  group.play(false);
-}
 
-function createAnimation(mesh, field) {
-  var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
+  changeObject(obj,changes) {
+    console.log("Changes on "+obj+": "+changes);
+    for ( var field in changes ) {
+      var node = obj.container.meshes[0];
+      if ( 'position' === field ) {
+        if ( ! obj.translate ) {
+          obj.translate = this.createAnimation(node, "position");
+        }
+        this.updateAnimation(obj.translate, node.position, obj.position);
+      } else if ( 'rotation' === field ) {
+        if ( ! obj.rotate ) {
+          obj.rotate = this.createAnimation(node, "rotation");
+        }
+        this.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+      }
+    }
+  }
+
+  updateAnimation(group, from, to) {
+    if ( group.isPlaying ) {
+      group.stop();
+    }
+    var xAnim = group.targetedAnimations[0].animation;
+    xAnim.getKeys()[0].value = from.x;
+    xAnim.getKeys()[1].value = to.x;
+    var yAnim = group.targetedAnimations[1].animation;
+    yAnim.getKeys()[0].value = from.y;
+    yAnim.getKeys()[1].value = to.y;
+    var zAnim = group.targetedAnimations[2].animation;
+    zAnim.getKeys()[0].value = from.z;
+    zAnim.getKeys()[1].value = to.z;
+    group.play(false);
+  }
   
-  var xAnim = new BABYLON.Animation("xAnim "+mesh.id, field+".x", FPS, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-  var xKeys = []; 
-  xKeys.push({frame:0, value: 0});
-  xKeys.push({frame:1, value: 0});
-  xAnim.setKeys(xKeys);
+  createAnimation(mesh, field) {
+    var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
+    
+    var xAnim = new BABYLON.Animation("xAnim "+mesh.id, field+".x", FPS, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    xAnim.setKeys(xKeys);
+    
+    var yAnim = new BABYLON.Animation("yAnim "+mesh.id, field+".y", FPS, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    yAnim.setKeys(xKeys);
+
+    var zAnim = new BABYLON.Animation("zAnim "+mesh.id, field+".z", FPS, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    zAnim.setKeys(xKeys);
+
+    group.addTargetedAnimation(xAnim, mesh);
+    group.addTargetedAnimation(yAnim, mesh);
+    group.addTargetedAnimation(zAnim, mesh);
+
+    return group;
+  }
   
-  var yAnim = new BABYLON.Animation("yAnim "+mesh.id, field+".y", FPS, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-  var xKeys = []; 
-  xKeys.push({frame:0, value: 0});
-  xKeys.push({frame:1, value: 0});
-  yAnim.setKeys(xKeys);
+  removeMesh(obj) {
+    if ( obj.container ) {
+      obj.container.dispose();
+      obj.container = null;
+    }
+    if ( obj.translate ) {
+      obj.translate.dispose();
+      obj.translate = null;
+    }
+    if ( obj.rotate ) {
+      obj.rotate.dispose();
+      obj.rotate = null;
+    }
+  }
 
-  var zAnim = new BABYLON.Animation("zAnim "+mesh.id, field+".z", FPS, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-  var xKeys = []; 
-  xKeys.push({frame:0, value: 0});
-  xKeys.push({frame:1, value: 0});
-  zAnim.setKeys(xKeys);
+  boundingBox(container) {
+    var maxSize = new BABYLON.Vector3(0,0,0);
+    for ( var i = 0; i < container.meshes.length; i++ ) {
+      // have to recompute after scaling
+      //container.meshes[i].computeWorldMatrix(true);
+      container.meshes[i].refreshBoundingInfo();
+      var boundingInfo = container.meshes[i].getBoundingInfo().boundingBox;
+      console.log("max: "+boundingInfo.maximumWorld+" min: "+boundingInfo.minimumWorld);
+      var size = new BABYLON.Vector3(
+        boundingInfo.maximumWorld.x - boundingInfo.minimumWorld.x,
+        boundingInfo.maximumWorld.y - boundingInfo.minimumWorld.y,
+        boundingInfo.maximumWorld.z - boundingInfo.minimumWorld.z
+        );
+      maxSize.x = Math.max(maxSize.x,size.x);
+      maxSize.y = Math.max(maxSize.y,size.y);
+      maxSize.z = Math.max(maxSize.z,size.z);
+      //if (shadows) {
+        //shadowGenerator.getShadowMap().renderList.push(container.meshes[i]);
+      //}
+    }
+    console.log("BBoxMax: "+maxSize);
+    return maxSize;
+  }
 
-  group.addTargetedAnimation(xAnim, mesh);
-  group.addTargetedAnimation(yAnim, mesh);
-  group.addTargetedAnimation(zAnim, mesh);
+  position() {
+    if ( typeof oldPos != 'object') {
+      this.oldPos = camera.globalPosition;
+    }
+    if ( typeof oldRot != 'object') {
+      this.oldRot = camera.rotation;
+    }
+    if ( this.oldx != camera.globalPosition.x || this.oldy != camera.globalPosition.y || this.oldz != camera.globalPosition.z ) {
+      this.oldx = camera.globalPosition.x;
+      this.oldy = camera.globalPosition.y;
+      this.oldz = camera.globalPosition.z;
+      this.vrSpace.sendMy("position", camera.globalPosition);
+    }
+    if ( this.oldrx != camera.rotation.x || this.oldry != camera.rotation.y || this.oldrz != camera.rotation.z ) {
+      this.oldrx = camera.rotation.x;
+      this.oldry = camera.rotation.y;
+      this.oldrz = camera.rotation.z;
+      this.vrSpace.sendMy("rotation", camera.rotation);
+    }
+  }
 
-  return group;
 }
 
-function removeMesh(obj) {
-  if ( obj.container ) {
-    obj.container.dispose();
-    obj.container = null;
-  }
-  if ( obj.translate ) {
-    obj.translate.dispose();
-    obj.translate = null;
-  }
-  if ( obj.rotate ) {
-    obj.rotate.dispose();
-    obj.rotate = null;
-  }
-}
-
-function boundingBox(container) {
-  var maxSize = new BABYLON.Vector3(0,0,0);
-  for ( i = 0; i < container.meshes.length; i++ ) {
-    // have to recompute after scaling
-    //container.meshes[i].computeWorldMatrix(true);
-    container.meshes[i].refreshBoundingInfo();
-    boundingInfo = container.meshes[i].getBoundingInfo().boundingBox;
-    console.log("max: "+boundingInfo.maximumWorld+" min: "+boundingInfo.minimumWorld);
-    var size = new BABYLON.Vector3(
-      boundingInfo.maximumWorld.x - boundingInfo.minimumWorld.x,
-      boundingInfo.maximumWorld.y - boundingInfo.minimumWorld.y,
-      boundingInfo.maximumWorld.z - boundingInfo.minimumWorld.z
-      );
-    maxSize.x = Math.max(maxSize.x,size.x);
-    maxSize.y = Math.max(maxSize.y,size.y);
-    maxSize.z = Math.max(maxSize.z,size.z);
-    //if (shadows) {
-      //shadowGenerator.getShadowMap().renderList.push(container.meshes[i]);
-    //}
-  }
-  console.log("BBoxMax: "+maxSize);
-  return maxSize;
-}
-
-var oldx, oldy, oldz;
-var oldrx, oldry, oldrz;
-
-function position() {
-  if ( typeof oldPos != 'object') {
-    oldPos = camera.globalPosition;
-  }
-  if ( typeof oldRot != 'object') {
-    oldRot = camera.rotation;
-  }
-  if ( oldx != camera.globalPosition.x || oldy != camera.globalPosition.y || oldz != camera.globalPosition.z ) {
-    console.log(camera.cameraDirection);
-    oldx = camera.globalPosition.x;
-    oldy = camera.globalPosition.y;
-    oldz = camera.globalPosition.z;
-    VRSPACE.sendMy("position", camera.globalPosition);
-  }
-  if ( oldrx != camera.rotation.x || oldry != camera.rotation.y || oldrz != camera.rotation.z ) {
-    oldrx = camera.rotation.x;
-    oldry = camera.rotation.y;
-    oldrz = camera.rotation.z;
-    VRSPACE.sendMy("rotation", camera.rotation);
-  }
-}
 
 scene = createScene();
 
-VRSPACE.addConnectionListener(setConnected);
-VRSPACE.addSceneListener(sceneChanged);
+import('./vrspace.js').then((vrspace) => {
+  var something = new Something(vrspace.VRSPACE);
+  
+  vrspace.VRSPACE.addConnectionListener((connected) => something.setConnected(connected));
+  vrspace.VRSPACE.addSceneListener((e) => something.sceneChanged(e));
 
-VRSPACE.connect();
+  vrspace.VRSPACE.connect();
 
-setInterval(position, 1000/FPS);
+  setInterval(() => something.position(), 1000/FPS);
+});
 
 </script>
 <div style="position:absolute;bottom:10px;right:50%;">
