@@ -36,6 +36,7 @@ import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.obj.World;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,7 +51,7 @@ public class SessionManagerTest {
   private SessionManager sessionManager;
 
   @Autowired
-  private WorldManager world;
+  private WorldManager worldManager;
 
   @Autowired
   private VRObjectRepository repo;
@@ -84,7 +85,7 @@ public class SessionManagerTest {
   @Test
   @Transactional
   public void testAnonymousLogin() throws Exception {
-    world.setGuestAllowed(true);
+    worldManager.setGuestAllowed(true);
     when(session.getPrincipal()).thenReturn(null);
 
     login();
@@ -92,7 +93,7 @@ public class SessionManagerTest {
 
   @Test
   public void testNamedLogin() throws Exception {
-    world.setGuestAllowed(false);
+    worldManager.setGuestAllowed(false);
     login();
   }
 
@@ -127,7 +128,7 @@ public class SessionManagerTest {
 
   @Test
   public void testAnonymousLoginFail() throws Exception {
-    world.setGuestAllowed(false);
+    worldManager.setGuestAllowed(false);
     when(session.getPrincipal()).thenReturn(null);
     sessionManager.afterConnectionEstablished(session);
 
@@ -139,7 +140,7 @@ public class SessionManagerTest {
 
   @Test
   public void testInvalidLoginFail() throws Exception {
-    world.setGuestAllowed(false);
+    worldManager.setGuestAllowed(false);
     when(session.getPrincipal()).thenReturn(new Principal() {
       @Override
       public String getName() {
@@ -281,7 +282,7 @@ public class SessionManagerTest {
   @Test
   @Transactional
   public void testMulticast() throws Exception {
-    world.setGuestAllowed(true);
+    worldManager.setGuestAllowed(true);
 
     WebSocketSession session1 = mockup(mock(WebSocketSession.class), "session1");
     WebSocketSession session2 = mockup(mock(WebSocketSession.class), "session2");
@@ -337,4 +338,48 @@ public class SessionManagerTest {
     assertEquals(expected, user1.getScene().get(client.getObjectId()).getPosition());
     assertEquals(expected, user2.getScene().get(client.getObjectId()).getPosition());
   }
+
+  @Test
+  @Transactional
+  public void testEnterUnknown() throws Exception {
+    worldManager.setGuestAllowed(true);
+    when(session.getPrincipal()).thenReturn(null);
+
+    login();
+
+    sendMessage("{\"command\":{\"Enter\":{}}}");
+
+    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+    assertTrue(getMessage().contains("Unknown world"));
+
+    sendMessage("{\"command\":{\"Enter\":{\"world\":\"test\"}}}");
+
+    verify(session, times(3)).sendMessage(any(WebSocketMessage.class));
+    assertTrue(getMessage().contains("Unknown world"));
+  }
+
+  @Test
+  @Transactional
+  public void testEnterValid() throws Exception {
+    worldManager.setGuestAllowed(true);
+    when(session.getPrincipal()).thenReturn(null);
+
+    World world = repo.save(new World("test"));
+
+    login();
+
+    sendMessage("{\"command\":{\"Enter\":{\"world\":\"test\"}}}");
+
+    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+
+    String welcomeMsg = getMessage();
+    Welcome welcome = mapper.readValue(welcomeMsg, Welcome.class);
+    System.err.println(welcome);
+    assertNotNull(welcome.getClient());
+    assertNotNull(welcome.getClient().getId());
+
+    Client client = repo.get(Client.class, welcome.getClient().getId());
+    assertEquals(world, client.getWorld());
+  }
+
 }

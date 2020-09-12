@@ -70,6 +70,10 @@ public class WorldManager {
     return db.getPermanents(client.getWorld().getId());
   }
 
+  public World getWorld(String name) {
+    return db.getWorldByName(name);
+  }
+
   public Set<VRObject> getRange(Client client, Point from, Point to) {
     // CHECKME: what to do with client here?
     HashSet<VRObject> ret = new HashSet<VRObject>();
@@ -166,14 +170,20 @@ public class WorldManager {
 
   public Welcome enter(Client client, World world) {
     client.setActive(true);
+    if (client.getWorld() != null && client.getWorld().equals(world)) {
+      throw new IllegalArgumentException("Already in world " + world);
+    }
+    if (client.getScene() != null) {
+      client.getScene().removeAll();
+      client.getScene().update();
+    }
     client.setWorld(world);
     db.save(client);
+
     // create scene, TODO: scene filters
-    if (client.getScene() == null) {
-      Scene scene = new Scene(this, client);
-      scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
-      client.setScene(scene);
-    }
+    Scene scene = new Scene(this, client);
+    scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
+    client.setScene(scene);
 
     Welcome ret = new Welcome(client, getPermanents(client));
     return ret;
