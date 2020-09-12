@@ -206,7 +206,9 @@ export class Portal {
   constructor( scene, name, thumbnail, shadowGenerator ) {
     this.scene = scene;
     this.name = name;
-    this.thumbnail = new BABYLON.Texture(thumbnail);
+    if ( thumbnail ) {
+      this.thumbnail = new BABYLON.Texture(thumbnail);
+    }
     this.shadowGenerator = shadowGenerator;
   }
   async loadAt(x,y,z,angle) {
@@ -274,7 +276,10 @@ class ServerFolder {
     this.related = related;
   }
   relatedUrl() {
-    return this.baseUrl+this.related;
+    if ( this.related ) {
+      return this.baseUrl+this.related;
+    }
+    return null;
   }
 }
 
