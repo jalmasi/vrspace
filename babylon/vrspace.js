@@ -155,14 +155,14 @@ class VRSpace {
     console.log("Connecting to "+url);
     this.ws = new WebSocket(url);
     this.ws.onopen = () => {
-      this.connectionListeners.forEach(function(listener){listener(true);});
+      this.connectionListeners.forEach((listener)=>listener(true));
     }
     this.ws.close = () => {
-      this.connectionListeners.forEach(function(listener){listener(false);});
+      this.connectionListeners.forEach((listener)=>listener(false));
     }
     this.ws.onmessage = (data) => {
       this.receive(data.data);
-      this.dataListeners.forEach(function(listener){listener(data.data);}); 
+      this.dataListeners.forEach((listener)=>listener(data.data)); 
     }
     console.log("Connected!")
   }
@@ -171,7 +171,7 @@ class VRSpace {
     if (this.ws != null) {
       this.ws.close();
     }
-    this.connectionListeners.forEach(function(listener){listener(false);}); 
+    this.connectionListeners.forEach((listener)=>listener(false));
     console.log("Disconnected");
   }
   
@@ -181,7 +181,7 @@ class VRSpace {
 
   create(className, fieldName, callback) {
     // TODO: use class metadata
-    this.call('{"command":{"Describe":{"className":"'+className+'"}}}',function(obj){
+    this.call('{"command":{"Describe":{"className":"'+className+'"}}}',(obj) => {
       var ret = null;
       for ( var field in obj.response ) {
         if ( field === fieldName ) {
@@ -193,7 +193,8 @@ class VRSpace {
           } else if ( javaType == 'Double' ) {
             ret = 0.0;
           } else {
-            ret = (Function('return new ' + javaType))();
+            //ret = (Function('return new ' + javaType))();
+            ret = new classes[className];
           }
           break;
         }
@@ -226,7 +227,7 @@ class VRSpace {
     this.scene.set(id.toString(), classInstance);
     // notify listeners
     const e = new SceneEvent(this.scene, className, id, classInstance, null);
-    this.sceneListeners.forEach(function(listener){listener(e)});
+    this.sceneListeners.forEach((listener) => listener(e));
   }
   
   addObject(obj) {
@@ -258,7 +259,7 @@ class VRSpace {
     console.log("deleted "+this.scene.size+" "+id+":"+deleted);
   // notify listeners
     const e = new SceneEvent(this.scene, id.className, id, null, obj);
-    this.sceneListeners.forEach(function(listener){listener(e)});
+    this.sceneListeners.forEach((listener) => listener(e));
   }
   
   processEvent(obj,changes) {
