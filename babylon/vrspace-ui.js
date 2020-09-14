@@ -11,7 +11,7 @@ export class VRSpaceUI {
   }
 
   async init(scene) {
-    if ( ! this.initialized ) {
+    if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
       // TODO figure out location of script
       var container = await BABYLON.SceneLoader.LoadAssetContainerAsync("/babylon/","logo.glb",this.scene);
@@ -238,19 +238,21 @@ export class Portal {
     var plane = BABYLON.Mesh.CreatePlane("PortalEntrance:"+this.name, 1.60, scene);
     plane.parent = this.group;
     plane.position = new BABYLON.Vector3(0,1.32,0);
-    this.scene.onPointerObservable.add( (e) => {
+    var observable = (e) => {
       if(e.type == BABYLON.PointerEventTypes.POINTERDOWN){
         var p = e.pickInfo;
         if ( p.pickedMesh == plane ) {
           if ( this.isEnabled ) {
             console.log("Entering "+this.name);
+            this.scene.onPointerObservable.clear();
             this.enter();
           } else {
             console.log("Not entering "+this.name+" - disabled");
           }
         }
       }
-    });
+    };
+    this.scene.onPointerObservable.add(observable);
 
     this.material = new BABYLON.StandardMaterial(this.name+"-noise", scene);
     plane.material = this.material;
@@ -335,8 +337,10 @@ export class LoadProgressIndicator {
         indicator.log("Loaded logo, current progress "+indicator.currentItem+"/"+indicator.totalItems);
     });
     scene.onActiveCameraChanged.add( () => {
-      console.log("Camera changed: "+scene.activeCamera.getClassName());
-      this.attachTo(camera); // FIXME undefined
+      if ( scene.activeCamera ) {
+        console.log("Camera changed: "+scene.activeCamera.getClassName());
+        this.attachTo(camera); // FIXME undefined
+      }
     });
   }
   _init() {
@@ -924,7 +928,6 @@ export class World {
     } else {
       this.baseUrl = "";
     }
-    this.baseUrl = baseUrl;
     this.gravityEnabled = true;
     this.collisionsEnabled = true;
     this.scene = await this.createScene(engine);
@@ -1109,9 +1112,14 @@ export class World {
   registerRenderLoop() {
     var scene = this.scene;
     // Register a render loop to repeatedly render the scene
-    engine.runRenderLoop(function () {
-        scene.render();
-    });
+    var loop = () => {
+      if ( this.scene ) {
+        this.scene.render();
+      } else {
+        engine.stopRenderLoop(loop);
+      }
+    }
+    engine.runRenderLoop(loop);
   }
 
   createTerrain() {

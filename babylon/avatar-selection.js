@@ -61,11 +61,6 @@ export class AvatarSelection extends World {
     this.room = await new LogoRoom(scene).load();
     this.ground = this.room.ground;
     
-    // Register a render loop to repeatedly render the scene
-    engine.runRenderLoop(function () {
-      if (scene) scene.render();
-    });
-
     return scene;
   }
   
@@ -294,15 +289,19 @@ export class AvatarSelection extends World {
   }
 
   enter( portal ) {
-    console.log("Entering world "+portal.worldUrl()+'/world.js as '+this.character.folder.url());
+    console.log("Entering world "+portal.worldUrl()+'/world.js as '+this.character.getUrl());
     import(portal.worldUrl()+'/world.js').then((world)=>{
-      world.WORLD.init(this.engine, portal.name, portal.worldUrl()+"/").then((scene)=>{
-        var worldManager = new WorldManager(scene.activeCamera);
-        worldManager.VRSPACE.addWelcomeListener(() => worldManager.VRSPACE.sendMy("mesh", this.character.folder.url()));
+      world.WORLD.init(this.engine, portal.name, portal.worldUrl()+"/").then((newScene)=>{
+        var worldManager = new WorldManager(newScene.activeCamera);
+        worldManager.VRSPACE.addWelcomeListener(() => worldManager.VRSPACE.sendMy("mesh", this.character.getUrl()));
         worldManager.VRSPACE.connect();
         // TODO:
         // stop rendering the old scene
         // dispose of old scene
+        var oldScene = this.scene;
+        this.scene = null; // next call to render loop stops the current loop
+        scene = newScene; // CHECKME this global is for debug button only
+        //oldScene.dispose(); // FIXME: hangs the browser!
       });
     })
   }

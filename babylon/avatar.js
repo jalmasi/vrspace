@@ -293,7 +293,7 @@ export class Avatar {
   }
 
   getUrl() {
-    return this.folder.baseUrl+this.folder.name+"/scene.gltf";
+    return this.folder.url()+"/scene.gltf";
   }
   
   load(success, progress, failure) {
