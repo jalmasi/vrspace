@@ -915,9 +915,10 @@ export class Buttons {
 
 // this is intended to be overridden
 export class World {
-  async init(engine, name, baseUrl, file) {
+  async init(engine, name, callback, baseUrl, file) {
     this.engine = engine;
     this.name = name;
+    this.vrHelper = null;
     if ( file ) {
       this.file = file;
     } else {
@@ -934,14 +935,22 @@ export class World {
     this.indicator = new LoadProgressIndicator(this.scene, this.camera);
     this.registerRenderLoop();
     this.createTerrain();
-    this.load();
+    this.load(callback);
     return this.scene;
   }
   async createScene(engine) {
     alert('Please override createScene(engine) method');
   }
   
-  async initXR() {
+  async initXR(vrHelper) {
+    if ( this.vrHelper ) {
+      console.log("VR helper already intialized");
+      return;
+    } else if ( vrHelper ) {
+      this.vrHelper = vrHelper;
+      console.log("Using existing VR helper");
+      return;
+    }
     const xrHelper = await this.scene.createDefaultXRExperienceAsync({floorMeshes: this.getFloorMeshes()});
 
     this.vrHelper = xrHelper;
@@ -1072,7 +1081,7 @@ export class World {
     }
   }
   
-  load() {
+  load(callback) {
     var indicator = this.indicator;
     indicator.add(this.name);
 
@@ -1097,6 +1106,9 @@ export class World {
         //floor = new FloorRibbon(scene);
         //floor.showUI();
         this.collisions(this.collisionsEnabled);
+        if ( callback ) {
+          callback(this);
+        }
     },
     // onProgress:
     (evt) => { indicator.progress( evt, name ) }
@@ -1109,8 +1121,16 @@ export class World {
     this.initXR();
   }
   
+  async enterXR() {
+    await this.initXR();
+    console.log("Entering XR")
+    console.log(this.vrHelper);
+    if ( this.vrHelper && this.vrHelper.baseExperience) {
+      await this.vrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
+    }
+  }
+  
   registerRenderLoop() {
-    var scene = this.scene;
     // Register a render loop to repeatedly render the scene
     var loop = () => {
       if ( this.scene ) {

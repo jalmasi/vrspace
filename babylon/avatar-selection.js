@@ -65,7 +65,7 @@ export class AvatarSelection extends World {
   }
   
   isSelectableMesh(mesh) {
-    return mesh == this.ground || mesh.name && mesh.name.startsWith("Button");;
+    return mesh == this.ground || mesh.name && (mesh.name.startsWith("Button") || mesh.name.startsWith("PortalEntrance"));
   }
   
   getFloorMeshes() {
@@ -291,8 +291,9 @@ export class AvatarSelection extends World {
   enter( portal ) {
     console.log("Entering world "+portal.worldUrl()+'/world.js as '+this.character.getUrl());
     import(portal.worldUrl()+'/world.js').then((world)=>{
-      world.WORLD.init(this.engine, portal.name, portal.worldUrl()+"/").then((newScene)=>{
-        var worldManager = new WorldManager(newScene.activeCamera);
+      var afterLoad = (world) => {
+        console.log(world);
+        var worldManager = new WorldManager(world.scene.activeCamera);
         worldManager.VRSPACE.addWelcomeListener(() => worldManager.VRSPACE.sendMy("mesh", this.character.getUrl()));
         worldManager.VRSPACE.connect();
         // TODO:
@@ -300,8 +301,29 @@ export class AvatarSelection extends World {
         // dispose of old scene
         var oldScene = this.scene;
         this.scene = null; // next call to render loop stops the current loop
-        scene = newScene; // CHECKME this global is for debug button only
+        scene = world.scene; // CHECKME this global is for debug button only
+        
+        // FIXME can't replace scene while XR session is active
+        if ( this.vrHelper ) {
+          if ( ! this.inXR ) {
+            // we're not in XR just yet, let the other world create own helper
+            this.vrHelper.dispose();
+          } else {
+            this.vrHelper.dispose();
+            // we are already in XR, now we have to hot-swap the scene
+            //this.vrHelper.baseExperience.sessionManager.scene = world.scene;
+            //this.vrHelper.baseExperience.sessionManager.session.scene = world.scene;
+            //this.vrHelper.baseExperience.sessionManager.startRenderingToXRAsync();
+            //world.WORLD.initXR(this.vrHelper);
+            world.enterXR();
+          }
+        }
+
         //oldScene.dispose(); // FIXME: hangs the browser!
+        
+      }
+      world.WORLD.init(this.engine, portal.name, afterLoad, portal.worldUrl()+"/").then((newScene)=>{
+        console.log(world);
       });
     })
   }
