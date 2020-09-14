@@ -250,23 +250,7 @@ class VRSpace {
   addObject(obj) {
     var className = Object.keys(obj)[0];
     var object = Object.values(obj)[0];
-    // TODO: load mesh, script
-  // dynamic class loading doesn't seem to work, js import keyword tbd
-  // if ( !classRegistry.has(className)) {
-  // classRegistry.set(className,0);
-  // var scriptFile = className+".js";
-  // console.log("loading "+scriptFile);
-  // var script = document.createElement('script');
-  // script.onload = function () {
-    // console.log("loaded "+scriptFile);
-      // classRegistry.set(clasName,1);
-    // addToScene(className, object);
-  // };
-  // script.src = scriptFile;
-  // document.head.appendChild(script);
-  // } else {
-  this.addToScene(className, object);
-  // }
+    this.addToScene(className, object);
   }
   
   removeObject(objectId) {

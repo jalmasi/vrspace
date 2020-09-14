@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();
@@ -83,7 +83,6 @@ export class AvatarSelection extends World {
   }
   
   trackXrDevices() {
-    console.log(this);
     if ( trackTime + trackDelay < Date.now()
         && this.character
         && this.character.body
@@ -194,7 +193,9 @@ export class AvatarSelection extends World {
       }
       this.character = loaded.replace(this.character);
       this.animationButtons(this.character);
-      this.selectionCallback(this.character);
+      if ( this.selectionCallback ) {
+        this.selectionCallback(this.character);
+      }
     });
   }
 
@@ -275,8 +276,8 @@ export class AvatarSelection extends World {
         var x = Math.sin(angle)*radius;
         var z = Math.cos(angle)*radius;
         // heavy performance impact
-        //new Portal( scene, worlds[i].name, worlds[i].relatedUrl(), this.shadowGenerator).loadAt( x,0,z, angle);
-        var portal = new Portal( scene, worlds[i].name, worlds[i].relatedUrl());
+        //new Portal( scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
+        var portal = new Portal( scene, worlds[i], (p)=>this.enter(p));
         this.portals.push(portal);
         portal.loadAt( x,0,z, angle);
         angle += angleIncrement;
@@ -292,6 +293,19 @@ export class AvatarSelection extends World {
     }
   }
 
+  enter( portal ) {
+    console.log("Entering world "+portal.worldUrl()+'/world.js as '+this.character.folder.url());
+    import(portal.worldUrl()+'/world.js').then((world)=>{
+      world.WORLD.init(this.engine, portal.name, portal.worldUrl()+"/").then((scene)=>{
+        var worldManager = new WorldManager(scene.activeCamera);
+        worldManager.VRSPACE.addWelcomeListener(() => worldManager.VRSPACE.sendMy("mesh", this.character.folder.url()));
+        worldManager.VRSPACE.connect();
+        // TODO:
+        // stop rendering the old scene
+        // dispose of old scene
+      });
+    })
+  }
 }
 
 export const WORLD = new AvatarSelection();

@@ -1,3 +1,5 @@
+import {VRSPACE} from './vrspace.js';
+
 export class VRSpaceUI {
 
   constructor( ) {
@@ -203,13 +205,19 @@ export class LogoRoom {
 }
 
 export class Portal {
-  constructor( scene, name, thumbnail, shadowGenerator ) {
+  constructor( scene, serverFolder, callback, shadowGenerator ) {
     this.scene = scene;
-    this.name = name;
-    if ( thumbnail ) {
-      this.thumbnail = new BABYLON.Texture(thumbnail);
+    this.serverFolder = serverFolder;
+    this.callback = callback;
+    this.name = serverFolder.name;
+    if ( serverFolder.relatedUrl() ) {
+      this.thumbnail = new BABYLON.Texture(serverFolder.relatedUrl());
     }
     this.shadowGenerator = shadowGenerator;
+    this.isEnabled = false;
+  }
+  worldUrl() {
+    return this.serverFolder.baseUrl+this.serverFolder.name;
   }
   async loadAt(x,y,z,angle) {
     this.group = new BABYLON.TransformNode('Portal:'+this.name);
@@ -230,6 +238,19 @@ export class Portal {
     var plane = BABYLON.Mesh.CreatePlane("PortalEntrance:"+this.name, 1.60, scene);
     plane.parent = this.group;
     plane.position = new BABYLON.Vector3(0,1.32,0);
+    this.scene.onPointerObservable.add( (e) => {
+      if(e.type == BABYLON.PointerEventTypes.POINTERDOWN){
+        var p = e.pickInfo;
+        if ( p.pickedMesh == plane ) {
+          if ( this.isEnabled ) {
+            console.log("Entering "+this.name);
+            this.enter();
+          } else {
+            console.log("Not entering "+this.name+" - disabled");
+          }
+        }
+      }
+    });
 
     this.material = new BABYLON.StandardMaterial(this.name+"-noise", scene);
     plane.material = this.material;
@@ -265,6 +286,12 @@ export class Portal {
       this.material.emissiveTexture = null;
     }
     this.title.isVisible = enable;
+    this.isEnabled = enable;
+  }
+  enter() {
+    if ( this.callback ) {
+      this.callback(this);
+    }
   }
 }
 
@@ -274,6 +301,9 @@ class ServerFolder {
     this.baseUrl = baseUrl;
     this.name = name;
     this.related = related;
+  }
+  url() {
+    return this.baseUrl+this.name;
   }
   relatedUrl() {
     if ( this.related ) {
@@ -881,15 +911,27 @@ export class Buttons {
 
 // this is intended to be overridden
 export class World {
-  async init(engine, name) {
+  async init(engine, name, baseUrl, file) {
     this.engine = engine;
+    this.name = name;
+    if ( file ) {
+      this.file = file;
+    } else {
+      this.file = "scene.gltf";
+    }
+    if ( baseUrl ) {
+      this.baseUrl = baseUrl;
+    } else {
+      this.baseUrl = "";
+    }
+    this.baseUrl = baseUrl;
     this.gravityEnabled = true;
     this.collisionsEnabled = true;
     this.scene = await this.createScene(engine);
     this.indicator = new LoadProgressIndicator(this.scene, this.camera);
     this.registerRenderLoop();
     this.createTerrain();
-    this.load(name);
+    this.load();
     return this.scene;
   }
   async createScene(engine) {
@@ -1027,15 +1069,12 @@ export class World {
     }
   }
   
-  load( name, file ) {
-    if ( ! file ) {
-      file = "scene.gltf";
-    }
+  load() {
     var indicator = this.indicator;
-    indicator.add(name);
+    indicator.add(this.name);
 
-    BABYLON.SceneLoader.LoadAssetContainer("",
-      file,
+    BABYLON.SceneLoader.LoadAssetContainer(this.baseUrl,
+      this.file,
       this.scene,
       // onSuccess:
       (container) => {
@@ -1044,14 +1083,14 @@ export class World {
 
         // Adds all elements to the scene
         var mesh = container.createRootMesh();
-        mesh.name = name;
+        mesh.name = this.name;
         container.addAllToScene();
       
-        this.loaded( file, mesh );
+        this.loaded( this.file, mesh );
 
         // do something with the scene
         VRSPACEUI.log("World loaded");
-        this.indicator.remove(name);
+        this.indicator.remove(this.name);
         //floor = new FloorRibbon(scene);
         //floor.showUI();
         this.collisions(this.collisionsEnabled);
@@ -1077,5 +1116,202 @@ export class World {
 
   createTerrain() {
   }
+  
+  async loadAsset(relativePath, file, scene) {
+    return BABYLON.SceneLoader.LoadAssetContainerAsync(this.assetPath(relativePath), file, scene);
+  }
+  
+  assetPath(relativePath) {
+    return this.baseUrl+relativePath;
+  }
 }
 
+export class WorldManager {
+  constructor(camera, fps) {
+    this.camera = camera;
+    this.VRSPACE = VRSPACE;
+    if ( fps ) {
+      this.fps = fps
+    } else {
+      this.fps = 5;
+    }
+    this.oldx = null;
+    this.oldy = null;
+    this.oldz = null;
+    this.oldrx = null;
+    this.oldry = null;
+    this.oldrz = null;
+    this.interval = null;
+    VRSPACE.addConnectionListener((connected) => this.setConnected(connected));
+    VRSPACE.addSceneListener((e) => this.sceneChanged(e));
+  }
+  
+  setConnected(connected) {
+    console.log("Connected: "+connected);
+    if ( connected ) {
+      this.interval = setInterval(() => this.trackCamera(), this.fps);
+    } else if ( this.interval ) {
+      clearInterval( this.interval );
+      this.interval = null;
+    }
+  }
+
+  sceneChanged(e) {
+    if (e.added != null) {
+      console.log("ADDED " + e.objectId + " new size " + e.scene.size);
+      this.loadMesh(e.added);
+    } else if (e.removed != null) {
+      console.log("REMOVED " + e.objectId + " new size " + e.scene.size)
+      this.removeMesh( e.removed );
+    } else {
+      console.log("ERROR: invalid scene event");
+    }
+  }
+
+  // TODO loader UI
+  loadMesh(obj) {
+    console.log("loading "+obj.mesh);
+    BABYLON.SceneLoader.LoadAssetContainerAsync("", obj.mesh, scene).then((container) => {
+      console.log("loaded "+obj.mesh);
+
+      var bbox = this.boundingBox(container);
+
+      // Adds all elements to the scene
+      var mesh = container.createRootMesh();
+      mesh.name = obj.mesh;
+      mesh.id = obj.constructor.name+" "+obj.id;
+      
+      container.addAllToScene();
+
+      obj.container = container;
+      
+      console.log("Added "+obj.mesh);
+      
+      // TODO: add listener to process changes
+      obj.addListener((obj, changes) => this.changeObject(obj, changes));
+    });
+  }
+
+  changeObject(obj,changes) {
+    console.log("Changes on "+obj+": "+changes);
+    for ( var field in changes ) {
+      var node = obj.container.meshes[0];
+      if ( 'position' === field ) {
+        if ( ! obj.translate ) {
+          obj.translate = this.createAnimation(node, "position");
+        }
+        this.updateAnimation(obj.translate, node.position, obj.position);
+      } else if ( 'rotation' === field ) {
+        if ( ! obj.rotate ) {
+          obj.rotate = this.createAnimation(node, "rotation");
+        }
+        this.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+      }
+    }
+  }
+
+  updateAnimation(group, from, to) {
+    if ( group.isPlaying ) {
+      group.stop();
+    }
+    var xAnim = group.targetedAnimations[0].animation;
+    xAnim.getKeys()[0].value = from.x;
+    xAnim.getKeys()[1].value = to.x;
+    var yAnim = group.targetedAnimations[1].animation;
+    yAnim.getKeys()[0].value = from.y;
+    yAnim.getKeys()[1].value = to.y;
+    var zAnim = group.targetedAnimations[2].animation;
+    zAnim.getKeys()[0].value = from.z;
+    zAnim.getKeys()[1].value = to.z;
+    group.play(false);
+  }
+  
+  createAnimation(mesh, field) {
+    var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
+    
+    var xAnim = new BABYLON.Animation("xAnim "+mesh.id, field+".x", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    xAnim.setKeys(xKeys);
+    
+    var yAnim = new BABYLON.Animation("yAnim "+mesh.id, field+".y", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    yAnim.setKeys(xKeys);
+
+    var zAnim = new BABYLON.Animation("zAnim "+mesh.id, field+".z", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    zAnim.setKeys(xKeys);
+
+    group.addTargetedAnimation(xAnim, mesh);
+    group.addTargetedAnimation(yAnim, mesh);
+    group.addTargetedAnimation(zAnim, mesh);
+
+    return group;
+  }
+  
+  removeMesh(obj) {
+    if ( obj.container ) {
+      obj.container.dispose();
+      obj.container = null;
+    }
+    if ( obj.translate ) {
+      obj.translate.dispose();
+      obj.translate = null;
+    }
+    if ( obj.rotate ) {
+      obj.rotate.dispose();
+      obj.rotate = null;
+    }
+  }
+
+  boundingBox(container) {
+    var maxSize = new BABYLON.Vector3(0,0,0);
+    for ( var i = 0; i < container.meshes.length; i++ ) {
+      // have to recompute after scaling
+      //container.meshes[i].computeWorldMatrix(true);
+      container.meshes[i].refreshBoundingInfo();
+      var boundingInfo = container.meshes[i].getBoundingInfo().boundingBox;
+      console.log("max: "+boundingInfo.maximumWorld+" min: "+boundingInfo.minimumWorld);
+      var size = new BABYLON.Vector3(
+        boundingInfo.maximumWorld.x - boundingInfo.minimumWorld.x,
+        boundingInfo.maximumWorld.y - boundingInfo.minimumWorld.y,
+        boundingInfo.maximumWorld.z - boundingInfo.minimumWorld.z
+        );
+      maxSize.x = Math.max(maxSize.x,size.x);
+      maxSize.y = Math.max(maxSize.y,size.y);
+      maxSize.z = Math.max(maxSize.z,size.z);
+      //if (shadows) {
+        //shadowGenerator.getShadowMap().renderList.push(container.meshes[i]);
+      //}
+    }
+    console.log("BBoxMax: "+maxSize);
+    return maxSize;
+  }
+
+  trackCamera() {
+    if ( typeof oldPos != 'object') {
+      this.oldPos = this.camera.globalPosition;
+    }
+    if ( typeof oldRot != 'object') {
+      this.oldRot = this.camera.rotation;
+    }
+    if ( this.oldx != this.camera.globalPosition.x || this.oldy != this.camera.globalPosition.y || this.oldz != this.camera.globalPosition.z ) {
+      this.oldx = this.camera.globalPosition.x;
+      this.oldy = this.camera.globalPosition.y;
+      this.oldz = this.camera.globalPosition.z;
+      VRSPACE.sendMy("position", this.camera.globalPosition);
+    }
+    if ( this.oldrx != this.camera.rotation.x || this.oldry != this.camera.rotation.y || this.oldrz != this.camera.rotation.z ) {
+      this.oldrx = this.camera.rotation.x;
+      this.oldry = this.camera.rotation.y;
+      this.oldrz = this.camera.rotation.z;
+      VRSPACE.sendMy("rotation", this.camera.rotation);
+    }
+  }
+
+}

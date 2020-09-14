@@ -51,7 +51,7 @@ export class Aladinville extends World {
     this.floorMeshes = [ground];
     
     this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", scene)
-    var terrainTexture = new BABYLON.Texture("textures/sand_houseslambert12_baseColor.png", scene);
+    var terrainTexture = new BABYLON.Texture(this.assetPath("textures/sand_houseslambert12_baseColor.png"), scene);
     this.terrainMaterial.ambientTexture = terrainTexture;
     this.terrainMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     terrainTexture.uScale = 1;
@@ -81,7 +81,7 @@ export class Aladinville extends World {
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../../skybox/hw_sahara/sahara", scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
 
     this.scene = scene;
@@ -104,20 +104,21 @@ export class Aladinville extends World {
   }
 
   loaded( file, mesh ) {
+    console.log('Loaded '+file);
     mesh.scaling = new BABYLON.Vector3(2,2,2);
     
     // material - sand_houseslambert54 - need depth pre-pass
-    var material = scene.getMaterialByID("sand_houseslambert54");
+    var material = this.scene.getMaterialByID("sand_houseslambert54");
     material.needDepthPrePass = true;
     // missing materials on towers 57 62, gates 66
-    var marbleMaterial = new BABYLON.StandardMaterial("marble", scene);
-    var marbleTexture = new BABYLON.Texture("textures/sand_houseslambert12_baseColor.png", scene);
+    var marbleMaterial = new BABYLON.StandardMaterial("marble", this.scene);
+    var marbleTexture = new BABYLON.Texture(this.assetPath("textures/sand_houseslambert12_baseColor.png"), this.scene);
     marbleMaterial.ambientTexture = marbleTexture;
-    var tower1 = scene.getMeshByID("group296_lambert57_0");
+    var tower1 = this.scene.getMeshByID("group296_lambert57_0");
     tower1.material = marbleMaterial;
-    var tower2 = scene.getMeshByID("group296_lambert62_0");
+    var tower2 = this.scene.getMeshByID("group296_lambert62_0");
     tower2.material = marbleMaterial;
-    var gates = scene.getMeshByID("group296_lambert66_0");
+    var gates = this.scene.getMeshByID("group296_lambert66_0");
     gates.material = marbleMaterial;
   }
   
@@ -151,10 +152,10 @@ export class Aladinville extends World {
     world.indicator.add("../../plants/hand_painted_bush/");
     
   // wait for dynamic terrain extension to be loaded
-    terrainScript.onload = function() {
+    terrainScript.onload = () => {
       // load all meshes and create terrain
       Promise.all([
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/cactus_low_poly/", "scene.gltf", scene).then(function (container) {
+        this.loadAsset("../../plants/cactus_low_poly/", "scene.gltf", this.scene).then(function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.2,.2,.2));
@@ -162,7 +163,7 @@ export class Aladinville extends World {
               world.indicator.remove("../../plants/cactus_low_poly/");
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/cactus_1_downloadable/", "scene.gltf", scene).then( function (container) {
+          this.loadAsset("../../plants/cactus_1_downloadable/", "scene.gltf", this.scene).then( function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.5,.5,.5));
@@ -170,7 +171,7 @@ export class Aladinville extends World {
               world.indicator.remove("../../plants/cactus_1_downloadable/");
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/palm_tree/", "palm.glb", scene).then(function (container) {
+          this.loadAsset("../../plants/palm_tree/", "palm.glb", this.scene).then(function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.001,.001,.001));
               container.materials[0].needDepthPrePass = true;
@@ -178,7 +179,7 @@ export class Aladinville extends World {
               world.indicator.remove("../../plants/palm_tree/");
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/bush/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/bush/", "scene.gltf", this.scene).then(function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0,2,0));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
@@ -187,7 +188,7 @@ export class Aladinville extends World {
               world.indicator.remove("../../plants/bush/");
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/hand_painted_bush/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/hand_painted_bush/", "scene.gltf", this.scene).then(function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               terrainObjects.push( mesh );
@@ -195,7 +196,7 @@ export class Aladinville extends World {
           })
           /* too large model, 25k vertices
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/cactus_2_downloadable/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/cactus_2_downloadable/", "scene.gltf", this.scene).then(function (container) {
               //var mesh = container.createRootMesh();
               var mesh = container.meshes[container.meshes.length-1];
               mesh.scaling = new BABYLON.Vector3(.2,.2,.2);
@@ -203,7 +204,7 @@ export class Aladinville extends World {
               container.addAllToScene();
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/phoenix_palm_cities_skylines/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/phoenix_palm_cities_skylines/", "scene.gltf", this.scene).then(function (container) {
               var mesh = container.createRootMesh();
               mesh.scaling = new BABYLON.Vector3(.01,.01,.01);
               terrainObjects.push( mesh );
@@ -211,7 +212,7 @@ export class Aladinville extends World {
           })
           */
       ]).then(() => {
-        console.debug("creating terrain");
+        console.log("creating terrain");
         world._createTerrain();
       });
     }
@@ -272,7 +273,7 @@ export class Aladinville extends World {
      }
    }
   
-   sps = new BABYLON.SolidParticleSystem("sps", scene, {useModelMaterial: true});
+   sps = new BABYLON.SolidParticleSystem("sps", this.scene, {useModelMaterial: true});
    for ( var i = 0; i < terrainObjects.length; i++ ) {
      sps.addShape(terrainObjects[i], 100);
    }
@@ -289,7 +290,7 @@ export class Aladinville extends World {
      SPmapData: SPmapData,           // Object map
      sps: sps
    }
-   terrain = new BABYLON.DynamicTerrain("terrain", params, scene);
+   terrain = new BABYLON.DynamicTerrain("terrain", params, this.scene);
    terrain.mesh.material = this.terrainMaterial;
    // https://www.html5gamedevs.com/topic/35066-babylonjs-dynamic-terrain-collision-fps-issue/
    // the most efficient way to check collisions with a dynamic terrain or any BJS Ground objects
@@ -300,6 +301,7 @@ export class Aladinville extends World {
    terrain.mesh.checkCollisions = false;
   
    terrain.update(true);
+   console.log('Terrain created');
   } // end _createTerrain
   
 }

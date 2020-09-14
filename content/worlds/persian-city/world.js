@@ -27,7 +27,7 @@ export class PersianCity extends World {
     this.ground.checkCollisions = true;
 
     this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", scene)
-    var terrainTexture = new BABYLON.Texture("textures/LoamWalls0012_2_S_1_1_baseColor.jpeg", scene);
+    var terrainTexture = new BABYLON.Texture(this.assetPath("textures/LoamWalls0012_2_S_1_1_baseColor.jpeg"), scene);
     this.terrainMaterial.ambientTexture = terrainTexture;
     this.terrainMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     terrainTexture.uScale = 4.0;
@@ -62,7 +62,7 @@ export class PersianCity extends World {
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../../skybox/hw_sahara/sahara", scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
 
     return scene;
@@ -92,6 +92,7 @@ export class PersianCity extends World {
   }
 
   loaded( file, mesh ) {
+    console.log('Loaded '+file);
     mesh.scaling = new BABYLON.Vector3(0.05,0.05,0.05);
     mesh.position.y = .2;
     // TODO FIXME: remove this node from the model
@@ -101,7 +102,7 @@ export class PersianCity extends World {
   registerRenderLoop() {
     // Register a render loop to repeatedly render the scene
     var camera = this.camera;
-    this.engine.runRenderLoop(function () {
+    this.engine.runRenderLoop(() => {
       if ( terrain && terrain.mesh ) {
         //if ( vrHelper.currentVRCamera.position.x > -150 && vrHelper.currentVRCamera.position.x < 150 && vrHelper.currentVRCamera.position.z >= -150 && vrHelper.currentVRCamera.position.z <= 150 ) {
         //if ( camera.position.x > -150 && camera.position.x < 150 && camera.position.z >= -150 && camera.position.z <= 150 ) {
@@ -113,7 +114,7 @@ export class PersianCity extends World {
           sps.mesh.setEnabled(true);
         }
       }
-      scene.render();
+      this.scene.render();
     });
   }
   
@@ -127,10 +128,10 @@ export class PersianCity extends World {
     world.indicator.add("../../plants/hand_painted_bush/");
     
   // wait for dynamic terrain extension to be loaded
-    terrainScript.onload = function() {
+    terrainScript.onload = () => {
       // load all meshes and create terrain
       Promise.all([
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/cactus_low_poly/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/cactus_low_poly/", "scene.gltf", this.scene).then(function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.2,.2,.2));
@@ -138,7 +139,7 @@ export class PersianCity extends World {
               world.indicator.remove("../../plants/cactus_low_poly/");
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/cactus_1_downloadable/", "scene.gltf", scene).then( function (container) {
+          this.loadAsset("../../plants/cactus_1_downloadable/", "scene.gltf", this.scene).then( function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.5,.5,.5));
@@ -146,7 +147,7 @@ export class PersianCity extends World {
               world.indicator.remove("../../plants/cactus_1_downloadable/");
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/palm_tree/", "palm.glb", scene).then(function (container) {
+          this.loadAsset("../../plants/palm_tree/", "palm.glb", this.scene).then(function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.001,.001,.001));
               container.materials[0].needDepthPrePass = true;
@@ -154,7 +155,7 @@ export class PersianCity extends World {
               world.indicator.remove("../../plants/palm_tree/");
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/bush/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/bush/", "scene.gltf", this.scene).then(function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0,2,0));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
@@ -163,7 +164,7 @@ export class PersianCity extends World {
               world.indicator.remove("../../plants/bush/");
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/hand_painted_bush/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/hand_painted_bush/", "scene.gltf", this.scene).then(function (container) {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               terrainObjects.push( mesh );
@@ -171,7 +172,7 @@ export class PersianCity extends World {
           })
           /* too large model, 25k vertices
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/cactus_2_downloadable/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/cactus_2_downloadable/", "scene.gltf", this.scene).then(function (container) {
               //var mesh = container.createRootMesh();
               var mesh = container.meshes[container.meshes.length-1];
               mesh.scaling = new BABYLON.Vector3(.2,.2,.2);
@@ -179,7 +180,7 @@ export class PersianCity extends World {
               container.addAllToScene();
           })
           ,
-          BABYLON.SceneLoader.LoadAssetContainerAsync("../../plants/phoenix_palm_cities_skylines/", "scene.gltf", scene).then(function (container) {
+          this.loadAsset("../../plants/phoenix_palm_cities_skylines/", "scene.gltf", this.scene).then(function (container) {
               var mesh = container.createRootMesh();
               mesh.scaling = new BABYLON.Vector3(.01,.01,.01);
               terrainObjects.push( mesh );
@@ -187,7 +188,7 @@ export class PersianCity extends World {
           })
           */
       ]).then(() => {
-        console.debug("creating terrain");
+        console.log("creating terrain");
         world._createTerrain();
       });
     }
@@ -197,9 +198,9 @@ export class PersianCity extends World {
   //terrain script and plant meshes
   _createTerrain() {
    // Objects
-   var spsMaterial = new BABYLON.StandardMaterial("spsm", scene);
+   var spsMaterial = new BABYLON.StandardMaterial("spsm", this.scene);
    var spsUrl = "https://jerome.bousquie.fr/BJS/images/uv_texture.jpg";
-   var spsTexture = new BABYLON.Texture(spsUrl, scene);
+   var spsTexture = new BABYLON.Texture(spsUrl, this.scene);
    spsMaterial.diffuseTexture = spsTexture;
   
    // Map data creation
@@ -253,8 +254,8 @@ export class PersianCity extends World {
      }
    }
   
-   sps = new BABYLON.SolidParticleSystem("sps", scene, {useModelMaterial: true});
-   //sps = new BABYLON.SolidParticleSystem("sps", scene, {enableMultiMaterial:  true, updatable: false});
+   sps = new BABYLON.SolidParticleSystem("sps", this.scene, {useModelMaterial: true});
+   //sps = new BABYLON.SolidParticleSystem("sps", this.scene, {enableMultiMaterial:  true, updatable: false});
    for ( var i = 0; i < terrainObjects.length; i++ ) {
      sps.addShape(terrainObjects[i], 100);
    }
@@ -271,8 +272,8 @@ export class PersianCity extends World {
      SPmapData: SPmapData,           // Object map
      sps: sps
    }
-   terrain = new BABYLON.DynamicTerrain("terrain", params, scene);
-   //var terrainMaterial = new BABYLON.StandardMaterial("tm", scene);
+   terrain = new BABYLON.DynamicTerrain("terrain", params, this.scene);
+   //var terrainMaterial = new BABYLON.StandardMaterial("tm", this.scene);
    //terrainMaterial.diffuseTexture = terrainTexture;
    terrain.mesh.material = this.terrainMaterial;
    // https://www.html5gamedevs.com/topic/35066-babylonjs-dynamic-terrain-collision-fps-issue/
