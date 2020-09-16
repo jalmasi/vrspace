@@ -32,33 +32,19 @@ terrainScript.src = url;
 document.head.appendChild(terrainScript);
 
 export class Aladinville extends World {
-  async createScene(engine) {
-    // Create the scene space
-    var scene = new BABYLON.Scene(engine);
-    scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-    scene.collisionsEnabled = true;
-
-    //Ground
-    var ground = BABYLON.Mesh.CreatePlane("ground", 10000.0, scene);
-    ground.material = new BABYLON.StandardMaterial("groundMat", scene);
+  async createGround() {
+    var ground = BABYLON.Mesh.CreatePlane("ground", 10000.0, this.scene);
+    ground.material = new BABYLON.StandardMaterial("groundMat", this.scene);
     ground.material.diffuseColor = new BABYLON.Color3(.5, 1, .5);
     ground.material.backFaceCulling = false;
     ground.material.alpha = 0;
     ground.position = new BABYLON.Vector3(0, 0.7, 0);
     ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
     ground.checkCollisions = true;
-
-    this.floorMeshes = [ground];
-    
-    this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", scene)
-    var terrainTexture = new BABYLON.Texture(this.assetPath("textures/sand_houseslambert12_baseColor.png"), scene);
-    this.terrainMaterial.ambientTexture = terrainTexture;
-    this.terrainMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-    terrainTexture.uScale = 1;
-    terrainTexture.vScale = terrainTexture.uScale;
-
-    // Add a camera to the scene and attach it to the canvas
-    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(-8, 10, -60), scene);
+    return ground;
+  }
+  async createCamera() {
+    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(-8, 10, -60), this.scene);
     this.camera.maxZ = 100000;
     this.camera.minZ = 0;
     this.camera.setTarget(new BABYLON.Vector3(0,10,0));
@@ -69,24 +55,29 @@ export class Aladinville extends World {
     this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
     //camera.ellipsoidOffset = -0.2
     this.camera.checkCollisions = true;
-
+  }
+  
+  async createLights() {
     // Add lights to the scene
-    var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), scene);
+    var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), this.scene);
     light.intensity = 2;
-    var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
-
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
+    return light1;
+  }
+  
+  async createSkyBox() {
+    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, this.scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
     skyboxMaterial.backFaceCulling = false;
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+  }
 
-    this.scene = scene;
-    
-    return scene;
+  getFloorMeshes() {
+    return [this.ground];
   }
   
   isSelectableMesh(mesh) {
@@ -145,8 +136,15 @@ export class Aladinville extends World {
   }
   
   createTerrain() {
+    this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", scene)
+    var terrainTexture = new BABYLON.Texture(this.assetPath("textures/sand_houseslambert12_baseColor.png"), scene);
+    this.terrainMaterial.ambientTexture = terrainTexture;
+    this.terrainMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    terrainTexture.uScale = 1;
+    terrainTexture.vScale = terrainTexture.uScale;
+
     var world = this;
-    
+
     world.indicator.add("../../plants/cactus_low_poly/");
     world.indicator.add("../../plants/cactus_1_downloadable/");
     world.indicator.add("../../plants/palm_tree/");

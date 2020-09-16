@@ -195,6 +195,9 @@ export class LogoRoom {
     
     return this;
   }
+  dispose() {
+    this.floorGroup.dispose();
+  }
   setDiameter( diameter ) {
     this.diameter = diameter;
     this.floorGroup.scaling = new BABYLON.Vector3(this.diameter,2,this.diameter);
@@ -215,9 +218,30 @@ export class Portal {
     }
     this.shadowGenerator = shadowGenerator;
     this.isEnabled = false;
+    // used in dispose:
+    this.controls = [];
+    this.textures = [];
+    this.materials = [];
   }
   worldUrl() {
     return this.serverFolder.baseUrl+this.serverFolder.name;
+  }
+  dispose() {
+    this.group.dispose();
+    if (this.thumbnail) {
+      this.thumbnail.dispose();
+    }
+    this.material.dispose();
+    for ( var i = 0; i < this.controls.length; i++ ) {
+      // CHECKME doesn's seem required
+      this.controls[i].dispose();
+    }
+    for ( var i = 0; i < this.textures.length; i++ ) {
+      this.textures[i].dispose();
+    }
+    for ( var i = 0; i < this.materials.length; i++ ) {
+      this.materials[i].dispose();
+    }
   }
   async loadAt(x,y,z,angle) {
     this.group = new BABYLON.TransformNode('Portal:'+this.name);
@@ -259,12 +283,13 @@ export class Portal {
 
     this.material.disableLighting = true;
     this.material.backFaceCulling = false;
-    var noiseTexture = new BABYLON.NoiseProceduralTexture("perlin", 256, scene);
+    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, scene);
     this.material.lightmapTexture = noiseTexture;
     noiseTexture.octaves = 4;
     noiseTexture.persistence = 1.2;
     noiseTexture.animationSpeedFactor = 2;
     plane.visibility = 0.85;
+    this.textures.push( noiseTexture );
 
     this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:1,width:2}, scene);
     this.title.parent = this.group;
@@ -272,12 +297,15 @@ export class Portal {
     this.title.isVisible = false;
 
     var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 128,128);
+    this.materials.push(this.title.material);
     
     var titleText = new BABYLON.GUI.TextBlock();
     titleText.text = this.name;
     titleText.color = "white";
 
     titleTexture.addControl(titleText);
+    //this.controls.push(titleText); // CHECKME doesn's seem required
+    this.textures.push(titleTexture);
     
     return this;
   }
@@ -805,7 +833,24 @@ export class Buttons {
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     this.turOff = false;
+    this.controls = [];
+    this.textures = [];
+    this.materials = [];
     this.display();
+  }
+
+  dispose() {
+    this.group.dispose();
+    for ( var i = 0; i < this.controls.length; i++ ) {
+      this.controls[i].dispose();
+    }
+    for ( var i = 0; i < this.textures.length; i++ ) {
+      this.textures[i].dispose();
+    }
+    for ( var i = 0; i < this.materials.length; i++ ) {
+      this.materials[i].dispose();
+    }
+    console.log("Disposed of buttons "+this.title);
   }
 
   setHeight(height) {
@@ -819,8 +864,10 @@ export class Buttons {
 
     var selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", scene);
     selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
+    this.materials.push(selectedMaterial);
     var unselectedMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
     unselectedMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.2);
+    this.materials.push(unselectedMaterial);
 
     if ( this.title && this.title.length > 0 ) {
       var titleText = new BABYLON.GUI.TextBlock();
@@ -840,6 +887,9 @@ export class Buttons {
         false // mouse events disabled
       );
       titleTexture.addControl(titleText);
+      this.controls.push(titleText);
+      this.textures.push(titleTexture);
+      this.materials.push(titlePlane.material);
     }
 
     for ( var i = 0; i < this.options.length; i ++ ) {
@@ -867,6 +917,9 @@ export class Buttons {
         false // mouse events disabled
       );
       aTexture.addControl(buttonText);
+      this.controls.push(buttonText);
+      this.textures.push(aTexture);
+      this.materials.push(buttonPlane.material);
 
       var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:buttonHeight*.8}, scene);
       button.material = unselectedMaterial;
@@ -907,85 +960,54 @@ export class Buttons {
     console.log("Group width: "+this.groupWidth);
   }
 
-  dispose() {
-    this.group.dispose();
-  }
-
 }
 
-// this is intended to be overridden
-export class World {
-  async init(engine, name, callback, baseUrl, file) {
-    this.engine = engine;
-    this.name = name;
-    this.vrHelper = null;
-    if ( file ) {
-      this.file = file;
-    } else {
-      this.file = "scene.gltf";
-    }
-    if ( baseUrl ) {
-      this.baseUrl = baseUrl;
-    } else {
-      this.baseUrl = "";
-    }
-    this.gravityEnabled = true;
-    this.collisionsEnabled = true;
-    this.scene = await this.createScene(engine);
-    this.indicator = new LoadProgressIndicator(this.scene, this.camera);
-    this.registerRenderLoop();
-    this.createTerrain();
-    this.load(callback);
-    return this.scene;
-  }
-  async createScene(engine) {
-    alert('Please override createScene(engine) method');
-  }
-  
-  async initXR(vrHelper) {
+export class VRHelper {
+  async initXR(world) {
+    this.world = world;
+    var xrHelper = this.vrHelper;
     if ( this.vrHelper ) {
       console.log("VR helper already intialized");
-      return;
-    } else if ( vrHelper ) {
-      this.vrHelper = vrHelper;
-      console.log("Using existing VR helper");
-      return;
+      this.addFloors();
+    } else {
+      xrHelper = await world.scene.createDefaultXRExperienceAsync({floorMeshes: world.getFloorMeshes()});
+      this.vrHelper = xrHelper;
     }
-    const xrHelper = await this.scene.createDefaultXRExperienceAsync({floorMeshes: this.getFloorMeshes()});
-
-    this.vrHelper = xrHelper;
 
     if (xrHelper.baseExperience) {
       console.log("Using XR helper");
 
       xrHelper.baseExperience.onInitialXRPoseSetObservable.add( (xrCamera) => {
-          xrCamera.position.y = this.camera.position.y - this.camera.ellipsoid.y*2;
+          xrCamera.position.y = world.camera.position.y - world.camera.ellipsoid.y*2;
       });
 
-      var tracker = () => this.trackXrDevices();
+      if ( this.tracker ) {
+        this.stopTracking();
+      }
+      this.tracker = () => world.trackXrDevices();
       xrHelper.baseExperience.onStateChangedObservable.add((state) => {
         console.log( "State: "+state );
         switch (state) {
           case BABYLON.WebXRState.IN_XR:
             // XR is initialized and already submitted one frame
             console.log( "Entered VR" );
-            scene.registerBeforeRender(tracker);
+            this.startTracking();
             // Workaround for teleporation/selection bug
             xrHelper.teleportation.setSelectionFeature(null);
-            this.inXR = true;
+            world.inXR = true;
             break;
           case BABYLON.WebXRState.ENTERING_XR:
             // xr is being initialized, enter XR request was made
             console.log( "Entering VR" );
-            this.collisions(false);
+            world.collisions(false);
             break;
           case BABYLON.WebXRState.EXITING_XR:
             console.log( "Exiting VR" );
-            scene.unregisterBeforeRender(tracker);
+            this.stopTracking();
             // doesn't do anything
             //camera.position.y = xrHelper.baseExperience.camera.position.y + 3; //camera.ellipsoid.y*2;
-            this.collisions(this.collisionsEnabled);
-            this.inXR = false;
+            world.collisions(world.collisionsEnabled);
+            world.inXR = false;
             break;
           case BABYLON.WebXRState_NOT_IN_XR:
             console.log( "Not in VR" );
@@ -995,11 +1017,11 @@ export class World {
       });
 
       // CHECKME: really ugly way to make it work
-      this.scene.pointerMovePredicate = (mesh) => {
-        return this.isSelectableMesh(mesh);
+      this.world.scene.pointerMovePredicate = (mesh) => {
+        return this.world.isSelectableMesh(mesh);
       };
       xrHelper.pointerSelection.raySelectionPredicate = (mesh) => {
-        return this.isSelectableMesh(mesh);
+        return this.world.isSelectableMesh(mesh);
       };
 
       xrHelper.teleportation.rotationEnabled = false; // CHECKME
@@ -1008,11 +1030,11 @@ export class World {
       // TODO: trying to update terrain after teleport
       xrHelper.baseExperience.sessionManager.onXRReferenceSpaceChanged.add( (xrReferenceSpace) => {
         var targetPosition = xrHelper.baseExperience.camera.position;
-        this.camera.globalPosition.x = targetPosition.x;
-        this.camera.globalPosition.y = targetPosition.y;
-        this.camera.globalPosition.z = targetPosition.z;
-        if ( this.terrain ) {
-          terrain.update(false);
+        this.world.camera.globalPosition.x = targetPosition.x;
+        this.world.camera.globalPosition.y = targetPosition.y;
+        this.world.camera.globalPosition.z = targetPosition.z;
+        if ( this.world.terrain ) {
+          this.world.terrain.update(false);
         }
         // TODO we can modify camera y here, adding terrain height on top of ground height
       });
@@ -1032,29 +1054,134 @@ export class World {
       
     } else {
       // obsolete and unsupported TODO REMOVEME
-      this.vrHelper = this.scene.createDefaultVRExperience({createDeviceOrientationCamera: false });
+      this.vrHelper = this.world.scene.createDefaultVRExperience({createDeviceOrientationCamera: false });
       //vrHelper.enableInteractions();
       this.vrHelper.webVRCamera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
-      this.vrHelper.onEnteringVRObservable.add(()=>{this.collisions(false)});
-      this.vrHelper.onExitingVRObservable.add(()=>{this.collisions(this.collisionsEnabled);});
+      this.vrHelper.onEnteringVRObservable.add(()=>{this.world.collisions(false)});
+      this.vrHelper.onExitingVRObservable.add(()=>{this.world.collisions(this.world.collisionsEnabled);});
 
-      this.vrHelper.enableTeleportation({floorMeshes: this.getFloorMeshes(this.scene)});
+      this.vrHelper.enableTeleportation({floorMeshes: this.world.getFloorMeshes(this.world.scene)});
       this.vrHelper.raySelectionPredicate = (mesh) => {
-        return this.isSelectableMesh(mesh);
+        return this.world.isSelectableMesh(mesh);
       };
       
       this.vrHelper.onBeforeCameraTeleport.add((targetPosition) => {
-        this.camera.globalPosition.x = targetPosition.x;
-        this.camera.globalPosition.y = targetPosition.y;
-        this.camera.globalPosition.z = targetPosition.z;
-        if ( this.terrain ) {
-          terrain.update(true);
+        this.world.camera.globalPosition.x = targetPosition.x;
+        this.world.camera.globalPosition.y = targetPosition.y;
+        this.world.camera.globalPosition.z = targetPosition.z;
+        if ( this.world.terrain ) {
+          this.world.terrain.update(true);
         }
       });
       
     }
   }
+  startTracking() {
+    scene.registerBeforeRender(this.tracker);
+  }
+  stopTracking() {
+    scene.unregisterBeforeRender(this.tracker);
+  }
+  camera() {
+    return this.vrHelper.input.xrCamera;
+  }
+  addFloorMesh(mesh) {
+    this.vrHelper.teleportation.addFloorMesh(mesh);
+  }
+  removeFloorMesh(mesh) {
+    this.vrHelper.teleportation.removeFloorMesh(mesh);
+  }
+  raySelectionPredicate(predicate) {
+    var ret = this.vrHelper.pointerSelection.raySelectionPredicate;
+    if ( predicate ) {
+      this.vrHelper.pointerSelection.raySelectionPredicate = predicate;
+    }
+    return ret;
+  }
+  clearFloors() {
+    for ( var i = 0; i < this.world.getFloorMeshes().length; i++ ) {
+      this.removeFloorMesh(this.world.getFloorMeshes()[i]);
+    }
+  }
+  addFloors() {
+    for ( var i = 0; i < this.world.getFloorMeshes().length; i++ ) {
+      this.addFloorMesh(this.world.getFloorMeshes()[i]);
+    }
+  }
+}
 
+// this is intended to be overridden
+export class World {
+  async init(engine, name, scene, callback, baseUrl, file) {
+    this.engine = engine;
+    this.name = name;
+    this.scene = scene;
+    this.vrHelper = null;
+    if ( file ) {
+      this.file = file;
+    } else {
+      this.file = "scene.gltf";
+    }
+    if ( baseUrl ) {
+      this.baseUrl = baseUrl;
+    } else {
+      this.baseUrl = "";
+    }
+    this.gravityEnabled = true;
+    this.collisionsEnabled = true;
+    await this.createScene(engine);
+    this.indicator = new LoadProgressIndicator(this.scene, this.camera);
+    this.registerRenderLoop();
+    this.createTerrain();
+    this.load(callback);
+    return this.scene;
+  }
+  async createScene(engine) {
+    if ( ! this.scene ) {
+      this.scene = new BABYLON.Scene(engine);
+    }
+    // TODO dispose of old camera(s)
+    var camera = await this.createCamera();
+    if ( camera ) {
+      this.camera = camera;
+    }
+    // TODO dispose of old lights
+    var light = await this.createLights();
+    if ( light ) {
+      this.light = light;
+    }
+    // TODO dispose of old shadow generator
+    var shadowGenerator = await this.createShadows();
+    if ( shadowGenerator ) {
+      this.shadowGenertor = shadowGenerator;
+    }
+    // TODO dispose of old skybox
+    var skyBox = await this.createSkyBox();
+    if ( skyBox ) {
+      this.skyBox = skyBox;
+    }
+    // TODO dispose of old ground
+    var ground = await this.createGround();
+    if ( ground ) {
+      this.ground = ground;
+    }
+    await this.createPhysics();
+  }
+  async createCamera() {
+    alert( 'Please override createCamera() method')
+  }
+  async createLights() {}
+  async createShadows() {}
+  async createSkyBox() {}
+  async createGround() {}
+  async createPhysics() {};
+  
+  initXR() {
+    if ( ! this.vrHelper ) {
+      this.vrHelper = new VRHelper();
+    }
+    this.vrHelper.initXR(this);
+  }
   trackXrDevices() {
   }
   
@@ -1121,15 +1248,6 @@ export class World {
     this.initXR();
   }
   
-  async enterXR() {
-    await this.initXR();
-    console.log("Entering XR")
-    console.log(this.vrHelper);
-    if ( this.vrHelper && this.vrHelper.baseExperience) {
-      await this.vrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
-    }
-  }
-  
   registerRenderLoop() {
     // Register a render loop to repeatedly render the scene
     var loop = () => {
@@ -1156,6 +1274,9 @@ export class World {
 
 export class WorldManager {
   constructor(camera, fps) {
+    if ( ! camera ) {
+      console.log("Undefined camera in WorldManager, tracking disabled")
+    }
     this.camera = camera;
     this.VRSPACE = VRSPACE;
     if ( fps ) {
@@ -1322,6 +1443,9 @@ export class WorldManager {
   }
 
   trackCamera() {
+    if ( ! this.camera ) {
+      return;
+    }
     if ( typeof oldPos != 'object') {
       this.oldPos = this.camera.globalPosition;
     }

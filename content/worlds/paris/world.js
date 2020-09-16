@@ -1,12 +1,7 @@
 import { World } from '../../../babylon/vrspace-ui.js';
 
 export class Paris extends World {
-  async createScene(engine) {
-    // Create the scene space
-    var scene = new BABYLON.Scene(engine);
-    scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-    scene.collisionsEnabled = true;
-  
+  async createCamera() {
     // Add a camera to the scene and attach it to the canvas
     this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(61.153, 10.676, -87.172), scene);
     this.camera.maxZ = 100000;
@@ -19,11 +14,14 @@ export class Paris extends World {
     this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
     //camera.ellipsoidOffset = -0.2
     this.camera.checkCollisions = true;
-  
+  }
+  async createLights() {
     // Add lights to the scene
     var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
     var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), scene);
-  
+    return light2;
+  }
+  async createSkyBox() {
     var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, scene);
     var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
     skyboxMaterial.backFaceCulling = false;
@@ -32,8 +30,7 @@ export class Paris extends World {
     skybox.infiniteDistance = true;
     skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("//www.babylonjs.com/assets/skybox/TropicalSunnyDay", scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-  
-    return scene;
+    return skybox;
   }
   
   getFloorMeshes() {

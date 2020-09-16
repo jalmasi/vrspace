@@ -9,17 +9,22 @@ var trackDelay = 20; // 50 fps
 
 var mirror = true;
 
-var animationSelection;
-
 export class AvatarSelection extends World {
-  async createScene(engine) {
-    // Create the scene space
-    var scene = new BABYLON.Scene(engine);
-    scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-    scene.collisionsEnabled = true;
-
+  async createSkyBox() {
+    var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
+    skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.disableLighting = true;
+    skybox.material = skyboxMaterial;
+    skybox.infiniteDistance = true;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../content/skybox/mp_drakeq/drakeq", this.scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    return skybox;
+  }
+  async createCamera() {
     // Add a camera to the scene and attach it to the canvas
-    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 2, -5), scene);
+    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 2, -5), this.scene);
     //camera = new BABYLON.ArcRotateCamera("Camera", 0, 2, -3, new BABYLON.Vector3(0, 1, 0), scene);
     //camera.setPosition(new BABYLON.Vector3(0, 2, -3));
     //var camera = new BABYLON.FlyCamera("FlyCamera", new BABYLON.Vector3(0, 5, -10), scene);
@@ -33,35 +38,26 @@ export class AvatarSelection extends World {
     //camera.ellipsoidOffset = -0.2
     this.camera.checkCollisions = true;
     this.camera.speed = 0.1;
-
+  }
+  async createLights() {
     // Add lights to the scene
-    var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
-    var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), scene);
-
+    var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
+    var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), this.scene);
+    return light2;
+  }
+  async createShadows() {
     // Shadows
-    this.shadowGenerator = new BABYLON.ShadowGenerator(1024, light2);
+    this.shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
     this.shadowGenerator.useExponentialShadowMap = true;
     // slower:
     //shadowGenerator.useBlurExponentialShadowMap = true;
     //shadowGenerator.blurKernel = 32;
     // hair is usually semi-transparent, this allows it to cast shadow:
     this.shadowGenerator.transparencyShadow = true;
-
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, scene);
-    skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../content/skybox/mp_drakeq/drakeq", scene);
-    //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("skybox/horizon_4", scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-
-    this.room = await new LogoRoom(scene).load();
+  }
+  async createGround() {
+    this.room = await new LogoRoom(this.scene).load();
     this.ground = this.room.ground;
-    
-    return scene;
   }
   
   isSelectableMesh(mesh) {
@@ -86,21 +82,21 @@ export class AvatarSelection extends World {
       ) {
       trackTime = Date.now();
       // CHECKME: mirror left-right
-      if ( this.leftController ) {
+      if ( this.vrHelper.leftController ) {
         if ( mirror ) {
-          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.leftController );
+          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.leftController );
           this.character.reachFor( this.character.body.leftArm, leftPos );
         } else {
-          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.leftController );
+          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.leftController );
           this.character.reachFor( this.character.body.rightArm, leftPos );
         }
       }
-      if ( this.rightController ) {
+      if ( this.vrHelper.rightController ) {
         if ( mirror ) {
-          var rightPos = this.calcControllerPos( this.character.body.rightArm, this.rightController );
+          var rightPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.rightController );
           this.character.reachFor( this.character.body.rightArm, rightPos );
         } else {
-          var rightPos = this.calcControllerPos( this.character.body.leftArm, this.rightController );
+          var rightPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.rightController );
           this.character.reachFor( this.character.body.leftArm, rightPos );
         }
       }
@@ -111,7 +107,7 @@ export class AvatarSelection extends World {
   
   trackHeight() {
     //var cameraPos = xrHelper.input.xrCamera.position.y;
-    var cameraPos = this.vrHelper.input.xrCamera.realWorldHeight;
+    var cameraPos = this.vrHelper.camera().realWorldHeight;
     if ( this.maxCameraPos ) {
       var delta = cameraPos-this.prevCameraPos;
       var speed = delta/trackDelay*1000;
@@ -141,8 +137,8 @@ export class AvatarSelection extends World {
   }
   
   calcCameraTarget() {
-    var cameraQuat = this.vrHelper.input.xrCamera.rotationQuaternion;
-    var target = new BABYLON.Vector3(0,this.vrHelper.input.xrCamera.realWorldHeight,1);
+    var cameraQuat = this.vrHelper.camera().rotationQuaternion;
+    var target = new BABYLON.Vector3(0,this.vrHelper.camera().realWorldHeight,1);
     target.rotateByQuaternionAroundPointToRef(cameraQuat,this.character.headPos(),target);
     if ( mirror ) {
       target.z = -target.z;
@@ -151,7 +147,7 @@ export class AvatarSelection extends World {
   }
 
   calcControllerPos( arm, xrController ) {
-    var cameraPos = this.vrHelper.input.xrCamera.position;
+    var cameraPos = this.vrHelper.camera().position;
     // this calc swaps front-back, like mirror image
     var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
     var armLength = arm.lowerArmLength+arm.upperArmLength;
@@ -169,9 +165,9 @@ export class AvatarSelection extends World {
     this.selectionCallback = selectionCallback;
     this.indicator = new LoadProgressIndicator(scene, this.camera);
     VRSPACEUI.listCharacters( '../content/char/', (avatars) => {
-      var buttons = new Buttons(scene,"Avatars",avatars,(dir) => this.loadCharacter(dir),"name");
-      buttons.setHeight(2.6);
-      buttons.group.position = new BABYLON.Vector3(1,3,-.5);
+      this.buttons = new Buttons(scene,"Avatars",avatars,(dir) => this.loadCharacter(dir),"name");
+      this.buttons.setHeight(2.6);
+      this.buttons.group.position = new BABYLON.Vector3(1,3,-.5);
     });
   }
 
@@ -207,13 +203,13 @@ export class AvatarSelection extends World {
       avatar.processAnimations(group.targetedAnimations);
     }
     console.log("Animations: "+names);
-    if ( animationSelection ) {
-      animationSelection.dispose();
+    if ( this.animationSelection ) {
+      this.animationSelection.dispose();
     }
-    animationSelection = new Buttons(scene,"Animations",names, (name)=>this.startAnimation(name));
-    animationSelection.turnOff = true;
-    animationSelection.setHeight(Math.min(2,names.length/10));
-    animationSelection.group.position = new BABYLON.Vector3(-2,2.2,-.5);
+    this.animationSelection = new Buttons(scene,"Animations",names, (name)=>this.startAnimation(name));
+    this.animationSelection.turnOff = true;
+    this.animationSelection.setHeight(Math.min(2,names.length/10));
+    this.animationSelection.group.position = new BABYLON.Vector3(-2,2.2,-.5);
   }
 
   startAnimation(name) {
@@ -221,18 +217,18 @@ export class AvatarSelection extends World {
   }
 
   addCharacterButtons() {
-    var manager = new BABYLON.GUI.GUI3DManager(scene);
+    this.guiManager = new BABYLON.GUI.GUI3DManager(scene);
     var resizeButton = new BABYLON.GUI.HolographicButton("resizeButton");
     resizeButton.contentResolution = 128;
     resizeButton.contentScaleRatio = 1;
     resizeButton.text = "Resize";
-    manager.addControl(resizeButton);
+    this.guiManager.addControl(resizeButton);
 
     resizeButton.position = new BABYLON.Vector3( -0.5,0.2,-1 );
     resizeButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
     resizeButton.onPointerDownObservable.add( function() {
       if ( this.inXR ) {
-        var cameraPos = vrHelper.input.xrCamera.realWorldHeight;
+        var cameraPos = vrHelper.camera().realWorldHeight;
         this.character.userHeight = cameraPos;
         this.character.resize();
         maxCameraPos = null;
@@ -243,7 +239,7 @@ export class AvatarSelection extends World {
     mirrorButton.contentResolution = 128;
     mirrorButton.contentScaleRatio = 1;
     mirrorButton.text = "Mirroring";
-    manager.addControl(mirrorButton);
+    this.guiManager.addControl(mirrorButton);
 
     mirrorButton.position = new BABYLON.Vector3( 0.5,0.2,-1 );
     mirrorButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
@@ -287,45 +283,58 @@ export class AvatarSelection extends World {
       }
     }
   }
+  
+  removePortals() {
+    if (this.portals) {
+      for ( var i = 0; i < this.portals.length; i++ ) {
+        this.portals[i].dispose();
+      }
+      delete this.portals;
+    }
+  }
 
   enter( portal ) {
     console.log("Entering world "+portal.worldUrl()+'/world.js as '+this.character.getUrl());
+    var avatarUrl = this.character.getUrl();
     import(portal.worldUrl()+'/world.js').then((world)=>{
       var afterLoad = (world) => {
         console.log(world);
+        world.vrHelper = this.vrHelper;
+        world.initXR();
+        
         var worldManager = new WorldManager(world.scene.activeCamera);
-        worldManager.VRSPACE.addWelcomeListener(() => worldManager.VRSPACE.sendMy("mesh", this.character.getUrl()));
+        worldManager.VRSPACE.addWelcomeListener(() => worldManager.VRSPACE.sendMy("mesh", avatarUrl));
         worldManager.VRSPACE.connect();
-        // TODO:
-        // stop rendering the old scene
-        // dispose of old scene
-        var oldScene = this.scene;
-        this.scene = null; // next call to render loop stops the current loop
-        //this.scene = world.scene; // this would be great but no go
-        scene = world.scene; // CHECKME this global is for debug button only
-        
-        // FIXME can't replace scene while XR session is active
-        if ( this.vrHelper ) {
-          if ( ! this.inXR ) {
-            // we're not in XR just yet, let the other world create own helper
-            this.vrHelper.dispose();
-          } else {
-            this.vrHelper.dispose();
-            // we are already in XR, now we have to hot-swap the scene
-            //this.vrHelper.baseExperience.sessionManager.scene = world.scene;
-            //this.vrHelper.baseExperience.sessionManager.session.scene = world.scene;
-            //this.vrHelper.baseExperience.sessionManager.startRenderingToXRAsync();
-            //world.WORLD.initXR(this.vrHelper);
-            world.enterXR();
-          }
-        }
 
-        //oldScene.dispose(); // FIXME: hangs the browser!
-        this.clearScene(oldScene);
-        
       }
-      world.WORLD.init(this.engine, portal.name, afterLoad, portal.worldUrl()+"/").then((newScene)=>{
+      this.vrHelper.stopTracking();
+      world.WORLD.init(this.engine, portal.name, this.scene, afterLoad, portal.worldUrl()+"/").then((newScene)=>{
         console.log(world);
+        this.vrHelper.clearFloors();
+        // TODO install world's xr device tracker
+        if ( this.inXR ) {
+          this.vrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
+        } else {
+          this.scene.activeCamera = world.WORLD.camera;
+        }
+        this.camera.dispose();
+        this.removePortals();
+        this.room.dispose(); // AKA ground
+        this.skyBox.dispose();
+        this.skyBox.material.dispose();
+        this.light.dispose();
+        this.shadowGenerator.dispose();
+        
+        // TODO properly dispose of avatar
+        this.character.dispose(); 
+        this.character = null;
+        
+        this.buttons.dispose();
+        if ( this.animationSelection ) {
+          this.animationSelection.dispose();
+        }
+        this.guiManager.dispose();
+        this.scene = null; // next call to render loop stops the current loop
       });
     })
   }

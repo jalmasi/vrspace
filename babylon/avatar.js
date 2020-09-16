@@ -118,6 +118,7 @@ export class Avatar {
     if ( this.debugViewer2 ) {
       this.debugViewer2.dispose();
     }
+    // TODO also dispose of materials and textures
   }
 
   replace(avatar) {

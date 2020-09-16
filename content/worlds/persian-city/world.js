@@ -10,12 +10,7 @@ terrainScript.src = url;
 document.head.appendChild(terrainScript);
 
 export class PersianCity extends World {
-  async createScene(engine) {
-    // Create the scene space
-    var scene = new BABYLON.Scene(engine);
-    scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-    scene.collisionsEnabled = true;
-
+  async createGround() {
     //Ground
     this.ground = BABYLON.Mesh.CreatePlane("ground", 10000.0, scene);
     this.ground.material = new BABYLON.StandardMaterial("groundMat", scene);
@@ -25,7 +20,7 @@ export class PersianCity extends World {
     this.ground.position = new BABYLON.Vector3(-40, 0.4, -20);
     this.ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
     this.ground.checkCollisions = true;
-
+    
     this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", scene)
     var terrainTexture = new BABYLON.Texture(this.assetPath("textures/LoamWalls0012_2_S_1_1_baseColor.jpeg"), scene);
     this.terrainMaterial.ambientTexture = terrainTexture;
@@ -38,7 +33,19 @@ export class PersianCity extends World {
     box.position = new BABYLON.Vector3(-40,0,-20);
     box.material = this.terrainMaterial;
     box.checkCollisions = true;
-
+  }
+  async createSkyBox() {
+    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.disableLighting = true;
+    skybox.material = skyboxMaterial;
+    skybox.infiniteDistance = true;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    return skybox;
+  }
+  async createCamera() {
     // Add a camera to the scene and attach it to the canvas
     this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(60, 23, -54), scene);
     this.camera.maxZ = 100000;
@@ -50,23 +57,13 @@ export class PersianCity extends World {
     //Set the ellipsoid around the camera (e.g. your player's size)
     this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
     this.camera.checkCollisions = true;
-
+  }
+  async createLights() {
     // Add lights to the scene
     var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), scene);
     light.intensity = 2;
     var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
-
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-
-    return scene;
-
+    return light1;
   }
 
   isSelectableMesh(mesh) {
