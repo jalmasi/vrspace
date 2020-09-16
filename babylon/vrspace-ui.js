@@ -970,51 +970,69 @@ export class VRHelper {
       console.log("VR helper already intialized");
       this.addFloors();
     } else {
-      xrHelper = await world.scene.createDefaultXRExperienceAsync({floorMeshes: world.getFloorMeshes()});
-      this.vrHelper = xrHelper;
+      xrHelper = await this.world.scene.createDefaultXRExperienceAsync({floorMeshes: this.world.getFloorMeshes()});
     }
 
     if (xrHelper.baseExperience) {
       console.log("Using XR helper");
+      this.vrHelper = xrHelper;
 
-      xrHelper.baseExperience.onInitialXRPoseSetObservable.add( (xrCamera) => {
-          xrCamera.position.y = world.camera.position.y - world.camera.ellipsoid.y*2;
-      });
+      // updating terrain after teleport
+      if ( this.movementObserver ) {
+        // remove existing teleportation observer
+        xrHelper.baseExperience.sessionManager.onXRReferenceSpaceChanged.remove( this.movementObserver );
+      }
+      this.movementObserver = () => { this.afterTeleportation() };
+      xrHelper.baseExperience.sessionManager.onXRReferenceSpaceChanged.add( this.movementObserver );
+
+      if ( !this.initialPoseObserver ) {
+        this.initialPoseObserver = (xrCamera) => {
+          // TODO restore this after exit VR
+          xrCamera.position.y = this.world.camera.position.y - this.world.camera.ellipsoid.y*2;
+        };
+        xrHelper.baseExperience.onInitialXRPoseSetObservable.add( this.initialPoseObserver ); 
+      }
 
       if ( this.tracker ) {
         this.stopTracking();
       }
-      this.tracker = () => world.trackXrDevices();
-      xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-        console.log( "State: "+state );
-        switch (state) {
-          case BABYLON.WebXRState.IN_XR:
-            // XR is initialized and already submitted one frame
-            console.log( "Entered VR" );
-            this.startTracking();
-            // Workaround for teleporation/selection bug
-            xrHelper.teleportation.setSelectionFeature(null);
-            world.inXR = true;
-            break;
-          case BABYLON.WebXRState.ENTERING_XR:
-            // xr is being initialized, enter XR request was made
-            console.log( "Entering VR" );
-            world.collisions(false);
-            break;
-          case BABYLON.WebXRState.EXITING_XR:
-            console.log( "Exiting VR" );
-            this.stopTracking();
-            // doesn't do anything
-            //camera.position.y = xrHelper.baseExperience.camera.position.y + 3; //camera.ellipsoid.y*2;
-            world.collisions(world.collisionsEnabled);
-            world.inXR = false;
-            break;
-          case BABYLON.WebXRState_NOT_IN_XR:
-            console.log( "Not in VR" );
-            // self explanatory - either out or not yet in XR
-            break;
-        }
-      });
+      this.tracker = () => this.world.trackXrDevices();
+      
+      if ( !this.stateChangeObserver ) {
+        this.stateChangeObserver = (state) => {
+          console.log( "State: "+state );
+          switch (state) {
+            case BABYLON.WebXRState.IN_XR:
+              // XR is initialized and already submitted one frame
+              console.log( "Entered VR" );
+              this.startTracking();
+              // Workaround for teleporation/selection bug
+              xrHelper.teleportation.setSelectionFeature(null);
+              this.world.inXR = true;
+              break;
+            case BABYLON.WebXRState.ENTERING_XR:
+              // xr is being initialized, enter XR request was made
+              console.log( "Entering VR" );
+              this.world.collisions(false);
+              break;
+            case BABYLON.WebXRState.EXITING_XR:
+              console.log( "Exiting VR" );
+              this.stopTracking();
+              // doesn't do anything
+              //camera.position.y = xrHelper.baseExperience.camera.position.y + 3; //camera.ellipsoid.y*2;
+              this.world.collisions(this.world.collisionsEnabled);
+              this.world.inXR = false;
+              break;
+            case BABYLON.WebXRState.NOT_IN_XR:
+              console.log( "Not in VR" );
+              this.world.attachControl();
+              this.world.scene.activeCamera = this.world.camera;
+              // self explanatory - either out or not yet in XR
+              break;
+          }
+        };
+        xrHelper.baseExperience.onStateChangedObservable.add(this.stateChangeObserver);
+      }
 
       // CHECKME: really ugly way to make it work
       this.world.scene.pointerMovePredicate = (mesh) => {
@@ -1027,29 +1045,20 @@ export class VRHelper {
       xrHelper.teleportation.rotationEnabled = false; // CHECKME
       //xrHelper.teleportation.parabolicRayEnabled = false; // CHECKME
 
-      // TODO: trying to update terrain after teleport
-      xrHelper.baseExperience.sessionManager.onXRReferenceSpaceChanged.add( (xrReferenceSpace) => {
-        var targetPosition = xrHelper.baseExperience.camera.position;
-        this.world.camera.globalPosition.x = targetPosition.x;
-        this.world.camera.globalPosition.y = targetPosition.y;
-        this.world.camera.globalPosition.z = targetPosition.z;
-        if ( this.world.terrain ) {
-          this.world.terrain.update(false);
-        }
-        // TODO we can modify camera y here, adding terrain height on top of ground height
-      });
-      
-      xrHelper.input.onControllerAddedObservable.add((xrController /* WebXRController instance */ ) => {
-        console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
-        console.log(xrController);
-        if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
-          this.leftController = xrController;
-        } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
-          this.rightController = xrController;
-        } else {
-          log("ERROR: don't know how to handle controller");
-        }
-      });
+      if ( !this.controllerObserver ) {
+        this.controllerObserver = (xrController) => {
+          console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
+          console.log(xrController);
+          if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
+            this.leftController = xrController;
+          } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
+            this.rightController = xrController;
+          } else {
+            log("ERROR: don't know how to handle controller");
+          }
+        };
+        xrHelper.input.onControllerAddedObservable.add(this.controllerObserver);
+      }
       
       
     } else {
@@ -1076,6 +1085,18 @@ export class VRHelper {
       
     }
   }
+  
+  afterTeleportation() {
+    var targetPosition = this.vrHelper.baseExperience.camera.position;
+    this.world.camera.globalPosition.x = targetPosition.x;
+    this.world.camera.globalPosition.y = targetPosition.y;
+    this.world.camera.globalPosition.z = targetPosition.z;
+    if ( this.world.terrain ) {
+      this.world.terrain.update(false);
+    }
+    // TODO we can modify camera y here, adding terrain height on top of ground height
+  }
+  
   startTracking() {
     scene.registerBeforeRender(this.tracker);
   }
@@ -1113,6 +1134,7 @@ export class VRHelper {
 // this is intended to be overridden
 export class World {
   async init(engine, name, scene, callback, baseUrl, file) {
+    this.canvas = engine.getInputElement();
     this.engine = engine;
     this.name = name;
     this.scene = scene;
@@ -1145,6 +1167,7 @@ export class World {
     if ( camera ) {
       this.camera = camera;
     }
+    this.attachControl();
     // TODO dispose of old lights
     var light = await this.createLights();
     if ( light ) {
@@ -1175,6 +1198,7 @@ export class World {
   async createSkyBox() {}
   async createGround() {}
   async createPhysics() {};
+  async createTerrain() {}
   
   initXR() {
     if ( ! this.vrHelper ) {
@@ -1260,15 +1284,17 @@ export class World {
     engine.runRenderLoop(loop);
   }
 
-  createTerrain() {
-  }
-  
   async loadAsset(relativePath, file, scene) {
     return BABYLON.SceneLoader.LoadAssetContainerAsync(this.assetPath(relativePath), file, scene);
   }
   
   assetPath(relativePath) {
     return this.baseUrl+relativePath;
+  }
+  
+  attachControl() {
+    this.camera.attachControl(this.canvas, true);
+    console.log(this.camera);
   }
 }
 

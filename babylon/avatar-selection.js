@@ -31,7 +31,8 @@ export class AvatarSelection extends World {
     this.camera.maxZ = 100000;
     this.camera.minZ = 0;
     this.camera.setTarget(new BABYLON.Vector3(0,1.5,0));
-    this.camera.attachControl(canvas, true);
+    // not required, world.init() does that
+    //this.camera.attachControl(canvas, true);
     this.camera.applyGravity = true;
     //Set the ellipsoid around the camera (e.g. your player's size)
     //camera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
