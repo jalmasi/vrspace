@@ -299,7 +299,7 @@ export class Avatar {
   
   load(success, progress, failure) {
     this.loadFixes().then( () => {
-      this.log("loading from "+this.folder.name);
+      this.log("loading from "+this.folder.url());
       var avatar = this;
       var plugin = BABYLON.SceneLoader.LoadAssetContainer(
         this.folder.baseUrl+this.folder.name+"/",

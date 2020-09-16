@@ -114,6 +114,13 @@ class VRSpace {
     }
   }
   
+  removeListener(array, listener) {
+    var pos = array.indexOf(listener);
+    if ( pos > -1 ) {
+      array.splice(pos,1);
+    }
+  }
+
   addConnectionListener(callback) {
     this.addListener( this.connectionListeners, callback);
   }
@@ -130,6 +137,10 @@ class VRSpace {
     this.addListener( this.welcomeListeners, callback);
   }
   
+  removeWelcomeListener(callback) {
+    this.removeListener( this.welcomeListeners, callback);
+  }
+
   addErrorListener(callback) {
     this.addListener( this.errorListeners, callback);
   }

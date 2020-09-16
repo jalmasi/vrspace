@@ -343,6 +343,7 @@ public class SessionManagerTest {
   @Transactional
   public void testEnterUnknown() throws Exception {
     worldManager.setGuestAllowed(true);
+    worldManager.setCreateWorlds(false);
     when(session.getPrincipal()).thenReturn(null);
 
     login();

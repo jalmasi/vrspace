@@ -303,11 +303,16 @@ export class AvatarSelection extends World {
         world.vrHelper = this.vrHelper;
         world.initXR();
         
-        var worldManager = new WorldManager(world.scene.activeCamera);
-        worldManager.VRSPACE.addWelcomeListener(() => worldManager.VRSPACE.sendMy("mesh", avatarUrl));
+        var worldManager = new WorldManager(world.scene);
+        var enter = () => {
+          worldManager.VRSPACE.removeWelcomeListener(enter);
+          worldManager.VRSPACE.sendMy('mesh', avatarUrl)
+          worldManager.VRSPACE.send('{"command":{"Enter":{"world":"'+portal.name+'"}}}');
+        };
+        worldManager.VRSPACE.addWelcomeListener(enter);
         worldManager.VRSPACE.connect();
-
       }
+      
       this.vrHelper.stopTracking();
       world.WORLD.init(this.engine, portal.name, this.scene, afterLoad, portal.worldUrl()+"/").then((newScene)=>{
         console.log(world);

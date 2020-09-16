@@ -40,6 +40,7 @@ public class WorldManager {
   private Dispatcher dispatcher = new Dispatcher();
 
   private boolean guestAllowed = true;
+  private boolean createWorlds = true;
 
   private ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
 
@@ -64,6 +65,10 @@ public class WorldManager {
 
   protected void setGuestAllowed(boolean allowed) {
     this.guestAllowed = allowed;
+  }
+
+  protected void setCreateWorlds(boolean allowed) {
+    this.createWorlds = allowed;
   }
 
   public Set<VRObject> getPermanents(Client client) {
@@ -166,6 +171,18 @@ public class WorldManager {
       }
     }
     return defaultWorld;
+  }
+
+  public Welcome enter(Client client, String worldName) {
+    World world = getWorld(worldName);
+    if (world == null) {
+      if (createWorlds) {
+        world = db.save(new World(worldName));
+      } else {
+        throw new IllegalArgumentException("Unknown world: " + worldName);
+      }
+    }
+    return enter(client, world);
   }
 
   public Welcome enter(Client client, World world) {

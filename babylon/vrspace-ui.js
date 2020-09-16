@@ -1,4 +1,5 @@
 import {VRSPACE} from './vrspace.js';
+import {Avatar} from './avatar.js';
 
 export class VRSpaceUI {
 
@@ -1107,10 +1108,14 @@ export class VRHelper {
     return this.vrHelper.input.xrCamera;
   }
   addFloorMesh(mesh) {
-    this.vrHelper.teleportation.addFloorMesh(mesh);
+    if ( this.vrHelper && this.vrHelper.teleportation) {
+      this.vrHelper.teleportation.addFloorMesh(mesh);
+    }
   }
   removeFloorMesh(mesh) {
-    this.vrHelper.teleportation.removeFloorMesh(mesh);
+    if ( this.vrHelper && this.vrHelper.teleportation) {
+      this.vrHelper.teleportation.removeFloorMesh(mesh);
+    }
   }
   raySelectionPredicate(predicate) {
     var ret = this.vrHelper.pointerSelection.raySelectionPredicate;
@@ -1299,11 +1304,12 @@ export class World {
 }
 
 export class WorldManager {
-  constructor(camera, fps) {
-    if ( ! camera ) {
+  constructor(scene, fps) {
+    this.scene = scene;
+    if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
     }
-    this.camera = camera;
+    this.camera = this.scene.activeCamera;
     this.VRSPACE = VRSPACE;
     if ( fps ) {
       this.fps = fps
@@ -1334,7 +1340,13 @@ export class WorldManager {
   sceneChanged(e) {
     if (e.added != null) {
       console.log("ADDED " + e.objectId + " new size " + e.scene.size);
-      this.loadMesh(e.added);
+      console.log(e);
+      // FIXME: need better way to determine avatars
+      if ( e.className == 'Client' && e.added.mesh.endsWith('.gltf')) {
+        this.loadAvatar( e.added );
+      } else {
+        this.loadMesh(e.added);
+      }
     } else if (e.removed != null) {
       console.log("REMOVED " + e.objectId + " new size " + e.scene.size)
       this.removeMesh( e.removed );
@@ -1343,10 +1355,55 @@ export class WorldManager {
     }
   }
 
+  loadAvatar(obj) {
+    console.log("loading avatar "+obj.mesh);
+    var pos = obj.mesh.lastIndexOf('/');
+    var path = obj.mesh.substring(0,pos);
+    var file = obj.mesh.substring(pos+1);
+    // FIXME really bad way to parse path and create ServerFolder
+    pos = path.lastIndexOf('/');
+    var baseUrl = path.substring(0,pos+1);
+    var dir = path.substring(pos+1);
+    var fix = null; //TODO find if fix file exist
+    var dir = new ServerFolder( baseUrl, dir, fix );
+    var avatar = new Avatar(this.scene, dir);
+    avatar.debug = true;
+    avatar.load( (c) => {
+      // FIXME: this is not container but avatar
+      obj.container = c;
+      // TODO: add listener to process changes
+      obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
+    });
+  }
+  
+  changeAvatar(obj,changes) {
+    console.log("Changes:");
+    console.log(obj);
+    console.log(changes);
+    for ( var field in changes ) {
+      var node = obj.container.character.meshes[0];
+      if ( 'position' === field ) {
+        if ( ! obj.translate ) {
+          obj.translate = this.createAnimation(node, "position");
+        }
+        this.updateAnimation(obj.translate, node.position, obj.position);
+      } else if ( 'rotation' === field ) {
+        // TODO: rotation is ignored as rotationQuaternion exists
+        if ( ! obj.rotate ) {
+          obj.rotate = this.createAnimation(node, "rotation");
+        }
+        this.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+      }
+    }
+  }
+
   // TODO loader UI
   loadMesh(obj) {
     console.log("loading "+obj.mesh);
-    BABYLON.SceneLoader.LoadAssetContainerAsync("", obj.mesh, scene).then((container) => {
+    var pos = obj.mesh.lastIndexOf('/');
+    var path = obj.mesh.substring(0,pos+1);
+    var file = obj.mesh.substring(pos+1);
+    BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, scene).then((container) => {
       console.log("loaded "+obj.mesh);
 
       var bbox = this.boundingBox(container);
@@ -1482,7 +1539,12 @@ export class WorldManager {
       this.oldx = this.camera.globalPosition.x;
       this.oldy = this.camera.globalPosition.y;
       this.oldz = this.camera.globalPosition.z;
-      VRSPACE.sendMy("position", this.camera.globalPosition);
+      if ( this.camera.ellipsoid ) {
+        var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
+        VRSPACE.sendMy("position", new BABYLON.Vector3(this.oldx, height, this.oldz));
+      } else {
+        VRSPACE.sendMy("position", this.camera.globalPosition);
+      }
     }
     if ( this.oldrx != this.camera.rotation.x || this.oldry != this.camera.rotation.y || this.oldrz != this.camera.rotation.z ) {
       this.oldrx = this.camera.rotation.x;
