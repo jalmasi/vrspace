@@ -304,6 +304,10 @@ export class AvatarSelection extends World {
         world.initXR();
         
         var worldManager = new WorldManager(world.scene);
+        if ( this.inXR ) {
+          console.log("Tracking, "+this.inXR);
+          worldManager.setCamera(this.vrHelper.camera()); 
+        }
         var enter = () => {
           worldManager.VRSPACE.removeWelcomeListener(enter);
           worldManager.VRSPACE.sendMy('mesh', avatarUrl)

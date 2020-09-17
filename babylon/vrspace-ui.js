@@ -1309,7 +1309,8 @@ export class WorldManager {
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
     }
-    this.camera = this.scene.activeCamera;
+    this.scene.onActiveCameraChanged.add( () => { this.setCamera() } );
+    // TODO register camera tracker
     this.VRSPACE = VRSPACE;
     if ( fps ) {
       this.fps = fps
@@ -1325,6 +1326,19 @@ export class WorldManager {
     this.interval = null;
     VRSPACE.addConnectionListener((connected) => this.setConnected(connected));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
+  }
+
+  setCamera(camera) {
+    console.log("Tracking camera ")
+    console.log(camera)
+    if ( ! camera ) {
+      camera = this.scene.activeCamera;
+    }
+    console.log(camera)
+    if ( camera ) {
+      console.log("Tracking camera "+camera.getClassName())
+      this.camera = camera;
+    }
   }
   
   setConnected(connected) {
@@ -1569,11 +1583,15 @@ export class WorldManager {
         VRSPACE.sendMy("position", this.camera.globalPosition);
       }
     }
-    if ( this.oldrx != this.camera.rotation.x || this.oldry != this.camera.rotation.y || this.oldrz != this.camera.rotation.z ) {
-      this.oldrx = this.camera.rotation.x;
-      this.oldry = this.camera.rotation.y;
-      this.oldrz = this.camera.rotation.z;
-      VRSPACE.sendMy("rotation", this.camera.rotation);
+    var cameraRotation = this.camera.rotation;
+    if ( this.camera.getClassName() == 'WebXRCamera' ) {
+      cameraRotation = this.camera.rotationQuaternion.toEulerAngles();
+    }
+    if ( this.oldrx != cameraRotation.x || this.oldry != cameraRotation.y || this.oldrz != cameraRotation.z ) {
+      this.oldrx = cameraRotation.x;
+      this.oldry = cameraRotation.y;
+      this.oldrz = cameraRotation.z;
+      VRSPACE.sendMy("rotation", cameraRotation);
     }
   }
 
