@@ -1377,9 +1377,6 @@ export class WorldManager {
   }
   
   changeAvatar(obj,changes) {
-    console.log("Changes:");
-    console.log(obj);
-    console.log(changes);
     for ( var field in changes ) {
       var node = obj.container.character.meshes[0];
       if ( 'position' === field ) {
@@ -1388,15 +1385,41 @@ export class WorldManager {
         }
         this.updateAnimation(obj.translate, node.position, obj.position);
       } else if ( 'rotation' === field ) {
-        // TODO: rotation is ignored as rotationQuaternion exists
         if ( ! obj.rotate ) {
-          obj.rotate = this.createAnimation(node, "rotation");
+          obj.rotate = this.createQuaternionAnimation(node, "rotationQuaternion");
         }
-        this.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+        this.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
       }
     }
   }
 
+  createQuaternionAnimation(mesh, field) {
+    var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
+    
+    var anim = new BABYLON.Animation("qAnim "+mesh.id, field, this.fps, BABYLON.Animation.ANIMATIONTYPE_QUATERNION, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var keys = []; 
+    keys.push({frame:0, value: 0});
+    keys.push({frame:1, value: 0});
+    anim.setKeys(keys);
+    
+    group.addTargetedAnimation(anim, mesh);
+
+    return group;
+  }
+  
+  updateQuaternionAnimation(group, from, to) {
+    if ( group.isPlaying ) {
+      group.stop();
+    }
+    // 'to' is a Vector3, 'from' is current rotationQuaternion
+    // we have to rotate around to.y axis
+    var dest = new BABYLON.Quaternion.FromEulerAngles(0,to.y,0);
+    var anim = group.targetedAnimations[0].animation;
+    anim.getKeys()[0].value = from;
+    anim.getKeys()[1].value = dest;
+    group.play(false);
+  }
+  
   // TODO loader UI
   loadMesh(obj) {
     console.log("loading "+obj.mesh);
