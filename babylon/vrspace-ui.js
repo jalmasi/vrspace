@@ -1304,10 +1304,13 @@ export class World {
 }
 
 export class WorldManager {
-  constructor(scene, fps) {
-    this.scene = scene;
+  constructor(world, fps) {
+    this.world = world;
+    this.scene = world.scene;
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
+    } else {
+      this.setCamera();
     }
     this.scene.onActiveCameraChanged.add( () => { this.setCamera() } );
     // TODO register camera tracker
@@ -1317,24 +1320,28 @@ export class WorldManager {
     } else {
       this.fps = 5;
     }
-    this.oldx = null;
-    this.oldy = null;
-    this.oldz = null;
-    this.oldrx = null;
-    this.oldry = null;
-    this.oldrz = null;
+    this.pos = { x: null, y: null, z: null };
+    this.rot = { x: null, y: null, z: null };
+    this.leftArmPos = { x: null, y: null, z: null };
+    this.rightArmPos = { x: null, y: null, z: null };
+    this.leftArmRot = { x: null, y: null, z: null, w: null };
+    this.rightArmRot = { x: null, y: null, z: null, w: null };
     this.interval = null;
     VRSPACE.addConnectionListener((connected) => this.setConnected(connected));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
+    this.debug = false;
   }
 
+  log( what ) {
+    if (this.debug) {
+      console.log(what);
+    }
+  }
+  
   setCamera(camera) {
-    console.log("Tracking camera ")
-    console.log(camera)
     if ( ! camera ) {
       camera = this.scene.activeCamera;
     }
-    console.log(camera)
     if ( camera ) {
       console.log("Tracking camera "+camera.getClassName())
       this.camera = camera;
@@ -1342,9 +1349,9 @@ export class WorldManager {
   }
   
   setConnected(connected) {
-    console.log("Connected: "+connected);
+    this.log("Connected: "+connected);
     if ( connected ) {
-      this.interval = setInterval(() => this.trackCamera(), this.fps);
+      this.interval = setInterval(() => this.trackChanges(), 1000/this.fps);
     } else if ( this.interval ) {
       clearInterval( this.interval );
       this.interval = null;
@@ -1353,8 +1360,8 @@ export class WorldManager {
 
   sceneChanged(e) {
     if (e.added != null) {
-      console.log("ADDED " + e.objectId + " new size " + e.scene.size);
-      console.log(e);
+      this.log("ADDED " + e.objectId + " new size " + e.scene.size);
+      this.log(e);
       // FIXME: need better way to determine avatars
       if ( e.className == 'Client' && e.added.mesh.endsWith('.gltf')) {
         this.loadAvatar( e.added );
@@ -1362,10 +1369,10 @@ export class WorldManager {
         this.loadMesh(e.added);
       }
     } else if (e.removed != null) {
-      console.log("REMOVED " + e.objectId + " new size " + e.scene.size)
+      this.log("REMOVED " + e.objectId + " new size " + e.scene.size)
       this.removeMesh( e.removed );
     } else {
-      console.log("ERROR: invalid scene event");
+      this.log("ERROR: invalid scene event");
     }
   }
 
@@ -1391,6 +1398,8 @@ export class WorldManager {
   }
   
   changeAvatar(obj,changes) {
+    this.log( 'Processing changes on avatar' );
+    this.log(changes);
     for ( var field in changes ) {
       var node = obj.container.character.meshes[0];
       if ( 'position' === field ) {
@@ -1436,15 +1445,14 @@ export class WorldManager {
   
   // TODO loader UI
   loadMesh(obj) {
-    console.log("loading "+obj.mesh);
+    this.log("loading "+obj.mesh);
     var pos = obj.mesh.lastIndexOf('/');
     var path = obj.mesh.substring(0,pos+1);
     var file = obj.mesh.substring(pos+1);
     BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, scene).then((container) => {
-      console.log("loaded "+obj.mesh);
-
+      this.log("loaded "+obj.mesh);
       var bbox = this.boundingBox(container);
-
+      
       // Adds all elements to the scene
       var mesh = container.createRootMesh();
       mesh.name = obj.mesh;
@@ -1454,15 +1462,39 @@ export class WorldManager {
 
       obj.container = container;
       
-      console.log("Added "+obj.mesh);
+      this.log("Added "+obj.mesh);
       
       // TODO: add listener to process changes
       obj.addListener((obj, changes) => this.changeObject(obj, changes));
     });
   }
 
+  boundingBox(container) {
+    var maxSize = new BABYLON.Vector3(0,0,0);
+    for ( var i = 0; i < container.meshes.length; i++ ) {
+      // have to recompute after scaling
+      //container.meshes[i].computeWorldMatrix(true);
+      container.meshes[i].refreshBoundingInfo();
+      var boundingInfo = container.meshes[i].getBoundingInfo().boundingBox;
+      console.log("max: "+boundingInfo.maximumWorld+" min: "+boundingInfo.minimumWorld);
+      var size = new BABYLON.Vector3(
+        boundingInfo.maximumWorld.x - boundingInfo.minimumWorld.x,
+        boundingInfo.maximumWorld.y - boundingInfo.minimumWorld.y,
+        boundingInfo.maximumWorld.z - boundingInfo.minimumWorld.z
+        );
+      maxSize.x = Math.max(maxSize.x,size.x);
+      maxSize.y = Math.max(maxSize.y,size.y);
+      maxSize.z = Math.max(maxSize.z,size.z);
+      //if (shadows) {
+        //shadowGenerator.getShadowMap().renderList.push(container.meshes[i]);
+      //}
+    }
+    console.log("BBoxMax: "+maxSize);
+    return maxSize;
+  }
+  
   changeObject(obj,changes) {
-    console.log("Changes on "+obj+": "+changes);
+    this.log("Changes on "+obj+": "+changes);
     for ( var field in changes ) {
       var node = obj.container.meshes[0];
       if ( 'position' === field ) {
@@ -1476,6 +1508,7 @@ export class WorldManager {
         }
         this.updateAnimation(obj.rotate, node.rotation, obj.rotation);
       }
+      // TODO: process left/right arm pos/rot, send them to avatar
     }
   }
 
@@ -1538,60 +1571,44 @@ export class WorldManager {
     }
   }
 
-  boundingBox(container) {
-    var maxSize = new BABYLON.Vector3(0,0,0);
-    for ( var i = 0; i < container.meshes.length; i++ ) {
-      // have to recompute after scaling
-      //container.meshes[i].computeWorldMatrix(true);
-      container.meshes[i].refreshBoundingInfo();
-      var boundingInfo = container.meshes[i].getBoundingInfo().boundingBox;
-      console.log("max: "+boundingInfo.maximumWorld+" min: "+boundingInfo.minimumWorld);
-      var size = new BABYLON.Vector3(
-        boundingInfo.maximumWorld.x - boundingInfo.minimumWorld.x,
-        boundingInfo.maximumWorld.y - boundingInfo.minimumWorld.y,
-        boundingInfo.maximumWorld.z - boundingInfo.minimumWorld.z
-        );
-      maxSize.x = Math.max(maxSize.x,size.x);
-      maxSize.y = Math.max(maxSize.y,size.y);
-      maxSize.z = Math.max(maxSize.z,size.z);
-      //if (shadows) {
-        //shadowGenerator.getShadowMap().renderList.push(container.meshes[i]);
-      //}
-    }
-    console.log("BBoxMax: "+maxSize);
-    return maxSize;
-  }
-
-  trackCamera() {
+  trackChanges() {
     if ( ! this.camera ) {
       return;
     }
-    if ( typeof oldPos != 'object') {
-      this.oldPos = this.camera.globalPosition;
-    }
-    if ( typeof oldRot != 'object') {
-      this.oldRot = this.camera.rotation;
-    }
-    if ( this.oldx != this.camera.globalPosition.x || this.oldy != this.camera.globalPosition.y || this.oldz != this.camera.globalPosition.z ) {
-      this.oldx = this.camera.globalPosition.x;
-      this.oldy = this.camera.globalPosition.y;
-      this.oldz = this.camera.globalPosition.z;
-      if ( this.camera.ellipsoid ) {
-        var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
-        VRSPACE.sendMy("position", new BABYLON.Vector3(this.oldx, height, this.oldz));
-      } else {
-        VRSPACE.sendMy("position", this.camera.globalPosition);
-      }
+    // track camera movements
+    if ( this.camera.ellipsoid ) {
+      var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
+      this.sendChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z));
+    } else {
+      this.sendChange("position", this.pos, this.camera.globalPosition);
     }
     var cameraRotation = this.camera.rotation;
     if ( this.camera.getClassName() == 'WebXRCamera' ) {
+      // CHECKME do other cameras require this?
       cameraRotation = this.camera.rotationQuaternion.toEulerAngles();
     }
-    if ( this.oldrx != cameraRotation.x || this.oldry != cameraRotation.y || this.oldrz != cameraRotation.z ) {
-      this.oldrx = cameraRotation.x;
-      this.oldry = cameraRotation.y;
-      this.oldrz = cameraRotation.z;
-      VRSPACE.sendMy("rotation", cameraRotation);
+    this.sendChange("rotation", this.rot, cameraRotation);
+    
+    // and now track controllers
+    var vrHelper = this.world.vrHelper;
+    if ( vrHelper.leftController ) {
+      this.sendChange( 'leftArmPos', this.leftArmPos, vrHelper.leftController.grip.absolutePosition );
+      this.sendChange( 'leftArmRot', this.leftArmRot, vrHelper.leftController.pointer.rotationQuaternion );
+    }
+    if ( vrHelper.rightController ) {
+      this.sendChange( 'rightArmPos', this.rightArmPos, vrHelper.leftController.grip.absolutePosition );
+      this.sendChange( 'rightArmRot', this.rightArmRot, vrHelper.leftController.pointer.rotationQuaternion );
+    }
+  }
+  
+  sendChange( field, obj, pos ) {
+    // CHECKME: we don't check quaternion w, should we?
+    if ( obj.x != pos.x || obj.y != pos.y || obj.z != pos.z ) {
+      this.log( Date.now()+": "+field + " changed, sending "+pos);
+      obj.x = pos.x;
+      obj.y = pos.y;
+      obj.z = pos.z;
+      VRSPACE.sendMy(field, pos);
     }
   }
 

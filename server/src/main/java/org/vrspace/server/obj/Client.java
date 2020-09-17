@@ -33,6 +33,14 @@ public class Client extends VRObject {
 
   @Index(unique = true)
   private String name;
+  @Transient
+  transient private Point leftArmPos;
+  @Transient
+  transient private Point rightArmPos;
+  @Transient
+  transient private Quaternion leftArmRot;
+  @Transient
+  transient private Quaternion rightArmRot;
 
   // CHECKME: this needs to get refactored eventually
   @JsonIgnore

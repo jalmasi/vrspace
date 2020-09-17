@@ -206,6 +206,10 @@ class VRSpace {
   stringifyVector(vec) {
     return '{"x":'+vec.x+',"y":'+vec.y+',"z":'+vec.z+'}';
   }
+  
+  stringifyQuaternion(quat) {
+    return '{"x":'+quat.x+',"y":'+quat.y+',"z":'+quat.z+',"w":'+quat.w+'}';
+  }
 
   create(className, fieldName, callback) {
     // TODO: use class metadata
@@ -236,7 +240,11 @@ class VRSpace {
       if ( typeof value == "string") {
         this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":"'+value+'"}}');
       } else if ( typeof value == 'object') {
-        this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":'+this.stringifyVector(value)+'}}');
+        if(value.hasOwnProperty('w')) {
+          this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":'+this.stringifyQuaternion(value)+'}}');
+        } else {
+          this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":'+this.stringifyVector(value)+'}}');
+        }
       } else {
         this.log("Unsupported datatype, ignored user event "+what+"="+value);
       }
