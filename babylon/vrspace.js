@@ -106,6 +106,13 @@ class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
+    this.debug = false;
+  }
+  
+  log( msg ) {
+    if ( this.debug ) {
+      console.log(msg);
+    }
   }
   
   addListener(array, callback) {
@@ -163,7 +170,7 @@ class VRSpace {
   
   connect() {
     var url = window.location.href; // http://localhost:8080/console.html
-    console.log("This href "+url);
+    this.log("This href "+url);
     var start = url.indexOf('/');
     var protocol = url.substring(0,start);
     var webSocketProtocol = 'ws';
@@ -173,7 +180,7 @@ class VRSpace {
     //var end = url.lastIndexOf('/'); // localhost:8080/babylon/vrspace
     var end = url.indexOf('/', start+2); // localhost:8080/vrspace
     url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace'; // ws://localhost:8080/vrspace
-    console.log("Connecting to "+url);
+    this.log("Connecting to "+url);
     this.ws = new WebSocket(url);
     this.ws.onopen = () => {
       this.connectionListeners.forEach((listener)=>listener(true));
@@ -185,7 +192,7 @@ class VRSpace {
       this.receive(data.data);
       this.dataListeners.forEach((listener)=>listener(data.data)); 
     }
-    console.log("Connected!")
+    this.log("Connected!")
   }
   
   disconnect() {
@@ -193,7 +200,7 @@ class VRSpace {
       this.ws.close();
     }
     this.connectionListeners.forEach((listener)=>listener(false));
-    console.log("Disconnected");
+    this.log("Disconnected");
   }
   
   stringifyVector(vec) {
@@ -231,10 +238,10 @@ class VRSpace {
       } else if ( typeof value == 'object') {
         this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":'+this.stringifyVector(value)+'}}');
       } else {
-        console.log("Unsupported datatype, ignored user event "+what+"="+value);
+        this.log("Unsupported datatype, ignored user event "+what+"="+value);
       }
     } else {
-      console.log("No my ID yet, ignored user event "+what+"="+value);
+      this.log("No my ID yet, ignored user event "+what+"="+value);
     }
   }
 
@@ -268,7 +275,7 @@ class VRSpace {
     const id = new ID(Object.keys(objectId)[0],Object.values(objectId)[0]);
     const obj = this.scene.get(id.toString());
     const deleted = this.scene.delete(id.toString());
-    console.log("deleted "+this.scene.size+" "+id+":"+deleted);
+    this.log("deleted "+this.scene.size+" "+id+":"+deleted);
   // notify listeners
     const e = new SceneEvent(this.scene, id.className, id, null, obj);
     this.sceneListeners.forEach((listener) => listener(e));
@@ -276,7 +283,7 @@ class VRSpace {
   
   processEvent(obj,changes) {
     var id = new ID(Object.keys(obj)[0],Object.values(obj)[0]);
-    console.log("processing changes on "+id);
+    this.log("processing changes on "+id);
     if ( this.scene.has(id.toString())) {
       var object = this.scene.get(id.toString());
       Object.assign(object,changes);
@@ -284,43 +291,43 @@ class VRSpace {
       // TODO: notify listeners
       object.notifyListeners(changes);
     } else {
-      console.log("Unknown object "+id);
+      this.log("Unknown object "+id);
     }
   }
   
   receive(message) {
-    console.log("Received: "+message);
+    this.log("Received: "+message);
     var obj = JSON.parse(message);
     if ("object" in obj){
       this.processEvent(obj.object,obj.changes);
     } else if ("Add" in obj ) {
       for ( i=0; i< obj.Add.objects.length; i++ ) {
-        // console.log("adding "+i+":"+obj);
+        // this.log("adding "+i+":"+obj);
         this.addObject(obj.Add.objects[i]);
       }
-      console.log("added "+obj.Add.objects.length+" scene size "+this.scene.size);
+      this.log("added "+obj.Add.objects.length+" scene size "+this.scene.size);
     } else if ("Remove" in obj) {
       for ( var i=0; i< obj.Remove.objects.length; i++ ) {
         this.removeObject(obj.Remove.objects[i]);
       }
     } else if ("ERROR" in obj){
       // TODO: error listener(s)
-      console.log(obj.ERROR);
+      this.log(obj.ERROR);
       this.errorListeners.forEach((listener)=>listener(obj.ERROR));
     } else if ( "Welcome" in obj) {
       var welcome = obj.Welcome;
-      console.log("welcome "+welcome.client.id);
+      this.log("welcome "+welcome.client.id);
       this.me = Object.assign(Client,welcome.client);
       this.welcomeListeners.forEach((listener)=>listener(welcome));
     } else if ( "response" in obj) {
-      console.log("Response to command");
+      this.log("Response to command");
       if ( typeof this.responseListener === 'function') {
         var callback = this.responseListener;
         this.responseListener = null;
         callback(obj);
       }
     } else {
-      console.log("ERROR: unknown message type");
+      this.log("ERROR: unknown message type");
     }
   }
 }
