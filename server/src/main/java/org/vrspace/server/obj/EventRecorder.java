@@ -86,15 +86,11 @@ public class EventRecorder extends Client {
   }
 
   private void playEvent(Event event, Client viewer) {
-    if (event.type == EventType.own) {
-      log.debug("Not playing own event " + event.event);
-    } else {
-      log.debug("Playing " + event.event);
-      try {
-        viewer.sendMessage(event.event);
-      } catch (Exception e) {
-        log.error("Error playing event " + event.event, e);
-      }
+    log.debug("Playing " + event.event);
+    try {
+      viewer.sendMessage(event.event);
+    } catch (Exception e) {
+      log.error("Error playing event " + event.event, e);
     }
   }
 

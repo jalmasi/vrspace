@@ -105,7 +105,7 @@ public class EventRecorderTest {
     recorder.play(viewer);
     Thread.sleep(500);
 
-    // own message should be ignored, scene add and event received
-    verify(playingSession, times(2)).sendMessage(any(TextMessage.class));
+    // all recorded events sent to the viewer
+    verify(playingSession, times(3)).sendMessage(any(TextMessage.class));
   }
 }
