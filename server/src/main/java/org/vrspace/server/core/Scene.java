@@ -92,7 +92,7 @@ public class Scene {
             members.remove(t);
             newScene.add(t);
           } else {
-            add(add, t);
+            add(add, t); // adds children and listeners
             newScene.add(t);
             add.addObject(t);
           }
