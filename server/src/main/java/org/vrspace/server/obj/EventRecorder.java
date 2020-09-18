@@ -1,6 +1,6 @@
 package org.vrspace.server.obj;
 
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +22,7 @@ public class EventRecorder extends Client {
   private Client client;
   private boolean recording = false;
   private long start = 0;
-  private ConcurrentSkipListMap<Long, Object> events = new ConcurrentSkipListMap<Long, Object>();
+  private ConcurrentLinkedQueue<Event> events = new ConcurrentLinkedQueue<Event>();
 
   public EventRecorder(WorldManager worldManager, Client c) {
     this.client = c;
@@ -43,6 +43,22 @@ public class EventRecorder extends Client {
     this.recording = false;
   }
 
+  enum EventType {
+    own, space, scene
+  }
+
+  class Event {
+    long delay;
+    EventType type;
+    Object event;
+
+    public Event(long delay, EventType type, Object event) {
+      this.delay = delay;
+      this.type = type;
+      this.event = event;
+    }
+  }
+
   @Override
   public void sendMessage(Object obj) {
     if (recording) {
@@ -50,28 +66,39 @@ public class EventRecorder extends Client {
       if (obj instanceof VREvent) {
         VREvent event = (VREvent) obj;
         if (event.getSource() == client) {
-          log.debug("Recording own message:" + obj);
+          log.debug("Recording own message " + delay + ":" + obj);
+          events.add(new Event(delay, EventType.own, obj));
         } else {
-          log.debug("Recording space event:" + obj);
+          log.debug("Recording space event " + delay + ":" + obj);
+          events.add(new Event(delay, EventType.space, obj));
         }
       } else {
-        log.debug("Recording scene update:" + obj);
+        log.debug("Recording scene update " + delay + ":" + obj);
+        events.add(new Event(delay, EventType.scene, obj));
       }
-      events.put(delay, obj);
     }
   }
 
-  public void play() {
+  public void play(Client viewer) {
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    events.forEach((delay, event) -> executor.schedule(() -> playEvent(event), delay, TimeUnit.MILLISECONDS));
+    events.forEach((event) -> executor.schedule(() -> playEvent(event, viewer), event.delay, TimeUnit.MILLISECONDS));
     executor.shutdown();
   }
 
-  private void playEvent(Object event) {
-    log.debug("Playing " + event);
+  private void playEvent(Event event, Client viewer) {
+    if (event.type == EventType.own) {
+      log.debug("Not playing own event " + event.event);
+    } else {
+      log.debug("Playing " + event.event);
+      try {
+        viewer.sendMessage(event.event);
+      } catch (Exception e) {
+        log.error("Error playing event " + event.event, e);
+      }
+    }
   }
 
-  public ConcurrentSkipListMap<Long, Object> getEvents() {
+  public ConcurrentLinkedQueue<Event> getEvents() {
     return events;
   }
 
