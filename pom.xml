@@ -22,5 +22,6 @@
      -->
     <module>babylon</module>
     <module>content</module>
+    <module>web</module>
   </modules>
 </project>
