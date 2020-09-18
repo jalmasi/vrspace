@@ -5,9 +5,9 @@ import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.vrspace.server.ID;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;

@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.types;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,10 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Whatever is Owned, can be changed only by owner(s)
+ * Whatever is marked as Private, changes will not be announced to listeners.
+ *
  */
-@Target({ ElementType.FIELD, ElementType.TYPE })
+@Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Owned {
+public @interface Private {
 
 }

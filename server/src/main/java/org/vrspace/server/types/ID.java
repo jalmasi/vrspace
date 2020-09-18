@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.types;
 
 import java.util.HashMap;
 import java.util.Map;

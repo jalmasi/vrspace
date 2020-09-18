@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.config;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,6 +7,7 @@ import java.net.URL;
 
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.vrspace.server.core.ClassUtil;
 
 import lombok.extern.slf4j.Slf4j;
 

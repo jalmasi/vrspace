@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.core;
 
 import java.net.URL;
 

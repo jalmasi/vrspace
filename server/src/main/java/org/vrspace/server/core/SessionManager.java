@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.core;
 
 import java.io.IOException;
 import java.util.HashMap;

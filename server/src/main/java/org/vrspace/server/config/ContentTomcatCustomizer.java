@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.config;
 
 import java.io.File;
 
@@ -8,6 +8,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.stereotype.Component;
+import org.vrspace.server.core.ClassUtil;
 
 /**
  * Adds content and client (babylon) directories to content path, and enables

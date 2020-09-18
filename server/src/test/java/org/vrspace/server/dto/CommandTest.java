@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.dto;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -14,6 +14,9 @@ import org.mockito.Mock;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.vrspace.server.core.Scene;
+import org.vrspace.server.core.VRObjectRepository;
+import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Remove;

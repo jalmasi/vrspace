@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.core;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -10,6 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.types.Owned;
+import org.vrspace.server.types.Private;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

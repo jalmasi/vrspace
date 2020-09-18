@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.core;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -9,12 +9,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.vrspace.server.core.Dispatcher;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.types.Owned;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;

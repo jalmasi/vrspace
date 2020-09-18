@@ -9,11 +9,11 @@ import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Transient;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.vrspace.server.Owned;
-import org.vrspace.server.Private;
-import org.vrspace.server.Scene;
+import org.vrspace.server.core.Scene;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
+import org.vrspace.server.types.Owned;
+import org.vrspace.server.types.Private;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;

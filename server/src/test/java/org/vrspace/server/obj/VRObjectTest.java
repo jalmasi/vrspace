@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.obj;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

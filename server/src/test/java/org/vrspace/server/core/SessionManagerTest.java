@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -29,6 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.vrspace.server.core.SessionManager;
+import org.vrspace.server.core.VRObjectRepository;
+import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.ClientResponse;
 import org.vrspace.server.dto.Remove;

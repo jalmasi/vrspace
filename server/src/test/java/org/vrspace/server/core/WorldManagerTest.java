@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -19,6 +19,8 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.vrspace.server.core.VRObjectRepository;
+import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;

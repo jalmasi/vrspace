@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.core;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +22,8 @@ import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
+import org.vrspace.server.types.Filter;
+import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

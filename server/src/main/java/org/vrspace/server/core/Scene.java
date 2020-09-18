@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.core;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,6 +16,8 @@ import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.types.Filter;
+import org.vrspace.server.types.ID;
 
 import lombok.extern.slf4j.Slf4j;
 

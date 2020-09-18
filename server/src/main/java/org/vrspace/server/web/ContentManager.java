@@ -1,4 +1,4 @@
-package org.vrspace.server;
+package org.vrspace.server.web;
 
 import java.io.File;
 import java.io.FileInputStream;

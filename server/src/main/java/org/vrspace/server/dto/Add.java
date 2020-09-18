@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.vrspace.server.ID;
-import org.vrspace.server.WorldManager;
+import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

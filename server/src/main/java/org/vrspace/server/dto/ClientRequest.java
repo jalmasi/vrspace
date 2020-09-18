@@ -1,6 +1,6 @@
 package org.vrspace.server.dto;
 
-import org.vrspace.server.CustomTypeIdResolver;
+import org.vrspace.server.core.CustomTypeIdResolver;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
 
