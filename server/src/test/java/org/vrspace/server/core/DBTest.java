@@ -17,10 +17,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.vrspace.server.core.Scene;
-import org.vrspace.server.core.VRObjectRepository;
+import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
+import org.vrspace.server.obj.PersistentEvent;
+import org.vrspace.server.obj.EventRecorder;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.VRObject;
@@ -284,6 +285,28 @@ public class DBTest {
     assertFalse(repo.findById(pointId).isPresent());
     assertTrue(repo.findById(ownedId).isPresent());
     assertTrue(repo.findById(childId).isPresent());
+  }
+
+  @Test
+  @Transactional
+  public void testEventRecorder() throws Exception {
+    EventRecorder recorder = new EventRecorder();
+    recorder.setRecording(true);
+    VREvent event = new VREvent(new Client());
+    event.addChange("something", "anything");
+    event.setPayload("{\"something\":\"anything\"}");
+    recorder.sendMessage(event);
+    recorder = repo.save(recorder);
+
+    EventRecorder found = repo.get(recorder.getClass(), recorder.getId());
+    assertEquals(recorder, found);
+    assertNotNull(recorder.getEvents());
+    assertTrue(recorder.getEvents().iterator().hasNext());
+
+    PersistentEvent stored = recorder.getEvents().iterator().next();
+    assertNotNull(stored);
+    assertNotNull(stored.getId());
+    assertEquals(event.getPayload(), stored.getPayload());
   }
 
 }

@@ -81,24 +81,43 @@ public class WorldManager {
     return db.getWorldByName(name);
   }
 
+  public Client getClientByName(String name) {
+    Client ret = db.getClientByName(name);
+    return (Client) updateCache(ret);
+  }
+
+  public <T extends VRObject> T save(T obj) {
+    T ret = db.save(obj);
+    cache.put(new ID(obj), ret);
+    return ret;
+  }
+
   public Set<VRObject> getRange(Client client, Point from, Point to) {
     // CHECKME: what to do with client here?
     HashSet<VRObject> ret = new HashSet<VRObject>();
     // takes typically 10 ms
     Set<VRObject> inRange = db.getRange(client.getWorld().getId(), from, to);
     for (VRObject o : inRange) {
+      ret.add(updateCache(o));
+    }
+    return ret;
+  }
+
+  private VRObject updateCache(VRObject o) {
+    // CHECKME: should this be null safe?
+    if (o != null) {
       ID id = new ID(o);
       VRObject cached = cache.get(id);
       if (cached != null) {
-        ret.add(cached);
+        return cached;
       } else {
         // FIXME: hard coded depth
         session.load(o.getClass(), o.getId(), 2);
         cache.put(id, o);
-        ret.add(o);
+        return o;
       }
     }
-    return ret;
+    return null;
   }
 
   /**
@@ -125,11 +144,13 @@ public class WorldManager {
   }
 
   public void remove(Client client, String cls, Long id) {
-    VRObject obj = client.getScene().get(new ID(cls, id));
+    ID objId = new ID(cls, id);
+    VRObject obj = client.getScene().get(objId);
     // CHECKME: remove invisible objects?
     if (!client.isOwner(obj)) {
       throw new SecurityException("Not yours to remove");
     }
+    cache.remove(objId);
     db.deleteById(id);
     client.removeOwned(obj);
     db.save(client);

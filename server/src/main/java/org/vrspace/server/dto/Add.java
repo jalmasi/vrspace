@@ -26,7 +26,7 @@ public class Add implements Command {
   List<VRObject> objects = new LinkedList<VRObject>();
 
   public Add(Collection<VRObject> objects) {
-    objects.forEach(t -> objects.add(t));
+    this.objects.addAll(objects);
   }
 
   public Add(VRObject... objects) {

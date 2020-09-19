@@ -447,6 +447,82 @@ export class LoadProgressIndicator {
   }
 }
 
+export class RecorderUI {
+  constructor( scene ) {
+    // parameters
+    this.scene = scene;
+    this.recorder = null;
+    // state variables
+    scene.onActiveCameraChanged.add( (s) => this.cameraChanged() );
+  }
+  cameraChanged() {
+    console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
+    this.camera = this.scene.activeCamera;
+    this.recordButton.mesh.parent = this.camera;
+    this.editButton.mesh.parent = this.camera;
+    this.jsonButton.mesh.parent = this.camera;
+    this.jsButton.mesh.parent = this.camera;
+  }
+  showUI() {
+    this.camera = this.scene.activeCamera;
+
+    var manager = new BABYLON.GUI.GUI3DManager(scene);
+
+    this.recordButton = new BABYLON.GUI.HolographicButton("RecordEvents");
+    manager.addControl(this.recordButton);
+    this.recordButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Dot.png"; // FIXME: cdn
+    this.recordButton.text="REC";
+    this.recordButton.position = new BABYLON.Vector3(-0.1,-0.1,.5);
+    this.recordButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.recordButton.onPointerDownObservable.add( () => this.record());
+    this.recordButton.mesh.parent = this.camera;
+    
+    this.stopButton = new BABYLON.GUI.HolographicButton("StopRecording");
+    this.stopButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Pause.png"; // FIXME: cdn
+    this.stopButton.text="Stop";
+    manager.addControl(this.stopButton);
+    this.stopButton.position = new BABYLON.Vector3(0,-0.1,.5);
+    this.stopButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.stopButton.onPointerDownObservable.add( () => this.stop());
+    this.stopButton.mesh.parent = this.camera;
+    //this.stopButton.isVisible = false;
+
+    this.playButton = new BABYLON.GUI.HolographicButton("StartPlaying");
+    this.playButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Play.png"; // FIXME: cdn
+    manager.addControl(this.playButton);
+    this.playButton.text="Play";
+    this.playButton.position = new BABYLON.Vector3(0.1,-0.1,.5);
+    this.playButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.playButton.onPointerDownObservable.add( () => this.play());
+    this.playButton.mesh.parent = this.camera;
+    //this.playButton.isVisible = false;
+  }
+  
+  record() {
+    console.log("Recording...");
+    if ( ! this.recorder ) {
+      // create recorder on the server
+      VRSPACE.send('{"command":{"Recording":{"action":"record"}}}');
+    }
+    this.stopButton.isVisible = true;
+    this.playButton.isVisible = false;
+  }
+  stop() {
+    console.log('Stopped');
+    VRSPACE.send('{"command":{"Recording":{"action":"stop"}}}');
+    this.recordButton.isVisible = true;
+    this.playButton.isVisible = true;
+    this.stopButton.isVisible = false;
+  }
+  play() {
+    console.log('Playing...');
+    VRSPACE.send('{"command":{"Recording":{"action":"play"}}}');
+    this.recordButton.isVisible = false;
+    this.stopButton.isVisible = true;
+  }
+  
+}
+
 export class FloorRibbon {
   constructor( scene, size ) {
     // parameters
@@ -1357,13 +1433,17 @@ export class WorldManager {
       this.interval = null;
     }
   }
+  
+  isConnected() {
+    return this.interval != null;
+  }
 
   sceneChanged(e) {
     if (e.added != null) {
       this.log("ADDED " + e.objectId + " new size " + e.scene.size);
       this.log(e);
       // FIXME: need better way to determine avatars
-      if ( e.className == 'Client' && e.added.mesh.endsWith('.gltf')) {
+      if ( e.added.hasAvatar && e.added.hasAvatar()) {
         this.loadAvatar( e.added );
       } else {
         this.loadMesh(e.added);
@@ -1377,7 +1457,7 @@ export class WorldManager {
   }
 
   loadAvatar(obj) {
-    console.log("loading avatar "+obj.mesh);
+    this.log("loading avatar "+obj.mesh);
     var pos = obj.mesh.lastIndexOf('/');
     var path = obj.mesh.substring(0,pos);
     var file = obj.mesh.substring(pos+1);
@@ -1445,7 +1525,7 @@ export class WorldManager {
   
   // TODO loader UI
   loadMesh(obj) {
-    this.log("loading "+obj.mesh);
+    this.log("Loading object "+obj.mesh);
     var pos = obj.mesh.lastIndexOf('/');
     var path = obj.mesh.substring(0,pos+1);
     var file = obj.mesh.substring(pos+1);
@@ -1602,6 +1682,7 @@ export class WorldManager {
   }
   
   sendChange( field, obj, pos ) {
+    // TODO: add minimal distance/angle change check
     // CHECKME: we don't check quaternion w, should we?
     if ( obj.x != pos.x || obj.y != pos.y || obj.z != pos.z ) {
       this.log( Date.now()+": "+field + " changed, sending "+pos);

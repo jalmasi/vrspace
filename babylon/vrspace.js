@@ -72,6 +72,15 @@ class Client extends VRObject {
     this.name = null;
     this.sceneProperties = null; // CHECKME private - should be declared?
   }
+  hasAvatar() {
+    return this.mesh && this.mesh.toLowerCase().endsWith('.gltf');
+  }
+}
+
+class EventRecorder extends Client {
+  constructor() {
+    super();
+  }
 }
 
 class VREvent {
@@ -92,7 +101,7 @@ class SceneEvent {
   }
 }
 
-const classes = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent };
+const classes = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder };
 
 class VRSpace {
   constructor() {
@@ -264,13 +273,17 @@ class VRSpace {
   
   addToScene(className, object) {
     //var classInstance = (Function('return new ' + className))();
-    var classInstance = new classes[className];
-    Object.assign(classInstance,object);
-    var id = new ID(className,object.id);
-    this.scene.set(id.toString(), classInstance);
-    // notify listeners
-    const e = new SceneEvent(this.scene, className, id, classInstance, null);
-    this.sceneListeners.forEach((listener) => listener(e));
+    if ( classes[className] ) {
+      var classInstance = new classes[className];
+      Object.assign(classInstance,object);
+      var id = new ID(className,object.id);
+      this.scene.set(id.toString(), classInstance);
+      // notify listeners
+      const e = new SceneEvent(this.scene, className, id, classInstance, null);
+      this.sceneListeners.forEach((listener) => listener(e));
+    } else {
+      console.log("Unknown object type: "+className);
+    }
   }
   
   addObject(obj) {

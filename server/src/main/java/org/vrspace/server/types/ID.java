@@ -3,7 +3,7 @@ package org.vrspace.server.types;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.obj.Entity;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -17,7 +17,7 @@ public class ID {
   @NonNull
   private Long id;
 
-  public ID(VRObject obj) {
+  public <T extends Entity> ID(T obj) {
     this.className = obj.getClass().getSimpleName();
     this.id = obj.getId();
   }

@@ -51,8 +51,9 @@ public class VREvent {
     this.source = source;
   }
 
-  public void addChange(String field, Object value) {
+  public VREvent addChange(String field, Object value) {
     changes.put(field, value);
+    return this;
   }
 
   @JsonIgnore

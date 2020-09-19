@@ -2,14 +2,17 @@ package org.vrspace.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -45,10 +48,11 @@ public class EventRecorderTest {
 
   Set<VRObject> transforms = new HashSet<VRObject>();
   Set<VRObject> permanents = new HashSet<VRObject>();
+  VRObject active = new VRObject(1L, 0, 0, 0, new VRObject(11L).active()).active();
+  Client client = new Client();
 
-  @Test
-  public void testRecordAndPlay() throws Exception {
-    VRObject active = new VRObject(1L, 0, 0, 0, new VRObject(11L).active()).active();
+  @Before
+  public void setup() throws Exception {
     transforms.add(active);
     transforms.add(new VRObject(2L, 1, 0, 0).passive());
 
@@ -61,18 +65,15 @@ public class EventRecorderTest {
     doNothing().when(playingSession).sendMessage(message.capture());
 
     // recording client
-    Client client = new Client();
     client.setPosition(new Point());
     client.setMapper(mapper);
     client.setSceneProperties(new SceneProperties());
     client.setSession(recordingSession);
     Scene scene = new Scene(worldManager, client);
     client.setScene(scene);
+  }
 
-    // start recording
-    EventRecorder recorder = new EventRecorder(worldManager, client);
-    recorder.start();
-
+  private void record(EventRecorder recorder) {
     // recording own event:
     VREvent ownEvent = new VREvent(client, client);
     ownEvent.addChange("mesh", "dolphin.glb");
@@ -89,11 +90,22 @@ public class EventRecorderTest {
     otherEvent.addChange("name", "renamed");
     active.notifyListeners(otherEvent);
     assertEquals(3, recorder.getEvents().size());
+  }
+
+  @Test
+  public void testRecordAndPlay() throws Exception {
+    // start recording
+    EventRecorder recorder = new EventRecorder(worldManager, client, "test");
+    recorder.setLoop(false);
+    recorder.start();
+
+    // record, assert changes
+    record(recorder);
 
     // stop recording
     recorder.stop();
     // make sure recording has stopped
-    client.notifyListeners(ownEvent);
+    client.notifyListeners(new VREvent(client, client));
     assertEquals(3, recorder.getEvents().size());
 
     // playing client
@@ -108,4 +120,36 @@ public class EventRecorderTest {
     // all recorded events sent to the viewer
     verify(playingSession, times(3)).sendMessage(any(TextMessage.class));
   }
+
+  @Test
+  public void testRecordAndLoop() throws Exception {
+    // start recording
+    EventRecorder recorder = new EventRecorder(worldManager, client, "test");
+    recorder.setLoop(true);
+    recorder.start();
+
+    // record, assert changes
+    record(recorder);
+
+    // stop recording
+    recorder.stop();
+    assertEquals(4, recorder.getEvents().size());
+    // make sure recording has stopped
+    client.notifyListeners(new VREvent(client, client));
+    assertEquals(4, recorder.getEvents().size());
+
+    // playing client
+    Client viewer = new Client();
+    viewer.setMapper(mapper);
+    viewer.setSession(playingSession);
+
+    // test playing
+    recorder.play(viewer);
+    Thread.sleep(500);
+    recorder.setLoop(false);
+    verify(playingSession, atLeast(4)).sendMessage(any(TextMessage.class));
+    verifyNoMoreInteractions(playingSession);
+
+  }
+
 }

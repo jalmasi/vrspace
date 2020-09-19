@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager, RecorderUI } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();
@@ -315,6 +315,8 @@ export class AvatarSelection extends World {
         };
         worldManager.VRSPACE.addWelcomeListener(enter);
         worldManager.VRSPACE.connect();
+        //var recorder = new RecorderUI(world.scene);
+        //recorder.showUI();
       }
       
       this.vrHelper.stopTracking();

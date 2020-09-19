@@ -43,6 +43,10 @@ public class Remove implements Command {
     }
   }
 
+  public Remove(List<Map<String, Long>> objects) {
+    this.objects = objects;
+  }
+
   public Remove removeObject(VRObject obj) {
     objects.add(new ID(obj).map());
     return this;
