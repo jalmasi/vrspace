@@ -146,8 +146,11 @@ public class EventRecorderTest {
     // test playing
     recorder.play(viewer);
     Thread.sleep(500);
+    // CHECKME: valid way to test that loop has stopped?
     recorder.setLoop(false);
+    Thread.sleep(100);
     verify(playingSession, atLeast(4)).sendMessage(any(TextMessage.class));
+    Thread.sleep(100);
     verifyNoMoreInteractions(playingSession);
 
   }
