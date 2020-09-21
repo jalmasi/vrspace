@@ -1381,6 +1381,7 @@ export class World {
 
 export class WorldManager {
   constructor(world, fps) {
+    this.resolution = 0.01; // 1 cm/3.6 deg 
     this.world = world;
     this.scene = world.scene;
     if ( ! this.scene.activeCamera ) {
@@ -1684,13 +1685,18 @@ export class WorldManager {
   sendChange( field, obj, pos ) {
     // TODO: add minimal distance/angle change check
     // CHECKME: we don't check quaternion w, should we?
-    if ( obj.x != pos.x || obj.y != pos.y || obj.z != pos.z ) {
+    if ( this.isChanged(obj.x, pos.x, this.resolution) || 
+        this.isChanged(obj.y, pos.y, this.resolution) || 
+        this.isChanged(obj.z, pos.z, this.resolution) ) {
       this.log( Date.now()+": "+field + " changed, sending "+pos);
       obj.x = pos.x;
       obj.y = pos.y;
       obj.z = pos.z;
       VRSPACE.sendMy(field, pos);
     }
+  }
+  isChanged( old, val, range ) {
+    return val < old - range || val > old + range;
   }
 
 }
