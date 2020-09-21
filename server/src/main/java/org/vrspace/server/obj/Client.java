@@ -92,7 +92,10 @@ public class Client extends VRObject {
     if (!event.getSource().isActive()) {
       event.getSource().removeListener(this);
       // CHECKME: do we wish to force scene refresh?
-      scene.setDirty();
+      if (scene != null) {
+        // some clients (e.g. EventRecorder) may not have scene
+        scene.setDirty();
+      }
     }
   }
 
@@ -100,7 +103,10 @@ public class Client extends VRObject {
     try {
       String json = mapper.writeValueAsString(obj);
       log.debug(getObjectId() + " Received " + json);
-      session.sendMessage(new TextMessage(json));
+      // TODO this is not thread-safe
+      synchronized (this) {
+        session.sendMessage(new TextMessage(json));
+      }
     } catch (IOException e) {
       log.error("Can't send message " + obj, e);
     }

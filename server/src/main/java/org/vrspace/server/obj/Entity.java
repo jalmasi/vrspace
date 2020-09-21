@@ -5,6 +5,7 @@ import org.neo4j.ogm.annotation.Id;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -18,5 +19,6 @@ import lombok.NoArgsConstructor;
 public class Entity {
   @Id
   @GeneratedValue
+  @EqualsAndHashCode.Include
   private Long id;
 }

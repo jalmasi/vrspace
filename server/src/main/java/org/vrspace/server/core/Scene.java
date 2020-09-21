@@ -104,9 +104,11 @@ public class Scene {
         members.forEach(t -> remove(remove, t));
 
         if (remove.getObjects().size() > 0) {
+          log.debug("Scene for " + client.getId() + ": " + remove);
           client.sendMessage(remove);
         }
         if (add.getObjects().size() > 0) {
+          log.debug("Scene for " + client.getId() + ": " + add);
           client.sendMessage(add);
         }
 

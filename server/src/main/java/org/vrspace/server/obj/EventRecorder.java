@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
 public class EventRecorder extends Client {
   private boolean recordClient = true;
@@ -59,7 +59,11 @@ public class EventRecorder extends Client {
 
   public EventRecorder(WorldManager worldManager, Client client, String name) {
     this.setName(name);
-    init(worldManager, client);
+    this.setWorld(client.getWorld());
+    this.setPosition(new Point(client.getPosition()));
+    this.setSceneProperties(client.getSceneProperties());
+    this.setMesh(client.getMesh());
+    this.setActive(true);
   }
 
   // CHECKME: this should probably be called from start()
@@ -67,12 +71,6 @@ public class EventRecorder extends Client {
     this.client = client;
 
     this.setMapper(client.getMapper());
-    this.setWorld(client.getWorld());
-    this.setPosition(new Point(client.getPosition()));
-    this.setSceneProperties(client.getSceneProperties());
-    this.setMesh(client.getMesh());
-    this.setActive(true);
-
     // record everything a client sends:
     if (this.recordClient) {
       client.addListener(this);
@@ -85,7 +83,7 @@ public class EventRecorder extends Client {
   }
 
   public void start() {
-    if (getScene() == null) {
+    if (this.recordScene && getScene() == null) {
       throw new IllegalStateException("Scene is null");
     }
     this.recording = true;
@@ -93,7 +91,7 @@ public class EventRecorder extends Client {
   }
 
   public void stop() {
-    if (getScene() == null) {
+    if (this.recordScene && getScene() == null) {
       throw new IllegalStateException("Scene is null");
     }
     this.recording = false;
@@ -113,24 +111,24 @@ public class EventRecorder extends Client {
           }
           if (event.getSource() == client) {
             // this only happens when recordClient == true
-            log.debug("Recording own message " + delay + ":" + obj);
+            log.debug(this.getName() + " Recording own message " + delay + ":" + obj);
             events.add(new PersistentEvent(delay, "own", event, this));
           } else {
             // this only happens when recordScene == true
-            log.debug("Recording space event " + delay + ":" + obj);
+            log.debug(this.getName() + " Recording space event " + delay + ":" + obj);
             events.add(new PersistentEvent(delay, "world", event, event.getSource()));
           }
         } else if (obj instanceof Command) {
           // this only happens when recordScene == true
           // scene sends Add/Remove commands to the client
           Command cmd = (Command) obj;
-          log.debug("Recording scene update " + delay + ":" + obj);
+          log.debug(this.getName() + " Recording scene update " + delay + ":" + obj);
           events.add(new PersistentEvent(delay, "scene", cmd));
         } else {
-          log.error("Unsupported message type: " + obj);
+          log.error(this.getName() + " Unsupported message type: " + obj);
         }
       } catch (Exception e) {
-        log.error("Can't record message " + obj, e);
+        log.error(this.getName() + " Can't record message " + obj, e);
       }
     }
   }
@@ -140,7 +138,7 @@ public class EventRecorder extends Client {
    * finished.
    */
   public void play() {
-    log.debug("Playing " + events.size() + " events...");
+    log.debug(this.getName() + " Playing " + events.size() + " events...");
     if (this.events.size() > 0 && this.getListeners().size() > 0) {
       ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
       events.stream().filter((event) -> "own".equals(event.getType()))
@@ -164,7 +162,7 @@ public class EventRecorder extends Client {
       }
       this.notifyListeners(event.getEvent());
     } catch (Exception e) {
-      log.error("Can't play event " + event, e);
+      log.error(this.getName() + " Can't play event " + event, e);
     }
   }
 
@@ -175,7 +173,7 @@ public class EventRecorder extends Client {
    * @param viewer Client who's viewing the recording
    */
   public void play(Client viewer) {
-    log.debug("Playing " + events.size() + " events to Client " + viewer);
+    log.debug(this.getName() + " Playing " + events.size() + " events to Client " + viewer);
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     events
         .forEach((event) -> executor.schedule(() -> playEvent(event, viewer), event.getDelay(), TimeUnit.MILLISECONDS));
@@ -188,7 +186,7 @@ public class EventRecorder extends Client {
   }
 
   private void playEvent(PersistentEvent event, Client viewer) {
-    log.debug("Playing " + event.getDelay());
+    log.debug(this.getName() + " Playing " + event.getDelay());
     try {
       viewer.sendMessage(event.getMessage());
     } catch (Exception e) {

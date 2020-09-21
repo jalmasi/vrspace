@@ -55,6 +55,9 @@ public class Recording implements Command {
       recorder.stop();
       worldManager.save(recorder);
       log.debug("Saved recorder " + recorder);
+      // so that recorder reloads:
+      client.getScene().setDirty();
+      client.getScene().update();
     } else {
       throw new IllegalArgumentException("Invalid action: " + action);
     }
