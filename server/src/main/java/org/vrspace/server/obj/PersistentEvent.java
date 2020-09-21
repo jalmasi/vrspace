@@ -23,7 +23,7 @@ import lombok.ToString;
 @Data
 @NodeEntity
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@ToString(callSuper = false, onlyExplicitlyIncluded = true)
+@ToString(callSuper = false)
 public class PersistentEvent extends Entity {
   private long delay;
   private String type;
@@ -38,7 +38,7 @@ public class PersistentEvent extends Entity {
   public PersistentEvent() {
   }
 
-  public PersistentEvent(long delay, String type) {
+  private PersistentEvent(long delay, String type) {
     this.delay = delay;
     this.type = type;
   }
@@ -79,10 +79,6 @@ public class PersistentEvent extends Entity {
     } else {
       return this.getEvent();
     }
-  }
-
-  public boolean restart() {
-    return "own".equals(this.type) && this.source == null;
   }
 
 }

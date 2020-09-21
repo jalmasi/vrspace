@@ -485,7 +485,7 @@ export class RecorderUI {
     this.stopButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
     this.stopButton.onPointerDownObservable.add( () => this.stop());
     this.stopButton.mesh.parent = this.camera;
-    //this.stopButton.isVisible = false;
+    this.stopButton.isVisible = false;
 
     this.playButton = new BABYLON.GUI.HolographicButton("StartPlaying");
     this.playButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Play.png"; // FIXME: cdn
@@ -495,7 +495,7 @@ export class RecorderUI {
     this.playButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
     this.playButton.onPointerDownObservable.add( () => this.play());
     this.playButton.mesh.parent = this.camera;
-    //this.playButton.isVisible = false;
+    this.playButton.isVisible = false;
   }
   
   record() {

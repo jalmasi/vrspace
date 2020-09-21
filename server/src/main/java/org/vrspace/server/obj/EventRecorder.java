@@ -14,7 +14,6 @@ import org.vrspace.server.dto.Recording;
 import org.vrspace.server.dto.VREvent;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectReader;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,10 +40,9 @@ public class EventRecorder extends Client {
   private boolean recordClient = true;
   private boolean recordScene = true;
   private boolean loop = true;
-  // @JsonIgnore
-  // private Event[] recorded;
+  private long length = 0;
   @JsonIgnore
-  private ConcurrentLinkedQueue<PersistentEvent> events = new ConcurrentLinkedQueue<PersistentEvent>();
+  private Collection<PersistentEvent> events = new ConcurrentLinkedQueue<PersistentEvent>();
   @JsonIgnore
   @Transient
   transient private Client client;
@@ -99,9 +97,7 @@ public class EventRecorder extends Client {
       throw new IllegalStateException("Scene is null");
     }
     this.recording = false;
-    if (this.loop) {
-      events.add(new PersistentEvent(System.currentTimeMillis() - start, "own"));
-    }
+    this.length = System.currentTimeMillis() - this.start;
   }
 
   @Override
@@ -139,33 +135,42 @@ public class EventRecorder extends Client {
     }
   }
 
+  /**
+   * Play recorded client events as own events, optionally restart the loop when
+   * finished.
+   */
   public void play() {
     log.debug("Playing " + events.size() + " events...");
-    ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    events.stream().filter((event) -> "own".equals(event.getType()))
-        .forEach((event) -> executor.schedule(() -> this.playEvent(event), event.getDelay(), TimeUnit.MILLISECONDS));
-    executor.shutdown();
-  }
-
-  private void playEvent(PersistentEvent event) {
-    if (this.loop && event.restart()) {
-      // last event optionally restarts the loop
-      this.play();
-    } else {
-      try {
-        if (event.getChanges() == null) {
-          ObjectReader reader = getMapper().readerForUpdating(event.getSource());
-          reader.readValue(event.getPayload());
-        }
-        this.notifyListeners(event.getEvent());
-      } catch (Exception e) {
-        log.error("Can't play event " + event, e);
+    if (this.events.size() > 0 && this.getListeners().size() > 0) {
+      ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+      events.stream().filter((event) -> "own".equals(event.getType()))
+          .forEach((event) -> executor.schedule(() -> this.playEvent(event), event.getDelay(), TimeUnit.MILLISECONDS));
+      executor.shutdown();
+      if (this.loop && this.length > 0) {
+        ScheduledExecutorService restart = Executors.newSingleThreadScheduledExecutor();
+        restart.schedule(() -> this.play(), this.length, TimeUnit.MILLISECONDS);
+        restart.shutdown();
       }
     }
   }
 
+  private void playEvent(PersistentEvent event) {
+    try {
+      // neo4j can't store VREvent.changes Map<String,Object>, so we need to recreate
+      // it from stored String payload
+      if (event.getChanges() == null) {
+        VREvent changed = getMapper().readValue(event.getPayload(), VREvent.class);
+        event.setChanges(changed.getChanges());
+      }
+      this.notifyListeners(event.getEvent());
+    } catch (Exception e) {
+      log.error("Can't play event " + event, e);
+    }
+  }
+
   /**
-   * Play back to a client sends all recorded events back to a client.
+   * Play back to a client sends all recorded events back to a client, optionally
+   * restarts the loop when finished.
    * 
    * @param viewer Client who's viewing the recording
    */
@@ -175,19 +180,35 @@ public class EventRecorder extends Client {
     events
         .forEach((event) -> executor.schedule(() -> playEvent(event, viewer), event.getDelay(), TimeUnit.MILLISECONDS));
     executor.shutdown();
+    if (this.loop && this.length > 0) {
+      ScheduledExecutorService restart = Executors.newSingleThreadScheduledExecutor();
+      restart.schedule(() -> this.play(viewer), this.length, TimeUnit.MILLISECONDS);
+      restart.shutdown();
+    }
   }
 
   private void playEvent(PersistentEvent event, Client viewer) {
     log.debug("Playing " + event.getDelay());
     try {
-      if (this.loop && event.restart()) {
-        // last event optionally restarts the loop
-        this.play(viewer);
-      } else {
-        viewer.sendMessage(event.getMessage());
-      }
+      viewer.sendMessage(event.getMessage());
     } catch (Exception e) {
       log.error("Error playing event " + event.getDelay(), e);
+    }
+  }
+
+  @Override
+  public void addListener(VRObject obj) {
+    if (this.getListeners() == null || this.getListeners().size() == 0) {
+      super.addListener(obj);
+      // mapper can be null when persistent recorder is loaded from the database
+      if (this.getMapper() == null) {
+        this.setMapper(((Client) obj).getMapper());
+      }
+      if (this.loop) {
+        this.play();
+      }
+    } else {
+      super.addListener(obj);
     }
   }
 
