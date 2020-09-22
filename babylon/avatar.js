@@ -351,13 +351,13 @@ export class Avatar {
 
   lookAt( t ) {
     var head = this.skeleton.bones[this.body.head];
-    var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).add(this.rootMesh.position);
+    var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).subtract(this.rootMesh.position);
 
     // calc target pos in coordinate system of head
-    var target = new BABYLON.Vector3( t.x, t.y, t.z );
+    var target = new BABYLON.Vector3( t.x, t.y, t.z ).subtract(this.rootMesh.position);
     target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(this.rootMesh.rotationQuaternion),target);
 
-    var targetVector = target.subtract(headPos);
+    var targetVector = target.subtract(headPos).subtract(this.rootMesh.position);
     if ( this.headAxisFix == -1 ) {
       // FIX: neck and head opposite orientation
       // businessman, robot, adventurer, unreal male
@@ -399,9 +399,9 @@ export class Avatar {
     var scaling = this.character.meshes[0].scaling.x;
 
     // current values
-    var armPos = upperArm.getAbsolutePosition().scale(scaling).add(this.rootMesh.position);
-    var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).add(this.rootMesh.position);
-    var handPos = hand.getAbsolutePosition().scale(scaling).add(this.rootMesh.position);
+    var armPos = upperArm.getAbsolutePosition().scale(scaling).subtract(this.rootMesh.position);
+    var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).subtract(this.rootMesh.position);
+    var handPos = hand.getAbsolutePosition().scale(scaling).subtract(this.rootMesh.position);
     var rootQuatInv = BABYLON.Quaternion.Inverse(this.rootMesh.rotationQuaternion);
 
     // set or get initial values
@@ -424,11 +424,12 @@ export class Avatar {
     }
 
     // calc target pos in coordinate system of character
-    var target = new BABYLON.Vector3(t.x, t.y, t.z );
+    var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(this.rootMesh.position);
+    // CHECKME: probable bug, possibly related to worldQuat
     target.rotateByQuaternionToRef(rootQuatInv,target);
 
     // calc target vectors in local coordinate system of the arm
-    var targetVector = target.subtract(armPos);
+    var targetVector = target.subtract(armPos).subtract(this.rootMesh.position);
     targetVector.rotateByQuaternionToRef(worldQuatInv,targetVector);
 
     if ( arm.pointerQuat ) {

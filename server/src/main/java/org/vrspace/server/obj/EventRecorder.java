@@ -157,6 +157,8 @@ public class EventRecorder extends Client {
         }
         restart.shutdown();
       }
+    } else {
+      this.playing = false;
     }
   }
 

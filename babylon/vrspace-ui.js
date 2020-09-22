@@ -1494,13 +1494,19 @@ export class WorldManager {
         }
         this.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
       } else if ( 'leftArmPos' === field ) {
-        avatar.reachFor(avatar.body.leftArm, new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z));
+        var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
+        avatar.reachFor(avatar.body.rightArm, pos);
+        //avatar.reachFor(avatar.body.leftArm, pos);
       } else if ( 'rightArmPos' === field ) {
-        avatar.reachFor(avatar.body.rightArm, new BABYLON.Vector3(obj.rightArmPos.x, obj.rightArmPos.y, obj.rightArmPos.z));
+        var pos = new BABYLON.Vector3(obj.rightArmPos.x, obj.rightArmPos.y, obj.rightArmPos.z);
+        //avatar.reachFor(avatar.body.rightArm, pos);
+        avatar.reachFor(avatar.body.leftArm, pos);
       } else if ( 'leftArmRot' === field ) {
-        avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
+        //avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
+        avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
       } else if ( 'rightArmRot' === field ) {
-        avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
+        //avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
+        avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
       }
     }
   }
@@ -1686,8 +1692,8 @@ export class WorldManager {
       this.sendChange( 'leftArmRot', this.leftArmRot, vrHelper.leftController.pointer.rotationQuaternion );
     }
     if ( vrHelper.rightController ) {
-      this.sendChange( 'rightArmPos', this.rightArmPos, vrHelper.leftController.grip.absolutePosition );
-      this.sendChange( 'rightArmRot', this.rightArmRot, vrHelper.leftController.pointer.rotationQuaternion );
+      this.sendChange( 'rightArmPos', this.rightArmPos, vrHelper.rightController.grip.absolutePosition );
+      this.sendChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion );
     }
   }
   
