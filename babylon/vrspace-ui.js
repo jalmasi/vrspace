@@ -459,9 +459,8 @@ export class RecorderUI {
     console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
     this.camera = this.scene.activeCamera;
     this.recordButton.mesh.parent = this.camera;
-    this.editButton.mesh.parent = this.camera;
-    this.jsonButton.mesh.parent = this.camera;
-    this.jsButton.mesh.parent = this.camera;
+    this.stopButton.mesh.parent = this.camera;
+    this.playButton.mesh.parent = this.camera;
   }
   showUI() {
     this.camera = this.scene.activeCamera;
@@ -1481,8 +1480,9 @@ export class WorldManager {
   changeAvatar(obj,changes) {
     this.log( 'Processing changes on avatar' );
     this.log(changes);
+    var avatar = obj.container;
     for ( var field in changes ) {
-      var node = obj.container.character.meshes[0];
+      var node = avatar.character.meshes[0];
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
           obj.translate = this.createAnimation(node, "position");
@@ -1493,6 +1493,14 @@ export class WorldManager {
           obj.rotate = this.createQuaternionAnimation(node, "rotationQuaternion");
         }
         this.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
+      } else if ( 'leftArmPos' === field ) {
+        avatar.reachFor(avatar.body.leftArm, new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z));
+      } else if ( 'rightArmPos' === field ) {
+        avatar.reachFor(avatar.body.rightArm, new BABYLON.Vector3(obj.rightArmPos.x, obj.rightArmPos.y, obj.rightArmPos.z));
+      } else if ( 'leftArmRot' === field ) {
+        avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
+      } else if ( 'rightArmRot' === field ) {
+        avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
       }
     }
   }
@@ -1652,6 +1660,7 @@ export class WorldManager {
     }
   }
 
+  // TODO compose all these changes into a single message
   trackChanges() {
     if ( ! this.camera ) {
       return;
