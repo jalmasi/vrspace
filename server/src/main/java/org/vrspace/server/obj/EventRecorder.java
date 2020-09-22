@@ -52,6 +52,9 @@ public class EventRecorder extends Client {
   @Transient
   @JsonIgnore
   transient private long start = 0;
+  @Transient
+  @JsonIgnore
+  transient volatile private boolean playing = false;
 
   public EventRecorder() {
     super();
@@ -140,13 +143,18 @@ public class EventRecorder extends Client {
   public void play() {
     log.debug(this.getName() + " Playing " + events.size() + " events...");
     if (this.events.size() > 0 && this.getListeners().size() > 0) {
+      this.playing = true;
       ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
       events.stream().filter((event) -> "own".equals(event.getType()))
           .forEach((event) -> executor.schedule(() -> this.playEvent(event), event.getDelay(), TimeUnit.MILLISECONDS));
       executor.shutdown();
-      if (this.loop && this.length > 0) {
+      if (this.length > 0) {
         ScheduledExecutorService restart = Executors.newSingleThreadScheduledExecutor();
-        restart.schedule(() -> this.play(), this.length, TimeUnit.MILLISECONDS);
+        if (this.loop) {
+          restart.schedule(() -> this.play(), this.length, TimeUnit.MILLISECONDS);
+        } else {
+          restart.schedule(() -> this.playing = false, this.length, TimeUnit.MILLISECONDS);
+        }
         restart.shutdown();
       }
     }
@@ -201,7 +209,7 @@ public class EventRecorder extends Client {
       if (this.getMapper() == null) {
         this.setMapper(((Client) obj).getMapper());
       }
-      if (this.loop) {
+      if (this.loop && !this.playing) {
         this.play();
       }
     } else {
