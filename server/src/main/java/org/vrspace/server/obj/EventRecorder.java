@@ -186,11 +186,10 @@ public class EventRecorder extends Client {
   }
 
   private void playEvent(PersistentEvent event, Client viewer) {
-    log.debug(this.getName() + " Playing " + event.getDelay());
     try {
       viewer.sendMessage(event.getMessage());
     } catch (Exception e) {
-      log.error("Error playing event " + event.getDelay(), e);
+      log.error("Error playing event " + event, e);
     }
   }
 

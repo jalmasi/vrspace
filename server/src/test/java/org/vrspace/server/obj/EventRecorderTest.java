@@ -26,10 +26,6 @@ import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
-import org.vrspace.server.obj.Client;
-import org.vrspace.server.obj.EventRecorder;
-import org.vrspace.server.obj.Point;
-import org.vrspace.server.obj.VRObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -74,29 +70,37 @@ public class EventRecorderTest {
   }
 
   private void record(EventRecorder recorder) {
+    int expected = 0;
     // recording own event:
     VREvent ownEvent = new VREvent(client, client);
     ownEvent.addChange("mesh", "dolphin.glb");
     client.notifyListeners(ownEvent);
-    assertEquals(1, recorder.getEvents().size());
+    assertEquals(++expected, recorder.getEvents().size());
 
     // scene update should be the same:
     client.getScene().update();
-    recorder.getScene().update();
-    assertEquals(2, recorder.getEvents().size());
+    if (recorder.isRecordScene()) {
+      recorder.getScene().update();
+      expected++;
+    }
+    assertEquals(expected, recorder.getEvents().size());
 
     // event from another client/active object:
     VREvent otherEvent = new VREvent(active, client);
     otherEvent.addChange("name", "renamed");
     active.notifyListeners(otherEvent);
-    assertEquals(3, recorder.getEvents().size());
+    if (recorder.isRecordScene()) {
+      expected++;
+    }
+    assertEquals(expected, recorder.getEvents().size());
   }
 
   @Test
-  public void testRecordAndPlay() throws Exception {
+  public void testRecordSceneAndPlayClient() throws Exception {
     // start recording
     EventRecorder recorder = new EventRecorder(worldManager, client, "test");
     recorder.setLoop(false);
+    recorder.init(worldManager, client);
     recorder.start();
 
     // record, assert changes
@@ -122,9 +126,10 @@ public class EventRecorderTest {
   }
 
   @Test
-  public void testRecordAndLoop() throws Exception {
+  public void testRecordSceneAndLoopClient() throws Exception {
     // start recording
     EventRecorder recorder = new EventRecorder(worldManager, client, "test");
+    recorder.init(worldManager, client);
     recorder.setLoop(true);
     recorder.start();
 
@@ -133,10 +138,10 @@ public class EventRecorderTest {
 
     // stop recording
     recorder.stop();
-    assertEquals(4, recorder.getEvents().size());
+    assertEquals(3, recorder.getEvents().size());
     // make sure recording has stopped
     client.notifyListeners(new VREvent(client, client));
-    assertEquals(4, recorder.getEvents().size());
+    assertEquals(3, recorder.getEvents().size());
 
     // playing client
     Client viewer = new Client();
@@ -145,14 +150,47 @@ public class EventRecorderTest {
 
     // test playing
     recorder.play(viewer);
-    Thread.sleep(500);
+    Thread.sleep(200);
     // CHECKME: valid way to test that loop has stopped?
     recorder.setLoop(false);
-    Thread.sleep(100);
+    Thread.sleep(500);
     verify(playingSession, atLeast(4)).sendMessage(any(TextMessage.class));
     Thread.sleep(100);
     verifyNoMoreInteractions(playingSession);
-
   }
 
+  @Test
+  public void testRecordClientAndLoop() throws Exception {
+    // start recording
+    EventRecorder recorder = new EventRecorder(worldManager, client, "test");
+    recorder.setRecordScene(false);
+    recorder.init(worldManager, client);
+    recorder.setLoop(true);
+    recorder.start();
+
+    // record, assert changes
+    record(recorder);
+
+    // stop recording
+    recorder.stop();
+    assertEquals(1, recorder.getEvents().size());
+    // make sure recording has stopped
+    client.notifyListeners(new VREvent(client, client));
+    assertEquals(1, recorder.getEvents().size());
+
+    // playing client
+    Client viewer = new Client();
+    viewer.setMapper(mapper);
+    viewer.setSession(playingSession);
+
+    // test playing
+    recorder.play(viewer);
+    Thread.sleep(100);
+    // CHECKME: valid way to test that loop has stopped?
+    recorder.setLoop(false);
+    Thread.sleep(200);
+    verify(playingSession, atLeast(2)).sendMessage(any(TextMessage.class));
+    Thread.sleep(100);
+    verifyNoMoreInteractions(playingSession);
+  }
 }
