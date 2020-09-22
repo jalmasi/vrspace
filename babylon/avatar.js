@@ -5,6 +5,7 @@ export class Avatar {
     this.folder = folder;
     this.shadowGenerator = shadowGenerator;
     this.mirror = true;
+    this.fps = 5;
     this.userHeight = 1.8;
     this.groundHeight = 0;
     this.fixes = null;
@@ -50,6 +51,7 @@ export class Avatar {
       spine: [], // can have one or more segments
       // aka clavicle
       leftArm: {
+        side: 'left',
         frontAxis: null,
         sideAxis: null,
         shoulder: null,
@@ -68,6 +70,7 @@ export class Avatar {
         }
       },
       rightArm: {
+        side: 'right',
         frontAxis: null,
         sideAxis: null,
         shoulder: null,
@@ -118,7 +121,7 @@ export class Avatar {
     if ( this.debugViewer2 ) {
       this.debugViewer2.dispose();
     }
-    // TODO also dispose of materials and textures
+    // TODO also dispose of materials and textures (asset container)
   }
 
   replace(avatar) {
@@ -196,7 +199,7 @@ export class Avatar {
         console.log("NOT an avatar - no skeletons");
       }
 
-      // TODO: load fixes
+      // apply loaded fixes
       if ( this.fixes && typeof this.fixes.standing !== 'undefined' ) {
         this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
         this.groundLevel(this.fixes.standing);
@@ -320,13 +323,6 @@ export class Avatar {
       });
       return plugin;
     });
-  }
-
-  renderArmRotation( arm ) {
-    var upperArm = this.skeleton.bones[arm.upper];
-    upperArm.getTransformNode().rotationQuaternion = arm.upperRot;
-    var lowerArm = this.skeleton.bones[arm.lower];
-    lowerArm.getTransformNode().rotationQuaternion = arm.lowerRot;
   }
 
   headPos() {
@@ -493,6 +489,44 @@ export class Avatar {
 
     this.renderArmRotation(arm);
     return quat;
+  }
+
+  // TODO animate rotations here
+  renderArmRotation( arm ) {
+    if ( !arm.animation ) {
+      var armName = this.folder.name+'-'+arm.side;
+      var group = new BABYLON.AnimationGroup(armName+'ArmAnimation');
+      
+      var upper = this._createArmAnimation(armName+"-upper");
+      var lower = this._createArmAnimation(armName+"-lower");
+      
+      group.addTargetedAnimation(upper, this.skeleton.bones[arm.upper].getTransformNode());
+      group.addTargetedAnimation(lower, this.skeleton.bones[arm.lower].getTransformNode());
+      arm.animation = group;
+    }
+    var upperArm = this.skeleton.bones[arm.upper];
+    //upperArm.getTransformNode().rotationQuaternion = arm.upperRot;
+    this._updateArmAnimation(upperArm, arm.animation.targetedAnimations[0], arm.upperRot);
+    var lowerArm = this.skeleton.bones[arm.lower];
+    //lowerArm.getTransformNode().rotationQuaternion = arm.lowerRot;
+    this._updateArmAnimation(lowerArm, arm.animation.targetedAnimations[1], arm.lowerRot);
+    if ( arm.animation.isPlaying ) {
+      arm.animation.stop();
+    }
+    arm.animation.play(false);
+  }
+  
+  _createArmAnimation(name) {
+    var anim = new BABYLON.Animation(name, 'rotationQuaternion', this.fps, BABYLON.Animation.ANIMATIONTYPE_QUATERNION, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var keys = []; 
+    keys.push({frame:0, value: 0});
+    keys.push({frame:1, value: 0});
+    anim.setKeys(keys);
+    return anim;
+  }
+  _updateArmAnimation(arm, anim, dest) {
+    anim.animation.getKeys()[0].value = arm.getTransformNode().rotationQuaternion;
+    anim.animation.getKeys()[1].value = dest;
   }
 
   bendArm( arm, length ) {
