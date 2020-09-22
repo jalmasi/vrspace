@@ -226,7 +226,7 @@ class VRSpace {
 
   stringifyPair( field, value ) {
     if ( typeof value == "string") {
-      return '"'+field+'":"'+value+"'";
+      return '"'+field+'":"'+value+'"';
     } else if ( typeof value == 'object') {
       if(value.hasOwnProperty('w')) {
         return '"'+field+'":'+this.stringifyQuaternion(value);
