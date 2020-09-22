@@ -1503,9 +1503,11 @@ export class WorldManager {
         //avatar.reachFor(avatar.body.rightArm, pos);
         avatar.reachFor(avatar.body.leftArm, pos);
       } else if ( 'leftArmRot' === field ) {
+        // FIXME sometimes: Cannot read property 'x' of undefined
         //avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
         avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
       } else if ( 'rightArmRot' === field ) {
+        // FIXME sometimes: Cannot read property 'x' of undefined
         //avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
         avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
       }
@@ -1604,7 +1606,6 @@ export class WorldManager {
         }
         this.updateAnimation(obj.rotate, node.rotation, obj.rotation);
       }
-      // TODO: process left/right arm pos/rot, send them to avatar
     }
   }
 
@@ -1672,33 +1673,35 @@ export class WorldManager {
     if ( ! this.camera ) {
       return;
     }
+    var changes = [];
     // track camera movements
     if ( this.camera.ellipsoid ) {
       var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
-      this.sendChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z));
+      this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
     } else {
-      this.sendChange("position", this.pos, this.camera.globalPosition);
+      this.checkChange("position", this.pos, this.camera.globalPosition, changes);
     }
     var cameraRotation = this.camera.rotation;
     if ( this.camera.getClassName() == 'WebXRCamera' ) {
       // CHECKME do other cameras require this?
       cameraRotation = this.camera.rotationQuaternion.toEulerAngles();
     }
-    this.sendChange("rotation", this.rot, cameraRotation);
+    this.checkChange("rotation", this.rot, cameraRotation, changes);
     
     // and now track controllers
     var vrHelper = this.world.vrHelper;
     if ( vrHelper.leftController ) {
-      this.sendChange( 'leftArmPos', this.leftArmPos, vrHelper.leftController.grip.absolutePosition );
-      this.sendChange( 'leftArmRot', this.leftArmRot, vrHelper.leftController.pointer.rotationQuaternion );
+      this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftController.grip.absolutePosition, changes );
+      this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftController.pointer.rotationQuaternion, changes );
     }
     if ( vrHelper.rightController ) {
-      this.sendChange( 'rightArmPos', this.rightArmPos, vrHelper.rightController.grip.absolutePosition );
-      this.sendChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion );
+      this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightController.grip.absolutePosition, changes );
+      this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion, changes );
     }
+    VRSPACE.sendMyChanges(changes);
   }
   
-  sendChange( field, obj, pos ) {
+  checkChange( field, obj, pos, changes ) {
     // TODO: add minimal distance/angle change check
     // CHECKME: we don't check quaternion w, should we?
     if ( this.isChanged(obj.x, pos.x, this.resolution) || 
@@ -1708,7 +1711,7 @@ export class WorldManager {
       obj.x = pos.x;
       obj.y = pos.y;
       obj.z = pos.z;
-      VRSPACE.sendMy(field, pos);
+      changes.push({ field: field, value: pos});
     }
   }
   isChanged( old, val, range ) {

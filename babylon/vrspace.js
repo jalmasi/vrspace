@@ -71,6 +71,10 @@ class Client extends VRObject {
     super();
     this.name = null;
     this.sceneProperties = null; // CHECKME private - should be declared?
+    this.leftArmPos = { x: null, y: null, z: null };
+    this.rightArmPos = { x: null, y: null, z: null };
+    this.leftArmRot = { x: null, y: null, z: null, w: null };
+    this.rightArmRot = { x: null, y: null, z: null, w: null };
   }
   hasAvatar() {
     return this.mesh && this.mesh.toLowerCase().endsWith('.gltf');
@@ -220,6 +224,21 @@ class VRSpace {
     return '{"x":'+quat.x+',"y":'+quat.y+',"z":'+quat.z+',"w":'+quat.w+'}';
   }
 
+  stringifyPair( field, value ) {
+    if ( typeof value == "string") {
+      return '"'+field+'":"'+value+"'";
+    } else if ( typeof value == 'object') {
+      if(value.hasOwnProperty('w')) {
+        return '"'+field+'":'+this.stringifyQuaternion(value);
+      } else {
+        return '"'+field+'":'+this.stringifyVector(value);
+      }
+    } else {
+      console.log("Unsupported datatype, ignored user event "+field+"="+value);
+      return '';
+    }
+  }
+  
   create(className, fieldName, callback) {
     // TODO: use class metadata
     this.call('{"command":{"Describe":{"className":"'+className+'"}}}',(obj) => {
@@ -244,21 +263,32 @@ class VRSpace {
     });
   }
   
-  sendMy(what,value) {
+  sendMy(field,value) {
     if ( this.me != null) {
-      if ( typeof value == "string") {
-        this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":"'+value+'"}}');
-      } else if ( typeof value == 'object') {
-        if(value.hasOwnProperty('w')) {
-          this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":'+this.stringifyQuaternion(value)+'}}');
-        } else {
-          this.send('{"object":{"Client":'+this.me.id+'},"changes":{"'+what+'":'+this.stringifyVector(value)+'}}');
-        }
-      } else {
-        this.log("Unsupported datatype, ignored user event "+what+"="+value);
-      }
+      this.send('{"object":{"Client":'+this.me.id+'},"changes":{'+this.stringifyPair(field,value)+'}}');
     } else {
-      this.log("No my ID yet, ignored user event "+what+"="+value);
+      this.log("No my ID yet, ignored user event "+field+"="+value);
+    }
+  }
+
+  sendMyChanges(changes) {
+    if ( ! changes || changes.length == 0 ) {
+      return;
+    }
+    if ( this.me != null) {
+      var index = 0;
+      var msg = '{"object":{"Client":'+this.me.id+'},"changes":{';
+      changes.forEach((change) => {
+        msg += this.stringifyPair(change.field,change.value);
+        index++;
+        if ( index < changes.length ) {
+          msg += ',';
+        }
+      });
+      msg += '}}';
+      this.send(msg);
+    } else {
+      this.log("No my ID yet, user event ignored");
     }
   }
 
