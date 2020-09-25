@@ -58,6 +58,16 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 		
 		<!-- Neo4j -->
 		<dependency>
@@ -95,6 +105,28 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+      <plugin>
+        <groupId>pl.project13.maven</groupId>
+        <artifactId>git-commit-id-plugin</artifactId>
+        <configuration>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+          <commitIdGenerationMode>full</commitIdGenerationMode>
+          <excludeProperties>
+            <excludeProperty>git.build.user.*</excludeProperty>
+            <excludeProperty>git.commit.user.*</excludeProperty>
+          </excludeProperties>
+        </configuration>
+        <executions>
+          <execution>
+            <id>get-the-git-infos</id>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <phase>initialize</phase>
+          </execution>
+        </executions>
+      </plugin>
 		</plugins>
 	</build>
 
