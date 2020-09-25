@@ -1,0 +1,73 @@
+package org.vrspace.server.core;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doNothing;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.vrspace.server.dto.VREvent;
+import org.vrspace.server.obj.Client;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class SanitationTest {
+
+  @Autowired
+  ObjectMapper jackson;
+
+  @Mock
+  private WebSocketSession session;
+
+  @Captor
+  private ArgumentCaptor<WebSocketMessage<?>> message;
+
+  private String evil = "a <script>javascript:alert('pwned')</script> string";
+
+  @Test
+  public void testString() throws Exception {
+    String ret = jackson.readValue("\"" + evil + "\"", String.class);
+    assertEquals("a  string", ret);
+  }
+
+  @Test
+  public void testEvents() throws Exception {
+    doNothing().when(session).sendMessage(message.capture());
+
+    Client client = new Client();
+    Client recepient = new Client() {
+      @Override
+      public void processEvent(VREvent event) {
+        // internally generated strings are distributed untouched
+        assertEquals(evil, event.getChanges().get("name"));
+        super.processEvent(event);
+      }
+    };
+    recepient.setMapper(jackson);
+    recepient.setSession(session);
+    client.addListener(recepient);
+
+    VREvent event = new VREvent(client, client);
+    event.addChange("name", evil);
+
+    Dispatcher d = new Dispatcher(jackson);
+    d.dispatch(event);
+    // CHECKME: why single space?
+    assertEquals("a string", client.getName());
+
+    // distributed sanitized string
+    String msg = ((TextMessage) message.getValue()).getPayload();
+    assertTrue(msg.contains("{\"name\":\"a  string\"}"));
+  }
+}

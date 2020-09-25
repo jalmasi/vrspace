@@ -87,6 +87,10 @@ public class Client extends VRObject {
 
   @Override
   public void processEvent(VREvent event) {
+    // TODO optimize this:
+    // called like that, every client performs serialization for itself
+    // event should already contain serialized message
+    // dispatcher can do that
     sendMessage(event);
     // stop listening to inactive objects (disconnected clients)
     if (!event.getSource().isActive()) {

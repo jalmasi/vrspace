@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,13 +41,6 @@ public class WorldManager {
   @Autowired
   protected SceneProperties sceneProperties; // used in tests
 
-  private Dispatcher dispatcher = new Dispatcher();
-
-  private boolean guestAllowed = true;
-  private boolean createWorlds = true;
-
-  private ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
-
   @Autowired
   private ObjectMapper jackson;
 
@@ -55,7 +50,19 @@ public class WorldManager {
   @Autowired
   private SessionFactory sessionFactory;
 
+  private Dispatcher dispatcher;
+
+  private boolean guestAllowed = true;
+  private boolean createWorlds = true;
+
+  private ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
+
   private World defaultWorld;
+
+  @PostConstruct
+  public void init() {
+    this.dispatcher = new Dispatcher(jackson);
+  }
 
   // CHECKME: should this be here?
   public List<Class<?>> listClasses() {

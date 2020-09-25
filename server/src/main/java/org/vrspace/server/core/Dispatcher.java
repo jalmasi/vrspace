@@ -21,7 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Dispatcher {
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper objectMapper;
+
+  public Dispatcher(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   // cache of all fields annotated with @Private
   private Map<Class<?>, Set<String>> privateFields = new ConcurrentHashMap<Class<?>, Set<String>>();
@@ -60,6 +64,8 @@ public class Dispatcher {
     if (payload == null) {
       // internally generated event
       changes = objectMapper.writeValueAsString(event.getChanges());
+      // TODO generate payload here
+      // otherwise every client has to serialize the message all over again
     } else {
       // this came over client connection
       // something like
@@ -74,7 +80,7 @@ public class Dispatcher {
     }
 
     // merge changes
-    ObjectReader reader = objectMapper.readerForUpdating(source);
+    ObjectReader reader = this.objectMapper.readerForUpdating(source);
     reader.readValue(changes);
 
     // remove all private changes before dispatching

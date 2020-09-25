@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.vrspace.server.core.Dispatcher;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
@@ -31,7 +30,7 @@ public class DispatcherTest {
   @Mock
   Client listener;
 
-  Dispatcher dispatcher = new Dispatcher();
+  Dispatcher dispatcher = new Dispatcher(mapper);
 
   @Test
   public void testMergeChanges() throws Exception {
