@@ -36,6 +36,7 @@ class VRObject {
     //this.children = []; // CHECKME
     //this.mesh = null;
     //this.script = null; // CHECKME
+    //this.streamId = null;
     this.listeners = [];
   }
   

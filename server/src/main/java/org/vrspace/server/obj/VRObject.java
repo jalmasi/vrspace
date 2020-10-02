@@ -58,6 +58,9 @@ public class VRObject extends Entity {
 
   private String script;
 
+  // video/audio stream attached to this object
+  private transient String streamId;
+
   @JsonIgnore
   @Transient
   private ConcurrentHashMap<ID, VRObject> listeners;

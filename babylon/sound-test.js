@@ -74,7 +74,8 @@ export class MediaStreams {
       this.OV = new OpenVidu();
       this.session = this.OV.initSession();
       this.session.on('streamCreated', (event) => {
-        console.log("New Stream!")
+        // id of this connection can be used to match the stream with the avatar
+        console.log("New stream "+event.stream.connection.connectionId)
         console.log(event);
         this.subscriber = this.session.subscribe(event.stream, htmlElementName);
         this.subscriber.on('videoElementCreated', e => {
@@ -82,11 +83,6 @@ export class MediaStreams {
           console.log(e.element);
           e.element.muted = true; // mute altogether
         });
-        // TODO 
-        // do something with subscriber ?
-        // now this event.stream.getMediaStream is supposed return MediaStream
-        // that can be used as Sound constructor parameter
-        // create sound and bind it to the avatar
       });
     
       // On every new Stream destroyed...
@@ -128,7 +124,9 @@ export class MediaStreams {
     }
     // publish own sound
     this.session.publish(this.publisher);
-    
+    // id of this connection can be used to match the stream with the avatar
+    console.log("Publishing "+this.publisher.stream.connection.connectionId);
+    console.log(this.publisher);
   }
   
   subscribe(mesh) {
