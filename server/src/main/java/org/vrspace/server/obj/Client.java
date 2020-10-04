@@ -50,6 +50,11 @@ public class Client extends VRObject {
   @Transient
   transient private SceneProperties sceneProperties;
 
+  // CHECKME OpenVidu token; should that be Map tokens?
+  @Private
+  @Transient
+  transient private String token;
+
   @JsonIgnore
   @Transient
   transient private WebSocketSession session;

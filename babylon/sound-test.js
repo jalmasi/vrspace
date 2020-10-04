@@ -1,4 +1,4 @@
-import { World } from './vrspace-ui.js'
+import { World, MediaStreams } from './vrspace-ui.js'
 
 export class Dance extends World {
   async createScene(engine) {
@@ -58,103 +58,21 @@ export class Dance extends World {
 
         //doSoundStuff(container.meshes[0]);
         this.mesh = container.meshes[0];
-        //doSoundStuff();
+        this.media = new MediaStreams('videos');
         if ( callback ) {
           callback(this);
         }
     });
     
   }
-}
-
-export class MediaStreams {
-  constructor(htmlElementName) {
-    // CHECKME null check that element?
-    import('./openvidu-browser-2.15.0.js').then( () => {
-      this.OV = new OpenVidu();
-      this.session = this.OV.initSession();
-      this.session.on('streamCreated', (event) => {
-        // id of this connection can be used to match the stream with the avatar
-        console.log("New stream "+event.stream.connection.connectionId)
-        console.log(event);
-        this.subscriber = this.session.subscribe(event.stream, htmlElementName);
-        this.subscriber.on('videoElementCreated', e => {
-          console.log("Video element created:");
-          console.log(e.element);
-          e.element.muted = true; // mute altogether
-        });
-      });
-    
-      // On every new Stream destroyed...
-      this.session.on('streamDestroyed', function (event) {
-        // TODO remove from the scene
-        console.log("Stream destroyed!")
-        console.log(event);
-      });
-      
-    });
-  }
   
   async connect(room) {
     // CHECKME: chaining promisses?
+    // example token: wss://localhost:4443?sessionId=test&token=tok_ZPbGnzp634FOl5pv&role=PUBLISHER&version=2.15.0
     await getToken(room).then(token => {
       // Connect with the token
-      return this.session.connect(token);
-    });
-  }
-
-  // htmlElement is needed only for local feedback (testing)
-  publish(htmlElementName) {
-    this.publisher = this.OV.initPublisher(htmlElementName, {
-      videoSource: false, // The source of video. If undefined default video input
-      audioSource: undefined, // The source of audio. If undefined default audio input
-      publishAudio: true   // Whether to start publishing with your audio unmuted or not
-    });
-
-    // this is only triggered if htmlElement is specified
-    this.publisher.on('videoElementCreated', e => {
-      console.log("Video element created:");
-      console.log(e.element);
-      e.element.muted = true; // mute altogether
-    });
-
-    // in test mode subscribe to remote stream that we're sending
-    if ( htmlElementName ) {
-      this.publisher.subscribeToRemote(); 
-    }
-    // publish own sound
-    this.session.publish(this.publisher);
-    // id of this connection can be used to match the stream with the avatar
-    console.log("Publishing "+this.publisher.stream.connection.connectionId);
-    console.log(this.publisher);
-  }
-  
-  subscribe(mesh) {
-    this.subscriber.on('streamPlaying', event => {
-      console.log('remote stream playing');
-      console.log(event);
-      var mediaStream = event.target.stream.getMediaStream();
-      // see details of
-      // https://forum.babylonjs.com/t/sound-created-with-a-remote-webrtc-stream-track-does-not-seem-to-work/7047/6
-      var voice = new BABYLON.Sound(
-        "voice",
-        mediaStream,
-        scene, null, {
-          loop: false,
-          autoplay: true,
-          spatialSound: true,
-          streaming: true,
-          distanceModel: "linear",
-          maxDistance: 50, // default 100, used only when linear
-          panningModel: "equalpower" // or "HRTF"
-        });
-      voice.attachToMesh(mesh);
-      
-      var ctx = voice._inputAudioNode.context;
-      var gainNode = voice.getSoundGain();
-      voice._streamingSource.connect(voice._soundPanner);
-      voice._soundPanner.connect(gainNode);
-      gainNode.connect(ctx.destination);
+      console.log('Token: '+token)
+      return this.media.connect(token);
     });
   }
   

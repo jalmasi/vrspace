@@ -45,11 +45,8 @@ var scene;
 var voice = null;
 
 import('./sound-test.js').then( (ui) => {
-	var world = new ui.Dance();
-	world.init(engine, 'dance', world.scene, () => {
-		mesh = world.mesh;
-		media = new ui.MediaStreams('videos');
-	}).then((s) => {
+	world = new ui.Dance();
+	world.init(engine, 'dance', world.scene).then((s) => {
 		scene = s;
     world.initXR();
 	});
@@ -57,10 +54,12 @@ import('./sound-test.js').then( (ui) => {
 });
 
 function doSoundStuff() {
-	media.connect('test').then(() => {
-		media.publish('videos');
+	world.connect('test').then(() => {
+		world.media.publish('videos');
 		// once we start publishing...
-    media.publisher.on('streamCreated',  event => {
+    world.media.publisher.on('streamCreated',  event => {
+      // this is much the same as world.media.subscribe(world.mesh);
+      // except we're subscribing to publisher here
       console.log("New publisher stream!")
       console.log(event);
       //publisher.publishAudio(true); // automatic
@@ -79,7 +78,7 @@ function doSoundStuff() {
           maxDistance: 50, // default 100, used only when linear
           panningModel: "equalpower" // or "HRTF"
         });
-      voice.attachToMesh(mesh);
+      voice.attachToMesh(world.mesh);
     });
 		
 	});

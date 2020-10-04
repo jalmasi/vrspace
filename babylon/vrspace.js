@@ -76,6 +76,7 @@ class Client extends VRObject {
     this.rightArmPos = { x: null, y: null, z: null };
     this.leftArmRot = { x: null, y: null, z: null, w: null };
     this.rightArmRot = { x: null, y: null, z: null, w: null };
+    this.token = null; // CHECKME: string, should be object?
   }
   hasAvatar() {
     return this.mesh && this.mesh.toLowerCase().endsWith('.gltf');

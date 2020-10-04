@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <!--
-Plays received at the place of loaded character.
+Plays received at the place of loaded character, requires sound-publish.html to be started first.
 
 This requires locally running OpenVidu. Run it like 
 docker run -p 4443:4443 --rm -e openvidu.secret=MY_SECRET -e openvidu.publicurl=https://YOUR-IP-ADDRESS:4443/ openvidu/openvidu-server-kms:2.15.0
@@ -42,14 +42,10 @@ Mind that YOUR-IP-ADDRESS should not be localhost (127.0.0.1) but your LAN addre
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 var scene;
-var voice = null;
 
 import('./sound-test.js').then( (ui) => {
-  var world = new ui.Dance();
-  world.init(engine, 'dance', world.scene, () => {
-    mesh = world.mesh;
-    media = new ui.MediaStreams('videos');
-  }).then((s) => {
+  world = new ui.Dance();
+  world.init(engine, 'dance', world.scene).then((s) => {
     scene = s;
     world.initXR();
   });
@@ -57,8 +53,8 @@ import('./sound-test.js').then( (ui) => {
 });
 
 function doSoundStuff() {
-  media.connect('test').then(() => {
-    media.subscribe(mesh);
+  world.connect('test').then(() => {
+    world.media.subscribe(world.mesh);
   });
 }
 

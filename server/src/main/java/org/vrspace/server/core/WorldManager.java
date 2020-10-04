@@ -50,6 +50,9 @@ public class WorldManager {
   @Autowired
   private SessionFactory sessionFactory;
 
+  @Autowired
+  private StreamManager streamManager;
+
   private Dispatcher dispatcher;
 
   private boolean guestAllowed = true;
@@ -195,7 +198,7 @@ public class WorldManager {
       synchronized (this) {
         defaultWorld = db.getWorldByName("default");
         if (defaultWorld == null) {
-          defaultWorld = db.save(new World("default"));
+          defaultWorld = db.save(new World("default", true));
           log.info("Created default world: " + defaultWorld);
         }
       }
@@ -205,6 +208,8 @@ public class WorldManager {
 
   public Welcome enter(Client client, String worldName) {
     World world = getWorld(worldName);
+    // TODO streaming
+    // https://docs.openvidu.io/en/2.15.0/reference-docs/openvidu-java-client/
     if (world == null) {
       if (createWorlds) {
         world = db.save(new World(worldName));
@@ -224,6 +229,10 @@ public class WorldManager {
       client.getScene().removeAll();
       client.getScene().update();
     }
+    // create audio stream
+    streamManager.join(client, world);
+
+    // client has now entered the world
     client.setWorld(world);
     db.save(client);
 

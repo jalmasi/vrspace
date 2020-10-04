@@ -42,14 +42,10 @@ Mind that YOUR-IP-ADDRESS should not be localhost (127.0.0.1) but your LAN addre
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 var scene;
-var voice = null;
 
 import('./sound-test.js').then( (ui) => {
-  var world = new ui.Dance();
-  world.init(engine, 'dance', world.scene, () => {
-    mesh = world.mesh;
-    media = new ui.MediaStreams('videos');
-  }).then((s) => {
+  world = new ui.Dance();
+  world.init(engine, 'dance', world.scene).then((s) => {
     scene = s;
     world.initXR();
   });
@@ -57,8 +53,8 @@ import('./sound-test.js').then( (ui) => {
 });
   
 function doSoundStuff() {
-  media.connect('test').then(() => {
-	    media.publish();
+  world.connect('test').then(() => {
+	  world.media.publish();
   });
 }
 

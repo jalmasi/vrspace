@@ -1383,6 +1383,7 @@ export class WorldManager {
     this.resolution = 0.01; // 1 cm/3.6 deg 
     this.world = world;
     this.scene = world.scene;
+    this.mediaStreams = null; // this is set once we connect to streaming server
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
     } else {
@@ -1473,8 +1474,12 @@ export class WorldManager {
     avatar.load( (c) => {
       // FIXME: this is not container but avatar
       obj.container = c;
-      // TODO: add listener to process changes
+      // add listener to process changes
       obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
+      // TODO subscribe to media stream here
+      if ( this.mediaStreams ) {
+        this.mediaStreams.subscribe(c.rootMesh); // FIXME
+      }
     });
   }
   
@@ -1483,7 +1488,7 @@ export class WorldManager {
     this.log(changes);
     var avatar = obj.container;
     for ( var field in changes ) {
-      var node = avatar.character.meshes[0];
+      var node = avatar.rootMesh;
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
           obj.translate = this.createAnimation(node, "position");
@@ -1718,4 +1723,95 @@ export class WorldManager {
     return val < old - range || val > old + range;
   }
 
+}
+
+export class MediaStreams {
+  constructor(htmlElementName) {
+    // CHECKME null check that element?
+    this.htmlElementName = htmlElementName;
+  }
+  
+  async connect(token) {
+    await import('./openvidu-browser-2.15.0.js');
+    this.OV = new OpenVidu();
+    this.session = this.OV.initSession();
+    this.session.on('streamCreated', (event) => {
+      // id of this connection can be used to match the stream with the avatar
+      console.log("New stream "+event.stream.connection.connectionId)
+      console.log(event);
+      this.subscriber = this.session.subscribe(event.stream, this.htmlElementName);
+      this.subscriber.on('videoElementCreated', e => {
+        console.log("Video element created:");
+        console.log(e.element);
+        e.element.muted = true; // mute altogether
+      });
+    });
+  
+    // On every new Stream destroyed...
+    this.session.on('streamDestroyed', function (event) {
+      // TODO remove from the scene
+      console.log("Stream destroyed!")
+      console.log(event);
+    });
+    
+    return this.session.connect(token);
+  }
+  
+  // htmlElement is needed only for local feedback (testing)
+  publish(htmlElementName) {
+    this.publisher = this.OV.initPublisher(htmlElementName, {
+      videoSource: false, // The source of video. If undefined default video input
+      audioSource: undefined, // The source of audio. If undefined default audio input
+      publishAudio: true   // Whether to start publishing with your audio unmuted or not
+    });
+
+    // this is only triggered if htmlElement is specified
+    this.publisher.on('videoElementCreated', e => {
+      console.log("Video element created:");
+      console.log(e.element);
+      e.element.muted = true; // mute altogether
+    });
+
+    // in test mode subscribe to remote stream that we're sending
+    if ( htmlElementName ) {
+      this.publisher.subscribeToRemote(); 
+    }
+    // publish own sound
+    this.session.publish(this.publisher);
+    // id of this connection can be used to match the stream with the avatar
+    console.log("Publishing "+this.publisher.stream.connection.connectionId);
+    console.log(this.publisher);
+  }
+  
+  // TODO this assumes that 1) mesh is already loaded and 2) stream is already created
+  subscribe(mesh) {
+    // FIXME subscriber is null here before session.streamCreated event
+    this.subscriber.on('streamPlaying', event => {
+      console.log('remote stream playing');
+      console.log(event);
+      var mediaStream = event.target.stream.getMediaStream();
+      // see details of
+      // https://forum.babylonjs.com/t/sound-created-with-a-remote-webrtc-stream-track-does-not-seem-to-work/7047/6
+      var voice = new BABYLON.Sound(
+        "voice",
+        mediaStream,
+        scene, null, {
+          loop: false,
+          autoplay: true,
+          spatialSound: true,
+          streaming: true,
+          distanceModel: "linear",
+          maxDistance: 50, // default 100, used only when linear
+          panningModel: "equalpower" // or "HRTF"
+        });
+      voice.attachToMesh(mesh);
+      
+      var ctx = voice._inputAudioNode.context;
+      var gainNode = voice.getSoundGain();
+      voice._streamingSource.connect(voice._soundPanner);
+      voice._soundPanner.connect(gainNode);
+      gainNode.connect(ctx.destination);
+    });
+  }
+  
 }

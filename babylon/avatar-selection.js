@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager, RecorderUI } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager, RecorderUI, MediaStreams } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();
@@ -303,6 +303,7 @@ export class AvatarSelection extends World {
         world.vrHelper = this.vrHelper;
         world.initXR();
         
+        // TODO refactor this to WorldManager
         var worldManager = new WorldManager(world);
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
@@ -311,6 +312,14 @@ export class AvatarSelection extends World {
         var enter = () => {
           worldManager.VRSPACE.removeWelcomeListener(enter);
           worldManager.VRSPACE.sendMy('mesh', avatarUrl)
+          worldManager.VRSPACE.addWelcomeListener((welcome)=>{
+            // obtain token and start pub/sub voices
+            var token = welcome.client.token.replaceAll('&amp;','&');
+            console.log('token: '+token);
+            var streams = new MediaStreams('videos');
+            streams.connect(token).then(() => streams.publish());
+            worldManager.mediaStreams = streams;
+          });
           worldManager.VRSPACE.send('{"command":{"Enter":{"world":"'+portal.name+'"}}}');
         };
         worldManager.VRSPACE.addWelcomeListener(enter);

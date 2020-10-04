@@ -97,6 +97,12 @@
       <version>1.13.1</version>
     </dependency>
   
+    <!-- audio/video streaming -->
+    <dependency>
+      <groupId>io.openvidu</groupId>
+      <artifactId>openvidu-java-client</artifactId>
+      <version>2.15.0</version>
+    </dependency>
 	</dependencies>
 
 	<build>
