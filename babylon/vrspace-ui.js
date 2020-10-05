@@ -1408,7 +1408,7 @@ export class WorldManager {
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     this.clients = [];
     this.subscribers = [];
-    this.debug = true;
+    this.debug = false;
   }
 
   pubSub( client ) {
