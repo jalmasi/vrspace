@@ -1523,7 +1523,10 @@ export class WorldManager {
       obj.container = c;
       // apply current position and rotation
       this.changeAvatar(obj, { position: obj.position });
-      this.changeAvatar(obj, { rotation: obj.rotation });
+      if ( obj.rotation ) {
+        // FIXME rotation can be null sometimes (offline users?)
+        this.changeAvatar(obj, { rotation: obj.rotation });
+      }
       // TODO also apply other properties here (name?)
       // add listener to process changes
       obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
