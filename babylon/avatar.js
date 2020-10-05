@@ -9,6 +9,7 @@ export class Avatar {
     this.userHeight = 1.8;
     this.groundHeight = 0;
     this.fixes = null;
+    this.animateArms = true;
     // author, license, source, title
     this.info = null;
     // state variables
@@ -493,6 +494,13 @@ export class Avatar {
 
   // TODO animate rotations here
   renderArmRotation( arm ) {
+    var upperArm = this.skeleton.bones[arm.upper];
+    var lowerArm = this.skeleton.bones[arm.lower];
+    if ( ! this.animateArms ) {
+      upperArm.getTransformNode().rotationQuaternion = arm.upperRot;
+      lowerArm.getTransformNode().rotationQuaternion = arm.lowerRot;
+      return;
+    }
     if ( !arm.animation ) {
       var armName = this.folder.name+'-'+arm.side;
       var group = new BABYLON.AnimationGroup(armName+'ArmAnimation');
@@ -504,11 +512,7 @@ export class Avatar {
       group.addTargetedAnimation(lower, this.skeleton.bones[arm.lower].getTransformNode());
       arm.animation = group;
     }
-    var upperArm = this.skeleton.bones[arm.upper];
-    //upperArm.getTransformNode().rotationQuaternion = arm.upperRot;
     this._updateArmAnimation(upperArm, arm.animation.targetedAnimations[0], arm.upperRot);
-    var lowerArm = this.skeleton.bones[arm.lower];
-    //lowerArm.getTransformNode().rotationQuaternion = arm.lowerRot;
     this._updateArmAnimation(lowerArm, arm.animation.targetedAnimations[1], arm.lowerRot);
     if ( arm.animation.isPlaying ) {
       arm.animation.stop();

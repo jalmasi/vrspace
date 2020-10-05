@@ -177,6 +177,7 @@ export class AvatarSelection extends World {
     this.indicator.animate();
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(scene, dir, this.shadowGenerator);
+    loaded.animateArms = false;
     loaded.load( (c) => {
       this.indicator.remove(dir);
       if ( ! this.character ) {
