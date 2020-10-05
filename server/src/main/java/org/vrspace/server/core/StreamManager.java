@@ -11,6 +11,7 @@ import org.vrspace.server.obj.World;
 import io.openvidu.java.client.Connection;
 import io.openvidu.java.client.OpenVidu;
 import io.openvidu.java.client.OpenViduException;
+import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduRole;
 import io.openvidu.java.client.Session;
 import io.openvidu.java.client.SessionProperties;
@@ -41,10 +42,18 @@ public class StreamManager {
         .build();
     // TODO parse this string and return token
     // wss://localhost:4443?sessionId=cave&token=tok_W1LlxOQElNQGcSIw&role=PUBLISHER&version=2.15.0
-    String token = session.generateToken(tokenOptions);
-    // String something = session.generateToken(tokenOptions);
-    // String token = something.split("&")[1].split("=")[1];
-    // 404 here means no session:
+    String token = null;
+    try {
+      token = session.generateToken(tokenOptions);
+    } catch (OpenViduHttpException e) {
+      // 404 here means no session:
+      if (e.getStatus() == 404) {
+        session = getSession(session.getSessionId());
+        token = session.generateToken(tokenOptions);
+      } else {
+        throw e;
+      }
+    }
     return token;
   }
 
@@ -64,6 +73,22 @@ public class StreamManager {
     }
   }
 
+  private Session getSession(String name) {
+    Session session = sessions.get(name);
+    if (session == null) {
+      // the session does not exists yet, create it
+      try {
+        session = createStreamingSession(name);
+        sessions.put(name, session);
+      } catch (OpenViduException e) {
+        // TODO failing here may mean that session already exists
+        // check for 409 in OpenViduHttpException
+        log.error("Can't create OpenVidu session", e);
+      }
+    }
+    return session;
+  }
+
   /**
    * Disconnect a client from an existing session, and create a new session for a
    * world
@@ -78,18 +103,9 @@ public class StreamManager {
       } catch (OpenViduException e) {
         log.error("Failed to disconnect client " + client, e);
       }
-      Session session = sessions.get(world.getName());
+      Session session = getSession(world.getName());
       if (session == null) {
-        // the session does not exists yet, create it
-        try {
-          session = createStreamingSession(world.getName());
-          sessions.put(world.getName(), session);
-        } catch (OpenViduException e) {
-          // TODO failing here may mean that session already exists
-          // check for 409 in OpenViduHttpException
-          log.error("Can't create OpenVidu session", e);
-          return;
-        }
+        return;
       }
       try {
         String token = generateToken(session, client);

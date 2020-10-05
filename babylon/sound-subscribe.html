@@ -53,9 +53,7 @@ import('./sound-test.js').then( (ui) => {
 });
 
 function doSoundStuff() {
-  world.connect('test').then(() => {
-    world.media.subscribe(world.mesh);
-  });
+  world.connect('test', (subscriber)=> world.media.subscribe(world.mesh, subscriber));
 }
 
 function debugOnOff() {

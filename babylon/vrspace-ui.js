@@ -1406,9 +1406,56 @@ export class WorldManager {
     this.interval = null;
     VRSPACE.addConnectionListener((connected) => this.setConnected(connected));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
-    this.debug = false;
+    this.clients = [];
+    this.subscribers = [];
+    this.debug = true;
   }
 
+  pubSub( client ) {
+    this.log("Subscribing as client "+client.id+" with token "+client.token);
+    if ( client.token ) {
+      // obtain token and start pub/sub voices
+      var token = client.token.replaceAll('&amp;','&');
+      console.log('token: '+token);
+      this.mediaStreams = new MediaStreams('videos');
+      this.mediaStreams.connect(token, (subscriber) => this.streamingStart(subscriber)).then(() => this.mediaStreams.publish());
+    }
+  }
+  
+  streamingStart( subscriber ) {
+    var id = parseInt(subscriber.stream.connection.data,10);
+    this.log("Stream started for client "+id)
+    for ( var i = 0; i < this.clients.length; i++) {
+      var client = this.clients[i];
+      if ( client.id == id ) {
+        // matched
+        this.mediaStreams.subscribe(client.container.rootMesh, subscriber);
+        this.clients.splice(i,1);
+        this.log("Audio stream started for avatar of client "+id)
+        return;
+      }
+    }
+    this.subscribers.push(subscriber);
+  }
+  
+  streamToAvatar(client) {
+    this.log("Loaded avatar of client "+client.id)
+    if ( this.mediaStreams ) {
+      for ( var i = 0; i < this.subscribers.length; i++) {
+        var subscriber = this.subscribers[i];
+        var id = parseInt(subscriber.stream.connection.data,10);
+        if ( client.id == id ) {
+          // matched
+          this.mediaStreams.subscribe(client.container.rootMesh, subscriber);
+          this.clients.splice(i,1);
+          this.log("Audio stream connected to avatar of client "+id)
+          return;
+        }
+      }
+      this.clients.push(client);
+    }
+  }
+  
   log( what ) {
     if (this.debug) {
       console.log(what);
@@ -1474,12 +1521,14 @@ export class WorldManager {
     avatar.load( (c) => {
       // FIXME: this is not container but avatar
       obj.container = c;
+      // apply current position and rotation
+      this.changeAvatar(obj, { position: obj.position });
+      this.changeAvatar(obj, { rotation: obj.rotation });
+      // TODO also apply other properties here (name?)
       // add listener to process changes
       obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
-      // TODO subscribe to media stream here
-      if ( this.mediaStreams ) {
-        this.mediaStreams.subscribe(c.rootMesh); // FIXME
-      }
+      // subscribe to media stream here if available
+      this.streamToAvatar(obj);
     });
   }
   
@@ -1671,9 +1720,9 @@ export class WorldManager {
       obj.rotate.dispose();
       obj.rotate = null;
     }
+    // TODO also remove object (avatar) from internal arrays
   }
 
-  // TODO compose all these changes into a single message
   trackChanges() {
     if ( ! this.camera ) {
       return;
@@ -1731,24 +1780,32 @@ export class MediaStreams {
     this.htmlElementName = htmlElementName;
   }
   
-  async connect(token) {
+  async connect(token, callback) {
     await import('./openvidu-browser-2.15.0.js');
     this.OV = new OpenVidu();
     this.session = this.OV.initSession();
     this.session.on('streamCreated', (event) => {
-      // id of this connection can be used to match the stream with the avatar
-      console.log("New stream "+event.stream.connection.connectionId)
+      // client id can be used to match the stream with the avatar
+      // server sets the client id as connection user data
+      console.log("New stream "+event.stream.connection.connectionId+" for "+event.stream.connection.data)
       console.log(event);
-      this.subscriber = this.session.subscribe(event.stream, this.htmlElementName);
-      this.subscriber.on('videoElementCreated', e => {
+      var subscriber = this.session.subscribe(event.stream, this.htmlElementName);
+      subscriber.on('videoElementCreated', e => {
         console.log("Video element created:");
         console.log(e.element);
         e.element.muted = true; // mute altogether
       });
+      subscriber.on('streamPlaying', event => {
+        console.log('remote stream playing');
+        console.log(event);
+        if ( callback ) {
+          callback( subscriber );
+        }
+      });
     });
   
     // On every new Stream destroyed...
-    this.session.on('streamDestroyed', function (event) {
+    this.session.on('streamDestroyed', (event) => {
       // TODO remove from the scene
       console.log("Stream destroyed!")
       console.log(event);
@@ -1783,35 +1840,30 @@ export class MediaStreams {
     console.log(this.publisher);
   }
   
-  // TODO this assumes that 1) mesh is already loaded and 2) stream is already created
-  subscribe(mesh) {
-    // FIXME subscriber is null here before session.streamCreated event
-    this.subscriber.on('streamPlaying', event => {
-      console.log('remote stream playing');
-      console.log(event);
-      var mediaStream = event.target.stream.getMediaStream();
-      // see details of
-      // https://forum.babylonjs.com/t/sound-created-with-a-remote-webrtc-stream-track-does-not-seem-to-work/7047/6
-      var voice = new BABYLON.Sound(
-        "voice",
-        mediaStream,
-        scene, null, {
-          loop: false,
-          autoplay: true,
-          spatialSound: true,
-          streaming: true,
-          distanceModel: "linear",
-          maxDistance: 50, // default 100, used only when linear
-          panningModel: "equalpower" // or "HRTF"
-        });
-      voice.attachToMesh(mesh);
-      
-      var ctx = voice._inputAudioNode.context;
-      var gainNode = voice.getSoundGain();
-      voice._streamingSource.connect(voice._soundPanner);
-      voice._soundPanner.connect(gainNode);
-      gainNode.connect(ctx.destination);
-    });
+  // TODO this assumes that 1) mesh is already loaded and 2) stream subscriber is already created
+  subscribe(mesh, subscriber) {
+    var mediaStream = subscriber.stream.getMediaStream();
+    // see details of
+    // https://forum.babylonjs.com/t/sound-created-with-a-remote-webrtc-stream-track-does-not-seem-to-work/7047/6
+    var voice = new BABYLON.Sound(
+      "voice",
+      mediaStream,
+      scene, null, {
+        loop: false,
+        autoplay: true,
+        spatialSound: true,
+        streaming: true,
+        distanceModel: "linear",
+        maxDistance: 50, // default 100, used only when linear
+        panningModel: "equalpower" // or "HRTF"
+      });
+    voice.attachToMesh(mesh);
+    
+    var ctx = voice._inputAudioNode.context;
+    var gainNode = voice.getSoundGain();
+    voice._streamingSource.connect(voice._soundPanner);
+    voice._soundPanner.connect(gainNode);
+    gainNode.connect(ctx.destination);
   }
   
 }

@@ -66,13 +66,13 @@ export class Dance extends World {
     
   }
   
-  async connect(room) {
+  async connect(room, callback) {
     // CHECKME: chaining promisses?
     // example token: wss://localhost:4443?sessionId=test&token=tok_ZPbGnzp634FOl5pv&role=PUBLISHER&version=2.15.0
     await getToken(room).then(token => {
       // Connect with the token
       console.log('Token: '+token)
-      return this.media.connect(token);
+      return this.media.connect(token, callback);
     });
   }
   

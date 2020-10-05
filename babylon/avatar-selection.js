@@ -312,14 +312,8 @@ export class AvatarSelection extends World {
         var enter = () => {
           worldManager.VRSPACE.removeWelcomeListener(enter);
           worldManager.VRSPACE.sendMy('mesh', avatarUrl)
-          worldManager.VRSPACE.addWelcomeListener((welcome)=>{
-            // obtain token and start pub/sub voices
-            var token = welcome.client.token.replaceAll('&amp;','&');
-            console.log('token: '+token);
-            var streams = new MediaStreams('videos');
-            streams.connect(token).then(() => streams.publish());
-            worldManager.mediaStreams = streams;
-          });
+          worldManager.VRSPACE.addWelcomeListener((welcome)=>worldManager.pubSub(welcome.client));
+          // TODO add enter command to API
           worldManager.VRSPACE.send('{"command":{"Enter":{"world":"'+portal.name+'"}}}');
         };
         worldManager.VRSPACE.addWelcomeListener(enter);
