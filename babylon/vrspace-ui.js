@@ -1820,9 +1820,10 @@ export class MediaStreams {
   // htmlElement is needed only for local feedback (testing)
   publish(htmlElementName) {
     this.publisher = this.OV.initPublisher(htmlElementName, {
-      videoSource: false, // The source of video. If undefined default video input
+      videoSource: false,     // The source of video. If undefined default video input
       audioSource: undefined, // The source of audio. If undefined default audio input
-      publishAudio: true   // Whether to start publishing with your audio unmuted or not
+      publishAudio: true,     // Whether to start publishing with your audio unmuted or not
+      publishVideo: false     // hopefully this makes it work on devices with no cameras
     });
 
     // this is only triggered if htmlElement is specified
