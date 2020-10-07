@@ -323,7 +323,12 @@ export class AvatarSelection extends World {
         //recorder.showUI();
       }
       
+      // CHECKME: may be a babylonjs bug, but new camera has null gamepad
+      // TODO: new camera may be of type that doesn't support gamepad
+      var gamepad = this.camera.inputs.attached.gamepad.gamepad;
+
       this.vrHelper.stopTracking();
+      this.camera.detachControl(this.canvas);
       world.WORLD.init(this.engine, portal.name, this.scene, afterLoad, portal.worldUrl()+"/").then((newScene)=>{
         console.log(world);
         this.vrHelper.clearFloors();
@@ -331,6 +336,12 @@ export class AvatarSelection extends World {
         if ( this.inXR ) {
           this.vrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
         } else {
+          console.log('New world camera:');
+          console.log(world.WORLD.camera);
+          // CHECKME: workaround, gamepad stops working
+          // https://github.com/BabylonJS/Babylon.js/blob/master/src/Cameras/Inputs/freeCameraGamepadInput.ts
+          // scene.gamepadManager does not emit event to the new camera
+          world.WORLD.camera.inputs.attached.gamepad.gamepad = gamepad;
           this.scene.activeCamera = world.WORLD.camera;
         }
         this.camera.dispose();

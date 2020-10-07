@@ -1374,7 +1374,6 @@ export class World {
   
   attachControl() {
     this.camera.attachControl(this.canvas, true);
-    console.log(this.camera);
   }
 }
 
