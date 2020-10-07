@@ -341,7 +341,11 @@ export class AvatarSelection extends World {
           // CHECKME: workaround, gamepad stops working
           // https://github.com/BabylonJS/Babylon.js/blob/master/src/Cameras/Inputs/freeCameraGamepadInput.ts
           // scene.gamepadManager does not emit event to the new camera
-          world.WORLD.camera.inputs.attached.gamepad.gamepad = gamepad;
+          if ( gamepad ) {
+            world.WORLD.camera.inputs.attached.gamepad.gamepad = gamepad;
+            // TODO: this is to simulate mouse click/screen tap
+            gamepad.onButtonUpObservable.add( (number) => console.log(number) );          
+          }
           this.scene.activeCamera = world.WORLD.camera;
         }
         this.camera.dispose();
