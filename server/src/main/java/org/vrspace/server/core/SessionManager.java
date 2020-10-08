@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.PreDestroy;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -87,5 +89,13 @@ public class SessionManager extends TextWebSocketHandler {
 
   public Client getClient(Long id) {
     return clients.get(id);
+  }
+
+  @PreDestroy
+  public void cleanup() {
+    // this is to delete automatically created guest clients on shutdown
+    for (Client client : clients.values()) {
+      worldManager.logout(client);
+    }
   }
 }

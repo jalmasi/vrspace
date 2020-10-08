@@ -29,6 +29,7 @@ import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.openvidu.java.client.OpenViduException;
 import lombok.extern.slf4j.Slf4j;
 
 @Component("world")
@@ -252,19 +253,28 @@ public class WorldManager {
     if (client.isGuest()) {
       cache.remove(new ID(client));
       db.delete(client);
+      log.debug("Deleted guest client " + client.getId());
     }
   }
 
   public void exit(Client client) {
     // first clear the scene, so other active objects (clients) don't keep reference
     // to the client and send it events
-    client.getScene().removeAll();
+    if (client.getScene() != null) {
+      client.getScene().removeAll();
+    }
     // then notify all listeners that the client disconnected
     client.setActive(false);
-    VREvent e = new VREvent(client, client);
-    e.addChange("active", false);
-    client.notifyListeners(e);
+    VREvent ev = new VREvent(client, client);
+    ev.addChange("active", false);
+    client.notifyListeners(ev);
     client.setListeners(null);
+    // also remove the client from streaming session
+    try {
+      streamManager.disconnect(client);
+    } catch (OpenViduException e) {
+      log.error("Error disconnecting client " + client + " from streaming session", e);
+    }
   }
 
   @Transactional
