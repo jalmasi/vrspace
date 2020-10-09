@@ -1154,8 +1154,6 @@ export class Avatar {
         }
       }
     }
-    console.log( "Frames "+frames.length);
-    console.log(frames);
   }
 
   startAnimation(animationName) {

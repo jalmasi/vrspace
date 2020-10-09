@@ -916,6 +916,8 @@ export class Buttons {
   }
 
   dispose() {
+    delete this.selectedMaterial;
+    delete this.unselectedMaterial;
     this.group.dispose();
     for ( var i = 0; i < this.controls.length; i++ ) {
       this.controls[i].dispose();
@@ -938,12 +940,12 @@ export class Buttons {
     var buttonHeight = 1;
     var spacing = 1.1;
 
-    var selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", scene);
-    selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
-    this.materials.push(selectedMaterial);
-    var unselectedMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
-    unselectedMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.2);
-    this.materials.push(unselectedMaterial);
+    this.selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", scene);
+    this.selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
+    this.materials.push(this.selectedMaterial);
+    this.unselectedMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
+    this.unselectedMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.2);
+    this.materials.push(this.unselectedMaterial);
 
     if ( this.title && this.title.length > 0 ) {
       var titleText = new BABYLON.GUI.TextBlock();
@@ -998,7 +1000,7 @@ export class Buttons {
       this.materials.push(buttonPlane.material);
 
       var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:buttonHeight*.8}, scene);
-      button.material = unselectedMaterial;
+      button.material = this.unselectedMaterial;
       button.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
       button.position = new BABYLON.Vector3(buttonHeight/2, -i*spacing, 0);
       button.parent = this.group;
@@ -1010,21 +1012,9 @@ export class Buttons {
         var p = e.pickInfo;
         for ( var i = 0; i < this.options.length; i++ ) {
           if ( p.pickedMesh == this.buttons[i] ) {
-            // we may want to handle double click somehow
+            // CHECKME we may want to handle double click somehow
             if ( i != this.selectedOption || this.turnOff) {
-              console.log("Selected: "+this.options[i].name);
-              if ( this.callback ) {
-                this.callback(this.options[i]);
-              }
-              this.buttons[i].material = selectedMaterial;
-              if ( this.selectedOption > -1 ) {
-                this.buttons[this.selectedOption].material = unselectedMaterial;
-              }
-              if ( i != this.selectedOption ) {
-                this.selectedOption = i;
-              } else {
-                this.selectedOption = -1;
-              }
+              this.select(i);
             }
             break;
           }
@@ -1035,7 +1025,31 @@ export class Buttons {
     //this.group.position = new BABYLON.Vector3(0,this.options.length,0);
     console.log("Group width: "+this.groupWidth);
   }
+  
+  select(i) {
+    console.log("Selected: "+this.options[i].name);
+    if ( this.callback ) {
+      this.callback(this.options[i]);
+    }
+    this.buttons[i].material = this.selectedMaterial;
+    if ( this.selectedOption > -1 ) {
+      this.buttons[this.selectedOption].material = this.unselectedMaterial;
+    }
+    if ( i != this.selectedOption ) {
+      this.selectedOption = i;
+    } else {
+      this.selectedOption = -1;
+    }
+  }
+  
+  // CHECKME: not used so far
+  hide() {
+    this.group.isEnabled = false;
+  }
 
+  show() {
+    this.group.isEnabled = true;
+  }
 }
 
 export class VRHelper {

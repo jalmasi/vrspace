@@ -165,10 +165,24 @@ export class AvatarSelection extends World {
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
     this.indicator = new LoadProgressIndicator(scene, this.camera);
-    VRSPACEUI.listCharacters( '../content/char/', (avatars) => {
-      this.buttons = new Buttons(scene,"Avatars",avatars,(dir) => this.loadCharacter(dir),"name");
-      this.buttons.setHeight(2.6);
-      this.buttons.group.position = new BABYLON.Vector3(1,3,-.5);
+    VRSPACEUI.listMatchingFiles( '../content/char/', (folders) => {
+      var buttons = new Buttons(scene,"Avatars",folders,(dir) => this.createAvatarSelection(dir),"name");
+      buttons.setHeight(.3);
+      buttons.group.position = new BABYLON.Vector3(.5,2.2,-.5);
+      buttons.select(0);
+      this.mainButtons = buttons;
+    });
+  }
+  
+  createAvatarSelection(folder) {
+    if ( this.characterButtons ) {
+      this.characterButtons.dispose();
+    }
+    VRSPACEUI.listCharacters( folder.url(), (avatars) => {
+      var buttons = new Buttons(scene,folder.name,avatars,(dir) => this.loadCharacter(dir),"name");
+      buttons.setHeight(0.1 * Math.min(20,avatars.length));
+      buttons.group.position = new BABYLON.Vector3(1.3,2.2,-.5);
+      this.characterButtons = buttons;
     });
   }
 
@@ -360,7 +374,9 @@ export class AvatarSelection extends World {
         this.character.dispose(); 
         this.character = null;
         
-        this.buttons.dispose();
+        this.mainButtons.dispose();
+        this.characterButtons.dispose();
+        
         if ( this.animationSelection ) {
           this.animationSelection.dispose();
         }
