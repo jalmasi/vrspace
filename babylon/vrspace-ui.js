@@ -902,7 +902,9 @@ export class Buttons {
     this.callback = callback;
     this.property = property;
     this.buttonHeight = 1;
-    this.group = new BABYLON.TransformNode(this.title, scene);
+    this.color = "white";
+    this.addBackground = false; // experimental
+    this.group = new BABYLON.TransformNode("ButtonGroup:"+this.title, scene);
     this.groupWidth = 0;
     this.buttons = [];
     this.selectedOption = -1;
@@ -940,11 +942,16 @@ export class Buttons {
     var buttonHeight = 1;
     var spacing = 1.1;
 
+    // CHECKME: better use emissive color?
     this.selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", scene);
-    this.selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
+    this.selectedMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
+    this.selectedMaterial.emissiveColor = new BABYLON.Color3(.4,.8,.4);
+    this.selectedMaterial.disableLighting = true;
     this.materials.push(this.selectedMaterial);
     this.unselectedMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
-    this.unselectedMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.2);
+    this.unselectedMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
+    this.unselectedMaterial.emissiveColor = new BABYLON.Color3(.2,.2,.2);
+    this.unselectedMaterial.disableLighting = true;
     this.materials.push(this.unselectedMaterial);
 
     if ( this.title && this.title.length > 0 ) {
@@ -952,7 +959,7 @@ export class Buttons {
       titleText.text = this.title;
       titleText.textHorizontalAlignment = this.horizontalAlignment;
       titleText.textVerticalAlignment = this.verticalAlignment;
-      titleText.color = "white";
+      titleText.color = this.color;
 
       var titlePlane = BABYLON.MeshBuilder.CreatePlane("Text"+this.title, {height:2,width:this.title.length*2}, scene);
       titlePlane.parent = this.group;
@@ -985,18 +992,21 @@ export class Buttons {
       var buttonWidth = buttonText.text.length;
       var buttonPlane = BABYLON.MeshBuilder.CreatePlane("Text"+option, {height:1,width:buttonWidth}, scene);
       buttonPlane.position = new BABYLON.Vector3(buttonWidth/2+buttonHeight,-i*spacing,0);
-      buttonText.color="white";
+      buttonText.color = this.color;
       buttonPlane.parent = this.group;
 
       var aTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
         buttonPlane,
-        buttonText.fontSizeInPixels*buttonText.text.length,
+        buttonText.fontSizeInPixels*buttonText.text.length, // CHECKME: this is about twice the size of the text
         buttonText.fontSizeInPixels+2, // CHECKME: padding or something?
         false // mouse events disabled
       );
+      //aTexture.background="black";
       aTexture.addControl(buttonText);
       this.controls.push(buttonText);
       this.textures.push(aTexture);
+      // buttonPlane.material.needDepthPrePass = true; // trying to get proper transparency
+      buttonPlane.material.alphaMode = 5; // ALPHA_MAXIMIZED
       this.materials.push(buttonPlane.material);
 
       var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:buttonHeight*.8}, scene);
@@ -1022,8 +1032,21 @@ export class Buttons {
       }
     });
 
-    //this.group.position = new BABYLON.Vector3(0,this.options.length,0);
-    console.log("Group width: "+this.groupWidth);
+    // paints background plane, can't be semi-transparent though
+    if ( this.addBackground ) {
+      console.log("Group width: "+this.groupWidth);
+      var backgroundWidth = this.groupWidth/1.8;
+      var backgroundHeight = this.options.length*spacing;
+      var backgroundOffset = buttonHeight*.8; // same as button cylinder diameter
+      var backPlane = BABYLON.MeshBuilder.CreatePlane("ButtonBackground:"+this.title, {height:backgroundHeight,width:backgroundWidth}, scene);
+      backPlane.position = new BABYLON.Vector3(backgroundWidth/2+backgroundOffset,-backgroundHeight/2+spacing/2,.2);
+      backPlane.parent = this.group;
+      var backgroundMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
+      backgroundMaterial.disableLighting = true;
+      //backgroundMaterial.alpha = 0.5; // produces weird transparency effects
+      this.materials.push(backgroundMaterial);
+      backPlane.material = backgroundMaterial;
+    }
   }
   
   select(i) {
