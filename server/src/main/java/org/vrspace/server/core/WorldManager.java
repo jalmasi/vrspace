@@ -263,7 +263,8 @@ public class WorldManager {
       // but without it, we may load avatars twice!
       // seems that call to db.getRange() in the default world is important
       client.getScene().update();
-      client.setScene(null);
+      // causes async event processing issues
+      // client.setScene(null);
     }
     // then notify all listeners that the client disconnected
     client.setActive(false);
