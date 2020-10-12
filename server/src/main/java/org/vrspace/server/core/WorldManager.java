@@ -272,15 +272,15 @@ public class WorldManager {
     ev.addChange("active", false);
     client.notifyListeners(ev);
     client.setListeners(null);
-    // remove client from the world
-    client.setWorld(null);
-    client = save(client);
     // also remove the client from streaming session
     try {
       streamManager.disconnect(client);
     } catch (OpenViduException e) {
       log.error("Error disconnecting client " + client + " from streaming session", e);
     }
+    // remove client from the world
+    client.setWorld(null);
+    client = save(client);
   }
 
   @Transactional
