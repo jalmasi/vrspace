@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
-import org.vrspace.server.obj.PersistentEvent;
 import org.vrspace.server.obj.EventRecorder;
+import org.vrspace.server.obj.PersistentEvent;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.VRObject;
@@ -182,6 +182,74 @@ public class DBTest {
 
     assertEquals(1, ret2.size());
     assertEquals(o2, ret2.iterator().next());
+  }
+
+  @Test
+  @Transactional
+  public void testChangeWorldGetPermanents() throws Exception {
+    World world1 = new World("test1");
+    world1 = repo.save(world1);
+
+    World world2 = new World("test2");
+    world2 = repo.save(world2);
+
+    VRObject o1 = new VRObject(world1);
+    o1.setPermanent(true);
+    o1 = repo.save(o1);
+
+    // now o1 is in world1, but not in world2
+    Set<VRObject> ret1 = repo.getPermanents(world1.getId());
+    Set<VRObject> ret2 = repo.getPermanents(world2.getId());
+    assertEquals(1, ret1.size());
+    assertEquals(0, ret2.size());
+
+    o1.setWorld(world2);
+    o1 = repo.save(o1);
+
+    // now o1 is not in world1, but is in world2
+    ret1 = repo.getPermanents(world1.getId());
+    ret2 = repo.getPermanents(world2.getId());
+    assertEquals(0, ret1.size());
+    assertEquals(1, ret2.size());
+
+  }
+
+  @Test
+  @Transactional
+  public void testChangeWorldGetRange() throws Exception {
+    World world1 = new World("test1");
+    world1 = repo.save(world1);
+    World world2 = new World("test2");
+    world2 = repo.save(world2);
+
+    VRObject o1 = new VRObject(world1, 0, 0, 0);
+    VRObject o2 = new VRObject(world1, 10.0, 0, 0);
+    VRObject o3 = new VRObject(world2, 10.0, 0, 0);
+
+    o1 = repo.save(o1);
+    o2 = repo.save(o2);
+    o3 = repo.save(o3);
+
+    Point from = new Point(-10, -10, -10);
+    Point to = new Point(10, 10, 10);
+
+    // 2 in world1, 1 in world2
+    Set<VRObject> ret = repo.getRange(world1.getId(), from, to);
+    assertEquals(2, ret.size());
+
+    ret = repo.getRange(world2.getId(), from, to);
+    assertEquals(1, ret.size());
+
+    // move o2 to world2
+    o2.setWorld(world2);
+    o2 = repo.save(o2);
+
+    ret = repo.getRange(world1.getId(), from, to);
+    assertEquals(1, ret.size());
+
+    ret = repo.getRange(world2.getId(), from, to);
+    assertEquals(2, ret.size());
+
   }
 
   @Test

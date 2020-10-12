@@ -196,6 +196,7 @@ public class Scene {
       for (VRObject t : members) {
         remove(t, false);
       }
+      setDirty();
     } catch (Throwable e) {
       log.error("Error during removal", e);
     }

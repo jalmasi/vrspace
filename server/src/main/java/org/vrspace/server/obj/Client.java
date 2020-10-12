@@ -118,7 +118,10 @@ public class Client extends VRObject {
       }
     } catch (IOException e) {
       log.error("Can't send message " + obj, e);
+    } catch (IllegalStateException e) {
+      log.error("Can't send message " + obj, e);
     }
+
   }
 
   public void addOwned(VRObject... objects) {

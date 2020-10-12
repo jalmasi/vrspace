@@ -107,7 +107,7 @@ public class StreamManager {
    * @param world
    */
   public void join(Client client, World world) {
-    if (openViduUrl != null && openViduSecret != null) {
+    if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
       try {
         disconnect(client);
       } catch (OpenViduException e) {

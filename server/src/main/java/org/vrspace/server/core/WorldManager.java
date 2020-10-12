@@ -184,7 +184,6 @@ public class WorldManager {
       client = new Client(session);
       client.setPosition(new Point());
       client.setGuest(true);
-      // client.setMesh("dolphin.glb"); // FIXME
       client = db.save(client);
     }
     client.setMapper(jackson);
@@ -209,8 +208,6 @@ public class WorldManager {
 
   public Welcome enter(Client client, String worldName) {
     World world = getWorld(worldName);
-    // TODO streaming
-    // https://docs.openvidu.io/en/2.15.0/reference-docs/openvidu-java-client/
     if (world == null) {
       if (createWorlds) {
         world = db.save(new World(worldName));
@@ -222,20 +219,20 @@ public class WorldManager {
   }
 
   public Welcome enter(Client client, World world) {
-    client.setActive(true);
-    if (client.getWorld() != null && client.getWorld().equals(world)) {
-      throw new IllegalArgumentException("Already in world " + world);
-    }
-    if (client.getScene() != null) {
-      client.getScene().removeAll();
-      client.getScene().update();
+    if (client.getWorld() != null) {
+      if (client.getWorld().equals(world)) {
+        throw new IllegalArgumentException("Already in world " + world);
+      }
+      // exit current world first
+      exit(client);
     }
     // create audio stream
     streamManager.join(client, world);
 
     // client has now entered the world
     client.setWorld(world);
-    db.save(client);
+    client.setActive(true);
+    client = save(client);
 
     // create scene, TODO: scene filters
     Scene scene = new Scene(this, client);
@@ -257,11 +254,16 @@ public class WorldManager {
     }
   }
 
-  public void exit(Client client) {
+  private void exit(Client client) {
     // first clear the scene, so other active objects (clients) don't keep reference
     // to the client and send it events
     if (client.getScene() != null) {
       client.getScene().removeAll();
+      // shouldn't do that, causes bogus exception
+      // but without it, we may load avatars twice!
+      // seems that call to db.getRange() in the default world is important
+      client.getScene().update();
+      client.setScene(null);
     }
     // then notify all listeners that the client disconnected
     client.setActive(false);
@@ -269,6 +271,9 @@ public class WorldManager {
     ev.addChange("active", false);
     client.notifyListeners(ev);
     client.setListeners(null);
+    // remove client from the world
+    client.setWorld(null);
+    client = save(client);
     // also remove the client from streaming session
     try {
       streamManager.disconnect(client);
