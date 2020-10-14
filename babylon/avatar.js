@@ -169,9 +169,7 @@ export class Avatar {
         this.log( "Head position: "+this.headPos());
 
         if ( this.headPos().y > this.userHeight ) {
-          scale = scale*this.userHeight/this.headPos().y;
-          this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
-          this.log("Rescaling to "+scale);
+          scale = this.resize();
         }
 
         //this.log(this.body);
@@ -348,13 +346,12 @@ export class Avatar {
 
   lookAt( t ) {
     var head = this.skeleton.bones[this.body.head];
-    var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).subtract(this.rootMesh.position);
 
     // calc target pos in coordinate system of head
     var target = new BABYLON.Vector3( t.x, t.y, t.z ).subtract(this.rootMesh.position);
     target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(this.rootMesh.rotationQuaternion),target);
 
-    var targetVector = target.subtract(headPos).subtract(this.rootMesh.position);
+    var targetVector = target.subtract(this.headPos()).subtract(this.rootMesh.position);
     if ( this.headAxisFix == -1 ) {
       // FIX: neck and head opposite orientation
       // businessman, robot, adventurer, unreal male
@@ -585,14 +582,15 @@ export class Avatar {
   }
 
   standUp() {
-    this.rise( 1 );
     this.jump(0);
+    this.bendLeg( this.body.leftLeg, 10 );
+    this.bendLeg( this.body.rightLeg, 10 );
   }
 
   rise( height ) {
-    if ( ! this.initialHeadPos ) {
-      this.initialHeadPos = this.headPos();
-      this.log("Head pos: "+this.initialHeadPos);
+    if ( height < 0.001 ) {
+      // ignoring anything less than 1mm
+      return;
     }
 
     if ( this.headPos().y + height > this.initialHeadPos.y ) {
@@ -607,9 +605,9 @@ export class Avatar {
   }
 
   crouch( height ) {
-    if ( ! this.initialHeadPos ) {
-      this.initialHeadPos = this.headPos();
-      this.log("Head pos: "+this.initialHeadPos);
+    if ( height < 0.001 ) {
+      // ignoring anything less than 1mm
+      return;
     }
 
     var legLength = (this.body.leftLeg.length + this.body.rightLeg.length)/2;
@@ -625,12 +623,19 @@ export class Avatar {
   }
 
   bendLeg( leg, length ) {
+    if ( length < 0 ) {
+      console.log("ERROR: can't bend leg to "+length);
+      return
+    }
     var upper = this.skeleton.bones[leg.upper];
     var lower = this.skeleton.bones[leg.lower];
     var scaling = this.rootMesh.scaling.x;
 
     if ( length > leg.lowerLength + leg.upperLength ) {
       length = leg.lowerLength + leg.upperLength;
+      if ( length == leg.length ) {
+        return;
+      }
     }
     leg.length = length;
 
@@ -1223,5 +1228,8 @@ export class Avatar {
     var scale = this.rootMesh.scaling.y;
     scale = scale*this.userHeight/this.headPos().y;
     this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
+    this.initialHeadPos = this.headPos();
+    this.log("Rescaling to "+scale+", head position "+this.initialHeadPos);
+    return scale;
   }
 }

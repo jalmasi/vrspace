@@ -75,7 +75,8 @@ export class AvatarSelection extends World {
   }
   
   trackXrDevices() {
-    if ( trackTime + trackDelay < Date.now()
+    if ( this.tracking 
+        && trackTime + trackDelay < Date.now()
         && this.character
         && this.character.body
         && this.character.body.processed
@@ -109,24 +110,33 @@ export class AvatarSelection extends World {
   trackHeight() {
     //var cameraPos = xrHelper.input.xrCamera.position.y;
     var cameraPos = this.vrHelper.camera().realWorldHeight;
-    if ( this.maxCameraPos ) {
+    if ( this.maxCameraPos && cameraPos != this.prevCameraPos ) {
       var delta = cameraPos-this.prevCameraPos;
-      var speed = delta/trackDelay*1000;
-      if ( cameraPos > this.maxCameraPos && Math.abs(speed) > 1 ) {
-        this.character.jump(cameraPos - this.maxCameraPos);
-        this.jumping = Date.now();
-      } else if ( this.jumping ) {
+      var speed = delta/trackDelay*1000; // speed in m/s
+      if ( this.jumping ) {
         var delay = Date.now() - this.jumping;
         if ( cameraPos <= this.maxCameraPos && delay > 300 ) {
+          this.character.standUp();
+          this.jumping = null;
+          console.log("jump stopped")
+        } else if ( delay > 500 ) {
+          // CHECKME we can auto-resize here
+          console.log("jump stopped - timeout")
           this.character.standUp();
           this.jumping = null;
         } else {
           this.character.jump(cameraPos - this.maxCameraPos);
         }
+      } else if ( cameraPos > this.maxCameraPos && Math.abs(speed) > 1 ) {
+        // CHECKME speed is not really important here
+        this.character.jump(cameraPos - this.maxCameraPos);
+        this.jumping = Date.now();
+        console.log("jump starting")
       } else {
-        if ( delta > 0 ) {
+        // ignoring anything less than 1mm
+        if ( delta > 0.001 ) {
           this.character.rise(delta);
-        } else if ( delta < 0 ) {
+        } else if ( delta < -0.001 ) {
           this.character.crouch(-delta);
         }
       }
@@ -187,12 +197,15 @@ export class AvatarSelection extends World {
   }
 
   loadCharacter(dir) {
+    this.tracking = false;
     this.indicator.add(dir);
     this.indicator.animate();
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(scene, dir, this.shadowGenerator);
     loaded.animateArms = false;
+    //loaded.debug = true;
     loaded.load( (c) => {
+      this.tracking = true;
       this.indicator.remove(dir);
       if ( ! this.character ) {
         this.addCharacterButtons();
@@ -242,12 +255,16 @@ export class AvatarSelection extends World {
 
     resizeButton.position = new BABYLON.Vector3( -0.5,0.2,-1 );
     resizeButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
-    resizeButton.onPointerDownObservable.add( function() {
+    resizeButton.onPointerDownObservable.add( () => {
       if ( this.inXR ) {
-        var cameraPos = vrHelper.camera().realWorldHeight;
+        this.tracking = false;
+        var cameraPos = this.vrHelper.camera().realWorldHeight;
+        console.log("Resizing to "+cameraPos)
         this.character.userHeight = cameraPos;
+        this.character.standUp(); // CHECKME: move to resize()?
         this.character.resize();
-        maxCameraPos = null;
+        this.maxCameraPos = null;
+        this.tracking = true;
       }
     });
 
