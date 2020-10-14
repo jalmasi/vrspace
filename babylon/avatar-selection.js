@@ -8,6 +8,7 @@ var trackTime = Date.now();
 var trackDelay = 20; // 50 fps
 
 var mirror = true;
+var userHeight = 1.8; // by default
 
 export class AvatarSelection extends World {
   async createSkyBox() {
@@ -202,6 +203,7 @@ export class AvatarSelection extends World {
     this.indicator.animate();
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(scene, dir, this.shadowGenerator);
+    loaded.userHeight = userHeight;
     loaded.animateArms = false;
     //loaded.debug = true;
     loaded.load( (c) => {
@@ -258,9 +260,9 @@ export class AvatarSelection extends World {
     resizeButton.onPointerDownObservable.add( () => {
       if ( this.inXR ) {
         this.tracking = false;
-        var cameraPos = this.vrHelper.camera().realWorldHeight;
-        console.log("Resizing to "+cameraPos)
-        this.character.userHeight = cameraPos;
+        userHeight = this.vrHelper.camera().realWorldHeight;
+        console.log("Resizing to "+userHeight)
+        this.character.userHeight = userHeight;
         this.character.standUp(); // CHECKME: move to resize()?
         this.character.resize();
         this.maxCameraPos = null;

@@ -168,9 +168,7 @@ export class Avatar {
         this.processBones(this.skeleton.bones);
         this.log( "Head position: "+this.headPos());
 
-        if ( this.headPos().y > this.userHeight ) {
-          scale = this.resize();
-        }
+        scale = this.resize();
 
         //this.log(this.body);
         this.bonesProcessed.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
