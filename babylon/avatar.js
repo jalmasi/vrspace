@@ -5,7 +5,7 @@ export class Avatar {
     this.folder = folder;
     this.shadowGenerator = shadowGenerator;
     this.mirror = true;
-    this.fps = 5;
+    this.fps = 10;
     this.userHeight = 1.8;
     this.groundHeight = 0;
     this.fixes = null;

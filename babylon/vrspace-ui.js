@@ -1431,7 +1431,7 @@ export class WorldManager {
     if ( fps ) {
       this.fps = fps
     } else {
-      this.fps = 5;
+      this.fps = 10;
     }
     this.pos = { x: null, y: null, z: null };
     this.rot = { x: null, y: null, z: null };
