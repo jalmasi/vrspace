@@ -168,7 +168,11 @@ export class Avatar {
         this.processBones(this.skeleton.bones);
         this.log( "Head position: "+this.headPos());
 
-        scale = this.resize();
+        // FIXME resize() does not work for all avatars!
+        // CHECKME: headPos() bug?
+        if ( this.headPos().y > this.userHeight ) {
+          scale = this.resize();
+        }
 
         //this.log(this.body);
         this.bonesProcessed.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
