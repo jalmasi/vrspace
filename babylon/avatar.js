@@ -145,8 +145,10 @@ export class Avatar {
 
       this.animationTargets.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
 
-      var bbox = this._boundingBox(container);
-      var scale = 2/Math.max(Math.max(bbox.x, bbox.y),bbox.z);
+      var bbox = this.rootMesh.getHierarchyBoundingVectors();
+      this.log("Bounding box:");
+      this.log(bbox);
+      var scale = this.userHeight/(bbox.max.y-bbox.min.y);
       this.log("Scaling: "+scale);
       this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
 
@@ -154,6 +156,12 @@ export class Avatar {
       container.addAllToScene();
       this.castShadows( this.shadowGenerator );
 
+      // try to place feet on the ground
+      // CHECKME is this really guaranteed to work in every time?
+      bbox = this.rootMesh.getHierarchyBoundingVectors();
+      this.groundLevel(-bbox.min.y);
+      // CHECKME we may want to store the value in case we want to apply it again
+      
       if ( container.skeletons && container.skeletons.length > 0 ) {
         // CHECKME: should we process multiple skeletons?
         this.skeleton = container.skeletons[0];
@@ -167,12 +175,7 @@ export class Avatar {
 
         this.processBones(this.skeleton.bones);
         this.log( "Head position: "+this.headPos());
-
-        // FIXME resize() does not work for all avatars!
-        // CHECKME: headPos() bug?
-        if ( this.headPos().y > this.userHeight ) {
-          scale = this.resize();
-        }
+        this.initialHeadPos = this.headPos();
 
         //this.log(this.body);
         this.bonesProcessed.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
@@ -201,6 +204,8 @@ export class Avatar {
       }
 
       // apply loaded fixes
+      // CHECKME not used since proper bounding box calculation
+      // might be required in some special cases
       if ( this.fixes && typeof this.fixes.standing !== 'undefined' ) {
         this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
         this.groundLevel(this.fixes.standing);
@@ -1187,27 +1192,6 @@ export class Avatar {
         group.reset();
       }
     }
-  }
-
-  _boundingBox(container) {
-    var maxSize = new BABYLON.Vector3(0,0,0);
-    for ( var i = 0; i < container.meshes.length; i++ ) {
-      // have to recompute after scaling
-      //container.meshes[i].computeWorldMatrix(true);
-      container.meshes[i].refreshBoundingInfo();
-      var boundingInfo = container.meshes[i].getBoundingInfo().boundingBox;
-      //this.log("max: "+boundingInfo.maximumWorld+" min: "+boundingInfo.minimumWorld);
-      var size = new BABYLON.Vector3(
-        boundingInfo.maximumWorld.x - boundingInfo.minimumWorld.x,
-        boundingInfo.maximumWorld.y - boundingInfo.minimumWorld.y,
-        boundingInfo.maximumWorld.z - boundingInfo.minimumWorld.z
-      );
-      maxSize.x = Math.max(maxSize.x,size.x);
-      maxSize.y = Math.max(maxSize.y,size.y);
-      maxSize.z = Math.max(maxSize.z,size.z);
-    }
-    this.log("BBoxMax: "+maxSize);
-    return maxSize;
   }
 
   castShadows( shadowGenerator ) {
