@@ -44,7 +44,7 @@ export class Dance extends World {
   
   load( callback ) {
     this.baseUrl = 
-    BABYLON.SceneLoader.LoadAssetContainer("../content/char/lola_samba_dancing/", "scene.gltf", scene, (container) => {
+    BABYLON.SceneLoader.LoadAssetContainer("../content/char/female/lola_samba_dancing/", "scene.gltf", scene, (container) => {
         var meshes = container.meshes;
         var materials = container.materials;
         //...
