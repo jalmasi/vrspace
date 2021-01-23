@@ -50,7 +50,7 @@ export class VideoWorld extends World {
     this.mesh.position = new BABYLON.Vector3( 0, 1.5, 0);
     this.mesh.material = new BABYLON.StandardMaterial("ScreenMat", this.scene);
     this.mesh.material.emissiveColor = new BABYLON.Color3.White();
-    this.media = new MediaStreams('videos');
+    this.media = new MediaStreams(this.scene, 'videos');
     this.media.publishVideo = true;
     this.media.videoSource = undefined;
     if ( callback ) {

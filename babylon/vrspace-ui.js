@@ -1444,16 +1444,20 @@ export class WorldManager {
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     this.clients = [];
     this.subscribers = [];
-    this.debug = false;
+    this.debug = true;
   }
 
-  pubSub( client ) {
+  pubSub( client, publishVideo ) {
     this.log("Subscribing as client "+client.id+" with token "+client.token);
     if ( client.token ) {
       // obtain token and start pub/sub voices
       var token = client.token.replaceAll('&amp;','&');
       console.log('token: '+token);
-      this.mediaStreams = new MediaStreams('videos');
+      this.mediaStreams = new MediaStreams(this.scene, 'videos');
+      if ( publishVideo ) {
+        this.mediaStreams.publishVideo = true;
+        this.mediaStreams.videoSource = undefined;
+      }
       this.mediaStreams.connect(token, (subscriber) => this.streamingStart(subscriber)).then(() => this.mediaStreams.publish());
     }
   }
@@ -1465,7 +1469,7 @@ export class WorldManager {
       var client = this.clients[i];
       if ( client.id == id ) {
         // matched
-        this.mediaStreams.subscribe(client.container.rootMesh, subscriber);
+        this.mediaStreams.subscribe(client.streamToMesh, subscriber);
         this.clients.splice(i,1);
         this.log("Audio stream started for avatar of client "+id)
         return;
@@ -1474,17 +1478,19 @@ export class WorldManager {
     this.subscribers.push(subscriber);
   }
   
-  streamToAvatar(client) {
+  streamToMesh(client, mesh, streamVideo) {
     this.log("Loaded avatar of client "+client.id)
+    client.streamToMesh = mesh;
+    console.log(this.mediaStreams);
     if ( this.mediaStreams ) {
       for ( var i = 0; i < this.subscribers.length; i++) {
         var subscriber = this.subscribers[i];
         var id = parseInt(subscriber.stream.connection.data,10);
         if ( client.id == id ) {
           // matched
-          this.mediaStreams.subscribe(client.container.rootMesh, subscriber);
+          this.mediaStreams.subscribe(mesh, subscriber, streamVideo);
           this.clients.splice(i,1);
-          this.log("Audio stream connected to avatar of client "+id)
+          this.log("Audio/video stream connected to avatar of client "+id)
           return;
         }
       }
@@ -1526,9 +1532,11 @@ export class WorldManager {
     if (e.added != null) {
       this.log("ADDED " + e.objectId + " new size " + e.scene.size);
       this.log(e);
-      // FIXME: need better way to determine avatars
+      // FIXME: need better way to determine avatar type
       if ( e.added.hasAvatar && e.added.hasAvatar()) {
         this.loadAvatar( e.added );
+      } else if ("video" === e.added.mesh) {
+        this.loadStream( e.added );
       } else {
         this.loadMesh(e.added);
       }
@@ -1540,6 +1548,28 @@ export class WorldManager {
     }
   }
 
+  loadStream( obj ) {
+    this.log("loading stream for "+obj.id);
+    
+    var mesh = BABYLON.MeshBuilder.CreateDisc("Screen", {radius:.5}, this.scene);
+    mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    mesh.position = new BABYLON.Vector3( 0, 1.8, 0);
+    mesh.material = new BABYLON.StandardMaterial("StreamMat", this.scene);
+    mesh.material.emissiveColor = new BABYLON.Color3.White();
+    mesh.material.specularColor = new BABYLON.Color3.Black();
+    
+    mesh.name = obj.mesh;
+    mesh.id = obj.constructor.name+" "+obj.id;
+    
+    var parent = new BABYLON.TransformNode("Root "+obj.id, this.scene);
+    mesh.parent = parent;
+          
+    this.log("Added stream "+obj.id);
+      
+    obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));    
+    this.streamToMesh(obj, mesh, true);
+  }
+  
   loadAvatar(obj) {
     this.log("loading avatar "+obj.mesh);
     var pos = obj.mesh.lastIndexOf('/');
@@ -1567,7 +1597,7 @@ export class WorldManager {
       // add listener to process changes
       obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
       // subscribe to media stream here if available
-      this.streamToAvatar(obj);
+      this.streamToMesh(obj, obj.container.rootMesh, false);
     });
   }
   
@@ -1684,10 +1714,12 @@ export class WorldManager {
     return maxSize;
   }
   
-  changeObject(obj,changes) {
+  changeObject(obj,changes, node) {
     this.log("Changes on "+obj+": "+changes);
+    if ( ! node ) {
+      obj.container.meshes[0];      
+    }
     for ( var field in changes ) {
-      var node = obj.container.meshes[0];
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
           obj.translate = this.createAnimation(node, "position");
@@ -1759,6 +1791,10 @@ export class WorldManager {
       obj.rotate.dispose();
       obj.rotate = null;
     }
+    if ( obj.streamToMesh ) {
+      obj.streamToMesh.dispose();
+      obj.streamToMesh = null;
+    }
     // TODO also remove object (avatar) from internal arrays
   }
 
@@ -1814,7 +1850,8 @@ export class WorldManager {
 }
 
 export class MediaStreams {
-  constructor(htmlElementName) {
+  constructor(scene, htmlElementName) {
+    this.scene = scene;
     // CHECKME null check that element?
     this.htmlElementName = htmlElementName;
     this.publishAudio = true;
@@ -1823,7 +1860,7 @@ export class MediaStreams {
     this.videoSource = false;     // disabled
   }
   
-  async connect(token, callback) {
+  async init( callback ) {
     await import('./openvidu-browser-2.15.0.js');
     this.OV = new OpenVidu();
     this.session = this.OV.initSession();
@@ -1852,8 +1889,11 @@ export class MediaStreams {
       // TODO remove from the scene
       console.log("Stream destroyed!")
       console.log(event);
-    });
-    
+    });    
+  }
+  
+  async connect(token, callback) {
+    await this.init(callback);
     return this.session.connect(token);
   }
   
@@ -1864,8 +1904,8 @@ export class MediaStreams {
       audioSource: this.audioSource,     // The source of audio. If undefined default audio input
       publishAudio: this.publishAudio,   // Whether to start publishing with your audio unmuted or not
       publishVideo: this.publishVideo    // Should publish video?
-    });
-
+    });    
+    
     // this is only triggered if htmlElement is specified
     this.publisher.on('videoElementCreated', e => {
       console.log("Video element created:");
@@ -1892,7 +1932,7 @@ export class MediaStreams {
     var voice = new BABYLON.Sound(
       "voice",
       mediaStream,
-      scene, null, {
+      this.scene, null, {
         loop: false,
         autoplay: true,
         spatialSound: true,
@@ -1908,6 +1948,22 @@ export class MediaStreams {
     voice._streamingSource.connect(voice._soundPanner);
     voice._soundPanner.connect(gainNode);
     gainNode.connect(ctx.destination);
+    
+    // optional: also stream video as diffuseTexture
+    if ( subscriber.stream.hasVideo ) {
+      console.log("Streaming video texture")
+      if ( mesh.material ) {
+        if ( mesh.material.diffuseTexture ) {
+           mesh.material.diffuseTexture.dispose();
+        }
+        BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
+            // TODO attach this texture to the mesh as diffuseTexture
+            mesh.material.diffuseTexture = texture;
+        });        
+      } else {
+        console.log("Unable to stream to mesh - no material")
+      }
+    }
   }
   
 }

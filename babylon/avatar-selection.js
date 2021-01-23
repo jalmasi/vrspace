@@ -175,9 +175,10 @@ export class AvatarSelection extends World {
   
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
-    this.indicator = new LoadProgressIndicator(scene, this.camera);
+    this.indicator = new LoadProgressIndicator(this.scene, this.camera);
     VRSPACEUI.listMatchingFiles( '../content/char/', (folders) => {
-      var buttons = new Buttons(scene,"Avatars",folders,(dir) => this.createAvatarSelection(dir),"name");
+      folders.push({name:"video"});
+      var buttons = new Buttons(this.scene,"Avatars",folders,(dir) => this.createAvatarSelection(dir),"name");
       buttons.setHeight(.3);
       buttons.group.position = new BABYLON.Vector3(.5,2.2,-.5);
       buttons.select(0);
@@ -185,16 +186,51 @@ export class AvatarSelection extends World {
     });
   }
   
-  createAvatarSelection(folder) {
+  async createAvatarSelection(folder) {
     if ( this.characterButtons ) {
       this.characterButtons.dispose();
     }
-    VRSPACEUI.listCharacters( folder.url(), (avatars) => {
-      var buttons = new Buttons(scene,folder.name,avatars,(dir) => this.loadCharacter(dir),"name");
-      buttons.setHeight(0.1 * Math.min(20,avatars.length));
-      buttons.group.position = new BABYLON.Vector3(1.3,2.2,-.5);
-      this.characterButtons = buttons;
-    });
+    if ( folder.url ) {
+      VRSPACEUI.listCharacters( folder.url(), (avatars) => {
+        var buttons = new Buttons(this.scene,folder.name,avatars,(dir) => this.loadCharacter(dir),"name");
+        buttons.setHeight(0.1 * Math.min(20,avatars.length));
+        buttons.group.position = new BABYLON.Vector3(1.3,2.2,-.5);
+        this.characterButtons = buttons;
+      });
+    } else {
+      // load video avatar and start streaming video
+      var mesh = BABYLON.MeshBuilder.CreateDisc("Screen", {radius:.5}, this.scene);
+      //mesh.visibility = 0.95;
+      mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      mesh.position = new BABYLON.Vector3( 0, 1.8, 0);
+      mesh.material = new BABYLON.StandardMaterial("ScreenMat", this.scene);
+      mesh.material.emissiveColor = new BABYLON.Color3.White();
+      mesh.material.specularColor = new BABYLON.Color3.Black();
+
+      var devices = await navigator.mediaDevices.enumerateDevices();
+      var id = "";
+      for (var idx = 0; idx < devices.length; ++idx) {
+          console.log(devices[idx]);
+          if (devices[idx].kind === "videoinput") {
+              id = devices[idx].deviceId;
+          }
+      }
+
+      BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: 640, maxHeight: 640, deviceId: id }).then( (texture) => {
+        if ( this.character ) {
+          this.character.dispose();
+          delete this.character;
+          this.guiManager.dispose();
+          delete this.guiManager;
+        }
+        // TODO attach this texture to the mesh as diffuseTexture
+        mesh.material.diffuseTexture = texture;
+        this.portalsEnabled(true);
+      });
+      
+      this.video = mesh;
+    }
+            
   }
 
   loadCharacter(dir) {
@@ -207,6 +243,10 @@ export class AvatarSelection extends World {
     loaded.animateArms = false;
     //loaded.debug = true;
     loaded.load( (c) => {
+      if ( this.video ) {
+        this.video.dispose();
+        delete this.video;
+      }
       this.tracking = true;
       this.indicator.remove(dir);
       if ( ! this.character ) {
@@ -329,8 +369,11 @@ export class AvatarSelection extends World {
   }
 
   enter( portal ) {
-    console.log("Entering world "+portal.worldUrl()+'/world.js as '+this.character.getUrl());
-    var avatarUrl = this.character.getUrl();
+    var avatarUrl = "video";
+    if ( this.character ) {
+      avatarUrl = this.character.getUrl(); 
+    }
+    console.log("Entering world "+portal.worldUrl()+'/world.js as '+avatarUrl);
     import(portal.worldUrl()+'/world.js').then((world)=>{
       var afterLoad = (world) => {
         console.log(world);
@@ -346,7 +389,8 @@ export class AvatarSelection extends World {
         var enter = () => {
           worldManager.VRSPACE.removeWelcomeListener(enter);
           worldManager.VRSPACE.sendMy('mesh', avatarUrl)
-          worldManager.VRSPACE.addWelcomeListener((welcome)=>worldManager.pubSub(welcome.client));
+          // CHECKME better way to flag publishing video?
+          worldManager.VRSPACE.addWelcomeListener((welcome)=>worldManager.pubSub(welcome.client, 'video' === avatarUrl));
           // TODO add enter command to API
           worldManager.VRSPACE.send('{"command":{"Enter":{"world":"'+portal.name+'"}}}');
         };
@@ -390,8 +434,10 @@ export class AvatarSelection extends World {
         this.shadowGenerator.dispose();
         
         // TODO properly dispose of avatar
-        this.character.dispose(); 
-        this.character = null;
+        if ( this.character ) {
+          this.character.dispose();
+          this.character = null;          
+        }
         
         this.mainButtons.dispose();
         this.characterButtons.dispose();
@@ -399,7 +445,9 @@ export class AvatarSelection extends World {
         if ( this.animationSelection ) {
           this.animationSelection.dispose();
         }
-        this.guiManager.dispose();
+        if ( this.guiManager ) {
+          this.guiManager.dispose();          
+        }
         this.scene = null; // next call to render loop stops the current loop
       });
     })
