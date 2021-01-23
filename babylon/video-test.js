@@ -46,6 +46,7 @@ export class VideoWorld extends World {
     //this.mesh = BABYLON.MeshBuilder.CreatePlane("Screen", {width: 4, height: 3, sideOrientation: BABYLON.Mesh.BACKSIDE}, this.scene);
     //this.mesh.rotation = new BABYLON.Vector3( Math.PI, 0, 0)
     this.mesh = BABYLON.MeshBuilder.CreateDisc("Screen", {radius:1.5}, this.scene);
+    this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
     this.mesh.position = new BABYLON.Vector3( 0, 1.5, 0);
     this.mesh.material = new BABYLON.StandardMaterial("ScreenMat", this.scene);
     this.mesh.material.emissiveColor = new BABYLON.Color3.White();
