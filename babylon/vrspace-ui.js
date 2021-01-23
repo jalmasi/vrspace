@@ -1817,6 +1817,10 @@ export class MediaStreams {
   constructor(htmlElementName) {
     // CHECKME null check that element?
     this.htmlElementName = htmlElementName;
+    this.publishAudio = true;
+    this.publishVideo = false;
+    this.audioSource = undefined; // use default
+    this.videoSource = false;     // disabled
   }
   
   async connect(token, callback) {
@@ -1856,10 +1860,10 @@ export class MediaStreams {
   // htmlElement is needed only for local feedback (testing)
   publish(htmlElementName) {
     this.publisher = this.OV.initPublisher(htmlElementName, {
-      videoSource: false,     // The source of video. If undefined default video input
-      audioSource: undefined, // The source of audio. If undefined default audio input
-      publishAudio: true,     // Whether to start publishing with your audio unmuted or not
-      publishVideo: false     // hopefully this makes it work on devices with no cameras
+      videoSource: this.videoSource,     // The source of video. If undefined default video input
+      audioSource: this.audioSource,     // The source of audio. If undefined default audio input
+      publishAudio: this.publishAudio,   // Whether to start publishing with your audio unmuted or not
+      publishVideo: this.publishVideo    // Should publish video?
     });
 
     // this is only triggered if htmlElement is specified

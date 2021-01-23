@@ -1,6 +1,6 @@
 import { World, MediaStreams } from './vrspace-ui.js'
 
-export class Dance extends World {
+export class VideoWorld extends World {
   async createScene(engine) {
     // Create the scene space
     this.scene = new BABYLON.Scene(engine);
@@ -43,26 +43,18 @@ export class Dance extends World {
   }
   
   load( callback ) {
-    BABYLON.SceneLoader.LoadAssetContainer("../content/char/female/lola_samba_dancing/", "scene.gltf", scene, (container) => {
-        var meshes = container.meshes;
-        var materials = container.materials;
-        //...
-
-        container.meshes[0].scaling = new BABYLON.Vector3(.02,.02,.02);
-        // Adds all elements to the scene
-        container.addAllToScene();
-
-        // do something with the scene
-        console.log("Character loaded");
-
-        //doSoundStuff(container.meshes[0]);
-        this.mesh = container.meshes[0];
-        this.media = new MediaStreams('videos');
-        if ( callback ) {
-          callback(this);
-        }
-    });
-    
+    //this.mesh = BABYLON.MeshBuilder.CreatePlane("Screen", {width: 4, height: 3, sideOrientation: BABYLON.Mesh.BACKSIDE}, this.scene);
+    //this.mesh.rotation = new BABYLON.Vector3( Math.PI, 0, 0)
+    this.mesh = BABYLON.MeshBuilder.CreateDisc("Screen", {radius:1.5}, this.scene);
+    this.mesh.position = new BABYLON.Vector3( 0, 1.5, 0);
+    this.mesh.material = new BABYLON.StandardMaterial("ScreenMat", this.scene);
+    this.mesh.material.emissiveColor = new BABYLON.Color3.White();
+    this.media = new MediaStreams('videos');
+    this.media.publishVideo = true;
+    this.media.videoSource = undefined;
+    if ( callback ) {
+      callback(this);
+    }
   }
   
   async connect(room, callback) {
