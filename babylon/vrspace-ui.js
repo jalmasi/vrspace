@@ -1444,7 +1444,7 @@ export class WorldManager {
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     this.clients = [];
     this.subscribers = [];
-    this.debug = true;
+    this.debug = false;
   }
 
   pubSub( client, publishVideo ) {
@@ -1551,6 +1551,7 @@ export class WorldManager {
   loadStream( obj ) {
     this.log("loading stream for "+obj.id);
     
+    // TODO make this VideoAvatar class
     var mesh = BABYLON.MeshBuilder.CreateDisc("Screen", {radius:.5}, this.scene);
     mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
     mesh.position = new BABYLON.Vector3( 0, 1.8, 0);
@@ -1964,6 +1965,58 @@ export class MediaStreams {
         console.log("Unable to stream to mesh - no material")
       }
     }
+  }
+  
+}
+
+export class WebCamPreview {
+  constructor( scene, callback ) {
+    this.scene = scene;
+    this.callback = callback;
+  }
+  async show() {
+    this.mesh = BABYLON.MeshBuilder.CreateDisc("WebCamPreview", {radius:.5}, this.scene);
+    //mesh.visibility = 0.95;
+    this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    this.mesh.position = new BABYLON.Vector3( 0, 1.8, 0);
+    this.mesh.material = new BABYLON.StandardMaterial("WebCamMat", this.scene);
+    this.mesh.material.emissiveColor = new BABYLON.Color3.White();
+    this.mesh.material.specularColor = new BABYLON.Color3.Black();
+
+    var devices = await navigator.mediaDevices.enumerateDevices();
+    var id = "";
+    for (var idx = 0; idx < devices.length; ++idx) {
+        // TODO allow for camera choice
+        // mobiles have front and back camera
+        //console.log(devices[idx]);
+        if (devices[idx].kind === "videoinput") {
+            id = devices[idx].deviceId;
+        }
+    }
+
+    BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: 640, maxHeight: 640, deviceId: id }).then( (texture) => {
+      this.mesh.material.diffuseTexture = texture;
+      if ( this.callback ) {
+        this.callback();
+      }
+    });
+  }
+  dispose() {
+    if ( this.mesh ) {
+      this.mesh.dispose();
+      delete this.mesh;
+    }
+  }
+  attachToCamera() {
+    this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
+    this.mesh.position = new BABYLON.Vector3( 0, -.05, .3 );
+    this.mesh.scaling = new BABYLON.Vector3(.05,.05,.05);
+    this.scene.onActiveCameraChanged.add( (s) => this.cameraChanged() );
+  }
+  cameraChanged() {
+    console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
+    this.camera = this.scene.activeCamera;
+    this.mesh.parent = this.camera;
   }
   
 }

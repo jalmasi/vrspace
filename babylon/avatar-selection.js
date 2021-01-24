@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager, RecorderUI, MediaStreams } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager, RecorderUI, MediaStreams, WebCamPreview } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();
@@ -197,38 +197,19 @@ export class AvatarSelection extends World {
         buttons.group.position = new BABYLON.Vector3(1.3,2.2,-.5);
         this.characterButtons = buttons;
       });
-    } else {
+    } else if (! this.video ) {
       // load video avatar and start streaming video
-      var mesh = BABYLON.MeshBuilder.CreateDisc("Screen", {radius:.5}, this.scene);
-      //mesh.visibility = 0.95;
-      mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-      mesh.position = new BABYLON.Vector3( 0, 1.8, 0);
-      mesh.material = new BABYLON.StandardMaterial("ScreenMat", this.scene);
-      mesh.material.emissiveColor = new BABYLON.Color3.White();
-      mesh.material.specularColor = new BABYLON.Color3.Black();
-
-      var devices = await navigator.mediaDevices.enumerateDevices();
-      var id = "";
-      for (var idx = 0; idx < devices.length; ++idx) {
-          console.log(devices[idx]);
-          if (devices[idx].kind === "videoinput") {
-              id = devices[idx].deviceId;
-          }
-      }
-
-      BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: 640, maxHeight: 640, deviceId: id }).then( (texture) => {
+      this.video = new WebCamPreview( this.scene, () => {
         if ( this.character ) {
           this.character.dispose();
           delete this.character;
           this.guiManager.dispose();
           delete this.guiManager;
         }
-        // TODO attach this texture to the mesh as diffuseTexture
-        mesh.material.diffuseTexture = texture;
-        this.portalsEnabled(true);
+        this.portalsEnabled(true);        
       });
+      await this.video.show();
       
-      this.video = mesh;
     }
             
   }
@@ -372,6 +353,11 @@ export class AvatarSelection extends World {
     var avatarUrl = "video";
     if ( this.character ) {
       avatarUrl = this.character.getUrl(); 
+    } else if ( this.video ) {
+      // CHECKME: dispose or attach?
+      //this.video.dispose();
+      //delete this.video;
+      this.video.attachToCamera();
     }
     console.log("Entering world "+portal.worldUrl()+'/world.js as '+avatarUrl);
     import(portal.worldUrl()+'/world.js').then((world)=>{
