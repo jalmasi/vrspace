@@ -40,7 +40,7 @@ var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 var shadowGenerator;
 var camera;
 var angle = 0;
-var characters;
+var characters = [];
 
 import('./vrspace-ui.js').then( (ui) => {
   import("./avatar-test.js").then( (module) =>{
@@ -48,15 +48,20 @@ import('./vrspace-ui.js').then( (ui) => {
 
     world.init(engine, 'avatar').then((s) => {
       scene = s;
-      ui.VRSPACEUI.listCharacters( '../content/char/', function(avatars) {
-        characters = avatars;
-        for ( var i=0; i < avatars.length; i++ ) {
-          var sel = document.getElementById("avatarName");
-          sel.children[0].disabled = true;
-          var opt = document.createElement('option');
-          opt.appendChild( document.createTextNode(i+". "+avatars[i].name ));
-          opt.value=i;
-          sel.appendChild(opt);
+      ui.VRSPACEUI.listMatchingFiles( '../content/char/', (folders) => {
+        for ( var f = 0; f < folders.length; f++ ) {
+          ui.VRSPACEUI.listCharacters( folders[f].url()+'/', (avatars) => {
+            for ( var i=0; i < avatars.length; i++ ) {
+              var index = characters.length;
+              characters.push(avatars[i]);
+              var sel = document.getElementById("avatarName");
+              sel.children[0].disabled = true;
+              var opt = document.createElement('option');
+              opt.appendChild( document.createTextNode(index+". "+avatars[i].url()));
+              opt.value=index;
+              sel.appendChild(opt);
+            }
+          })
         }
         
         var leftSphere = BABYLON.MeshBuilder.CreateSphere("leftTarget", {diameter:0.2}, scene);
@@ -146,7 +151,7 @@ function debugOnOff() {
 }
 
 </script>
-<div style="position: absolute;top:10px;left: 40%;">
+<div style="position: absolute;top:10px;left: 20%;">
   <select id="avatarName" name="avatarName" onChange="replaceAvatar()">
     <option selected>Avatar</option>
   </select>
