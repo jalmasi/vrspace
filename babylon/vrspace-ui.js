@@ -1331,7 +1331,10 @@ export class World {
   }
 
   getFloorMeshes() {
-    return this.floorMeshes;
+    if ( this.floorMeshes ) {
+      return this.floorMeshes;      
+    }
+    return [];
   }
   
   collisions(state) {
