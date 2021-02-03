@@ -39,7 +39,7 @@ export class AvatarSelection extends World {
     //camera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
     //camera.ellipsoidOffset = -0.2
     this.camera.checkCollisions = true;
-    this.camera.speed = 0.1;
+    this.camera.speed = 0.5;
   }
   async createLights() {
     // Add lights to the scene
@@ -61,6 +61,10 @@ export class AvatarSelection extends World {
     this.room = await new LogoRoom(this.scene).load();
     this.ground = this.room.ground;
   }
+  async createPhysics() {
+    // 1g makes nasty floor collisions
+    this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
+  }  
   
   isSelectableMesh(mesh) {
     return mesh == this.ground || mesh.name && (mesh.name.startsWith("Button") || mesh.name.startsWith("PortalEntrance"));

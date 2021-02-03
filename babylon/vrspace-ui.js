@@ -173,7 +173,7 @@ export class LogoRoom {
     // ground, used for teleportation/pointer
     this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {}, scene);
     this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
-    this.ground.position = new BABYLON.Vector3( 0, 0.05, 0 );
+    this.ground.position = new BABYLON.Vector3( 0, 0.1, 0 );
     this.ground.parent = this.floorGroup;
     this.ground.isVisible = false;
     this.ground.checkCollisions = true;
