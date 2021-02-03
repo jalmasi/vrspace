@@ -1976,6 +1976,17 @@ export class WebCamPreview {
   constructor( scene, callback ) {
     this.scene = scene;
     this.callback = callback;
+    this.deviceId = null;
+    this.altText = "N/A";
+    this.textStyle = "bold 64px monospace";
+    this.textColor = "black";
+    this.backColor = "white";
+    this.maxWidth = 640;
+    this.maxHeight = 640;
+    this.autoStart = true;
+    this.autoAttach = true;
+    this.attached = false;
+    this.cameraTracker = () => this.cameraChanged();
   }
   async show() {
     this.mesh = BABYLON.MeshBuilder.CreateDisc("WebCamPreview", {radius:.5}, this.scene);
@@ -1986,40 +1997,77 @@ export class WebCamPreview {
     this.mesh.material.emissiveColor = new BABYLON.Color3.White();
     this.mesh.material.specularColor = new BABYLON.Color3.Black();
 
-    var devices = await navigator.mediaDevices.enumerateDevices();
-    var id = "";
-    for (var idx = 0; idx < devices.length; ++idx) {
+    // display alt text before video texture loads:
+    this.displayText();
+
+    if ( ! this.deviceId ) {
+      var devices = await navigator.mediaDevices.enumerateDevices();
+      for (var idx = 0; idx < devices.length; ++idx) {
         // TODO allow for camera choice
         // mobiles have front and back camera
         //console.log(devices[idx]);
         if (devices[idx].kind === "videoinput") {
-            id = devices[idx].deviceId;
+          this.deviceId = devices[idx].deviceId;
         }
-    }
-
-    BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: 640, maxHeight: 640, deviceId: id }).then( (texture) => {
-      this.mesh.material.diffuseTexture = texture;
-      if ( this.callback ) {
-        this.callback();
       }
-    });
+    }
+    
+    if ( this.autoStart ) {
+      this.displayVideo();
+    }
   }
+  
   dispose() {
     if ( this.mesh ) {
       this.mesh.dispose();
       delete this.mesh;
     }
   }
+  
+  displayText() {
+    this.mesh.material.diffuseTexture = new BABYLON.DynamicTexture("WebCamTexture", {width:128, height:128}, this.scene);
+    this.mesh.material.diffuseTexture.drawText(this.altText, null, null, this.textStyle, this.textColor, this.backColor, false, true);    
+  }
+  
+  displayVideo( deviceId ) {
+    if ( deviceId ) {
+      this.deviceId = deviceId;
+    }
+    if ( this.deviceId ) {
+      BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: this.maxWidth, maxHeight: this.maxHeight, deviceId: this.deviceId }).then( (texture) => {
+        this.mesh.material.diffuseTexture = texture;
+        if ( this.callback ) {
+          this.callback();
+        }
+      });    
+    }
+  }
+  
   attachToCamera() {
     this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
     this.mesh.position = new BABYLON.Vector3( 0, -.05, .3 );
     this.mesh.scaling = new BABYLON.Vector3(.05,.05,.05);
-    this.scene.onActiveCameraChanged.add( (s) => this.cameraChanged() );
+    this.cameraChanged(true);
+    this.attached = true;
+    this.scene.onActiveCameraChanged.add( this.cameraTracker );
   }
-  cameraChanged() {
-    console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
-    this.camera = this.scene.activeCamera;
-    this.mesh.parent = this.camera;
+  detachFromCamera() {
+    if ( this.attached ) {
+      this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;    
+      this.mesh.position = this.camera.position; // CHECKME
+      this.mesh.scaling = new BABYLON.Vector3(1, 1, 1);
+      this.scene.onActiveCameraChanged.remove( this.cameraTracker );
+      this.mesh.parent = null;
+      this.attached = false;
+    }
+  }
+  cameraChanged(attach) {
+    if ( attach || this.autoAttach ) {
+      console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
+      this.camera = this.scene.activeCamera;
+      this.mesh.parent = this.camera;
+      this.attached = true;
+    }
   }
   
 }
