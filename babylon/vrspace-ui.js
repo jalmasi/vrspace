@@ -140,6 +140,7 @@ export class VRSpaceUI {
     }
   }
 
+  // utility method - instantiate/clone mesh
   copyMesh(mesh, parent, replaceParent) {
     if ( mesh.geometry ) {
       var copy = mesh.createInstance(mesh.name+"-copy");
@@ -156,7 +157,83 @@ export class VRSpaceUI {
     }
     return copy;
   }
+
+  // utility method - create x,y,z animation of a mesh field  
+  createAnimation(mesh, field) {
+    var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
+    
+    var xAnim = new BABYLON.Animation("xAnim "+mesh.id, field+".x", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    xAnim.setKeys(xKeys);
+    
+    var yAnim = new BABYLON.Animation("yAnim "+mesh.id, field+".y", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    yAnim.setKeys(xKeys);
+
+    var zAnim = new BABYLON.Animation("zAnim "+mesh.id, field+".z", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xKeys = []; 
+    xKeys.push({frame:0, value: 0});
+    xKeys.push({frame:1, value: 0});
+    zAnim.setKeys(xKeys);
+
+    group.addTargetedAnimation(xAnim, mesh);
+    group.addTargetedAnimation(yAnim, mesh);
+    group.addTargetedAnimation(zAnim, mesh);
+
+    return group;
+  }
   
+  // utility method - update x,y,z animation of a mesh field  
+  updateAnimation(group, from, to) {
+    if ( group.isPlaying ) {
+      group.stop();
+    }
+    var xAnim = group.targetedAnimations[0].animation;
+    xAnim.getKeys()[0].value = from.x;
+    xAnim.getKeys()[1].value = to.x;
+    var yAnim = group.targetedAnimations[1].animation;
+    yAnim.getKeys()[0].value = from.y;
+    yAnim.getKeys()[1].value = to.y;
+    var zAnim = group.targetedAnimations[2].animation;
+    zAnim.getKeys()[0].value = from.z;
+    zAnim.getKeys()[1].value = to.z;
+    group.play(false);
+  }
+ 
+  // utility method - create quaternion animation of a mesh field  
+  createQuaternionAnimation(mesh, field) {
+    var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
+    
+    var anim = new BABYLON.Animation("qAnim "+mesh.id, field, this.fps, BABYLON.Animation.ANIMATIONTYPE_QUATERNION, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var keys = []; 
+    keys.push({frame:0, value: 0});
+    keys.push({frame:1, value: 0});
+    anim.setKeys(keys);
+    
+    group.addTargetedAnimation(anim, mesh);
+
+    return group;
+  }
+  
+  // utility method - update quaternion animation of a mesh field  
+  updateQuaternionAnimation(group, from, to) {
+    if ( group.isPlaying ) {
+      group.stop();
+    }
+    // 'to' is a Vector3, 'from' is current rotationQuaternion
+    // we have to rotate around to.y axis
+    var dest = new BABYLON.Quaternion.FromEulerAngles(0,to.y,0);
+    var anim = group.targetedAnimations[0].animation;
+    anim.getKeys()[0].value = from;
+    anim.getKeys()[1].value = dest;
+    group.play(false);
+  }
+  
+
 }
 
 export const VRSPACEUI = new VRSpaceUI();
@@ -1613,14 +1690,14 @@ export class WorldManager {
       var node = avatar.rootMesh;
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
-          obj.translate = this.createAnimation(node, "position");
+          obj.translate = VRSPACEUI.createAnimation(node, "position");
         }
-        this.updateAnimation(obj.translate, node.position, obj.position);
+        VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
       } else if ( 'rotation' === field ) {
         if ( ! obj.rotate ) {
-          obj.rotate = this.createQuaternionAnimation(node, "rotationQuaternion");
+          obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion");
         }
-        this.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
+        VRSPACEUI.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
       } else if ( 'leftArmPos' === field ) {
         var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
         avatar.reachFor(avatar.body.rightArm, pos);
@@ -1641,33 +1718,6 @@ export class WorldManager {
     }
   }
 
-  createQuaternionAnimation(mesh, field) {
-    var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
-    
-    var anim = new BABYLON.Animation("qAnim "+mesh.id, field, this.fps, BABYLON.Animation.ANIMATIONTYPE_QUATERNION, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-    var keys = []; 
-    keys.push({frame:0, value: 0});
-    keys.push({frame:1, value: 0});
-    anim.setKeys(keys);
-    
-    group.addTargetedAnimation(anim, mesh);
-
-    return group;
-  }
-  
-  updateQuaternionAnimation(group, from, to) {
-    if ( group.isPlaying ) {
-      group.stop();
-    }
-    // 'to' is a Vector3, 'from' is current rotationQuaternion
-    // we have to rotate around to.y axis
-    var dest = new BABYLON.Quaternion.FromEulerAngles(0,to.y,0);
-    var anim = group.targetedAnimations[0].animation;
-    anim.getKeys()[0].value = from;
-    anim.getKeys()[1].value = dest;
-    group.play(false);
-  }
-  
   // TODO loader UI
   loadMesh(obj) {
     this.log("Loading object "+obj.mesh);
@@ -1726,61 +1776,18 @@ export class WorldManager {
     for ( var field in changes ) {
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
-          obj.translate = this.createAnimation(node, "position");
+          obj.translate = VRSPACEUI.createAnimation(node, "position");
         }
-        this.updateAnimation(obj.translate, node.position, obj.position);
+        VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
       } else if ( 'rotation' === field ) {
         if ( ! obj.rotate ) {
-          obj.rotate = this.createAnimation(node, "rotation");
+          obj.rotate = VRSPACEUI.createAnimation(node, "rotation");
         }
-        this.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+        VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
       }
     }
   }
 
-  updateAnimation(group, from, to) {
-    if ( group.isPlaying ) {
-      group.stop();
-    }
-    var xAnim = group.targetedAnimations[0].animation;
-    xAnim.getKeys()[0].value = from.x;
-    xAnim.getKeys()[1].value = to.x;
-    var yAnim = group.targetedAnimations[1].animation;
-    yAnim.getKeys()[0].value = from.y;
-    yAnim.getKeys()[1].value = to.y;
-    var zAnim = group.targetedAnimations[2].animation;
-    zAnim.getKeys()[0].value = from.z;
-    zAnim.getKeys()[1].value = to.z;
-    group.play(false);
-  }
-  
-  createAnimation(mesh, field) {
-    var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
-    
-    var xAnim = new BABYLON.Animation("xAnim "+mesh.id, field+".x", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-    var xKeys = []; 
-    xKeys.push({frame:0, value: 0});
-    xKeys.push({frame:1, value: 0});
-    xAnim.setKeys(xKeys);
-    
-    var yAnim = new BABYLON.Animation("yAnim "+mesh.id, field+".y", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-    var xKeys = []; 
-    xKeys.push({frame:0, value: 0});
-    xKeys.push({frame:1, value: 0});
-    yAnim.setKeys(xKeys);
-
-    var zAnim = new BABYLON.Animation("zAnim "+mesh.id, field+".z", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-    var xKeys = []; 
-    xKeys.push({frame:0, value: 0});
-    xKeys.push({frame:1, value: 0});
-    zAnim.setKeys(xKeys);
-
-    group.addTargetedAnimation(xAnim, mesh);
-    group.addTargetedAnimation(yAnim, mesh);
-    group.addTargetedAnimation(zAnim, mesh);
-
-    return group;
-  }
   
   removeMesh(obj) {
     if ( obj.container ) {
@@ -2001,20 +2008,8 @@ export class WebCamPreview {
       // display alt text before video texture loads:
       this.displayText();
     
-      if ( ! this.deviceId ) {
-        var devices = await navigator.mediaDevices.enumerateDevices();
-        for (var idx = 0; idx < devices.length; ++idx) {
-          // TODO allow for camera choice
-          // mobiles have front and back camera
-          //console.log(devices[idx]);
-          if (devices[idx].kind === "videoinput") {
-            this.deviceId = devices[idx].deviceId;
-          }
-        }
-      }
-      
       if ( this.autoStart ) {
-        this.displayVideo();
+        await this.displayVideo();
       }
     }
   }
@@ -2031,9 +2026,18 @@ export class WebCamPreview {
     this.mesh.material.diffuseTexture.drawText(this.altText, null, null, this.textStyle, this.textColor, this.backColor, false, true);    
   }
   
-  displayVideo( deviceId ) {
+  async displayVideo( deviceId ) {
     if ( deviceId ) {
       this.deviceId = deviceId;
+    }
+    if ( ! this.deviceId ) {
+      var devices = await navigator.mediaDevices.enumerateDevices();
+      for (var idx = 0; idx < devices.length; ++idx) {
+        //console.log(devices[idx]);
+        if (devices[idx].kind === "videoinput") {
+          this.deviceId = devices[idx].deviceId;
+        }
+      }
     }
     if ( this.deviceId ) {
       BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: this.maxWidth, maxHeight: this.maxHeight, deviceId: this.deviceId }).then( (texture) => {
