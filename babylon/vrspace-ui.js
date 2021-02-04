@@ -1989,31 +1989,33 @@ export class WebCamPreview {
     this.cameraTracker = () => this.cameraChanged();
   }
   async show() {
-    this.mesh = BABYLON.MeshBuilder.CreateDisc("WebCamPreview", {radius:.5}, this.scene);
-    //mesh.visibility = 0.95;
-    this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-    this.mesh.position = new BABYLON.Vector3( 0, 1.8, 0);
-    this.mesh.material = new BABYLON.StandardMaterial("WebCamMat", this.scene);
-    this.mesh.material.emissiveColor = new BABYLON.Color3.White();
-    this.mesh.material.specularColor = new BABYLON.Color3.Black();
-
-    // display alt text before video texture loads:
-    this.displayText();
-
-    if ( ! this.deviceId ) {
-      var devices = await navigator.mediaDevices.enumerateDevices();
-      for (var idx = 0; idx < devices.length; ++idx) {
-        // TODO allow for camera choice
-        // mobiles have front and back camera
-        //console.log(devices[idx]);
-        if (devices[idx].kind === "videoinput") {
-          this.deviceId = devices[idx].deviceId;
+    if ( ! this.mesh ) {
+      this.mesh = BABYLON.MeshBuilder.CreateDisc("WebCamPreview", {radius:.5}, this.scene);
+      //mesh.visibility = 0.95;
+      this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      this.mesh.position = new BABYLON.Vector3( 0, 1.8, 0);
+      this.mesh.material = new BABYLON.StandardMaterial("WebCamMat", this.scene);
+      this.mesh.material.emissiveColor = new BABYLON.Color3.White();
+      this.mesh.material.specularColor = new BABYLON.Color3.Black();
+    
+      // display alt text before video texture loads:
+      this.displayText();
+    
+      if ( ! this.deviceId ) {
+        var devices = await navigator.mediaDevices.enumerateDevices();
+        for (var idx = 0; idx < devices.length; ++idx) {
+          // TODO allow for camera choice
+          // mobiles have front and back camera
+          //console.log(devices[idx]);
+          if (devices[idx].kind === "videoinput") {
+            this.deviceId = devices[idx].deviceId;
+          }
         }
       }
-    }
-    
-    if ( this.autoStart ) {
-      this.displayVideo();
+      
+      if ( this.autoStart ) {
+        this.displayVideo();
+      }
     }
   }
   
@@ -2039,18 +2041,24 @@ export class WebCamPreview {
         if ( this.callback ) {
           this.callback();
         }
-      });    
+      });
     }
   }
   
-  attachToCamera() {
+  attachToCamera( position ) {
     this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
-    this.mesh.position = new BABYLON.Vector3( 0, -.05, .3 );
-    this.mesh.scaling = new BABYLON.Vector3(.05,.05,.05);
-    this.cameraChanged(true);
+    this.mesh.parent = this.camera;
+    if ( position ) {
+      this.mesh.position = position;
+    } else {
+      this.mesh.position = new BABYLON.Vector3( 0, -.05, .3 );
+      this.mesh.scaling = new BABYLON.Vector3(.05,.05,.05);
+    }
+    this.cameraChanged();
     this.attached = true;
     this.scene.onActiveCameraChanged.add( this.cameraTracker );
   }
+  
   detachFromCamera() {
     if ( this.attached ) {
       this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;    
@@ -2061,12 +2069,13 @@ export class WebCamPreview {
       this.attached = false;
     }
   }
-  cameraChanged(attach) {
-    if ( attach || this.autoAttach ) {
+  
+  cameraChanged() {
+    if ( this.autoAttach ) {
       console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
       this.camera = this.scene.activeCamera;
-      this.mesh.parent = this.camera;
       this.attached = true;
+      this.mesh.parent = this.camera;
     }
   }
   
