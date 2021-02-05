@@ -1771,7 +1771,7 @@ export class WorldManager {
   changeObject(obj,changes, node) {
     this.log("Changes on "+obj+": "+changes);
     if ( ! node ) {
-      obj.container.meshes[0];      
+      node = obj.container.meshes[0];      
     }
     for ( var field in changes ) {
       if ( 'position' === field ) {
@@ -1830,11 +1830,11 @@ export class WorldManager {
     
     // and now track controllers
     var vrHelper = this.world.vrHelper;
-    if ( vrHelper.leftController ) {
+    if ( vrHelper && vrHelper.leftController ) {
       this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftController.grip.absolutePosition, changes );
       this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftController.pointer.rotationQuaternion, changes );
     }
-    if ( vrHelper.rightController ) {
+    if ( vrHelper && vrHelper.rightController ) {
       this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightController.grip.absolutePosition, changes );
       this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion, changes );
     }
