@@ -9,6 +9,7 @@ export class VRSpaceUI {
     this.portal = null;
     this.initialized = false;
     this.debug = false;
+    this.fps = 5; // CHECKME: reasonable default fps
   }
 
   async init(scene) {
@@ -159,22 +160,25 @@ export class VRSpaceUI {
   }
 
   // utility method - create x,y,z animation of a mesh field  
-  createAnimation(mesh, field) {
+  createAnimation(mesh, field, fps) {
+    if ( ! fps ) {
+      fps = this.fps;
+    }
     var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
     
-    var xAnim = new BABYLON.Animation("xAnim "+mesh.id, field+".x", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var xAnim = new BABYLON.Animation("xAnim "+mesh.id, field+".x", fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
     var xKeys = []; 
     xKeys.push({frame:0, value: 0});
     xKeys.push({frame:1, value: 0});
     xAnim.setKeys(xKeys);
     
-    var yAnim = new BABYLON.Animation("yAnim "+mesh.id, field+".y", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var yAnim = new BABYLON.Animation("yAnim "+mesh.id, field+".y", fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
     var xKeys = []; 
     xKeys.push({frame:0, value: 0});
     xKeys.push({frame:1, value: 0});
     yAnim.setKeys(xKeys);
 
-    var zAnim = new BABYLON.Animation("zAnim "+mesh.id, field+".z", this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var zAnim = new BABYLON.Animation("zAnim "+mesh.id, field+".z", fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
     var xKeys = []; 
     xKeys.push({frame:0, value: 0});
     xKeys.push({frame:1, value: 0});
@@ -205,10 +209,13 @@ export class VRSpaceUI {
   }
  
   // utility method - create quaternion animation of a mesh field  
-  createQuaternionAnimation(mesh, field) {
+  createQuaternionAnimation(mesh, field, fps) {
+    if ( ! fps ) {
+      fps = this.fps;
+    }
     var group = new BABYLON.AnimationGroup(field+" "+mesh.id);
     
-    var anim = new BABYLON.Animation("qAnim "+mesh.id, field, this.fps, BABYLON.Animation.ANIMATIONTYPE_QUATERNION, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var anim = new BABYLON.Animation("qAnim "+mesh.id, field, fps, BABYLON.Animation.ANIMATIONTYPE_QUATERNION, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
     var keys = []; 
     keys.push({frame:0, value: 0});
     keys.push({frame:1, value: 0});
@@ -1690,12 +1697,12 @@ export class WorldManager {
       var node = avatar.rootMesh;
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
-          obj.translate = VRSPACEUI.createAnimation(node, "position");
+          obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
         }
         VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
       } else if ( 'rotation' === field ) {
         if ( ! obj.rotate ) {
-          obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion");
+          obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
         }
         VRSPACEUI.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
       } else if ( 'leftArmPos' === field ) {
@@ -1769,19 +1776,19 @@ export class WorldManager {
   }
   
   changeObject(obj,changes, node) {
-    this.log("Changes on "+obj+": "+changes);
+    this.log("Changes on "+obj.id+": "+JSON.stringify(changes));
     if ( ! node ) {
       node = obj.container.meshes[0];      
     }
     for ( var field in changes ) {
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
-          obj.translate = VRSPACEUI.createAnimation(node, "position");
+          obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
         }
         VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
       } else if ( 'rotation' === field ) {
         if ( ! obj.rotate ) {
-          obj.rotate = VRSPACEUI.createAnimation(node, "rotation");
+          obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
         }
         VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
       }
