@@ -1506,14 +1506,15 @@ export class WorldManager {
     this.resolution = 0.01; // 1 cm/3.6 deg 
     this.world = world;
     this.scene = world.scene;
+    this.trackRotation = true; // turn off to optimize e.g. video avatars
+    this.mesh = null; // used in 3rd person view
     this.mediaStreams = null; // this is set once we connect to streaming server
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
     } else {
-      this.setCamera();
+      this.trackCamera();
     }
-    this.scene.onActiveCameraChanged.add( () => { this.setCamera() } );
-    // TODO register camera tracker
+    this.scene.onActiveCameraChanged.add( () => { this.trackCamera() } );
     this.VRSPACE = VRSPACE;
     if ( fps ) {
       this.fps = fps
@@ -1591,12 +1592,21 @@ export class WorldManager {
     }
   }
   
-  setCamera(camera) {
+  trackMesh(mesh) {
+    if ( mesh ) {
+      this.log("Tracking mesh "+mesh.id);
+    } else if ( this.mesh ) {
+      this.log("Stopped tracking mesh "+this.mesh.id);
+    }
+    this.mesh = mesh;
+  }
+  
+  trackCamera(camera) {
     if ( ! camera ) {
       camera = this.scene.activeCamera;
     }
     if ( camera ) {
-      console.log("Tracking camera "+camera.getClassName())
+      this.log("Tracking camera "+camera.getClassName())
       this.camera = camera;
     }
   }
@@ -1604,7 +1614,7 @@ export class WorldManager {
   setConnected(connected) {
     this.log("Connected: "+connected);
     if ( connected ) {
-      this.interval = setInterval(() => this.trackChanges(), 1000/this.fps);
+      this.interval = setInterval(() => this.trackChanges(), 1000/this.fps);        
     } else if ( this.interval ) {
       clearInterval( this.interval );
       this.interval = null;
@@ -1817,33 +1827,47 @@ export class WorldManager {
   }
 
   trackChanges() {
-    if ( ! this.camera ) {
-      return;
-    }
     var changes = [];
-    // track camera movements
-    if ( this.camera.ellipsoid ) {
-      var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
-      this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
+    if ( this.mesh ) {
+      // tracking mesh (3rd person view)
+      var pos = this.mesh.position;
+      if ( this.mesh.ellipsoid ) {
+        var height = this.mesh.position.y - this.mesh.ellipsoid.y;
+        pos = new BABYLON.Vector3(this.mesh.position.x, height, this.mesh.position.z);
+      }
+      this.checkChange("position", this.pos, pos, changes);
+      this.checkChange("rotation", this.rot, this.mesh.rotation, changes);
     } else {
-      this.checkChange("position", this.pos, this.camera.globalPosition, changes);
-    }
-    var cameraRotation = this.camera.rotation;
-    if ( this.camera.getClassName() == 'WebXRCamera' ) {
-      // CHECKME do other cameras require this?
-      cameraRotation = this.camera.rotationQuaternion.toEulerAngles();
-    }
-    this.checkChange("rotation", this.rot, cameraRotation, changes);
-    
-    // and now track controllers
-    var vrHelper = this.world.vrHelper;
-    if ( vrHelper && vrHelper.leftController ) {
-      this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftController.grip.absolutePosition, changes );
-      this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftController.pointer.rotationQuaternion, changes );
-    }
-    if ( vrHelper && vrHelper.rightController ) {
-      this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightController.grip.absolutePosition, changes );
-      this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion, changes );
+      // tracking camera (1st person view)
+      if ( ! this.camera ) {
+        return;
+      }
+      // track camera movements
+      if ( this.camera.ellipsoid ) {
+        var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
+        this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
+      } else {
+        this.checkChange("position", this.pos, this.camera.globalPosition, changes);
+      }
+      if ( this.trackRotation ) {
+        var cameraRotation = this.camera.rotation;
+        if ( this.camera.getClassName() == 'WebXRCamera' ) {
+          // CHECKME do other cameras require this?
+          cameraRotation = this.camera.rotationQuaternion.toEulerAngles();
+        }
+        this.checkChange("rotation", this.rot, cameraRotation, changes);
+      }
+      
+      // and now track controllers
+      var vrHelper = this.world.vrHelper;
+      if ( vrHelper && vrHelper.leftController ) {
+        this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftController.grip.absolutePosition, changes );
+        this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftController.pointer.rotationQuaternion, changes );
+      }
+      if ( vrHelper && vrHelper.rightController ) {
+        this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightController.grip.absolutePosition, changes );
+        this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion, changes );
+      }      
     }
     VRSPACE.sendMyChanges(changes);
   }
@@ -1991,6 +2015,7 @@ export class WebCamPreview {
     this.scene = scene;
     this.callback = callback;
     this.deviceId = null;
+    this.radius = 1;
     this.altText = "N/A";
     this.textStyle = "bold 64px monospace";
     this.textColor = "black";
@@ -2004,14 +2029,17 @@ export class WebCamPreview {
   }
   async show() {
     if ( ! this.mesh ) {
-      this.mesh = BABYLON.MeshBuilder.CreateDisc("WebCamPreview", {radius:.5}, this.scene);
+      this.mesh = BABYLON.MeshBuilder.CreateDisc("WebCamPreview", {radius:this.radius}, this.scene);
       //mesh.visibility = 0.95;
       this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-      this.mesh.position = new BABYLON.Vector3( 0, 1.8, 0);
+      this.mesh.position = new BABYLON.Vector3( 0, this.radius, 0);
       this.mesh.material = new BABYLON.StandardMaterial("WebCamMat", this.scene);
       this.mesh.material.emissiveColor = new BABYLON.Color3.White();
       this.mesh.material.specularColor = new BABYLON.Color3.Black();
-    
+ 
+      // used for collision detection (3rd person view)
+      this.mesh.ellipsoid = new BABYLON.Vector3(this.radius, this.radius, this.radius);
+      
       // display alt text before video texture loads:
       this.displayText();
     
@@ -2025,10 +2053,15 @@ export class WebCamPreview {
     if ( this.mesh ) {
       this.mesh.dispose();
       delete this.mesh;
+      this.node.dispose();
+      delete this.node();
     }
   }
   
-  displayText() {
+  displayText(text) {
+    if ( text ) {
+      this.altText = text;
+    }
     this.mesh.material.diffuseTexture = new BABYLON.DynamicTexture("WebCamTexture", {width:128, height:128}, this.scene);
     this.mesh.material.diffuseTexture.drawText(this.altText, null, null, this.textStyle, this.textColor, this.backColor, false, true);    
   }
@@ -2072,8 +2105,9 @@ export class WebCamPreview {
   
   detachFromCamera() {
     if ( this.attached ) {
-      this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;    
-      this.mesh.position = this.camera.position; // CHECKME
+      this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      this.mesh.position = this.camera.position; // CHECKME: must be the same
+      console.log("Mesh position: "+this.mesh.position);
       this.mesh.scaling = new BABYLON.Vector3(1, 1, 1);
       this.scene.onActiveCameraChanged.remove( this.cameraTracker );
       this.mesh.parent = null;
