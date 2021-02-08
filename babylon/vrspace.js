@@ -290,11 +290,13 @@ class VRSpace {
       msg += '}}';
       this.send(msg);
     } else {
-      this.log("No my ID yet, user event ignored");
+      this.log("No my ID yet, user event ignored:");
+      this.log(changes);
     }
   }
 
   send(message) {
+    this.log("Sending message: "+message);
     this.ws.send(message);
   }
   
