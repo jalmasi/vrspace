@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager, RecorderUI, MediaStreams, WebCamPreview } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager, VideoAvatar } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();
@@ -203,7 +203,7 @@ export class AvatarSelection extends World {
       });
     } else if (! this.video ) {
       // load video avatar and start streaming video
-      this.video = new WebCamPreview( this.scene, () => {
+      this.video = new VideoAvatar( this.scene, () => {
         if ( this.character ) {
           this.character.dispose();
           delete this.character;
