@@ -51,6 +51,8 @@ public class SessionManager extends TextWebSocketHandler {
   }
 
   private Map<String, String> error(Exception e) {
+    // TODO error object: jackson exceptions embed json string, so this error can't
+    // always be deserialized on client side
     Map<String, String> ret = new HashMap<String, String>(1);
     ret.put("ERROR", e.toString());
     return ret;
