@@ -1342,12 +1342,12 @@ export class World {
     this.vrHelper = null;
     if ( file ) {
       this.file = file;
-    } else {
+    } else if ( !this.file ){
       this.file = "scene.gltf";
     }
     if ( baseUrl ) {
       this.baseUrl = baseUrl;
-    } else {
+    } else if ( !this.baseUrl ){
       this.baseUrl = "";
     }
     this.gravityEnabled = true;
@@ -2047,7 +2047,15 @@ export class VideoAvatar {
  
       // used for collision detection (3rd person view)
       this.mesh.ellipsoid = new BABYLON.Vector3(this.radius, this.radius, this.radius);
-      
+
+      // glow layer may make the texture invisible, needd to turn of glow for the mesh
+      if ( this.scene.effectLayers ) {
+        this.scene.effectLayers.forEach( (layer) => {
+          if ( 'GlowLayer' === layer.getClassName() ) {
+            layer.addExcludedMesh(this.mesh);
+          }
+        });
+      }     
       // display alt text before video texture loads:
       this.displayText();
     
