@@ -29,9 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.vrspace.server.core.SessionManager;
-import org.vrspace.server.core.VRObjectRepository;
-import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.ClientResponse;
 import org.vrspace.server.dto.Remove;
@@ -129,6 +126,14 @@ public class SessionManagerTest {
     return login(this.session);
   }
 
+  private void startSession(WebSocketSession session) throws Exception {
+    sendMessage(session, "{\"command\":{\"Session\":{}}}'");
+  }
+
+  private void startSession() throws Exception {
+    startSession(this.session);
+  }
+
   @Test
   public void testAnonymousLoginFail() throws Exception {
     worldManager.setGuestAllowed(false);
@@ -165,6 +170,13 @@ public class SessionManagerTest {
         + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     sendMessage(string);
     String errorMsg = getMessage();
+    assertTrue(errorMsg.contains("ERROR"));
+    assertTrue(errorMsg.contains("Client has no scene"));
+
+    startSession();
+
+    sendMessage(string);
+    errorMsg = getMessage();
     assertTrue(errorMsg.contains("ERROR"));
     assertTrue(errorMsg.contains("Object not found in the scene"));
   }
@@ -208,6 +220,7 @@ public class SessionManagerTest {
   @Transactional
   public void testAddRemove() throws Exception {
     login();
+    startSession();
 
     String add = "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}}, {\"VRObject\":{}}]}}}";
     sendMessage(add);
@@ -302,6 +315,10 @@ public class SessionManagerTest {
     assertNotNull(client.getWorld());
     assertEquals(client.getWorld(), user1.getWorld());
     assertEquals(client.getWorld(), user2.getWorld());
+
+    startSession();
+    startSession(session1);
+    startSession(session2);
 
     // assert they all see each other
     client.getScene().update();
