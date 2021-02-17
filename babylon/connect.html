@@ -82,7 +82,10 @@ import('./vrspace-ui.js').then((ui) => {
   var world = new ui.WorldManager(connect);
   world.debug = true;
   
-  world.VRSPACE.addWelcomeListener(() => world.VRSPACE.sendMy("mesh", "dolphin.glb"));
+  world.VRSPACE.addWelcomeListener(() => {
+    world.VRSPACE.sendMy("mesh", "dolphin.glb");
+    world.VRSPACE.sendCommand("Session");
+  });
 
   world.VRSPACE.connect();
 });

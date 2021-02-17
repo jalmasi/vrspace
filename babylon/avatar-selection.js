@@ -382,7 +382,8 @@ export class AvatarSelection extends World {
           // CHECKME better way to flag publishing video?
           worldManager.VRSPACE.addWelcomeListener((welcome)=>worldManager.pubSub(welcome.client, 'video' === avatarUrl));
           // TODO add enter command to API
-          worldManager.VRSPACE.send('{"command":{"Enter":{"world":"'+portal.name+'"}}}');
+          worldManager.VRSPACE.sendCommand("Enter",{world:portal.name});
+          worldManager.VRSPACE.sendCommand("Session");
         };
         worldManager.VRSPACE.addWelcomeListener(enter);
         worldManager.VRSPACE.connect();

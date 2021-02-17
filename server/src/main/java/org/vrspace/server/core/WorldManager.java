@@ -231,6 +231,15 @@ public class WorldManager {
 
     // client has now entered the world
     client.setWorld(world);
+    // client.setActive(true); // DON'T
+    client = save(client);
+
+    Welcome ret = new Welcome(client, getPermanents(client));
+    return ret;
+  }
+
+  public void startSession(Client client) {
+    // client has now entered the world
     client.setActive(true);
     client = save(client);
 
@@ -238,9 +247,7 @@ public class WorldManager {
     Scene scene = new Scene(this, client);
     scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
     client.setScene(scene);
-
-    Welcome ret = new Welcome(client, getPermanents(client));
-    return ret;
+    scene.update();
   }
 
   @Transactional
@@ -289,6 +296,7 @@ public class WorldManager {
     if (client == null) {
       throw new IllegalArgumentException("Event from uknown client " + event);
     }
+    Scene scene = client.getScene();
     if (event instanceof ClientRequest && ((ClientRequest) event).isCommand()) {
       Command cmd = ((ClientRequest) event).getCommand();
       Object ret = cmd.execute(this, client);
@@ -297,13 +305,12 @@ public class WorldManager {
         client.sendMessage(ret);
       }
     } else {
-      Scene scene = client.getScene();
-      if (scene == null) {
-        throw new UnsupportedOperationException("Client has no scene " + client);
-      }
       if (event.sourceIs(client)) {
         event.setSource(client);
       } else {
+        if (scene == null) {
+          throw new UnsupportedOperationException("Client has no scene " + client);
+        }
         VRObject obj = scene.get(event.getSourceID());
         if (obj == null) {
           // TODO: scene could not find object - this should be allowed for admin
@@ -319,7 +326,9 @@ public class WorldManager {
       db.save(event.getSource());
       log.debug(new ID(event.getSource()) + " saved in " + (System.currentTimeMillis() - time) + " ms");
     }
-    client.getScene().update();
+    if (scene != null) {
+      scene.update();
+    }
   }
 
 }

@@ -272,6 +272,14 @@ class VRSpace {
       this.log("No my ID yet, ignored user event "+field+"="+value);
     }
   }
+  
+  sendCommand( command, args ) {
+    if ( args ) {
+      this.send('{"command":{"'+command+'":'+JSON.stringify(args)+'}}');      
+    } else {
+      this.send('{"command":{"'+command+'":{}}}');      
+    }
+  }
 
   sendMyChanges(changes) {
     if ( ! changes || changes.length == 0 ) {
@@ -385,6 +393,7 @@ class VRSpace {
       this.log("ERROR: unknown message type");
     }
   }
+  
 }
 
 export const VRSPACE = new VRSpace();
