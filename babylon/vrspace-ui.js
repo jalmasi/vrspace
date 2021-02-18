@@ -1602,7 +1602,7 @@ export class WorldManager {
       } else {
         // TODO server needs to ensure that mesh exists
         // in the meantime we define default behavior here
-        this.loadStream( e.added );
+        console.log("ERROR: can't load "+e.objectId+" - no mesh")
       }
     } else if (e.removed != null) {
       this.log("REMOVED " + e.objectId + " new size " + e.scene.size)
@@ -1618,7 +1618,11 @@ export class WorldManager {
     var video = new VideoAvatar(this.scene, null, this.customOptions);
     video.autoStart = false;
     video.autoAttach = false;
-    video.altText = obj.name;  
+    if ( obj.name ) {
+      video.altText = obj.name;    
+    } else {
+      video.altText = "u"+obj.id;
+    }
     video.show();
     video.mesh.name = obj.mesh;
     video.mesh.id = obj.constructor.name+" "+obj.id;
@@ -1629,8 +1633,12 @@ export class WorldManager {
           
     this.log("Added stream "+obj.id);
       
-    obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));    
-    this.mediaStreams.streamToMesh(obj, video.mesh);
+    obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));
+    if ( this.mediaStreams ) {
+      this.mediaStreams.streamToMesh(obj, video.mesh);
+    } else {
+      console.log("WARNING: unable to stream to "+obj.id+" - no MediaStreams")
+    }
   }
   
   loadAvatar(obj) {
@@ -1960,9 +1968,10 @@ export class MediaStreams {
   }
   
   // TODO this assumes that 1) mesh is already loaded and 2) stream subscriber is already created
-  subscribe(mesh, mediaStream) {
+  attachAudioStream(mesh, mediaStream) {
     var audioTracks = mediaStream.getAudioTracks();
     if ( audioTracks && audioTracks.length > 0 ) {
+      console.log("Attaching audio stream to mesh "+mesh.id);
       // see details of
       // https://forum.babylonjs.com/t/sound-created-with-a-remote-webrtc-stream-track-does-not-seem-to-work/7047/6
       var voice = new BABYLON.Sound(
@@ -2003,15 +2012,10 @@ export class MediaStreams {
         break;
       }
     }
-    for ( var i = 0; i < this.subscribers.length; i++) {
-      var subscriber = this.subscribers[i];
-      var id = this.getClientId(subscriber);
-      if ( client.id == id ) {
-        this.subscribers.splice(i,1);
-        console.log("Removed subscriber "+client.id);
-        break;
-      }
-    }
+    var oldSize = this.subscribers.length;
+    // one client can have multiple subscribers, remove them all
+    this.subscribers = this.subscribers.filter(subscriber => this.getClientId(subscriber) != client.id);
+    console.log("Removed "+(oldSize-this.subscribers.length)+" subscribers, new size "+this.subscribers.length);
   }
   
   streamingStart( subscriber ) {
@@ -2021,11 +2025,11 @@ export class MediaStreams {
       var client = this.clients[i];
       if ( client.id == id ) {
         // matched
-        this.subscribe(client.streamToMesh, this.getStream(subscriber));
-        //this.clients.splice(i,1); // too eager
+        this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
+        //this.clients.splice(i,1); // too eager, we may need to keep it for another stream
         console.log("Audio/video stream started for avatar of client "+id)
         this.attachVideoStream(client, subscriber);
-        return;
+        break;
       }
     }
     this.subscribers.push(subscriber);
@@ -2039,11 +2043,11 @@ export class MediaStreams {
       var id = this.getClientId(subscriber);
       if ( client.id == id ) {
         // matched
-        this.subscribe(mesh, this.getStream(subscriber));
+        this.attachAudioStream(mesh, this.getStream(subscriber));
         this.attachVideoStream(client, subscriber);
-        //this.subscribers.splice(i,1); // too eager
+        //this.subscribers.splice(i,1);
         console.log("Audio/video stream connected to avatar of client "+id)
-        return;
+        //break; // don't break, there may be multiple streams
       }
     }
     this.clients.push(client);
