@@ -1780,7 +1780,27 @@ export class WorldManager {
           obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
         }
         VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+      } else {
+        this.routeEvent( obj, field, node );
       }
+    }
+  }
+  
+  routeEvent(obj, field, node) {
+    var object = obj;
+    if ( obj.container ) {
+      object = obj.container;
+    } else if ( obj.video ) {
+      object = obj.video;
+    } else {
+      console.log("Ignoring unknown event "+field+" to object "+obj.id);
+      return;      
+    }
+    if (typeof object[field] === 'function') {
+      object[field](obj);
+    //} else if (object.hasOwnProperty(field)) {
+    } else {
+      console.log("Ignoring unknown event to "+obj+": "+field);
     }
   }
 

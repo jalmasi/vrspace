@@ -232,8 +232,11 @@ class VRSpace {
     } else if ( typeof value == 'object') {
       if(value.hasOwnProperty('w')) {
         return '"'+field+'":'+this.stringifyQuaternion(value);
-      } else {
+      } else if (value.hasOwnProperty('x') || value.hasOwnProperty('_x')) {
         return '"'+field+'":'+this.stringifyVector(value);
+      } else {
+        // assuming custom object
+        return '"'+field+'":'+JSON.stringify(value);
       }
     } else {
       console.log("Unsupported datatype, ignored user event "+field+"="+value);
