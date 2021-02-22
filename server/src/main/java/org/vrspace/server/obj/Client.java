@@ -96,15 +96,18 @@ public class Client extends VRObject {
     // called like that, every client performs serialization for itself
     // event should already contain serialized message
     // dispatcher can do that
-    sendMessage(event);
-    // stop listening to inactive objects (disconnected clients)
+
     if (!event.getSource().isActive()) {
+      // stop listening to inactive objects (disconnected clients)
       event.getSource().removeListener(this);
       // CHECKME: do we wish to force scene refresh?
       if (scene != null) {
         // some clients (e.g. EventRecorder) may not have scene
         scene.setDirty();
+        scene.update();
       }
+    } else {
+      sendMessage(event);
     }
   }
 

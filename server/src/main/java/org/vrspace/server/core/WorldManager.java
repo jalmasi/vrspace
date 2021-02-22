@@ -275,6 +275,7 @@ public class WorldManager {
     }
     // then notify all listeners that the client disconnected
     client.setActive(false);
+    // TODO introduce LoginEvent
     VREvent ev = new VREvent(client, client);
     ev.addChange("active", false);
     client.notifyListeners(ev);

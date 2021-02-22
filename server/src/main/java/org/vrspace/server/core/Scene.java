@@ -136,6 +136,12 @@ public class Scene {
     }
     if (t.isActive()) {
       t.addListener(client);
+      // force client scene update
+      // TODO refactor into client class, appropriate has-scene interface
+      if (t instanceof Client && ((Client) t).getScene() != null) {
+        ((Client) t).getScene().setDirty();
+        ((Client) t).getScene().update();
+      }
     }
     allObjects.put(new ID(t), t);
   }

@@ -1632,7 +1632,10 @@ export class WorldManager {
     video.mesh.parent = parent;
           
     this.log("Added stream "+obj.id);
-      
+    
+    var initialPosition = { position: {} };
+    this.changeObject( obj, initialPosition, parent );
+    
     obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));
     if ( this.mediaStreams ) {
       this.mediaStreams.streamToMesh(obj, video.mesh);
@@ -1735,7 +1738,10 @@ export class WorldManager {
       
       this.log("Added "+obj.mesh);
       
-      // TODO: add listener to process changes
+      var initialPosition = { position: {} };
+      this.changeObject( obj, initialPosition );
+
+      // add listener to process changes
       obj.addListener((obj, changes) => this.changeObject(obj, changes));
     });
   }
