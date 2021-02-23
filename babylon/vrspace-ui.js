@@ -1510,6 +1510,7 @@ export class WorldManager {
     this.trackRotation = true; // turn off to optimize e.g. video avatars
     this.mesh = null; // used in 3rd person view
     this.mediaStreams = null; // this is set once we connect to streaming server
+    this.changeCallback = null;
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
     } else {
@@ -1877,6 +1878,10 @@ export class WorldManager {
       }      
     }
     VRSPACE.sendMyChanges(changes);
+    if ( this.changeCallback && changes.length > 0 ) {
+      this.changeCallback(changes);
+    }
+
   }
   
   checkChange( field, obj, pos, changes ) {
