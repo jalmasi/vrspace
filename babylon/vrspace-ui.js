@@ -1853,6 +1853,9 @@ export class WorldManager {
       // track camera movements
       if ( this.camera.ellipsoid ) {
         var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
+        if ( this.camera.ellipsoidOffset ) {
+          height += this.camera.ellipsoidOffset.y;
+        }
         this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
       } else {
         this.checkChange("position", this.pos, this.camera.globalPosition, changes);
