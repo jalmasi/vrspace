@@ -1511,6 +1511,7 @@ export class WorldManager {
     this.mesh = null; // used in 3rd person view
     this.mediaStreams = null; // this is set once we connect to streaming server
     this.changeCallback = null;
+    this.defaultPosition = new BABYLON.Vector3( 1000, 1000, 1000 );
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
     } else {
@@ -1634,8 +1635,16 @@ export class WorldManager {
           
     this.log("Added stream "+obj.id);
     
-    var initialPosition = { position: {} };
-    this.changeObject( obj, initialPosition, parent );
+    if ( obj.position.x == 0 && obj.position.y == 0 && obj.position.z == 0) {
+      // avatar position has not yet been initialized, use default
+      parent.position = this.defaultPosition;
+      obj.position = this.defaultPosition;
+      var initialPosition = { position: {} };
+      this.changeObject( obj, initialPosition, parent );
+    } else {
+      // apply known position
+      parent.position = new BABYLON.Vector3(obj.position.x, obj.position.y, obj.position.z)
+    }
     
     obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));
     if ( this.mediaStreams ) {
