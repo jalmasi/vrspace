@@ -1511,6 +1511,7 @@ export class WorldManager {
     this.mesh = null; // used in 3rd person view
     this.mediaStreams = null; // this is set once we connect to streaming server
     this.changeCallback = null;
+    this.avatarFactory = this.createAvatar;
     this.defaultPosition = new BABYLON.Vector3( 1000, 1000, 1000 );
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
@@ -1614,10 +1615,14 @@ export class WorldManager {
     }
   }
 
+  createAvatar() {
+    return new VideoAvatar(this.scene, null, this.customOptions);
+  }
+  
   loadStream( obj ) {
     this.log("loading stream for "+obj.id);
     
-    var video = new VideoAvatar(this.scene, null, this.customOptions);
+    var video = this.avatarFactory();
     video.autoStart = false;
     video.autoAttach = false;
     if ( obj.name ) {
