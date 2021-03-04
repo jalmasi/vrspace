@@ -29,6 +29,14 @@ import org.vrspace.server.dto.VREvent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * This is a bad test using hardcoded timeouts. It may fail occasionally until
+ * EventRecorder provides some additional notifications, e.g. that the loop has
+ * ended.
+ * 
+ * @author joe
+ *
+ */
 @RunWith(SpringRunner.class)
 public class EventRecorderTest {
   @Mock
@@ -153,9 +161,9 @@ public class EventRecorderTest {
     Thread.sleep(200);
     // CHECKME: valid way to test that loop has stopped?
     recorder.setLoop(false);
-    Thread.sleep(500);
+    Thread.sleep(1000);
     verify(playingSession, atLeast(4)).sendMessage(any(TextMessage.class));
-    Thread.sleep(100);
+    Thread.sleep(500);
     verifyNoMoreInteractions(playingSession);
   }
 
@@ -185,12 +193,12 @@ public class EventRecorderTest {
 
     // test playing
     recorder.play(viewer);
-    Thread.sleep(100);
+    Thread.sleep(500);
     // CHECKME: valid way to test that loop has stopped?
     recorder.setLoop(false);
-    Thread.sleep(200);
+    Thread.sleep(500);
     verify(playingSession, atLeast(2)).sendMessage(any(TextMessage.class));
-    Thread.sleep(100);
+    Thread.sleep(500);
     verifyNoMoreInteractions(playingSession);
   }
 }
