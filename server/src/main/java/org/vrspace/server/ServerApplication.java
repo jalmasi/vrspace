@@ -7,9 +7,8 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Pattern;
 
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
 import org.neo4j.ogm.config.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -52,6 +51,8 @@ public class ServerApplication {
   private String neoUser;
   @Value("${spring.data.neo4j.password:N/A}")
   private String neoPassword;
+
+  private Pattern htmlTag = Pattern.compile("<.+?>");
 
   @Bean
   public Configuration neoConfig() throws URISyntaxException, IOException {
@@ -100,6 +101,16 @@ public class ServerApplication {
     return builder;
   }
 
+  /**
+   * Removes HTML tags from a JSON string
+   */
+  private String removeHtmlTags(String arg) {
+    return htmlTag.matcher(arg).replaceAll("");
+  }
+
+  /**
+   * Converts JSON string to Java string
+   */
   public class SanitizeStringDeserializer extends StdScalarDeserializer<String> {
     private static final long serialVersionUID = 1L;
 
@@ -109,10 +120,13 @@ public class ServerApplication {
 
     @Override
     public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-      return Jsoup.clean(p.getText(), Whitelist.simpleText());
+      return removeHtmlTags(p.getText());
     }
   }
 
+  /**
+   * Converts Java string to JSON string
+   */
   public class SanitizeStringSerializer extends StdScalarSerializer<String> {
     private static final long serialVersionUID = 1L;
 
@@ -122,7 +136,7 @@ public class ServerApplication {
 
     @Override
     public void serialize(String value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-      String clean = Jsoup.clean(value, Whitelist.simpleText());
+      String clean = removeHtmlTags(value);
       gen.writeRawValue("\"" + clean + "\"");
     }
   }

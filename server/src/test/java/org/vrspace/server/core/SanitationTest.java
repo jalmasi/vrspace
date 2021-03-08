@@ -34,11 +34,12 @@ public class SanitationTest {
   private ArgumentCaptor<WebSocketMessage<?>> message;
 
   private String evil = "a <script>javascript:alert('pwned')</script> string";
+  private String good = "a javascript:alert('pwned') string";
 
   @Test
   public void testString() throws Exception {
     String ret = jackson.readValue("\"" + evil + "\"", String.class);
-    assertEquals("a  string", ret);
+    assertEquals(good, ret);
   }
 
   @Test
@@ -64,10 +65,10 @@ public class SanitationTest {
     Dispatcher d = new Dispatcher(jackson);
     d.dispatch(event);
     // CHECKME: why single space?
-    assertEquals("a string", client.getName());
+    assertEquals(good, client.getName());
 
     // distributed sanitized string
     String msg = ((TextMessage) message.getValue()).getPayload();
-    assertTrue(msg.contains("{\"name\":\"a  string\"}"));
+    assertTrue(msg.contains("{\"name\":\"" + good + "\"}"));
   }
 }

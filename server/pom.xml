@@ -90,13 +90,6 @@
 	    <scope>test</scope>
 		</dependency>
 		
-		<!-- sanitizer -->
-		<dependency>
-      <groupId>org.jsoup</groupId>
-      <artifactId>jsoup</artifactId>
-      <version>1.13.1</version>
-    </dependency>
-  
     <!-- audio/video streaming -->
     <dependency>
       <groupId>io.openvidu</groupId>
