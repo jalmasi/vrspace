@@ -137,7 +137,7 @@ public class ServerApplication {
     @Override
     public void serialize(String value, JsonGenerator gen, SerializerProvider provider) throws IOException {
       String clean = removeHtmlTags(value);
-      gen.writeRawValue("\"" + clean + "\"");
+      gen.writeString(clean);
     }
   }
 
