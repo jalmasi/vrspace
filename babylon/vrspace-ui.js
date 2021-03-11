@@ -1615,14 +1615,14 @@ export class WorldManager {
     }
   }
 
-  createAvatar() {
+  createAvatar(obj) {
     return new VideoAvatar(this.scene, null, this.customOptions);
   }
   
   loadStream( obj ) {
     this.log("loading stream for "+obj.id);
     
-    var video = this.avatarFactory();
+    var video = this.avatarFactory(obj);
     video.autoStart = false;
     video.autoAttach = false;
     if ( obj.name ) {
@@ -1642,7 +1642,7 @@ export class WorldManager {
     
     if ( obj.position.x == 0 && obj.position.y == 0 && obj.position.z == 0) {
       // avatar position has not yet been initialized, use default
-      parent.position = this.defaultPosition;
+      parent.position = new BABYLON.Vector3(this.defaultPosition.x,this.defaultPosition.y,this.defaultPosition.z); 
       obj.position = this.defaultPosition;
       var initialPosition = { position: {} };
       this.changeObject( obj, initialPosition, parent );
