@@ -120,8 +120,11 @@ public class Client extends VRObject {
         session.sendMessage(new TextMessage(json));
       }
     } catch (IOException e) {
-      log.error("Can't send message " + obj, e);
+      log.warn("Can't send message " + obj + ": " + e);
     } catch (IllegalStateException e) {
+      log.warn("Can't send message " + obj + ": " + e);
+    } catch (Exception e) {
+      // I don't see how this can happen, but if it does, make sure it's logged
       log.error("Can't send message " + obj, e);
     }
 
