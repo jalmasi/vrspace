@@ -383,7 +383,10 @@ class VRSpace {
     } else if ( "Welcome" in obj) {
       var welcome = obj.Welcome;
       this.log("welcome "+welcome.client.id);
-      this.me = Object.assign(Client,welcome.client);
+      if ( ! this.me ) {
+        // FIXME: Uncaught TypeError: Cannot assign to read only property of function class
+        this.me = Object.assign(Client,welcome.client);        
+      }
       this.welcomeListeners.forEach((listener)=>listener(welcome));
     } else if ( "response" in obj) {
       this.log("Response to command");
