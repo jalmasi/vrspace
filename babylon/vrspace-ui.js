@@ -1167,10 +1167,14 @@ export class VRHelper {
       console.log("VR helper already intialized");
       this.addFloors();
     } else {
-      xrHelper = await this.world.scene.createDefaultXRExperienceAsync({floorMeshes: this.world.getFloorMeshes()});
+      try {
+        xrHelper = await this.world.scene.createDefaultXRExperienceAsync({floorMeshes: this.world.getFloorMeshes()});        
+      } catch ( err ) {
+        console.log("Can't init XR:"+err);
+      }
     }
 
-    if (xrHelper.baseExperience) {
+    if (xrHelper && xrHelper.baseExperience) {
       console.log("Using XR helper");
       this.vrHelper = xrHelper;
 
@@ -1513,6 +1517,7 @@ export class WorldManager {
     this.changeCallback = null;
     this.avatarFactory = this.createAvatar;
     this.defaultPosition = new BABYLON.Vector3( 1000, 1000, 1000 );
+    this.defaultRotation = new BABYLON.Vector3( 0, 0, 0 );
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
     } else {
@@ -1649,6 +1654,19 @@ export class WorldManager {
     } else {
       // apply known position
       parent.position = new BABYLON.Vector3(obj.position.x, obj.position.y, obj.position.z)
+    }
+    
+    if ( obj.rotation ) {
+      if ( obj.rotation.x == 0 && obj.rotation.y == 0 && obj.rotation.z == 0) {
+        // avatar rotation has not yet been initialized, use default
+        parent.rotation = new BABYLON.Vector3(this.defaultRotation.x,this.defaultRotation.y,this.defaultRotation.z); 
+        obj.rotation = this.defaultRotation;
+        var initialRotation = { rotation: {} };
+        this.changeObject( obj, initialRotation, parent );
+      } else {
+        // apply known rotation
+        parent.rotation = new BABYLON.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z)
+      }
     }
     
     obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));
@@ -2208,9 +2226,10 @@ export class VideoAvatar {
     if ( ! this.deviceId ) {
       var devices = await navigator.mediaDevices.enumerateDevices();
       for (var idx = 0; idx < devices.length; ++idx) {
-        //console.log(devices[idx]);
         if (devices[idx].kind === "videoinput") {
+          console.log(devices[idx]);
           this.deviceId = devices[idx].deviceId;
+          break;
         }
       }
     }
