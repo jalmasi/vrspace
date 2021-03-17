@@ -1393,6 +1393,7 @@ export class World {
     if ( ground ) {
       this.ground = ground;
     }
+    await this.createEffects();
     await this.createPhysics();
   }
   async createCamera() {
@@ -1402,6 +1403,7 @@ export class World {
   async createShadows() {}
   async createSkyBox() {}
   async createGround() {}
+  async createEffects() {};
   async createPhysics() {};
   async createTerrain() {}
   
