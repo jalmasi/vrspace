@@ -173,16 +173,16 @@ export class VRSpaceUI {
     xAnim.setKeys(xKeys);
     
     var yAnim = new BABYLON.Animation("yAnim "+mesh.id, field+".y", fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-    var xKeys = []; 
-    xKeys.push({frame:0, value: 0});
-    xKeys.push({frame:1, value: 0});
-    yAnim.setKeys(xKeys);
+    var yKeys = []; 
+    yKeys.push({frame:0, value: 0});
+    yKeys.push({frame:1, value: 0});
+    yAnim.setKeys(yKeys);
 
     var zAnim = new BABYLON.Animation("zAnim "+mesh.id, field+".z", fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-    var xKeys = []; 
-    xKeys.push({frame:0, value: 0});
-    xKeys.push({frame:1, value: 0});
-    zAnim.setKeys(xKeys);
+    var zKeys = []; 
+    zKeys.push({frame:0, value: 0});
+    zKeys.push({frame:1, value: 0});
+    zAnim.setKeys(zKeys);
 
     group.addTargetedAnimation(xAnim, mesh);
     group.addTargetedAnimation(yAnim, mesh);
