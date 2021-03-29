@@ -1381,7 +1381,7 @@ export class World {
     // TODO dispose of old shadow generator
     var shadowGenerator = await this.createShadows();
     if ( shadowGenerator ) {
-      this.shadowGenertor = shadowGenerator;
+      this.shadowGenerator = shadowGenerator;
     }
     // TODO dispose of old skybox
     var skyBox = await this.createSkyBox();
@@ -1406,6 +1406,31 @@ export class World {
   async createEffects() {};
   async createPhysics() {};
   async createTerrain() {}
+  
+  async dispose() {
+    if ( this.camera ) {
+      this.camera.dispose();
+      this.camera = null;    
+    }
+    if ( this.skyBox ) {
+      this.skyBox.dispose();
+      this.skyBox.material.dispose();
+      this.skyBox = null;    
+    }
+    if ( this.light ) {
+      this.light.dispose();
+      this.light = null;
+    }
+    if ( this.shadowGenerator ) {
+      this.shadowGenerator.dispose();
+      this.shadowGenerator = null;    
+    }
+    if ( this.scene && this.scene.lights ) {
+      this.scene.lights.forEach( (l) => {
+        l.dispose();
+      });
+    }
+  }
   
   initXR() {
     if ( ! this.vrHelper ) {
