@@ -41,6 +41,8 @@ public class Client extends VRObject {
   transient private Quaternion leftArmRot;
   @Transient
   transient private Quaternion rightArmRot;
+  @Transient
+  transient private Double userHeight;
 
   // CHECKME: this needs to get refactored eventually
   @JsonIgnore

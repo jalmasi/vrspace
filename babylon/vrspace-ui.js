@@ -1692,6 +1692,7 @@ export class WorldManager {
     var dir = new ServerFolder( baseUrl, dir, fix );
     var avatar = new Avatar(this.scene, dir);
     avatar.fps = this.fps;
+    avatar.userHeight = obj.userHeight;
     avatar.debug = true;
     avatar.load( (c) => {
       // FIXME: this is not container but avatar

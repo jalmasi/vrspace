@@ -76,6 +76,7 @@ class Client extends VRObject {
     this.rightArmPos = { x: null, y: null, z: null };
     this.leftArmRot = { x: null, y: null, z: null, w: null };
     this.rightArmRot = { x: null, y: null, z: null, w: null };
+    this.userHeight = 1.8;
     this.token = null; // CHECKME: string, should be object?
   }
   hasAvatar() {
@@ -238,8 +239,10 @@ class VRSpace {
         // assuming custom object
         return '"'+field+'":'+JSON.stringify(value);
       }
+    } else if ( typeof value == 'number') {
+      return '"'+field+'":'+value;
     } else {
-      console.log("Unsupported datatype, ignored user event "+field+"="+value);
+      console.log("Unsupported datatype "+typeof value+", ignored user event "+field+"="+value);
       return '';
     }
   }

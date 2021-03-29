@@ -378,7 +378,8 @@ export class AvatarSelection extends World {
         }
         var enter = () => {
           worldManager.VRSPACE.removeWelcomeListener(enter);
-          worldManager.VRSPACE.sendMy('mesh', avatarUrl)
+          worldManager.VRSPACE.sendMy('mesh', avatarUrl);
+          worldManager.VRSPACE.sendMy('userHeight', userHeight);
           // CHECKME better way to flag publishing video?
           worldManager.VRSPACE.addWelcomeListener((welcome)=>worldManager.pubSub(welcome.client, 'video' === avatarUrl));
           // TODO add enter command to API
