@@ -398,6 +398,7 @@ export class AvatarSelection extends World {
 
       this.vrHelper.stopTracking();
       this.camera.detachControl(this.canvas);
+      this.dispose();
       world.WORLD.init(this.engine, portal.name, this.scene, afterLoad, portal.worldUrl()+"/").then((newScene)=>{
         console.log(world);
         this.vrHelper.clearFloors();
@@ -415,9 +416,9 @@ export class AvatarSelection extends World {
             // TODO: this is to simulate mouse click/screen tap
             gamepad.onButtonUpObservable.add( (number) => console.log(number) );          
           }
+          // CHECKME: why?
           this.scene.activeCamera = world.WORLD.camera;
         }
-        this.dispose();
         
       });
     })
@@ -442,7 +443,8 @@ export class AvatarSelection extends World {
     if ( this.guiManager ) {
       this.guiManager.dispose();          
     }
-    this.scene = null; // next call to render loop stops the current loop
+    // CHECKME: this scene should be cleaned up, but when?
+    //this.scene = null; // next call to render loop stops the current loop
   }  
 }
 
