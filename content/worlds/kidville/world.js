@@ -3,17 +3,8 @@ import { World } from '../../../babylon/vrspace-ui.js';
 export class Kidville extends World {
   async createCamera() {
     // Add a camera to the scene and attach it to the scene
-    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(-97.51, 10, 62.72), this.scene);
-    this.camera.maxZ = 100000;
-    this.camera.minZ = 0;
+    this.camera = this.universalCamera(new BABYLON.Vector3(-97.51, 10, 62.72));
     this.camera.setTarget(new BABYLON.Vector3(0,0,0));
-    // not required, world.init() does that
-    //this.camera.attachControl(canvas, true);
-    this.camera.applyGravity = true;
-    this.camera.speed = 0.5;
-    //Set the ellipsoid around the camera (e.g. your player's size)
-    this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
-    this.camera.checkCollisions = true;
   }
   async createLights() {
     var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), this.scene);

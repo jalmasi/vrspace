@@ -2,19 +2,9 @@ import { World } from '../../../babylon/vrspace-ui.js';
 
 export class Paris extends World {
   async createCamera() {
-    // Add a camera to the scene and attach it to the canvas
-    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(61.153, 10.676, -87.172), scene);
-    this.camera.maxZ = 100000;
-    this.camera.minZ = 0;
+    this.camera = this.universalCamera(new BABYLON.Vector3(61.153, 10.676, -87.172));
     this.camera.setTarget(new BABYLON.Vector3(0,-10,0));
-    // not required, world.init() does that
-    //this.camera.attachControl(canvas, true);
-    this.camera.applyGravity = true;
-    this.camera.speed = 1;
-    //Set the ellipsoid around the camera (e.g. your player's size)
-    this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
-    //camera.ellipsoidOffset = -0.2
-    this.camera.checkCollisions = true;
+    this.camera.speed = 0.5;
   }
   async createLights() {
     // Add lights to the scene
@@ -47,16 +37,12 @@ export class Paris extends World {
     return mesh.name == "node167" || mesh.name == "node3" || mesh.name == "node30" || mesh.name == "node31";
   }
   
-  collisions(state) {
-    if ( this.sceneMeshes ) {
-      for ( var i=0; i<this.sceneMeshes.length; i++ ) {
-        if ( this.sceneMeshes[i].material && this.sceneMeshes[i].material.name != 'SidewalkTree' ) {
-          this.sceneMeshes[i].checkCollisions = state;
-        }
-      }
+  setMeshCollisions( mesh, state ) {
+    if ( mesh.material && mesh.material.name != 'SidewalkTree' ) {
+      mesh.checkCollisions = state;
     }
   }
-
+  
   loaded(file, mesh) {
     for ( var i = 0; i < this.container.materials.length; i++ ) {
       if ( this.container.materials[i].name == 'SidewalkTree' ) {

@@ -12,8 +12,8 @@ document.head.appendChild(terrainScript);
 export class PersianCity extends World {
   async createGround() {
     //Ground
-    this.ground = BABYLON.Mesh.CreatePlane("ground", 10000.0, scene);
-    this.ground.material = new BABYLON.StandardMaterial("groundMat", scene);
+    this.ground = BABYLON.Mesh.CreatePlane("ground", 10000.0, this.scene);
+    this.ground.material = new BABYLON.StandardMaterial("groundMat", this.scene);
     this.ground.material.diffuseColor = new BABYLON.Color3(.5, 1, .5);
     this.ground.material.backFaceCulling = false;
     this.ground.material.alpha = 0;
@@ -21,49 +21,39 @@ export class PersianCity extends World {
     this.ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
     this.ground.checkCollisions = true;
     
-    this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", scene)
-    var terrainTexture = new BABYLON.Texture(this.assetPath("textures/LoamWalls0012_2_S_1_1_baseColor.jpeg"), scene);
+    this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", this.scene)
+    var terrainTexture = new BABYLON.Texture(this.assetPath("textures/LoamWalls0012_2_S_1_1_baseColor.jpeg"), this.scene);
     this.terrainMaterial.ambientTexture = terrainTexture;
     this.terrainMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     terrainTexture.uScale = 4.0;
     terrainTexture.vScale = terrainTexture.uScale;
 
     // box to fix ground texture flickering
-    var box = BABYLON.MeshBuilder.CreateBox("fixBox", {width:1000, depth:1000,height:.10}, scene); // default box
+    var box = BABYLON.MeshBuilder.CreateBox("fixBox", {width:1000, depth:1000,height:.10}, this.scene); // default box
     box.position = new BABYLON.Vector3(-40,0,-20);
     box.material = this.terrainMaterial;
     box.checkCollisions = true;
   }
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, this.scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
     skyboxMaterial.backFaceCulling = false;
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     return skybox;
   }
   async createCamera() {
-    // Add a camera to the scene and attach it to the canvas
-    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(60, 23, -54), scene);
-    this.camera.maxZ = 100000;
-    this.camera.minZ = 0;
+    this.camera = this.universalCamera(new BABYLON.Vector3(60, 23, -54));
     this.camera.setTarget(new BABYLON.Vector3(-50,-10,-50));
-    // not required, world.init() does that
-    //this.camera.attachControl(canvas, true);
-    this.camera.applyGravity = true;
-    this.camera.speed = 0.5;
-    //Set the ellipsoid around the camera (e.g. your player's size)
-    this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
-    this.camera.checkCollisions = true;
   }
   async createLights() {
     // Add lights to the scene
-    var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), scene);
+    var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), this.scene);
     light.intensity = 2;
-    var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
+    var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
     return light1;
   }
 
@@ -75,18 +65,10 @@ export class PersianCity extends World {
     return [ this.ground ];
   }
 
-  collisions(state) {
-    if ( this.sceneMeshes ) {
-      console.log("collisions: "+state);
-      for ( var i=0; i<this.sceneMeshes.length; i++ ) {
-        if ( this.sceneMeshes[i].material &&
-          ( this.sceneMeshes[i].material.id.startsWith("LoamWalls") || this.sceneMeshes[i].material.id.startsWith("Brick") )) {
-          this.sceneMeshes[i].checkCollisions = state;
-        }
-      }
+  setMeshCollisions( mesh, state ) {
+    if ( mesh.material && ( mesh.material.id.startsWith("LoamWalls") || mesh.material.id.startsWith("Brick") )) {
+      mesh.checkCollisions = state;
     }
-    //terrain.mesh.checkCollisions = state;
-    //ground.checkCollisions = state;
   }
 
   loaded( file, mesh ) {

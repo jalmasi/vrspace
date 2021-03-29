@@ -14,19 +14,8 @@ export class Spaceport extends World {
   }
 
   async createCamera() {
-    // Add a camera to the scene and attach it to the canvas
-    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(-280, 2.5, -260), this.scene);
-    this.camera.maxZ = 100000;
-    this.camera.minZ = 0;
+    this.camera = this.universalCamera(new BABYLON.Vector3(-280, 2.5, -260));
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
-    // not required, world.init() does that
-    //this.camera.attachControl(canvas, true);
-    this.camera.applyGravity = true;
-    this.camera.speed = 0.5
-    //Set the ellipsoid around the camera (e.g. your player's size)
-    this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
-    //camera.ellipsoidOffset = -0.2
-    this.camera.checkCollisions = true;
   }
 
   async createLights() {
@@ -58,13 +47,9 @@ export class Spaceport extends World {
     return mesh.name == "node9";
   }
   
-  collisions(state) {
-    if ( this.sceneMeshes ) {
-      for ( var i=0; i<this.sceneMeshes.length; i++ ) {
-        if ( this.sceneMeshes[i].name != 'node10' ) {
-          this.sceneMeshes[i].checkCollisions = state;
-        }
-      }
+  setMeshCollisions( mesh, state ) {
+    if ( mesh.name != 'node10' ) {
+      mesh.checkCollisions = state;
     }
   }
   

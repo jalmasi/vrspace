@@ -2,19 +2,8 @@ import { World } from '../../../babylon/vrspace-ui.js';
 
 export class Cave extends World {
   async createCamera() {
-    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(-44.5, 18, 24.5), this.scene);
-    this.camera.maxZ = 100000;
-    this.camera.minZ = 0;
+    this.camera = this.universalCamera(new BABYLON.Vector3(-44.5, 18, 24.5));
     this.camera.setTarget(new BABYLON.Vector3(-54.5,4,-33));
-    // not required, world.init() does that
-    //this.camera.attachControl(canvas, true);
-    this.camera.applyGravity = true;
-    this.camera.speed = 0.5;
-    //Set the ellipsoid around the camera (e.g. your player's size)
-    this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
-    this.scene.collisionsEnabled = true;
-    this.camera.checkCollisions = true;
-    //camera._needMoveForGravity = true; // otherwise the falling stops - after load!
   }
   async createLights() {
     // Add lights to the scene

@@ -44,18 +44,8 @@ export class Aladinville extends World {
     return ground;
   }
   async createCamera() {
-    this.camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(-8, 10, -60), this.scene);
-    this.camera.maxZ = 100000;
-    this.camera.minZ = 0;
+    this.camera = this.universalCamera(new BABYLON.Vector3(-8, 10, -60));
     this.camera.setTarget(new BABYLON.Vector3(0,10,0));
-    // not required, world.init() does that
-    //this.camera.attachControl(canvas, true);
-    this.camera.applyGravity = true;
-    this.camera.speed = 0.5;
-    //Set the ellipsoid around the camera (e.g. your player's size)
-    this.camera.ellipsoid = new BABYLON.Vector3(.5, 1, .5);
-    //camera.ellipsoidOffset = -0.2
-    this.camera.checkCollisions = true;
   }
   
   async createLights() {
@@ -85,13 +75,9 @@ export class Aladinville extends World {
     return mesh.name == "ground";
   }
   
-  collisions(state) {
-    if ( this.sceneMeshes ) {
-      for ( var i=0; i<this.sceneMeshes.length; i++ ) {
-        if ( collisionObjects.includes(this.sceneMeshes[i].id) ) {
-          this.sceneMeshes[i].checkCollisions = state;
-        }
-      }
+  setMeshCollisions( mesh, state ) {
+    if ( collisionObjects.includes(mesh.id) ) {
+      mesh.checkCollisions = state;
     }
   }
 

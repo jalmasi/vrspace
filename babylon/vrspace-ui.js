@@ -1407,6 +1407,31 @@ export class World {
   async createPhysics() {};
   async createTerrain() {}
   
+  // utility method, creates camera and sets defaults
+  universalCamera(pos, name) {
+    if ( !name ) {
+      name = "UniversalCamera";
+    } 
+    var camera = new BABYLON.UniversalCamera(name, pos, this.scene);
+    camera.maxZ = 100000;
+    camera.minZ = 0;
+    camera.applyGravity = true;
+    camera.speed = 0.2;
+    // 1.8 m high:
+    camera.ellipsoid = new BABYLON.Vector3(.5, .9, .5);
+    // eyes at 1.6 m:
+    camera.ellipsoidOffset = new BABYLON.Vector3(0, .2, 0);
+    camera.checkCollisions = true;
+    
+    camera.keysDown = [40, 83]; // down, S
+    camera.keysLeft = [37, 65]; // left, A
+    camera.keysRight = [39, 68]; // right, D
+    camera.keysUp = [38, 87]; // up, W
+    camera.keysUpward = [36, 33, 32]; // home, pgup, space
+    
+    return camera;    
+  }
+  
   async dispose() {
     if ( this.camera ) {
       this.camera.dispose();
@@ -1462,9 +1487,13 @@ export class World {
   _collisions( meshes, state ) {
     if ( meshes ) {
       for ( var i=0; i<meshes.length; i++ ) {
-        meshes[i].checkCollisions = state;
+        this.setMeshCollisions( meshes[i], state );
       }
     }
+  }
+  
+  setMeshCollisions(mesh, state) {
+    mesh.checkCollisions = state;    
   }
   
   load(callback) {
