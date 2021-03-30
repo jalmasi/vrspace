@@ -1,27 +1,49 @@
+/**
+GLTF 3D Avatar.
+Once GLTF file is loaded, skeleton is inspected for existing arms, legs and head that can be animated.
+Animation groups are also inspected and optionally modified.
+Optional fixes can be applied to an avatar, typically position of an avatar, or changing the animation.
+ */
 export class Avatar {
+  /**
+  @param scene
+  @param folder ServerFolder with the content
+  @param shadowGenerator optional to cast shadows
+   */
   constructor(scene, folder, shadowGenerator) {
     // parameters
     this.scene = scene;
+    /** ServerFolder with content path */
     this.folder = folder;
+    /** Optional ShadowGenerator */
     this.shadowGenerator = shadowGenerator;
+    /** Mirror mode, default true. (Switch left/right side) */
     this.mirror = true;
+    /** Animation frames per second, default 10 */
     this.fps = 10;
+    /** Height of the user, default 1.8 */
     this.userHeight = 1.8;
+    /** Height of the ground, default 0 */
     this.groundHeight = 0;
+    /** Object containing fixes */
     this.fixes = null;
+    /** Wheter to generate animations for arm movement, default true */
     this.animateArms = true;
-    // author, license, source, title
+    /** Object containing author, license, source, title */
     this.info = null;
     // state variables
+    /** Once the avatar is loaded an processed, body contains body parts, e.g. body.leftArm, body.rightLeg, body.neck */
+    this.body = {};
+    /** Contains the skeleton once the avatar is loaded and processed */
+    this.skeleton = null;
     this.bonesTotal = 0;
     this.bonesProcessed = [];
     this.bonesDepth = 0;
     this.animationTargets = [];
-    this.body = {};
     this.character = null;
     this.activeAnimation = null;
     this.rootMesh = null;
-    // debug
+    /** Debug output, default false */
     this.debug = false;
     this.debugViewer1;
     this.debugViewer2;
@@ -114,6 +136,7 @@ export class Avatar {
     }
   }
 
+  /** Dispose of everything */
   dispose() {
     this.character.dispose();
     if ( this.debugViewer1 ) {
@@ -125,6 +148,10 @@ export class Avatar {
     // TODO also dispose of materials and textures (asset container)
   }
 
+  /** 
+  Utility method, dispose of avatar and return this one.
+  @param avatar optional avatar to dispose of
+   */
   replace(avatar) {
     if (avatar) {
       avatar.dispose();
@@ -216,6 +243,10 @@ export class Avatar {
       }
   }
 
+  /**
+  Load fixes from json file in the same folder, with the same name, and suffix .fixes.
+  Called from load().
+   */
   async loadFixes() {
     if ( this.folder.related ) {
       this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.related);
@@ -229,6 +260,13 @@ export class Avatar {
     }
   }
 
+  /** 
+  Slice an animation group
+  @param group AnimationGroup to slice
+  @param start starting key
+  @param end ending key
+  @returns new AnimationGroup containing slice of original animations
+  */
   sliceGroup( group, start, end ) {
     var newGroup = new BABYLON.AnimationGroup(group.name+":"+start+"-"+end);
     for ( var i = 0; i < group.targetedAnimations.length; i++ ) {
@@ -240,6 +278,13 @@ export class Avatar {
     return newGroup;
   }
 
+  /** 
+  Slice an animation
+  @param animation Animation to slice
+  @param start starting key
+  @param end ending key
+  @returns new Animation containing slice of original animation
+  */
   sliceAnimation(animation, start, end) {
     var keys = animation.getKeys();
     var slice = [];
@@ -259,6 +304,10 @@ export class Avatar {
     return ret;
   }
 
+  /** 
+  Returns all animation groups of this avatar.
+  Applies fixes first, if any.
+  */
   getAnimationGroups() {
     if (!this.animationGroups) {
       var loopAnimations = true;
@@ -302,10 +351,17 @@ export class Avatar {
     return this.animationGroups;
   }
 
+  /** Returns file name of this avatar, consisting of folder name and scene file name */
   getUrl() {
     return this.folder.url()+"/scene.gltf";
   }
   
+  /**
+  Loads the avatar.
+  @param success callback to execute on success
+  @param progress optional progress indicator, passed progress event
+  @param failure TODO
+   */
   load(success, progress, failure) {
     this.loadFixes().then( () => {
       this.log("loading from "+this.folder.url());
@@ -331,12 +387,17 @@ export class Avatar {
     });
   }
 
+  /** Returns position of the the head 'bone' */
   headPos() {
     var head = this.skeleton.bones[this.body.head];
     var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).add(this.rootMesh.position);
     return headPos;
   }
 
+  /** 
+  Returns absolute value of vector, i.e. Math.abs() of every value
+  @param vec Vector3 to get absolute
+   */
   absVector(vec) {
     var ret = new BABYLON.Vector3();
     ret.x = Math.abs(vec.x);
@@ -345,12 +406,20 @@ export class Avatar {
     return ret;
   }
 
+  /**
+  Returns rounded value of vector, i.e. Math.round() of every value
+  @param vec Vector3 to round
+   */
   roundVector(vec) {
     vec.x = Math.round(vec.x);
     vec.y = Math.round(vec.y);
     vec.z = Math.round(vec.z);
   }
 
+  /**
+  Look at given target. Head position is calculated without any bone limits.
+  @param t target Vector3
+   */
   lookAt( t ) {
     var head = this.skeleton.bones[this.body.head];
 
@@ -388,10 +457,16 @@ export class Avatar {
     return ret.subtract(limb.frontAxis.axis).subtract(limb.sideAxis.axis);
   }
 
+  /** Debugging helper, draws a vector between given points */
   drawVector(from, to) {
     BABYLON.MeshBuilder.CreateLines("vector-"+from+"-"+to, {points:[from,to]}, this.scene);
   }
 
+  /**
+  Move given arm towards given target. Uses simplified 2-joint IK.
+  @param arm arm to move
+  @param t target position
+   */
   reachFor( arm, t ) {
 
     var upperArm = this.skeleton.bones[arm.upper];
@@ -496,7 +571,7 @@ export class Avatar {
     return quat;
   }
 
-  // TODO animate rotations here
+  // move an arms, optionally creates/updates arm animation
   renderArmRotation( arm ) {
     var upperArm = this.skeleton.bones[arm.upper];
     var lowerArm = this.skeleton.bones[arm.lower];
@@ -537,6 +612,11 @@ export class Avatar {
     anim.animation.getKeys()[1].value = dest;
   }
 
+  /**
+  Bend/stretch arm to a length
+  @param arm
+  @param length
+   */
   bendArm( arm, length ) {
     var ret = true;
     var upperArm = this.skeleton.bones[arm.upper];
@@ -569,31 +649,54 @@ export class Avatar {
     return (this.body.leftLeg.upperLength + this.body.leftLeg.lowerLength + this.body.rightLeg.upperLength + this.body.rightLeg.lowerLength)/2;
   }
 
+  /**
+  Set avatar position. Also sets ground level.
+  @param pos postion
+   */
   setPosition( pos ) {
     this.rootMesh.position.x = pos.x;
     this.groundLevel( pos.y );
     this.rootMesh.position.z = pos.z;
   }
 
+  /** 
+  Set avatar rotation
+  @param quat Quaternion 
+  */
   setRotation( quat ) {
     this.rootMesh.rotationQuaternion = quat;
   }
 
+  /** 
+  Sets the ground level
+  @param y height of the ground at current position
+   */
   groundLevel( y ) {
     this.groundHeight = y;
     this.rootMesh.position.y = this.rootMesh.position.y + y;
   }
 
+  /**
+  Moves the avatar to given height above the ground
+  @param height jump how high
+   */
   jump( height ) {
     this.rootMesh.position.y = this.groundHeight + height;
   }
 
+  /**
+  Stand up straight, at the ground, legs fully stretched
+   */
   standUp() {
     this.jump(0);
     this.bendLeg( this.body.leftLeg, 10 );
     this.bendLeg( this.body.rightLeg, 10 );
   }
 
+  /**
+  Rise a bit
+  @param height rise how much
+   */
   rise( height ) {
     if ( height < 0.001 ) {
       // ignoring anything less than 1mm
@@ -611,6 +714,10 @@ export class Avatar {
     this.rootMesh.position.y += height;
   }
 
+  /**
+  Crouch a bit
+  @param height how much
+   */
   crouch( height ) {
     if ( height < 0.001 ) {
       // ignoring anything less than 1mm
@@ -629,6 +736,11 @@ export class Avatar {
     this.rootMesh.position.y -= height;
   }
 
+  /**
+  Bend/stretch leg to a length
+  @param leg
+  @param length
+   */
   bendLeg( leg, length ) {
     if ( length < 0 ) {
       console.log("ERROR: can't bend leg to "+length);
@@ -682,7 +794,11 @@ export class Avatar {
     return length;
   }
 
-  // lenght of an arm or leg
+  /**
+  Returns lenght of an arm or leg, in absolute world coordinates.
+  @param limb an arm or leg
+  @returns total length of lower and upper arm/leg
+   */
   calcLength(limb) {
     var upper = this.skeleton.bones[limb.upper];
     var lower = this.skeleton.bones[limb.lower];
@@ -697,6 +813,10 @@ export class Avatar {
     this.log("Length of "+upper.name+": "+limb.upperLength+", "+lower.name+": "+limb.lowerLength);
   }
 
+  /** 
+  Returns total weight of a vector, x+y+z
+  @param vector Vector3 to sum 
+  */
   sum(vector) {
     return vector.x+vector.y+vector.z;
   }
@@ -810,14 +930,25 @@ export class Avatar {
     return ret;
   }
 
+  /**
+  Converts rotation quaternion of a node to euler angles
+  @param node
+  @returns Vector3 containing rotation around x,y,z
+   */
   euler(node) {
     return node.rotationQuaternion.toEulerAngles();
   }
+
   degrees(node) {
     var rot = euler(node);
     return toDegrees(rot);
   }
 
+  /**
+  Converts euler radians to degrees
+  @param rot Vector3 rotation around x,y,z
+  @returns Vector3 containing degrees around x,y,z
+   */
   toDegrees(rot) {
     var ret = new BABYLON.Vector3();
     ret.x = rot.x * 180/Math.PI;
@@ -1093,12 +1224,6 @@ export class Avatar {
     this.countBones(bone.children);
   }
 
-  roundVector(vec) {
-    vec.x = Math.round(vec.x);
-    vec.y = Math.round(vec.y);
-    vec.z = Math.round(vec.z);
-  }
-
   processArms( arm, bone ) {
     this.log("Processing arm "+bone.name+" "+bone.getIndex()+" "+this.skeleton.getBoneIndexByName(bone.name));
     arm.shoulder = this.skeleton.getBoneIndexByName(bone.name);
@@ -1168,6 +1293,10 @@ export class Avatar {
     }
   }
 
+  /**
+  Start a given animation
+  @param animationName animation to start
+   */
   startAnimation(animationName) {
     for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
       var group = this.getAnimationGroups()[i];
@@ -1194,6 +1323,10 @@ export class Avatar {
     }
   }
 
+  /**
+  Adds all avatar meshes to given ShadowGenerator.
+  @param shadowGenerator
+   */
   castShadows( shadowGenerator ) {
     if ( this.character && this.character.meshes ) {
       for ( var i = 0; i < this.character.meshes.length; i++ ) {
@@ -1210,6 +1343,9 @@ export class Avatar {
     this.shadowGenerator = shadowGenerator;
   }
 
+  /**
+  Resize the avatar taking into account userHeight and headPos.
+   */
   resize() {
     var scale = this.rootMesh.scaling.y;
     scale = scale*this.userHeight/this.headPos().y;

@@ -1,19 +1,35 @@
 import {VRSPACE} from './vrspace.js';
 import {Avatar} from './avatar.js';
 
+/**
+Main UI class, provides utility methods and basic UI elements.
+@class
+ */
 export class VRSpaceUI {
 
+  /** Creates UI with default LoadProgressIndicator */
   constructor( ) {
+    /** babylon scene*/
     this.scene = null;
+    /** vrspace.org logo mesh */
     this.logo = null;
+    /** portal mesh */
     this.portal = null;
-    this.initialized = false;
+    /** debug output enabled */
     this.debug = false;
+    /** frames per second */ 
     this.fps = 5; // CHECKME: reasonable default fps
+    /** Pointer to function, defaults to this.loadProgressIndiciatorFactory */
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
+    /** @private */ 
     this.indicator = null;
+    /** @private */ 
+    this.initialized = false;
   }
 
+  /** Preloads vrspace.org logo and portal for later use 
+  @param scene
+  */
   async init(scene) {
     if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
@@ -30,6 +46,11 @@ export class VRSpaceUI {
     return this;
   }
 
+  /** Creates default LoadProgressIndicator bound to given camera, if one does not already exist.
+  @param scene
+  @param camera
+  @returns load progress indicator 
+   */
   loadProgressIndicatorFactory(scene, camera) {
     if ( ! this.indicator ) {
       this.indicator = new LoadProgressIndicator(scene, camera);
@@ -37,12 +58,18 @@ export class VRSpaceUI {
     return this.indicator;
   }
   
+  /** Logs to js console if debug is enabled
+  @param something to log
+   */
   log( something ) {
     if ( this.debug ) {
       console.log( something );
     }
   }
 
+  /** loads the portal 
+  @param scene
+  */
   async loadPortal(scene) {
     if ( ! this.portal ) {
       var container = await BABYLON.SceneLoader.LoadAssetContainerAsync("/babylon/portal/", "scene.gltf", scene)
@@ -57,7 +84,10 @@ export class VRSpaceUI {
     return this.portal;
   }
 
-  // lists files on a server directory
+  /** lists files on a server directory
+  @param theUrl url to load from
+  @param callback to call load, passing it XMLHttpRequest
+  */
   listFiles(theUrl, callback){
     this.log("Fetching "+theUrl);
     var xmlHttp = new XMLHttpRequest();
@@ -72,18 +102,30 @@ export class VRSpaceUI {
     return xmlHttp;
   }
   
-  // list folders with their jpg thumbnails
+  
+  /** list folders with their jpg thumbnails (files ending with .jpg)
+  @param dir directory to list
+  @param callback to call
+   */ 
   listThumbnails(dir, callback) {
     this.listMatchingFiles( dir, callback, '.jpg' )
   }
 
-  // list character folders and their fix files
+  /** list character folders and their fix files 
+  @param dir directory to list
+  @param callback to call
+  */
   listCharacters(dir, callback) {
     this.listMatchingFiles( dir, callback, '-fixes.json' )
   }
   
-  // list server folders along with their matching files
-  // i.e. files with the same name, plus given suffix
+  /**
+  list server folders along with their matching files
+  i.e. files with the same name, plus given suffix
+  @param dir directory to list
+  @param callback to call
+  @param suffix of related file
+   */
   listMatchingFiles(dir, callback, suffix) {
     if ( !dir.endsWith('/') ) {
       dir += '/';
@@ -135,7 +177,11 @@ export class VRSpaceUI {
     });
   }
   
-  // utility methods to manipulate meshes
+  /**
+  Utility method, should a node and its children receive shadows.
+  @param node a babylonjs node
+  @param shadows true ofr false
+   */
   receiveShadows( node, shadows ) {
     node.receiveShadows = shadows;
     if ( node.material ) {
@@ -150,7 +196,13 @@ export class VRSpaceUI {
     }
   }
 
-  // utility method - instantiate/clone mesh
+  /**
+  Utility method to instantiate if possible, or otherwise clone a mesh, including all children recursivelly.
+  @param mesh to instantiate/clone
+  @param parent optional, copy will have this parent
+  @param replaceParent optional
+  @returns copied mesh
+   */
   copyMesh(mesh, parent, replaceParent) {
     if ( mesh.geometry ) {
       var copy = mesh.createInstance(mesh.name+"-copy");
@@ -168,7 +220,13 @@ export class VRSpaceUI {
     return copy;
   }
 
-  // utility method - create x,y,z animation of a mesh field  
+  /**
+  Utility method - create x,y,z animation of a mesh field.
+  @param mesh to animate
+  @param field name of field to animate, e.g. "position" or "rotation"
+  @param fps frames per second, defaults to fps field value
+  @returns babylonjs AnimationGroup
+   */
   createAnimation(mesh, field, fps) {
     if ( ! fps ) {
       fps = this.fps;
@@ -200,7 +258,13 @@ export class VRSpaceUI {
     return group;
   }
   
-  // utility method - update x,y,z animation of a mesh field  
+  /**
+  Utility method - update x,y,z animation of a mesh field.
+  If the animation group is playing, it is stopped first. After the update, starts to play, not looping.
+  @param group AnimationGroup to update
+  @param from Vector3
+  @param to Vector3
+   */
   updateAnimation(group, from, to) {
     if ( group.isPlaying ) {
       group.stop();
@@ -217,7 +281,13 @@ export class VRSpaceUI {
     group.play(false);
   }
  
-  // utility method - create quaternion animation of a mesh field  
+  /**
+  Utility method - create quaternion animation of a mesh field
+  @param mesh to animate
+  @param field name of field to animate, e.g. "rotationQuaternion"
+  @param fps frames per second, defaults to fps field value
+  @returns babylonjs AnimationGroup
+   */
   createQuaternionAnimation(mesh, field, fps) {
     if ( ! fps ) {
       fps = this.fps;
@@ -235,7 +305,12 @@ export class VRSpaceUI {
     return group;
   }
   
-  // utility method - update quaternion animation of a mesh field  
+  /**
+  Utility method - update quaternion animation of a mesh field around Y axis.  
+  @param group AnimationGroup to update
+  @param from Vector3
+  @param to Vector3
+   */
   updateQuaternionAnimation(group, from, to) {
     if ( group.isPlaying ) {
       group.stop();
@@ -254,13 +329,21 @@ export class VRSpaceUI {
 
 export const VRSPACEUI = new VRSpaceUI();
 
-// room with logo as floor and invisible walls
+/** 
+Room with vrspace.org logo as floor and invisible cylinder walls, as used on vrspace.org demo site.
+*/
 export class LogoRoom {
+  /**
+  @param scene babylonjs scene
+   */
   constructor( scene ) {
     this.scene = scene;
     this.diameter = 20;
     this.shadows = true;
   }
+  /**
+  Creates VRSpaceUI, and displays the logo as floor mesh and creates walls.
+   */
   async load() {
     this.floorGroup = new BABYLON.TransformNode("Floor");
     // ground, used for teleportation/pointer
@@ -289,19 +372,31 @@ export class LogoRoom {
     
     return this;
   }
+  /** disposes of instantiated geometry */
   dispose() {
     this.floorGroup.dispose();
   }
+  /** set room diameter and rescale */
   setDiameter( diameter ) {
     this.diameter = diameter;
     this.floorGroup.scaling = new BABYLON.Vector3(this.diameter,2,this.diameter);
   }
+  /** get current diameter */
   getDiameter() {
     return this.diameter;
   }
 }
 
+/**
+Portal is an entrance to other worlds, disabled by default.
+ */
 export class Portal {
+  /** Create a portal
+  @param scene babylonjs scene
+  @param serverFolder containing world class and content
+  @param callback to execute when portal is activated (clicked, tapped)
+  @param shadowGenerator optionally, portal can cast shadows
+   */
   constructor( scene, serverFolder, callback, shadowGenerator ) {
     this.scene = scene;
     this.serverFolder = serverFolder;
@@ -317,9 +412,11 @@ export class Portal {
     this.textures = [];
     this.materials = [];
   }
+  /** handy, returns base url and folder name */
   worldUrl() {
     return this.serverFolder.baseUrl+this.serverFolder.name;
   }
+  /** dispose of everything */
   dispose() {
     this.group.dispose();
     if (this.thumbnail) {
@@ -337,6 +434,12 @@ export class Portal {
       this.materials[i].dispose();
     }
   }
+  /** Load and display portal at given coordinates. Copies existing portal mesh to new coordinates and angle.
+  @param x
+  @param y
+  @param z
+  @param angle
+   */
   async loadAt(x,y,z,angle) {
     this.group = new BABYLON.TransformNode('Portal:'+this.name);
     this.group.position = new BABYLON.Vector3(x,y,z);
@@ -403,6 +506,9 @@ export class Portal {
     
     return this;
   }
+  /** Enables or disables the portal
+  @param enable
+   */
   enabled(enable) {
     if ( enable ) {
       this.material.emissiveTexture = this.thumbnail;
@@ -412,6 +518,7 @@ export class Portal {
     this.title.isVisible = enable;
     this.isEnabled = enable;
   }
+  /** Executes callback on entry */
   enter() {
     if ( this.callback ) {
       this.callback(this);
@@ -419,16 +526,28 @@ export class Portal {
   }
 }
 
-// a folder with a related file
+/**
+A folder with a related file (e.g. thumbnail). 
+ */
 class ServerFolder {
+  /**
+  @param baseUrl parent folder
+  @param name folder name
+  @param related name of related file
+   */
   constructor( baseUrl, name, related ) {
+    /** base url */
     this.baseUrl = baseUrl;
+    /** folder name*/
     this.name = name;
+    /** related file name */
     this.related = related;
   }
+  /** returns full path of the folder */
   url() {
     return this.baseUrl+this.name;
   }
+  /** returns full path of related file */
   relatedUrl() {
     if ( this.related ) {
       return this.baseUrl+this.related;
@@ -437,7 +556,16 @@ class ServerFolder {
   }
 }
 
+/**
+Default progress indicator: rotating vrspace.org logo, 30 cm ahead, 5 cm below camera.
+Always bounds to active camera, to ensure same look and function on PC, mobile and VR devices.
+ */
 export class LoadProgressIndicator {
+  /** Initializes VRSpaceUI, loading logo geometry so it can be reused.
+  Installs active camera listener on the scene.
+  @param scene
+  @param camera current camera to bind to
+   */
   constructor(scene, camera) {
     this.scene = scene;
     this.camera = camera;
@@ -445,8 +573,13 @@ export class LoadProgressIndicator {
     this.totalItems = 0;
     this.currentItem = 0;
     this.zeroRotation = null;
-    this.debug = false;
     this.angle = 0;
+    /** Debug log flag */
+    this.debug = false;
+    /** Whether progress of individual items should be tracked.
+    Default true rotates the logo only when an item loads.
+    False results in continous rotation.
+    */
     this.trackItems = true;
     var indicator = this;
     VRSPACEUI.init(scene).then( (ui) => {
@@ -483,6 +616,9 @@ export class LoadProgressIndicator {
       }
     }
   }
+  /** Add an item to be tracked. First item added shows the indicator and starts the animation.
+  @param item an item to track
+   */
   add(item) {
     if ( this.mesh && ! this.mesh.isEnabled() ) {
       this.mesh.setEnabled(true);
@@ -491,6 +627,9 @@ export class LoadProgressIndicator {
     this.log("Added "+this.currentItem+"/"+this.totalItems);
     this._update();
   }
+  /** Remove an item, e.g. loaded file. Last item removed stops the animation and hides the indicator.
+  @param item to remove
+   */
   remove(item) {
     this.currentItem++;
     this._update();
@@ -504,11 +643,17 @@ export class LoadProgressIndicator {
       this._init();
     }
   }
+  /** Stops tracking individual items and runs contionous animation */
   animate() {
     this.trackItems = false;
     this.animation = () => { this._update() };
     this.scene.registerBeforeRender( this.animation );
   }
+  /** 
+  Call on load progress event.
+  @param evt progress event
+  @param item related item 
+  */
   progress(evt, item) {
     this.trackItems = false;
     if (evt.lengthComputable) {
@@ -540,7 +685,13 @@ export class LoadProgressIndicator {
   }
 }
 
+/**
+Event Recorder is server-side component.
+This UI sends commands to the server that control recording and playback.
+UI buttons (record, stop, play) are bound to current camera.
+*/
 export class RecorderUI {
+  /** @param scene babylonjs scene */
   constructor( scene ) {
     // parameters
     this.scene = scene;
@@ -555,6 +706,7 @@ export class RecorderUI {
     this.stopButton.mesh.parent = this.camera;
     this.playButton.mesh.parent = this.camera;
   }
+  /** Shows the UI */
   showUI() {
     this.camera = this.scene.activeCamera;
 
@@ -590,6 +742,7 @@ export class RecorderUI {
     this.playButton.isVisible = false;
   }
   
+  /** Start recording */
   record() {
     console.log("Recording...");
     if ( ! this.recorder ) {
@@ -599,6 +752,7 @@ export class RecorderUI {
     this.stopButton.isVisible = true;
     this.playButton.isVisible = false;
   }
+  /** Stop recording */
   stop() {
     console.log('Stopped');
     VRSPACE.send('{"command":{"Recording":{"action":"stop"}}}');
@@ -606,6 +760,7 @@ export class RecorderUI {
     this.playButton.isVisible = true;
     this.stopButton.isVisible = false;
   }
+  /** Start playing */
   play() {
     console.log('Playing...');
     VRSPACE.send('{"command":{"Recording":{"action":"play"}}}');
@@ -615,7 +770,15 @@ export class RecorderUI {
   
 }
 
+/** UI to create floors, see {@link https://www.youtube.com/watch?v=8RxToSgtoko|this youtube video}.
+Start recording, then edit, then save, either as js or json.
+UI Buttons are bound to current camera.
+ */
 export class FloorRibbon {
+  /**
+  @param scene
+  @param size floor size, default 1 m
+  */
   constructor( scene, size ) {
     // parameters
     this.scene = scene;
@@ -653,6 +816,7 @@ export class FloorRibbon {
     this.jsonButton.mesh.parent = this.camera;
     this.jsButton.mesh.parent = this.camera;
   }
+  /** Shows the UI */
   showUI() {
     this.camera = this.scene.activeCamera;
 
@@ -987,7 +1151,16 @@ export class FloorRibbon {
   }
 }
 
+/** Menu consisting of vertical buttons in 3D space and associated labels.
+ */
 export class Buttons {
+  /**
+  @param scene
+  @param title string displayed above the menu
+  @param options array of options, string labels or objects
+  @param callback executed when button is activated
+  @param property optional, if options are object, this specifies string property to display as label
+   */
   constructor(scene,title,options,callback,property) {
     this.scene = scene;
     this.title = title;
@@ -1010,6 +1183,7 @@ export class Buttons {
     this.display();
   }
 
+  /** Dispose of everything */
   dispose() {
     delete this.selectedMaterial;
     delete this.unselectedMaterial;
@@ -1026,11 +1200,13 @@ export class Buttons {
     console.log("Disposed of buttons "+this.title);
   }
 
+  /** Set the height, rescales the menu */
   setHeight(height) {
     var scale = height/this.options.length;
     this.group.scaling = new BABYLON.Vector3(scale, scale, scale);
   }
 
+  /** Display the menu, adds a pointer observable */
   display() {
     var buttonHeight = 1;
     var spacing = 1.1;
@@ -1142,6 +1318,9 @@ export class Buttons {
     }
   }
   
+  /** Select an option, executed when a button is pressed.
+  Executes the callback passing selected option as parameter.
+   */
   select(i) {
     console.log("Selected: "+this.options[i].name);
     if ( this.callback ) {
@@ -1168,7 +1347,14 @@ export class Buttons {
   }
 }
 
+/** 
+Wrapper around BabylonJS XR/VR classes, whatever is available in current browser, if any.
+Attached to a World, uses World floor meshes and camera.
+ */
 export class VRHelper {
+  /**
+  @param world attaches the control to the World
+   */
   async initXR(world) {
     this.world = world;
     var xrHelper = this.vrHelper;
@@ -1345,8 +1531,26 @@ export class VRHelper {
   }
 }
 
-// this is intended to be overridden
+/**
+Basic world, intended to be overridden.
+Provides function placeholders for implementations, and safe implementation of basic functions, 
+like loading of world file(s) and XR support.
+There is no constructor, so subclasses are free to add any world specifics to their own constructors.
+A world can also define defaults in the constructor, like baseUrl or file.
+@abstract
+ */
 export class World {
+  /** Create, load and and show the world.
+  Enables gravity and collisions, then executes createScene method, optionally creates load indicator,
+  registers render loop, crates terrain, and finally, executes load method. Every method executed can be overridden.
+  @param engine babylonjs engine
+  @param name world name
+  @param scene babylonjs scene, optional
+  @param callback to execute after the world has loaded
+  @param baseUrl folder to load scene from, default ""
+  @param file scene file to load, default scene.gltf
+  @returns final scene
+  */
   async init(engine, name, scene, callback, baseUrl, file) {
     this.canvas = engine.getInputElement();
     this.engine = engine;
@@ -1375,6 +1579,12 @@ export class World {
     this.load(callback);
     return this.scene;
   }
+  /**
+  Called from init.
+  If the scene does not exist, creates the scene first.
+  Then calls methods in this order: 
+  createCamera, attachControl, createLights, createShadows, createSkybox, createGround, createEffects, createPhysics.
+  */
   async createScene(engine) {
     if ( ! this.scene ) {
       this.scene = new BABYLON.Scene(engine);
@@ -1408,18 +1618,34 @@ export class World {
     await this.createEffects();
     await this.createPhysics();
   }
+  /** An implementation must override this method and define at least one camera */
   async createCamera() {
     alert( 'Please override createCamera() method')
   }
+  /** Optional, empty implementation, called from createScene. May return a Light */
   async createLights() {}
+  /** Optional, empty implementation, called from createScene. Should return a ShadowGenerator. */
   async createShadows() {}
+  /** Optional, empty implementation, called from createScene. Should return a sky Box. */
   async createSkyBox() {}
+  /** Optional, empty implementation, called from createScene. Should return a mesh. */
   async createGround() {}
+  /** Optional, empty implementation, called from createScene */
   async createEffects() {};
+  /** Optional, empty implementation, called from createScene */
   async createPhysics() {};
+  /** Optional, empty implementation, called from createScene */
   async createTerrain() {}
+  /** Attach the control to the camera, called from createScene. */
+  attachControl() {
+    this.camera.attachControl(this.canvas, true);
+  }
   
-  // utility method, creates camera and sets defaults
+  /**
+  Utility method, creates a UniversalCamera and sets defaults: gravity, collisions, ellipsoid, keys.
+  @param pos Vector3 to position camera at
+  @param name optional camera name, default UniversalCamera
+   */
   universalCamera(pos, name) {
     if ( !name ) {
       name = "UniversalCamera";
@@ -1444,6 +1670,9 @@ export class World {
     return camera;    
   }
   
+  /**
+  Disposes of all lights, and objects returned by createCamera, createShadows, createSkybox
+   */
   async dispose() {
     if ( this.camera ) {
       this.camera.dispose();
@@ -1469,6 +1698,9 @@ export class World {
     }
   }
   
+  /** Creates a VRHelper if needed, and initializes it with the current world.
+  Normally called after world is loaded.
+   */
   initXR() {
     if ( ! this.vrHelper ) {
       this.vrHelper = new VRHelper();
@@ -1478,10 +1710,16 @@ export class World {
   trackXrDevices() {
   }
   
+  /**
+  Used in mesh selection predicate. Default implementation returns true for members of this.floorMeshes.
+   */
   isSelectableMesh(mesh) {
     return this.floorMeshes && this.floorMeshes.includes(mesh);
   }
 
+  /**
+  Returns this.floorMeshes if exist, or empty array.
+   */
   getFloorMeshes() {
     if ( this.floorMeshes ) {
       return this.floorMeshes;      
@@ -1489,6 +1727,10 @@ export class World {
     return [];
   }
   
+  /**
+  Enables or disables collisions in the world. This includes floorMeshes, sceneMeshes, and also applying gravity to camera.
+  @param state true or false
+   */
   collisions(state) {
     this._collisions( this.floorMeshes, this.collisionsEnabled && state );
     this._collisions( this.sceneMeshes, this.collisionsEnabled && state );
@@ -1496,6 +1738,11 @@ export class World {
     this.camera._needMoveForGravity = this.gravityEnabled && state;
   }
   
+  /**
+  Utility method, enables or disables collisions on the given set of meshes.
+  @param meshes array of meshes
+  @param state true or false
+   */
   _collisions( meshes, state ) {
     if ( meshes ) {
       for ( var i=0; i<meshes.length; i++ ) {
@@ -1504,28 +1751,49 @@ export class World {
     }
   }
   
+  /**
+  Enable or disable collisions for a mesh. Override to fine-tune collisions.
+  @param mesh
+  @param state
+   */
   setMeshCollisions(mesh, state) {
     mesh.checkCollisions = state;    
   }
   
+  /**
+  Called on loading progress, executes whatever this.onProgress contains, by default LoadProgressListener.
+  @param evt
+  @param name
+   */
   loadProgress( evt, name ) {
     if ( this.onProgress ) {
       this.onProgress( evt, name );
     }
   }
+  /**
+  Called when loading starts. Calls this.indicator.add if available.
+  @param name
+   */
   loadingStart(name) {
     if ( this.indicator ) {
       this.indicator.add(name);
     }
   }
+  /**
+  Called when loading finishes. Calls this.indicator.remove if available.
+  @param name
+   */
   loadingStop(name) {
     if ( this.indicator ) {
       this.indicator.remove(name);
     }
   }
   
+  /** Load the world, then execute given callback passing self as argument.
+  Loads an AssetContainer, and adds it to the scene. Takes care of loading progress.
+   */
   load(callback) {
-    this.loadingStart(name);
+    this.loadingStart(this.name);
 
     BABYLON.SceneLoader.LoadAssetContainer(this.baseUrl,
       this.file,
@@ -1559,10 +1827,17 @@ export class World {
     return this;
   }
   
+  /**
+  Called after assets are loaded. By default only calls initXR().
+  Subclasses typically override this with some spatial manipulations, e.g. scaling the world.
+  @param file world file that has loaded
+  @param mesh root mesh of the world
+   */
   loaded( file, mesh ) {
     this.initXR();
   }
   
+  /** Register render loop. */
   registerRenderLoop() {
     // Register a render loop to repeatedly render the scene
     var loop = () => {
@@ -1575,31 +1850,59 @@ export class World {
     engine.runRenderLoop(loop);
   }
 
+  /**
+  Utility method to fix the path and load the file, executes LoadAssetContainerAsync.
+  @param relativePath path relative to current world directory
+  @param file file name to load
+  @param scene
+   */
   async loadAsset(relativePath, file, scene) {
     return BABYLON.SceneLoader.LoadAssetContainerAsync(this.assetPath(relativePath), file, scene);
   }
   
+  /**
+  Utility method, returns baseUrl+relativePath
+  @param relativePath path relative to current world directory
+   */
   assetPath(relativePath) {
     return this.baseUrl+relativePath;
   }
   
-  attachControl() {
-    this.camera.attachControl(this.canvas, true);
-  }
 }
 
+/**
+Manages world events: tracks local user events and sends them to the server, 
+and tracks network events and applies them to local scene.
+Loads avatars of other users and maps network events to their avatars, 
+including user video and audio streams.
+ */
 export class WorldManager {
+  /** Creates world manager with default values and connection, scene, camera listeners.
+  @param world
+  @param fps network framerate, default 5 (send up to 5 events per second)
+   */
   constructor(world, fps) {
-    this.resolution = 0.01; // 1 cm/3.6 deg 
+    /** the world */
     this.world = world;
+    /** the scene */
     this.scene = world.scene;
-    this.customOptions = null; // custom video avatar options
-    this.trackRotation = true; // turn off to optimize e.g. video avatars
-    this.mesh = null; // used in 3rd person view
-    this.mediaStreams = null; // this is set once we connect to streaming server
+    /** Movement resolution, default 1 cm/3.6 deg. Any movement less than this will be ignored.*/
+    this.resolution = 0.01; // 1 cm/3.6 deg 
+    /** Custom avatar options, applied to avatars after loading. Currently video avatars only */
+    this.customOptions = null;
+    /** Whether to track user rotation, default true. */
+    this.trackRotation = true;
+    /** Used in 3rd person view */
+    this.mesh = null;
+    /** This is set once we connect to streaming server */
+    this.mediaStreams = null;
+    /** Optionally called after own avatar property has changed */
     this.changeCallback = null;
+    /** Avatar factory, default this.createAvatar */
     this.avatarFactory = this.createAvatar;
+    /** Default position applied after an avatar loads */
     this.defaultPosition = new BABYLON.Vector3( 1000, 1000, 1000 );
+    /** Default rotation applied after an avatar loads */
     this.defaultRotation = new BABYLON.Vector3( 0, 0, 0 );
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
@@ -1613,18 +1916,26 @@ export class WorldManager {
     } else {
       this.fps = 5;
     }
+    /** Current position */
     this.pos = { x: null, y: null, z: null };
+    /** Current rotation */
     this.rot = { x: null, y: null, z: null };
+    /** Current left arm position */
     this.leftArmPos = { x: null, y: null, z: null };
+    /** Current right arm position */
     this.rightArmPos = { x: null, y: null, z: null };
+    /** Current left arm rotation */
     this.leftArmRot = { x: null, y: null, z: null, w: null };
+    /** Current right arm rotation */
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     this.interval = null;
     VRSPACE.addConnectionListener((connected) => this.setConnected(connected));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
+    /** Enable debug output */
     this.debug = false;
   }
 
+  /** Publish and subscribe */
   pubSub( client, autoPublishVideo ) {
     this.log("Subscribing as client "+client.id+" with token "+client.token);
     if ( client.token ) {
@@ -1640,12 +1951,14 @@ export class WorldManager {
     }
   }
   
+  /** Optionally log something */
   log( what ) {
     if (this.debug) {
       console.log(what);
     }
   }
   
+  /** Track a mesh, used in 3rd person view */
   trackMesh(mesh) {
     if ( mesh ) {
       this.log("Tracking mesh "+mesh.id);
@@ -1655,6 +1968,7 @@ export class WorldManager {
     this.mesh = mesh;
   }
   
+  /** Tracks active camera */
   trackCamera(camera) {
     if ( ! camera ) {
       camera = this.scene.activeCamera;
@@ -1665,6 +1979,7 @@ export class WorldManager {
     }
   }
   
+  /** Called when connection to the server is established (connection listener)*/
   setConnected(connected) {
     this.log("Connected: "+connected);
     if ( connected ) {
@@ -1675,10 +1990,16 @@ export class WorldManager {
     }
   }
   
+  /** Returns true if connected to the server */
   isConnected() {
     return this.interval != null;
   }
 
+  /** Callend when scene has changed (scene listener). 
+  If an object was added, calls either loadAvatar, loadStream or loadMesh, as appropriate.
+  If an object was removed, calls removeMesh.
+  @param e SceneEvent containing the change
+  */
   sceneChanged(e) {
     if (e.added != null) {
       this.log("ADDED " + e.objectId + " new size " + e.scene.size);
@@ -1703,10 +2024,14 @@ export class WorldManager {
     }
   }
 
+  /** Default video avatar factory method */
   createAvatar(obj) {
     return new VideoAvatar(this.scene, null, this.customOptions);
   }
   
+  /**
+  Load a video avatar, attach a listener to it.
+   */
   loadStream( obj ) {
     this.log("loading stream for "+obj.id);
     
@@ -1760,6 +2085,7 @@ export class WorldManager {
     }
   }
   
+  /** Load a 3D avatar, attach a listener to it */
   loadAvatar(obj) {
     this.log("loading avatar "+obj.mesh);
     var pos = obj.mesh.lastIndexOf('/');
@@ -1794,6 +2120,7 @@ export class WorldManager {
     });
   }
   
+  /** Apply remote changes to an avatar (VRObject listener) */
   changeAvatar(obj,changes) {
     this.log( 'Processing changes on avatar' );
     this.log(changes);
@@ -1830,7 +2157,9 @@ export class WorldManager {
     }
   }
 
-  // TODO loader UI
+  /**
+  Load an object and attach a listener.
+   */
   loadMesh(obj) {
     this.log("Loading object "+obj.mesh);
     if ( ! obj.mesh ) {
@@ -1863,6 +2192,10 @@ export class WorldManager {
     });
   }
 
+  /**
+  Utility method, calculates bounding box for an AssetContainer.
+  @returns Vector3 bounding box
+   */
   boundingBox(container) {
     var maxSize = new BABYLON.Vector3(0,0,0);
     for ( var i = 0; i < container.meshes.length; i++ ) {
@@ -1887,6 +2220,7 @@ export class WorldManager {
     return maxSize;
   }
   
+  /** Apply remote changes to an object. */
   changeObject(obj,changes, node) {
     this.log("Changes on "+obj.id+": "+JSON.stringify(changes));
     if ( ! node ) {
@@ -1909,6 +2243,11 @@ export class WorldManager {
     }
   }
   
+  /** Called when applying changes other than rotation and translation:
+  executes a method if such a method exists, passing it a current instance of associated VRObject.
+  @param obj VRObject to apply change to
+  @param field member field to set or method to execute 
+   */
   routeEvent(obj, field, node) {
     var object = obj;
     if ( obj.container ) {
@@ -1927,6 +2266,8 @@ export class WorldManager {
     }
   }
 
+  /** Remove a mesh from the scene (scene listener), and dispose of everything.
+  */
   removeMesh(obj) {
     if ( this.mediaStreams ) {
       this.mediaStreams.removeClient(obj);
@@ -1950,6 +2291,12 @@ export class WorldManager {
     // TODO also remove object (avatar) from internal arrays
   }
 
+  /**
+  Periodically executed, as specified by fps. 
+  Tracks changes to camera and XR controllers. 
+  Calls checkChange, and if anything has changed, changes are sent to server.
+  Optionally, changeCallback is executed. 
+   */
   trackChanges() {
     var changes = [];
     if ( this.mesh ) {
@@ -2003,9 +2350,10 @@ export class WorldManager {
 
   }
   
+  /**
+  Check if a value has changed, and update change array if so.
+   */
   checkChange( field, obj, pos, changes ) {
-    // TODO: add minimal distance/angle change check
-    // CHECKME: we don't check quaternion w, should we?
     if ( this.isChanged(obj.x, pos.x, this.resolution) || 
         this.isChanged(obj.y, pos.y, this.resolution) || 
         this.isChanged(obj.z, pos.z, this.resolution) ) {
@@ -2016,13 +2364,24 @@ export class WorldManager {
       changes.push({ field: field, value: pos});
     }
   }
+  /**
+  Return true if a value is ouside of given range.
+   */
   isChanged( old, val, range ) {
     return val < old - range || val > old + range;
   }
 
 }
 
+/**
+WebRTC video/audio streaming support. Implements OpenVidu streaming, subclasses may provide different implementations.
+WorldManager manages all clients and their streams.
+ */
 export class MediaStreams {
+  /**
+  @param scene
+  @param htmlElementName
+   */
   constructor(scene, htmlElementName) {
     this.scene = scene;
     // CHECKME null check that element?
@@ -2037,6 +2396,11 @@ export class MediaStreams {
     this.subscribers = [];    
   }
   
+  /**
+  Initialize streaming and attach event listeners.
+  This implementation initializes OpenVidu session.
+  @param callback executed when new subscriber starts playing the stream
+   */
   async init( callback ) {
     await import('./openvidu-browser-2.15.0.js');
     this.OV = new OpenVidu();
@@ -2068,7 +2432,11 @@ export class MediaStreams {
       console.log(event);
     });
   }
-  
+
+  /**
+  Connect to server with given parameters, calls init.
+  @param token whatever is needed to connect and initialize the session
+   */  
   async connect(token) {
     token = token.replaceAll('&amp;','&');
     console.log('token: '+token);
@@ -2076,7 +2444,10 @@ export class MediaStreams {
     return this.session.connect(token);
   }
   
-  // htmlElement is needed only for local feedback (testing)
+  /**
+  Start publishing local video/audio
+  @param htmlElement needed only for local feedback (testing)
+   */
   publish(htmlElementName) {
     this.publisher = this.OV.initPublisher(htmlElementName, {
       videoSource: this.videoSource,     // The source of video. If undefined default video input
@@ -2103,6 +2474,9 @@ export class MediaStreams {
     console.log(this.publisher);
   }
   
+  /**
+  Enable/disable video
+   */
   publishVideo(enabled) {
     if ( this.publisher ) {
       console.log("Publishing video: "+enabled);
@@ -2110,6 +2484,9 @@ export class MediaStreams {
     }
   }
 
+  /**
+  Enable/disable (mute) audio
+   */
   publishAudio(enabled) {
     if ( this.publisher ) {
       console.log("Publishing audio: "+enabled);
@@ -2117,7 +2494,81 @@ export class MediaStreams {
     }
   }
   
-  // TODO this assumes that 1) mesh is already loaded and 2) stream subscriber is already created
+  /**
+  Retrieve VRSpace Client id from WebRTC subscriber data
+   */
+  getClientId(subscriber) {
+    return parseInt(subscriber.stream.connection.data,10);
+  }
+  
+  /**
+  Retrieve MediaStream from subscriber data
+   */
+  getStream(subscriber) {
+    return subscriber.stream.getMediaStream();
+  }
+
+  /** Remove a client, called when client leaves the space */
+  removeClient( client ) {
+    for ( var i = 0; i < this.clients.length; i++) {
+      if ( this.clients[i].id == client.id ) {
+        this.clients.splice(i,1);
+        console.log("Removed client "+client.id);
+        break;
+      }
+    }
+    var oldSize = this.subscribers.length;
+    // one client can have multiple subscribers, remove them all
+    this.subscribers = this.subscribers.filter(subscriber => this.getClientId(subscriber) != client.id);
+    console.log("Removed "+(oldSize-this.subscribers.length)+" subscribers, new size "+this.subscribers.length);
+  }
+  
+  /** 
+  Called when a new stream is received. 
+  Tries to find an existing client, and if found, calls attachAudioStream and attachVideoStream.
+   */
+  streamingStart( subscriber ) {
+    var id = this.getClientId(subscriber);
+    console.log("Stream started for client "+id)
+    for ( var i = 0; i < this.clients.length; i++) {
+      var client = this.clients[i];
+      if ( client.id == id ) {
+        // matched
+        this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
+        //this.clients.splice(i,1); // too eager, we may need to keep it for another stream
+        console.log("Audio/video stream started for avatar of client "+id)
+        this.attachVideoStream(client, subscriber);
+        break;
+      }
+    }
+    this.subscribers.push(subscriber);
+  }
+  
+  /** 
+  Called when a new client enters the space. 
+  Tries to find an existing stream, and if found, calls attachAudioStream and attachVideoStream.
+   */
+  streamToMesh(client, mesh) {
+    console.log("Loaded avatar of client "+client.id)
+    client.streamToMesh = mesh;
+    for ( var i = 0; i < this.subscribers.length; i++) {
+      var subscriber = this.subscribers[i];
+      var id = this.getClientId(subscriber);
+      if ( client.id == id ) {
+        // matched
+        this.attachAudioStream(mesh, this.getStream(subscriber));
+        this.attachVideoStream(client, subscriber);
+        //this.subscribers.splice(i,1);
+        console.log("Audio/video stream connected to avatar of client "+id)
+        //break; // don't break, there may be multiple streams
+      }
+    }
+    this.clients.push(client);
+  }
+
+  /**
+  Attaches an audio stream to a mesh (e.g. avatar)
+   */
   attachAudioStream(mesh, mediaStream) {
     var audioTracks = mediaStream.getAudioTracks();
     if ( audioTracks && audioTracks.length > 0 ) {
@@ -2146,63 +2597,9 @@ export class MediaStreams {
     }
   }
   
-  getClientId(subscriber) {
-    return parseInt(subscriber.stream.connection.data,10);
-  }
-  
-  getStream(subscriber) {
-    return subscriber.stream.getMediaStream();
-  }
-
-  removeClient( client ) {
-    for ( var i = 0; i < this.clients.length; i++) {
-      if ( this.clients[i].id == client.id ) {
-        this.clients.splice(i,1);
-        console.log("Removed client "+client.id);
-        break;
-      }
-    }
-    var oldSize = this.subscribers.length;
-    // one client can have multiple subscribers, remove them all
-    this.subscribers = this.subscribers.filter(subscriber => this.getClientId(subscriber) != client.id);
-    console.log("Removed "+(oldSize-this.subscribers.length)+" subscribers, new size "+this.subscribers.length);
-  }
-  
-  streamingStart( subscriber ) {
-    var id = this.getClientId(subscriber);
-    console.log("Stream started for client "+id)
-    for ( var i = 0; i < this.clients.length; i++) {
-      var client = this.clients[i];
-      if ( client.id == id ) {
-        // matched
-        this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
-        //this.clients.splice(i,1); // too eager, we may need to keep it for another stream
-        console.log("Audio/video stream started for avatar of client "+id)
-        this.attachVideoStream(client, subscriber);
-        break;
-      }
-    }
-    this.subscribers.push(subscriber);
-  }
-  
-  streamToMesh(client, mesh) {
-    console.log("Loaded avatar of client "+client.id)
-    client.streamToMesh = mesh;
-    for ( var i = 0; i < this.subscribers.length; i++) {
-      var subscriber = this.subscribers[i];
-      var id = this.getClientId(subscriber);
-      if ( client.id == id ) {
-        // matched
-        this.attachAudioStream(mesh, this.getStream(subscriber));
-        this.attachVideoStream(client, subscriber);
-        //this.subscribers.splice(i,1);
-        console.log("Audio/video stream connected to avatar of client "+id)
-        //break; // don't break, there may be multiple streams
-      }
-    }
-    this.clients.push(client);
-  }
-
+  /**
+  Attaches a videoStream to a VideoAvatar
+   */
   attachVideoStream(client, subscriber) {
     if ( client.video ) {
       var mediaStream = subscriber.stream.getMediaStream();
@@ -2228,6 +2625,10 @@ export class MediaStreams {
   
 }
 
+/**
+A cylinder that shows video stream. Until streaming starts, altText is displayed on the cylinder.
+It can be extended, and new class provided to WorldManager factory.
+*/
 export class VideoAvatar {
   constructor( scene, callback, customOptions ) {
     this.scene = scene;
@@ -2249,6 +2650,9 @@ export class VideoAvatar {
       }
     }
   }
+  /**
+  Show the avatar. Used for both own and remote avatars.
+   */
   async show() {
     if ( ! this.mesh ) {
       if ( this.autoAttach ) {
@@ -2281,7 +2685,8 @@ export class VideoAvatar {
       }
     }
   }
-  
+
+  /** dispose of everything */  
   dispose() {
     if ( this.mesh.parent ) {
       this.mesh.parent.dispose();
@@ -2292,6 +2697,9 @@ export class VideoAvatar {
     }
   }
   
+  /**
+  Display and optionally set altText.
+   */
   displayText(text) {
     if ( text ) {
       this.altText = text;
@@ -2303,6 +2711,9 @@ export class VideoAvatar {
     this.mesh.material.diffuseTexture.drawText(this.altText, null, null, this.textStyle, this.textColor, this.backColor, false, true);    
   }
   
+  /** 
+  Display video from given device, used for own avatar.
+   */
   async displayVideo( deviceId ) {
     if ( deviceId ) {
       this.deviceId = deviceId;
@@ -2330,6 +2741,9 @@ export class VideoAvatar {
     }
   }
   
+  /**
+  Create and display VideoTexture from given MediaStream.
+   */
   displayStream( mediaStream ) {
     BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
       if ( this.mesh.material.diffuseTexture ) {
@@ -2339,6 +2753,9 @@ export class VideoAvatar {
     });
   }
   
+  /**
+  Rescale own avatar and attach to current camera, 35cm ahead, 5cm below.
+   */
   attachToCamera( position ) {
     this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
     this.mesh.parent = this.camera;
@@ -2346,7 +2763,7 @@ export class VideoAvatar {
       this.mesh.position = position;
     } else {
       // 5cm below, 30 cm ahead of eyes
-      this.mesh.position = new BABYLON.Vector3( 0, -.05, .3 );
+      this.mesh.position = new BABYLON.Vector3( 0, -.05, .35 );
       var scale = (this.radius/2)/20; // 5cm size
       this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
     }
@@ -2355,6 +2772,7 @@ export class VideoAvatar {
     this.scene.onActiveCameraChanged.add( this.cameraTracker );
   }
   
+  /** Rescale own avatar and detach from camera */
   detachFromCamera() {
     if ( this.attached ) {
       this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -2366,7 +2784,8 @@ export class VideoAvatar {
       this.attached = false;
     }
   }
-  
+ 
+  /** Called when active camera changes/avatar attaches to camera */ 
   cameraChanged() {
     if ( this.autoAttach ) {
       console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
