@@ -7,7 +7,6 @@ var avatars = [];
 
 export class AvatarLoader extends AvatarSelection {
   createSelection() {
-    this.indicator = new LoadProgressIndicator(scene, this.camera);
     this.manager = new BABYLON.GUI.GUI3DManager(scene);
     VRSPACEUI.debug = true;
     VRSPACEUI.listMatchingFiles( '../content/char/', (folders) => {

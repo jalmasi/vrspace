@@ -166,7 +166,6 @@ export class AvatarSelection extends World {
   
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
-    this.indicator = new LoadProgressIndicator(this.scene, this.camera);
     VRSPACEUI.listMatchingFiles( '../content/char/', (folders) => {
       folders.push({name:"video"});
       var buttons = new Buttons(this.scene,"Avatars",folders,(dir) => this.createAvatarSelection(dir),"name");

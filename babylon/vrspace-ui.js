@@ -10,6 +10,8 @@ export class VRSpaceUI {
     this.initialized = false;
     this.debug = false;
     this.fps = 5; // CHECKME: reasonable default fps
+    this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
+    this.indicator = null;
   }
 
   async init(scene) {
@@ -28,6 +30,13 @@ export class VRSpaceUI {
     return this;
   }
 
+  loadProgressIndicatorFactory(scene, camera) {
+    if ( ! this.indicator ) {
+      this.indicator = new LoadProgressIndicator(scene, camera);
+    }
+    return this.indicator;
+  }
+  
   log( something ) {
     if ( this.debug ) {
       console.log( something );
@@ -1357,7 +1366,10 @@ export class World {
     this.gravityEnabled = true;
     this.collisionsEnabled = true;
     await this.createScene(engine);
-    this.indicator = new LoadProgressIndicator(this.scene, this.camera);
+    if ( ! this.onProgress ) {
+      this.indicator = VRSPACEUI.loadProgressIndicator(this.scene, this.camera);
+      this.onProgress = (evt, name) => this.indicator.progress( evt, name )
+    }
     this.registerRenderLoop();
     this.createTerrain();
     this.load(callback);
@@ -1496,9 +1508,24 @@ export class World {
     mesh.checkCollisions = state;    
   }
   
+  loadProgress( evt, name ) {
+    if ( this.onProgress ) {
+      this.onProgress( evt, name );
+    }
+  }
+  loadingStart(name) {
+    if ( this.indicator ) {
+      this.indicator.add(name);
+    }
+  }
+  loadingStop(name) {
+    if ( this.indicator ) {
+      this.indicator.remove(name);
+    }
+  }
+  
   load(callback) {
-    var indicator = this.indicator;
-    indicator.add(this.name);
+    this.loadingStart(name);
 
     BABYLON.SceneLoader.LoadAssetContainer(this.baseUrl,
       this.file,
@@ -1517,16 +1544,16 @@ export class World {
 
         // do something with the scene
         VRSPACEUI.log("World loaded");
-        this.indicator.remove(this.name);
+        this.loadingStop(this.name);
         //floor = new FloorRibbon(scene);
         //floor.showUI();
         this.collisions(this.collisionsEnabled);
         if ( callback ) {
           callback(this);
         }
-    },
-    // onProgress:
-    (evt) => { indicator.progress( evt, name ) }
+      },
+      // onProgress:
+      (evt) => { this.loadProgress(evt, name) }
     );
     
     return this;
