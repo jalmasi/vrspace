@@ -40,7 +40,7 @@ public class EventRecorder extends Client {
   private boolean recordClient = true;
   private boolean recordScene = true;
   private boolean loop = true;
-  private long length = 0;
+  private Long length;
   @JsonIgnore
   private Collection<PersistentEvent> events = new ConcurrentLinkedQueue<PersistentEvent>();
   @JsonIgnore
@@ -55,6 +55,9 @@ public class EventRecorder extends Client {
   @Transient
   @JsonIgnore
   transient volatile private boolean playing = false;
+  @Transient
+  @JsonIgnore
+  ScheduledExecutorService restart;
 
   public EventRecorder() {
     super();
@@ -148,8 +151,8 @@ public class EventRecorder extends Client {
       events.stream().filter((event) -> "own".equals(event.getType()))
           .forEach((event) -> executor.schedule(() -> this.playEvent(event), event.getDelay(), TimeUnit.MILLISECONDS));
       executor.shutdown();
-      if (this.length > 0) {
-        ScheduledExecutorService restart = Executors.newSingleThreadScheduledExecutor();
+      if (this.length != null) {
+        restart = Executors.newSingleThreadScheduledExecutor();
         if (this.loop) {
           restart.schedule(() -> this.play(), this.length, TimeUnit.MILLISECONDS);
         } else {
@@ -188,8 +191,8 @@ public class EventRecorder extends Client {
     events
         .forEach((event) -> executor.schedule(() -> playEvent(event, viewer), event.getDelay(), TimeUnit.MILLISECONDS));
     executor.shutdown();
-    if (this.loop && this.length > 0) {
-      ScheduledExecutorService restart = Executors.newSingleThreadScheduledExecutor();
+    if (this.loop && this.length != null) {
+      restart = Executors.newSingleThreadScheduledExecutor();
       restart.schedule(() -> this.play(viewer), this.length, TimeUnit.MILLISECONDS);
       restart.shutdown();
     }

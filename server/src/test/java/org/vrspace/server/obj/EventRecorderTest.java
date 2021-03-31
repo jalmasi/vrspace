@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,8 @@ import org.vrspace.server.dto.VREvent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * This is a bad test using hardcoded timeouts. It may fail occasionally until
  * EventRecorder provides some additional notifications, e.g. that the loop has
@@ -38,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 @RunWith(SpringRunner.class)
+@Slf4j
 public class EventRecorderTest {
   @Mock
   WorldManager worldManager;
@@ -105,6 +109,7 @@ public class EventRecorderTest {
 
   @Test
   public void testRecordSceneAndPlayClient() throws Exception {
+    System.out.println("testRecordSceneAndPlayClient");
     // start recording
     EventRecorder recorder = new EventRecorder(worldManager, client, "test");
     recorder.setLoop(false);
@@ -127,7 +132,7 @@ public class EventRecorderTest {
 
     // test playing
     recorder.play(viewer);
-    Thread.sleep(500);
+    Thread.sleep(200);
 
     // all recorded events sent to the viewer
     verify(playingSession, times(3)).sendMessage(any(TextMessage.class));
@@ -135,6 +140,7 @@ public class EventRecorderTest {
 
   @Test
   public void testRecordSceneAndLoopClient() throws Exception {
+    System.out.println("testRecordSceneAndLoopClient");
     // start recording
     EventRecorder recorder = new EventRecorder(worldManager, client, "test");
     recorder.init(worldManager, client);
@@ -158,12 +164,15 @@ public class EventRecorderTest {
 
     // test playing
     recorder.play(viewer);
-    Thread.sleep(200);
-    // CHECKME: valid way to test that loop has stopped?
+    // wait first loop
+    wait(recorder);
     recorder.setLoop(false);
-    Thread.sleep(1000);
+    // wait current loop to terminate
+    wait(recorder);
+    // it may play another one
+    wait(recorder);
     verify(playingSession, atLeast(4)).sendMessage(any(TextMessage.class));
-    Thread.sleep(500);
+    Thread.sleep(200);
     verifyNoMoreInteractions(playingSession);
   }
 
@@ -191,14 +200,25 @@ public class EventRecorderTest {
     viewer.setMapper(mapper);
     viewer.setSession(playingSession);
 
-    // test playing
+    // test playing for a few times
     recorder.play(viewer);
-    Thread.sleep(500);
-    // CHECKME: valid way to test that loop has stopped?
+    wait(recorder);
+    // stop
     recorder.setLoop(false);
-    Thread.sleep(500);
+    wait(recorder);
+    // now it may play one last loop
+    wait(recorder);
     verify(playingSession, atLeast(2)).sendMessage(any(TextMessage.class));
-    Thread.sleep(500);
+    Thread.sleep(200);
     verifyNoMoreInteractions(playingSession);
+  }
+
+  private void wait(EventRecorder recorder) throws Exception {
+    log.debug("Waiting for " + recorder.getRestart().isShutdown() + " " + recorder.getRestart().isTerminated());
+    recorder.getRestart().awaitTermination(1, TimeUnit.SECONDS);
+    if (recorder.getRestart().isShutdown() && recorder.getRestart().isTerminated()) {
+      // give it some more time to process events
+      Thread.sleep(100);
+    }
   }
 }
