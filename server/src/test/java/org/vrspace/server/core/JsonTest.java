@@ -50,6 +50,19 @@ public class JsonTest {
   }
 
   @Test
+  public void testClientProperties() throws Exception {
+    Client c = new Client();
+    c.setSceneProperties(new SceneProperties());
+    c.setName("client");
+    Map<String, Object> properties = new HashMap<>();
+    properties.put("string", "string");
+    properties.put("long", 1L);
+    properties.put("float", 1.2);
+    c.setProperties(properties);
+    testConversion(c);
+  }
+
+  @Test
   public void testAdd() throws Exception {
     Add add = new Add(new VRObject(1L, new VRObject(2L)), new VRObject(3L, new VRObject(4L)));
     testConversion(add);

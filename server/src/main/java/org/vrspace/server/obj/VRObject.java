@@ -2,6 +2,7 @@ package org.vrspace.server.obj;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.neo4j.ogm.annotation.Index;
@@ -57,6 +58,9 @@ public class VRObject extends Entity {
   private String mesh;
 
   private String script;
+
+  @Transient
+  private transient Map<String, Object> properties;
 
   // video/audio stream attached to this object
   private transient String streamId;

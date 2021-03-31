@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -304,6 +306,19 @@ public class DBTest {
     System.err.println(c);
     assertEquals(c2, c);
 
+  }
+
+  @Test
+  public void testObjectProperties() {
+    VRObject obj = new VRObject();
+    Map<String, Object> properties = new HashMap<>();
+    properties.put("string", "string");
+    properties.put("long", 1L);
+    properties.put("float", 1.2);
+    obj.setProperties(properties);
+    obj = repo.save(obj);
+    System.err.println(obj);
+    assertEquals(properties, obj.getProperties());
   }
 
   @Test
