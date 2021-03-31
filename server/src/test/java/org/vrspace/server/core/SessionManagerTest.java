@@ -357,6 +357,18 @@ public class SessionManagerTest {
     assertEquals(expected, client.getPosition());
     assertEquals(expected, user1.getScene().get(client.getObjectId()).getPosition());
     assertEquals(expected, user2.getScene().get(client.getObjectId()).getPosition());
+
+    // set properties of a client
+    String msg = "{\"object\":{\"Client\":" + clientId
+        + "},\"changes\":{\"properties\":{\"string\":\"string\",\"number\":123.45}}}";
+    sendMessage(msg);
+    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+    verify(session1, times(4)).sendMessage(any(WebSocketMessage.class));
+    verify(session2, times(4)).sendMessage(any(WebSocketMessage.class));
+
+    assertNotNull(client.getProperties());
+    assertEquals("string", client.getProperties().get("string"));
+    assertEquals(123.45, client.getProperties().get("number"));
   }
 
   @Test

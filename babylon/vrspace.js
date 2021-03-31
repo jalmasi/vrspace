@@ -50,13 +50,19 @@ class VRObject {
     this.rotation = null;
     /** Scale, Point */
     this.scale = null;
-    /** default false */
+    /** Default false, permanent objects remain in the scene forever */
     this.permanent = false;
-    //this.active = false; // CHECKME
+    /** URL of 3D mesh */
+    this.mesh = null;
+    /** Active i.e. online users */
+    this.active = false;
+    /** Used for video/audio streaming */
+    this.streamId = null;
+    /** URL of dynamically loaded script TODO */
+    this.script = null;
+    /** Custom properties of an object - shared transient object*/
+    this.properties = null; 
     //this.children = []; // CHECKME
-    //this.mesh = null;
-    //this.script = null; // CHECKME
-    //this.streamId = null;
     this.listeners = [];
   }
 
