@@ -287,19 +287,22 @@ class VRSpace {
   
   /**
   Connect to the server, attach listeners.
+  @param url optional websocket url, defaults to /vrspace on the same server
    */
-  connect() {
-    var url = window.location.href; // http://localhost:8080/console.html
-    this.log("This href "+url);
-    var start = url.indexOf('/');
-    var protocol = url.substring(0,start);
-    var webSocketProtocol = 'ws';
-    if ( protocol == 'https:' ) {
-      webSocketProtocol = 'wss';
+  connect(url) {
+    if ( ! url ) {
+      url = window.location.href; // http://localhost:8080/console.html
+      this.log("This href "+url);
+      let start = url.indexOf('/');
+      let protocol = url.substring(0,start);
+      let webSocketProtocol = 'ws';
+      if ( protocol == 'https:' ) {
+        webSocketProtocol = 'wss';
+      }
+      //var end = url.lastIndexOf('/'); // localhost:8080/babylon/vrspace
+      let end = url.indexOf('/', start+2); // localhost:8080/vrspace      
+      url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace'; // ws://localhost:8080/vrspace
     }
-    //var end = url.lastIndexOf('/'); // localhost:8080/babylon/vrspace
-    var end = url.indexOf('/', start+2); // localhost:8080/vrspace
-    url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace'; // ws://localhost:8080/vrspace
     this.log("Connecting to "+url);
     this.ws = new WebSocket(url);
     this.ws.onopen = () => {
