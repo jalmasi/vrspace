@@ -2616,7 +2616,7 @@ export class MediaStreams {
           if ( event.newValue && event.stream.hasVideo ) {
             client.video.displayStream(mediaStream);
           } else {
-            client.video.displayText();
+            client.video.displayAlt();
           }
         }
       });
@@ -2636,6 +2636,7 @@ export class VideoAvatar {
     this.deviceId = null;
     this.radius = 1;
     this.altText = "N/A";
+    this.altImage = null;
     this.textStyle = "bold 64px monospace";
     this.textColor = "black";
     this.backColor = "white";
@@ -2678,7 +2679,7 @@ export class VideoAvatar {
         });
       }     
       // display alt text before video texture loads:
-      this.displayText();
+      this.displayAlt();
     
       if ( this.autoStart ) {
         await this.displayVideo();
@@ -2709,6 +2710,29 @@ export class VideoAvatar {
     }
     this.mesh.material.diffuseTexture = new BABYLON.DynamicTexture("WebCamTexture", {width:128, height:128}, this.scene);
     this.mesh.material.diffuseTexture.drawText(this.altText, null, null, this.textStyle, this.textColor, this.backColor, false, true);    
+  }
+  
+  /**
+  Display and optionally set altImage
+  @param image path to the image file
+   */
+  displayImage(image) {
+    if ( image ) {
+      this.altImage = image;
+    }
+    if ( this.mesh.material.diffuseTexture ) {
+       this.mesh.material.diffuseTexture.dispose();
+    }
+    this.mesh.material.diffuseTexture = new BABYLON.Texture(this.altImage, this.scene, null, false);    
+  }
+  
+  /** Displays altImage if available, altText otherwise  */
+  displayAlt() {
+    if ( this.altImage ) {
+      this.displayImage();
+    } else {
+      this.displayText();
+    }
   }
   
   /** 
