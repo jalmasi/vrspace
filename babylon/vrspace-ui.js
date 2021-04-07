@@ -25,6 +25,8 @@ export class VRSpaceUI {
     this.indicator = null;
     /** @private */ 
     this.initialized = false;
+    /** @private */
+    this.optimizingScene = false;
   }
 
   /** Preloads vrspace.org logo and portal for later use 
@@ -324,6 +326,23 @@ export class VRSpaceUI {
     group.play(false);
   }
   
+  /** Optimize the scene for better frame rate */
+  optimizeScene(scene) {
+    if ( ! this.optimizingScene ) {
+      this.optimizingScene = true;
+      console.log("Running scene optimizer...")
+      BABYLON.SceneOptimizer.OptimizeAsync(scene, 
+        //BABYLON.SceneOptimizerOptions.ModerateDegradationAllowed(),
+        BABYLON.SceneOptimizerOptions.HighDegradationAllowed(),
+        () => {
+          this.optimizingScene = false;
+          console.log("Scene optimized");
+        }, () => {
+          this.optimizingScene = false;
+          console.log("Scene optimization unsuccessfull");
+      });
+    }
+  }
 
 }
 
@@ -1828,13 +1847,15 @@ export class World {
   }
   
   /**
-  Called after assets are loaded. By default only calls initXR().
+  Called after assets are loaded. By default calls initXR() and optimizes the scene.
   Subclasses typically override this with some spatial manipulations, e.g. scaling the world.
+  Subclasses may, but are not required, call super.loaded()
   @param file world file that has loaded
   @param mesh root mesh of the world
    */
   loaded( file, mesh ) {
     this.initXR();
+    VRSPACEUI.optimizeScene(this.scene);
   }
   
   /** Register render loop. */

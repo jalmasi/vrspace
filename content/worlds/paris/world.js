@@ -44,6 +44,7 @@ export class Paris extends World {
   }
   
   loaded(file, mesh) {
+    super.loaded(file, mesh);
     for ( var i = 0; i < this.container.materials.length; i++ ) {
       if ( this.container.materials[i].name == 'SidewalkTree' ) {
         // tree

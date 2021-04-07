@@ -33,6 +33,7 @@ export class Kidville extends World {
   }
   
   loaded(file, mesh) {
+    super.loaded(file, mesh);
     mesh.scaling = new BABYLON.Vector3(0.5,0.5,0.5);
   }
   

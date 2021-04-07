@@ -72,7 +72,7 @@ export class PersianCity extends World {
   }
 
   loaded( file, mesh ) {
-    console.log('Loaded '+file);
+    super.loaded(file, mesh);
     mesh.scaling = new BABYLON.Vector3(0.05,0.05,0.05);
     mesh.position.y = .2;
     // TODO FIXME: remove this node from the model

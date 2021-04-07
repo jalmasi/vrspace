@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LoadProgressIndicator, LogoRoom, Portal, WorldManager, VideoAvatar } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, VideoAvatar } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();

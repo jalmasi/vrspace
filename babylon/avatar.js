@@ -1,3 +1,4 @@
+import { VRSPACEUI } from './vrspace-ui.js';
 /**
 GLTF 3D Avatar.
 Once GLTF file is loaded, skeleton is inspected for existing arms, legs and head that can be animated.
@@ -182,6 +183,7 @@ export class Avatar {
       // Adds all elements to the scene
       container.addAllToScene();
       this.castShadows( this.shadowGenerator );
+      VRSPACEUI.optimizeScene(this.scene);
 
       // try to place feet on the ground
       // CHECKME is this really guaranteed to work in every time?
@@ -1328,6 +1330,7 @@ export class Avatar {
   @param shadowGenerator
    */
   castShadows( shadowGenerator ) {
+    // FIXME: this is before scaling!
     if ( this.character && this.character.meshes ) {
       for ( var i = 0; i < this.character.meshes.length; i++ ) {
         if (shadowGenerator) {

@@ -99,7 +99,7 @@ export class Aladinville extends World {
     var gates = this.scene.getMeshByID("group296_lambert66_0");
     gates.material = marbleMaterial;
     
-    //super.loaded(file,mesh); // calls initXR()
+    super.loaded(file,mesh);
   }
   
   registerRenderLoop() {
