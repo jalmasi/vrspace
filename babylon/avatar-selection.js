@@ -210,6 +210,10 @@ export class AvatarSelection extends World {
     this.indicator.animate();
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(scene, dir, this.shadowGenerator);
+    // resize the character to real-world height
+    if ( this.inXR) {
+      userHeight = this.vrHelper.camera().realWorldHeight;
+    }
     loaded.userHeight = userHeight;
     loaded.animateArms = false;
     //loaded.debug = true;
@@ -272,7 +276,7 @@ export class AvatarSelection extends World {
       if ( this.inXR ) {
         this.tracking = false;
         userHeight = this.vrHelper.camera().realWorldHeight;
-        console.log("Resizing to "+userHeight)
+        console.log("Resizing to "+userHeight);
         this.character.userHeight = userHeight;
         this.character.standUp(); // CHECKME: move to resize()?
         this.character.resize();
