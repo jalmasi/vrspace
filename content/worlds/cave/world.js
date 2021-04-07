@@ -99,7 +99,6 @@ export class Cave extends World {
   
   loaded( file, mesh ) {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
-    VRSPACEUI.optimizeScene(this.scene);    
   }
   
 }

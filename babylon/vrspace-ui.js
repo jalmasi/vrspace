@@ -1810,6 +1810,8 @@ export class World {
   
   /** Load the world, then execute given callback passing self as argument.
   Loads an AssetContainer, and adds it to the scene. Takes care of loading progress.
+  Calls loadingStart, loaded, loadingStop, collisions, optimizeScene - each may be overridden.
+  @param callback to execute after the content has loaded
    */
   load(callback) {
     this.loadingStart(this.name);
@@ -1828,13 +1830,14 @@ export class World {
         container.addAllToScene();
       
         this.loaded( this.file, mesh );
-
+        
         // do something with the scene
         VRSPACEUI.log("World loaded");
         this.loadingStop(this.name);
         //floor = new FloorRibbon(scene);
         //floor.showUI();
         this.collisions(this.collisionsEnabled);
+        this.optimizeScene();
         if ( callback ) {
           callback(this);
         }
@@ -1847,7 +1850,7 @@ export class World {
   }
   
   /**
-  Called after assets are loaded. By default calls initXR() and optimizes the scene.
+  Called after assets are loaded. By default calls initXR().
   Subclasses typically override this with some spatial manipulations, e.g. scaling the world.
   Subclasses may, but are not required, call super.loaded()
   @param file world file that has loaded
@@ -1855,7 +1858,11 @@ export class World {
    */
   loaded( file, mesh ) {
     this.initXR();
-    VRSPACEUI.optimizeScene(this.scene);
+  }
+  
+  /**  Optimize the scene */
+  optimizeScene() {
+    VRSPACEUI.optimizeScene(this.scene);    
   }
   
   /** Register render loop. */

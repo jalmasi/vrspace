@@ -1,4 +1,4 @@
-import { World, VRSPACEUI } from '../../../babylon/vrspace-ui.js';
+import { World } from '../../../babylon/vrspace-ui.js';
 
 //collisions:
 //group296_sand_houses:lambert6_0 - ground
@@ -100,7 +100,6 @@ export class Aladinville extends World {
     gates.material = marbleMaterial;
     
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
-    VRSPACEUI.optimizeScene(this.scene);
   }
   
   registerRenderLoop() {

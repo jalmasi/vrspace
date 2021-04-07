@@ -1,4 +1,4 @@
-import { World, VRSPACEUI } from '../../../babylon/vrspace-ui.js';
+import { World } from '../../../babylon/vrspace-ui.js';
 
 export class Paris extends World {
   async createCamera() {
@@ -45,7 +45,6 @@ export class Paris extends World {
   
   loaded(file, mesh) {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
-    VRSPACEUI.optimizeScene(this.scene);
     for ( var i = 0; i < this.container.materials.length; i++ ) {
       if ( this.container.materials[i].name == 'SidewalkTree' ) {
         // tree
