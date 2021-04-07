@@ -1,4 +1,4 @@
-import { World } from '../../../babylon/vrspace-ui.js';
+import { World, VRSPACEUI } from '../../../babylon/vrspace-ui.js';
 
 export class Kidville extends World {
   async createCamera() {
@@ -33,7 +33,8 @@ export class Kidville extends World {
   }
   
   loaded(file, mesh) {
-    super.loaded(file, mesh);
+    //super.loaded(file, mesh); // FIXME: calling initXR() twice
+    VRSPACEUI.optimizeScene(this.scene);
     mesh.scaling = new BABYLON.Vector3(0.5,0.5,0.5);
   }
   

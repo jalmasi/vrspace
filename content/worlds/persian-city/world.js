@@ -1,4 +1,4 @@
-import { World } from '../../../babylon/vrspace-ui.js';
+import { World, VRSPACEUI } from '../../../babylon/vrspace-ui.js';
 
 var terrain;
 var sps; // solid particle system
@@ -72,7 +72,8 @@ export class PersianCity extends World {
   }
 
   loaded( file, mesh ) {
-    super.loaded(file, mesh);
+    //super.loaded(file, mesh); // FIXME: calling initXR() twice
+    VRSPACEUI.optimizeScene(this.scene);
     mesh.scaling = new BABYLON.Vector3(0.05,0.05,0.05);
     mesh.position.y = .2;
     // TODO FIXME: remove this node from the model

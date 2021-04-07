@@ -1,4 +1,4 @@
-import { World } from '../../../babylon/vrspace-ui.js';
+import { World, VRSPACEUI } from '../../../babylon/vrspace-ui.js';
 
 export class Spaceport extends World {
 
@@ -56,7 +56,8 @@ export class Spaceport extends World {
   loaded( file, mesh ) {
     mesh.scaling = new BABYLON.Vector3(0.005,0.005,0.005);
     mesh.position.y = -107.3;
-    super.loaded(file, mesh);
+    //super.loaded(file, mesh); // FIXME: calling initXR() twice
+    VRSPACEUI.optimizeScene(this.scene);
   }
 }
 
