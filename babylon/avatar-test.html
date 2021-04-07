@@ -41,6 +41,7 @@ var shadowGenerator;
 var camera;
 var angle = 0;
 var characters = [];
+var crouch = false;
 
 import('./vrspace-ui.js').then( (ui) => {
   import("./avatar-test.js").then( (module) =>{
@@ -70,6 +71,18 @@ import('./vrspace-ui.js').then( (ui) => {
         rightSphere.position = new BABYLON.Vector3(0.3,1.8,-0.1)
 
         scene.onPointerPick = (e,p) => {
+          if ( ! character ) {
+            return;
+          }
+          if ( p.pickedMesh.name != "ground" ) {
+            if ( crouch ) {
+              crouch = false;
+              character.crouch(0.3);
+            } else {
+              crouch = true;
+              character.standUp();
+            }
+          }
           if ( p.pickedMesh == leftSphere ) {
             character.body.leftArm.pointerQuat = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,angle);
             console.log("Angle: "+angle);
@@ -131,6 +144,7 @@ var replaceAvatar = function() {
       angle = 0;
       character = loaded.replace(character);
       animationButtons(character);
+      crouch = false;
     } );
   });
 };

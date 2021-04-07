@@ -430,7 +430,7 @@ export class Avatar {
     var target = new BABYLON.Vector3( t.x, t.y, t.z ).subtract(this.rootMesh.position);
     target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(this.rootMesh.rotationQuaternion),target);
 
-    var targetVector = target.subtract(this.headPos()).subtract(this.rootMesh.position);
+    var targetVector = target.subtract(this.headPos()).add(this.rootMesh.position);
     if ( this.headAxisFix == -1 ) {
       // FIX: neck and head opposite orientation
       // businessman, robot, adventurer, unreal male
