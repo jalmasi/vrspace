@@ -39,8 +39,8 @@ export class AvatarSelection extends World {
     this.shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
     this.shadowGenerator.useExponentialShadowMap = true;
     // slower:
-    //shadowGenerator.useBlurExponentialShadowMap = true;
-    //shadowGenerator.blurKernel = 32;
+    //this.shadowGenerator.useBlurExponentialShadowMap = true;
+    //this.shadowGenerator.blurKernel = 32;
     // hair is usually semi-transparent, this allows it to cast shadow:
     this.shadowGenerator.transparencyShadow = true;
   }

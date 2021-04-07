@@ -1326,11 +1326,10 @@ export class Avatar {
   }
 
   /**
-  Adds all avatar meshes to given ShadowGenerator.
-  @param shadowGenerator
+  Adds or remove all avatar meshes to given ShadowGenerator.
+  @param shadowGenerator removes shadows if null
    */
   castShadows( shadowGenerator ) {
-    // FIXME: this is before scaling!
     if ( this.character && this.character.meshes ) {
       for ( var i = 0; i < this.character.meshes.length; i++ ) {
         if (shadowGenerator) {
