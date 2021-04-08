@@ -30,9 +30,9 @@ export class AvatarSelection extends World {
   }
   async createLights() {
     // Add lights to the scene
-    var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
-    var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), this.scene);
-    return light2;
+    this.hemisphere = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
+    var point = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), this.scene);
+    return point;
   }
   async createShadows() {
     // Shadows
@@ -390,15 +390,17 @@ export class AvatarSelection extends World {
       // TODO: new camera may be of type that doesn't support gamepad
       var gamepad = this.camera.inputs.attached.gamepad.gamepad;
 
-      this.vrHelper.stopTracking();
-      this.camera.detachControl(this.canvas);
-      this.dispose();
       world.WORLD.init(this.engine, portal.name, this.scene, afterLoad, portal.worldUrl()+"/").then((newScene)=>{
-        console.log(world);
+        this.vrHelper.stopTracking();
+        this.camera.detachControl(this.canvas);
+
+        console.log("Loaded ", world);
         this.vrHelper.clearFloors();
         // TODO install world's xr device tracker
         if ( this.inXR ) {
           this.vrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
+          // CHECKME: activate camera in VR?
+          //this.scene.activeCamera = this.vrHelper.camera();
         } else {
           console.log('New world camera:');
           console.log(world.WORLD.camera);
@@ -413,6 +415,7 @@ export class AvatarSelection extends World {
           // CHECKME: why?
           this.scene.activeCamera = world.WORLD.camera;
         }
+        this.dispose();
         
       });
     })
@@ -420,6 +423,7 @@ export class AvatarSelection extends World {
 
   dispose() {
     super.dispose();
+    this.hemisphere.dispose();
     this.removePortals();
     this.room.dispose(); // AKA ground
     // TODO properly dispose of avatar

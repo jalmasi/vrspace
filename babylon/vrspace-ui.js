@@ -1690,7 +1690,7 @@ export class World {
   }
   
   /**
-  Disposes of all lights, and objects returned by createCamera, createShadows, createSkybox
+  Disposes of all objects returned by createLights, createCamera, createShadows, createSkybox
    */
   async dispose() {
     if ( this.camera ) {
@@ -1710,13 +1710,8 @@ export class World {
       this.shadowGenerator.dispose();
       this.shadowGenerator = null;    
     }
-    if ( this.scene && this.scene.lights ) {
-      this.scene.lights.forEach( (l) => {
-        l.dispose();
-      });
-    }
   }
-  
+
   /** Creates a VRHelper if needed, and initializes it with the current world.
   Normally called after world is loaded.
    */
