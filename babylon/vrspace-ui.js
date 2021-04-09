@@ -1499,6 +1499,8 @@ export class VRHelper {
       });
       
     }
+    
+    console.log("VRHelper initialized", this.vrHelper);
   }
   
   afterTeleportation() {
@@ -1522,7 +1524,9 @@ export class VRHelper {
     return this.vrHelper.input.xrCamera;
   }
   addFloorMesh(mesh) {
-    if ( this.vrHelper && this.vrHelper.teleportation) {
+    if ( this.vrHelper && this.vrHelper.teleportation && mesh) {
+      // do not add a floor twice
+      this.vrHelper.teleportation.removeFloorMesh(mesh);
       this.vrHelper.teleportation.addFloorMesh(mesh);
     }
   }

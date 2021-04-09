@@ -364,7 +364,9 @@ export class AvatarSelection extends World {
         //worldManager.VRSPACE.debug = true; // network debug
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
-          worldManager.trackCamera(this.vrHelper.camera()); 
+          worldManager.trackCamera(this.vrHelper.camera());
+          // floors that exist only after load
+          this.vrHelper.addFloors();
         }
         var enter = () => {
           worldManager.VRSPACE.removeWelcomeListener(enter);
