@@ -357,8 +357,6 @@ export class AvatarSelection extends World {
     import(portal.worldUrl()+'/world.js').then((world)=>{
       var afterLoad = (world) => {
         console.log(world);
-        world.vrHelper = this.vrHelper;
-        world.initXR();
         
         // TODO refactor this to WorldManager
         var worldManager = new WorldManager(world);
@@ -396,6 +394,8 @@ export class AvatarSelection extends World {
 
         console.log("Loaded ", world);
         this.vrHelper.clearFloors();
+        world.WORLD.initXR(this.vrHelper);
+        
         // TODO install world's xr device tracker
         if ( this.inXR ) {
           this.vrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);

@@ -1714,8 +1714,12 @@ export class World {
 
   /** Creates a VRHelper if needed, and initializes it with the current world.
   Normally called after world is loaded.
+  @param vrHelper optional existing vrHelper
    */
-  initXR() {
+  initXR(vrHelper) {
+    if ( vrHelper ) {
+      this.vrHelper = vrHelper;
+    }
     if ( ! this.vrHelper ) {
       this.vrHelper = new VRHelper();
     }
