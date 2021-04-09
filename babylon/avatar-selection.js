@@ -400,9 +400,9 @@ export class AvatarSelection extends World {
         
         // TODO install world's xr device tracker
         if ( this.inXR ) {
+          // for some reason, this sets Y to 0:
           this.vrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
-          // CHECKME: activate camera in VR?
-          //this.scene.activeCamera = this.vrHelper.camera();
+          this.vrHelper.camera().position.y = world.WORLD.camera.position.y;
         } else {
           console.log('New world camera:');
           console.log(world.WORLD.camera);

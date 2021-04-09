@@ -1433,6 +1433,8 @@ export class VRHelper {
             case BABYLON.WebXRState.EXITING_XR:
               console.log( "Exiting VR" );
               this.stopTracking();
+              this.world.camera.position = this.camera().position.clone();
+              this.world.camera.rotation = this.camera().rotation.clone();
               // doesn't do anything
               //camera.position.y = xrHelper.baseExperience.camera.position.y + 3; //camera.ellipsoid.y*2;
               this.world.collisions(this.world.collisionsEnabled);
