@@ -10,6 +10,8 @@ import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.stereotype.Component;
 import org.vrspace.server.core.ClassUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Adds content and client (babylon) directories to content path, and enables
  * directory listings. TODO: paths should be configurable
@@ -18,11 +20,14 @@ import org.vrspace.server.core.ClassUtil;
  *
  */
 @Component
+@Slf4j
 public class ContentTomcatCustomizer implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
   @Override
   public void customize(TomcatServletWebServerFactory factory) {
     String serverDir = ClassUtil.projectHomeDirectory();
-    if (serverDir != null) {
+    if (serverDir == null) {
+      log.error("Can't determine project home directory");
+    } else {
       File contentDir = new File(serverDir);
       factory.setDocumentRoot(contentDir);
       factory.setContextPath("");

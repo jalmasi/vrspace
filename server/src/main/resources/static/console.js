@@ -1,3 +1,5 @@
+var VRSPACE;
+
 function showMessage(message) {
   var conversation = document.getElementById("conversation");
   var row = conversation.insertRow(0);
@@ -200,16 +202,19 @@ function sceneChanged(e) {
 }
 
 window.addEventListener('load', function() {
-  VRSPACE.addConnectionListener(setConnected);
-  VRSPACE.addDataListener(socketCallback);
-  VRSPACE.addSceneListener(sceneChanged);
-  document.getElementById("connect").onclick = function() {
-    VRSPACE.connect();
-  };
-  document.getElementById("disconnect").onclick = function() {
-    VRSPACE.disconnect();
-  };
-  document.getElementById("send").onclick = sendMessage;
-  // document.getElementById("message").onchange=function(){sendMessage();};
-  document.getElementById("add").onclick = addObject;
+  import("/babylon/vrspace.js").then((module)=>{
+    VRSPACE=module.VRSPACE;
+    VRSPACE.addConnectionListener(setConnected);
+    VRSPACE.addDataListener(socketCallback);
+    VRSPACE.addSceneListener(sceneChanged);
+    document.getElementById("connect").onclick = function() {
+      VRSPACE.connect();
+    };
+    document.getElementById("disconnect").onclick = function() {
+      VRSPACE.disconnect();
+    };
+    document.getElementById("send").onclick = sendMessage;
+    // document.getElementById("message").onchange=function(){sendMessage();};
+    document.getElementById("add").onclick = addObject;
+  });
 });

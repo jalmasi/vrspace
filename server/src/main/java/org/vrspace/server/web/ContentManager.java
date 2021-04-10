@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,17 +23,25 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.vrspace.server.ServerApplication;
 import org.vrspace.server.dto.FileList;
 import org.vrspace.server.obj.Content;
 
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Simple content manager, allows for browsing and uploading of files under
+ * org.vrspace.adminUI.contentRoot. Optionally activated when
+ * org.vrspace.adminUI.enabled=true.
+ * 
+ * @author joe
+ *
+ */
 @RestController
 @Slf4j
+@ConditionalOnProperty("org.vrspace.adminUI.enabled")
 public class ContentManager {
-  public static final String root = ".";
+  @Value("${org.vrspace.adminUI.contentRoot}")
+  private String root;
 
   private String getPath(String path) {
     if (path.length() < "/pub/".length()) {
