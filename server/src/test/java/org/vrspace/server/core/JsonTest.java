@@ -6,7 +6,10 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Echo;
@@ -19,14 +22,13 @@ import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @RunWith(SpringRunner.class)
+@SpringBootTest(classes = JacksonConfig.class)
 public class JsonTest {
 
-  private ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule())
-      .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+  @Autowired
+  private ObjectMapper mapper;
 
   @Test
   public void testObject() throws Exception {
@@ -75,6 +77,12 @@ public class JsonTest {
   }
 
   @Test
+  public void testAddClient() throws Exception {
+    Add add = new Add(new Client());
+    testConversion(add);
+  }
+
+  @Test
   public void testDeserializeEvent() throws Exception {
     String string = "{\"object\":{\"Client\":1},\"changes\":{\"position\":{\"org.vrspace.server.Point\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}}";
 
@@ -91,7 +99,7 @@ public class JsonTest {
     VREvent ev = new ClientRequest(new VRObject(1L));
     ev.addChange("field1", "value1");
     ev.addChange("field2", 5);
-    testConversion(ev);
+    testConversion(ev, false); // source is not set during deserialization
   }
 
   @Test

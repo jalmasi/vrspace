@@ -1,7 +1,7 @@
 /**
 Object ID, consisting of class name and number.
  */
-class ID {
+export class ID {
   constructor(className,id) {
     /** Class name */
     this.className = className;
@@ -17,7 +17,7 @@ class ID {
 /**
 Rotation, FIXME: not used
  */
-class Rotation {
+export class Rotation {
   constructor(){
     this.x=0;
     this.y=1;
@@ -29,7 +29,7 @@ class Rotation {
 /**
 Point in space, x, y, z
  */
-class Point {
+export class Point {
   constructor(){
     this.x=0;
     this.y=0;
@@ -40,7 +40,7 @@ class Point {
 /**
 Basic VRObject, has the same properties as server counterpart.
  */
-class VRObject {
+export class VRObject {
   constructor() {
     /** Id, equal on server and all instances */
     this.id = null;
@@ -99,7 +99,7 @@ class VRObject {
 /**
 Scene properties, same as server counterpart.
  */
-class SceneProperties{
+export class SceneProperties{
   constructor() {
     /** Visibility range, default 2000 */
     this.range = 2000;
@@ -116,7 +116,7 @@ class SceneProperties{
 Representation of a client (user).
 @extends VRObject
  */
-class Client extends VRObject {
+export class Client extends VRObject {
   constructor() {
     super();
     /** Client name, must be unique */
@@ -146,7 +146,7 @@ class Client extends VRObject {
 See server side counterpart.
 @extends Client
  */
-class EventRecorder extends Client {
+export class EventRecorder extends Client {
   constructor() {
     super();
   }
@@ -155,7 +155,7 @@ class EventRecorder extends Client {
 /**
 An event that happened to an object.
  */
-class VREvent {
+export class VREvent {
   constructor(obj) {
     /** VRObject that has changed */
     this.object=new Object();
@@ -169,7 +169,7 @@ class VREvent {
 A scene event - addition or removal of some objects, typically users.
 An object is either added or removed, the other value is null.
  */
-class SceneEvent {
+export class SceneEvent {
   constructor(scene,className,objectId,added,removed) {
     /** Class name of object added/removed */
     this.className = className;
@@ -191,7 +191,7 @@ Main client API class, no external dependencies.
 Provides send methods to send messages to the server, to be distributed to other clients.
 Listeners receive remote events.
  */
-class VRSpace {
+export class VRSpace {
   constructor() {
     /** Underlying websocket */
     this.ws = null;

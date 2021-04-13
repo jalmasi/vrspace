@@ -4,26 +4,26 @@
     <head>
       <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
       <meta content="utf-8" http-equiv="encoding">
-    <title>VRSpace Object Creation test</title>
-    ﻿<style type="text/css">
-    html, body {
-      width: 100%;
-      height:100%;
-      margin: 0px;
-      padding: 0px;
-    }
-    canvas {
-      width: 98%;
-      height:96%;
-      padding-left: 0;
-      padding-right: 0;
-      margin-left: auto;
-      margin-right: auto;
-      display: block;
-    }
-    </style>﻿
-        <script src="https://preview.babylonjs.com/babylon.js"></script>
-        <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+      <title>VRSpace Object Creation test</title>
+      ﻿<style type="text/css">
+      html, body {
+        width: 100%;
+        height:100%;
+        margin: 0px;
+        padding: 0px;
+      }
+      canvas {
+        width: 98%;
+        height:96%;
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+      }
+      </style>﻿
+      <script src="https://preview.babylonjs.com/babylon.js"></script>
+      <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
     </head>
   <body>
 
@@ -63,8 +63,10 @@ import('./vrspace-ui.js').then( (ui) => {
   world.createScene();
   world.registerRenderLoop();
 
-  var touch = BABYLON.MeshBuilder.CreateSphere("touch", {diameter:0.2}, world.scene);
-  touch.position = new BABYLON.Vector3(-0.3,1.5,-0.4);
+  var touch1 = BABYLON.MeshBuilder.CreateSphere("touch1", {diameter:0.2}, world.scene);
+  touch1.position = new BABYLON.Vector3(-0.3,0,-0.4);
+  var touch2 = BABYLON.MeshBuilder.CreateSphere("touch2", {diameter:0.2}, world.scene);
+  touch2.position = new BABYLON.Vector3(0.3,0,-0.4);
 
   var net = new ui.WorldManager(world);
   net.debug = true;
@@ -77,9 +79,18 @@ import('./vrspace-ui.js').then( (ui) => {
   net.VRSPACE.connect();
 
   world.scene.onPointerPick = (e,p) => {
-    if ( p.pickedMesh.name === "touch" ) {
+    if ( p.pickedMesh === touch1 ) {
       net.VRSPACE.createSharedInstance((obj)=>{
         console.log("created", obj);
+      });
+    }
+    if ( p.pickedMesh === touch2 ) {
+      import('./vrspace.js').then( (vrspace) => {
+        var o = new vrspace.Client();
+        o.mesh = 'video';
+        net.VRSPACE.createSharedObject(o, (obj)=>{
+          console.log("created", obj);
+        });
       });
     }
   }
