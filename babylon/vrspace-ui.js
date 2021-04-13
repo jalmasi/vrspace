@@ -366,7 +366,7 @@ export class LogoRoom {
   async load() {
     this.floorGroup = new BABYLON.TransformNode("Floor");
     // ground, used for teleportation/pointer
-    this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {}, scene);
+    this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {}, this.scene);
     this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
     this.ground.position = new BABYLON.Vector3( 0, 0.1, 0 );
     this.ground.parent = this.floorGroup;
@@ -379,7 +379,7 @@ export class LogoRoom {
     VRSPACEUI.copyMesh(VRSPACEUI.logo, this.floorGroup, true);
 
     // walls, used for collisions, to limit the movement
-    var walls = BABYLON.MeshBuilder.CreateCylinder("FloorWalls", {height:4,diameter:1,sideOrientation:BABYLON.Mesh.BACKSIDE}, scene);
+    var walls = BABYLON.MeshBuilder.CreateCylinder("FloorWalls", {height:4,diameter:1,sideOrientation:BABYLON.Mesh.BACKSIDE}, this.scene);
     walls.checkCollisions = true;
     walls.isVisible = false;
     walls.position = new BABYLON.Vector3(0,2,0);
@@ -475,7 +475,7 @@ export class Portal {
       VRSPACEUI.copyMesh(VRSPACEUI.portal, this.group);
     }
 
-    var plane = BABYLON.Mesh.CreatePlane("PortalEntrance:"+this.name, 1.60, scene);
+    var plane = BABYLON.Mesh.CreatePlane("PortalEntrance:"+this.name, 1.60, this.scene);
     plane.parent = this.group;
     plane.position = new BABYLON.Vector3(0,1.32,0);
     var observable = (e) => {
@@ -494,12 +494,12 @@ export class Portal {
     };
     this.scene.onPointerObservable.add(observable);
 
-    this.material = new BABYLON.StandardMaterial(this.name+"-noise", scene);
+    this.material = new BABYLON.StandardMaterial(this.name+"-noise", this.scene);
     plane.material = this.material;
 
     this.material.disableLighting = true;
     this.material.backFaceCulling = false;
-    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, scene);
+    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
     this.material.lightmapTexture = noiseTexture;
     noiseTexture.octaves = 4;
     noiseTexture.persistence = 1.2;
@@ -507,7 +507,7 @@ export class Portal {
     plane.visibility = 0.85;
     this.textures.push( noiseTexture );
 
-    this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:1,width:2}, scene);
+    this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:1,width:2}, this.scene);
     this.title.parent = this.group;
     this.title.position = new BABYLON.Vector3(0,2.5,0);
     this.title.isVisible = false;
@@ -610,9 +610,9 @@ export class LoadProgressIndicator {
         indicator.mesh.setEnabled(indicator.totalItems > indicator.currentItem);
         indicator.log("Loaded logo, current progress "+indicator.currentItem+"/"+indicator.totalItems);
     });
-    scene.onActiveCameraChanged.add( () => {
-      if ( scene.activeCamera ) {
-        console.log("Camera changed: "+scene.activeCamera.getClassName());
+    this.scene.onActiveCameraChanged.add( () => {
+      if ( this.scene.activeCamera ) {
+        console.log("Camera changed: "+this.scene.activeCamera.getClassName());
         this.attachTo(camera); // FIXME undefined
       }
     });
@@ -656,7 +656,7 @@ export class LoadProgressIndicator {
     if ( this.totalItems <= this.currentItem && this.mesh ) {
       this.mesh.setEnabled(false);
       if ( this.animation ) {
-        scene.unregisterBeforeRender(this.animation);
+        this.scene.unregisterBeforeRender(this.animation);
         delete this.animation;
       }
       this._init();
@@ -992,7 +992,7 @@ export class FloorRibbon {
     this.jsButton.isVisible = this.editing;
     this.editing = !this.editing;
     if ( this.resizing ) {
-      scene.onPointerObservable.remove( this.observer );
+      this.scene.onPointerObservable.remove( this.observer );
       this.resizing = false;
       delete this.observer;
       delete this.pathPoints;
@@ -1007,7 +1007,7 @@ export class FloorRibbon {
       this.editButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Back.png"; // FIXME: cdn
       this.editButton.text = "Pick 1";
       this.resizing = true;
-      this.observer = scene.onPointerObservable.add((pointerInfo) => {
+      this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
         switch (pointerInfo.type) {
           case BABYLON.PointerEventTypes.POINTERDOWN:
             if(pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh == this.floorMesh) {
@@ -1037,7 +1037,7 @@ export class FloorRibbon {
       });
     } else if ( this.observer ) {
       this.editButton.text = null;
-      scene.onPointerObservable.remove( this.observer );
+      this.scene.onPointerObservable.remove( this.observer );
     }
   }
   pickClosest( pickInfo ) {
@@ -1231,12 +1231,12 @@ export class Buttons {
     var spacing = 1.1;
 
     // CHECKME: better use emissive color?
-    this.selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", scene);
+    this.selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", this.scene);
     this.selectedMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
     this.selectedMaterial.emissiveColor = new BABYLON.Color3(.4,.8,.4);
     this.selectedMaterial.disableLighting = true;
     this.materials.push(this.selectedMaterial);
-    this.unselectedMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
+    this.unselectedMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", this.scene);
     this.unselectedMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
     this.unselectedMaterial.emissiveColor = new BABYLON.Color3(.2,.2,.2);
     this.unselectedMaterial.disableLighting = true;
@@ -1249,7 +1249,7 @@ export class Buttons {
       titleText.textVerticalAlignment = this.verticalAlignment;
       titleText.color = this.color;
 
-      var titlePlane = BABYLON.MeshBuilder.CreatePlane("Text"+this.title, {height:2,width:this.title.length*2}, scene);
+      var titlePlane = BABYLON.MeshBuilder.CreatePlane("Text"+this.title, {height:2,width:this.title.length*2}, this.scene);
       titlePlane.parent = this.group;
       titlePlane.position = new BABYLON.Vector3(this.title.length,spacing*2,0);
 
@@ -1278,7 +1278,7 @@ export class Buttons {
       buttonText.textVerticalAlignment = this.verticalAlignment;
 
       var buttonWidth = buttonText.text.length;
-      var buttonPlane = BABYLON.MeshBuilder.CreatePlane("Text"+option, {height:1,width:buttonWidth}, scene);
+      var buttonPlane = BABYLON.MeshBuilder.CreatePlane("Text"+option, {height:1,width:buttonWidth}, this.scene);
       buttonPlane.position = new BABYLON.Vector3(buttonWidth/2+buttonHeight,-i*spacing,0);
       buttonText.color = this.color;
       buttonPlane.parent = this.group;
@@ -1297,7 +1297,7 @@ export class Buttons {
       buttonPlane.material.alphaMode = 5; // ALPHA_MAXIMIZED
       this.materials.push(buttonPlane.material);
 
-      var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:buttonHeight*.8}, scene);
+      var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:buttonHeight*.8}, this.scene);
       button.material = this.unselectedMaterial;
       button.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
       button.position = new BABYLON.Vector3(buttonHeight/2, -i*spacing, 0);
@@ -1305,7 +1305,7 @@ export class Buttons {
       this.buttons.push(button);
     }
 
-    scene.onPointerObservable.add( (e) => {
+    this.scene.onPointerObservable.add( (e) => {
       if(e.type == BABYLON.PointerEventTypes.POINTERDOWN){
         var p = e.pickInfo;
         for ( var i = 0; i < this.options.length; i++ ) {
@@ -1326,10 +1326,10 @@ export class Buttons {
       var backgroundWidth = this.groupWidth/1.8;
       var backgroundHeight = this.options.length*spacing;
       var backgroundOffset = buttonHeight*.8; // same as button cylinder diameter
-      var backPlane = BABYLON.MeshBuilder.CreatePlane("ButtonBackground:"+this.title, {height:backgroundHeight,width:backgroundWidth}, scene);
+      var backPlane = BABYLON.MeshBuilder.CreatePlane("ButtonBackground:"+this.title, {height:backgroundHeight,width:backgroundWidth}, this.scene);
       backPlane.position = new BABYLON.Vector3(backgroundWidth/2+backgroundOffset,-backgroundHeight/2+spacing/2,.2);
       backPlane.parent = this.group;
-      var backgroundMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", scene);
+      var backgroundMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", this.scene);
       backgroundMaterial.disableLighting = true;
       //backgroundMaterial.alpha = 0.5; // produces weird transparency effects
       this.materials.push(backgroundMaterial);
@@ -1517,10 +1517,10 @@ export class VRHelper {
   }
   
   startTracking() {
-    scene.registerBeforeRender(this.tracker);
+    this.world.scene.registerBeforeRender(this.tracker);
   }
   stopTracking() {
-    scene.unregisterBeforeRender(this.tracker);
+    this.world.scene.unregisterBeforeRender(this.tracker);
   }
   camera() {
     return this.vrHelper.input.xrCamera;
@@ -2202,7 +2202,7 @@ export class WorldManager {
     var pos = obj.mesh.lastIndexOf('/');
     var path = obj.mesh.substring(0,pos+1);
     var file = obj.mesh.substring(pos+1);
-    BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, scene).then((container) => {
+    BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, this.scene).then((container) => {
       this.log("loaded "+obj.mesh);
       var bbox = this.boundingBox(container);
       

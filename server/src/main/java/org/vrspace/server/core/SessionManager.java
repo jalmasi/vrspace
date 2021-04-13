@@ -29,7 +29,8 @@ public class SessionManager extends TextWebSocketHandler {
 
   @Autowired
   private WorldManager worldManager;
-  private ObjectMapper mapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper mapper;
 
   @Override
   public void handleTextMessage(WebSocketSession session, TextMessage message) {
