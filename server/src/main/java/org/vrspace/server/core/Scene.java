@@ -104,11 +104,11 @@ public class Scene {
         members.forEach(t -> remove(remove, t));
 
         if (remove.getObjects().size() > 0) {
-          log.debug("Scene for " + client.getId() + ": " + remove);
+          log.debug("Scene for " + client.getId() + " removing " + remove.getObjects().size());
           client.sendMessage(remove);
         }
         if (add.getObjects().size() > 0) {
-          log.debug("Scene for " + client.getId() + ": " + add);
+          log.debug("Scene for " + client.getId() + " adding " + add.getObjects().size());
           client.sendMessage(add);
         }
 
@@ -193,19 +193,32 @@ public class Scene {
     }
   }
 
-  /**
-   * Remove all objects from the scene. Next call to update() will cause sending
-   * removal messages to the client.
-   */
-  public void removeAll() {
+  private void clear(boolean force) {
     try {
       for (VRObject t : members) {
-        remove(t, false);
+        remove(t, force);
       }
       setDirty();
     } catch (Throwable e) {
       log.error("Error during removal", e);
     }
+  }
+
+  /**
+   * Force reload of the scene: remove all objects from the scene. Next call to
+   * update() will cause remove/add messages to be sent.
+   */
+  public void reload() {
+    clear(true);
+  }
+
+  /**
+   * Remove all objects from the scene, and stop listening to changes. Next call
+   * to update() will reestablish the event model, and may cause sending removal
+   * messages to the client.
+   */
+  public void removeAll() {
+    clear(false);
   }
 
   /**
@@ -218,8 +231,7 @@ public class Scene {
   }
 
   /**
-   * Retrieve an object in the scene
-   * 
+   * Retrieve an object in the scene FIXME used only in tests?
    */
   public VRObject get(ID id) {
     return allObjects.get(id);

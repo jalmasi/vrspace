@@ -94,6 +94,22 @@ export class VRObject {
       this.listeners[i](this,changes);
     }
   }
+  
+  /** publish the object to the server */
+  publish() {
+    if ( ! this.VRSPACE ) {
+      throw "the object is not shared yet";
+    }
+    let event = new VREvent( this );
+    for ( var key in this ) {
+      if ( key !== 'id' && key !== 'VRSPACE' ) {
+        event.changes[key] = this[key];
+      }
+    }
+    let json = JSON.stringify(event);
+    this.VRSPACE.log(json);
+    this.VRSPACE.send(json);
+  }
 }
 
 /**
@@ -406,7 +422,7 @@ export class VRSpace {
   }
 
   /** 
-  Create a new server-side object
+  Create a new empty server-side object
   @param callback called with new object
   @param className default VRObject
    */  
@@ -420,21 +436,24 @@ export class VRSpace {
   
   /**
   Share an object.
-  @param obj a new VRObject
-  @param callback called when share object is received
+  @param obj the new VRObject, containing all properties
+  @param callback called when shared object is received
    */
   createSharedObject( obj, callback ) {
     let className = obj.constructor.name;
-    // TODO: response to command contains object ID
-    this.call('{"command":{"Add":{"objects":[{"' + className + '":{}}]}}}', (response) => {
+    let json = JSON.stringify(obj);
+    this.log(json);
+    // response to command contains object ID
+    this.call('{"command":{"Add":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
       console.log("Response:", response);
       var objectId = response.response[0][className];
       console.log("Created object", objectId);
       var sceneListener = (sceneEvent) => {
         console.log("Received object", sceneEvent);
-        // TODO: scene listener to wait for and return the object
+        // add self as scene listener to wait for and return the object
         if( sceneEvent.added.id === objectId) {
           this.removeSceneListener(sceneListener);
+          // only now we have the object as returned from the server
           callback(sceneEvent.added);
         }
       }

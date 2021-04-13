@@ -17,9 +17,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
-import org.vrspace.server.dto.Add;
-import org.vrspace.server.dto.ClientRequest;
-import org.vrspace.server.dto.Remove;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
 

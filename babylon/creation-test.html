@@ -35,6 +35,7 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 //canvas.style.width = '90%';
 //canvas.style.height = '60%';
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var debugLayer;
 
 import('./vrspace-ui.js').then( (ui) => {
   class Connect extends ui.World {
@@ -57,6 +58,7 @@ import('./vrspace-ui.js').then( (ui) => {
       skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("//www.babylonjs.com/assets/skybox/TropicalSunnyDay", this.scene);
       skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
       
+      debugLayer = this.scene.debugLayer;
     }
   }
 
@@ -71,6 +73,7 @@ import('./vrspace-ui.js').then( (ui) => {
 
   var net = new ui.WorldManager(world);
   net.debug = true;
+  net.VRSPACE.debug = true;
   
   net.VRSPACE.addWelcomeListener(() => {
     net.VRSPACE.sendMy("mesh", "dolphin.glb");
@@ -81,16 +84,26 @@ import('./vrspace-ui.js').then( (ui) => {
 
   world.scene.onPointerPick = (e,p) => {
     if ( p.pickedMesh === touch1 ) {
+      // create and empty object, then set properties and publish
+      // requires scene reload
       net.VRSPACE.createSharedInstance((obj)=>{
-        console.log("created", obj);
+        console.log("Created new VRObject", obj);
+        obj.mesh = 'dolphin.glb';
+        obj.position = {x:touch1.position.x, y:touch1.position.y, z:touch1.position.z};
+        obj.active = true;
+        obj.publish();
+        net.VRSPACE.sendCommand("Refresh", {clear:true});
       });
     }
     if ( p.pickedMesh === touch2 ) {
+      // create an object with properties, then publish
       import('./vrspace.js').then( (vrspace) => {
         var o = new vrspace.Client();
-        o.mesh = 'video';
+        o.mesh = 'dolphin.glb';
+        o.active = true;
+        o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
         net.VRSPACE.createSharedObject(o, (obj)=>{
-          console.log("created", obj);
+          console.log("Shared object", obj);
         });
       });
     }
@@ -104,11 +117,11 @@ window.addEventListener("resize", function () {
 });
 
 function debugOnOff() {
-  console.log("Debug: "+scene.debugLayer.isVisible());
-  if ( scene.debugLayer.isVisible() ) {
-    scene.debugLayer.hide();
+  console.log("Debug: "+debugLayer.isVisible());
+  if ( debugLayer.isVisible() ) {
+    debugLayer.hide();
   } else {
-    scene.debugLayer.show();
+    debugLayer.show();
   }
 }
 
