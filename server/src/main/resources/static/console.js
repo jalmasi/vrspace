@@ -80,7 +80,7 @@ function createSceneButton(objectId) {
 function createField(event) {
   const fieldName = event.target.id;
   var obj = VRSPACE.scene.get(inspecting);
-  VRSPACE.create(inspecting.split(' ')[0], fieldName, function(val) {
+  VRSPACE.createField(inspecting.split(' ')[0], fieldName, function(val) {
     console.log("created "+val);
     obj[fieldName] = val;
     createSceneButton(inspecting);

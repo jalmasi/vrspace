@@ -2047,7 +2047,7 @@ export class WorldManager {
       } else {
         // TODO server needs to ensure that mesh exists
         // in the meantime we define default behavior here
-        console.log("ERROR: can't load "+e.objectId+" - no mesh")
+        console.log("WARNING: can't load "+e.objectId+" - no mesh")
       }
     } else if (e.removed != null) {
       this.log("REMOVED " + e.objectId + " new size " + e.scene.size)

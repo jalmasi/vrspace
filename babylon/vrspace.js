@@ -64,6 +64,8 @@ class VRObject {
     this.properties = null; 
     //this.children = []; // CHECKME
     this.listeners = [];
+    /** Handy reference to VRSpace instance */
+    this.VRSPACE = null;
   }
 
   /**
@@ -250,6 +252,13 @@ class VRSpace {
   }
 
   /** 
+  Remove a scene listener. 
+  */
+  removeSceneListener(callback) {
+    this.removeListener( this.sceneListeners, callback );
+  }
+
+  /** 
   Add a Welcome listener, notified when entering a world. 
   The listener receives Welcome object.
   */
@@ -371,8 +380,8 @@ class VRSpace {
     }
   }
   
-  /** Create an object on the server */
-  create(className, fieldName, callback) {
+  /** Create a local field of an object existing on the server FIXME Obsolete */
+  createField(className, fieldName, callback) {
     // TODO: use class metadata
     this.call('{"command":{"Describe":{"className":"'+className+'"}}}',(obj) => {
       var ret = null;
@@ -393,6 +402,43 @@ class VRSpace {
         }
       }
       callback(ret);
+    });
+  }
+
+  /** 
+  Create a new server-side object
+  @param callback called with new object
+  @param className default VRObject
+   */  
+  createSharedInstance( callback, className ) {
+    if ( ! className ) {
+      className = 'VRObject';
+    }
+    let obj = new classes[className];
+    return this.createSharedObject(obj, callback);
+  }
+  
+  /**
+  Share an object.
+  @param obj a new VRObject
+  @param callback called when share object is received
+   */
+  createSharedObject( obj, callback ) {
+    let className = obj.constructor.name;
+    // TODO: response to command contains object ID
+    this.call('{"command":{"Add":{"objects":[{"' + className + '":{}}]}}}', (response) => {
+      console.log("Response:", response);
+      var objectId = response.response[0][className];
+      console.log("Created object", objectId);
+      var sceneListener = (sceneEvent) => {
+        console.log("Received object", sceneEvent);
+        // TODO: scene listener to wait for and return the object
+        if( sceneEvent.added.id === objectId) {
+          this.removeSceneListener(sceneListener);
+          callback(sceneEvent.added);
+        }
+      }
+      this.addSceneListener(sceneListener);
     });
   }
   
@@ -418,7 +464,7 @@ class VRSpace {
     if ( args ) {
       this.send('{"command":{"'+command+'":'+JSON.stringify(args)+'}}');      
     } else {
-      this.send('{"command":{"'+command+'":{}}}');      
+      this.send('{"command":{"'+command+'":{}}}');
     }
   }
 
@@ -471,6 +517,7 @@ class VRSpace {
     if ( classes[className] ) {
       var classInstance = new classes[className];
       Object.assign(classInstance,object);
+      classInstance.VRSPACE = this;
       var id = new ID(className,object.id);
       this.scene.set(id.toString(), classInstance);
       // notify listeners
