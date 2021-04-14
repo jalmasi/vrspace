@@ -37,6 +37,9 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 var debugLayer;
 
+var obj1 = null;
+var obj2 = null;
+
 import('./vrspace-ui.js').then( (ui) => {
   class Connect extends ui.World {
     async createScene() {
@@ -66,9 +69,9 @@ import('./vrspace-ui.js').then( (ui) => {
   world.createScene();
   world.registerRenderLoop();
 
-  var touch1 = BABYLON.MeshBuilder.CreateSphere("touch1", {diameter:0.2}, world.scene);
+  var touch1 = BABYLON.MeshBuilder.CreateSphere("touch1", {diameter:0.5}, world.scene);
   touch1.position = new BABYLON.Vector3(-0.3,0,-0.4);
-  var touch2 = BABYLON.MeshBuilder.CreateSphere("touch2", {diameter:0.2}, world.scene);
+  var touch2 = BABYLON.MeshBuilder.CreateSphere("touch2", {diameter:0.5}, world.scene);
   touch2.position = new BABYLON.Vector3(0.3,0,-0.4);
 
   var net = new ui.WorldManager(world);
@@ -86,26 +89,36 @@ import('./vrspace-ui.js').then( (ui) => {
     if ( p.pickedMesh === touch1 ) {
       // create and empty object, then set properties and publish
       // requires scene reload
-      net.VRSPACE.createSharedInstance((obj)=>{
-        console.log("Created new VRObject", obj);
-        obj.mesh = 'dolphin.glb';
-        obj.position = {x:touch1.position.x, y:touch1.position.y, z:touch1.position.z};
-        obj.active = true;
-        obj.publish();
-        net.VRSPACE.sendCommand("Refresh", {clear:true});
-      });
+      if ( ! obj1 ) {
+        net.VRSPACE.createSharedInstance((obj)=>{
+          console.log("Created new VRObject", obj);
+          obj.mesh = 'dolphin.glb';
+          obj.position = {x:touch1.position.x, y:touch1.position.y, z:touch1.position.z};
+          obj.active = true;
+          obj.publish();
+          net.VRSPACE.sendCommand("Refresh", {clear:true});
+          obj1 = obj;
+        });
+      } else {
+        net.VRSPACE.deleteSharedObject(obj1);        
+      }
     }
     if ( p.pickedMesh === touch2 ) {
-      // create an object with properties, then publish
-      import('./vrspace.js').then( (vrspace) => {
-        var o = new vrspace.Client();
-        o.mesh = 'dolphin.glb';
-        o.active = true;
-        o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
-        net.VRSPACE.createSharedObject(o, (obj)=>{
-          console.log("Shared object", obj);
+      if ( !obj2 ) {
+        // create an object with properties, then publish
+        import('./vrspace.js').then( (vrspace) => {
+          var o = new vrspace.Client();
+          o.mesh = 'dolphin.glb';
+          o.active = true;
+          o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
+          net.VRSPACE.createSharedObject(o, (obj)=>{
+            console.log("Shared object", obj);
+            obj2 = obj;
+          });
         });
-      });
+      } else {
+        net.VRSPACE.deleteSharedObject(obj2);        
+      }
     }
   }
   

@@ -461,6 +461,19 @@ export class VRSpace {
     });
   }
   
+  /**
+  Delete a shared object.
+  @param obj to be removed from the server
+  @param callback optional, called after removal from the server
+   */
+  deleteSharedObject( obj, callback ) {
+    let className = obj.constructor.name;
+    this.call('{"command":{"Remove":{"objects":[{"' + className + '":'+obj.id+'}]}}}', (response) => {
+      if ( callback ) {
+        callback(obj);
+      }
+    });
+  }
   /** 
   Send notification of own property changes
   @param field name of member variable that has changed
