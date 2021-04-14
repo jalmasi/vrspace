@@ -548,7 +548,7 @@ export class Portal {
 /**
 A folder with a related file (e.g. thumbnail). 
  */
-class ServerFolder {
+export class ServerFolder {
   /**
   @param baseUrl parent folder
   @param name folder name
@@ -2435,7 +2435,7 @@ export class MediaStreams {
   @param callback executed when new subscriber starts playing the stream
    */
   async init( callback ) {
-    await import('./openvidu-browser-2.15.0.js');
+    await import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/openvidu-browser@2.17.0/lib/index.min.js');
     this.OV = new OpenVidu();
     this.session = this.OV.initSession();
     this.session.on('streamCreated', (event) => {

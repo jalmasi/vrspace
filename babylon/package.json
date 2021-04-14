@@ -1,0 +1,38 @@
+{
+  "name": "vrspace-babylon",
+  "version": "1.0.0",
+  "description": "vrspace.org babylonjs client",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jalmasi/vrspace.git"
+  },
+  "keywords": [
+    "multiuser",
+    "3D",
+    "javascript",
+    "WebXR"
+  ],
+  "author": "jalmasi",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/jalmasi/vrspace/issues"
+  },
+  "homepage": "https://github.com/jalmasi/vrspace#readme",
+  "devDependencies": {
+    "webpack": "^5.32.0",
+    "webpack-cli": "^4.6.0",
+    "webpack-node-externals": "^2.5.2"
+  },
+  "dependencies": {
+    "babylonjs": "^4.2.0",
+    "babylonjs-gui": "^4.2.0",
+    "babylonjs-loaders": "^4.2.0",
+    "babylonjs-materials": "^4.2.0",
+    "babylonjs-post-process": "^4.2.0",
+    "babylonjs-procedural-textures": "^4.2.0"
+  }
+}

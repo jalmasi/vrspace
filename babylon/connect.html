@@ -23,10 +23,16 @@
       display: block;
     }
   </style>﻿
-    <script src="https://preview.babylonjs.com/babylon.js"></script>
-    <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
-  </head>
+  <!--
+  Option 1:
+  Pre-load babylonjs from CDN, and use small vrspace script(s)
+  Recommended for development 
+   -->
+  <script src="https://preview.babylonjs.com/babylon.js"></script>
+  <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+   <!-- PEP has to be loaded externally either way -->
+  <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+</head>
 
 <body>
 
@@ -34,9 +40,10 @@
 
 <script>
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
-//canvas.style.width = '90%';
-//canvas.style.height = '60%';
-var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+//Option 1:
+//babylon pre-loaded, you can created engine already
+//var engine = new BABYLON.Engine(canvas, true);
+var engine;
 var scene;
 
 // Watch for browser/canvas resize events
@@ -53,7 +60,26 @@ function debugOnOff() {
   }
 }
 
+// Dynamic Import
+// Option 1:
+// pre-load babylonjs from CDN, and use small vrspace script
+// this one imports all of vrspace
+//import('./index-min.js').then((ui) => {
+// alternativelly, cherry-pick only one(s) you need
 import('./vrspace-ui.js').then((ui) => {
+// or load the package (build it with wepback) 
+//import('./dist/vrspace-babylon.js').then((ui) => {
+// Option 2:
+// dynamically load babylon from from CDN, load all of vrspace
+//import('./index-cdn.js').then((ui) => {
+// Option 3: load one huge archive here
+//import('./dist/vrspace-babylon.js').then((ui) => {
+	console.log(ui);
+	// Option 2, 3:
+  // the engine is not created before scripts have loaded, so do it here
+  if ( ! engine ) {
+	  engine = new BABYLON.Engine(canvas, true);
+  }
 	class Connect extends ui.World {
 		async createScene() {
 			this.engine = engine;
