@@ -2435,7 +2435,9 @@ export class MediaStreams {
   @param callback executed when new subscriber starts playing the stream
    */
   async init( callback ) {
-    await import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/openvidu-browser@2.17.0/lib/index.min.js');
+    // CHECKME: utilize CDN
+    //await import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/openvidu-browser@2.17.0/lib/index.min.js');
+    await import(/* webpackIgnore: true */ './openvidu-browser-2.17.0.min.js');
     this.OV = new OpenVidu();
     this.session = this.OV.initSession();
     this.session.on('streamCreated', (event) => {
