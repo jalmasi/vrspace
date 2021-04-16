@@ -4,7 +4,7 @@
 
 1) cd server
 2) mvn clean install
-3) java -jar target/server-0.0.3-SNAPSHOT.jar
+3) java -jar target/server-0.1.0-SNAPSHOT.jar
 4) open http://localhost:8080/babylon/connect.html with TWO browsers
 
 # Live Demo
