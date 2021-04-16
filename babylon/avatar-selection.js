@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, VideoAvatar } from './vrspace-ui.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, VideoAvatar, OpenViduStreams } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 var trackTime = Date.now();
@@ -375,6 +375,7 @@ export class AvatarSelection extends World {
           // send custom shared transient properties like this:
           worldManager.VRSPACE.sendMy('properties', {string:'string', number:123.456});
           // CHECKME better way to flag publishing video?
+          worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
           worldManager.VRSPACE.addWelcomeListener((welcome)=>worldManager.pubSub(welcome.client, 'video' === avatarUrl));
           // TODO add enter command to API
           worldManager.VRSPACE.sendCommand("Enter",{world:portal.name});

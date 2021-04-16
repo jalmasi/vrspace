@@ -1,4 +1,4 @@
-import { World, MediaStreams } from './vrspace-ui.js'
+import { World, OpenViduStreams } from './vrspace-ui.js'
 
 export class VideoWorld extends World {
   async createScene(engine) {
@@ -50,7 +50,7 @@ export class VideoWorld extends World {
     this.mesh.position = new BABYLON.Vector3( 0, 1.5, 0);
     this.mesh.material = new BABYLON.StandardMaterial("ScreenMat", this.scene);
     this.mesh.material.emissiveColor = new BABYLON.Color3.White();
-    this.media = new MediaStreams(this.scene, 'videos');
+    this.media = new OpenViduStreams(this.scene, 'videos');
     this.media.publishVideo = true;
     this.media.videoSource = undefined;
     if ( callback ) {

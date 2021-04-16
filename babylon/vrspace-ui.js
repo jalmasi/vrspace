@@ -1971,11 +1971,8 @@ export class WorldManager {
   /** Publish and subscribe */
   pubSub( client, autoPublishVideo ) {
     this.log("Subscribing as client "+client.id+" with token "+client.token);
-    if ( client.token ) {
+    if ( client.token && this.mediaStreams ) {
       // obtain token and start pub/sub voices
-      if ( ! this.mediaStreams ) {
-        this.mediaStreams = new MediaStreams(this.scene, 'videos');
-      }
       if ( autoPublishVideo ) {
         this.mediaStreams.startVideo = true;
         this.mediaStreams.videoSource = undefined;
@@ -2435,37 +2432,7 @@ export class MediaStreams {
   @param callback executed when new subscriber starts playing the stream
    */
   async init( callback ) {
-    // CHECKME: utilize CDN
-    //await import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/openvidu-browser@2.17.0/lib/index.min.js');
-    await import(/* webpackIgnore: true */ './openvidu-browser-2.17.0.min.js');
-    this.OV = new OpenVidu();
-    this.session = this.OV.initSession();
-    this.session.on('streamCreated', (event) => {
-      // client id can be used to match the stream with the avatar
-      // server sets the client id as connection user data
-      console.log("New stream "+event.stream.connection.connectionId+" for "+event.stream.connection.data)
-      console.log(event);
-      var subscriber = this.session.subscribe(event.stream, this.htmlElementName);
-      subscriber.on('videoElementCreated', e => {
-        console.log("Video element created:");
-        console.log(e.element);
-        e.element.muted = true; // mute altogether
-      });
-      subscriber.on('streamPlaying', event => {
-        console.log('remote stream playing');
-        console.log(event);
-        if ( callback ) {
-          callback( subscriber );
-        }
-      });
-    });
-  
-    // On every new Stream destroyed...
-    this.session.on('streamDestroyed', (event) => {
-      // TODO remove from the scene
-      console.log("Stream destroyed!")
-      console.log(event);
-    });
+    throw "implement me!";
   }
 
   /**
@@ -2658,6 +2625,42 @@ export class MediaStreams {
     }
   }  
   
+}
+
+export class OpenViduStreams extends MediaStreams {
+  async init(callback) {
+    // CHECKME: utilize CDN
+    //await import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/openvidu-browser@2.17.0/lib/index.min.js');
+    await import(/* webpackIgnore: true */ './openvidu-browser-2.17.0.min.js');
+    this.OV = new OpenVidu();
+    this.session = this.OV.initSession();
+    this.session.on('streamCreated', (event) => {
+      // client id can be used to match the stream with the avatar
+      // server sets the client id as connection user data
+      console.log("New stream "+event.stream.connection.connectionId+" for "+event.stream.connection.data)
+      console.log(event);
+      var subscriber = this.session.subscribe(event.stream, this.htmlElementName);
+      subscriber.on('videoElementCreated', e => {
+        console.log("Video element created:");
+        console.log(e.element);
+        e.element.muted = true; // mute altogether
+      });
+      subscriber.on('streamPlaying', event => {
+        console.log('remote stream playing');
+        console.log(event);
+        if ( callback ) {
+          callback( subscriber );
+        }
+      });
+    });
+  
+    // On every new Stream destroyed...
+    this.session.on('streamDestroyed', (event) => {
+      // TODO remove from the scene
+      console.log("Stream destroyed!")
+      console.log(event);
+    });
+  }  
 }
 
 /**

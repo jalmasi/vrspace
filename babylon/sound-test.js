@@ -1,4 +1,4 @@
-import { World, MediaStreams } from './vrspace-ui.js'
+import { World, OpenViduStreams } from './vrspace-ui.js'
 
 export class Dance extends World {
   async createScene(engine) {
@@ -57,7 +57,7 @@ export class Dance extends World {
 
         //doSoundStuff(container.meshes[0]);
         this.mesh = container.meshes[0];
-        this.media = new MediaStreams(this.scene, 'videos');
+        this.media = new OpenViduStreams(this.scene, 'videos');
         if ( callback ) {
           callback(this);
         }
