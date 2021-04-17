@@ -66,6 +66,8 @@ export class VRObject {
     this.listeners = [];
     /** Handy reference to VRSpace instance */
     this.VRSPACE = null;
+    /** Server-side class name */
+    this.className = 'VRObject';
   }
 
   /**
@@ -151,6 +153,8 @@ export class Client extends VRObject {
     this.userHeight = 1.8;
     /** Streaming token */
     this.token = null; // CHECKME: string, should be object?
+    /** Server-side class name */
+    this.className = 'Client';
   }
   /** true if the client has avatar */
   hasAvatar() {
@@ -165,6 +169,8 @@ See server side counterpart.
 export class EventRecorder extends Client {
   constructor() {
     super();
+    /** Server-side class name */
+    this.className = 'EventRecorder';
   }
 }
 
@@ -175,7 +181,9 @@ export class VREvent {
   constructor(obj) {
     /** VRObject that has changed */
     this.object=new Object();
-    this.object[obj.constructor.name]=obj.id;
+    // obufscators get in the way of this:
+    //this.object[obj.constructor.name]=obj.id;
+    this.object[obj.className]=obj.id;
     /** Changes to the object */
     this.changes=new Object();
   }
@@ -438,18 +446,25 @@ export class VRSpace {
   Share an object.
   @param obj the new VRObject, containing all properties
   @param callback called when shared object is received
+  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
    */
-  createSharedObject( obj, callback ) {
-    let className = obj.constructor.name;
+  createSharedObject( obj, callback, className ) {
+    if ( ! className ) {
+      if ( obj.className ) {
+        className = obj.className;
+      } else {
+        className = 'VRObject';
+      }
+    }
     let json = JSON.stringify(obj);
     this.log(json);
     // response to command contains object ID
     this.call('{"command":{"Add":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
-      console.log("Response:", response);
+      this.log("Response:", response);
       var objectId = response.response[0][className];
-      console.log("Created object", objectId);
+      this.log("Created object", objectId);
       var sceneListener = (sceneEvent) => {
-        console.log("Received object", sceneEvent);
+        this.log("Received object", sceneEvent);
         // add self as scene listener to wait for and return the object
         if( sceneEvent.added.id === objectId) {
           this.removeSceneListener(sceneListener);
@@ -467,8 +482,7 @@ export class VRSpace {
   @param callback optional, called after removal from the server
    */
   deleteSharedObject( obj, callback ) {
-    let className = obj.constructor.name;
-    this.call('{"command":{"Remove":{"objects":[{"' + className + '":'+obj.id+'}]}}}', (response) => {
+    this.call('{"command":{"Remove":{"objects":[{"' + obj.className + '":'+obj.id+'}]}}}', (response) => {
       if ( callback ) {
         callback(obj);
       }
