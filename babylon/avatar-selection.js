@@ -216,7 +216,7 @@ export class AvatarSelection extends World {
     this.indicator.add(dir);
     this.indicator.animate();
     console.log("Loading character from "+dir.name);
-    var loaded = new Avatar(scene, dir, this.shadowGenerator);
+    var loaded = new Avatar(this.scene, dir, this.shadowGenerator);
     // resize the character to real-world height
     if ( this.inXR) {
       userHeight = this.vrHelper.camera().realWorldHeight;
@@ -259,7 +259,7 @@ export class AvatarSelection extends World {
     if ( this.animationSelection ) {
       this.animationSelection.dispose();
     }
-    this.animationSelection = new Buttons(scene,"Animations",names, (name)=>this.startAnimation(name));
+    this.animationSelection = new Buttons(this.scene,"Animations",names, (name)=>this.startAnimation(name));
     this.animationSelection.turnOff = true;
     this.animationSelection.setHeight(Math.min(2,names.length/10));
     this.animationSelection.group.position = new BABYLON.Vector3(-2,2.2,-.5);
@@ -270,7 +270,7 @@ export class AvatarSelection extends World {
   }
 
   addCharacterButtons() {
-    this.guiManager = new BABYLON.GUI.GUI3DManager(scene);
+    this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
     var resizeButton = new BABYLON.GUI.HolographicButton("resizeButton");
     resizeButton.contentResolution = 128;
     resizeButton.contentScaleRatio = 1;

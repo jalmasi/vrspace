@@ -791,7 +791,7 @@ export class RecorderUI {
   showUI() {
     this.camera = this.scene.activeCamera;
 
-    var manager = new BABYLON.GUI.GUI3DManager(scene);
+    var manager = new BABYLON.GUI.GUI3DManager(this.scene);
 
     this.recordButton = new BABYLON.GUI.HolographicButton("RecordEvents");
     manager.addControl(this.recordButton);
@@ -901,7 +901,7 @@ export class FloorRibbon {
   showUI() {
     this.camera = this.scene.activeCamera;
 
-    var manager = new BABYLON.GUI.GUI3DManager(scene);
+    var manager = new BABYLON.GUI.GUI3DManager(this.scene);
 
     this.recordButton = new BABYLON.GUI.HolographicButton("RecordPath");
     manager.addControl(this.recordButton);
@@ -1901,7 +1901,7 @@ export class World {
         // do something with the scene
         VRSPACEUI.log("World loaded");
         this.loadingStop(this.name);
-        //floor = new FloorRibbon(scene);
+        //floor = new FloorRibbon(this.scene);
         //floor.showUI();
         this.collisions(this.collisionsEnabled);
         // FIXME throws too much exceptions
