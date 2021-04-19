@@ -436,7 +436,7 @@ export class LogoRoom {
     this.ground.checkCollisions = true;
 
     // mesh that we display as floor
-    await VRSPACEUI.init(scene); // wait for logo to load
+    await VRSPACEUI.init(this.scene); // wait for logo to load
     VRSPACEUI.receiveShadows( VRSPACEUI.logo, this.shadows );
     VRSPACEUI.copyMesh(VRSPACEUI.logo, this.floorGroup, true);
 
