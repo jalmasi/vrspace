@@ -19,6 +19,8 @@ export class VRSpaceUI {
     this.debug = false;
     /** frames per second */ 
     this.fps = 5; // CHECKME: reasonable default fps
+    /** content base (prefix), default empty (same host) */
+    this.contentBase = '';
     /** Pointer to function, defaults to this.loadProgressIndiciatorFactory */
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
     /** @private */ 
@@ -36,7 +38,7 @@ export class VRSpaceUI {
     if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
       // TODO figure out location of script
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync("/babylon/","logo.glb",this.scene);
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.contentBase+"/babylon/","logo.glb",this.scene);
       this.logo = container.meshes[0];
       for ( var i = 0; i < container.meshes; i++ ) {
         container.meshes[i].checkCollisions = false;
@@ -74,7 +76,7 @@ export class VRSpaceUI {
   */
   async loadPortal(scene) {
     if ( ! this.portal ) {
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync("/babylon/portal/", "scene.gltf", scene)
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.contentBase+"/babylon/portal/", "scene.gltf", scene)
       container.materials[0].albedoColor = BABYLON.Color3.FromHexString('#B3EEF3');
       container.materials[0].metallic = 0.85;
       

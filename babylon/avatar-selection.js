@@ -11,6 +11,10 @@ var mirror = true;
 var userHeight = 1.8; // by default
 
 export class AvatarSelection extends World {
+  constructor() {
+    super();
+    this.serverUrl = null;
+  }
   async createSkyBox() {
     var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
     skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
@@ -19,7 +23,7 @@ export class AvatarSelection extends World {
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../content/skybox/mp_drakeq/drakeq", this.scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(VRSPACEUI.contentBase+"/content/skybox/mp_drakeq/drakeq", this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     return skybox;
   }
@@ -166,7 +170,7 @@ export class AvatarSelection extends World {
   
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
-    VRSPACEUI.listMatchingFiles( '../content/char/', (folders) => {
+    VRSPACEUI.listMatchingFiles( VRSPACEUI.contentBase+'/content/char/', (folders) => {
       folders.push({name:"video"});
       var buttons = new Buttons(this.scene,"Avatars",folders,(dir) => this.createAvatarSelection(dir),"name");
       buttons.setHeight(.3);
@@ -309,7 +313,7 @@ export class AvatarSelection extends World {
   
   showPortals() {
     this.portals = [];
-    VRSPACEUI.listThumbnails('../content/worlds', (worlds) => {
+    VRSPACEUI.listThumbnails(VRSPACEUI.contentBase+'/content/worlds', (worlds) => {
       var radius = this.room.diameter/2;
       var angleIncrement = 2*Math.PI/worlds.length;
       var angle = 0;
@@ -382,7 +386,7 @@ export class AvatarSelection extends World {
           worldManager.VRSPACE.sendCommand("Session");
         };
         worldManager.VRSPACE.addWelcomeListener(enter);
-        worldManager.VRSPACE.connect();
+        worldManager.VRSPACE.connect(this.serverUrl);
         //var recorder = new RecorderUI(world.scene);
         //recorder.showUI();
       }
