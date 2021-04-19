@@ -27,7 +27,6 @@ export class ScriptLoader {
   async load(parallel = false) {
     for ( var i = 0; i < this.scripts.length; i++) {
       await this.loadScript(this.scripts[i], parallel);
-      console.log('loaded '+this.scripts[i]);
     }
   }
   async loadScript(path, parallel) {
