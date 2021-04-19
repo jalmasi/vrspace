@@ -408,7 +408,18 @@ export class VRSpaceUI {
 
 }
 
-export const VRSPACEUI = new VRSpaceUI();
+// this does not ensure singleton in the browser
+// world scripts may be loaded from different contexts
+//export const VRSPACEUI = new VRSpaceUI();
+
+export let VRSPACEUI;
+
+if (window.VRSPACEUI === undefined) {
+  VRSPACEUI = new VRSpaceUI();
+  window.VRSPACEUI=VRSPACEUI;
+} else {
+  VRSPACEUI = window.VRSPACEUI;
+}
 
 /** 
 Room with vrspace.org logo as floor and invisible cylinder walls, as used on vrspace.org demo site.
