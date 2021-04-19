@@ -2,6 +2,51 @@ import {VRSPACE} from './vrspace.js';
 import {Avatar} from './avatar.js';
 
 /**
+Script loader
+ */
+export class ScriptLoader {
+  constructor() {
+      this.scripts = [];
+  }
+  
+  /** 
+  Add a script to load path
+  @param script url to load the script from
+   */
+  add(script) {
+    if (!this.scripts.includes( script )) {
+      this.scripts.push(script);
+    }
+    return this;
+  }
+  
+  /**
+  Load all scripts
+  @param parallel default false - wait for each one to load before loading the next one
+   */
+  async load(parallel = false) {
+    for ( var i = 0; i < this.scripts.length; i++) {
+      await this.loadScript(this.scripts[i], parallel);
+      console.log('loaded '+this.scripts[i]);
+    }
+  }
+  async loadScript(path, parallel) {
+    return new Promise( (resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = path;
+      if (parallel) {
+        document.body.appendChild(script);
+        resolve();
+      } else {
+        script.async = true;
+        document.body.appendChild(script);
+        script.onload = () => { resolve(); }
+      }
+    });
+  }
+}
+
+/**
 Main UI class, provides utility methods and basic UI elements.
 @class
  */
@@ -23,6 +68,8 @@ export class VRSpaceUI {
     this.contentBase = '';
     /** Pointer to function, defaults to this.loadProgressIndiciatorFactory */
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
+    /** Script loader */
+    this.scriptLoader = new ScriptLoader();
     /** @private */ 
     this.indicator = null;
     /** @private */ 
@@ -348,14 +395,16 @@ export class VRSpaceUI {
   
   /** 
   Utility method - load a script and append it to document head
-  @param url of the script
-  @returns script object 
+  @param urls array containing URLs of scripts
+  @param parallel optionally load in parallel
   */
-  loadScriptToDocument(url) {
-    var script = document.createElement("script");
-    script.src = url;
-    document.head.appendChild(script);
-    return script;    
+  async loadScriptsToDocument(urls, parallel) {
+    if ( Array.isArray(urls) ) {
+      urls.forEach((url) => this.scriptLoader.add(url));
+    } else {
+      this.scriptLoader.add(urls);
+    }
+    return this.scriptLoader.load(parallel);
   }
 
 }

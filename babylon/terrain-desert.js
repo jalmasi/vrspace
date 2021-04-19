@@ -1,8 +1,5 @@
 import { VRSPACEUI } from './vrspace-ui.js';
 
-var terrainScript = VRSPACEUI.loadScriptToDocument("https://cdn.rawgit.com/BabylonJS/Extensions/master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js");
-VRSPACEUI.loadScriptToDocument(VRSPACEUI.contentBase+"/babylon/perlin.js");
-
 export class Desert {
   constructor(world, terrainMaterial) {
     this.world = world;
@@ -29,9 +26,12 @@ export class Desert {
     world.indicator.add("../../plants/palm_tree/");
     world.indicator.add("../../plants/bush/");
     world.indicator.add("../../plants/hand_painted_bush/");
-    
-  // wait for dynamic terrain extension to be loaded
-    terrainScript.onload = () => {
+
+    VRSPACEUI.loadScriptsToDocument([ 
+      VRSPACEUI.contentBase+"/babylon/perlin.js",
+      "https://cdn.rawgit.com/BabylonJS/Extensions/master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"
+    ]).then(() => {
+
       // load all meshes and create terrain
       Promise.all([
           world.loadAsset("../../plants/cactus_low_poly/", "scene.gltf", world.scene).then((container) => {
@@ -94,7 +94,10 @@ export class Desert {
         console.log("creating terrain");
         this._createTerrain();
       });
-    }
+      
+    });
+
+    
   }
   
   //this is only safe to call after all resources have been loaded:
