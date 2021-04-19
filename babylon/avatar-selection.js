@@ -13,7 +13,10 @@ var userHeight = 1.8; // by default
 export class AvatarSelection extends World {
   constructor() {
     super();
+    /** server to connect to */
     this.serverUrl = null;
+    /** exposing VRSpaceUI so it can be accessed from outside */
+    this.VRSPACEUI = VRSPACEUI;
   }
   async createSkyBox() {
     var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
