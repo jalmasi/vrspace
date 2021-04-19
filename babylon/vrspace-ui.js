@@ -345,6 +345,18 @@ export class VRSpaceUI {
       });
     }
   }
+  
+  /** 
+  Utility method - load a script and append it to document head
+  @param url of the script
+  @returns script object 
+  */
+  loadScriptToDocument(url) {
+    var script = document.createElement("script");
+    script.src = url;
+    document.head.appendChild(script);
+    return script;    
+  }
 
 }
 

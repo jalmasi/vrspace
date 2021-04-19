@@ -1,4 +1,4 @@
-import { World } from '../../../babylon/vrspace-ui.js';
+import { World, VRSPACEUI } from '../../../babylon/vrspace-ui.js';
 
 //collisions:
 //group296_sand_houses:lambert6_0 - ground
@@ -26,10 +26,8 @@ var terrain;
 var sps; // solid particle system
 var terrainObjects=[];
 
-var url = "https://cdn.rawgit.com/BabylonJS/Extensions/master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js";
-var terrainScript = document.createElement("script");
-terrainScript.src = url;
-document.head.appendChild(terrainScript);
+var terrainScript = VRSPACEUI.loadScriptToDocument("https://cdn.rawgit.com/BabylonJS/Extensions/master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js");
+VRSPACEUI.loadScriptToDocument(VRSPACEUI.contentBase+"/babylon/perlin.js");
 
 export class Aladinville extends World {
   async createGround() {
