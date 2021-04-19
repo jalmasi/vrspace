@@ -143,15 +143,16 @@ thanks folks!
   
   import("../babylon/avatar-selection.js").then( (module) =>{
   
-   var world = module.WORLD;
+    var world = module.WORLD;
+    world.VRSPACEUI.contentBase='https://www.vrspace.org/';
   
-   world.init(engine, 'avatar').then((s) => {
-     scene = s;
-     world.createSelection();
-     world.showPortals();
-     engine.resize();
-     canvas.focus();
-   });
+    world.init(engine, 'avatar').then((s) => {
+      scene = s;
+      world.createSelection();
+      world.showPortals();
+      engine.resize();
+      canvas.focus();
+    });
   
   })
   
