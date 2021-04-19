@@ -1904,7 +1904,8 @@ export class World {
         //floor = new FloorRibbon(scene);
         //floor.showUI();
         this.collisions(this.collisionsEnabled);
-        this.optimizeScene();
+        // FIXME throws too much exceptions
+        //this.optimizeScene();
         if ( callback ) {
           callback(this);
         }

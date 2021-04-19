@@ -183,7 +183,8 @@ export class Avatar {
       // Adds all elements to the scene
       container.addAllToScene();
       this.castShadows( this.shadowGenerator );
-      VRSPACEUI.optimizeScene(this.scene);
+      // FIXME throws too much exceptions
+      //VRSPACEUI.optimizeScene(this.scene);
 
       // try to place feet on the ground
       // CHECKME is this really guaranteed to work in every time?
