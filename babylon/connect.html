@@ -80,6 +80,8 @@ import('./vrspace-ui.js').then((ui) => {
   if ( ! engine ) {
 	  engine = new BABYLON.Engine(canvas, true);
   }
+  
+  // create the world
 	class Connect extends ui.World {
 		async createScene() {
 			this.engine = engine;
@@ -106,14 +108,29 @@ import('./vrspace-ui.js').then((ui) => {
   var connect = new Connect();
   connect.createScene();
   connect.registerRenderLoop();
-  var world = new ui.WorldManager(connect);
-  world.debug = true;
   
+  // create the world manager
+  var world = new ui.WorldManager(connect);
+  world.debug = true;  // world debug
+  world.VRSPACE.debug = true;  // network debug
+  
+  console.log('location', document.location);
+  // proper avatar url including the host
+  var avatarUrl = "dolphin.glb";
+  var pos = document.location.href.lastIndexOf('/');
+  if ( pos > -1 ) {
+	  avatarUrl = document.location.href.substring(0,pos+1)+avatarUrl;
+  }
+  
+  // once connected, set own properties
   world.VRSPACE.addWelcomeListener(() => {
-    world.VRSPACE.sendMy("mesh", "dolphin.glb");
+    // at least set own avatar mesh so that others can see you
+	  world.VRSPACE.sendMy("mesh", avatarUrl);
+    // and start the session
     world.VRSPACE.sendCommand("Session");
   });
 
+  // all set, connect
   world.VRSPACE.connect();
 });
 
