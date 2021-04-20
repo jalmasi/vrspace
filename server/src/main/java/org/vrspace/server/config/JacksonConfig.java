@@ -9,7 +9,8 @@ import java.util.regex.Pattern;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.vrspace.server.obj.Client;
+import org.vrspace.server.core.ClassUtil;
+import org.vrspace.server.obj.VRObject;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -41,8 +42,8 @@ public class JacksonConfig {
   @Bean
   public ObjectMapper objectMapper() {
     ObjectMapper ret = objectMapperBuilder().build();
-    // TODO process and add all subclasses of VRObject
-    ret.registerSubtypes(Client.class);
+    // process and add all subclasses of VRObject
+    ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
     return ret;
   }
 
