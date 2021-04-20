@@ -11,13 +11,13 @@ import org.vrspace.server.obj.World;
 
 import io.openvidu.java.client.Connection;
 import io.openvidu.java.client.ConnectionProperties;
+import io.openvidu.java.client.ConnectionType;
 import io.openvidu.java.client.OpenVidu;
 import io.openvidu.java.client.OpenViduException;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduRole;
 import io.openvidu.java.client.Session;
 import io.openvidu.java.client.SessionProperties;
-import io.openvidu.java.client.TokenOptions;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -62,20 +62,19 @@ public class StreamManager {
   }
 
   private String generateToken(Session session, Client client) throws OpenViduException {
-    ConnectionProperties props;
-    TokenOptions tokenOptions = new TokenOptions.Builder().role(OpenViduRole.PUBLISHER).data(client.getId().toString())
-        .build();
+    ConnectionProperties connectionProperties = new ConnectionProperties.Builder().type(ConnectionType.WEBRTC)
+        .role(OpenViduRole.PUBLISHER).data(client.getId().toString()).build();
     // token is something like
     // wss://localhost:4443?sessionId=cave&token=tok_W1LlxOQElNQGcSIw&role=PUBLISHER&version=2.15.0
     String token = null;
     try {
-      token = session.generateToken(tokenOptions);
+      token = session.createConnection(connectionProperties).getToken();
     } catch (OpenViduHttpException e) {
       // 404 here means no session:
       if (e.getStatus() == 404) {
         log.error("Error generating token - session not found. Creating new session", e);
         session = startStreamingSession(session.getSessionId());
-        token = session.generateToken(tokenOptions);
+        token = session.createConnection(connectionProperties).getToken();
       } else {
         throw e;
       }
