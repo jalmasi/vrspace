@@ -118,7 +118,7 @@ public class WorldManagerTest {
     } catch (RuntimeException e) {
       // failed after more than 1 sec
       time = System.currentTimeMillis() - time;
-      assertTrue(time - 1000 > 0);
+      assertTrue(time - 1000 >= 0);
     }
 
     worldManager.logout(clients.get(0));
