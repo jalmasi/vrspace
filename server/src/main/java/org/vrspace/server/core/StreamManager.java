@@ -10,6 +10,7 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.World;
 
 import io.openvidu.java.client.Connection;
+import io.openvidu.java.client.ConnectionProperties;
 import io.openvidu.java.client.OpenVidu;
 import io.openvidu.java.client.OpenViduException;
 import io.openvidu.java.client.OpenViduHttpException;
@@ -53,12 +54,15 @@ public class StreamManager {
           // how come we don't know about it then?
           throw e;
         }
+      } else {
+        throw e;
       }
     }
     return ret;
   }
 
   private String generateToken(Session session, Client client) throws OpenViduException {
+    ConnectionProperties props;
     TokenOptions tokenOptions = new TokenOptions.Builder().role(OpenViduRole.PUBLISHER).data(client.getId().toString())
         .build();
     // token is something like
