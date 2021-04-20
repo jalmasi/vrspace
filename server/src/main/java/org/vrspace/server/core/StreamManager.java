@@ -19,6 +19,12 @@ import io.openvidu.java.client.SessionProperties;
 import io.openvidu.java.client.TokenOptions;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Manages streaming sessions to OpenVidu server.
+ * 
+ * @author joe
+ *
+ */
 @Component
 @Slf4j
 public class StreamManager {

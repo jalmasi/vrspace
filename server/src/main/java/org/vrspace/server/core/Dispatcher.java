@@ -19,6 +19,18 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Event dispatcher. Prior to dispatching an event, performs sanity and
+ * ownership checks. Changes encapsulated in the event are then mapped to the
+ * source object. All private fields are then filtered out, and remaining
+ * changes are dispatched.
+ * 
+ * @see VREvent
+ * @see Owned
+ * @see Private
+ * @author joe
+ *
+ */
 @Slf4j
 public class Dispatcher {
   private ObjectMapper objectMapper;

@@ -22,11 +22,9 @@ import org.vrspace.server.types.ID;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * This keeps track of objects visible to the Client.<br>
- * This scene uses coordinates to determine which objects are in
- * <b>range</b>.<br>
- * Scene is updated when client moves more than <b>resolution</b> meters, or
- * when <b>timeout</b> occurs.<br>
+ * This keeps track of objects visible to the Client. This scene uses
+ * coordinates to determine which objects are in range. Scene is updated when
+ * client moves more than resolution meters, or when timeout occurs.
  */
 @Slf4j
 public class Scene {
@@ -49,7 +47,7 @@ public class Scene {
   }
 
   /**
-   * Creates new Scene for Client <b>client</b><br>
+   * Creates new Scene for Client client
    */
   public Scene(WorldManager world, Client client) {
     this.world = world;
@@ -249,9 +247,8 @@ public class Scene {
   }
 
   /**
-   * Returns transforms within the range <br>
-   * Does not return permanent objects <br>
-   * TODO: check bounding boxes
+   * Returns transforms within the range Does not return permanent objects TODO:
+   * check bounding boxes
    */
   public List<VRObject> get(double x, double y, double z, double range) {
     return members.stream().filter(t -> t.getPosition().isInRange(x, y, z, range)).collect(Collectors.toList());

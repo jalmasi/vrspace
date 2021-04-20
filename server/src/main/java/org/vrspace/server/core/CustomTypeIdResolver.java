@@ -5,6 +5,13 @@ import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 
+/**
+ * Custom jackson type resolver, used to deserialize Commands residing in
+ * org.vrspace.server.dto package
+ * 
+ * @author joe
+ *
+ */
 public class CustomTypeIdResolver extends TypeIdResolverBase {
 
   private JavaType superType;

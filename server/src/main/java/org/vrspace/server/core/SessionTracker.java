@@ -6,6 +6,12 @@ import java.util.concurrent.TimeUnit;
 import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.obj.Client;
 
+/**
+ * Used to limit number of concurrent active sessions.
+ * 
+ * @author joe
+ *
+ */
 public class SessionTracker {
   private ServerConfig config;
 

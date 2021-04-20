@@ -33,6 +33,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.openvidu.java.client.OpenViduException;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Main component that manages all interactions with virtual worlds.
+ * 
+ * @author joe
+ *
+ */
 @Component("world")
 @Slf4j
 public class WorldManager {
