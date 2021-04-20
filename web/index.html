@@ -166,9 +166,7 @@ thanks folks!
         // info.git.commit.id.abbrev
         // info.git.commit.message.short
         // info.git.total.commit.count
-        console.log(info);
         var text = info.git.build.version+' '+info.git.build.time+' '+info.git.commit.id.abbrev+' '+info.git.commit.message.short;
-        console.log(document.getElementById("version"));
         document.getElementById("version").innerHTML = 'v'+text;
       }
     }
