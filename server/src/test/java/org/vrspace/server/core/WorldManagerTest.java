@@ -22,6 +22,7 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
@@ -43,11 +44,15 @@ public class WorldManagerTest {
   @Mock
   private StreamManager streamManager;
 
+  ServerConfig config = new ServerConfig();
+
   @InjectMocks
   WorldManager worldManager;
 
   @Before
   public void setUp() {
+    worldManager.config = config;
+    worldManager.init();
     when(repo.getPermanents(any(Long.class))).thenReturn(new HashSet<VRObject>());
     World world = new World("test");
     world.setId(0L);
@@ -57,7 +62,7 @@ public class WorldManagerTest {
 
   @Test
   public void testGuestAccess() throws Exception {
-    worldManager.setGuestAllowed(true);
+    config.setGuestAllowed(true);
     worldManager.sceneProperties = new SceneProperties();
     Welcome welcome = worldManager.login(session);
 
@@ -70,13 +75,13 @@ public class WorldManagerTest {
 
   @Test(expected = SecurityException.class)
   public void testGuestDisabled() throws Exception {
-    worldManager.setGuestAllowed(false);
+    config.setGuestAllowed(false);
     worldManager.login(session);
   }
 
   @Test
   public void testEnter() throws Exception {
-    worldManager.setGuestAllowed(true);
+    config.setGuestAllowed(true);
     worldManager.sceneProperties = new SceneProperties();
     Welcome welcomeDefault = worldManager.login(session);
     World world = new World("one");
@@ -89,12 +94,12 @@ public class WorldManagerTest {
 
   @Test
   public void testNumberOfSessions() throws Exception {
-    worldManager.setGuestAllowed(true);
+    config.setGuestAllowed(true);
     worldManager.sceneProperties = new SceneProperties();
 
     ArrayList<Client> clients = new ArrayList<>();
     int max = 5;
-    worldManager.setMaxSessions(max);
+    worldManager.sessionTracker.setMaxSessions(max);
     for (int i = 0; i < max; i++) {
       Welcome welcome = worldManager.login(session);
       welcome.getClient().setId(Long.valueOf(i));
@@ -103,7 +108,7 @@ public class WorldManagerTest {
     }
 
     // wait for 1 sec for session to start
-    worldManager.setSessionWaitTimeout(1);
+    config.setSessionStartTimeout(1);
     Welcome welcome = worldManager.login(session);
     welcome.getClient().setId(Long.valueOf(max));
     long time = System.currentTimeMillis();

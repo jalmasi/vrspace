@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.ClientResponse;
 import org.vrspace.server.dto.Remove;
@@ -55,6 +56,9 @@ public class SessionManagerTest {
 
   @Autowired
   private VRObjectRepository repo;
+
+  @Autowired
+  private ServerConfig config;
 
   @Captor
   private ArgumentCaptor<WebSocketMessage<?>> message;
@@ -85,7 +89,7 @@ public class SessionManagerTest {
   @Test
   @Transactional
   public void testAnonymousLogin() throws Exception {
-    worldManager.setGuestAllowed(true);
+    config.setGuestAllowed(true);
     when(session.getPrincipal()).thenReturn(null);
 
     login();
@@ -93,7 +97,7 @@ public class SessionManagerTest {
 
   @Test
   public void testNamedLogin() throws Exception {
-    worldManager.setGuestAllowed(false);
+    config.setGuestAllowed(false);
     login();
   }
 
@@ -136,7 +140,7 @@ public class SessionManagerTest {
 
   @Test
   public void testAnonymousLoginFail() throws Exception {
-    worldManager.setGuestAllowed(false);
+    config.setGuestAllowed(false);
     when(session.getPrincipal()).thenReturn(null);
     sessionManager.afterConnectionEstablished(session);
 
@@ -148,7 +152,7 @@ public class SessionManagerTest {
 
   @Test
   public void testInvalidLoginFail() throws Exception {
-    worldManager.setGuestAllowed(false);
+    config.setGuestAllowed(false);
     when(session.getPrincipal()).thenReturn(new Principal() {
       @Override
       public String getName() {
@@ -298,7 +302,7 @@ public class SessionManagerTest {
   @Test
   @Transactional
   public void testMulticast() throws Exception {
-    worldManager.setGuestAllowed(true);
+    config.setGuestAllowed(true);
 
     WebSocketSession session1 = mockup(mock(WebSocketSession.class), "session1");
     WebSocketSession session2 = mockup(mock(WebSocketSession.class), "session2");
@@ -374,8 +378,8 @@ public class SessionManagerTest {
   @Test
   @Transactional
   public void testEnterUnknown() throws Exception {
-    worldManager.setGuestAllowed(true);
-    worldManager.setCreateWorlds(false);
+    config.setGuestAllowed(true);
+    config.setCreateWorlds(false);
     when(session.getPrincipal()).thenReturn(null);
 
     login();
@@ -394,7 +398,7 @@ public class SessionManagerTest {
   @Test
   @Transactional
   public void testEnterValid() throws Exception {
-    worldManager.setGuestAllowed(true);
+    config.setGuestAllowed(true);
     when(session.getPrincipal()).thenReturn(null);
 
     World world = repo.save(new World("test"));
