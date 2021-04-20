@@ -6,21 +6,34 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.neo4j.ogm.config.Configuration;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Neo4J configuration. Uses embedded database by default, stored under the
+ * server directory.
+ * 
+ * @author joe
+ *
+ */
 @Slf4j
 @Component
 public class NeoConfig {
-  @Autowired
-  ServerConfig config;
+  @Value("${spring.data.neo4j.uri:default}")
+  private String neoUri;
+  @Value("${spring.data.neo4j.auto-index:update}")
+  private String neoAutoIndex;
+  @Value("${spring.data.neo4j.username:N/A}")
+  private String neoUser;
+  @Value("${spring.data.neo4j.password:N/A}")
+  private String neoPassword;
 
   @Bean
   public Configuration config() throws URISyntaxException, IOException {
-    String path = config.getNeoUri();
+    String path = neoUri;
     Configuration.Builder builder = new Configuration.Builder();
     if (!"default".equals(path)) {
       log.info("Configured database uri: " + path);
@@ -33,9 +46,9 @@ public class NeoConfig {
       }
       builder.uri(path);
     }
-    builder.autoIndex(config.getNeoAutoIndex());
-    if (!"N/A".equals(config.getNeoUser())) {
-      builder.credentials(config.getNeoUser(), config.getNeoPassword());
+    builder.autoIndex(neoAutoIndex);
+    if (!"N/A".equals(neoUser)) {
+      builder.credentials(neoUser, neoPassword);
     }
     return builder.build();
   }

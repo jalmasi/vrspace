@@ -27,6 +27,13 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
+/**
+ * Jackson JSON parser configuration. Configures date format and string
+ * de/serializers to prevent XSS.
+ * 
+ * @author joe
+ *
+ */
 @Configuration
 public class JacksonConfig {
   private Pattern htmlTag = Pattern.compile("<.+?>");
@@ -50,7 +57,7 @@ public class JacksonConfig {
     builder.deserializerByType(String.class, new SanitizeStringDeserializer());
     builder.serializerByType(String.class, new SanitizeStringSerializer());
 
-    // TODO JSON date/time proper format:
+    // JSON date/time proper format:
     builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     JavaTimeModule module = new JavaTimeModule();
     module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
