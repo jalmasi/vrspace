@@ -3,7 +3,9 @@ package org.vrspace.server.core;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -11,6 +13,7 @@ import javax.annotation.PostConstruct;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.WebSocketSession;
@@ -63,9 +66,41 @@ public class WorldManager {
 
   private World defaultWorld;
 
+  @Value("${org.vrspace.server.sessionStartTimeout:0}")
+  private int sessionStartTimeout;
+
+  @Value("${org.vrspace.server.maxSessions:0}")
+  private int maxSessions;
+  private ArrayBlockingQueue<Long> activeSessions;
+
   @PostConstruct
   public void init() {
     this.dispatcher = new Dispatcher(jackson);
+  }
+
+  public void setSessionWaitTimeout(int timeout) {
+    sessionStartTimeout = timeout;
+  }
+
+  public int getSesssionWaitTimeout() {
+    return sessionStartTimeout;
+  }
+
+  public void setMaxSessions(int max) {
+    if (max == 0) {
+      activeSessions = null;
+    } else if (this.maxSessions == 0) {
+      activeSessions = new ArrayBlockingQueue<>(max);
+    } else {
+      ArrayBlockingQueue<Long> q = new ArrayBlockingQueue<>(max);
+      activeSessions.drainTo(q);
+      activeSessions = q;
+    }
+    this.maxSessions = max;
+  }
+
+  public int getMaxSessions() {
+    return maxSessions;
   }
 
   // CHECKME: should this be here?
@@ -239,6 +274,19 @@ public class WorldManager {
   }
 
   public void startSession(Client client) {
+    try {
+      if (maxSessions > 0) {
+        boolean started = activeSessions.offer(client.getId(), sessionStartTimeout, TimeUnit.SECONDS);
+        if (!started) {
+          throw new RuntimeException(
+              "Failed to start session " + maxSessions + " in " + sessionStartTimeout + " seconds ");
+        }
+      }
+    } catch (InterruptedException e) {
+      log.warn("Interrupted waiting to start session", e);
+      return;
+    }
+
     // client has now entered the world
     client.setActive(true);
     client = save(client);
@@ -252,6 +300,13 @@ public class WorldManager {
 
   @Transactional
   public void logout(Client client) {
+    try {
+      if (maxSessions > 0) {
+        activeSessions.take();
+      }
+    } catch (InterruptedException e) {
+      log.warn("Interrupted waiting to end session", e);
+    }
     exit(client);
     // delete guest client
     if (client.isGuest()) {

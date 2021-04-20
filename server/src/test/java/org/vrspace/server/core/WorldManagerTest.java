@@ -2,12 +2,15 @@ package org.vrspace.server.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.junit.Before;
@@ -82,5 +85,39 @@ public class WorldManagerTest {
 
     assertNotNull(welcomeWorld);
     assertEquals(world, welcomeWorld.getClient().getWorld());
+  }
+
+  @Test
+  public void testNumberOfSessions() throws Exception {
+    worldManager.setGuestAllowed(true);
+    worldManager.sceneProperties = new SceneProperties();
+
+    ArrayList<Client> clients = new ArrayList<>();
+    int max = 5;
+    worldManager.setMaxSessions(max);
+    for (int i = 0; i < max; i++) {
+      Welcome welcome = worldManager.login(session);
+      welcome.getClient().setId(Long.valueOf(i));
+      worldManager.startSession(welcome.getClient());
+      clients.add(welcome.getClient());
+    }
+
+    // wait for 1 sec for session to start
+    worldManager.setSessionWaitTimeout(1);
+    Welcome welcome = worldManager.login(session);
+    welcome.getClient().setId(Long.valueOf(max));
+    long time = System.currentTimeMillis();
+    try {
+      worldManager.startSession(welcome.getClient());
+      fail();
+    } catch (RuntimeException e) {
+      // failed after more than 1 sec
+      time = System.currentTimeMillis() - time;
+      assertTrue(time - 1000 > 0);
+    }
+
+    worldManager.logout(clients.get(0));
+    worldManager.startSession(welcome.getClient());
+
   }
 }
