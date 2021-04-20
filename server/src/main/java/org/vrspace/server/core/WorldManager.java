@@ -59,7 +59,10 @@ public class WorldManager {
 
   private Dispatcher dispatcher;
 
+  @Value("${org.vrspace.server.guestAllowed:true}")
   private boolean guestAllowed = true;
+
+  @Value("${org.vrspace.server.createWorlds:true}")
   private boolean createWorlds = true;
 
   private ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
