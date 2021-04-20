@@ -44,6 +44,7 @@ thanks folks!
           </nav>
       </div>
   </header>
+  <div class="version" id="version">version</div>
   <div class="scroll-down"><a href="#about">&nbsp;<i class="fa fa-arrow-down"></i>&nbsp;</a></div>
   <!-- ***** Main Banner Area End ***** -->
 
@@ -153,6 +154,27 @@ thanks folks!
       engine.resize();
       canvas.focus();
     });
+    
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.responseType = "text";
+    xmlHttp.onreadystatechange = function() {
+      if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+        var info = JSON.parse(xmlHttp.responseText);
+        // some useful stats
+        // info.git.build.version
+        // info.git.build.time
+        // info.git.commit.id.abbrev
+        // info.git.commit.message.short
+        // info.git.total.commit.count
+        console.log(info);
+        var text = info.git.build.version+' '+info.git.build.time+' '+info.git.commit.id.abbrev+' '+info.git.commit.message.short;
+        console.log(document.getElementById("version"));
+        document.getElementById("version").innerHTML = 'v'+text;
+      }
+    }
+    xmlHttp.open("GET", "/actuator/info", true); // true for asynchronous
+    xmlHttp.send(null);
+    
   
   })
   

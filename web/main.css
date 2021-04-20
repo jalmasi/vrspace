@@ -64,7 +64,17 @@ li a {
   font-size: 28px;
   font-weight: 700;
   letter-spacing: 2px;
-  margin-left: 10%;;
+  margin-left: 10%;
+}
+.version {
+  position: absolute;
+	color: #fff;
+  font-size: 12px;
+  left: 10%;
+  margin-top: -40px;
+  margin-left: -30px;
+  text-shadow: rgba(0,0,0,.01) 0 0 1px;
+  
 }
 .scroll-down {
   position: absolute;
