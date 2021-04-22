@@ -405,6 +405,17 @@ export class VRSpaceUI {
     }
     return this.scriptLoader.load(parallel);
   }
+  
+  /**
+  Utility method - returns the top parent node in hierarchy
+   */
+  findRootNode(mesh) {
+    var parent = mesh;
+    while ( parent && parent.parent ) {
+      parent = parent.parent;
+    }
+    return parent;
+  }
 
 }
 
@@ -2149,11 +2160,14 @@ export class WorldManager {
     }
     video.show();
     video.mesh.name = obj.mesh;
-    video.mesh.id = obj.constructor.name+" "+obj.id;
+    // obfuscators get in the way 
+    //video.mesh.id = obj.constructor.name+" "+obj.id;
+    video.mesh.id = obj.className+" "+obj.id;
     obj.video = video;
     
     var parent = new BABYLON.TransformNode("Root of "+video.mesh.id, this.scene);
     video.mesh.parent = parent;
+    parent.VRObject = obj;
           
     this.log("Added stream "+obj.id);
     
@@ -2208,6 +2222,7 @@ export class WorldManager {
     avatar.load( (c) => {
       // FIXME: this is not container but avatar
       obj.container = c;
+      c.VRObject = obj;
       // apply current position and rotation
       this.changeAvatar(obj, { position: obj.position });
       if ( obj.rotation ) {
@@ -2279,8 +2294,11 @@ export class WorldManager {
       
       // Adds all elements to the scene
       var mesh = container.createRootMesh();
+      mesh.VRObject = obj;
       mesh.name = obj.mesh;
-      mesh.id = obj.constructor.name+" "+obj.id;
+      // obfuscator gets in the way 
+      //mesh.id = obj.constructor.name+" "+obj.id;
+      mesh.id = obj.className+" "+obj.id;
       
       container.addAllToScene();
 
@@ -2364,6 +2382,8 @@ export class WorldManager {
     }
     if (typeof object[field] === 'function') {
       object[field](obj);
+    } else if (typeof obj[field+'Changed'] === 'function') {
+      obj[field+'Changed'](obj);
     //} else if (object.hasOwnProperty(field)) {
     } else {
       console.log("Ignoring unknown event to "+obj+": "+field);

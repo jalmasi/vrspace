@@ -193,6 +193,7 @@ public class Scene {
 
   private void clear(boolean force) {
     try {
+      // FIXME java.util.ConcurrentModificationException: null
       for (VRObject t : members) {
         remove(t, force);
       }

@@ -5,6 +5,12 @@ import org.vrspace.server.obj.Client;
 
 import lombok.Data;
 
+/**
+ * FIXME: clear causes ConcurrentModificationException during scene removal
+ * 
+ * @author joe
+ *
+ */
 @Data
 public class Refresh implements Command {
   private boolean clear;

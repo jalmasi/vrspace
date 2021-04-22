@@ -176,16 +176,22 @@ export class EventRecorder extends Client {
 
 /**
 An event that happened to an object.
+@param obj VRObject instance
+@param changes optional object encapsulating changes to the object (field:value)
  */
 export class VREvent {
-  constructor(obj) {
+  constructor(obj, changes) {
     /** VRObject that has changed */
     this.object=new Object();
     // obufscators get in the way of this:
     //this.object[obj.constructor.name]=obj.id;
     this.object[obj.className]=obj.id;
     /** Changes to the object */
-    this.changes=new Object();
+    if ( changes ) {
+      this.changes = changes;
+    } else {
+      this.changes=new Object();
+    }
   }
 }
 
@@ -398,6 +404,8 @@ export class VRSpace {
       }
     } else if ( typeof value == 'number') {
       return '"'+field+'":'+value;
+    } else if ( typeof value == 'boolean') {
+      return '"'+field+'":'+value;
     } else {
       console.log("Unsupported datatype "+typeof value+", ignored user event "+field+"="+value);
       return '';
@@ -429,19 +437,6 @@ export class VRSpace {
     });
   }
 
-  /** 
-  Create a new empty server-side object
-  @param callback called with new object
-  @param className default VRObject
-   */  
-  createSharedInstance( callback, className ) {
-    if ( ! className ) {
-      className = 'VRObject';
-    }
-    let obj = new classes[className];
-    return this.createSharedObject(obj, callback);
-  }
-  
   /**
   Share an object.
   @param obj the new VRObject, containing all properties
@@ -515,25 +510,57 @@ export class VRSpace {
   }
 
   /**
+  Send changes to an object
+  @param obj VRObject that changes
+  @param changes array containing field/value pairs
+   */
+  sendChanges(obj, changes) {
+    if ( ! changes || changes.length == 0 ) {
+      return;
+    }
+    var index = 0;
+    var msg = '{"object":{"'+obj.className+'":'+obj.id+'},"changes":{';
+    changes.forEach((change) => {
+      msg += this.stringifyPair(change.field,change.value);
+      index++;
+      if ( index < changes.length ) {
+        msg += ',';
+      }
+    });
+    msg += '}}';
+    this.send(msg);
+  }
+
+  /**
+  Send changes to an object
+  @param obj VRObject that changes
+  @param changes object containing changed fields
+   */
+  sendEvent(obj, changes) {
+    if ( ! changes || changes.length == 0 ) {
+      return;
+    }
+    var index = 0;
+    var msg = '{"object":{"'+obj.className+'":'+obj.id+'},"changes":{';
+    for ( var change in changes ){
+      msg += this.stringifyPair(change,changes[change]);
+      index++;
+      if ( index < changes.length ) {
+        msg += ',';
+      }
+    };
+    msg += '}}';
+    this.send(msg);
+  }
+
+
+  /**
   Send changes to own avatar
   @param changes object with field/value pairs
    */
   sendMyChanges(changes) {
-    if ( ! changes || changes.length == 0 ) {
-      return;
-    }
     if ( this.me != null) {
-      var index = 0;
-      var msg = '{"object":{"Client":'+this.me.id+'},"changes":{';
-      changes.forEach((change) => {
-        msg += this.stringifyPair(change.field,change.value);
-        index++;
-        if ( index < changes.length ) {
-          msg += ',';
-        }
-      });
-      msg += '}}';
-      this.send(msg);
+      this.sendChanges(this.me, changes);
     } else {
       this.log("No my ID yet, user event ignored:");
       this.log(changes);
@@ -640,7 +667,8 @@ export class VRSpace {
       this.log("welcome "+welcome.client.id);
       if ( ! this.me ) {
         // FIXME: Uncaught TypeError: Cannot assign to read only property of function class
-        this.me = Object.assign(Client,welcome.client);        
+        let client = new Client();
+        this.me = Object.assign(client,welcome.client);        
       }
       this.welcomeListeners.forEach((listener)=>listener(welcome));
     } else if ( "response" in obj) {
