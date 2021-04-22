@@ -58,7 +58,7 @@ import('./vrspace-ui.js').then( (ui) => {
       skyboxMaterial.disableLighting = true;
       skybox.material = skyboxMaterial;
       skybox.infiniteDistance = true;
-      skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("//www.babylonjs.com/assets/skybox/TropicalSunnyDay", this.scene);
+      skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("//www.vrspace.org/content/skybox/eso_milkyway/milkyway", this.scene);
       skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
       
       debugLayer = this.scene.debugLayer;
@@ -85,6 +85,15 @@ import('./vrspace-ui.js').then( (ui) => {
 
   net.VRSPACE.connect();
 
+  var receiveEvent = (o) => {
+    var animationGroup = o.container.animationGroups[0];
+    if ( o.myEvent ) {
+      animationGroup.play(true);
+    } else {
+      animationGroup.stop();
+    }
+  }
+  
   world.scene.onPointerPick = (e,p) => {
 	  console.log("Picked ", p.pickedMesh);
     
@@ -103,18 +112,15 @@ import('./vrspace-ui.js').then( (ui) => {
           // (remote value has already been applied to shared object)
           // option 1 - add listener to the object
           obj.addListener( (obj, changes) => {
-            console.log("Listener received remote event",changes);
+            console.log("Local listener event",changes);
+            //receiveEvent(obj);
           });
           // option 2 - add handler function
           obj.myEventChanged = (o) => {
             console.log("Object has changed: "+o.myEvent);
-            var animationGroup = o.container.animationGroups[0];
-            if ( o.myEvent ) {
-              animationGroup.play(true);
-            } else {
-              animationGroup.stop();
-            }
+            receiveEvent(obj);
           };
+          // HOWEVER, other clients will not have this event handler installed!
         });
       } else {
         net.VRSPACE.deleteSharedObject(obj1);
@@ -130,7 +136,7 @@ import('./vrspace-ui.js').then( (ui) => {
           var o = new vrspace.Client();
           o.mesh = 'dolphin.glb';
           o.active = true;
-          o.name = 'My test client';
+          o.name = 'My test client '+Date.now(); // must be unique
           o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
           net.VRSPACE.createSharedObject(o, (obj)=>{
             console.log("Shared object", obj);
@@ -159,7 +165,23 @@ import('./vrspace-ui.js').then( (ui) => {
         net.VRSPACE.sendEvent(obj2, {position: {x:obj2.position.x, y:obj2.position.y+.1, z:obj2.position.z}});
       }
     }
+
   }
+
+  // this   
+  net.VRSPACE.addSceneListener( (sceneEvent) => {
+    // identify the object
+    if ( sceneEvent.added && sceneEvent.added.properties && sceneEvent.added.properties.stringProperty == 'whatever') {
+      // and NOW install event handler
+      // (obviously, easier to use a class)
+      sceneEvent.added.myEventChanged = (o) => {
+        console.log("Performing remote change: "+o.myEvent);
+        receiveEvent(o);
+      };
+      // keep the reference, share the event when touched on
+      obj1 = sceneEvent.added;
+    }
+  });
   
 })
   

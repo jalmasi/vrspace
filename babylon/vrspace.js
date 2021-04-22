@@ -214,7 +214,7 @@ export class SceneEvent {
   }
 }
 
-const classes = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder };
+export let sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder };
 
 /**
 Main client API class, no external dependencies.
@@ -428,7 +428,7 @@ export class VRSpace {
             ret = 0.0;
           } else {
             //ret = (Function('return new ' + javaType))();
-            ret = new classes[className];
+            ret = new this.newInstance(className);
           }
           break;
         }
@@ -584,20 +584,32 @@ export class VRSpace {
     this.responseListener = callback;
     this.send(message);
   }
+  
+  /** 
+  Factory method
+  @param className shared class name
+  @returns new shared object instance
+   */
+  newInstance(className) {
+    if ( sharedClasses[className] ) {
+      return new sharedClasses[className];
+    } else {
+      console.log("Unknown object type: "+className);
+      return null;
+    }
+  }
 
   /* Add an object to the scene, used internally */  
   addToScene(className, object) {
-    if ( classes[className] ) {
-      var classInstance = new classes[className];
+    var classInstance = this.newInstance(className);
+    if ( classInstance ) {
       Object.assign(classInstance,object);
       classInstance.VRSPACE = this;
       var id = new ID(className,object.id);
       this.scene.set(id.toString(), classInstance);
       // notify listeners
       const e = new SceneEvent(this.scene, className, id, classInstance, null);
-      this.sceneListeners.forEach((listener) => listener(e));
-    } else {
-      console.log("Unknown object type: "+className);
+      this.sceneListeners.forEach((listener) => listener(e));        
     }
   }
   
