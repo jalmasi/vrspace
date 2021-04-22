@@ -2400,6 +2400,10 @@ export class WorldManager {
       obj.container.dispose();
       obj.container = null;
     }
+    if ( obj.video ) {
+      obj.video.dispose();
+      obj.video = null;
+    }
     if ( obj.translate ) {
       obj.translate.dispose();
       obj.translate = null;
@@ -2823,6 +2827,12 @@ export class VideoAvatar {
   dispose() {
     if ( this.mesh.parent ) {
       this.mesh.parent.dispose();
+    }
+    if ( this.mesh.material ) {
+      if ( this.mesh.material.diffuseTexture ) {
+        this.mesh.material.diffuseTexture.dispose();
+      }
+      this.mesh.material.dispose();
     }
     if ( this.mesh ) {
       this.mesh.dispose();
