@@ -138,19 +138,18 @@ public class WorldManager {
    * 
    * @param client  client adding objects
    * @param objects objects to add
-   * @return list of identifiers of newly added objects
+   * @return list of added objects
    */
-  public List<ID> add(Client client, List<VRObject> objects) {
-    List<ID> ret = objects.stream().map(o -> {
+  public List<VRObject> add(Client client, List<VRObject> objects) {
+    List<VRObject> ret = objects.stream().map(o -> {
       if (o.getPosition() == null && client.getPosition() != null) {
         o.setPosition(new Point(client.getPosition()));
       }
       o.setWorld(client.getWorld());
       o = db.save(o);
       client.addOwned(o);
-      ID id = new ID(o);
-      cache.put(id, o);
-      return id;
+      cache.put(o.getObjectId(), o);
+      return o;
     }).collect(Collectors.toList());
     db.save(client);
     return ret;
@@ -252,6 +251,7 @@ public class WorldManager {
     scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
     client.setScene(scene);
     scene.update();
+    scene.publish(client);
   }
 
   @Transactional

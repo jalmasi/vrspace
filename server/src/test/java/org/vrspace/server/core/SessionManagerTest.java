@@ -234,14 +234,14 @@ public class SessionManagerTest {
 
     // verify response to add command
     List<WebSocketMessage<?>> values = message.getAllValues();
-    String addResponse = ((TextMessage) values.get(1)).getPayload();
-    ClientResponse r = mapper.readValue(addResponse, ClientResponse.class);
+    String addResponse = ((TextMessage) values.get(2)).getPayload();
+    ClientResponse rIds = mapper.readValue(addResponse, ClientResponse.class);
     @SuppressWarnings("unchecked")
-    List<Map<String, Long>> ids = (List<Map<String, Long>>) r.getResponse();
+    List<Map<String, Long>> ids = (List<Map<String, Long>>) rIds.getResponse();
     assertEquals(2, ids.size());
 
     // verify received add command as result of scene update
-    String sceneMessage = getMessage();
+    String sceneMessage = ((TextMessage) values.get(1)).getPayload();
     Add addCommand = mapper.readValue(sceneMessage, Add.class);
     assertEquals(2, addCommand.getObjects().size());
 

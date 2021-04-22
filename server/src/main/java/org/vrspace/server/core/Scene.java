@@ -1,13 +1,14 @@
 package org.vrspace.server.core;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.vrspace.server.dto.Add;
@@ -30,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Scene {
   private Point oldPos = new Point();
 
-  private HashSet<VRObject> members = new HashSet<VRObject>(); // non-permanent transforms
+  private Set<VRObject> members = newScene(); // non-permanent transforms
   private HashMap<ID, VRObject> allObjects = new HashMap<ID, VRObject>(); // all objects in the world
 
   private WorldManager world;
@@ -44,6 +45,10 @@ public class Scene {
   private LinkedHashMap<String, Filter> filters = new LinkedHashMap<String, Filter>();
 
   protected Scene() {
+  }
+
+  private static Set<VRObject> newScene() {
+    return new ConcurrentHashMap<ID, VRObject>().newKeySet();
   }
 
   /**
@@ -72,7 +77,7 @@ public class Scene {
       if (!client.getPosition().isInRange(oldPos, props.getResolution())
           || System.currentTimeMillis() > lastUpdate + props.getTimeout()) {
 
-        HashSet<VRObject> newScene = new HashSet<VRObject>();
+        Set<VRObject> newScene = newScene();
         // Check region
         Point p1 = new Point(client.getPosition()).minus(props.getRange());
         Point p2 = new Point(client.getPosition()).plus(props.getRange());
@@ -90,7 +95,7 @@ public class Scene {
             members.remove(t);
             newScene.add(t);
           } else {
-            add(add, t); // adds children and listeners
+            add(t); // adds children and listeners
             newScene.add(t);
             add.addObject(t);
           }
@@ -123,25 +128,79 @@ public class Scene {
     active = false;
   }
 
-  private void add(Add add, VRObject t) {
+  private void add(VRObject t) {
     if (t.getChildren() != null) {
       for (VRObject obj : t.getChildren()) {
         // package filter implementation
         if (isVisible(obj)) {
-          add(add, obj);
+          add(obj);
         }
       }
     }
     if (t.isActive()) {
       t.addListener(client);
-      // force client scene update
-      // TODO refactor into client class, appropriate has-scene interface
-      if (t instanceof Client && ((Client) t).getScene() != null) {
-        ((Client) t).getScene().setDirty();
-        ((Client) t).getScene().update();
-      }
     }
     allObjects.put(new ID(t), t);
+  }
+
+  /**
+   * Offer an object to the scene. Accepted new objects in range and visible
+   * (passing all filters)
+   * 
+   * @param o
+   */
+
+  public void offer(VRObject o) {
+    if (!members.contains(o) && (o.getPosition() != null && o.getPosition().isInRange(oldPos, props.getResolution()))
+        && isVisible(o)) {
+      // add to the scene
+      members.add(o);
+      // notify the client
+      Add add = new Add().addObject(o);
+      client.sendMessage(add);
+    }
+  }
+
+  public void offer(Collection<VRObject> objects) {
+    Add add = new Add();
+    for (VRObject o : objects) {
+      if (!members.contains(o) && (o.getPosition() != null && o.getPosition().isInRange(oldPos, props.getResolution()))
+          && isVisible(o)) {
+        // add to the scene
+        members.add(o);
+        add(o);
+        add.addObject(o);
+      }
+    }
+    // notify the client
+    if (add.getObjects().size() > 0) {
+      client.sendMessage(add);
+    }
+  }
+
+  /**
+   * Offer some object(s) to scenes of all listeners. E.g. a new object just added
+   * to the space, or client just logged in (starting the session), or entering a
+   * new space.
+   * 
+   * @param objects
+   */
+  public void publishAll(Collection<VRObject> objects) {
+    offer(objects);
+    members.stream().filter(o -> o instanceof Client).forEach(o -> {
+      Client c = (Client) o;
+      c.getScene().offer(objects);
+    });
+  }
+
+  public void publish(VRObject obj) {
+    offer(obj);
+    members.stream().filter(o -> o instanceof Client).forEach(o -> {
+      Client c = (Client) o;
+      if (c.getScene() != null) {
+        c.getScene().offer(obj);
+      }
+    });
   }
 
   private void remove(Remove remove, VRObject t) {

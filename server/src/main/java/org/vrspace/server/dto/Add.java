@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
-import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -42,8 +41,9 @@ public class Add implements Command {
 
   @Override
   public ClientResponse execute(WorldManager world, Client client) {
-    List<Map<String, Long>> ret = world.add(client, objects).stream().map(ID::map).collect(Collectors.toList());
-    client.getScene().setDirty();
+    List<VRObject> added = world.add(client, objects);
+    client.getScene().publishAll(added);
+    List<Map<String, Long>> ret = added.stream().map(o -> o.getObjectId().map()).collect(Collectors.toList());
     return new ClientResponse(ret);
   }
 }

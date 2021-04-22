@@ -67,7 +67,7 @@ public class CommandTest {
 
     verify(repo, times(1)).save(any(Client.class));
     verify(repo, times(3)).save(any(VRObject.class));
-    verify(scene, times(1)).setDirty();
+    verify(scene, times(1)).publishAll(any());
   }
 
   @Test(expected = SecurityException.class)
