@@ -59,8 +59,16 @@ public class Remove implements Command {
 
   @Override
   public ClientResponse execute(WorldManager world, Client client) {
-    objects.forEach(o -> o.forEach((cls, id) -> world.remove(client, cls, id)));
-    client.getScene().setDirty();
+    List<VRObject> removing = new ArrayList<VRObject>();
+    objects.forEach(o -> o.forEach((cls, id) -> {
+      ID objId = new ID(cls, id);
+      VRObject obj = client.getScene().get(objId);
+      if (obj != null) {
+        removing.add(obj);
+      }
+    }));
+    client.getScene().unpublish(removing);
+    removing.forEach((obj) -> world.remove(client, obj));
     return null;
   }
 

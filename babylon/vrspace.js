@@ -457,17 +457,11 @@ export class VRSpace {
     this.call('{"command":{"Add":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
       this.log("Response:", response);
       var objectId = response.response[0][className];
-      this.log("Created object", objectId);
-      var sceneListener = (sceneEvent) => {
-        this.log("Received object", sceneEvent);
-        // add self as scene listener to wait for and return the object
-        if( sceneEvent.added.id === objectId) {
-          this.removeSceneListener(sceneListener);
-          // only now we have the object as returned from the server
-          callback(sceneEvent.added);
-        }
-      }
-      this.addSceneListener(sceneListener);
+      const id = new ID(className,objectId);
+      this.log("Created object:"+ objectId);
+      // by now the object is already in the scene, since Add message preceeded the response
+      var ret = this.scene.get(id.toString());
+      callback(ret);
     });
   }
   

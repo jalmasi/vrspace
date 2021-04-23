@@ -155,15 +155,14 @@ public class WorldManager {
     return ret;
   }
 
-  public void remove(Client client, String cls, Long id) {
-    ID objId = new ID(cls, id);
-    VRObject obj = client.getScene().get(objId);
+  public void remove(Client client, VRObject obj) {
+    ID objId = obj.getObjectId();
     // CHECKME: remove invisible objects?
     if (!client.isOwner(obj)) {
       throw new SecurityException("Not yours to remove");
     }
     cache.remove(objId);
-    db.deleteById(id);
+    db.deleteById(objId.getId());
     client.removeOwned(obj);
     db.save(client);
   }

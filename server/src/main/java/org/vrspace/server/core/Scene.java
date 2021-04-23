@@ -155,6 +155,8 @@ public class Scene {
         && isVisible(o)) {
       // add to the scene
       members.add(o);
+      // register listener
+      add(o);
       // notify the client
       Add add = new Add().addObject(o);
       client.sendMessage(add);
@@ -189,8 +191,25 @@ public class Scene {
     offer(objects);
     members.stream().filter(o -> o instanceof Client).forEach(o -> {
       Client c = (Client) o;
-      c.getScene().offer(objects);
+      if (c.getScene() != null) {
+        c.getScene().offer(objects);
+      }
     });
+  }
+
+  public void unpublish(Collection<VRObject> objects) {
+    Remove remove = new Remove();
+    for (VRObject obj : objects) {
+      remove(remove, obj, true);
+      members.stream().filter(o -> o instanceof Client).forEach(o -> {
+        Client c = (Client) o;
+        if (c.getScene() != null) {
+          // FIXME potentially removing objects not in client's scene
+          c.sendMessage(remove);
+        }
+      });
+    }
+    client.sendMessage(remove);
   }
 
   public void publish(VRObject obj) {
@@ -203,18 +222,6 @@ public class Scene {
     });
   }
 
-  private void remove(Remove remove, VRObject t) {
-    // recursive remove children
-    if (t.getChildren() != null) {
-      t.getChildren().forEach(obj -> remove(remove, obj));
-    }
-    remove.removeObject(t);
-    // if (t.isActive()) {
-    t.removeListener(client);
-    // }
-    allObjects.remove(new ID(t));
-  }
-
   /**
    * Ensure the scene will be updated on next update() call.
    */
@@ -225,7 +232,7 @@ public class Scene {
   /**
    * Removes an object from the scene. Next update() may add it again.
    */
-  public void remove(VRObject t) throws Exception {
+  public void remove(VRObject t) {
     remove(t, true);
   }
 
@@ -240,23 +247,37 @@ public class Scene {
    *                        removed, and object is not in range, it will be
    *                        removed during next update().
    */
-  public void remove(VRObject t, boolean removeReference) throws Exception {
-    Remove remove = new Remove();
+  public Remove remove(VRObject t, boolean removeReference) {
+    return remove(new Remove(), t, removeReference);
+  }
+
+  private Remove remove(Remove remove, VRObject t, boolean removeReference) {
     remove(remove, t);
 
     // Remove the object from the lists.
     if (removeReference) {
       members.remove(t);
     }
+    return remove;
+  }
+
+  private void remove(Remove remove, VRObject t) {
+    // recursive remove children
+    if (t.getChildren() != null) {
+      t.getChildren().forEach(obj -> remove(remove, obj));
+    }
+    remove.removeObject(t);
+    // if (t.isActive()) {
+    t.removeListener(client);
+    // }
+    allObjects.remove(new ID(t));
   }
 
   private void clear(boolean force) {
     try {
-      // FIXME java.util.ConcurrentModificationException: null
       for (VRObject t : members) {
         remove(t, force);
       }
-      setDirty();
     } catch (Throwable e) {
       log.error("Error during removal", e);
     }

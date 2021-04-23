@@ -19,6 +19,7 @@ import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,6 +73,7 @@ public class CommandTest {
 
   @Test(expected = SecurityException.class)
   public void testRemoveFail() throws Exception {
+    when(scene.get(any(ID.class))).thenReturn(new VRObject(1L));
     isOwner = false;
     Remove remove = new Remove(new VRObject(2L)).removeObject(new VRObject(1L));
     ClientRequest request = new ClientRequest(client, remove);
@@ -80,13 +82,16 @@ public class CommandTest {
 
   @Test
   public void testRemove() throws Exception {
+    when(scene.get(any(ID.class))).thenReturn(new VRObject(1L));
+
     Remove remove = new Remove(new VRObject(2L)).removeObject(new VRObject(1L));
     ClientRequest request = new ClientRequest(client, remove);
     world.dispatch(request);
 
     verify(repo, times(2)).save(any(Client.class));
     verify(repo, times(2)).deleteById(any(Long.class));
-    verify(scene, times(1)).setDirty();
+    verify(scene, times(1)).unpublish(any());
+    ;
   }
 
   private void println(Object obj) throws JsonProcessingException {

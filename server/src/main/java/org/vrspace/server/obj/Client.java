@@ -102,12 +102,6 @@ public class Client extends VRObject {
     if (!event.getSource().isActive()) {
       // stop listening to inactive objects (disconnected clients)
       event.getSource().removeListener(this);
-      // CHECKME: do we wish to force scene refresh?
-      if (scene != null) {
-        // some clients (e.g. EventRecorder) may not have scene
-        scene.setDirty();
-        scene.update();
-      }
     } else {
       sendMessage(event);
     }
