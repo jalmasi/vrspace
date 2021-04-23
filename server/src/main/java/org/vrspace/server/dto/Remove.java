@@ -65,10 +65,10 @@ public class Remove implements Command {
       VRObject obj = client.getScene().get(objId);
       if (obj != null) {
         removing.add(obj);
+        world.remove(client, obj);
       }
     }));
     client.getScene().unpublish(removing);
-    removing.forEach((obj) -> world.remove(client, obj));
     return null;
   }
 

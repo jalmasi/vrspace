@@ -266,9 +266,17 @@ public class WorldManager {
   }
 
   private void exit(Client client) {
-    // first clear the scene, so other active objects (clients) don't keep reference
-    // to the client and send it events
+    // notify all listeners that the client disconnected
+    client.setActive(false);
+    // TODO introduce LoginEvent
+    VREvent ev = new VREvent(client, client);
+    ev.addChange("active", false);
+    client.notifyListeners(ev);
     if (client.getScene() != null) {
+      // remove client from all scenes
+      client.getScene().unpublish();
+      // clear the scene, so other active objects (clients) don't keep reference
+      // to the client and send it events
       client.getScene().removeAll();
       // shouldn't do that, causes bogus exception
       // but without it, we may load avatars twice!
@@ -277,12 +285,6 @@ public class WorldManager {
       // causes async event processing issues
       // client.setScene(null);
     }
-    // then notify all listeners that the client disconnected
-    client.setActive(false);
-    // TODO introduce LoginEvent
-    VREvent ev = new VREvent(client, client);
-    ev.addChange("active", false);
-    client.notifyListeners(ev);
     client.setListeners(null);
     // also remove the client from streaming session
     try {

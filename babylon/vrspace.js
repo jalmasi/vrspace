@@ -558,6 +558,7 @@ export class VRSpace {
     } else {
       this.log("No my ID yet, user event ignored:");
       this.log(changes);
+      throw "No my ID yet, user event ignored:";
     }
   }
 

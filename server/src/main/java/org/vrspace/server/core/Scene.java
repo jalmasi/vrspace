@@ -143,16 +143,22 @@ public class Scene {
     allObjects.put(new ID(t), t);
   }
 
+  private boolean isInRange(VRObject o) {
+    return o.getPosition() == null
+        || (o.getPosition().getX() == 0 && o.getPosition().getY() == 0 && o.getPosition().getZ() == 0)
+        || (o.getPosition().isInRange(oldPos, props.getResolution()));
+  }
+
   /**
    * Offer an object to the scene. Accepted new objects in range and visible
-   * (passing all filters)
+   * (passing all filters). Objects without positions, or with zero positions are
+   * also accepted, so that new objects become immediately visible.
    * 
    * @param o
    */
 
   public void offer(VRObject o) {
-    if (!members.contains(o) && (o.getPosition() != null && o.getPosition().isInRange(oldPos, props.getResolution()))
-        && isVisible(o)) {
+    if (!members.contains(o) && isInRange(o) && isVisible(o)) {
       // add to the scene
       members.add(o);
       // register listener
@@ -166,8 +172,7 @@ public class Scene {
   public void offer(Collection<VRObject> objects) {
     Add add = new Add();
     for (VRObject o : objects) {
-      if (!members.contains(o) && (o.getPosition() != null && o.getPosition().isInRange(oldPos, props.getResolution()))
-          && isVisible(o)) {
+      if (!members.contains(o) && isInRange(o) && isVisible(o)) {
         // add to the scene
         members.add(o);
         add(o);
@@ -201,14 +206,14 @@ public class Scene {
     Remove remove = new Remove();
     for (VRObject obj : objects) {
       remove(remove, obj, true);
-      members.stream().filter(o -> o instanceof Client).forEach(o -> {
-        Client c = (Client) o;
-        if (c.getScene() != null) {
-          // FIXME potentially removing objects not in client's scene
-          c.sendMessage(remove);
-        }
-      });
     }
+    members.stream().filter(o -> o instanceof Client).forEach(o -> {
+      Client c = (Client) o;
+      if (c.getScene() != null) {
+        // FIXME potentially removing objects not in client's scene
+        c.sendMessage(remove);
+      }
+    });
     client.sendMessage(remove);
   }
 
@@ -218,6 +223,27 @@ public class Scene {
       Client c = (Client) o;
       if (c.getScene() != null) {
         c.getScene().offer(obj);
+      }
+    });
+  }
+
+  public void logout(Client c) {
+    if (members.contains(c)) {
+      // add to the scene
+      members.remove(c);
+      // register listener
+      add(c);
+      // notify the client
+      Remove remove = new Remove().removeObject(c);
+      client.sendMessage(remove);
+    }
+  }
+
+  public void unpublish() {
+    members.stream().filter(o -> o instanceof Client).forEach(o -> {
+      Client c = (Client) o;
+      if (c.getScene() != null) {
+        c.getScene().logout(client);
       }
     });
   }

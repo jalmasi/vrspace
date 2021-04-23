@@ -2047,7 +2047,7 @@ export class WorldManager {
     /** Current right arm rotation */
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     this.interval = null;
-    VRSPACE.addConnectionListener((connected) => this.setConnected(connected));
+    VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     /** Enable debug output */
     this.debug = false;
@@ -2095,18 +2095,20 @@ export class WorldManager {
   }
   
   /** Called when connection to the server is established (connection listener)*/
-  setConnected(connected) {
-    this.log("Connected: "+connected);
-    if ( connected ) {
-      this.interval = setInterval(() => this.trackChanges(), 1000/this.fps);        
+  setSessionStatus(active) {
+    this.log("Session status: "+active);
+    if ( active ) {
+      if ( ! this.interval ) {
+        this.interval = setInterval(() => this.trackChanges(), 1000/this.fps);        
+      }
     } else if ( this.interval ) {
       clearInterval( this.interval );
       this.interval = null;
     }
   }
   
-  /** Returns true if connected to the server */
-  isConnected() {
+  /** Returns true if connected to the server and session is active*/
+  isOnline() {
     return this.interval != null;
   }
 
@@ -2471,9 +2473,11 @@ export class WorldManager {
         this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion, changes );
       }      
     }
-    VRSPACE.sendMyChanges(changes);
-    if ( this.changeCallback && changes.length > 0 ) {
-      this.changeCallback(changes);
+    if ( changes.length > 0 ) {
+      VRSPACE.sendMyChanges(changes);
+      if ( this.changeCallback ) {
+        this.changeCallback(changes);
+      }
     }
 
   }
