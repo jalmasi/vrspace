@@ -2504,6 +2504,45 @@ export class WorldManager {
   isChanged( old, val, range ) {
     return val < old - range || val > old + range;
   }
+  
+  /**
+  Enter the world specified by world.name. If not already connected, 
+  first connect to world.serverUrl and set own properties, then start the session. 
+  @param properties own properties to set before starting the session
+  @return Welcome promise
+   */
+  async enter( properties ) {
+    return new Promise( (resolve, reject) => {
+      var afterEnter = (welcome) => {
+        VRSPACE.removeWelcomeListener(afterEnter); 
+        resolve(welcome);
+      };
+      var afterConnect = (welcome) => {
+        VRSPACE.removeWelcomeListener(afterConnect);
+        if ( properties ) {
+          for ( var prop in properties ) {
+            VRSPACE.sendMy(prop, properties[prop]);
+          }
+        }
+        // FIXME for the time being, Enter first, then Session
+        if ( this.world.name ) {
+          VRSPACE.addWelcomeListener(afterEnter);
+          VRSPACE.sendCommand("Enter",{world:this.world.name});
+          VRSPACE.sendCommand("Session");
+        } else {
+          VRSPACE.sendCommand("Session");
+          resolve(welcome);
+        }
+      };
+      if ( ! this.isOnline() ) {
+        VRSPACE.addWelcomeListener(afterConnect);
+        VRSPACE.connect(this.world.serverUrl);
+      } else if ( this.world.name ){
+        VRSPACE.addWelcomeListener(afterEnter);
+        VRSPACE.sendCommand("Enter",{world:this.world.name});
+      }
+    });
+  }
 
 }
 

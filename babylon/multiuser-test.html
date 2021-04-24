@@ -73,15 +73,14 @@ import('./vrspace-ui.js').then( (ui) => {
   touch2.position = new BABYLON.Vector3(0.3,0,-0.4);
 
   var net = new ui.WorldManager(world);
-  net.debug = true;
-  net.VRSPACE.debug = true;
+  net.debug = true; // multi-user debug info
+  net.VRSPACE.debug = true; // network debug info
   
-  net.VRSPACE.addWelcomeListener(() => {
-    net.VRSPACE.sendMy("mesh", "//www.vrspace.org/babylon/dolphin.glb");
-    net.VRSPACE.sendCommand("Session");
-  });
-
-  net.VRSPACE.connect();
+  // all users in the same world share same events
+  world.name = 'my very own unique name';
+  
+  // connect, set own avatar and start the session
+  net.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
 
   var receiveEvent = (o) => {
     var animationGroup = o.container.animationGroups[0];

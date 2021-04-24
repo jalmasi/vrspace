@@ -375,21 +375,17 @@ export class AvatarSelection extends World {
           // floors that exist only after load
           this.vrHelper.addFloors();
         }
-        var enter = () => {
-          worldManager.VRSPACE.removeWelcomeListener(enter);
-          worldManager.VRSPACE.sendMy('mesh', avatarUrl);
-          worldManager.VRSPACE.sendMy('userHeight', userHeight);
-          // send custom shared transient properties like this:
-          worldManager.VRSPACE.sendMy('properties', {string:'string', number:123.456});
+        worldManager.enter( 
+          { mesh:avatarUrl, 
+            userHeight:userHeight, 
+            // send custom shared transient properties like this:
+            properties:{string:'string', number:123.456}
+          }
+        ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
           worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
-          worldManager.VRSPACE.addWelcomeListener((welcome)=>worldManager.pubSub(welcome.client, 'video' === avatarUrl));
-          // TODO add enter command to API
-          worldManager.VRSPACE.sendCommand("Enter",{world:portal.name});
-          worldManager.VRSPACE.sendCommand("Session");
-        };
-        worldManager.VRSPACE.addWelcomeListener(enter);
-        worldManager.VRSPACE.connect(this.serverUrl);
+          worldManager.pubSub(welcome.client, 'video' === avatarUrl);
+        });
         //var recorder = new RecorderUI(world.scene);
         //recorder.showUI();
       }
