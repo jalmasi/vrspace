@@ -214,8 +214,6 @@ export class SceneEvent {
   }
 }
 
-export let sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder };
-
 /**
 Main client API class, no external dependencies.
 Provides send methods to send messages to the server, to be distributed to other clients.
@@ -237,6 +235,11 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder };
+    // exposing each class
+    for( var c in this.sharedClasses ) {
+      this[c] = this.sharedClasses[c];
+    }
   }
   
   log( msg ) {
@@ -586,8 +589,8 @@ export class VRSpace {
   @returns new shared object instance
    */
   newInstance(className) {
-    if ( sharedClasses[className] ) {
-      return new sharedClasses[className];
+    if ( this.sharedClasses[className] ) {
+      return new this.sharedClasses[className];
     } else {
       console.log("Unknown object type: "+className);
       return null;

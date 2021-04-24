@@ -75,6 +75,8 @@ export class VRSpaceUI {
     this.initialized = false;
     /** @private */
     this.optimizingScene = false;
+    /** reference to VRSpace singleton */
+    this.VRSPACE = VRSPACE;
   }
 
   /** Preloads vrspace.org logo and portal for later use 

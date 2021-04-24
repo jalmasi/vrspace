@@ -32,8 +32,6 @@
 
 <script>
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
-//canvas.style.width = '90%';
-//canvas.style.height = '60%';
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 var debugLayer;
 
@@ -107,20 +105,7 @@ import('./vrspace-ui.js').then( (ui) => {
           active:true
         }, (obj)=>{
           console.log("Created new VRObject", obj);
-          obj1 = obj;
-          // handling custom remote events
-          // (remote value has already been applied to shared object)
-          // option 1 - add listener to the object
-          obj.addListener( (obj, changes) => {
-            console.log("Local listener event",changes);
-            //receiveEvent(obj);
-          });
-          // option 2 - add handler function
-          obj.myEventChanged = (o) => {
-            console.log("Object has changed: "+o.myEvent);
-            receiveEvent(obj);
-          };
-          // HOWEVER, other clients will not have this event handler installed!
+          // obj1 = obj; // see addSceneListener below
         });
       } else {
         net.VRSPACE.deleteSharedObject(obj1);
@@ -132,17 +117,15 @@ import('./vrspace-ui.js').then( (ui) => {
     if ( p.pickedMesh === touch2 ) {
       if ( !obj2 ) {
         // use a known class to create an object
-        import('./vrspace.js').then( (vrspace) => {
-          var o = new vrspace.Client();
-          o.mesh = 'dolphin.glb';
-          o.active = true;
-          o.name = 'My test client '+Date.now(); // must be unique
-          o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
-          net.VRSPACE.createSharedObject(o, (obj)=>{
-            console.log("Shared object", obj);
-            // no custom event handling
-            obj2 = obj;
-          });
+        var o = new ui.VRSPACEUI.VRSPACE.Client();
+        o.mesh = 'dolphin.glb';
+        o.active = true;
+        o.name = 'My test client '+Date.now(); // must be unique
+        o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
+        net.VRSPACE.createSharedObject(o, (obj)=>{
+          console.log("Shared object", obj);
+          // no custom event handling, no shared touching
+          obj2 = obj;
         });
       } else {
         net.VRSPACE.deleteSharedObject(obj2);
@@ -168,12 +151,12 @@ import('./vrspace-ui.js').then( (ui) => {
 
   }
 
-  // this   
+  // this gets triggers whenever any client receives any new VRobject
   net.VRSPACE.addSceneListener( (sceneEvent) => {
     // identify the object
     if ( sceneEvent.added && sceneEvent.added.properties && sceneEvent.added.properties.stringProperty == 'whatever') {
       // and NOW install event handler
-      // (obviously, easier to use a class)
+      // (obviously, installing/overriding the handler at class level makes it easier)
       sceneEvent.added.myEventChanged = (o) => {
         console.log("Performing remote change: "+o.myEvent);
         receiveEvent(o);
