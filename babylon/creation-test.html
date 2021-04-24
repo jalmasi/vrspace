@@ -77,7 +77,7 @@ import('./vrspace-ui.js').then( (ui) => {
   net.VRSPACE.debug = true;
   
   net.VRSPACE.addWelcomeListener(() => {
-    net.VRSPACE.sendMy("mesh", "dolphin.glb");
+    net.VRSPACE.sendMy("mesh", "//www.vrspace.org/babylon/dolphin.glb");
     net.VRSPACE.sendCommand("Session");
   });
 
@@ -99,7 +99,7 @@ import('./vrspace-ui.js').then( (ui) => {
       // create a VRObject with custom properties
       if ( ! obj1 ) {
         net.VRSPACE.createSharedObject({
-          mesh:'dolphin.glb',
+          mesh:'//www.vrspace.org/babylon/dolphin.glb',
           position:{x:touch1.position.x, y:touch1.position.y, z:touch1.position.z},
           properties:{ stringProperty:'whatever', numberProperty:123.45},
           active:true
@@ -118,7 +118,7 @@ import('./vrspace-ui.js').then( (ui) => {
       if ( !obj2 ) {
         // use a known class to create an object
         var o = new ui.VRSPACEUI.VRSPACE.Client();
-        o.mesh = 'dolphin.glb';
+        o.mesh = '//www.vrspace.org/babylon/dolphin.glb';
         o.active = true;
         o.name = 'My test client '+Date.now(); // must be unique
         o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
