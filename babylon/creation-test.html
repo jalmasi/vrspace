@@ -117,7 +117,7 @@ import('./vrspace-ui.js').then( (ui) => {
     if ( p.pickedMesh === touch2 ) {
       if ( !obj2 ) {
         // use a known class to create an object
-        var o = new ui.VRSPACEUI.VRSPACE.Client();
+        var o = new net.VRSPACE.Client();
         o.mesh = '//www.vrspace.org/babylon/dolphin.glb';
         o.active = true;
         o.name = 'My test client '+Date.now(); // must be unique
