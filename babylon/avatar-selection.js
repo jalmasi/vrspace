@@ -363,6 +363,8 @@ export class AvatarSelection extends World {
     console.log("Entering world "+portal.worldUrl()+'/world.js as '+avatarUrl);
     import(portal.worldUrl()+'/world.js').then((world)=>{
       var afterLoad = (world) => {
+        world.serverUrl = this.serverUrl;
+        
         console.log(world);
         
         // TODO refactor this to WorldManager
