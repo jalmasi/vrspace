@@ -13,7 +13,7 @@ Fully featured live demo/test instance of current development version is availab
 
 # Community
 
-Forums, wiki, and everything else: http://redmine.vrspace.org/
+Wiki, forums, and everything else: https://redmine.vrspace.org/projects/vrspace-org/wiki
 
 Facebook page: https://www.facebook.com/vrspace.org
 
