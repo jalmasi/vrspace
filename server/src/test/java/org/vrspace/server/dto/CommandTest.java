@@ -89,7 +89,7 @@ public class CommandTest {
     world.dispatch(request);
 
     verify(repo, times(2)).save(any(Client.class));
-    verify(repo, times(2)).deleteById(any(Long.class));
+    verify(repo, times(2)).delete(any(VRObject.class));
     verify(scene, times(1)).unpublish(any());
     ;
   }

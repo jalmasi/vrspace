@@ -162,7 +162,7 @@ public class WorldManager {
       throw new SecurityException("Not yours to remove");
     }
     cache.remove(objId);
-    db.deleteById(objId.getId());
+    db.delete(obj);
     client.removeOwned(obj);
     db.save(client);
   }
