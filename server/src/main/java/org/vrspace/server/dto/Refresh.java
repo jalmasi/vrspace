@@ -18,12 +18,11 @@ public class Refresh implements Command {
   @Override
   public ClientResponse execute(WorldManager world, Client client) {
     if (clear) {
-      client.getScene().reload();
-      client.getScene().update();
+      client.getScene().removeAll();
     } else {
       client.getScene().setDirty();
-      client.getScene().update();
     }
+    // WorldManager executes scene.update() after each command
     return null;
   }
 

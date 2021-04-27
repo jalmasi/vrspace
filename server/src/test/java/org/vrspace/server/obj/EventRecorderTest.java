@@ -3,6 +3,7 @@ package org.vrspace.server.obj;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -19,10 +20,13 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.SceneProperties;
@@ -42,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RunWith(SpringRunner.class)
 @Slf4j
+@SpringBootTest(classes = JacksonConfig.class)
 public class EventRecorderTest {
   @Mock
   WorldManager worldManager;
@@ -52,7 +57,8 @@ public class EventRecorderTest {
   @Captor
   private ArgumentCaptor<WebSocketMessage<?>> message;
 
-  ObjectMapper mapper = new ObjectMapper();
+  @Autowired
+  ObjectMapper mapper;
 
   Set<VRObject> transforms = new HashSet<VRObject>();
   Set<VRObject> permanents = new HashSet<VRObject>();
@@ -61,6 +67,8 @@ public class EventRecorderTest {
 
   @Before
   public void setup() throws Exception {
+    when(playingSession.isOpen()).thenReturn(true);
+
     transforms.add(active);
     transforms.add(new VRObject(2L, 1, 0, 0).passive());
 
@@ -172,6 +180,7 @@ public class EventRecorderTest {
     // it may play another one
     wait(recorder);
     verify(playingSession, atLeast(4)).sendMessage(any(TextMessage.class));
+    clearInvocations(playingSession);
     Thread.sleep(200);
     verifyNoMoreInteractions(playingSession);
   }
@@ -209,6 +218,7 @@ public class EventRecorderTest {
     // now it may play one last loop
     wait(recorder);
     verify(playingSession, atLeast(2)).sendMessage(any(TextMessage.class));
+    clearInvocations(playingSession);
     Thread.sleep(200);
     verifyNoMoreInteractions(playingSession);
   }

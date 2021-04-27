@@ -91,7 +91,23 @@ public class CommandTest {
     verify(repo, times(2)).save(any(Client.class));
     verify(repo, times(2)).delete(any(VRObject.class));
     verify(scene, times(1)).unpublish(any());
-    ;
+  }
+
+  @Test
+  public void testRefresh() throws Exception {
+    Refresh refresh = new Refresh();
+    ClientRequest request = new ClientRequest(client, refresh);
+    world.dispatch(request);
+
+    verify(scene, times(1)).setDirty();
+    verify(scene, times(1)).update();
+
+    refresh.setClear(true);
+
+    world.dispatch(request);
+
+    verify(scene, times(1)).removeAll();
+    verify(scene, times(2)).update();
   }
 
   private void println(Object obj) throws JsonProcessingException {

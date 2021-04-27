@@ -52,9 +52,6 @@ public class SessionManagerTest {
   private SessionManager sessionManager;
 
   @Autowired
-  private WorldManager worldManager;
-
-  @Autowired
   private VRObjectRepository repo;
 
   @Autowired
@@ -76,6 +73,7 @@ public class SessionManagerTest {
 
   private WebSocketSession mockup(WebSocketSession session, String sessionId) throws Exception {
     when(session.getId()).thenReturn(sessionId);
+    when(session.isOpen()).thenReturn(true);
     doNothing().when(session).sendMessage(message.capture());
     return session;
   }

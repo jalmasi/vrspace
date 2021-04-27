@@ -142,6 +142,42 @@ public class SceneTest {
     assertEquals(0, t.getChildren().get(0).getListeners().size());
   }
 
+  @Test
+  public void testReload() throws Exception {
+
+    // build new scene
+    Scene scene = new Scene(world, client);
+    verify(client, times(0)).sendMessage(any(Object.class));
+    scene.update();
+
+    // verify client got Add message for members
+    verify(client, times(1)).sendMessage(any(Add.class));
+    Add add = (Add) message.getValue();
+
+    System.err.println(add);
+
+    scene.removeAll();
+
+    // verify remove message, scene should be empty
+    verify(client, times(1)).sendMessage(any(Remove.class));
+    Remove remove = (Remove) message.getValue();
+    System.err.println(remove);
+
+    assertEquals(3, remove.getObjects().size());
+    assertEquals(0, scene.size());
+
+    // update the scene, should be the same
+    scene.update();
+
+    verify(client, times(2)).sendMessage(any(Add.class));
+    Add add2 = (Add) message.getValue();
+
+    System.err.println(add2);
+
+    assertEquals(add, add2);
+
+  }
+
   @Test(expected = NoSuchElementException.class)
   public void testGetClosestEmpty() throws Exception {
     Scene scene = new Scene(world, client);

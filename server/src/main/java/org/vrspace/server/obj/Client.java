@@ -112,8 +112,12 @@ public class Client extends VRObject {
       String json = mapper.writeValueAsString(obj);
       log.debug(getObjectId() + " Received " + json);
       // TODO this is not thread-safe
-      synchronized (this) {
-        session.sendMessage(new TextMessage(json));
+      if (session.isOpen()) {
+        synchronized (this) {
+          session.sendMessage(new TextMessage(json));
+        }
+      } else {
+        log.debug("Session closed, message ignored: " + obj);
       }
     } catch (IOException e) {
       log.warn("Can't send message " + obj + ": " + e);

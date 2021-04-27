@@ -48,7 +48,7 @@ public class Scene {
   }
 
   private static Set<VRObject> newScene() {
-    return new ConcurrentHashMap<ID, VRObject>().newKeySet();
+    return new ConcurrentHashMap<VRObject, ID>().newKeySet();
   }
 
   /**
@@ -106,14 +106,8 @@ public class Scene {
         // remove them from the scene, and from vrobject set
         members.forEach(t -> remove(remove, t));
 
-        if (remove.getObjects().size() > 0) {
-          log.debug("Scene for " + client.getId() + " removing " + remove.getObjects().size());
-          client.sendMessage(remove);
-        }
-        if (add.getObjects().size() > 0) {
-          log.debug("Scene for " + client.getId() + " adding " + add.getObjects().size());
-          client.sendMessage(add);
-        }
+        sendRemove(remove);
+        sendAdd(add);
 
         oldPos.copy(client.getPosition());
 
@@ -152,7 +146,8 @@ public class Scene {
   /**
    * Offer an object to the scene. Accepted new objects in range and visible
    * (passing all filters). Objects without positions, or with zero positions are
-   * also accepted, so that new objects become immediately visible.
+   * also accepted, so that new objects become immediately visible. If accepted,
+   * sends Add command to the client.
    * 
    * @param o
    */
@@ -165,10 +160,17 @@ public class Scene {
       add(o);
       // notify the client
       Add add = new Add().addObject(o);
-      client.sendMessage(add);
+      sendAdd(add);
     }
   }
 
+  /**
+   * Offer object(s) to the scene. Sends out only one Add command with accepted
+   * objects.
+   * 
+   * @param objects
+   * @see #offer(VRObject)
+   */
   public void offer(Collection<VRObject> objects) {
     Add add = new Add();
     for (VRObject o : objects) {
@@ -180,9 +182,7 @@ public class Scene {
       }
     }
     // notify the client
-    if (add.getObjects().size() > 0) {
-      client.sendMessage(add);
-    }
+    sendAdd(add);
   }
 
   /**
@@ -191,6 +191,7 @@ public class Scene {
    * new space.
    * 
    * @param objects
+   * @see #offer(Collection)
    */
   public void publishAll(Collection<VRObject> objects) {
     offer(objects);
@@ -202,21 +203,12 @@ public class Scene {
     });
   }
 
-  public void unpublish(Collection<VRObject> objects) {
-    Remove remove = new Remove();
-    for (VRObject obj : objects) {
-      remove(remove, obj, true);
-    }
-    members.stream().filter(o -> o instanceof Client).forEach(o -> {
-      Client c = (Client) o;
-      if (c.getScene() != null) {
-        // FIXME potentially removing objects not in client's scene
-        c.sendMessage(remove);
-      }
-    });
-    client.sendMessage(remove);
-  }
-
+  /**
+   * Publish an object - notify all clients in range
+   * 
+   * @param obj
+   * @see #offer(VRObject)
+   */
   public void publish(VRObject obj) {
     offer(obj);
     members.stream().filter(o -> o instanceof Client).forEach(o -> {
@@ -227,18 +219,46 @@ public class Scene {
     });
   }
 
+  /**
+   * Remove objects and notify all clients they are removed.
+   * 
+   * @param objects
+   */
+  public void unpublish(Collection<VRObject> objects) {
+    Remove remove = new Remove();
+    for (VRObject obj : objects) {
+      remove(remove, obj);
+    }
+    members.stream().filter(o -> o instanceof Client).forEach(o -> {
+      Client c = (Client) o;
+      if (c.getScene() != null) {
+        // FIXME potentially removing objects not in client's scene
+        c.sendMessage(remove);
+      }
+    });
+    sendRemove(remove);
+  }
+
+  /**
+   * Notification that a client has logged out - removes it from the scene and
+   * sends Remove message.
+   * 
+   * @param c
+   */
   public void logout(Client c) {
     if (members.contains(c)) {
-      // add to the scene
-      members.remove(c);
-      // register listener
-      add(c);
       // notify the client
-      Remove remove = new Remove().removeObject(c);
-      client.sendMessage(remove);
+      Remove remove = remove(new Remove(), c);
+      sendRemove(remove);
     }
   }
 
+  /**
+   * Unpublish this client - notifies all clients in the range that it has logged
+   * out.
+   * 
+   * @see #logout(Client)
+   */
   public void unpublish() {
     members.stream().filter(o -> o instanceof Client).forEach(o -> {
       Client c = (Client) o;
@@ -256,38 +276,13 @@ public class Scene {
   }
 
   /**
-   * Removes an object from the scene. Next update() may add it again.
-   */
-  public void remove(VRObject t) {
-    remove(t, true);
-  }
-
-  /**
-   * Removes an object from the scene.
+   * Remove an object from the scene
    * 
-   * @param removeReference specifies whether object reference is to be removed
-   *                        internally, and this influences what happens during
-   *                        next update(): If the reference is kept and object is
-   *                        in range, nothing will happen, but if reference is
-   *                        removed, object will be re-added. If reference is
-   *                        removed, and object is not in range, it will be
-   *                        removed during next update().
+   * @param remove Remove command to collect removed object
+   * @param t      object to remove
+   * @return remove argument containing removed object
    */
-  public Remove remove(VRObject t, boolean removeReference) {
-    return remove(new Remove(), t, removeReference);
-  }
-
-  private Remove remove(Remove remove, VRObject t, boolean removeReference) {
-    remove(remove, t);
-
-    // Remove the object from the lists.
-    if (removeReference) {
-      members.remove(t);
-    }
-    return remove;
-  }
-
-  private void remove(Remove remove, VRObject t) {
+  private Remove remove(Remove remove, VRObject t) {
     // recursive remove children
     if (t.getChildren() != null) {
       t.getChildren().forEach(obj -> remove(remove, obj));
@@ -297,24 +292,8 @@ public class Scene {
     t.removeListener(client);
     // }
     allObjects.remove(new ID(t));
-  }
-
-  private void clear(boolean force) {
-    try {
-      for (VRObject t : members) {
-        remove(t, force);
-      }
-    } catch (Throwable e) {
-      log.error("Error during removal", e);
-    }
-  }
-
-  /**
-   * Force reload of the scene: remove all objects from the scene. Next call to
-   * update() will cause remove/add messages to be sent.
-   */
-  public void reload() {
-    clear(true);
+    members.remove(t);
+    return remove;
   }
 
   /**
@@ -323,7 +302,30 @@ public class Scene {
    * messages to the client.
    */
   public void removeAll() {
-    clear(false);
+    Remove remove = new Remove();
+    try {
+      for (VRObject t : members) {
+        remove(remove, t);
+      }
+      sendRemove(remove);
+      setDirty();
+    } catch (Throwable e) {
+      log.error("Error during removal", e);
+    }
+  }
+
+  private void sendRemove(Remove remove) {
+    if (remove.getObjects().size() > 0) {
+      log.debug("Scene for " + client.getId() + " removing " + remove.getObjects().size());
+      client.sendMessage(remove);
+    }
+  }
+
+  private void sendAdd(Add add) {
+    if (add.getObjects().size() > 0) {
+      log.debug("Scene for " + client.getId() + " adding " + add.getObjects().size());
+      client.sendMessage(add);
+    }
   }
 
   /**

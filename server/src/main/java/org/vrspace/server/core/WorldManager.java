@@ -275,15 +275,8 @@ public class WorldManager {
     if (client.getScene() != null) {
       // remove client from all scenes
       client.getScene().unpublish();
-      // clear the scene, so other active objects (clients) don't keep reference
-      // to the client and send it events
+      // clear the scene to stop receiving events
       client.getScene().removeAll();
-      // shouldn't do that, causes bogus exception
-      // but without it, we may load avatars twice!
-      // seems that call to db.getRange() in the default world is important
-      client.getScene().update();
-      // causes async event processing issues
-      // client.setScene(null);
     }
     client.setListeners(null);
     // also remove the client from streaming session
