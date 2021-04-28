@@ -104,13 +104,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <additionalJOption>--frames</additionalJOption>
-        </configuration>
-      </plugin>
+      <!-- include git info to be exposed under /actuator endpoint -->
       <plugin>
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
@@ -133,6 +127,23 @@
             <phase>initialize</phase>
           </execution>
         </executions>
+      </plugin>
+      <!-- generate javadoc, package phase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>javadoc</id>
+            <phase>package</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <additionalJOption>--frames</additionalJOption>
+        </configuration>
       </plugin>
 		</plugins>
 	</build>

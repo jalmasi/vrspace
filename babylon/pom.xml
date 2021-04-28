@@ -12,29 +12,68 @@
 	<name>babylon</name>
 	<description>VRSpace.org Babylon.js client</description>
 
-	<!--
-	this empty pom serves one purpose - allow to run maven build from parent directory 
-	 -->
-     <build>
-        <plugins>
-	      <plugin>
-	        <groupId>org.apache.maven.plugins</groupId>
-	        <artifactId>maven-jar-plugin</artifactId>
-	        <configuration>
-	        	<skipIfEmpty>true</skipIfEmpty>
-	        </configuration>
-	      </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-install-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>default-install</id>
-                <phase>none</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-     </build>
+  <build>
+    <plugins>
+      <!-- prevent doing anything during install -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+        	<skipIfEmpty>true</skipIfEmpty>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-install</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- run webpack during package phase -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>webpack</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <executable>webpack</executable>
+        </configuration>
+      </plugin>
+      <!-- generate jsdoc during package phase -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>jsdoc</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <executable>jsdoc</executable>
+          <arguments>
+            <argument>vrspace.js</argument>
+            <argument>vrspace-ui.js</argument>
+            <argument>avatar.js</argument>
+            <argument>-d</argument>
+            <argument>jsdoc</argument>
+          </arguments>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 	 
 </project>
