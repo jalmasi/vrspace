@@ -1751,7 +1751,12 @@ export class World {
   attachControl() {
     this.camera.attachControl(this.canvas, true);
   }
-  
+  /**
+  Optional, empty implementation, notification that the user has entered a multiuser world.
+   */
+  async entered(welcome) {
+  }
+  /**  */
   /**
   Utility method, creates a UniversalCamera and sets defaults: gravity, collisions, ellipsoid, keys.
   @param pos Vector3 to position camera at
@@ -2053,6 +2058,7 @@ export class WorldManager {
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     /** Enable debug output */
     this.debug = false;
+    this.world.worldManager = this;
   }
 
   /** Publish and subscribe */
@@ -2067,7 +2073,7 @@ export class WorldManager {
       this.mediaStreams.connect(client.token).then(() => this.mediaStreams.publish());
     }
   }
-  
+
   /** Optionally log something */
   log( what ) {
     if (this.debug) {
@@ -2315,6 +2321,10 @@ export class WorldManager {
 
       // add listener to process changes
       obj.addListener((obj, changes) => this.changeObject(obj, changes));
+      // subscribe to media stream here if available
+      if ( this.mediaStreams ) {
+        this.mediaStreams.streamToMesh(obj, mesh);        
+      }
     });
   }
 
@@ -2514,7 +2524,8 @@ export class WorldManager {
   async enter( properties ) {
     return new Promise( (resolve, reject) => {
       var afterEnter = (welcome) => {
-        VRSPACE.removeWelcomeListener(afterEnter); 
+        VRSPACE.removeWelcomeListener(afterEnter);
+        this.world.entered(welcome)
         resolve(welcome);
       };
       var afterConnect = (welcome) => {
@@ -2531,6 +2542,7 @@ export class WorldManager {
           VRSPACE.sendCommand("Session");
         } else {
           VRSPACE.sendCommand("Session");
+          this.world.entered(welcome)
           resolve(welcome);
         }
       };
@@ -2559,6 +2571,8 @@ export class MediaStreams {
     this.scene = scene;
     // CHECKME null check that element?
     this.htmlElementName = htmlElementName;
+    /** function to play video of a client */
+    this.playStream = ( client, mediaStream ) => this.unknownStream( client, mediaStream );
     this.startAudio = true;
     this.startVideo = false;
     this.audioSource = undefined; // use default
@@ -2617,6 +2631,29 @@ export class MediaStreams {
     // id of this connection can be used to match the stream with the avatar
     console.log("Publishing to connection "+this.publisher.stream.connection.connectionId);
     console.log(this.publisher);
+  }
+
+  // TODO async
+  shareScreen() {
+    var screenPublisher = this.OV.initPublisher(this.htmlElementName, 
+    { videoSource: "screen", audioSource: this.audioSource, publishAudio: this.publishAudio });
+    screenPublisher.once('accessAllowed', (event) => {
+        screenPublisher.stream.getMediaStream().getVideoTracks()[0].addEventListener('ended', () => {
+            console.log('User pressed the "Stop sharing" button');
+        });
+        this.session.unpublish(this.publisher);
+        this.publisher = screenPublisher;
+        this.session.publish(this.publisher);
+    });
+
+    screenPublisher.once('accessDenied', (event) => {
+        console.warn('ScreenShare: Access Denied');
+    });
+  }
+  
+  stopSharingScreen() {
+    this.session.unpublish(this.publisher);
+    this.publish();
   }
   
   /**
@@ -2746,8 +2783,8 @@ export class MediaStreams {
   Attaches a videoStream to a VideoAvatar
    */
   attachVideoStream(client, subscriber) {
+    var mediaStream = subscriber.stream.getMediaStream();
     if ( client.video ) {
-      var mediaStream = subscriber.stream.getMediaStream();
       // optional: also stream video as diffuseTexture
       if ( subscriber.stream.hasVideo && subscriber.stream.videoActive) {
         console.log("Streaming video texture")
@@ -2765,8 +2802,14 @@ export class MediaStreams {
           }
         }
       });
+    } else {
+      this.playStream(client, mediaStream );
     }
-  }  
+  }
+  
+  unknownStream( client, mediaStream ) {
+    console.log("Can't attach video stream to "+client.id+" - not a video avatar");
+  }
   
 }
 

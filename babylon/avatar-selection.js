@@ -377,6 +377,7 @@ export class AvatarSelection extends World {
           // floors that exist only after load
           this.vrHelper.addFloors();
         }
+        worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
         worldManager.enter( 
           { mesh:avatarUrl, 
             userHeight:userHeight, 
@@ -385,7 +386,6 @@ export class AvatarSelection extends World {
           }
         ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
-          worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
           worldManager.pubSub(welcome.client, 'video' === avatarUrl);
         });
         //var recorder = new RecorderUI(world.scene);
