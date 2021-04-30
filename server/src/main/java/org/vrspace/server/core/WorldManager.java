@@ -68,7 +68,8 @@ public class WorldManager {
 
   protected SessionTracker sessionTracker;
 
-  private ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
+  // used in tests
+  protected ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
 
   private World defaultWorld;
 
@@ -146,6 +147,7 @@ public class WorldManager {
         o.setPosition(new Point(client.getPosition()));
       }
       o.setWorld(client.getWorld());
+      o.setTemporary(client.isGuest());
       o = db.save(o);
       client.addOwned(o);
       cache.put(o.getObjectId(), o);
@@ -259,10 +261,20 @@ public class WorldManager {
     exit(client);
     // delete guest client
     if (client.isGuest()) {
+      if (client.getOwned() != null) {
+        for (VRObject owned : client.getOwned()) {
+          if (owned.isTemporary()) {
+            cache.remove(owned.getObjectId());
+            db.delete(owned);
+            log.debug("Deleted owned temporary " + owned.getObjectId());
+          }
+        }
+      }
       cache.remove(new ID(client));
       db.delete(client);
       log.debug("Deleted guest client " + client.getId());
     }
+
   }
 
   private void exit(Client client) {

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +58,8 @@ public class WorldManagerTest {
     World world = new World("test");
     world.setId(0L);
     when(repo.save(any(World.class))).thenReturn(world);
-    when(repo.save(any(Client.class))).then(returnsFirstArg());
+    when(repo.save(any(VRObject.class))).then(returnsFirstArg());
+    // doNothing().when(repo).delete(any(VRObject.class));
   }
 
   @Test
@@ -123,6 +125,26 @@ public class WorldManagerTest {
 
     worldManager.logout(clients.get(0));
     worldManager.startSession(welcome.getClient());
+
+  }
+
+  @Test
+  public void testGuestLogout() {
+    config.setGuestAllowed(true);
+    worldManager.sceneProperties = new SceneProperties();
+
+    Welcome welcome = worldManager.login(session);
+    List<VRObject> newObjects = new ArrayList<VRObject>();
+    newObjects.add(new VRObject());
+    worldManager.add(welcome.getClient(), newObjects);
+
+    // everything added to cache/db
+    assertEquals(2, worldManager.cache.size());
+
+    worldManager.logout(welcome.getClient());
+
+    // everything removed from cache and db
+    assertEquals(0, worldManager.cache.size());
 
   }
 }

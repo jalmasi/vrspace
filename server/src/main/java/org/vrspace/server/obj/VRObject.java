@@ -52,6 +52,13 @@ public class VRObject extends Entity {
 
   private Boolean permanent;
 
+  /**
+   * temporary objects will be deleted from the database along with their owner
+   */
+  @Transient
+  @JsonIgnore // CHECKME: should we publish that?
+  private transient Boolean temporary;
+
   // @JsonIgnore CHECKME: should we publish that?
   private Boolean active;
 
@@ -158,4 +165,7 @@ public class VRObject extends Entity {
     return active != null && active;
   }
 
+  public boolean isTemporary() {
+    return temporary != null && temporary;
+  }
 }

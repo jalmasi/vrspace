@@ -150,4 +150,5 @@ public class Client extends VRObject {
   public boolean isOwner(VRObject obj) {
     return this.equals(obj) || owned != null && obj != null && owned.contains(obj);
   }
+
 }
