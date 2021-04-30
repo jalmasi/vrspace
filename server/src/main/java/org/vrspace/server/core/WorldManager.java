@@ -147,7 +147,9 @@ public class WorldManager {
         o.setPosition(new Point(client.getPosition()));
       }
       o.setWorld(client.getWorld());
-      o.setTemporary(client.isGuest());
+      if (o.getTemporary() == null && client.isGuest()) {
+        o.setTemporary(true);
+      }
       o = db.save(o);
       client.addOwned(o);
       cache.put(o.getObjectId(), o);

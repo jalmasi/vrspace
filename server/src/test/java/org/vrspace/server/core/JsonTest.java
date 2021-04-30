@@ -1,5 +1,10 @@
 package org.vrspace.server.core;
 
+import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +40,27 @@ public class JsonTest {
     VRObject t = new VRObject(1L);
     t.addChildren(new VRObject(2L), new VRObject(3L));
     testConversion(t);
+  }
+
+  @Test
+  public void testTemporary() throws Exception {
+    VRObject o = new VRObject(1L);
+    VRObject ret = testConversion(o);
+
+    assertNull(ret.getTemporary());
+    assertFalse(ret.isTemporary());
+
+    o.setTemporary(false);
+    ret = testConversion(o);
+
+    assertNotNull(ret.getTemporary());
+    assertFalse(ret.isTemporary());
+
+    o.setTemporary(true);
+    ret = testConversion(o);
+
+    assertNotNull(ret.getTemporary());
+    assertTrue(ret.isTemporary());
   }
 
   @Test
@@ -149,14 +175,15 @@ public class JsonTest {
     System.err.println(whatever);
   }
 
-  private void testConversion(Object obj) throws Exception {
-    testConversion(obj, true);
+  private <T> T testConversion(T obj) throws Exception {
+    return testConversion(obj, true);
   }
 
-  private void testConversion(Object obj, boolean resultEquals) throws Exception {
+  private <T> T testConversion(T obj, boolean resultEquals) throws Exception {
     String json = mapper.writeValueAsString(obj);
     println(json);
-    Object res = mapper.readValue(json, obj.getClass());
+    @SuppressWarnings("unchecked")
+    T res = (T) mapper.readValue(json, obj.getClass());
     String jsonRes = mapper.writeValueAsString(res);
     println(jsonRes);
 
@@ -164,6 +191,7 @@ public class JsonTest {
     if (resultEquals) {
       Assert.assertEquals(obj, res);
     }
+    return res;
   }
 
 }

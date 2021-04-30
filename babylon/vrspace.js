@@ -52,6 +52,8 @@ export class VRObject {
     this.scale = null;
     /** Default false, permanent objects remain in the scene forever */
     this.permanent = false;
+    /** Everything created by guest client is by default temporary */
+    this.temporary = null;
     /** URL of 3D mesh */
     this.mesh = null;
     /** Active i.e. online users */

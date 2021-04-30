@@ -135,16 +135,21 @@ public class WorldManagerTest {
 
     Welcome welcome = worldManager.login(session);
     List<VRObject> newObjects = new ArrayList<VRObject>();
-    newObjects.add(new VRObject());
+    // add temporary object:
+    newObjects.add(new VRObject(1L));
+    VRObject notTemp = new VRObject(2L);
+    // add persistent object:
+    notTemp.setTemporary(false);
+    newObjects.add(notTemp);
     worldManager.add(welcome.getClient(), newObjects);
 
     // everything added to cache/db
-    assertEquals(2, worldManager.cache.size());
+    assertEquals(3, worldManager.cache.size());
 
     worldManager.logout(welcome.getClient());
 
-    // everything removed from cache and db
-    assertEquals(0, worldManager.cache.size());
+    // guest and temporary removed from cache and db
+    assertEquals(1, worldManager.cache.size());
 
   }
 }
