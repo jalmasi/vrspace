@@ -82,6 +82,22 @@ export class Classroom extends World {
       this.scene.getMeshByID('pCube51_suelo_text_0'),
       this.ground
     ];
+    
+    BABYLON.SceneLoader.LoadAssetContainer('./city/',
+      'scene.gltf',
+      this.scene,
+      // onSuccess:
+      (container) => {
+
+        var mesh = container.createRootMesh();
+        mesh.name = 'city';
+        mesh.scaling = new BABYLON.Vector3(200,200,200);
+        mesh.position = new BABYLON.Vector3(100,68.7,-350);
+        mesh.rotation = new BABYLON.Vector3(0,5.69,0);
+        container.addAllToScene();
+      }
+    );
+    
   }
 
   writeText( text, where ) {
