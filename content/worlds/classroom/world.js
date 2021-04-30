@@ -7,6 +7,10 @@ export class Classroom extends World {
     //this.camera.setTarget(new BABYLON.Vector3(0,2,10));
     this.camera = this.universalCamera(new BABYLON.Vector3(-6, 2, 16));
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
+    this.camera.speed = .2;
+    // collision debug
+    //this.camera.onCollide = (mesh)=>console.log('collided with '+mesh.id);
+    return this.camera;
   }
   async createLights() {
     var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), this.scene);
@@ -29,31 +33,55 @@ export class Classroom extends World {
   createGround() {
     this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {radius:100}, this.scene);
     this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
-    this.ground.position = new BABYLON.Vector3( 0, 0.1, 0 );
+    this.ground.position = new BABYLON.Vector3( 0, -0.05, 0 );
     this.ground.parent = this.floorGroup;
     this.ground.isVisible = false;
     this.ground.checkCollisions = true;
     return this.ground;
   }
   
-  getFloorMeshes() {
-    return [this.ground];
+  createPhysics() {
+    this.scene.gravity = new BABYLON.Vector3(0,-.05,0);
   }
   
   isSelectableMesh(mesh) {
     // pPlane5_pantalla_0 - board
     // pCube30_blanco_0 - lecturer desk front
+    // pCube78, pCube81 (transform), pCube78_puerta_0, pCube81_puerta_0 - doors
     return mesh === this.screenShareMesh;
   }
 
   setMeshCollisions(mesh, state) {
-    //mesh.checkCollisions = state; // no collisions ever    
+    if (
+      // doors: 
+      mesh.name != 'pCube78_puerta_0' && mesh.name != 'pCube81_puerta_0'
+      // fila1-fila6 = rows with tables and chairs
+      // (actual meshes are named like pCubeSomething)
+      && ! (
+        mesh.parent &&
+        mesh.parent.parent &&
+        mesh.parent.parent.parent &&
+        mesh.parent.parent.parent.name.startsWith('fila')
+      ) 
+      // messes up collisions - user can get stuck
+      && ! mesh.name.includes('pCube38_paredText')
+      && ! mesh.name.includes('pCube40_paredText')
+    ) {
+      mesh.checkCollisions = state;
+    }
   }
   
   loaded(file, mesh) {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
     mesh.scaling = new BABYLON.Vector3(0.3,0.3,0.3);
     
+    this.floorMeshes = [
+      this.scene.getMeshByID('pCube36_suelo_text_0'),
+      this.scene.getMeshByID('pCube49_suelo_text_0'),
+      this.scene.getMeshByID('pCube50_suelo_text_0'),
+      this.scene.getMeshByID('pCube51_suelo_text_0'),
+      this.ground
+    ];
   }
 
   writeText( text, where ) {
