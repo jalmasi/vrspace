@@ -2633,7 +2633,7 @@ export class MediaStreams {
     console.log(this.publisher);
   }
 
-  async shareScreen() {
+  async shareScreen(endCallback) {
     var screenPublisher = this.OV.initPublisher(this.htmlElementName, 
     { videoSource: "screen", audioSource: this.audioSource, publishAudio: this.publishAudio });
     
@@ -2642,6 +2642,9 @@ export class MediaStreams {
       screenPublisher.once('accessAllowed', (event) => {
           screenPublisher.stream.getMediaStream().getVideoTracks()[0].addEventListener('ended', () => {
               console.log('User pressed the "Stop sharing" button');
+              if ( endCallback ) {
+                endCallback();
+              }
           });
           this.session.unpublish(this.publisher);
           this.publisher = screenPublisher;

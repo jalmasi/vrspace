@@ -127,6 +127,31 @@ export class Classroom extends World {
     });
   }
   
+  showNoise() {
+    if ( this.videoMesh.material.diffuseTexture ) {
+       this.videoMesh.material.diffuseTexture.dispose();
+    }
+    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
+    this.videoMesh.material.diffuseTexture = noiseTexture;
+    noiseTexture.octaves = 8;
+    noiseTexture.persistence = 2;
+    noiseTexture.animationSpeedFactor = 10;
+    this.videoMesh.setEnabled(true);
+  }
+  
+  removeScreen() {
+    if ( this.videoMesh.material.diffuseTexture ) {
+       this.videoMesh.material.diffuseTexture.dispose();
+    }
+    this.videoMesh.setEnabled(false);    
+  }
+
+  deleteSharedObject() {
+    if ( this.screenShare ) {
+      this.worldManager.VRSPACE.deleteSharedObject(this.screenShare);
+    }
+  }
+  
   entered( welcome ) {
 
     this.screenShareMesh = BABYLON.MeshBuilder.CreatePlane('shareScreen', {width:1, height:.5}, this.scene);
@@ -150,12 +175,12 @@ export class Classroom extends World {
       this.worldManager.pubSub(welcome.client, false); // audio only
     }
     this.worldManager.mediaStreams.playStream = ( client, mediaStream ) => {
-      console.log('mapping incoming screen share of '+client.id);
+      console.log('mapping incoming screen share of '+client.id+" to ",this.screenShare);
       if ( this.screenShare && client.id == this.screenShare.properties.clientId ) {
         this.showVideo(mediaStream);
       }
     }
-    this.worldManager.debug = true;
+    //this.worldManager.debug = true;
 
     this.scene.onPointerPick = (e,p) => {
       console.log("Picked ", p.pickedMesh.name);
@@ -168,15 +193,21 @@ export class Classroom extends World {
             active:true
           }, (obj)=>{
             console.log("Created new VRObject", obj);
-            this.worldManager.mediaStreams.shareScreen().then((mediaStream)=>{
+            this.worldManager.mediaStreams.shareScreen(()=>{
+              // end callback, executed when user presses browser stop share button
+              this.deleteSharedObject();
+            }).then((mediaStream)=>{
               console.log("streaming",mediaStream);
               this.showVideo(mediaStream);
-            }).catch(console.log('denied'));
+            }).catch(() => {
+              console.log('sharing denied');
+              this.deleteSharedObject();
+            });
           });
         } else {
           console.log('stop sharing screen');
           this.worldManager.mediaStreams.stopSharingScreen();
-          this.worldManager.VRSPACE.deleteSharedObject(this.screenShare);
+          this.deleteSharedObject();
         }
       }
       
@@ -187,18 +218,14 @@ export class Classroom extends World {
       console.log(sceneEvent);
       // identify the object
       if ( sceneEvent.added && sceneEvent.added.properties && sceneEvent.added.properties.screenName) {
-        // and NOW install event handler
-        // (obviously, installing/overriding the handler at class level makes it easier)
-        sceneEvent.added.myEventChanged = (o) => {
-          console.log("Screen share starting: "+o.myEvent);
-        };
         // keep the reference, share the event when touched on
         this.screenShare = sceneEvent.added;
         this.writeText('Sharing: '+sceneEvent.added.properties.screenName);
+        this.showNoise();
       } else if ( sceneEvent.removed && this.screenShare && sceneEvent.removed.id == this.screenShare.id) {
         console.log("Screen share removed");
         this.screenShare = null;
-        this.videoMesh.setEnabled(false);
+        this.removeScreen();
         this.writeText('Share screen');
       }
       
