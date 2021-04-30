@@ -288,7 +288,7 @@ public class Scene {
    * @return remove argument containing removed object
    */
   private Remove remove(Remove remove, VRObject t) {
-    if (members.contains(t)) {
+    if (members.contains(t) || allObjects.containsKey(t.getObjectId())) {
       // recursive remove children
       if (t.getChildren() != null) {
         t.getChildren().forEach(obj -> remove(remove, obj));
@@ -297,7 +297,7 @@ public class Scene {
       // if (t.isActive()) {
       t.removeListener(client);
       // }
-      allObjects.remove(new ID(t));
+      allObjects.remove(t.getObjectId());
       members.remove(t);
     }
     return remove;
