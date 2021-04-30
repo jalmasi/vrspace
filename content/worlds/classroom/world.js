@@ -83,7 +83,7 @@ export class Classroom extends World {
       this.ground
     ];
     
-    BABYLON.SceneLoader.LoadAssetContainer('./city/',
+    BABYLON.SceneLoader.LoadAssetContainer(this.assetPath('city/'),
       'scene.gltf',
       this.scene,
       // onSuccess:
