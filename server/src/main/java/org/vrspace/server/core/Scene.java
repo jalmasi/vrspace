@@ -140,7 +140,7 @@ public class Scene {
   private boolean isInRange(VRObject o) {
     return o.getPosition() == null
         || (o.getPosition().getX() == 0 && o.getPosition().getY() == 0 && o.getPosition().getZ() == 0)
-        || (o.getPosition().isInRange(oldPos, props.getResolution()));
+        || (o.getPosition().isInRange(client.getPosition(), props.getRange()));
   }
 
   /**
@@ -174,6 +174,8 @@ public class Scene {
   public void offer(Collection<VRObject> objects) {
     Add add = new Add();
     for (VRObject o : objects) {
+      log.debug("Client " + client.getId() + " offered " + o.getId() + " inRange:" + isInRange(o) + " visible:"
+          + isVisible(o) + " contains:" + members.contains(o));
       if (!members.contains(o) && isInRange(o) && isVisible(o)) {
         // add to the scene
         members.add(o);
@@ -232,8 +234,11 @@ public class Scene {
     members.stream().filter(o -> o instanceof Client).forEach(o -> {
       Client c = (Client) o;
       if (c.getScene() != null) {
-        // FIXME potentially removing objects not in client's scene
-        c.sendMessage(remove);
+        Remove r = new Remove();
+        for (VRObject obj : objects) {
+          c.getScene().remove(r, obj);
+        }
+        c.getScene().sendRemove(r);
       }
     });
     sendRemove(remove);
@@ -283,16 +288,18 @@ public class Scene {
    * @return remove argument containing removed object
    */
   private Remove remove(Remove remove, VRObject t) {
-    // recursive remove children
-    if (t.getChildren() != null) {
-      t.getChildren().forEach(obj -> remove(remove, obj));
+    if (members.contains(t)) {
+      // recursive remove children
+      if (t.getChildren() != null) {
+        t.getChildren().forEach(obj -> remove(remove, obj));
+      }
+      remove.removeObject(t);
+      // if (t.isActive()) {
+      t.removeListener(client);
+      // }
+      allObjects.remove(new ID(t));
+      members.remove(t);
     }
-    remove.removeObject(t);
-    // if (t.isActive()) {
-    t.removeListener(client);
-    // }
-    allObjects.remove(new ID(t));
-    members.remove(t);
     return remove;
   }
 
@@ -315,15 +322,15 @@ public class Scene {
   }
 
   private void sendRemove(Remove remove) {
+    log.debug("Scene for " + client.getId() + " removing " + remove.getObjects().size());
     if (remove.getObjects().size() > 0) {
-      log.debug("Scene for " + client.getId() + " removing " + remove.getObjects().size());
       client.sendMessage(remove);
     }
   }
 
   private void sendAdd(Add add) {
+    log.debug("Scene for " + client.getId() + " adding " + add.getObjects().size());
     if (add.getObjects().size() > 0) {
-      log.debug("Scene for " + client.getId() + " adding " + add.getObjects().size());
       client.sendMessage(add);
     }
   }
