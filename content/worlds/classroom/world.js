@@ -115,6 +115,17 @@ export class Classroom extends World {
       true
     );
   }
+
+  showVideo( mediaStream ) {
+    BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
+      if ( this.videoMesh.material.diffuseTexture ) {
+         this.videoMesh.material.diffuseTexture.dispose();
+      }
+      this.videoMesh.material.diffuseTexture = texture;
+      this.videoMesh.material.diffuseTexture.vScale = -1
+      this.videoMesh.setEnabled(true);
+    });
+  }
   
   entered( welcome ) {
 
@@ -141,14 +152,7 @@ export class Classroom extends World {
     this.worldManager.mediaStreams.playStream = ( client, mediaStream ) => {
       console.log('mapping incoming screen share of '+client.id);
       if ( this.screenShare && client.id == this.screenShare.properties.clientId ) {
-        BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
-          if ( this.videoMesh.material.diffuseTexture ) {
-             this.videoMesh.material.diffuseTexture.dispose();
-          }
-          this.videoMesh.material.diffuseTexture = texture;
-          this.videoMesh.material.diffuseTexture.vScale = -1
-          this.videoMesh.setEnabled(true);
-        });
+        this.showVideo(mediaStream);
       }
     }
     this.worldManager.debug = true;
@@ -164,7 +168,10 @@ export class Classroom extends World {
             active:true
           }, (obj)=>{
             console.log("Created new VRObject", obj);
-            this.worldManager.mediaStreams.shareScreen();
+            this.worldManager.mediaStreams.shareScreen().then((mediaStream)=>{
+              console.log("streaming",mediaStream);
+              this.showVideo(mediaStream);
+            }).catch(console.log('denied'));
           });
         } else {
           console.log('stop sharing screen');

@@ -2633,21 +2633,29 @@ export class MediaStreams {
     console.log(this.publisher);
   }
 
-  // TODO async
-  shareScreen() {
+  async shareScreen() {
     var screenPublisher = this.OV.initPublisher(this.htmlElementName, 
     { videoSource: "screen", audioSource: this.audioSource, publishAudio: this.publishAudio });
-    screenPublisher.once('accessAllowed', (event) => {
-        screenPublisher.stream.getMediaStream().getVideoTracks()[0].addEventListener('ended', () => {
-            console.log('User pressed the "Stop sharing" button');
-        });
-        this.session.unpublish(this.publisher);
-        this.publisher = screenPublisher;
-        this.session.publish(this.publisher);
-    });
-
-    screenPublisher.once('accessDenied', (event) => {
-        console.warn('ScreenShare: Access Denied');
+    
+    return new Promise( (resolve, reject) => {
+    
+      screenPublisher.once('accessAllowed', (event) => {
+          screenPublisher.stream.getMediaStream().getVideoTracks()[0].addEventListener('ended', () => {
+              console.log('User pressed the "Stop sharing" button');
+          });
+          this.session.unpublish(this.publisher);
+          this.publisher = screenPublisher;
+          this.publisher.on('videoElementCreated', e => {
+            resolve(this.publisher.stream.getMediaStream());
+          });
+          this.session.publish(this.publisher);
+      });
+  
+      screenPublisher.once('accessDenied', (event) => {
+          console.warn('ScreenShare: Access Denied');
+          reject();
+      });
+    
     });
   }
   
