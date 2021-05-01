@@ -42,6 +42,20 @@ export class Classroom extends World {
   
   createPhysics() {
     this.scene.gravity = new BABYLON.Vector3(0,-.05,0);
+    
+    // walls mess with collision detection, easy to get stuck
+    // so add two invisible planes just for collision detection
+    var wall1 = BABYLON.MeshBuilder.CreatePlane('wall1', {width:18, height:3}, this.scene);
+    wall1.position = new BABYLON.Vector3(7.8, 2, 9);
+    wall1.rotation = new BABYLON.Vector3(0, Math.PI/2, 0);
+    wall1.checkCollisions = true;
+    wall1.visibility = 0;
+
+    var wall2 = BABYLON.MeshBuilder.CreatePlane('wall2', {width:14, height:3}, this.scene);
+    wall2.position = new BABYLON.Vector3(-7.8, 2, 9);
+    wall2.rotation = new BABYLON.Vector3(0, -Math.PI/2, 0);
+    wall2.checkCollisions = true;
+    wall2.visibility = 0;
   }
   
   isSelectableMesh(mesh) {
@@ -63,16 +77,13 @@ export class Classroom extends World {
         mesh.parent.parent.parent &&
         mesh.parent.parent.parent.name.startsWith('fila')
       ) 
-      // messes up collisions - user can get stuck
-      && ! mesh.name.includes('pCube38_paredText')
-      && ! mesh.name.includes('pCube40_paredText')
     ) {
       mesh.checkCollisions = state;
     }
   }
   
+  // executed once the world is loaded
   loaded(file, mesh) {
-    //super.loaded(file, mesh); // FIXME: calling initXR() twice
     mesh.scaling = new BABYLON.Vector3(0.3,0.3,0.3);
     
     this.floorMeshes = [
@@ -100,58 +111,7 @@ export class Classroom extends World {
     
   }
 
-  writeText( text, where ) {
-    if ( ! where ) {
-      where = this.screenShareMesh;
-    }
-    var material = where.material;
-    material.diffuseTexture.drawText(text, 
-      null, 
-      null, 
-      'bold 12px monospace', 
-      'black', 
-      'white', 
-      true, 
-      true
-    );
-  }
-
-  showVideo( mediaStream ) {
-    BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
-      if ( this.videoMesh.material.diffuseTexture ) {
-         this.videoMesh.material.diffuseTexture.dispose();
-      }
-      this.videoMesh.material.diffuseTexture = texture;
-      this.videoMesh.material.diffuseTexture.vScale = -1
-      this.videoMesh.setEnabled(true);
-    });
-  }
-  
-  showNoise() {
-    if ( this.videoMesh.material.diffuseTexture ) {
-       this.videoMesh.material.diffuseTexture.dispose();
-    }
-    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
-    this.videoMesh.material.diffuseTexture = noiseTexture;
-    noiseTexture.octaves = 8;
-    noiseTexture.persistence = 2;
-    noiseTexture.animationSpeedFactor = 10;
-    this.videoMesh.setEnabled(true);
-  }
-  
-  removeScreen() {
-    if ( this.videoMesh.material.diffuseTexture ) {
-       this.videoMesh.material.diffuseTexture.dispose();
-    }
-    this.videoMesh.setEnabled(false);    
-  }
-
-  deleteSharedObject() {
-    if ( this.screenShare ) {
-      this.worldManager.VRSPACE.deleteSharedObject(this.screenShare);
-    }
-  }
-  
+  // executed once connected to the server and entered the space
   entered( welcome ) {
 
     this.screenShareMesh = BABYLON.MeshBuilder.CreatePlane('shareScreen', {width:1, height:.5}, this.scene);
@@ -232,6 +192,59 @@ export class Classroom extends World {
     });
     
   }
+
+  writeText( text, where ) {
+    if ( ! where ) {
+      where = this.screenShareMesh;
+    }
+    var material = where.material;
+    material.diffuseTexture.drawText(text, 
+      null, 
+      null, 
+      'bold 12px monospace', 
+      'black', 
+      'white', 
+      true, 
+      true
+    );
+  }
+
+  showVideo( mediaStream ) {
+    BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
+      if ( this.videoMesh.material.diffuseTexture ) {
+         this.videoMesh.material.diffuseTexture.dispose();
+      }
+      this.videoMesh.material.diffuseTexture = texture;
+      this.videoMesh.material.diffuseTexture.vScale = -1
+      this.videoMesh.setEnabled(true);
+    });
+  }
+  
+  showNoise() {
+    if ( this.videoMesh.material.diffuseTexture ) {
+       this.videoMesh.material.diffuseTexture.dispose();
+    }
+    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
+    this.videoMesh.material.diffuseTexture = noiseTexture;
+    noiseTexture.octaves = 8;
+    noiseTexture.persistence = 2;
+    noiseTexture.animationSpeedFactor = 10;
+    this.videoMesh.setEnabled(true);
+  }
+  
+  removeScreen() {
+    if ( this.videoMesh.material.diffuseTexture ) {
+       this.videoMesh.material.diffuseTexture.dispose();
+    }
+    this.videoMesh.setEnabled(false);    
+  }
+
+  deleteSharedObject() {
+    if ( this.screenShare ) {
+      this.worldManager.VRSPACE.deleteSharedObject(this.screenShare);
+    }
+  }
+    
 }
 
 export const WORLD = new Classroom();
