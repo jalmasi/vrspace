@@ -2656,7 +2656,7 @@ export class MediaStreams {
   
       screenPublisher.once('accessDenied', (event) => {
           console.warn('ScreenShare: Access Denied');
-          reject();
+          reject(event);
       });
     
     });

@@ -159,8 +159,8 @@ export class Classroom extends World {
             }).then((mediaStream)=>{
               console.log("streaming",mediaStream);
               this.showVideo(mediaStream);
-            }).catch(() => {
-              console.log('sharing denied');
+            }).catch((e) => {
+              console.log('sharing denied', e);
               this.deleteSharedObject();
             });
           });
