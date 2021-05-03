@@ -15,8 +15,10 @@ export class AvatarSelection extends World {
     super();
     /** server to connect to */
     this.serverUrl = null;
-    /** exposing VRSpaceUI so it can be accessed from outside */
-    this.VRSPACEUI = VRSPACEUI;
+    /** function to call after entering a world */
+    this.afterEnter = null;
+    /** function to call after exiting a world */
+    this.afterExit = null;
   }
   async createSkyBox() {
     var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
@@ -350,7 +352,7 @@ export class AvatarSelection extends World {
     }
   }
 
-  enter( portal ) {
+  async enter( portal ) {
     var avatarUrl = "video";
     if ( this.character ) {
       avatarUrl = this.character.getUrl(); 
@@ -368,25 +370,39 @@ export class AvatarSelection extends World {
         console.log(world);
         
         // TODO refactor this to WorldManager
-        var worldManager = new WorldManager(world);
-        //worldManager.debug = true; // scene debug
-        //worldManager.VRSPACE.debug = true; // network debug
+        this.worldManager = new WorldManager(world);
+        //this.worldManager.debug = true; // scene debug
+        //this.worldManager.VRSPACE.debug = true; // network debug
+        
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
-          worldManager.trackCamera(this.vrHelper.camera());
+          this.worldManager.trackCamera(this.vrHelper.camera());
           // floors that exist only after load
           this.vrHelper.addFloors();
         }
-        worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
-        worldManager.enter( 
-          { mesh:avatarUrl, 
-            userHeight:userHeight, 
-            // send custom shared transient properties like this:
-            properties:{string:'string', number:123.456}
-          }
+        this.worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
+        var myProperties = { 
+          mesh:avatarUrl, 
+          userHeight:userHeight, 
+          // send custom shared transient properties like this:
+          properties:{string:'string', number:123.456}
+        };
+        if ( this.userName ) {
+          myProperties.name = this.userName;
+        }
+        this.worldManager.enter( 
+          myProperties
         ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
-          worldManager.pubSub(welcome.client, 'video' === avatarUrl);
+          this.worldManager.pubSub(welcome.client, 'video' === avatarUrl);
+          if ( this.afterEnter ) {
+            this.afterEnter(this);
+          }
+        }).catch(()=>{
+          console.log("TODO: disconnected");
+          if ( this.afterExit ) {
+            this.afterExit(this);
+          }
         });
         //var recorder = new RecorderUI(world.scene);
         //recorder.showUI();
@@ -426,7 +442,7 @@ export class AvatarSelection extends World {
         this.dispose();
         
       });
-    })
+    });
   }
 
   dispose() {

@@ -358,7 +358,7 @@ export class VRSpace {
     this.ws.onopen = () => {
       this.connectionListeners.forEach((listener)=>listener(true));
     }
-    this.ws.close = () => {
+    this.ws.onclose = () => {
       this.connectionListeners.forEach((listener)=>listener(false));
     }
     this.ws.onmessage = (data) => {

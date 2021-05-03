@@ -2522,6 +2522,10 @@ export class WorldManager {
   @return Welcome promise
    */
   async enter( properties ) {
+    VRSPACE.addErrorListener((e)=>{
+      console.log("Server error:"+e);
+      this.error = e;
+    });
     return new Promise( (resolve, reject) => {
       var afterEnter = (welcome) => {
         VRSPACE.removeWelcomeListener(afterEnter);
@@ -2549,13 +2553,19 @@ export class WorldManager {
       if ( ! this.isOnline() ) {
         VRSPACE.addWelcomeListener(afterConnect);
         VRSPACE.connect(this.world.serverUrl);
+        VRSPACE.addConnectionListener((connected)=>{
+          this.log('connected:'+connected);
+          if ( ! connected ) {
+            reject(this);
+          }
+        });
       } else if ( this.world.name ){
         VRSPACE.addWelcomeListener(afterEnter);
         VRSPACE.sendCommand("Enter",{world:this.world.name});
       }
     });
   }
-
+  
 }
 
 /**

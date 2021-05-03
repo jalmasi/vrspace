@@ -242,7 +242,15 @@ public class WorldManager {
     return ret;
   }
 
-  public void startSession(Client client) {
+  public void startSession(Client client) throws SessionException {
+    if (client.getName() != null) {
+      // new client can't have the same name as existing one
+      Client existing = getClientByName(client.getName());
+      if (existing != null && existing.getName() != null && client.getName().equals(existing.getName())
+          && !existing.getId().equals(client.getId())) {
+        throw new SessionException("Client named '" + client.getName() + "' already exists");
+      }
+    }
     sessionTracker.addSession(client);
 
     // client has now entered the world

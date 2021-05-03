@@ -51,9 +51,22 @@ public class SessionManager extends TextWebSocketHandler {
       log.debug("Request: " + req);
       req.setClient(client);
       worldManager.dispatch(req);
+    } catch (SessionException e) {
+      log.error("Closing session due to fatal error processing message from client " + client.getId() + ":"
+          + message.getPayload(), e);
+      client.sendMessage(error(e));
+      close(session);
     } catch (Exception e) {
       log.error("Error processing message from client " + client.getId() + ":" + message.getPayload(), e);
       client.sendMessage(error(e));
+    }
+  }
+
+  private void close(WebSocketSession session) {
+    try {
+      session.close();
+    } catch (IOException ioe) {
+      log.error("Unexpected error", ioe);
     }
   }
 
@@ -79,7 +92,7 @@ public class SessionManager extends TextWebSocketHandler {
       try {
         log.error("Invalid login from session " + session.getId() + "/" + session.getRemoteAddress() + " - " + se);
         session.sendMessage(new TextMessage(mapper.writeValueAsString(error(se))));
-        session.close();
+        close(session);
       } catch (IOException e) {
         log.error("Unexpected error ", e);
       }

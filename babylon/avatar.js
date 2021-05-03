@@ -22,6 +22,8 @@ export class Avatar {
     this.mirror = true;
     /** Animation frames per second, default 10 */
     this.fps = 10;
+    /** Name of the avatar/user */
+    this.name = 'test';
     /** Height of the user, default 1.8 */
     this.userHeight = 1.8;
     /** Height of the ground, default 0 */
@@ -942,7 +944,7 @@ export class Avatar {
   euler(node) {
     return node.rotationQuaternion.toEulerAngles();
   }
-
+  
   degrees(node) {
     var rot = euler(node);
     return toDegrees(rot);
@@ -1358,4 +1360,13 @@ export class Avatar {
     this.log("Rescaling to "+scale+", head position "+this.initialHeadPos);
     return scale;
   }
+  
+  /** 
+  Set the name and display it above the avatar 
+  @param name 
+  */
+  setName(name) {
+    
+  }
+  
 }
