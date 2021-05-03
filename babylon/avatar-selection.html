@@ -44,11 +44,10 @@ import("./avatar-selection.js").then( (module) =>{
   
   var world = module.WORLD;
 
-  const input = document.getElementById('nickname')
-  input.addEventListener('change', (e) => {
-    world.userName = e.target.value;
+  document.getElementById('nickname').addEventListener('input', (e)=>{
+    world.setName(e.target.value);
   });
-  
+
   world.init(engine, 'avatar').then((s) => {
     scene = s;
     world.createSelection((avatar)=>{

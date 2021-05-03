@@ -238,6 +238,7 @@ export class AvatarSelection extends World {
         this.portalsEnabled(true);
       }
       this.character = loaded.replace(this.character);
+      this.setName(this.userName);
       this.animationButtons(this.character);
       if ( this.selectionCallback ) {
         this.selectionCallback(this.character);
@@ -245,6 +246,13 @@ export class AvatarSelection extends World {
     });
   }
 
+  setName(name) {
+    this.userName = name;
+    if ( this.character ) {
+      this.character.setName(this.userName);
+    }
+  }
+  
   animationButtons(avatar) {
     var names = []
     var playing;

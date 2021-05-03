@@ -146,6 +146,10 @@ thanks folks!
   
   import("../babylon/avatar-selection.js").then( (module) =>{
   
+    document.getElementById('nickname').addEventListener('input', (e)=>{
+      world.setName(e.target.value);
+    });
+
     var world = module.WORLD;
     world.VRSPACEUI.contentBase='https://www.vrspace.org/';
   
@@ -155,6 +159,15 @@ thanks folks!
       world.showPortals();
       engine.resize();
       canvas.focus();
+      world.afterEnter = () => {
+        document.getElementById('loginForm').style.display = 'none';
+      }
+      world.afterExit = () => {
+        console.log('Exit:'+world.worldManager.error);
+        document.getElementById('loginForm').style.display = 'block';
+        // CHECKME: reload, really?
+        setTimeout(() => document.location.reload(), 5000);
+      }
     });
     
     var xmlHttp = new XMLHttpRequest();
@@ -213,6 +226,11 @@ thanks folks!
   }
   
   </script>
+
+<div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
+<label for="nickname">Name:</label>
+<input id="nickname" type="text">
+</div>
 
 </body>
 </html>

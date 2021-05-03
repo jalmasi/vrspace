@@ -57,7 +57,7 @@ export class Spaceport extends World {
     mesh.scaling = new BABYLON.Vector3(0.005,0.005,0.005);
     mesh.position.y = -107.3;
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
-    VRSPACEUI.optimizeScene(this.scene);
+    //VRSPACEUI.optimizeScene(this.scene);
   }
 }
 

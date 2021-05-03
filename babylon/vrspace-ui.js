@@ -1651,6 +1651,9 @@ A world can also define defaults in the constructor, like baseUrl or file.
 @abstract
  */
 export class World {
+  constructor() {
+    this.VRSPACEUI = VRSPACEUI;
+  }
   /** Create, load and and show the world.
   Enables gravity and collisions, then executes createScene method, optionally creates load indicator,
   registers render loop, crates terrain, and finally, executes load method. Every method executed can be overridden.
@@ -2229,12 +2232,14 @@ export class WorldManager {
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;
     avatar.debug = true;
-    avatar.load( (c) => {
+    avatar.load( (avatar) => {
       // FIXME: this is not container but avatar
-      obj.container = c;
-      c.VRObject = obj;
-      // apply current position and rotation
-      this.changeAvatar(obj, { position: obj.position });
+      obj.container = avatar;
+      avatar.VRObject = obj;
+      // GLTF characters are facing the user when loaded, turn it around
+      avatar.rootMesh.rotationQuaternion = avatar.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
+      // apply current name, position and rotation
+      this.changeAvatar(obj, { name: obj.name, position: obj.position });
       if ( obj.rotation ) {
         // FIXME rotation can be null sometimes (offline users?)
         this.changeAvatar(obj, { rotation: obj.rotation });
@@ -2244,7 +2249,7 @@ export class WorldManager {
       obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
       // subscribe to media stream here if available
       if ( this.mediaStreams ) {
-        this.mediaStreams.streamToMesh(obj, obj.container.rootMesh);        
+        this.mediaStreams.streamToMesh(obj, obj.container.parentMesh);        
       }
     });
   }
@@ -2255,7 +2260,7 @@ export class WorldManager {
     this.log(changes);
     var avatar = obj.container;
     for ( var field in changes ) {
-      var node = avatar.rootMesh;
+      var node = avatar.parentMesh;
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
           obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
@@ -2269,20 +2274,17 @@ export class WorldManager {
       } else if ( 'leftArmPos' === field ) {
         var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
         avatar.reachFor(avatar.body.rightArm, pos);
-        //avatar.reachFor(avatar.body.leftArm, pos);
       } else if ( 'rightArmPos' === field ) {
         var pos = new BABYLON.Vector3(obj.rightArmPos.x, obj.rightArmPos.y, obj.rightArmPos.z);
-        //avatar.reachFor(avatar.body.rightArm, pos);
         avatar.reachFor(avatar.body.leftArm, pos);
       } else if ( 'leftArmRot' === field ) {
-        // FIXME sometimes: Cannot read property 'x' of undefined
-        //avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
         avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
       } else if ( 'rightArmRot' === field ) {
-        // FIXME sometimes: Cannot read property 'x' of undefined
-        //avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
         avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
+      } else if ( 'name' === field ) {
+        avatar.setName(obj.name);
       }
+      // TODO: map userHeight to crouch/rise/jump
     }
   }
 
@@ -2483,7 +2485,8 @@ export class WorldManager {
       if ( vrHelper && vrHelper.rightController ) {
         this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightController.grip.absolutePosition, changes );
         this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion, changes );
-      }      
+      }
+      // TODO: track and transmit userHeight in VR      
     }
     if ( changes.length > 0 ) {
       VRSPACE.sendMyChanges(changes);
