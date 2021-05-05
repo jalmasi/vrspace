@@ -1437,6 +1437,11 @@ export class Avatar {
       pos.y += .4;
       this.nameParent.position = pos;
     }
- }
+  }
+  
+  wrote(client) {
+    console.log('wrote',client);
+    this.setName(client.wrote);
+  }
   
 }

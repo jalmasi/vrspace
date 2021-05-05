@@ -48,6 +48,12 @@ import("./avatar-selection.js").then( (module) =>{
     world.setName(e.target.value);
   });
 
+  document.getElementById('chatBox').style.display = 'none';
+  document.getElementById('chatInput').addEventListener('change', (e)=>{
+    world.worldManager.VRSPACE.sendMy('wrote', e.target.value);
+    e.target.value = '';
+  });
+
   world.init(engine, 'avatar').then((s) => {
     scene = s;
     world.createSelection((avatar)=>{
@@ -56,10 +62,12 @@ import("./avatar-selection.js").then( (module) =>{
     world.showPortals();
     world.afterEnter = () => {
       document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('chatBox').style.display = 'block';
     }
     world.afterExit = () => {
       console.log('Exit:'+world.worldManager.error);
       document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('chatBox').style.display = 'none';
       setTimeout(() => document.location.reload(), 5000);
     }
   });
@@ -86,6 +94,12 @@ function debugOnOff() {
 <label for="nickname">Name:</label>
 <input id="nickname" type="text">
 </div>
+
+<div id="chatBox" style="position:absolute;bottom:50px;right:45%;">
+<label for="chatInput">Chat:</label>
+<input id="chatInput" type="text">
+</div>
+
 
 <div style="position:absolute;bottom:10px;right:50%;">
 <button onClick="debugOnOff()">Debug</button>

@@ -2261,6 +2261,7 @@ export class WorldManager {
     var avatar = obj.container;
     for ( var field in changes ) {
       var node = avatar.parentMesh;
+      // TODO introduce event handler functions
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
           obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
@@ -2283,8 +2284,12 @@ export class WorldManager {
         avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
       } else if ( 'name' === field ) {
         avatar.setName(obj.name);
+      } else if ( 'userHeight' === field ) {
+        // TODO: map userHeight to crouch/rise/jump
+        console.log('TODO = userHeight:'+obj.userHeight);
+      } else {
+        this.routeEvent(obj,field,node);
       }
-      // TODO: map userHeight to crouch/rise/jump
     }
   }
 
