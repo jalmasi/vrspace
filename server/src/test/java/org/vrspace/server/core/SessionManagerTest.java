@@ -371,6 +371,13 @@ public class SessionManagerTest {
     assertNotNull(client.getProperties());
     assertEquals("string", client.getProperties().get("string"));
     assertEquals(123.45, client.getProperties().get("number"));
+
+    // custom event, e.g. chat
+    String text = "{\"object\":{\"Client\":" + clientId + "},\"changes\":{\"wrote\":\"hi\"}}";
+    sendMessage(text);
+    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+    verify(session1, times(5)).sendMessage(any(WebSocketMessage.class));
+    verify(session2, times(5)).sendMessage(any(WebSocketMessage.class));
   }
 
   @Test
