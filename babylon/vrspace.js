@@ -552,14 +552,27 @@ export class VRSpace {
     this.send(msg);
   }
 
-
   /**
   Send changes to own avatar
-  @param changes object with field/value pairs
+  @param changes array with field/value pairs
    */
   sendMyChanges(changes) {
     if ( this.me != null) {
       this.sendChanges(this.me, changes);
+    } else {
+      this.log("No my ID yet, user event ignored:");
+      this.log(changes);
+      throw "No my ID yet, user event ignored:";
+    }
+  }
+
+  /**
+  Send changes to own avatar
+  @param changes object containing changed field(s)
+   */
+  sendMyEvent(changes) {
+    if ( this.me != null) {
+      this.sendEvent(this.me, changes);
     } else {
       this.log("No my ID yet, user event ignored:");
       this.log(changes);

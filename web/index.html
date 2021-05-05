@@ -150,6 +150,13 @@ thanks folks!
       world.setName(e.target.value);
     });
 
+    document.getElementById('chatBox').style.display = 'none';
+    document.getElementById('chatInput').addEventListener('change', (e)=>{
+      world.worldManager.sendMy({wrote:e.target.value});
+      e.target.value = '';
+      canvas.focus();
+    });
+
     var world = module.WORLD;
     world.VRSPACEUI.contentBase='https://www.vrspace.org/';
   
@@ -159,12 +166,16 @@ thanks folks!
       world.showPortals();
       engine.resize();
       canvas.focus();
-      world.afterEnter = () => {
+      world.beforeEnter = () => {
         document.getElementById('loginForm').style.display = 'none';
+      }
+      world.afterEnter = () => {
+        document.getElementById('chatBox').style.display = 'block';
       }
       world.afterExit = () => {
         console.log('Exit:'+world.worldManager.error);
         document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('chatBox').style.display = 'none';
         // CHECKME: reload, really?
         setTimeout(() => document.location.reload(), 5000);
       }
@@ -227,10 +238,15 @@ thanks folks!
   
   </script>
 
-<div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
-<label for="nickname">Name:</label>
-<input id="nickname" type="text">
-</div>
+  <div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
+    <label for="nickname">Name:</label>
+    <input id="nickname" type="text">
+  </div>
+  
+  <div id="chatBox" style="position:absolute;bottom:50px;left:15%">
+    <label for="chatInput">Chat:</label>
+    <input id="chatInput" type="text" size=256 style="width:80%;">
+  </div>
 
 </body>
 </html>

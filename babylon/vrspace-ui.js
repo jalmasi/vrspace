@@ -6,7 +6,8 @@ Script loader
  */
 export class ScriptLoader {
   constructor() {
-      this.scripts = [];
+    // script url, loaded false/true
+    this.scripts = {};
   }
   
   /** 
@@ -14,8 +15,8 @@ export class ScriptLoader {
   @param script url to load the script from
    */
   add(script) {
-    if (!this.scripts.includes( script )) {
-      this.scripts.push(script);
+    if (typeof this.scripts[script] === 'undefined' ) {
+      this.scripts[script] = false;
     }
     return this;
   }
@@ -25,21 +26,28 @@ export class ScriptLoader {
   @param parallel default false - wait for each one to load before loading the next one
    */
   async load(parallel = false) {
-    for ( var i = 0; i < this.scripts.length; i++) {
-      await this.loadScript(this.scripts[i], parallel);
+    for ( var script in this.scripts ) {
+      if ( ! this.scripts[script] ) {
+        await this.loadScript(script, parallel);
+      }
     }
   }
+  
   async loadScript(path, parallel) {
     return new Promise( (resolve, reject) => {
       const script = document.createElement('script');
       script.src = path;
       if (parallel) {
         document.body.appendChild(script);
+        this.scripts[path] = true;
         resolve();
       } else {
         script.async = true;
         document.body.appendChild(script);
-        script.onload = () => { resolve(); }
+        script.onload = () => { 
+          this.scripts[path] = true;
+          resolve(); 
+        }
       }
     });
   }
@@ -400,6 +408,7 @@ export class VRSpaceUI {
   @param parallel optionally load in parallel
   */
   async loadScriptsToDocument(urls, parallel) {
+    // TODO remember loaded scripts, do not load twice
     if ( Array.isArray(urls) ) {
       urls.forEach((url) => this.scriptLoader.add(url));
     } else {
@@ -2572,6 +2581,14 @@ export class WorldManager {
         VRSPACE.sendCommand("Enter",{world:this.world.name});
       }
     });
+  }
+  
+  /** 
+  Send own event.
+  @param obj object containing changes to be sent, i.e. name-value pair(s).
+   */
+  sendMy( obj ) {
+    VRSPACE.sendMyEvent(obj);
   }
   
 }

@@ -15,6 +15,8 @@ export class AvatarSelection extends World {
     super();
     /** server to connect to */
     this.serverUrl = null;
+    /** function to call just before entering a world */
+    this.beforeEnter = null;
     /** function to call after entering a world */
     this.afterEnter = null;
     /** function to call after exiting a world */
@@ -371,6 +373,9 @@ export class AvatarSelection extends World {
       this.video.attachToCamera();
     }
     console.log("Entering world "+portal.worldUrl()+'/world.js as '+avatarUrl);
+    if ( this.beforeEnter ) {
+      this.beforeEnter(this);
+    }
     import(portal.worldUrl()+'/world.js').then((world)=>{
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;

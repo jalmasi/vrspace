@@ -50,8 +50,9 @@ import("./avatar-selection.js").then( (module) =>{
 
   document.getElementById('chatBox').style.display = 'none';
   document.getElementById('chatInput').addEventListener('change', (e)=>{
-    world.worldManager.VRSPACE.sendMy('wrote', e.target.value);
+    world.worldManager.sendMy({wrote:e.target.value});
     e.target.value = '';
+    canvas.focus();
   });
 
   world.init(engine, 'avatar').then((s) => {
@@ -60,8 +61,10 @@ import("./avatar-selection.js").then( (module) =>{
       console.log("Selected avatar: "+avatar.getUrl());
     });
     world.showPortals();
-    world.afterEnter = () => {
+    world.beforeEnter = () => {
       document.getElementById('loginForm').style.display = 'none';
+    }
+    world.afterEnter = () => {
       document.getElementById('chatBox').style.display = 'block';
     }
     world.afterExit = () => {
@@ -95,11 +98,10 @@ function debugOnOff() {
 <input id="nickname" type="text">
 </div>
 
-<div id="chatBox" style="position:absolute;bottom:50px;right:45%;">
+<div id="chatBox" style="position:absolute;bottom:50px;left:15%">
 <label for="chatInput">Chat:</label>
-<input id="chatInput" type="text">
+<input id="chatInput" type="text" size=256 style="width:80%;">
 </div>
-
 
 <div style="position:absolute;bottom:10px;right:50%;">
 <button onClick="debugOnOff()">Debug</button>

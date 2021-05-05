@@ -158,6 +158,10 @@ export class Avatar {
       this.nameMesh.dispose();
       this.nameParent.dispose();
     }
+    if (this.textParent) {
+      this.textParent.dispose();
+      this.textParent = null;
+    }
     // TODO also dispose of materials and textures (asset container)
   }
 
@@ -384,13 +388,14 @@ export class Avatar {
   load(success, progress, failure) {
     this.loadFixes().then( () => {
       this.log("loading from "+this.folder.url());
-      var avatar = this;
       var plugin = BABYLON.SceneLoader.LoadAssetContainer(
         this.folder.baseUrl+this.folder.name+"/",
         "scene.gltf",
         this.scene,
         // onSuccess:
-        (container) => avatar._processContainer(container,success),
+        (container) => {
+          this._processContainer(container,success)
+        },
         // onProgress:
         (evt) => {
           if ( progress ) {
@@ -400,7 +405,7 @@ export class Avatar {
       );
       plugin.onParsedObservable.add(gltfBabylon => {
           var manifest = gltfBabylon.json;
-          avatar.info = manifest.asset.extras;
+          this.info = manifest.asset.extras;
       });
       return plugin;
     });
@@ -1372,18 +1377,22 @@ export class Avatar {
     this.changed();
     return scale;
   }
-  
-  /** 
-  Set the name and display it above the avatar 
-  @param name 
-  */
-  async setName(name) {
+
+  async _initWriter() {
     if ( ! this.Writer ) {
       await VRSPACEUI.loadScriptsToDocument([ 
         "https://cdn.rawgit.com/BabylonJS/Extensions/master/MeshWriter/meshwriter.min.js"
       ]);
       this.Writer = BABYLON.MeshWriter(this.scene, {scale:.02,defaultFont:"Arial"});
     }
+  }
+  
+  /** 
+  Set the name and display it above the avatar 
+  @param name 
+  */
+  async setName(name) {
+    await this._initWriter();
     if ( this.nameMesh ) {
       this.nameMesh.dispose();
       this.nameParent.dispose();
@@ -1439,9 +1448,44 @@ export class Avatar {
     }
   }
   
-  wrote(client) {
-    console.log('wrote',client);
-    this.setName(client.wrote);
+  async wrote(client) {
+   await this._initWriter();
+   var limit = 20;
+    var text = [];
+    var line = '';
+    client.wrote.split(' ').forEach((word) => {
+      if ( line.length + word.length > limit ) {
+        text.push(line);
+        line = '';
+      }
+      line += word + ' ';
+    });
+    text.push(line);
+    
+    if ( this.nameMesh ) {
+      // TODO move it up/down as required
+      var pos = this.headPos().clone();
+      pos.y += .4+.2*(text.length);
+      this.nameParent.position = pos;
+    }
+    
+    if (this.textParent) {
+      this.textParent.dispose();
+      this.textParent = null;
+    }
+    this.textParent = new BABYLON.TransformNode('textParent');
+    var pos = this.headPos().clone();
+    pos.y += .4+.2*(text.length-1);
+    this.textParent.position = pos;
+    this.textParent.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    this.textParent.parent = this.parentMesh;
+    for ( var i = 0; i < text.length; i++ ) {
+      var t = text[i];
+      var mesh = new this.Writer( t,{anchor: "center", "letter-height": 8, color: "#1C3870" });
+      mesh.getMesh().rotation.x = -Math.PI/2;
+      mesh.getMesh().position.y = -i*.2;
+      mesh.getMesh().parent = this.textParent;
+    }
   }
   
 }
