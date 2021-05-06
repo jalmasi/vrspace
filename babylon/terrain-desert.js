@@ -184,4 +184,11 @@ export class Desert {
    this.terrain.update(true);
    console.log('Terrain created');
   }
+  update(force) {
+    if (this.isCreated()) {
+      this.terrain.update(force);
+    } else {
+      console.log('Terrain.update called before creation');
+    }
+  }
 }
