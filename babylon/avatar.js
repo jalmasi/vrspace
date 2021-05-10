@@ -678,11 +678,24 @@ export class Avatar {
     return (this.body.leftLeg.upperLength + this.body.leftLeg.lowerLength + this.body.rightLeg.upperLength + this.body.rightLeg.lowerLength)/2;
   }
 
+  /**
+  Set avatar position.
+  @param pos postion
+   */
+  setPosition( pos ) {
+    this.parentMesh.position.x = pos.x;
+    //this.groundLevel( pos.y ); // CHECKME
+    this.parentMesh.position.y = pos.y;
+    this.parentMesh.position.z = pos.z;
+  }
+
   /** 
   Set avatar rotation
   @param quat Quaternion 
   */
   setRotation( quat ) {
+    // FIXME this should rotate parentMesh instead
+    // but GLTF characters are facing the user when loaded
     this.parentMesh.rotationQuaternion = quat;
   }
 

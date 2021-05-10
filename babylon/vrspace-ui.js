@@ -2246,6 +2246,7 @@ export class WorldManager {
       obj.container = avatar;
       avatar.VRObject = obj;
       // GLTF characters are facing the user when loaded, turn it around
+      // CHECKME do it somewhere in Avatar class
       avatar.rootMesh.rotationQuaternion = avatar.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
       // apply current name, position and rotation
       this.changeAvatar(obj, { name: obj.name, position: obj.position });
