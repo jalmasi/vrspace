@@ -68,7 +68,7 @@ export class AvatarLoader extends AvatarSelection {
   createAvatarUI(avatar, manager) {
 
     var pos = avatar.parentMesh.position;
-    var rot = avatar.parentMesh.rotationQuaternion.multiply(new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
+    var rot = avatar.parentMesh.rotationQuaternion;
 
     var text = new BABYLON.GUI.TextBlock();
     text.text = "Avatar: "+avatar.folder.name;
