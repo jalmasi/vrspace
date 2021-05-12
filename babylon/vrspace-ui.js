@@ -1670,8 +1670,8 @@ export class World {
   @param name world name
   @param scene babylonjs scene, optional
   @param callback to execute after the world has loaded
-  @param baseUrl folder to load scene from, default ""
-  @param file scene file to load, default scene.gltf
+  @param baseUrl folder to load scene from, default "", used only if not defined in constructor
+  @param file scene file to load, default scene.gltf, used only if not defined in constructor
   @returns final scene
   */
   async init(engine, name, scene, callback, baseUrl, file) {
@@ -1680,15 +1680,19 @@ export class World {
     this.name = name;
     this.scene = scene;
     this.vrHelper = null;
-    if ( file ) {
-      this.file = file;
-    } else if ( !this.file ){
-      this.file = "scene.gltf";
+    if ( !this.file ) {
+      if ( file ) {
+        this.file = file;
+      } else {
+        this.file = "scene.gltf";
+      }
     }
-    if ( baseUrl ) {
-      this.baseUrl = baseUrl;
-    } else if ( !this.baseUrl ){
-      this.baseUrl = "";
+    if ( !this.baseUrl ){
+      if ( baseUrl ) {
+        this.baseUrl = baseUrl;
+      } else {
+        this.baseUrl = "";
+      }
     }
     this.gravityEnabled = true;
     this.collisionsEnabled = true;
