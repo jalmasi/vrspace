@@ -2051,7 +2051,9 @@ export class WorldManager {
     /** the scene */
     this.scene = world.scene;
     /** Movement resolution, default 1 cm/3.6 deg. Any movement less than this will be ignored.*/
-    this.resolution = 0.01; // 1 cm/3.6 deg 
+    this.resolution = 0.01; // 1 cm/3.6 deg
+    /** Create animations for movement of avatars, default true. Recommended for low fps.*/
+    this.createAnimations = true;
     /** Custom avatar options, applied to avatars after loading. Currently video avatars only */
     this.customOptions = null;
     /** Whether to track user rotation, default true. */
@@ -2075,10 +2077,10 @@ export class WorldManager {
     }
     this.scene.onActiveCameraChanged.add( () => { this.trackCamera() } );
     this.VRSPACE = VRSPACE;
+    /** Network frames per second, default 5 */
+    this.fps = 5;
     if ( fps ) {
       this.fps = fps
-    } else {
-      this.fps = 5;
     }
     /** Current position */
     this.pos = { x: null, y: null, z: null };
@@ -2269,6 +2271,7 @@ export class WorldManager {
     var avatar = new Avatar(this.scene, dir);
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;
+    avatar.animateArms = this.createAnimations;
     avatar.debug = true;
     avatar.load( (avatar) => {
       // FIXME: this is not container but avatar
