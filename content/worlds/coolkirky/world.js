@@ -8,7 +8,7 @@ export class Farm extends World {
   async createCamera() {
     // Add a camera to the scene and attach it to the scene
     this.camera = this.universalCamera(new BABYLON.Vector3(0, 300, 0));
-    this.camera.setTarget(new BABYLON.Vector3(0,300,-10));
+    this.camera.setTarget(new BABYLON.Vector3(0,300,10));
     this.camera.applyGravity = false;
     this.camera.speed = .5;
   }
