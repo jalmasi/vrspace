@@ -55,9 +55,15 @@ import("./world.js").then( (module) =>{
     import('//www.vrspace.org/babylon/vrspace-ui.js').then(ui => {
       var net = new ui.WorldManager(world);
       
+      // OPTIONAL set your own framerate (default is 5)
+      net.fps = 25;
+      // with 25 fps no need to create animation in between events
+      net.createAnimations = false;
+      
       // OPTIONAL print debug info to console
-      net.debug = true; // multi-user debug info
-      net.VRSPACE.debug = true; // network debug info
+      // (a lot of debug with 25 fps)
+      //net.debug = true; // multi-user debug info
+      //net.VRSPACE.debug = true; // network debug info
       
       // RECOMMENDED: set world name
       // all users in the same world share same events
@@ -66,7 +72,7 @@ import("./world.js").then( (module) =>{
       // connect, set own avatar and start the session
       net.enter({
         // RECOMMENDED set your avatar url, or be invisible
-        mesh:'//www.vrspace.org/babylon/dolphin.glb', 
+        mesh:'//www.vrspace.org/content/char/male/bruce_lee/scene.gltf', 
         // OPTIONAL set your name, MUST be unique
         name:'someone'+Math.random()
       });
