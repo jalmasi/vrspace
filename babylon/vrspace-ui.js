@@ -1870,11 +1870,13 @@ export class World {
   }
 
   /**
-  Returns this.floorMeshes if exist, or empty array.
+  Returns this.floorMeshes or this.ground if exist, or empty array.
    */
   getFloorMeshes() {
     if ( this.floorMeshes ) {
       return this.floorMeshes;      
+    } else if ( this.ground ) {
+      return [ this.ground ];
     }
     return [];
   }
