@@ -1506,7 +1506,7 @@ export class VRHelper {
       if ( this.tracker ) {
         this.stopTracking();
       }
-      this.tracker = () => this.world.trackXrDevices();
+      this.tracker = () => this.trackXrDevices();
       
       if ( !this.stateChangeObserver ) {
         this.stateChangeObserver = (state) => {
@@ -1515,6 +1515,7 @@ export class VRHelper {
             case BABYLON.WebXRState.IN_XR:
               // XR is initialized and already submitted one frame
               console.log( "Entered VR" );
+              this.userHeight = this.camera().realWorldHeight;
               this.startTracking();
               // Workaround for teleporation/selection bug
               xrHelper.teleportation.setSelectionFeature(null);
@@ -1610,12 +1611,32 @@ export class VRHelper {
     }
     // TODO we can modify camera y here, adding terrain height on top of ground height
   }
-  
+  trackXrDevices() {
+    // user height has to be tracked here due to
+    //XRFrame access outside the callback that produced it is invalid
+    this.userHeight = this.camera().realWorldHeight;
+    this.world.trackXrDevices();
+  }
   startTracking() {
     this.world.scene.registerBeforeRender(this.tracker);
   }
   stopTracking() {
     this.world.scene.unregisterBeforeRender(this.tracker);
+  }
+  leftArmPos() {
+    return this.leftController.grip.absolutePosition;
+  }
+  rightArmPos() {
+    return this.rightController.grip.absolutePosition;
+  }
+  leftArmRot() {
+    return this.leftController.pointer.rotationQuaternion;
+  }
+  rightArmRot() {
+    return this.rightController.pointer.rotationQuaternion;
+  }
+  realWorldHeight() {
+    return this.userHeight;
   }
   camera() {
     return this.vrHelper.input.xrCamera;
@@ -2069,6 +2090,8 @@ export class WorldManager {
     this.leftArmRot = { x: null, y: null, z: null, w: null };
     /** Current right arm rotation */
     this.rightArmRot = { x: null, y: null, z: null, w: null };
+    /** User height in real world, default 1.8 */
+    this.userHeight = 1.8;
     this.interval = null;
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
@@ -2299,8 +2322,7 @@ export class WorldManager {
       } else if ( 'name' === field ) {
         avatar.setName(obj.name);
       } else if ( 'userHeight' === field ) {
-        // TODO: map userHeight to crouch/rise/jump
-        console.log('TODO = userHeight:'+obj.userHeight);
+        avatar.trackHeight(obj.userHeight);
       } else {
         this.routeEvent(obj,field,node);
       }
@@ -2497,15 +2519,21 @@ export class WorldManager {
       
       // and now track controllers
       var vrHelper = this.world.vrHelper;
-      if ( vrHelper && vrHelper.leftController ) {
-        this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftController.grip.absolutePosition, changes );
-        this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftController.pointer.rotationQuaternion, changes );
+      if ( vrHelper ) {
+        if ( vrHelper.leftController ) {
+          this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftArmPos(), changes );
+          this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftArmRot(), changes );
+        }
+        if ( vrHelper.rightController ) {
+          this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightArmPos(), changes );
+          this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightArmRot(), changes );
+        }
+        // track and transmit userHeight in VR
+        if ( this.isChanged( this.userHeight, vrHelper.realWorldHeight(), this.resolution)) {
+          this.userHeight = vrHelper.realWorldHeight();
+          changes.push({field: 'userHeight', value: this.userHeight});
+        }
       }
-      if ( vrHelper && vrHelper.rightController ) {
-        this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightController.grip.absolutePosition, changes );
-        this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightController.pointer.rotationQuaternion, changes );
-      }
-      // TODO: track and transmit userHeight in VR      
     }
     if ( changes.length > 0 ) {
       VRSPACE.sendMyChanges(changes);
