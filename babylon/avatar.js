@@ -498,7 +498,7 @@ export class Avatar {
 
     var upperArm = this.skeleton.bones[arm.upper];
     var lowerArm = this.skeleton.bones[arm.lower];
-    var hand = this.skeleton.bones[arm.hand];
+
     var scaling = this.rootMesh.scaling.x;
 
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
@@ -506,7 +506,7 @@ export class Avatar {
     // current values
     var armPos = upperArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
     var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
-    var handPos = hand.getAbsolutePosition().scale(scaling).subtract(totalPos);
+
     var rootQuatInv = BABYLON.Quaternion.Inverse(totalRot);
 
     // set or get initial values
@@ -706,6 +706,50 @@ export class Avatar {
   groundLevel( y ) {
     this.groundHeight = y;
     this.rootMesh.position.y = this.rootMesh.position.y + y;
+  }
+
+  /**
+  Track user height: character may crouch or raise, or jump,
+  depending on heights of avatar and user.
+  @param height current user height
+   */
+  trackHeight(height) {
+    if ( this.maxUserHeight && height != this.prevUserHeight ) {
+      var delta = height-this.prevUserHeight;
+      //this.trackDelay = 1000/this.fps;
+      //var speed = delta/this.trackDelay*1000; // speed in m/s
+      var speed = delta*this.fps;
+      if ( this.jumping ) {
+        var delay = Date.now() - this.jumping;
+        if ( height <= this.maxUserHeight && delay > 300 ) {
+          this.character.standUp();
+          this.jumping = null;
+          this.log("jump stopped")
+        } else if ( delay > 500 ) {
+          this.log("jump stopped - timeout")
+          this.standUp();
+          this.jumping = null;
+        } else {
+          this.jump(height - this.maxUserHeight);
+        }
+      } else if ( height > this.maxUserHeight && Math.abs(speed) > 1 ) {
+        // CHECKME speed is not really important here
+        this.jump(height - this.maxUserHeight);
+        this.jumping = Date.now();
+        this.log("jump starting")
+      } else {
+        // ignoring anything less than 1mm
+        if ( delta > 0.001 ) {
+          this.rise(delta);
+        } else if ( delta < -0.001 ) {
+          this.crouch(-delta);
+        }
+      }
+
+    } else {
+      this.maxUserHeight = height;
+    }
+    this.prevUserHeight = height;
   }
 
   /**

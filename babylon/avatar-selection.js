@@ -1,15 +1,6 @@
 import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, VideoAvatar, OpenViduStreams } from './vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
-var trackTime = Date.now();
-//var trackDelay = 1000; // 1 fps
-//var trackDelay = 100; // 10 fps
-//var trackDelay = 40; // 25 fps
-var trackDelay = 20; // 50 fps
-
-var mirror = true;
-var userHeight = 1.8; // by default
-
 export class AvatarSelection extends World {
   constructor() {
     super();
@@ -21,6 +12,14 @@ export class AvatarSelection extends World {
     this.afterEnter = null;
     /** function to call after exiting a world */
     this.afterExit = null;
+    /** movement tracking/animation frames per second */
+    this.fps = 50;
+    /** default user height, 1.8 m */
+    this.userHeight = 1.8;
+    // state variables
+    this.mirror = true;
+    this.trackTime = Date.now();
+    this.trackDelay = 1000/this.fps;
   }
   async createSkyBox() {
     var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
@@ -79,25 +78,25 @@ export class AvatarSelection extends World {
   
   trackXrDevices() {
     if ( this.tracking 
-        && trackTime + trackDelay < Date.now()
+        && this.trackTime + this.trackDelay < Date.now()
         && this.character
         && this.character.body
         && this.character.body.processed
         && ! this.character.activeAnimation
       ) {
-      trackTime = Date.now();
+      this.trackTime = Date.now();
       // CHECKME: mirror left-right
       if ( this.vrHelper.leftController ) {
-        if ( mirror ) {
-          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.leftController );
+        if ( this.mirror ) {
+          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.leftController);
           this.character.reachFor( this.character.body.leftArm, leftPos );
         } else {
-          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.leftController );
+          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.leftController);
           this.character.reachFor( this.character.body.rightArm, leftPos );
         }
       }
       if ( this.vrHelper.rightController ) {
-        if ( mirror ) {
+        if ( this.mirror ) {
           var rightPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.rightController );
           this.character.reachFor( this.character.body.rightArm, rightPos );
         } else {
@@ -106,75 +105,31 @@ export class AvatarSelection extends World {
         }
       }
       this.character.lookAt( this.calcCameraTarget() );
-      this.trackHeight();
+      this.character.trackHeight( this.vrHelper.camera().realWorldHeight );
     }
   }
   
-  trackHeight() {
-    //var cameraPos = xrHelper.input.xrCamera.position.y;
-    var cameraPos = this.vrHelper.camera().realWorldHeight;
-    if ( this.maxCameraPos && cameraPos != this.prevCameraPos ) {
-      var delta = cameraPos-this.prevCameraPos;
-      var speed = delta/trackDelay*1000; // speed in m/s
-      if ( this.jumping ) {
-        var delay = Date.now() - this.jumping;
-        if ( cameraPos <= this.maxCameraPos && delay > 300 ) {
-          this.character.standUp();
-          this.jumping = null;
-          console.log("jump stopped")
-        } else if ( delay > 500 ) {
-          // CHECKME we can auto-resize here
-          console.log("jump stopped - timeout")
-          this.character.standUp();
-          this.jumping = null;
-        } else {
-          this.character.jump(cameraPos - this.maxCameraPos);
-        }
-      } else if ( cameraPos > this.maxCameraPos && Math.abs(speed) > 1 ) {
-        // CHECKME speed is not really important here
-        this.character.jump(cameraPos - this.maxCameraPos);
-        this.jumping = Date.now();
-        console.log("jump starting")
-      } else {
-        // ignoring anything less than 1mm
-        if ( delta > 0.001 ) {
-          this.character.rise(delta);
-        } else if ( delta < -0.001 ) {
-          this.character.crouch(-delta);
-        }
-      }
-
-    } else {
-      this.maxCameraPos = cameraPos;
+  calcControllerPos( arm, xrController ) {
+    arm.pointerQuat = xrController.pointer.rotationQuaternion;
+    var cameraPos = this.vrHelper.camera().position;
+    // this calc swaps front-back, like mirror image
+    var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
+    if ( this.mirror ) {
+      pos.z = - pos.z;
     }
-    this.prevCameraPos = cameraPos;
+    return pos;
   }
   
   calcCameraTarget() {
     var cameraQuat = this.vrHelper.camera().rotationQuaternion;
     var target = new BABYLON.Vector3(0,this.vrHelper.camera().realWorldHeight,1);
     target.rotateByQuaternionAroundPointToRef(cameraQuat,this.character.headPos(),target);
-    if ( mirror ) {
+    if ( this.mirror ) {
       target.z = -target.z;
     }
     return target;
   }
 
-  calcControllerPos( arm, xrController ) {
-    var cameraPos = this.vrHelper.camera().position;
-    // this calc swaps front-back, like mirror image
-    var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
-    var armLength = arm.lowerArmLength+arm.upperArmLength;
-    if ( mirror ) {
-      pos.z = - pos.z;
-    }
-
-    var pointerQuat = xrController.pointer.rotationQuaternion;
-    arm.pointerQuat = pointerQuat;
-
-    return pos;
-  }
-  
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
     VRSPACEUI.listMatchingFiles( VRSPACEUI.contentBase+'/content/char/', (folders) => {
@@ -223,9 +178,9 @@ export class AvatarSelection extends World {
     var loaded = new Avatar(this.scene, dir, this.shadowGenerator);
     // resize the character to real-world height
     if ( this.inXR) {
-      userHeight = this.vrHelper.camera().realWorldHeight;
+      this.userHeight = this.vrHelper.camera().realWorldHeight;
     }
-    loaded.userHeight = userHeight;
+    loaded.userHeight = this.userHeight;
     loaded.animateArms = false;
     //loaded.debug = true;
     loaded.load( (c) => {
@@ -294,12 +249,12 @@ export class AvatarSelection extends World {
     resizeButton.onPointerDownObservable.add( () => {
       if ( this.inXR ) {
         this.tracking = false;
-        userHeight = this.vrHelper.camera().realWorldHeight;
-        console.log("Resizing to "+userHeight);
-        this.character.userHeight = userHeight;
+        this.userHeight = this.vrHelper.camera().realWorldHeight;
+        console.log("Resizing to "+this.userHeight);
+        this.character.userHeight = this.userHeight;
         this.character.standUp(); // CHECKME: move to resize()?
         this.character.resize();
-        this.maxCameraPos = null;
+        this.character.maxUserHeight = null;
         this.tracking = true;
       }
     });
@@ -316,11 +271,11 @@ export class AvatarSelection extends World {
         // TODO: rotate character, (un)set mirror var
         if ( mirrorButton.text == "Mirroring" ) {
           mirrorButton.text = "Copying";
-          mirror = false;
+          this.mirror = false;
           this.character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, 0);
         } else {
           mirrorButton.text = "Mirroring";
-          mirror = true;
+          this.mirror = true;
           this.character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI);
         }
     });
@@ -394,9 +349,9 @@ export class AvatarSelection extends World {
           this.vrHelper.addFloors();
         }
         this.worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
-        var myProperties = { 
+        var myProperties = {
           mesh:avatarUrl, 
-          userHeight:userHeight, 
+          userHeight:this.userHeight, 
           // send custom shared transient properties like this:
           properties:{string:'string', number:123.456}
         };
@@ -438,6 +393,7 @@ export class AvatarSelection extends World {
           // for some reason, this sets Y to 0:
           this.vrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
           this.vrHelper.camera().position.y = world.WORLD.camera.position.y;
+          this.vrHelper.startTracking();
         } else {
           console.log('New world camera:');
           console.log(world.WORLD.camera);
