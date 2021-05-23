@@ -2064,6 +2064,10 @@ export class WorldManager {
     this.mediaStreams = null;
     /** Optionally called after own avatar property has changed */
     this.changeCallback = null;
+    /** Optionally called after an avatar has loaded. Callback is passed VRObject and avatar object as parameters.
+    Avatar object can be either Avatar or VideoAvatar instance, or an AssetContainer.
+    */
+    this.loadCallback = null;
     /** Avatar factory, default this.createAvatar */
     this.avatarFactory = this.createAvatar;
     /** Default position applied after an avatar loads */
@@ -2254,6 +2258,7 @@ export class WorldManager {
     } else {
       console.log("WARNING: unable to stream to "+obj.id+" - no MediaStreams")
     }
+    this.notifyLoadListeners(obj,video);
   }
   
   /** Load a 3D avatar, attach a listener to it */
@@ -2293,7 +2298,14 @@ export class WorldManager {
       if ( this.mediaStreams ) {
         this.mediaStreams.streamToMesh(obj, obj.container.parentMesh);        
       }
+      this.notifyLoadListeners(obj, avatar);
     });
+  }
+  
+  notifyLoadListeners(obj, avatar) {
+    if ( this.loadCallback ) {
+      this.loadCallback(obj, avatar);
+    }
   }
   
   /** Apply remote changes to an avatar (VRObject listener) */
@@ -2373,6 +2385,7 @@ export class WorldManager {
       if ( this.mediaStreams ) {
         this.mediaStreams.streamToMesh(obj, mesh);        
       }
+      this.notifyLoadListeners(obj, container);
     });
   }
 
