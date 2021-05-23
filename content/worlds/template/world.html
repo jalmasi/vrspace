@@ -52,7 +52,8 @@ import("./world.js").then( (module) =>{
     
     // Step3: now that the scene is created, connect to the server
     // note that you can load all scripts from demo server
-    import('//www.vrspace.org/babylon/vrspace-ui.js').then(ui => {
+    //import('//www.vrspace.org/babylon/vrspace-ui.js').then(ui => {
+    import('/babylon/vrspace-ui.js').then(ui => {
       var net = new ui.WorldManager(world);
       
       // OPTIONAL set your own framerate (default is 5)
@@ -68,6 +69,12 @@ import("./world.js").then( (module) =>{
       // RECOMMENDED: set world name
       // all users in the same world share same events
       world.name = 'CHANGEME';
+      
+      // OPTIONAL:
+      // called when an avatar loads, post-process it here
+      net.loadCallback = (obj, avatar) => {
+        console.log('Loaded avatar of user '+obj.id+' from '+obj.mesh, avatar);
+      };
       
       // connect, set own avatar and start the session
       net.enter({
