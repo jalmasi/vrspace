@@ -158,11 +158,13 @@ thanks folks!
       world.worldManager.sendMy({wrote:e.target.value});
       chatLog("ME", e.target.value);
       e.target.value = '';
-      canvas.focus();
+      //canvas.focus();
     });
 
     document.getElementById('chatInput').addEventListener('focus', (e)=>{
       document.getElementById('chatLog').style.display = 'block';
+      var div = document.getElementById('chatLog');
+      clearChatLog(div.children[div.children.length-1]);
     });
     document.getElementById('chatInput').addEventListener('blur', (e)=>{
       document.getElementById('chatLog').style.display = 'none';
@@ -242,7 +244,15 @@ thanks folks!
     var div = document.createElement("div");
     div.innerHTML = text;
     div.style="color: white;";
-    document.getElementById('chatLog').appendChild(div);    
+    document.getElementById('chatLog').appendChild(div);
+    clearChatLog(div);
+  }
+  
+  function clearChatLog( div ) {
+    var log = document.getElementById('chatLog');
+    while ( div.getBoundingClientRect().bottom > log.getBoundingClientRect().bottom) {
+      log.removeChild(log.children[1]);
+    }    
   }
   
   //prevent arrow keys and space from scroling the page
@@ -275,7 +285,7 @@ thanks folks!
   </div>
 
   <div id="chatLog" style="position: absolute; margin-left: 10%; top: 80px; width:80%; height:70%; display: none; background-color: rgba(63, 63, 63, 0.5);" >
-     <div style="color: white;">abcd</div>
+     <div style="color: white;">Chat Log</div>
   </div>
 
 </body>
