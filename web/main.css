@@ -53,10 +53,10 @@ li a {
   display: block;
   color: white;
   text-align: center;
-  padding: 16px;
+  padding: 4px;
   text-decoration: none;
   text-transform: uppercase;
-  font-size: 13px;
+  font-size: 12px;
 }
 .logo {
   line-height: 80px;

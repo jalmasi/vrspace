@@ -8,6 +8,7 @@ thanks folks!
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
   <meta http-equiv="encoding" content="utf-8">
   <meta http-equiv="Content-Language" content="en-US" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   
   <title>VRSpace.org:Home</title>
   
@@ -152,7 +153,10 @@ thanks folks!
     document.getElementById('nickname').addEventListener('input', (e)=>{
       world.setName(e.target.value);
     });
-
+    document.getElementById('nickname').addEventListener('change', (e)=>{
+      canvas.focus();
+    });
+    
     document.getElementById('chatBox').style.display = 'none';
     document.getElementById('chatInput').addEventListener('change', (e)=>{
       world.worldManager.sendMy({wrote:e.target.value});
@@ -217,6 +221,7 @@ thanks folks!
   
   //Watch for browser/canvas resize events
   var resizing = false;
+  var tmp = window.devicePixelRatio;
   window.addEventListener("resize", () => {
     if ( ! resizing ) {
       // resize engine after browser has resized
@@ -300,14 +305,14 @@ thanks folks!
   
   </script>
 
-  <div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
-    <label for="nickname">Name:</label>
-    <input id="nickname" type="text">
+  <div id="loginForm" style="position:absolute;bottom:50px;width:100%;text-align:center;">
+    <div>
+      <input id="nickname" type="text" placeholder="Your nick name">
+    </div>
   </div>
   
   <div id="chatBox" style="position:absolute;bottom:50px;left:15%;">
-    <label for="chatInput">Chat:</label>
-    <input id="chatInput" type="text" size=256 style="width:80%;">
+    <input id="chatInput" type="text" size=256 style="width:80%;" placeholder="text chat">
   </div>
 
   <div id="chatLog" style="position: absolute; margin-left: 10%; top: 80px; width:80%; height:70%; display: none; background-color: rgba(63, 63, 63, 0.5);" >
