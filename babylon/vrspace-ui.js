@@ -2064,6 +2064,8 @@ export class WorldManager {
     this.mediaStreams = null;
     /** Optionally called after own avatar property has changed */
     this.changeCallback = null;
+    /** Change listeners receive changes applied to all shared objects */
+    this.changeListeners = [];
     /** Optionally called after an avatar has loaded. Callback is passed VRObject and avatar object as parameters.
     Avatar object can be either Avatar or VideoAvatar instance, or an AssetContainer.
     */
@@ -2343,9 +2345,14 @@ export class WorldManager {
       } else {
         this.routeEvent(obj,field,node);
       }
+      this.notifyListeners( obj, field, node);
     }
   }
 
+  notifyListeners(obj, field, node) {
+    this.changeListeners.forEach( (l) => l(obj,field,node) );
+  }
+  
   /**
   Load an object and attach a listener.
    */
@@ -2437,6 +2444,7 @@ export class WorldManager {
       } else {
         this.routeEvent( obj, field, node );
       }
+      this.notifyListeners( obj, field, node);
     }
   }
   

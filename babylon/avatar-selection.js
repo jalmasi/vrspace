@@ -366,8 +366,8 @@ export class AvatarSelection extends World {
           if ( this.afterEnter ) {
             this.afterEnter(this);
           }
-        }).catch(()=>{
-          console.log("TODO: disconnected");
+        }).catch((e)=>{
+          console.log("TODO: disconnected", e);
           if ( this.afterExit ) {
             this.afterExit(this);
           }

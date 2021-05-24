@@ -28,7 +28,9 @@ thanks folks!
 <body>
 
   <!-- canvas is not focusable by default, tabIndex does that -->
-  <canvas id="renderCanvas" touch-action="none" tabIndex=0></canvas>
+  <div>
+    <canvas id="renderCanvas" touch-action="none" tabIndex=0></canvas>
+  </div>
 
   <header>
       <div>
@@ -46,6 +48,7 @@ thanks folks!
           </nav>
       </div>
   </header>
+
   <div class="version" id="version">version</div>
   <div class="scroll-down"><a href="#about">&nbsp;<i class="fa fa-arrow-down"></i>&nbsp;</a></div>
   <!-- ***** Main Banner Area End ***** -->
@@ -153,8 +156,16 @@ thanks folks!
     document.getElementById('chatBox').style.display = 'none';
     document.getElementById('chatInput').addEventListener('change', (e)=>{
       world.worldManager.sendMy({wrote:e.target.value});
+      chatLog("ME", e.target.value);
       e.target.value = '';
       canvas.focus();
+    });
+
+    document.getElementById('chatInput').addEventListener('focus', (e)=>{
+      document.getElementById('chatLog').style.display = 'block';
+    });
+    document.getElementById('chatInput').addEventListener('blur', (e)=>{
+      document.getElementById('chatLog').style.display = 'none';
     });
 
     var world = module.WORLD;
@@ -171,13 +182,14 @@ thanks folks!
       }
       world.afterEnter = () => {
         document.getElementById('chatBox').style.display = 'block';
+        world.worldManager.changeListeners.push((obj, field, node) => remoteEvent(obj,field,node));
       }
       world.afterExit = () => {
         console.log('Exit:'+world.worldManager.error);
         document.getElementById('loginForm').style.display = 'block';
         document.getElementById('chatBox').style.display = 'none';
         // CHECKME: reload, really?
-        setTimeout(() => document.location.reload(), 5000);
+        //setTimeout(() => document.location.reload(), 5000);
       }
     });
     
@@ -198,7 +210,6 @@ thanks folks!
     }
     xmlHttp.open("GET", "/actuator/info", true); // true for asynchronous
     xmlHttp.send(null);
-    
   
   })
   
@@ -218,6 +229,21 @@ thanks folks!
     }
   });
   
+  
+  function remoteEvent(obj, field, node) {
+    if ( 'wrote' === field ) {
+      console.log(obj.id+' wrote '+obj.wrote);
+      chatLog(obj.name, obj.wrote);
+    }
+  }
+  
+  function chatLog( who, what ) {
+    var text = "["+who+"] "+what;
+    var div = document.createElement("div");
+    div.innerHTML = text;
+    div.style="color: white;";
+    document.getElementById('chatLog').appendChild(div);    
+  }
   
   //prevent arrow keys and space from scroling the page
   //only if webgl canvas is focused
@@ -243,9 +269,13 @@ thanks folks!
     <input id="nickname" type="text">
   </div>
   
-  <div id="chatBox" style="position:absolute;bottom:50px;left:15%">
+  <div id="chatBox" style="position:absolute;bottom:50px;left:15%;">
     <label for="chatInput">Chat:</label>
     <input id="chatInput" type="text" size=256 style="width:80%;">
+  </div>
+
+  <div id="chatLog" style="position: absolute; margin-left: 10%; top: 80px; width:80%; height:70%; display: none; background-color: rgba(63, 63, 63, 0.5);" >
+     <div style="color: white;">abcd</div>
   </div>
 
 </body>
