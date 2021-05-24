@@ -167,7 +167,7 @@ thanks folks!
       clearChatLog(div.children[div.children.length-1]);
     });
     document.getElementById('chatInput').addEventListener('blur', (e)=>{
-      document.getElementById('chatLog').style.display = 'none';
+      setTimeout(() => document.getElementById('chatLog').style.display = 'none', 200);
     });
 
     var world = module.WORLD;
@@ -190,8 +190,8 @@ thanks folks!
         console.log('Exit:'+world.worldManager.error);
         document.getElementById('loginForm').style.display = 'block';
         document.getElementById('chatBox').style.display = 'none';
-        // CHECKME: reload, really?
-        //setTimeout(() => document.location.reload(), 5000);
+        document.getElementById('chatLog').style.display = 'block';
+        chatLog('ERROR', world.worldManager.error);
       }
     });
     
@@ -235,17 +235,43 @@ thanks folks!
   function remoteEvent(obj, field, node) {
     if ( 'wrote' === field ) {
       console.log(obj.id+' wrote '+obj.wrote);
-      chatLog(obj.name, obj.wrote);
+      var name = obj.name;
+      if ( ! name ) {
+        name = 'u'+obj.id;
+      }
+      chatLog(name, obj.wrote);
     }
   }
   
   function chatLog( who, what ) {
-    var text = "["+who+"] "+what;
     var div = document.createElement("div");
+    if ( hasLink(what) ) {
+      // process hyperlinks
+      let string = '';
+      what.split(' ').forEach((word)=>{
+        if ( hasLink(word) ) {
+          word = makeLink(word);
+        }
+        string += word + ' ';
+      });
+      what = string;
+    }
+    var text = "["+who+"] "+what;
     div.innerHTML = text;
     div.style="color: white;";
     document.getElementById('chatLog').appendChild(div);
     clearChatLog(div);
+  }
+  
+  function hasLink(what) {
+    return what.indexOf("://") > -1 || what.indexOf('www.') > -1 ;
+  }
+  function makeLink(word) {
+    var link = word;
+    if ( link.indexOf("://") == -1) {
+      link = "https://"+link;
+    }
+    return '<a target="_blank" href="'+link+'">'+word+'</a> ';
   }
   
   function clearChatLog( div ) {
