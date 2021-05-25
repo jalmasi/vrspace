@@ -35,7 +35,7 @@ export class Farm extends World {
   loaded(file, mesh) {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
     //mesh.scaling = new BABYLON.Vector3(0.1,0.1,0.1);
-    this.scene.getMaterialById("__GLTFLoader._default").backFaceCulling = false;
+    this.scene.getMaterialByID("__GLTFLoader._default").backFaceCulling = false;
   }
   
 }
