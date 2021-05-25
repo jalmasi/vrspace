@@ -36,6 +36,10 @@ export class Farm extends World {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
     //mesh.scaling = new BABYLON.Vector3(0.1,0.1,0.1);
     this.scene.getMaterialByID("__GLTFLoader._default").backFaceCulling = false;
+    if ( this.vrHelper ) {
+      this.ground = this.scene.getMeshByID('EXPORT_ESRI_AERIAL_WM');
+      this.vrHelper.addFloors();
+    }
   }
   
 }
