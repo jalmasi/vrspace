@@ -30,8 +30,8 @@ export class Farm extends World {
     return skybox;
   }
   createPhysics() {
-    this.scene.gravity = new BABYLON.Vector3( 0, -.2, 0 );
-  }  
+    this.scene.gravity = new BABYLON.Vector3( 0, -.05, 0 );
+  }
   loaded(file, mesh) {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
     //mesh.scaling = new BABYLON.Vector3(0.1,0.1,0.1);
