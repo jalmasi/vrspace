@@ -7,8 +7,8 @@ export class Farm extends World {
   }
   async createCamera() {
     // Add a camera to the scene and attach it to the scene
-    this.camera = this.universalCamera(new BABYLON.Vector3(0, 300, 0));
-    this.camera.setTarget(new BABYLON.Vector3(0,300,10));
+    this.camera = this.universalCamera(new BABYLON.Vector3(-414, 150, 438));
+    this.camera.setTarget(new BABYLON.Vector3(-419,150,425));
     this.camera.applyGravity = false;
     this.camera.speed = .5;
   }
@@ -35,6 +35,7 @@ export class Farm extends World {
   loaded(file, mesh) {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
     //mesh.scaling = new BABYLON.Vector3(0.1,0.1,0.1);
+    this.scene.getMaterialById("__GLTFLoader._default").backFaceCulling = false;
   }
   
 }
