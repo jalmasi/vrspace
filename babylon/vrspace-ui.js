@@ -1820,6 +1820,8 @@ export class World {
     camera.keysUp = [38, 87]; // up, W
     camera.keysUpward = [36, 33, 32]; // home, pgup, space
     
+    camera.touchAngularSensitivity = 5000;
+    
     return camera;    
   }
   
