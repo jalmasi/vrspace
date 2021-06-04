@@ -687,7 +687,7 @@ export class LoadProgressIndicator {
     this.totalItems = 0;
     this.currentItem = 0;
     this.zeroRotation = null;
-    this.angle = 0;
+    this.angle = Math.PI;
     /** Debug log flag */
     this.debug = false;
     /** Whether progress of individual items should be tracked.
@@ -700,7 +700,7 @@ export class LoadProgressIndicator {
         indicator.mesh = ui.logo.clone("LoadingProgressIndicator");
         indicator.mesh.scaling.scaleInPlace(0.05);
         indicator.attachTo( indicator.camera );
-        indicator.zeroRotation = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X,Math.PI/2);
+        indicator.zeroRotation = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X,-Math.PI/2);
         indicator.mesh.rotationQuaternion = indicator.zeroRotation;
         indicator.mesh.setEnabled(indicator.totalItems > indicator.currentItem);
         indicator.log("Loaded logo, current progress "+indicator.currentItem+"/"+indicator.totalItems);
@@ -715,7 +715,7 @@ export class LoadProgressIndicator {
   _init() {
     this.totalItems = 0;
     this.currentItem = 0;
-    this.angle = 0;
+    this.angle = Math.PI;
   }
   attachTo(camera) { // FIXME not used
     this.camera = this.scene.activeCamera;
@@ -774,7 +774,7 @@ export class LoadProgressIndicator {
       var loaded = evt.loaded / evt.total;
       this.log("Loaded "+(loaded*100)+"%");
       if ( this.mesh && this.zeroRotation ) {
-        this.angle -= 0.01;
+        this.angle += 0.01;
         this.mesh.rotationQuaternion = this.zeroRotation.multiply( new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,this.angle) );
       }
     } else {
@@ -785,9 +785,9 @@ export class LoadProgressIndicator {
   _update() {
     if ( this.mesh && this.zeroRotation ) {
       if ( this.trackItems ) {
-        this.angle = 2*Math.PI*(1-this.currentItem/this.totalItems);
+        this.angle = Math.PI*(1+this.currentItem/this.totalItems);
       } else {
-        this.angle -= 0.01;
+        this.angle += 0.01;
       }
       this.mesh.rotationQuaternion = this.zeroRotation.multiply( new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,this.angle) );
     }
@@ -1819,6 +1819,8 @@ export class World {
     camera.keysRight = [39, 68]; // right, D
     camera.keysUp = [38, 87]; // up, W
     camera.keysUpward = [36, 33, 32]; // home, pgup, space
+    
+    camera.touchAngularSensitivity = 5000;
     
     return camera;    
   }

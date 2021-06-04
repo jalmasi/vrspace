@@ -1,4 +1,4 @@
-import { World } from '../../../babylon/vrspace-ui.js';
+import { World, RecorderUI } from '../../../babylon/vrspace-ui.js';
 
 export class WorldTemplate extends World {
   // OPTIONAL:
@@ -83,6 +83,11 @@ export class WorldTemplate extends World {
     // welcome contains client object, but it can always also be accessed from elsewhere
     // at this point this.worldManager is available
     console.log("CONNECTED as "+welcome.client.id, this.worldManager.VRSPACE.me);
+    
+    // OPTIONAL development helpers
+    // event recorder records your events and plays them back
+    var recorder = new RecorderUI(this.scene);
+    recorder.showUI()
   }
 
 }
