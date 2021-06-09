@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Welcome;
@@ -30,6 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class SessionManager extends TextWebSocketHandler {
+  // TODO: properties
+  public static final int SEND_TIMEOUT = 1000;
+  public static final int BUFFER_SIZE = 64 * 1024;
+
   private ConcurrentHashMap<String, Client> sessions = new ConcurrentHashMap<String, Client>();
   private ConcurrentHashMap<Long, Client> clients = new ConcurrentHashMap<Long, Client>();
 
@@ -81,7 +86,7 @@ public class SessionManager extends TextWebSocketHandler {
   @Override
   public void afterConnectionEstablished(WebSocketSession session) {
     try {
-      Welcome welcome = worldManager.login(session);
+      Welcome welcome = worldManager.login(new ConcurrentWebSocketSessionDecorator(session, SEND_TIMEOUT, BUFFER_SIZE));
       sessions.put(session.getId(), welcome.getClient());
       clients.put(welcome.getClient().getId(), welcome.getClient());
       welcome.getClient().sendMessage(welcome);
