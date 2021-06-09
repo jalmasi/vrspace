@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.WebSocketMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
@@ -29,7 +29,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 public class CommandTest {
 
   @Mock
-  private WebSocketSession session;
+  private ConcurrentWebSocketSessionDecorator session;
 
   @Mock
   private VRObjectRepository repo;

@@ -13,7 +13,7 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Command;
@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component("world")
 @Slf4j
 public class WorldManager {
-
   @Autowired
   protected ServerConfig config; // used in tests
 
@@ -172,7 +171,7 @@ public class WorldManager {
   }
 
   @Transactional
-  public Welcome login(WebSocketSession session) {
+  public Welcome login(ConcurrentWebSocketSessionDecorator session) {
     Client client = null;
     if (!config.isGuestAllowed() && session.getPrincipal() == null) {
       throw new SecurityException("Unauthorized");

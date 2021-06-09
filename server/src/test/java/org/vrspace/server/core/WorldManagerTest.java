@@ -22,7 +22,7 @@ import org.mockito.Mock;
 import org.neo4j.ogm.session.Session;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.Welcome;
@@ -34,7 +34,7 @@ import org.vrspace.server.obj.World;
 public class WorldManagerTest {
 
   @Mock
-  private WebSocketSession session;
+  private ConcurrentWebSocketSessionDecorator session;
 
   @Mock
   private VRObjectRepository repo;

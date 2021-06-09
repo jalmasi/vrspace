@@ -8,7 +8,7 @@ import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Transient;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 @Owned
 @Slf4j
 public class Client extends VRObject {
-
   @Index(unique = true)
   private String name;
   @Transient
@@ -59,7 +58,7 @@ public class Client extends VRObject {
 
   @JsonIgnore
   @Transient
-  transient private WebSocketSession session;
+  transient private ConcurrentWebSocketSessionDecorator session;
   @JsonIgnore
   @Transient
   transient private Scene scene;
@@ -87,7 +86,7 @@ public class Client extends VRObject {
     this.name = name;
   }
 
-  public Client(WebSocketSession session) {
+  public Client(ConcurrentWebSocketSessionDecorator session) {
     this();
     this.session = session;
   }
@@ -113,9 +112,7 @@ public class Client extends VRObject {
       log.debug(getObjectId() + " Received " + json);
       // TODO this is not thread-safe
       if (session.isOpen()) {
-        synchronized (this) {
-          session.sendMessage(new TextMessage(json));
-        }
+        session.sendMessage(new TextMessage(json));
       } else {
         log.debug("Session closed, message ignored: " + obj);
       }

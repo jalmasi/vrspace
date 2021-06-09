@@ -25,7 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WorldManager;
@@ -51,9 +51,9 @@ public class EventRecorderTest {
   @Mock
   WorldManager worldManager;
   @Mock
-  WebSocketSession recordingSession;
+  ConcurrentWebSocketSessionDecorator recordingSession;
   @Mock
-  WebSocketSession playingSession;
+  ConcurrentWebSocketSessionDecorator playingSession;
   @Captor
   private ArgumentCaptor<WebSocketMessage<?>> message;
 
