@@ -31,7 +31,7 @@ export class WorldTemplate extends World {
     
     // handy function for dynamic script loading
     await VRSPACEUI.loadScriptsToDocument([ 
-      "/babylon/babylon.gridMaterial.min.js"
+      "//www.vrspace.org/babylon/babylon.gridMaterial.min.js"
     ]);
     // handy material
     this.ground.material = new BABYLON.GridMaterial("groundMaterial", this.scene);
