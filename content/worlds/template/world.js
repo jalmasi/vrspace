@@ -8,7 +8,7 @@ export class WorldTemplate extends World {
     // your world file name, defaults to scene.gltf
     this.file='dolphin.glb';
     // your world directory, defaults to location of world script
-    this.baseUrl='/babylon/';
+    this.baseUrl='//www.vrspace.org/babylon/';
   }
   // MANDATORY: you must create at least one camera
   async createCamera() {
