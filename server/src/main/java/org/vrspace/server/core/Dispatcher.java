@@ -76,8 +76,9 @@ public class Dispatcher {
     if (payload == null) {
       // internally generated event
       changes = objectMapper.writeValueAsString(event.getChanges());
-      // TODO generate payload here
+      // generate payload here
       // otherwise every client has to serialize the message all over again
+      event.setPayload(objectMapper.writeValueAsString(event));
     } else {
       // this came over client connection
       // something like

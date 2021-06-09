@@ -93,33 +93,36 @@ public class Client extends VRObject {
 
   @Override
   public void processEvent(VREvent event) {
-    // TODO optimize this:
-    // called like that, every client performs serialization for itself
-    // event should already contain serialized message
-    // dispatcher can do that
-
     if (!event.getSource().isActive()) {
       // stop listening to inactive objects (disconnected clients)
       event.getSource().removeListener(this);
-    } else {
+    } else if (event.getPayload() == null) {
+      // serialize event in the context of client
       sendMessage(event);
+    } else {
+      // event is already serialized by dispatcher
+      sendMessage(event.getPayload());
+    }
+  }
+
+  private void sendMessage(String json) {
+    log.debug(getObjectId() + " Received " + json);
+    if (session.isOpen()) {
+      try {
+        session.sendMessage(new TextMessage(json));
+      } catch (IOException e) {
+        log.warn("Can't send message " + json + ": " + e);
+      } catch (IllegalStateException e) {
+        log.warn("Can't send message " + json + ": " + e);
+      }
+    } else {
+      log.debug("Session closed, message ignored: " + json);
     }
   }
 
   public void sendMessage(Object obj) {
     try {
-      String json = mapper.writeValueAsString(obj);
-      log.debug(getObjectId() + " Received " + json);
-      // TODO this is not thread-safe
-      if (session.isOpen()) {
-        session.sendMessage(new TextMessage(json));
-      } else {
-        log.debug("Session closed, message ignored: " + obj);
-      }
-    } catch (IOException e) {
-      log.warn("Can't send message " + obj + ": " + e);
-    } catch (IllegalStateException e) {
-      log.warn("Can't send message " + obj + ": " + e);
+      sendMessage(mapper.writeValueAsString(obj));
     } catch (Exception e) {
       // I don't see how this can happen, but if it does, make sure it's logged
       log.error("Can't send message " + obj, e);

@@ -66,8 +66,11 @@ public class PersistentEvent extends Entity {
 
   public VREvent getEvent() {
     VREvent ret = new VREvent(this.source);
+    // note that payload contains different client id, one of originally recorder
+    // client, it must not be replayed as it is
+    ret.setPayload(null);
+    // apply original changes to this object
     ret.setChanges(this.changes);
-    ret.setPayload(this.payload);
     return ret;
   }
 
