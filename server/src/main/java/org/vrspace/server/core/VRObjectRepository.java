@@ -23,22 +23,22 @@ import org.vrspace.server.obj.World;
 public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
   static final Logger log = LoggerFactory.getLogger(VRObjectRepository.class);
 
-  @Query("MATCH (o:VRObject{permanent:true})-[r:IN_WORLD]->(w:World) WHERE ID(w)={worldId} RETURN o")
+  @Query("MATCH (o:VRObject{permanent:true})-[r:IN_WORLD]->(w:World) WHERE ID(w)=$worldId RETURN o")
   Set<VRObject> getPermanents(Long worldId);
 
-  @Query("MATCH (o:Entity) WHERE ID(o) = {id} RETURN *")
+  @Query("MATCH (o:Entity) WHERE ID(o) = $id RETURN *")
   <T extends Entity> T get(Class<T> cls, Long id);
 
-  @Query("MATCH (o:Client) WHERE o.name = {name} RETURN o")
+  @Query("MATCH (o:Client) WHERE o.name = $name RETURN o")
   Client getClientByName(String name);
 
-  @Query("MATCH (o:World) WHERE o.name = {name} RETURN o")
+  @Query("MATCH (o:World) WHERE o.name = $name RETURN o")
   World getWorldByName(String name);
 
-  @Query("MATCH (w:World)<-[i:IN_WORLD]-(o:VRObject)-[r:HAS_POSITION]->(p:Point) WHERE ID(w) = {worldId} AND p.x >= {from}.x AND p.y >= {from}.y AND p.z >= {from}.z AND p.x <= {to}.x AND p.y <= {to}.y AND p.z <= {to}.z RETURN o,r,p,i,w")
+  @Query("MATCH (w:World)<-[i:IN_WORLD]-(o:VRObject)-[r:HAS_POSITION]->(p:Point) WHERE ID(w) = $worldId AND p.x >= $from.x AND p.y >= $from.y AND p.z >= $from.z AND p.x <= $to.x AND p.y <= $to.y AND p.z <= $to.z RETURN o,r,p,i,w")
   Set<VRObject> getRange(Long worldId, Point from, Point to);
 
-  @Query("MATCH (o:Entity) WHERE ID(o) = {id} RETURN o")
+  @Query("MATCH (o:Entity) WHERE ID(o) = $id RETURN o")
   <T extends Embedded> T getMember(Class<T> cls, Long id);
 
   default void delete(VRObject o) {
