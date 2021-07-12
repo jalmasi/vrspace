@@ -81,15 +81,9 @@
 		<dependency>
 	    <groupId>org.neo4j</groupId>
 	    <artifactId>neo4j</artifactId>
-	    <version>3.4.18</version>
+	    <version>3.5.29</version>
 		</dependency>
-		<dependency>
-	    <groupId>org.neo4j</groupId>
-	    <artifactId>neo4j-ogm-test</artifactId>
-	    <version>3.1.20</version>
-	    <scope>test</scope>
-		</dependency>
-		
+     
     <!-- audio/video streaming -->
     <dependency>
       <groupId>io.openvidu</groupId>
