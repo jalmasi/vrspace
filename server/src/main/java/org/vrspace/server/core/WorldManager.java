@@ -185,6 +185,9 @@ public class WorldManager {
       }
     } else if (config.isGuestAllowed()) {
       client = clientFactory.createGuestClient(headers);
+      if (client == null) {
+        throw new SecurityException("Guest disallowed");
+      }
       client.setPosition(new Point());
       client.setGuest(true);
       client = db.save(client);
