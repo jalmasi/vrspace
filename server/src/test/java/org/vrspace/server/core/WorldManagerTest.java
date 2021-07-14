@@ -53,6 +53,7 @@ public class WorldManagerTest {
   @Before
   public void setUp() {
     worldManager.config = config;
+    worldManager.clientFactory = new DefaultClientFactory();
     worldManager.init();
     when(repo.getPermanents(any(Long.class))).thenReturn(new HashSet<VRObject>());
     World world = new World("test");
