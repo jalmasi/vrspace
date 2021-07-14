@@ -176,7 +176,6 @@ public class WorldManager {
 
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
-    log.debug("headers", session.getHandshakeHeaders());
     HttpHeaders headers = session.getHandshakeHeaders();
     Client client = null;
     if (session.getPrincipal() != null) {
