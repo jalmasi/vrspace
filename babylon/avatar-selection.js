@@ -1,5 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, VideoAvatar, OpenViduStreams } from './vrspace-ui.js';
-import { Avatar } from './avatar.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, OpenViduStreams } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {

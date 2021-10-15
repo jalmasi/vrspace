@@ -1,4 +1,4 @@
-import { World, RecorderUI } from '../../../babylon/vrspace-ui.js';
+import { World, RecorderUI } from '/babylon/js/vrspace-min.js';
 
 export class WorldTemplate extends World {
   // OPTIONAL:
@@ -31,7 +31,8 @@ export class WorldTemplate extends World {
     
     // handy function for dynamic script loading
     await VRSPACEUI.loadScriptsToDocument([ 
-      "//www.vrspace.org/babylon/babylon.gridMaterial.min.js"
+      //"//www.vrspace.org/babylon/babylon.gridMaterial.min.js"
+      "/babylon/js/lib/babylon.gridMaterial.min.js"
     ]);
     // handy material
     this.ground.material = new BABYLON.GridMaterial("groundMaterial", this.scene);

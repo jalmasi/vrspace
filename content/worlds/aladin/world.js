@@ -1,5 +1,4 @@
-import { World } from '../../../babylon/vrspace-ui.js';
-import { Desert } from '../../../babylon/terrain-desert.js';
+import { World, Desert } from '../../../babylon/js/vrspace-min.js';
 
 //collisions:
 //group296_sand_houses:lambert6_0 - ground

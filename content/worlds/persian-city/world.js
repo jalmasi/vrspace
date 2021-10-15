@@ -1,5 +1,4 @@
-import { World } from '../../../babylon/vrspace-ui.js';
-import { Desert } from '../../../babylon/terrain-desert.js';
+import { World, Desert } from '../../../babylon/js/vrspace-min.js';
 
 export class PersianCity extends World {
   async createGround() {

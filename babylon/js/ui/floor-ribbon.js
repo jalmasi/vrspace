@@ -1,0 +1,381 @@
+/** UI to create floors, see {@link https://www.youtube.com/watch?v=8RxToSgtoko|this youtube video}.
+Start recording, then edit, then save, either as js or json.
+UI Buttons are bound to current camera.
+ */
+export class FloorRibbon {
+  /**
+  @param scene
+  @param size floor size, default 1 m
+  */
+  constructor( scene, size ) {
+    // parameters
+    this.scene = scene;
+    if ( size ) {
+      this.size = size;
+    } else {
+      this.size = 1;
+    }
+    this.decimals = 2;
+    this.floorMaterial = new BABYLON.StandardMaterial("floorMaterial", this.scene);
+    this.floorMaterial.diffuseColor = new BABYLON.Color3(.5, 1, .5);
+    this.floorMaterial.backFaceCulling = false;
+    this.floorMaterial.alpha = 0.5;
+    // state variables
+    this.leftPath = [];
+    this.rightPath = [];
+    this.pathArray = [this.leftPath, this.rightPath];
+    this.left = BABYLON.MeshBuilder.CreateSphere("leftSphere", {diameter: 1}, scene);
+    this.right = BABYLON.MeshBuilder.CreateSphere("rightSphere", {diameter: 1}, scene);
+    this.left.isVisible = false;
+    this.right.isVisible = false;
+    scene.onActiveCameraChanged.add( (s) => this.cameraChanged() );
+    this.recording = false;
+    this.editing = false;
+    this.resizing = false;
+    this.floorCount = 0;
+  }
+  cameraChanged() {
+    console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
+    this.camera = this.scene.activeCamera;
+    this.left.parent = this.camera;
+    this.right.parent = this.camera;
+    this.recordButton.mesh.parent = this.camera;
+    this.editButton.mesh.parent = this.camera;
+    this.jsonButton.mesh.parent = this.camera;
+    this.jsButton.mesh.parent = this.camera;
+  }
+  /** Shows the UI */
+  showUI() {
+    this.camera = this.scene.activeCamera;
+
+    var manager = new BABYLON.GUI.GUI3DManager(this.scene);
+
+    this.recordButton = new BABYLON.GUI.HolographicButton("RecordPath");
+    manager.addControl(this.recordButton);
+    this.recordButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Play.png"; // FIXME: cdn
+    this.recordButton.position = new BABYLON.Vector3(-0.1,-0.1,.5);
+    this.recordButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.recordButton.onPointerDownObservable.add( () => this.startStopCancel());
+
+    this.editButton = new BABYLON.GUI.HolographicButton("EditPath");
+    this.editButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Edit.png"; // FIXME: cdn
+    manager.addControl(this.editButton);
+    this.editButton.position = new BABYLON.Vector3(0,-0.1,.5);
+    this.editButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.editButton.onPointerDownObservable.add( () => this.edit());
+
+    this.jsonButton = new BABYLON.GUI.HolographicButton("SavePathJson");
+    this.jsonButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Download.png"; // FIXME: cdn
+    manager.addControl(this.jsonButton);
+    this.jsonButton.text="JSON";
+    this.jsonButton.position = new BABYLON.Vector3(0.1,-0.1,.5);
+    this.jsonButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.jsonButton.onPointerDownObservable.add( () => this.saveJson());
+
+    this.jsButton = new BABYLON.GUI.HolographicButton("SavePathJs");
+    this.jsButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Download.png"; // FIXME: cdn
+    manager.addControl(this.jsButton);
+    this.jsButton.text="JS";
+    this.jsButton.position = new BABYLON.Vector3(0.2,-0.1,.5);
+    this.jsButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.jsButton.onPointerDownObservable.add( () => this.saveJs());
+
+    this.editButton.isVisible = false;
+    this.jsonButton.isVisible = false;
+    this.jsButton.isVisible = false;
+
+    this.recordButton.mesh.parent = this.camera;
+    this.editButton.mesh.parent = this.camera;
+    this.jsonButton.mesh.parent = this.camera;
+    this.jsButton.mesh.parent = this.camera;
+  }
+  startStopCancel() {
+    if ( this.floorMesh ) {
+      // cancel
+      this.floorMesh.dispose();
+      delete this.floorMesh;
+      this.leftPath = [];
+      this.rightPath = [];
+      this.pathArray = [ this.leftPath, this.rightPath ];
+    } else {
+      this.recording = !this.recording;
+      if ( this.recording ) {
+        // start
+        this.startRecording();
+      } else {
+        // stop
+        this.createPath();
+      }
+    }
+    this.updateUI();
+  }
+  updateUI() {
+    if ( this.recording ) {
+      this.recordButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Pause.png"; // FIXME: cdn
+    } else if ( this.floorMesh) {
+      this.recordButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Undo.png"; // FIXME: cdn
+    } else {
+      this.recordButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Play.png"; // FIXME: cdn
+    }
+    this.editButton.isVisible = !this.recording && this.floorMesh;
+    this.jsonButton.isVisible = !this.recording && this.floorMesh;
+    this.jsButton.isVisible = !this.recording && this.floorMesh;
+  }
+  trackActiveCamera() {
+    var camera = this.scene.activeCamera;
+    if ( camera ) {
+      this.trackCamera(camera);
+    }
+  }
+  startRecording() {
+    this.leftPath = [];
+    this.rightPath = [];
+    this.pathArray = [ this.leftPath, this.rightPath ];
+    this.trackActiveCamera();
+  }
+  trackCamera(camera) {
+    console.log("Tracking camera");
+    if ( camera ) {
+      this.camera = camera;
+    }
+    this.lastX = this.camera.position.x;
+    this.lastZ = this.camera.position.z;
+    this.observer = this.camera.onViewMatrixChangedObservable.add((c) => this.viewChanged(c));
+
+    this.left.parent = camera;
+    this.right.parent = camera;
+    var height = camera.ellipsoid.y*2;
+    if ( this.camera.getClassName() == 'WebXRCamera' ) {
+      var height = this.camera.realWorldHeight;
+    }
+    this.left.position = new BABYLON.Vector3(-1, -height, 0);
+    this.right.position = new BABYLON.Vector3(1, -height, 0);
+  }
+  viewChanged(camera) {
+    if (
+      camera.position.x > this.lastX + this.size ||
+      camera.position.x < this.lastX - this.size ||
+      camera.position.z > this.lastZ + this.size ||
+      camera.position.z < this.lastZ - this.size
+    ) {
+      //console.log("Pos: "+camera.position);
+      //console.log("Pos left: "+this.left.absolutePosition+" right: "+this.right.absolutePosition);
+      this.lastX = camera.position.x;
+      this.lastZ = camera.position.z;
+      if ( this.recording ) {
+        this.leftPath.push( this.left.absolutePosition.clone() );
+        this.rightPath.push( this.right.absolutePosition.clone() );
+      }
+    }
+  }
+  createPath() {
+    if ( this.leftPath.length > 1 ) {
+      this.addToScene();
+    }
+    this.camera.onViewMatrixChangedObservable.remove(this.observer);
+    delete this.observer;
+  }
+  addToScene() {
+    //var floorGroup = new BABYLON.TransformNode("floorGroup");
+    //this.scene.addTransformNode( floorGroup );
+
+    this.floorCount++;
+    var floorMesh = BABYLON.MeshBuilder.CreateRibbon( "FloorRibbon"+this.floorCount, {pathArray: this.pathArray, updatable: true}, this.scene );
+    floorMesh.material = this.floorMaterial;
+    floorMesh.checkCollisions = false;
+    this.floorMesh = floorMesh;
+  }
+  clear(){
+    delete this.floorMesh;
+    this.leftPath = [];
+    this.rightPath = [];
+    this.pathArray = [ this.leftPath, this.rightPath ];
+    this.updateUI();
+  }
+  edit() {
+    if ( ! this.floorMesh ) {
+      return;
+    }
+    this.recordButton.isVisible = this.editing;
+    this.jsonButton.isVisible = this.editing;
+    this.jsButton.isVisible = this.editing;
+    this.editing = !this.editing;
+    if ( this.resizing ) {
+      this.scene.onPointerObservable.remove( this.observer );
+      this.resizing = false;
+      delete this.observer;
+      delete this.pathPoints;
+      delete this.point1;
+      delete this.point2;
+      this.editButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Edit.png"; // FIXME: cdn
+      if ( this.edgeMesh ) {
+        this.edgeMesh.dispose();
+        delete this.edgeMesh;
+      }
+    } else if ( this.editing ) {
+      this.editButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Back.png"; // FIXME: cdn
+      this.editButton.text = "Pick 1";
+      this.resizing = true;
+      this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
+        switch (pointerInfo.type) {
+          case BABYLON.PointerEventTypes.POINTERDOWN:
+            if(pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh == this.floorMesh) {
+              if ( ! this.point1 ) {
+                this.point1 = this.pickClosest(pointerInfo.pickInfo);
+                this.editButton.text = "Pick 2";
+              } else if ( ! this.point2 ) {
+                this.point2 = this.pickClosest(pointerInfo.pickInfo);
+                this.selectEdge();
+                this.editButton.text = "Drag";
+              } else {
+                this.pickedPoint = this.pickClosest(pointerInfo.pickInfo);
+                this.editButton.imageUrl = "/content/icons/tick.png";
+                this.editButton.text = null;
+              }
+            }
+            break;
+          case BABYLON.PointerEventTypes.POINTERUP:
+            delete this.pickedPoint;
+            break;
+          case BABYLON.PointerEventTypes.POINTERMOVE:
+            if ( this.pickedPoint && pointerInfo.pickInfo.pickedMesh == this.floorMesh ) {
+              this.resizeRibbon( pointerInfo.pickInfo.pickedPoint );
+            }
+            break;
+          }
+      });
+    } else if ( this.observer ) {
+      this.editButton.text = null;
+      this.scene.onPointerObservable.remove( this.observer );
+    }
+  }
+  pickClosest( pickInfo ) {
+    var pickedIndex = 0;
+    var pickedLeft = false;
+    var path;
+    var pathPoint;
+    var min = 100000;
+    for ( var i = 0; i < this.leftPath.length; i++ ) {
+      var leftDistance = pickInfo.pickedPoint.subtract( this.leftPath[i] ).length();
+      var rightDistance = pickInfo.pickedPoint.subtract( this.rightPath[i] ).length();
+      if ( leftDistance < min ) {
+        min = leftDistance;
+        pickedLeft = true;
+        pickedIndex = i;
+        path = this.leftPath;
+        pathPoint = this.leftPath[i];
+      }
+      if ( rightDistance < min ) {
+        min = rightDistance;
+        pickedLeft = false;
+        pickedIndex = i;
+        path = this.rightPath;
+        pathPoint = this.rightPath[i];
+      }
+    }
+    var ret = {
+      index: pickedIndex,
+      path: path,
+      left: pickedLeft,
+      pathPoint: pathPoint,
+      point: pickInfo.pickedPoint.clone()
+    };
+    console.log("Picked left: "+pickedLeft+" index: "+pickedIndex+"/"+path.length+" distance: "+min);
+    return ret;
+  }
+  selectEdge() {
+    if ( this.point1.index > this.point2.index ) {
+      var tmp = this.point2;
+      this.point2 = this.point1;
+      this.point1 = tmp;
+    }
+    var points = []
+    for ( var i = this.point1.index; i <= this.point2.index; i++ ) {
+      if ( this.point1.left ) {
+        points.push( this.leftPath[i] );
+      } else {
+        points.push( this.rightPath[i] );
+      }
+    }
+    this.pathPoints = points;
+    if ( this.pathPoints.length > 1 ) {
+      this.edgeMesh = BABYLON.MeshBuilder.CreateLines("FloorEdge", {points: points, updatable: true}, this.scene );
+    } else {
+      this.edgeMesh = BABYLON.MeshBuilder.CreateSphere("FloorEdge", {diameter:0.1}, this.scene);
+      this.edgeMesh.position = this.pathPoints[0];
+    }
+  }
+  resizeRibbon(point) {
+    var diff = point.subtract(this.pickedPoint.point);
+    for (var i = 0; i < this.pathPoints.length; i++ ) {
+      this.pathPoints[i].addInPlace(diff);
+    }
+    this.pickedPoint.point = point.clone();
+    // update the ribbon
+    // seems buggy:
+    //BABYLON.MeshBuilder.CreateRibbon( "FloorRibbon"+this.floorCount, {pathArray: this.pathArray, instance: this.floorMesh});
+    var floorMesh = BABYLON.MeshBuilder.CreateRibbon( "FloorRibbon"+this.floorCount, {pathArray: this.pathArray, updatable: true}, this.scene );
+    floorMesh.material = this.floorMaterial;
+    floorMesh.checkCollisions = false;
+    this.floorMesh.dispose();
+    this.floorMesh = floorMesh;
+    // update the edge
+    if ( this.pathPoints.length > 1 ) {
+      BABYLON.MeshBuilder.CreateLines("FloorEdge", {points: this.pathPoints, instance: this.edgeMesh} );
+    }
+  }
+  saveJson() {
+    var json = this.printJson();
+    this.saveFile('FloorRibbon'+this.floorCount+'.json', json);
+    this.clear();
+  }
+  saveJs() {
+    var js = this.printJs();
+    this.saveFile('FloorRibbon'+this.floorCount+'.js', js);
+    this.clear();
+  }
+  printJson() {
+    var ret = '{"pathArray":\n';
+    ret += "[\n";
+    ret += this.printPathJson(this.leftPath);
+    ret += "\n],[\n";
+    ret += this.printPathJson(this.rightPath);
+    ret += "\n]}";
+    console.log(ret);
+    return ret;
+  }
+  printJs() {
+    var ret = "BABYLON.MeshBuilder.CreateRibbon( 'FloorRibbon"+this.floorCount+"', {pathArray: \n";
+    ret += "[[\n";
+    ret += this.printPathJs(this.leftPath);
+    ret += "\n],[\n";
+    ret += this.printPathJs(this.rightPath);
+    ret += "\n]]}, scene );";
+    console.log(ret);
+    return ret;
+  }
+  printPathJs(path) {
+    var ret = "";
+    for ( var i = 0; i < path.length-1; i++ ) {
+      ret += "new BABYLON.Vector3("+path[i].x.toFixed(this.decimals)+","+path[i].y.toFixed(this.decimals)+","+path[i].z.toFixed(this.decimals)+"),";
+    }
+    ret += "new BABYLON.Vector3("+path[path.length-1].x.toFixed(this.decimals)+","+path[path.length-1].y.toFixed(this.decimals)+","+path[path.length-1].z.toFixed(this.decimals)+")";
+    return ret;
+  }
+  printPathJson(path) {
+    var ret = "";
+    for ( var i = 0; i < path.length-1; i++ ) {
+      ret += "["+path[i].x.toFixed(this.decimals)+","+path[i].y.toFixed(this.decimals)+","+path[i].z.toFixed(this.decimals)+"],";
+    }
+    ret += "["+path[path.length-1].x.toFixed(this.decimals)+","+path[path.length-1].y.toFixed(this.decimals)+","+path[path.length-1].z.toFixed(this.decimals)+"]";
+    return ret;
+  }
+  saveFile(filename, content) {
+    var a = document.createElement('a');
+    var blob = new Blob([content], {'type':'application/octet-stream'});
+    a.href = window.URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+}
+

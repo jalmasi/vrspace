@@ -24,11 +24,12 @@
     </style>﻿
     
     <!-- MANDATORY babylon.js scripts -->
-    <script src="https://preview.babylonjs.com/babylon.js"></script>
-    <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
     <!-- RECOMENDED, OPTIONAL for mobiles -->
-    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="/babylon/js/lib/pep.min.js"></script>
   </head>
 
   <body>
@@ -52,8 +53,7 @@ import("./world.js").then( (module) =>{
     
     // Step3: now that the scene is created, connect to the server
     // note that you can load all scripts from demo server
-    //import('//www.vrspace.org/babylon/vrspace-ui.js').then(ui => {
-    import('/babylon/vrspace-ui.js').then(ui => {
+    import('/babylon/js/vrspace-min.js').then(ui => {
       var net = new ui.WorldManager(world);
       
       // OPTIONAL set your own framerate (default is 5)
