@@ -105,6 +105,11 @@ public class EventRecorder extends Client {
   }
 
   @Override
+  public void processEvent(VREvent event) {
+    sendMessage(event);
+  }
+
+  @Override
   public void sendMessage(Object obj) {
     if (recording) {
       try {
