@@ -24,7 +24,6 @@
     </style>﻿
         <script src="https://cdn.babylonjs.com/babylon.js"></script>
         <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-        <script src="/babylon/js/vrspace-min.js" type="module"></script>
     </head>
   <body>
 
@@ -142,7 +141,7 @@ var startAnimation = function(animationName) {
 }
 
 var replaceAvatar = function() {
-  import('./avatar.js').then( (module) => {
+  import('./js/ui/avatar.js').then( (module) => {
     var index = document.getElementById("avatarName").value;
     var folder = characters[index];
     console.log(folder);

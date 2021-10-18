@@ -1,4 +1,4 @@
-import { VRSPACEUI, World } from './vrspace-ui.js';
+import { VRSPACEUI, World } from './js/vrspace-min.js';
 //TODO refactor this
 export class Avatars extends World {
   async createScene(engine) {
