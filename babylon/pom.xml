@@ -5,15 +5,33 @@
 	<parent>
 		<groupId>org.vrspace</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.2.3-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
+  <packaging>pom</packaging> <!-- prevent creation of target folder -->
 	<artifactId>babylon</artifactId>
 	<name>babylon</name>
 	<description>VRSpace.org Babylon.js client</description>
 
   <build>
     <plugins>
+      <plugin>
+        <!-- clean dist, jsdoc folders -->
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>dist</directory>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+            <fileset>
+              <directory>jsdoc</directory>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+  
       <!-- prevent doing anything during install -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -32,47 +50,43 @@
           </execution>
         </executions>
       </plugin>
-      <!-- run webpack during package phase -->
+      
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
+          <!-- run webpack during package phase -->
           <execution>
             <id>webpack</id>
             <phase>package</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <configuration>
+              <executable>webpack</executable>
+            </configuration>
           </execution>
-        </executions>
-        <configuration>
-          <executable>webpack</executable>
-        </configuration>
-      </plugin>
-      <!-- generate jsdoc during package phase -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <executions>
+          <!-- generate jsdoc during package phase -->
           <execution>
             <id>jsdoc</id>
             <phase>package</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <configuration>
+              <executable>jsdoc</executable>
+              <arguments>
+                <argument>-r</argument>
+                <argument>js/ui</argument>
+                <argument>js/client</argument>
+                <argument>-d</argument>
+                <argument>jsdoc</argument>
+              </arguments>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <executable>jsdoc</executable>
-          <arguments>
-            <argument>vrspace.js</argument>
-            <argument>vrspace-ui.js</argument>
-            <argument>avatar.js</argument>
-            <argument>-d</argument>
-            <argument>jsdoc</argument>
-          </arguments>
-        </configuration>
       </plugin>
+      
     </plugins>
   </build>
 	 

@@ -1,4 +1,4 @@
-import { World, OpenViduStreams } from './vrspace-ui.js'
+import { World, OpenViduStreams } from './js/vrspace-min.js'
 
 export class Dance extends World {
   async createScene(engine) {

@@ -28,7 +28,7 @@ export class Desert {
     world.indicator.add("../../plants/hand_painted_bush/");
 
     VRSPACEUI.loadScriptsToDocument([ 
-      VRSPACEUI.contentBase+"/babylon/perlin.js",
+      VRSPACEUI.contentBase+"/babylon/js/lib/perlin.js",
       "https://cdn.rawgit.com/BabylonJS/Extensions/master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"
     ]).then(() => {
 

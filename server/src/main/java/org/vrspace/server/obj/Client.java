@@ -101,13 +101,13 @@ public class Client extends VRObject {
       sendMessage(event);
     } else {
       // event is already serialized by dispatcher
-      sendMessage(event.getPayload());
+      send(event.getPayload());
     }
   }
 
-  private void sendMessage(String json) {
+  private void send(String json) {
     log.debug(getObjectId() + " Received " + json);
-    if (session.isOpen()) {
+    if (session != null && session.isOpen()) {
       try {
         session.sendMessage(new TextMessage(json));
       } catch (IOException e) {
@@ -116,13 +116,17 @@ public class Client extends VRObject {
         log.warn("Can't send message " + json + ": " + e);
       }
     } else {
-      log.debug("Session closed, message ignored: " + json);
+      log.debug("Session closed: " + session + ", message ignored: " + json);
     }
   }
 
+  // CHECKME both commands and events end up here - split into two methods for
+  // clarity/SoC? Also errors (Map) end up here...
+  // Then again, it may not even be called from processEvent() due to
+  // serialisation optimisation
   public void sendMessage(Object obj) {
     try {
-      sendMessage(mapper.writeValueAsString(obj));
+      send(mapper.writeValueAsString(obj));
     } catch (Exception e) {
       // I don't see how this can happen, but if it does, make sure it's logged
       log.error("Can't send message " + obj, e);

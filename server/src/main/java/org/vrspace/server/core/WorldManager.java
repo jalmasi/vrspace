@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
@@ -62,6 +63,9 @@ public class WorldManager {
 
   @Autowired
   private StreamManager streamManager;
+
+  @Autowired
+  protected ClientFactory clientFactory; // used in tests
 
   private Dispatcher dispatcher;
 
@@ -172,23 +176,28 @@ public class WorldManager {
 
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
+    HttpHeaders headers = session.getHandshakeHeaders();
     Client client = null;
-    if (!config.isGuestAllowed() && session.getPrincipal() == null) {
-      throw new SecurityException("Unauthorized");
-    }
     if (session.getPrincipal() != null) {
-      client = db.getClientByName(session.getPrincipal().getName());
+      client = clientFactory.findClient(session.getPrincipal().getName(), db, headers);
       if (client == null) {
         throw new SecurityException("Unauthorized " + session.getPrincipal().getName());
       }
-      client.setSession(session);
     } else if (config.isGuestAllowed()) {
-      // TODO: introduce ClientFactory
-      client = new Client(session);
+      client = clientFactory.createGuestClient(headers);
+      if (client == null) {
+        throw new SecurityException("Guest disallowed");
+      }
       client.setPosition(new Point());
       client.setGuest(true);
       client = db.save(client);
+    } else {
+      client = clientFactory.handleUnknownClient(headers);
+      if (client == null) {
+        throw new SecurityException("Unauthorized");
+      }
     }
+    client.setSession(session);
     client.setMapper(jackson);
     client.setSceneProperties(sceneProperties.newInstance());
     cache.put(new ID(client), client);

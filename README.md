@@ -4,7 +4,7 @@
 
 1) cd server
 2) mvn clean install
-3) java -jar target/server-0.2.3-SNAPSHOT.jar
+3) java -jar target/server-0.3.0-SNAPSHOT.jar
 4) open http://localhost:8080/babylon/multiuser-test.html with TWO browsers
 
 # Live Demo

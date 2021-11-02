@@ -1,5 +1,4 @@
-import { VRSPACEUI, LoadProgressIndicator } from './vrspace-ui.js';
-import { Avatar } from './avatar.js';
+import { VRSPACEUI, Avatar } from './js/vrspace-min.js';
 import { AvatarSelection } from './avatar-selection.js'
 
 var selectButtons = [];
