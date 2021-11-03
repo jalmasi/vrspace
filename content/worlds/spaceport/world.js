@@ -1,4 +1,4 @@
-import { World, VRSPACEUI } from '/babylon/js/vrspace-min.js';
+import { World } from '../../../babylon/js/vrspace-min.js';
 
 export class Spaceport extends World {
 

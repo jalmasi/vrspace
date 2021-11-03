@@ -1,4 +1,4 @@
-import { World, RecorderUI } from '/babylon/js/vrspace-min.js';
+import { World, RecorderUI } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldTemplate extends World {
   // OPTIONAL:
