@@ -1,4 +1,4 @@
-import { World } from '../../../babylon/vrspace-ui.js';
+import { World } from '../../../babylon/js/vrspace-min.js';
 
 export class Farm extends World {
   constructor() {
