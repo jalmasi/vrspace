@@ -1,4 +1,4 @@
-import { World, OpenViduStreams } from '/babylon/js/vrspace-min.js';
+import { World, OpenViduStreams } from '../../../babylon/js/vrspace-min.js';
 
 export class Classroom extends World {
   async createCamera() {
