@@ -12,67 +12,87 @@
 	<name>web</name>
 	<description>VRSpace.org web</description>
 
-  <build>
-    <plugins>
-      <!-- prevent doing anything during install -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <skipIfEmpty>true</skipIfEmpty>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-install</id>
-            <phase>none</phase>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- copy generated jsdoc/javadoc during package phase -->
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-docs</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
+  <profiles>
+    <profile>
+      <!-- daily business - compile, test, build executable -->
+      <id>build</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      
+      <build>
+        <plugins>
+          <!-- prevent doing anything during install -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
             <configuration>
-              <outputDirectory>./docs</outputDirectory>
-              <overwrite>true</overwrite>
-              <resources>
-                <resource>
-                  <directory>../babylon/jsdoc</directory>
-                  <targetPath>jsdoc</targetPath>
-                </resource>
-                <resource>
-                  <directory>../server/target/site/apidocs</directory>
-                  <targetPath>javadoc</targetPath>
-                </resource>
-              </resources>
+              <skipIfEmpty>true</skipIfEmpty>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- delete previously generated docs during clean phase -->
-      <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>docs</directory>
-              <includes>
-                <include>**</include>
-              </includes>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-install-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-install</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      
+    </profile>
+    
+    <profile>
+      <!-- embed generated javadoc and jsdoc into the web site -->
+      <id>docs</id>
+      <build>
+        <plugins>
+          <!-- delete previously generated docs during clean phase -->
+          <plugin>
+            <artifactId>maven-clean-plugin</artifactId>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>docs</directory>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </fileset>
+              </filesets>
+            </configuration>
+          </plugin>
+          <!-- copy generated jsdoc/javadoc -->
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-docs</id>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>./docs</outputDirectory>
+                  <overwrite>true</overwrite>
+                  <resources>
+                    <resource>
+                      <directory>../babylon/jsdoc</directory>
+                      <targetPath>jsdoc</targetPath>
+                    </resource>
+                    <resource>
+                      <directory>../server/target/site/apidocs</directory>
+                      <targetPath>javadoc</targetPath>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>      
+      </build>
+    </profile>    
+  </profiles>
+  
 </project>

@@ -13,81 +13,97 @@
 	<name>babylon</name>
 	<description>VRSpace.org Babylon.js client</description>
 
-  <build>
-    <plugins>
-      <plugin>
-        <!-- clean dist, jsdoc folders -->
-        <artifactId>maven-clean-plugin</artifactId>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>dist</directory>
-              <followSymlinks>false</followSymlinks>
-            </fileset>
-            <fileset>
-              <directory>jsdoc</directory>
-              <followSymlinks>false</followSymlinks>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
-  
-      <!-- prevent doing anything during install -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-        	<skipIfEmpty>true</skipIfEmpty>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-install</id>
-            <phase>none</phase>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <executions>
-          <!-- run webpack during package phase -->
-          <execution>
-            <id>webpack</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
+  <profiles>
+    <profile>
+      <!-- daily business - compile, test, build executable -->
+      <id>build</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <!-- clean dist, jsdoc folders -->
+            <artifactId>maven-clean-plugin</artifactId>
             <configuration>
-              <executable>webpack</executable>
+              <filesets>
+                <fileset>
+                  <directory>dist</directory>
+                  <followSymlinks>false</followSymlinks>
+                </fileset>
+                <fileset>
+                  <directory>jsdoc</directory>
+                  <followSymlinks>false</followSymlinks>
+                </fileset>
+              </filesets>
             </configuration>
-          </execution>
-          <!-- generate jsdoc during package phase -->
-          <execution>
-            <id>jsdoc</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>jsdoc</executable>
-              <arguments>
-                <argument>-r</argument>
-                <argument>js/ui</argument>
-                <argument>js/client</argument>
-                <argument>-d</argument>
-                <argument>jsdoc</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+          </plugin>
       
-    </plugins>
-  </build>
-	 
+          <!-- prevent doing anything during install -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+              <skipIfEmpty>true</skipIfEmpty>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-install-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-install</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
+    <profile>
+      <!-- generate jsdoc, e.g. for web site -->
+      <id>docs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <!-- run webpack during package phase -->
+              <execution>
+                <id>webpack</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>webpack</executable>
+                </configuration>
+              </execution>
+              <!-- generate jsdoc during package phase -->
+              <execution>
+                <id>jsdoc</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>jsdoc</executable>
+                  <arguments>
+                    <argument>-r</argument>
+                    <argument>js/ui</argument>
+                    <argument>js/client</argument>
+                    <argument>-d</argument>
+                    <argument>jsdoc</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
+  </profiles>
+
 </project>
