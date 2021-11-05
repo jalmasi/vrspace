@@ -157,6 +157,7 @@
           <executions>
             <execution>
               <id>javadoc</id>
+              <phase>package</phase>
               <goals>
                 <goal>javadoc</goal>
               </goals>
