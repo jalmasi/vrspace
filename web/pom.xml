@@ -70,6 +70,7 @@
             <executions>
               <execution>
                 <id>copy-docs</id>
+                <phase>package</phase>
                 <goals>
                   <goal>copy-resources</goal>
                 </goals>
