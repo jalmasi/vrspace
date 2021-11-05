@@ -10,6 +10,10 @@ export class WorldTemplate extends World {
     // your world directory, defaults to location of world script
     this.baseUrl='//www.vrspace.org/babylon/';
   }
+  // OPTIONAL: override this method to customize loading of world mesh(es)
+  // leave it empty if you don't want to load anything
+  //async load(callback) {
+  //}
   // MANDATORY: you must create at least one camera
   async createCamera() {
     // utility function to create UniversalCamera:
