@@ -2,16 +2,16 @@ package org.vrspace.server.dto;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.web.socket.WebSocketMessage;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.VRObjectRepository;
@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+@ExtendWith(MockitoExtension.class)
 public class CommandTest {
 
   @Mock
@@ -53,12 +54,12 @@ public class CommandTest {
     client.setMapper(new ObjectMapper());
     client.setScene(scene);
     client.setSession(session);
-    when(repo.save(any(VRObject.class))).thenReturn(new VRObject(1L));
-    doNothing().when(session).sendMessage(any(WebSocketMessage.class));
   }
 
   @Test
   public void testAdd() throws Exception {
+    when(repo.save(any(VRObject.class))).thenReturn(new VRObject(1L));
+
     Add add = new Add(new VRObject(1, 2, 3), new VRObject(3, 2, 1));
     ClientRequest request = new ClientRequest(client, add);
     println(request);

@@ -65,6 +65,10 @@ public class WorldManager {
   // used in tests
   protected ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
 
+  protected VRObject get(ID id) {
+    return cache.get(id);
+  }
+
   private World defaultWorld;
 
   @PostConstruct

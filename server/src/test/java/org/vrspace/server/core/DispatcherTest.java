@@ -6,8 +6,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
@@ -20,15 +26,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
+@SpringBootTest(classes = JacksonConfig.class)
+@ExtendWith(MockitoExtension.class)
 public class DispatcherTest {
-  private ObjectMapper mapper = new ObjectMapper();
+
+  @Autowired
+  private ObjectMapper mapper;
 
   @Mock
   Client listener;
 
-  Dispatcher dispatcher = new Dispatcher(mapper);
+  Dispatcher dispatcher;
+
+  @BeforeEach
+  public void setUp() {
+    dispatcher = new Dispatcher(mapper);
+  }
 
   @Test
   public void testMergeChanges() throws Exception {
@@ -84,7 +98,9 @@ public class DispatcherTest {
   public void testUnknownField() throws Exception {
     VREvent e = new VREvent(new VRObject(), new Client());
     e.addChange("unknown", 0);
-    assertThrows(UnrecognizedPropertyException.class, () -> dispatcher.dispatch(e));
+    // we actually allow for sending arbitrary events
+    // assertThrows(UnrecognizedPropertyException.class, () ->
+    // dispatcher.dispatch(e));
   }
 
   @Test

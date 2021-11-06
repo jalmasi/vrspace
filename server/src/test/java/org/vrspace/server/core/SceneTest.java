@@ -5,10 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,8 +17,10 @@ import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.SceneProperties;
@@ -29,6 +30,7 @@ import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.Filter;
 import org.vrspace.server.types.ID;
 
+@ExtendWith(MockitoExtension.class)
 public class SceneTest {
 
   @Mock
@@ -52,12 +54,12 @@ public class SceneTest {
 
     SceneProperties props = new SceneProperties();
     Point pos = new Point();
-    when(client.getSceneProperties()).thenReturn(props);
-    when(client.getPosition()).thenReturn(pos);
-    when(world.getRange(any(Client.class), any(Point.class), any(Point.class))).thenReturn(transforms);
-    when(world.getPermanents(any(Client.class))).thenReturn(permanents);
+    lenient().when(client.getSceneProperties()).thenReturn(props);
+    lenient().when(client.getPosition()).thenReturn(pos);
+    lenient().when(world.getRange(any(Client.class), any(Point.class), any(Point.class))).thenReturn(transforms);
+    lenient().when(world.getPermanents(any(Client.class))).thenReturn(permanents);
 
-    doNothing().when(client).sendMessage(message.capture());
+    lenient().doNothing().when(client).sendMessage(message.capture());
   }
 
   @Test

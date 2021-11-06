@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -18,9 +19,11 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,10 +39,12 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
+import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class SessionManagerTest {
 
   @Mock
@@ -47,6 +52,9 @@ public class SessionManagerTest {
 
   @Autowired
   private SessionManager sessionManager;
+
+  @Autowired
+  private WorldManager worldManager;
 
   @Autowired
   private VRObjectRepository repo;
@@ -61,6 +69,7 @@ public class SessionManagerTest {
   private ObjectMapper mapper;
 
   private Client testUser;
+  private Client dbUser;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -70,14 +79,14 @@ public class SessionManagerTest {
 
   private WebSocketSession mockup(WebSocketSession session, String sessionId) throws Exception {
     when(session.getId()).thenReturn(sessionId);
-    when(session.isOpen()).thenReturn(true);
+    lenient().when(session.isOpen()).thenReturn(true);
     doNothing().when(session).sendMessage(message.capture());
     return session;
   }
 
   @AfterEach
   public void tearDown() throws Exception {
-    repo.delete(testUser);
+    repo.nullSafeDelete(dbUser);
     // System.err.println("Database objects after: " + repo.count());
   }
 
@@ -107,6 +116,7 @@ public class SessionManagerTest {
     testUser.setName("tester");
     testUser.setPosition(new Point(1, 2, 3));
     testUser = repo.save(testUser);
+    dbUser = testUser;
   }
 
   private Long login(WebSocketSession session) throws Exception {
@@ -118,6 +128,7 @@ public class SessionManagerTest {
     System.err.println(welcome);
     assertNotNull(welcome.getClient());
     assertNotNull(welcome.getClient().getId());
+    testUser = (Client) worldManager.get(new ID(testUser));
     return welcome.getClient().getId();
   }
 
@@ -241,10 +252,11 @@ public class SessionManagerTest {
     assertEquals(2, addCommand.getObjects().size());
 
     // verify objects exist in the database
-    assertTrue(repo.findById(ids.get(0).values().iterator().next()).isPresent());
-    assertTrue(repo.findById(ids.get(1).values().iterator().next()).isPresent());
+    assertTrue(repo.findById(VRObject.class, ids.get(0).values().iterator().next()).isPresent());
+    assertTrue(repo.findById(VRObject.class, ids.get(1).values().iterator().next()).isPresent());
 
     // verify ownership
+    assertNotNull(testUser.getOwned());
     assertEquals(2, testUser.getOwned().size());
 
     // verify scene members match response to add command
@@ -275,8 +287,8 @@ public class SessionManagerTest {
     verify(session, times(4)).sendMessage(any(TextMessage.class));
 
     // verify object removed from the database
-    assertFalse(repo.findById(ids.get(0).values().iterator().next()).isPresent());
-    assertTrue(repo.findById(ids.get(1).values().iterator().next()).isPresent());
+    assertFalse(repo.findById(VRObject.class, ids.get(0).values().iterator().next()).isPresent());
+    assertTrue(repo.findById(VRObject.class, ids.get(1).values().iterator().next()).isPresent());
 
     // verify ownership
     assertEquals(1, testUser.getOwned().size());

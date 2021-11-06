@@ -60,6 +60,8 @@ public class JacksonConfig {
 
     // JSON date/time proper format:
     builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    // this disables custom events
+    // builder.featuresToEnable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     JavaTimeModule module = new JavaTimeModule();
     module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));

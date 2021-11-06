@@ -3,6 +3,7 @@ package org.vrspace.server.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -20,23 +21,49 @@ import org.vrspace.server.obj.World;
 /**
  * https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#neo4j.repositories
  */
-public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
+public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpaceDB {
   static final Logger log = LoggerFactory.getLogger(VRObjectRepository.class);
 
-  @org.springframework.data.neo4j.repository.query.Query("MATCH (o:VRObject{permanent:true})-[r:IN_WORLD]->(w:World) WHERE ID(w)=$worldId RETURN o")
+  @Override
+  default Optional<Entity> findById(Long id) {
+    throw new UnsupportedOperationException("This doesn't work, use findById(Class<T> cls, Long id) instead");
+  }
+
+  @Override
+  default void deleteById(Long id) {
+    throw new UnsupportedOperationException("This doesn't work, use deleteById(Class<T> cls, Long id) instead");
+  }
+
+  @Query("MATCH (o:VRObject{permanent:true})-[r:IN_WORLD]->(w:World) WHERE ID(w)=$worldId RETURN o")
   Set<VRObject> getPermanents(Long worldId);
 
-  @Query("MATCH (o:Entity) WHERE ID(o) = $id RETURN *")
-  <T extends Entity> T get(Class<T> cls, Long id);
+  // this returns shallow object - does not retrieve members
+  // @Query("MATCH (o) WHERE ID(o) = $id RETURN *")
+  // <T extends Entity> T get(Long id);
 
-  @Query("MATCH (o:Client) WHERE o.name = $name RETURN o")
-  Client getClientByName(String name);
+  default Client getClient(Long id) {
+    return get(Client.class, id);
+  }
+
+  // @Query("MATCH (o:Client) WHERE o.name = $name RETURN *")
+  // Client getClientByName(String name);
 
   @Query("MATCH (o:World) WHERE o.name = $name RETURN o")
   World getWorldByName(String name);
 
-  @Query("MATCH (w:World)<-[i:IN_WORLD]-(o:VRObject)-[r:HAS_POSITION]->(p:Point) WHERE ID(w) = $worldId AND p.x >= $from.x AND p.y >= $from.y AND p.z >= $from.z AND p.x <= $to.x AND p.y <= $to.y AND p.z <= $to.z RETURN o,r,p,i,w")
-  Set<VRObject> getRange(Long worldId, Point from, Point to);
+  default Set<VRObject> getRange(Long worldId, Point from, Point to) {
+    return getRange(worldId, from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
+  }
+
+  @Query("MATCH (w:World)<-[i:IN_WORLD]-(o:VRObject)-[r:HAS_POSITION]->(p:Point) WHERE ID(w) = $worldId AND p.x >= $x1 AND p.y >= $y1 AND p.z >= $z1 AND p.x <= $x2 AND p.y <= $y2 AND p.z <= $z2 RETURN o,r,p,i,w")
+  Set<VRObject> getRange(Long worldId, double x1, double y1, double z1, double x2, double y2, double z2);
+
+  default Set<Point> getPoints(Point from, Point to) {
+    return getPoints(from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
+  }
+
+  @Query("MATCH (p:Point) WHERE p.x >= $x1 AND p.y >= $y1 AND p.z >= $z1 AND p.x <= $x2 AND p.y <= $y2 AND p.z <= $z2 RETURN p")
+  Set<Point> getPoints(double x1, double y1, double z1, double x2, double y2, double z2);
 
   @Query("MATCH (o:Entity) WHERE ID(o) = $id RETURN o")
   <T extends Embedded> T getMember(Class<T> cls, Long id);
@@ -47,7 +74,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
     } catch (Exception e) {
       log.error("Cannot delete members of " + o.getClass().getSimpleName() + " " + o.getId(), e);
     }
-    deleteById(o.getId());
+    deleteById(o.getClass(), o.getId());
   }
 
   default void deleteMembers(Class<?> cls, VRObject obj) throws NoSuchMethodException, SecurityException,
@@ -61,7 +88,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
         Embedded e = (Embedded) getter.invoke(obj);
         if (e != null && e.getId() != null) {
           log.debug("Deleting " + f.getName() + " of " + obj.getClass().getSimpleName() + " " + obj.getId());
-          deleteById(e.getId());
+          deleteById(e.getClass(), e.getId());
         }
       }
     }
@@ -69,7 +96,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
 
   default void nullSafeDelete(Entity e) {
     if (e != null && e.getId() != null) {
-      deleteById(e.getId());
+      deleteById(e.getClass(), e.getId());
     }
   }
 }

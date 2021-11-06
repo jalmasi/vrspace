@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Entity {
+public abstract class Entity {
   @Id
   @GeneratedValue
   @EqualsAndHashCode.Include
