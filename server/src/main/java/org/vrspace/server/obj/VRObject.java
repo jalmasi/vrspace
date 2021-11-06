@@ -35,7 +35,7 @@ public class VRObject extends Entity {
 
   @JsonIgnore
   @Relationship(type = "IN_WORLD", direction = Relationship.Direction.OUTGOING)
-  // @Index // TODO
+  // @Index - NeoConfig creates it
   private World world;
 
   @JsonMerge

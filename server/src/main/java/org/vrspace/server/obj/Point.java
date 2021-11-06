@@ -12,11 +12,11 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString(callSuper = false)
 public class Point extends Embedded {
-  // @Index // TODO
+  // @Index - created in NeoConfig
   private double x;
-  // @Index // TODO
+  // @Index
   private double y;
-  // @Index // TODO
+  // @Index
   private double z;
 
   public Point(Point position) {

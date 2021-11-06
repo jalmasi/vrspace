@@ -24,7 +24,7 @@ import lombok.ToString;
 @Node
 @ToString(callSuper = true)
 public class World extends Entity {
-  // @Index(unique = true) // TODO
+  // @Index(unique = true) - NeoConfig creates it
   @NonNull
   private String name;
   // there can be only one

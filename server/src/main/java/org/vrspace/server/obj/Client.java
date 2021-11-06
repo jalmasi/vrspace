@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Owned
 @Slf4j
 public class Client extends VRObject {
-  // @Index(unique = true) // TODO create index
+  // @Index(unique = true) - NeoConfig creates it
   private String name;
   @Transient
   transient private Point leftArmPos;

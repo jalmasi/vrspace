@@ -54,6 +54,12 @@ public class NeoConfig {
         .setConfig(HttpConnector.enabled, neoUri.startsWith("http:")).build();
     graphDb = managementService.database("neo4j");
     registerShutdownHook(managementService);
+
+    // and now indexes
+    graphDb.executeTransactionally("CREATE CONSTRAINT worldName IF NOT EXISTS ON (w:World) ASSERT w.name IS UNIQUE");
+    graphDb.executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS ON (c:Client) ASSERT c.name IS UNIQUE");
+    graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.world)");
+    graphDb.executeTransactionally("CREATE INDEX pointCoord IF NOT EXISTS FOR (p:Point) ON (p.x, p.y, p.z)");
   }
 
   private static void registerShutdownHook(final DatabaseManagementService managementService) {
