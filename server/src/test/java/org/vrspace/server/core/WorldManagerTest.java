@@ -1,9 +1,10 @@
 package org.vrspace.server.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -14,13 +15,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.neo4j.ogm.session.Session;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.config.ServerConfig;
@@ -30,7 +28,6 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
-@RunWith(SpringRunner.class)
 public class WorldManagerTest {
 
   @Mock
@@ -40,9 +37,6 @@ public class WorldManagerTest {
   private VRObjectRepository repo;
 
   @Mock
-  private Session neo4jSession;
-
-  @Mock
   private StreamManager streamManager;
 
   ServerConfig config = new ServerConfig();
@@ -50,7 +44,7 @@ public class WorldManagerTest {
   @InjectMocks
   WorldManager worldManager;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     worldManager.config = config;
     worldManager.clientFactory = new DefaultClientFactory();
@@ -76,10 +70,10 @@ public class WorldManagerTest {
     // TODO: assert client/scene sanity
   }
 
-  @Test(expected = SecurityException.class)
+  @Test
   public void testGuestDisabled() throws Exception {
     config.setGuestAllowed(false);
-    worldManager.login(session);
+    assertThrows(SecurityException.class, () -> worldManager.login(session));
   }
 
   @Test

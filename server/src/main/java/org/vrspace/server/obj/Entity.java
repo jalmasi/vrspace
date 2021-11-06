@@ -1,7 +1,7 @@
 package org.vrspace.server.obj;
 
-import org.neo4j.ogm.annotation.GeneratedValue;
-import org.neo4j.ogm.annotation.Id;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,9 +1,9 @@
 package org.vrspace.server.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -15,16 +15,14 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -41,7 +39,6 @@ import org.vrspace.server.obj.World;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class SessionManagerTest {
 
@@ -65,7 +62,7 @@ public class SessionManagerTest {
 
   private Client testUser;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     mockup(this.session, "testSession");
     createTestUser();
@@ -78,7 +75,7 @@ public class SessionManagerTest {
     return session;
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     repo.delete(testUser);
     // System.err.println("Database objects after: " + repo.count());
@@ -255,13 +252,13 @@ public class SessionManagerTest {
     for (Map<String, Long> id : ids) {
       for (VRObject obj : addCommand.getObjects()) {
         if (id.get("VRObject").equals(obj.getId())) {
-          assertNotNull("Object must have position" + obj, obj.getPosition());
+          assertNotNull(obj.getPosition(), "Object must have position" + obj);
           ok++;
           break;
         }
       }
     }
-    assertEquals("Returned VRObject IDs don't match the scene", 2, ok);
+    assertEquals(2, ok, "Returned VRObject IDs don't match the scene");
 
     // verify that scene does not update
     testUser.getScene().update();

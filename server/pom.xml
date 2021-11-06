@@ -74,14 +74,21 @@
 	    <groupId>org.springframework.data</groupId>
 	    <artifactId>spring-data-neo4j</artifactId>
 		</dependency>
+
+    <!-- 
 		<dependency>
 	    <groupId>org.neo4j</groupId>
 	    <artifactId>neo4j-ogm-embedded-driver</artifactId>
+      <version>3.2.27</version>
 		</dependency>
+     -->
 		<dependency>
 	    <groupId>org.neo4j</groupId>
 	    <artifactId>neo4j</artifactId>
-	    <version>3.5.29</version>
+	    <version>4.3.6</version>
+      <!-- 
+      <version>3.5.29</version>
+       -->
 		</dependency>
      
     <!-- audio/video streaming -->

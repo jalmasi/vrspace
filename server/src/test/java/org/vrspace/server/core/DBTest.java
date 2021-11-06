@@ -1,23 +1,20 @@
 package org.vrspace.server.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
@@ -30,8 +27,6 @@ import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DBTest {
 
   @Autowired
@@ -337,11 +332,11 @@ public class DBTest {
     assertEquals(4, o.getRotation().getAngle(), 0.01);
   }
 
-  @Test(expected = DataIntegrityViolationException.class)
+  @Test
   @Transactional
   public void testUniqueIndex() throws Exception {
     repo.save(new Client("test"));
-    repo.save(new Client("test"));
+    assertThrows(DataIntegrityViolationException.class, () -> repo.save(new Client("test")));
   }
 
   @Test

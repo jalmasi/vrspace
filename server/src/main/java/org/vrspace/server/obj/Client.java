@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.neo4j.ogm.annotation.Index;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Transient;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
@@ -26,11 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = false)
-@NodeEntity
+@Node
 @Owned
 @Slf4j
 public class Client extends VRObject {
-  @Index(unique = true)
+  // @Index(unique = true) // TODO create index
   private String name;
   @Transient
   transient private Point leftArmPos;

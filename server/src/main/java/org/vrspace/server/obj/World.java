@@ -1,7 +1,6 @@
 package org.vrspace.server.obj;
 
-import org.neo4j.ogm.annotation.Index;
-import org.neo4j.ogm.annotation.NodeEntity;
+import org.springframework.data.neo4j.core.schema.Node;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,10 +21,10 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@NodeEntity
+@Node
 @ToString(callSuper = true)
 public class World extends Entity {
-  @Index(unique = true)
+  // @Index(unique = true) // TODO
   @NonNull
   private String name;
   // there can be only one

@@ -1,6 +1,6 @@
 package org.vrspace.server.obj;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.clearInvocations;
@@ -14,15 +14,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
@@ -44,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
  * @author joe
  *
  */
-@RunWith(SpringRunner.class)
 @Slf4j
 @SpringBootTest(classes = JacksonConfig.class)
 public class EventRecorderTest {
@@ -65,7 +62,7 @@ public class EventRecorderTest {
   VRObject active = new VRObject(1L, 0, 0, 0, new VRObject(11L).active()).active();
   Client client = new Client();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     when(playingSession.isOpen()).thenReturn(true);
 

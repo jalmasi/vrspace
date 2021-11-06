@@ -7,8 +7,8 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.util.StringUtils;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Embedded;
@@ -23,7 +23,7 @@ import org.vrspace.server.obj.World;
 public interface VRObjectRepository extends Neo4jRepository<Entity, Long> {
   static final Logger log = LoggerFactory.getLogger(VRObjectRepository.class);
 
-  @Query("MATCH (o:VRObject{permanent:true})-[r:IN_WORLD]->(w:World) WHERE ID(w)=$worldId RETURN o")
+  @org.springframework.data.neo4j.repository.query.Query("MATCH (o:VRObject{permanent:true})-[r:IN_WORLD]->(w:World) WHERE ID(w)=$worldId RETURN o")
   Set<VRObject> getPermanents(Long worldId);
 
   @Query("MATCH (o:Entity) WHERE ID(o) = $id RETURN *")

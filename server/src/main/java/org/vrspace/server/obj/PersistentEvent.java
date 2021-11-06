@@ -3,7 +3,7 @@ package org.vrspace.server.obj;
 import java.util.List;
 import java.util.Map;
 
-import org.neo4j.ogm.annotation.NodeEntity;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.Remove;
@@ -21,7 +21,7 @@ import lombok.ToString;
  *
  */
 @Data
-@NodeEntity
+@Node
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = false)
 public class PersistentEvent extends Entity {
