@@ -42,12 +42,15 @@ import lombok.extern.slf4j.Slf4j;
 public class ContentManager {
   @Value("${org.vrspace.adminUI.contentRoot}")
   private String root;
+  @Value("${org.vrspace.adminUI.path}")
+  private String uiPath;
 
   private String getPath(String path) {
-    if (path.length() < "/pub/".length()) {
+    String fullPath = uiPath + "/pub/";
+    if (path.length() < fullPath.length()) {
       path = null;
     } else {
-      path = path.substring(4);
+      path = path.substring(fullPath.length() - 1);
     }
     if (StringUtils.isEmpty(path)) {
       path = root;
@@ -63,8 +66,8 @@ public class ContentManager {
     FileList ret = new FileList();
     String path = getPath(request.getRequestURI());
     ret.setPath(path);
-    log.debug("list " + path);
     File dir = new File(path);
+    log.debug("list " + path + " -> " + dir.getCanonicalPath());
     List<Content> dirs = new ArrayList<Content>();
     List<Content> files = new ArrayList<Content>();
     if (dir.isDirectory()) {
@@ -90,8 +93,8 @@ public class ContentManager {
     FileList ret = new FileList();
     String path = getPath(request.getRequestURI());
     ret.setPath(path);
-    log.debug("get " + path);
     File file = new File(path);
+    log.debug("get " + path + " -> " + file.getCanonicalPath());
     if (file.exists()) {
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
