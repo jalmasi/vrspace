@@ -332,6 +332,7 @@ public class DBTest {
   }
 
   @Test
+  @Transactional
   public void testObjectProperties() {
     VRObject obj = new VRObject();
     Map<String, Object> properties = new HashMap<>();

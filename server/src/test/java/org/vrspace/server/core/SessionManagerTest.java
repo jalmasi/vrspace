@@ -86,7 +86,7 @@ public class SessionManagerTest {
 
   @AfterEach
   public void tearDown() throws Exception {
-    repo.nullSafeDelete(dbUser);
+    repo.delete(dbUser);
     // System.err.println("Database objects after: " + repo.count());
   }
 
