@@ -1,18 +1,17 @@
 package org.vrspace.server.dto;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.socket.WebSocketMessage;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.VRObjectRepository;
@@ -25,7 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CommandTest {
 
   @Mock
@@ -50,17 +49,17 @@ public class CommandTest {
     }
   };
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     client.setMapper(new ObjectMapper());
     client.setScene(scene);
     client.setSession(session);
-    when(repo.save(any(VRObject.class))).thenReturn(new VRObject(1L));
-    doNothing().when(session).sendMessage(any(WebSocketMessage.class));
   }
 
   @Test
   public void testAdd() throws Exception {
+    when(repo.save(any(VRObject.class))).thenReturn(new VRObject(1L));
+
     Add add = new Add(new VRObject(1, 2, 3), new VRObject(3, 2, 1));
     ClientRequest request = new ClientRequest(client, add);
     println(request);
@@ -71,13 +70,13 @@ public class CommandTest {
     verify(scene, times(1)).publishAll(any());
   }
 
-  @Test(expected = SecurityException.class)
+  @Test
   public void testRemoveFail() throws Exception {
     when(scene.get(any(ID.class))).thenReturn(new VRObject(1L));
     isOwner = false;
     Remove remove = new Remove(new VRObject(2L)).removeObject(new VRObject(1L));
     ClientRequest request = new ClientRequest(client, remove);
-    world.dispatch(request);
+    assertThrows(SecurityException.class, () -> world.dispatch(request));
   }
 
   @Test

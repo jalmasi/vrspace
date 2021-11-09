@@ -1,13 +1,11 @@
 package org.vrspace.server.obj;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.junit.jupiter.api.Test;
 
-@RunWith(SpringRunner.class)
 public class VRObjectTest {
 
   // due to the fact that equals and hash code are generated, they can be messed
@@ -38,8 +36,8 @@ public class VRObjectTest {
     assertEquals(o1, t1.getChildren().get(0));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testChildren() throws Exception {
-    new VRObject(1L, new VRObject(1L));
+    assertThrows(IllegalArgumentException.class, () -> new VRObject(1L, new VRObject(1L)));
   }
 }

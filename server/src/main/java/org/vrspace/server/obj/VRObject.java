@@ -5,10 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.neo4j.ogm.annotation.Index;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.annotation.Transient;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.types.ID;
 
@@ -28,26 +27,26 @@ import lombok.ToString;
 @JsonInclude(Include.NON_EMPTY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@NodeEntity
+@Node
 @ToString(callSuper = true)
 public class VRObject extends Entity {
 
   private List<VRObject> children;
 
   @JsonIgnore
-  @Relationship(type = "IN_WORLD", direction = Relationship.OUTGOING)
-  @Index
+  @Relationship(type = "IN_WORLD", direction = Relationship.Direction.OUTGOING)
+  // @Index - NeoConfig creates it
   private World world;
 
   @JsonMerge
-  @Relationship(type = "HAS_POSITION", direction = Relationship.OUTGOING)
+  @Relationship(type = "HAS_POSITION", direction = Relationship.Direction.OUTGOING)
   private Point position;
 
   @JsonMerge
   private Rotation rotation;
 
   @JsonMerge
-  @Relationship(type = "HAS_SCALE", direction = Relationship.OUTGOING)
+  @Relationship(type = "HAS_SCALE", direction = Relationship.Direction.OUTGOING)
   private Point scale;
 
   private Boolean permanent;

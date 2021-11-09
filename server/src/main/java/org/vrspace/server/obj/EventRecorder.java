@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.neo4j.ogm.annotation.Transient;
+import org.springframework.data.annotation.Transient;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.Command;

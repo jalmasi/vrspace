@@ -1,7 +1,5 @@
 package org.vrspace.server.obj;
 
-import org.neo4j.ogm.annotation.Index;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,11 +12,11 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString(callSuper = false)
 public class Point extends Embedded {
-  @Index
+  // @Index - created in NeoConfig
   private double x;
-  @Index
+  // @Index
   private double y;
-  @Index
+  // @Index
   private double z;
 
   public Point(Point position) {

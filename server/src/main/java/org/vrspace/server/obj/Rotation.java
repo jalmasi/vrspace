@@ -1,6 +1,6 @@
 package org.vrspace.server.obj;
 
-import org.neo4j.ogm.annotation.NodeEntity;
+import org.springframework.data.neo4j.core.schema.Node;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-@NodeEntity
+@Node
 public class Rotation extends Embedded {
 
   public double x, y, z, angle;

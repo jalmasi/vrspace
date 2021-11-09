@@ -1,14 +1,19 @@
 package org.vrspace.server.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
@@ -21,16 +26,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
-@RunWith(SpringRunner.class)
+@SpringBootTest(classes = JacksonConfig.class)
+@ExtendWith(MockitoExtension.class)
 public class DispatcherTest {
-  private ObjectMapper mapper = new ObjectMapper();
+
+  @Autowired
+  private ObjectMapper mapper;
 
   @Mock
   Client listener;
 
-  Dispatcher dispatcher = new Dispatcher(mapper);
+  Dispatcher dispatcher;
+
+  @BeforeEach
+  public void setUp() {
+    dispatcher = new Dispatcher(mapper);
+  }
 
   @Test
   public void testMergeChanges() throws Exception {
@@ -42,7 +54,7 @@ public class DispatcherTest {
     ObjectReader reader = mapper.readerForUpdating(t);
     reader.readValue("{\"position\":{\"x\":2}}");
     printJson(t);
-    Assert.assertEquals(2.0, t.getPosition().getX(), 0.01);
+    assertEquals(2.0, t.getPosition().getX(), 0.01);
 
     VREvent e = new VREvent(t, new Client());
     e.addChange("position", new Point(1, 0, 0));
@@ -51,7 +63,7 @@ public class DispatcherTest {
     dispatcher.dispatch(e);
 
     printJson(t);
-    Assert.assertEquals(1.0, t.getPosition().getX(), 0.01);
+    assertEquals(1.0, t.getPosition().getX(), 0.01);
   }
 
   @Test
@@ -63,44 +75,46 @@ public class DispatcherTest {
     e.addChange("x", 2);
     dispatcher.dispatch(e);
     printJson(t);
-    Assert.assertEquals(2.0, t.getPosition().getX(), 0.01);
-    Assert.assertEquals(1.0, t.getPosition().getY(), 0.01);
+    assertEquals(2.0, t.getPosition().getX(), 0.01);
+    assertEquals(1.0, t.getPosition().getY(), 0.01);
     // CHECKME: do we need to merge member objects?
-    // Assert.assertEquals(3.0, t.getZ(), 0.01);
+    // assertEquals(3.0, t.getZ(), 0.01);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testEmptyChanges() throws Exception {
     VREvent e = new VREvent();
-    dispatcher.dispatch(e);
+    assertThrows(IllegalArgumentException.class, () -> dispatcher.dispatch(e));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testChangeId() throws Exception {
     VREvent e = new VREvent();
     e.addChange("id", 101);
-    dispatcher.dispatch(e);
+    assertThrows(IllegalArgumentException.class, () -> dispatcher.dispatch(e));
   }
 
-  @Test(expected = UnrecognizedPropertyException.class)
+  @Test
   public void testUnknownField() throws Exception {
     VREvent e = new VREvent(new VRObject(), new Client());
     e.addChange("unknown", 0);
-    dispatcher.dispatch(e);
+    // we actually allow for sending arbitrary events
+    // assertThrows(UnrecognizedPropertyException.class, () ->
+    // dispatcher.dispatch(e));
   }
 
-  @Test(expected = MismatchedInputException.class)
+  @Test
   public void testInvalidValueFormat() throws Exception {
     VREvent e = new VREvent(new VRObject(), new Client());
     e.addChange("position", "y");
-    dispatcher.dispatch(e);
+    assertThrows(MismatchedInputException.class, () -> dispatcher.dispatch(e));
   }
 
-  @Test(expected = InvalidFormatException.class)
+  @Test()
   public void testInvalidValue() throws Exception {
     VREvent e = new VREvent(new VRObject(), new Client());
     e.addChange("permanent", "x");
-    dispatcher.dispatch(e);
+    assertThrows(InvalidFormatException.class, () -> dispatcher.dispatch(e));
   }
 
   @Test
@@ -124,8 +138,8 @@ public class DispatcherTest {
     printJson(c);
 
     // verify values are changed
-    Assert.assertEquals(100, c.getSceneProperties().getRange(), 0.01);
-    Assert.assertEquals("client 2", c.getName());
+    assertEquals(100, c.getSceneProperties().getRange(), 0.01);
+    assertEquals("client 2", c.getName());
 
     // verify listeners are notified
     verify(listener, times(1)).processEvent(any(VREvent.class));
@@ -141,14 +155,14 @@ public class DispatcherTest {
     printJson(c);
 
     // verify value changed
-    Assert.assertEquals(300, c.getSceneProperties().getRange(), 0.01);
-    Assert.assertEquals("client 2", c.getName());
+    assertEquals(300, c.getSceneProperties().getRange(), 0.01);
+    assertEquals("client 2", c.getName());
 
     // verify listeners were not notified
     verify(listener, times(1)).processEvent(any(VREvent.class));
   }
 
-  @Test(expected = SecurityException.class)
+  @Test
   public void testOwnedClass() throws Exception {
     Client c1 = new Client(1L);
     Client c2 = new Client(2L);
@@ -160,10 +174,10 @@ public class DispatcherTest {
     req.setSource(c2);
     req.setClient(c1);
 
-    dispatcher.dispatch(req);
+    assertThrows(SecurityException.class, () -> dispatcher.dispatch(req));
   }
 
-  @Test(expected = SecurityException.class)
+  @Test
   public void testOwnedField() throws Exception {
     // dispatcher can't work with anonymous classes but will throw security
     // exception before deserialization attempt
@@ -180,7 +194,7 @@ public class DispatcherTest {
     req.setSource(obj);
     req.setClient(c);
 
-    dispatcher.dispatch(req);
+    assertThrows(SecurityException.class, () -> dispatcher.dispatch(req));
   }
 
   private void printJson(Object whatever) throws Exception {
