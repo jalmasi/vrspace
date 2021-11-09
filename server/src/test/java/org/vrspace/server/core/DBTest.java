@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,6 +42,9 @@ public class DBTest {
 
   @Autowired
   WorldManager worldManager;
+
+  @Autowired
+  WriteBack writeBack;
 
   @Test
   @Transactional
@@ -447,7 +451,65 @@ public class DBTest {
     }
 
     assertEquals(0, classes.size());
+  }
+
+  @Test
+  @Transactional
+  @Disabled("Tests nothing, just prints out timing to be compared with writeback")
+  public void testTiming() throws Exception {
+    VRObject o = new VRObject(0, 0, 0);
+    long start = System.currentTimeMillis();
+    int total = 1000;
+    for (int i = 0; i < total; i++) {
+      long time = System.currentTimeMillis();
+      o.getPosition().setX(i);
+      repo.save(o);
+      System.err.println("saved in " + (System.currentTimeMillis() - time) + " ms");
+    }
+    System.err.println("rate " + total * 1000.0 / (System.currentTimeMillis() - start) + "/s");
+  }
+
+  @Test
+  @Transactional
+  public void testWriteback() throws Exception {
+    assertThrows(IllegalArgumentException.class, () -> writeBack.write(new VRObject(0, 0, 0)));
+
+    VRObject o1 = repo.save(new VRObject(0, 0, 0));
+    VRObject o2 = repo.save(new VRObject(0, 0, 0));
+
+    writeBack.write(o1);
+    waitFor(1000);
+    assertEquals(0, writeBack.size());
+    assertEquals(1L, writeBack.writes());
+
+    long start = System.currentTimeMillis();
+    int total = 10000;
+    for (int i = 0; i < total; i++) {
+      o1.getPosition().setX(i);
+      o2.getPosition().setY(i);
+      writeBack.write(o1);
+      writeBack.write(o2);
+      Thread.yield();
+    }
+    waitFor(1000);
+    assertEquals(0, writeBack.size());
+    System.err.println(
+        "update rate " + total * 1000.0 / (System.currentTimeMillis() - start) + "/s, writes " + writeBack.writes());
+
+    long writes = writeBack.writes();
+    VRObject o3 = repo.save(new VRObject(0, 0, 0));
+    writeBack.write(o3);
+    writeBack.delete(o3);
+    waitFor(1000);
+    assertEquals(writes, writeBack.writes());
 
   }
 
+  private void waitFor(int millis) throws Exception {
+    int sleep = 10;
+    int count = 0;
+    while (writeBack.size() > 0 && ++count < millis / sleep) {
+      Thread.sleep(sleep);
+    }
+  }
 }

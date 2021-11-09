@@ -34,6 +34,9 @@ public class VRObjectTest {
     assertFalse(t1.equals(o1));
 
     assertEquals(o1, t1.getChildren().get(0));
+
+    Client c1 = new Client(1L);
+    assertFalse(c1.equals(o1));
   }
 
   @Test

@@ -68,11 +68,15 @@ public class SessionManagerTest {
   @Autowired
   private ObjectMapper mapper;
 
+  @Autowired
+  private WriteBack writeBack;
+
   private Client testUser;
   private Client dbUser;
 
   @BeforeEach
   public void setUp() throws Exception {
+    writeBack.setActive(false);
     mockup(this.session, "testSession");
     createTestUser();
   }
@@ -86,6 +90,7 @@ public class SessionManagerTest {
 
   @AfterEach
   public void tearDown() throws Exception {
+    // writeBack.delete(dbUser);
     repo.delete(dbUser);
     // System.err.println("Database objects after: " + repo.count());
   }

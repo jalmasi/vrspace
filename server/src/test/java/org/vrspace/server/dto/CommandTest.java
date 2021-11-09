@@ -16,6 +16,7 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
+import org.vrspace.server.core.WriteBack;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.ID;
@@ -32,6 +33,9 @@ public class CommandTest {
 
   @Mock
   private VRObjectRepository repo;
+
+  @Mock
+  private WriteBack writeBack;
 
   @InjectMocks
   private WorldManager world;
@@ -88,7 +92,7 @@ public class CommandTest {
     world.dispatch(request);
 
     verify(repo, times(2)).save(any(Client.class));
-    verify(repo, times(2)).delete(any(VRObject.class));
+    verify(writeBack, times(2)).delete(any(VRObject.class));
     verify(scene, times(1)).unpublish(any());
   }
 

@@ -64,6 +64,9 @@ public class WorldManager {
   @Autowired
   private Neo4jMappingContext mappingContext;
 
+  @Autowired
+  private WriteBack writeBack;
+
   private Dispatcher dispatcher;
 
   protected SessionTracker sessionTracker;
@@ -171,7 +174,7 @@ public class WorldManager {
       throw new SecurityException("Not yours to remove");
     }
     cache.remove(objId);
-    db.delete(obj);
+    writeBack.delete(obj);
     client.removeOwned(obj);
     db.save(client);
   }
@@ -285,13 +288,13 @@ public class WorldManager {
         for (VRObject owned : client.getOwned()) {
           if (owned.isTemporary()) {
             cache.remove(owned.getObjectId());
-            db.delete(owned);
+            writeBack.delete(owned);
             log.debug("Deleted owned temporary " + owned.getObjectId());
           }
         }
       }
       cache.remove(new ID(client));
-      db.delete(client);
+      writeBack.delete(client);
       log.debug("Deleted guest client " + client.getId());
     }
 
@@ -352,11 +355,8 @@ public class WorldManager {
         }
       }
       dispatcher.dispatch(event);
-      // TODO: some kind of write back cache
-      // takes typically 10 ms
-      long time = System.currentTimeMillis();
-      db.save(event.getSource());
-      log.debug(new ID(event.getSource()) + " saved in " + (System.currentTimeMillis() - time) + " ms");
+      // writes takes typically 10+ ms, depending on what's changed, using write-back
+      writeBack.write(event.getSource());
     }
     if (scene != null) {
       scene.update();
