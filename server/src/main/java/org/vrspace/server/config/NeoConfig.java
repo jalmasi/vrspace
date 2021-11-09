@@ -4,52 +4,74 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 
-import org.neo4j.ogm.config.Configuration;
+import org.neo4j.configuration.connectors.BoltConnector;
+import org.neo4j.configuration.connectors.HttpConnector;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Neo4J configuration. Uses embedded database by default, stored under the
- * server directory.
+ * Starts embedded Neo4J with database in directory specified in org.vrspace.db
+ * property - only if the property is set.
  * 
  * @author joe
  *
  */
 @Slf4j
-@Component
+@Configuration
+@ConditionalOnProperty("org.vrspace.db")
 public class NeoConfig {
-  @Value("${spring.data.neo4j.uri:default}")
+  @Value("${org.vrspace.db}")
+  private String dbPath;
+  @Value("${spring.neo4j.uri:bolt://localhost}")
   private String neoUri;
-  @Value("${spring.data.neo4j.auto-index:update}")
-  private String neoAutoIndex;
-  @Value("${spring.data.neo4j.username:N/A}")
-  private String neoUser;
-  @Value("${spring.data.neo4j.password:N/A}")
-  private String neoPassword;
+  GraphDatabaseService graphDb;
 
   @Bean
-  public Configuration config() throws URISyntaxException, IOException {
-    String path = neoUri;
-    Configuration.Builder builder = new Configuration.Builder();
-    if (!"default".equals(path)) {
-      log.info("Configured database uri: " + path);
-      path = path.replace('\\', '/');
-      URI uri = new URI(path);
-      if ("file".equals(uri.getScheme())) {
-        File file = new File(uri.getSchemeSpecificPart());
-        path = "file:///" + file.getCanonicalFile().getAbsolutePath().replace('\\', '/');
-        log.info("Absolute database path: " + path);
-      }
-      builder.uri(path);
-    }
-    builder.autoIndex(neoAutoIndex);
-    if (!"N/A".equals(neoUser)) {
-      builder.credentials(neoUser, neoPassword);
-    }
-    return builder.build();
+  public GraphDatabaseService config() throws URISyntaxException, IOException {
+    String path = dbPath;
+    log.info("Configured database uri: " + path);
+    path = path.replace('\\', '/');
+    URI uri = new URI(path);
+    File file = new File(uri.getSchemeSpecificPart()).getCanonicalFile().getAbsoluteFile();
+    log.info("Absolute database path: " + file);
+    neoStart(file.toPath());
+    return graphDb;
   }
+
+  public void neoStart(Path dbDir) {
+    log.info("Starting database on " + neoUri);
+    DatabaseManagementService managementService = new DatabaseManagementServiceBuilder(dbDir)
+        .setConfig(BoltConnector.enabled, neoUri.startsWith("bolt:"))
+        .setConfig(HttpConnector.enabled, neoUri.startsWith("http:")).build();
+    graphDb = managementService.database("neo4j");
+    registerShutdownHook(managementService);
+
+    // and now indexes
+    graphDb.executeTransactionally("CREATE CONSTRAINT worldName IF NOT EXISTS ON (w:World) ASSERT w.name IS UNIQUE");
+    graphDb.executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS ON (c:Client) ASSERT c.name IS UNIQUE");
+    graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.world)");
+    graphDb.executeTransactionally("CREATE INDEX pointCoord IF NOT EXISTS FOR (p:Point) ON (p.x, p.y, p.z)");
+  }
+
+  private static void registerShutdownHook(final DatabaseManagementService managementService) {
+    // Registers a shutdown hook for the Neo4j instance so that it
+    // shuts down nicely when the VM exits (even if you "Ctrl-C" the
+    // running application).
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        managementService.shutdown();
+      }
+    });
+  }
+
 }

@@ -1,13 +1,13 @@
 package org.vrspace.server.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,12 +15,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.SceneProperties;
@@ -30,7 +30,7 @@ import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.Filter;
 import org.vrspace.server.types.ID;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SceneTest {
 
   @Mock
@@ -44,7 +44,7 @@ public class SceneTest {
   Set<VRObject> transforms = new HashSet<VRObject>();
   Set<VRObject> permanents = new HashSet<VRObject>();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     transforms.add(new VRObject(1L, 0, 0, 0, new VRObject(11L).active()).active());
     transforms.add(new VRObject(2L, 1, 0, 0).passive());
@@ -54,12 +54,12 @@ public class SceneTest {
 
     SceneProperties props = new SceneProperties();
     Point pos = new Point();
-    when(client.getSceneProperties()).thenReturn(props);
-    when(client.getPosition()).thenReturn(pos);
-    when(world.getRange(any(Client.class), any(Point.class), any(Point.class))).thenReturn(transforms);
-    when(world.getPermanents(any(Client.class))).thenReturn(permanents);
+    lenient().when(client.getSceneProperties()).thenReturn(props);
+    lenient().when(client.getPosition()).thenReturn(pos);
+    lenient().when(world.getRange(any(Client.class), any(Point.class), any(Point.class))).thenReturn(transforms);
+    lenient().when(world.getPermanents(any(Client.class))).thenReturn(permanents);
 
-    doNothing().when(client).sendMessage(message.capture());
+    lenient().doNothing().when(client).sendMessage(message.capture());
   }
 
   @Test
@@ -178,10 +178,10 @@ public class SceneTest {
 
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testGetClosestEmpty() throws Exception {
     Scene scene = new Scene(world, client);
-    scene.getClosest(0, 0, 0);
+    assertThrows(NoSuchElementException.class, () -> scene.getClosest(0, 0, 0));
   }
 
   @Test

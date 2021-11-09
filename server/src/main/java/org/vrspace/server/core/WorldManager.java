@@ -1,5 +1,6 @@
 package org.vrspace.server.core;
 
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -8,9 +9,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,16 +56,13 @@ public class WorldManager {
   private ObjectMapper jackson;
 
   @Autowired
-  private Session session;
-
-  @Autowired
-  private SessionFactory sessionFactory;
-
-  @Autowired
   private StreamManager streamManager;
 
   @Autowired
   protected ClientFactory clientFactory; // used in tests
+
+  @Autowired
+  private Neo4jMappingContext mappingContext;
 
   private Dispatcher dispatcher;
 
@@ -73,6 +70,10 @@ public class WorldManager {
 
   // used in tests
   protected ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
+
+  protected VRObject get(ID id) {
+    return cache.get(id);
+  }
 
   private World defaultWorld;
 
@@ -85,9 +86,9 @@ public class WorldManager {
   // CHECKME: should this be here?
   public List<Class<?>> listClasses() {
     // gotta love oneliners :)
-    return sessionFactory.metaData().persistentEntities().stream()
-        .filter(info -> !info.isAbstract() && Entity.class.isAssignableFrom(info.getUnderlyingClass()))
-        .map(i -> i.getUnderlyingClass()).collect(Collectors.toList());
+    return mappingContext.getManagedTypes().stream().filter(
+        info -> !Modifier.isAbstract(info.getType().getModifiers()) && Entity.class.isAssignableFrom(info.getType()))
+        .map(i -> i.getType()).collect(Collectors.toList());
   }
 
   public Set<VRObject> getPermanents(Client client) {
@@ -129,7 +130,8 @@ public class WorldManager {
         return cached;
       } else {
         // FIXME: hard coded depth
-        session.load(o.getClass(), o.getId(), 2);
+        // session.load(o.getClass(), o.getId(), 2);
+        db.get(o.getClass(), o.getId());
         cache.put(id, o);
         return o;
       }

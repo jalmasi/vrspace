@@ -1,19 +1,17 @@
 package org.vrspace.server.core;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.ClientRequest;
@@ -28,7 +26,6 @@ import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = JacksonConfig.class)
 public class JsonTest {
 
@@ -187,9 +184,9 @@ public class JsonTest {
     String jsonRes = mapper.writeValueAsString(res);
     println(jsonRes);
 
-    Assert.assertEquals(json, jsonRes);
+    assertEquals(json, jsonRes);
     if (resultEquals) {
-      Assert.assertEquals(obj, res);
+      assertEquals(obj, res);
     }
     return res;
   }

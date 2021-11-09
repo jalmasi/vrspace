@@ -35,12 +35,17 @@ public class ContentTomcatCustomizer implements WebServerFactoryCustomizer<Tomca
         @Override
         public void customize(Context context) {
           Wrapper defServlet = (Wrapper) context.findChild("default");
-          defServlet.addInitParameter("listings", "true");
-          defServlet.addInitParameter("readOnly", "false");
-          defServlet.addInitParameter("debug", "1");
-          defServlet.addMapping("/content/*");
-          defServlet.addMapping("/babylon/*");
-          defServlet.addMapping("/web/*");
+          if (defServlet == null) {
+            log.info("Server is not serving static content - server.servlet.register-default-servlet disabled");
+          } else {
+            // FIXME
+            defServlet.addInitParameter("listings", "true");
+            defServlet.addInitParameter("readOnly", "false");
+            defServlet.addInitParameter("debug", "1");
+            defServlet.addMapping("/content/*");
+            defServlet.addMapping("/babylon/*");
+            defServlet.addMapping("/web/*");
+          }
         }
       });
     }

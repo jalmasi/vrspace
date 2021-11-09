@@ -1,11 +1,12 @@
 package org.vrspace.server.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,16 +16,16 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -38,11 +39,12 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
+import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class SessionManagerTest {
 
   @Mock
@@ -50,6 +52,9 @@ public class SessionManagerTest {
 
   @Autowired
   private SessionManager sessionManager;
+
+  @Autowired
+  private WorldManager worldManager;
 
   @Autowired
   private VRObjectRepository repo;
@@ -64,8 +69,9 @@ public class SessionManagerTest {
   private ObjectMapper mapper;
 
   private Client testUser;
+  private Client dbUser;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     mockup(this.session, "testSession");
     createTestUser();
@@ -73,14 +79,14 @@ public class SessionManagerTest {
 
   private WebSocketSession mockup(WebSocketSession session, String sessionId) throws Exception {
     when(session.getId()).thenReturn(sessionId);
-    when(session.isOpen()).thenReturn(true);
+    lenient().when(session.isOpen()).thenReturn(true);
     doNothing().when(session).sendMessage(message.capture());
     return session;
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
-    repo.delete(testUser);
+    repo.delete(dbUser);
     // System.err.println("Database objects after: " + repo.count());
   }
 
@@ -110,6 +116,7 @@ public class SessionManagerTest {
     testUser.setName("tester");
     testUser.setPosition(new Point(1, 2, 3));
     testUser = repo.save(testUser);
+    dbUser = testUser;
   }
 
   private Long login(WebSocketSession session) throws Exception {
@@ -121,6 +128,7 @@ public class SessionManagerTest {
     System.err.println(welcome);
     assertNotNull(welcome.getClient());
     assertNotNull(welcome.getClient().getId());
+    testUser = (Client) worldManager.get(new ID(testUser));
     return welcome.getClient().getId();
   }
 
@@ -244,10 +252,11 @@ public class SessionManagerTest {
     assertEquals(2, addCommand.getObjects().size());
 
     // verify objects exist in the database
-    assertTrue(repo.findById(ids.get(0).values().iterator().next()).isPresent());
-    assertTrue(repo.findById(ids.get(1).values().iterator().next()).isPresent());
+    assertTrue(repo.findById(VRObject.class, ids.get(0).values().iterator().next()).isPresent());
+    assertTrue(repo.findById(VRObject.class, ids.get(1).values().iterator().next()).isPresent());
 
     // verify ownership
+    assertNotNull(testUser.getOwned());
     assertEquals(2, testUser.getOwned().size());
 
     // verify scene members match response to add command
@@ -255,13 +264,13 @@ public class SessionManagerTest {
     for (Map<String, Long> id : ids) {
       for (VRObject obj : addCommand.getObjects()) {
         if (id.get("VRObject").equals(obj.getId())) {
-          assertNotNull("Object must have position" + obj, obj.getPosition());
+          assertNotNull(obj.getPosition(), "Object must have position" + obj);
           ok++;
           break;
         }
       }
     }
-    assertEquals("Returned VRObject IDs don't match the scene", 2, ok);
+    assertEquals(2, ok, "Returned VRObject IDs don't match the scene");
 
     // verify that scene does not update
     testUser.getScene().update();
@@ -278,8 +287,8 @@ public class SessionManagerTest {
     verify(session, times(4)).sendMessage(any(TextMessage.class));
 
     // verify object removed from the database
-    assertFalse(repo.findById(ids.get(0).values().iterator().next()).isPresent());
-    assertTrue(repo.findById(ids.get(1).values().iterator().next()).isPresent());
+    assertFalse(repo.findById(VRObject.class, ids.get(0).values().iterator().next()).isPresent());
+    assertTrue(repo.findById(VRObject.class, ids.get(1).values().iterator().next()).isPresent());
 
     // verify ownership
     assertEquals(1, testUser.getOwned().size());

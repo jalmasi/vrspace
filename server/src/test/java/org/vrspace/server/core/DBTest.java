@@ -1,27 +1,28 @@
 package org.vrspace.server.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
-import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.EventRecorder;
 import org.vrspace.server.obj.PersistentEvent;
 import org.vrspace.server.obj.Point;
@@ -30,12 +31,16 @@ import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DBTest {
 
   @Autowired
   VRObjectRepository repo;
+
+  @Autowired
+  Neo4jMappingContext ctx;
+
+  @Autowired
+  WorldManager worldManager;
 
   @Test
   @Transactional
@@ -43,21 +48,21 @@ public class DBTest {
     VRObject obj = new VRObject();
     VRObject saved = repo.save(obj);
     System.err.println(saved);
-    Optional<Entity> retrieved = repo.findById(saved.getId());
+    Optional<VRObject> retrieved = repo.findById(VRObject.class, saved.getId());
     assertTrue(retrieved.isPresent());
     assertEquals(saved, retrieved.get());
 
     saved.addChildren(new VRObject());
     saved = repo.save(saved);
     System.err.println(saved);
-    retrieved = repo.findById(saved.getId());
+    retrieved = repo.findById(VRObject.class, saved.getId());
 
     assertTrue(retrieved.isPresent());
     assertEquals(saved, retrieved.get());
     System.err.println(retrieved.get());
 
     VRObject child = saved.getChildren().get(0);
-    Optional<Entity> retrievedChild = repo.findById(child.getId());
+    Optional<VRObject> retrievedChild = repo.findById(VRObject.class, child.getId());
     System.err.println(retrievedChild.get());
 
     assertTrue(retrievedChild.isPresent());
@@ -68,11 +73,40 @@ public class DBTest {
     c = repo.save(c);
     System.err.println(c);
 
-    Optional<Entity> found = repo.findById(c.getId());
+    Optional<Client> found = repo.findById(Client.class, c.getId());
     System.err.println(found);
 
     assertTrue(found.isPresent());
     assertEquals(c, found.get());
+  }
+
+  // regression test for neo4j/spring upgrade
+  @Test
+  @Transactional
+  public void testPointsInRange() throws Exception {
+    Point p0 = new Point(0, 0, 0);
+    Point p1 = new Point(1, 1, 1);
+    Point p2 = new Point(5, 0, 0);
+
+    p0 = repo.save(p0);
+    p1 = repo.save(p1);
+    p2 = repo.save(p2);
+
+    System.err.println(p0);
+    System.err.println(p1);
+    System.err.println(p2);
+
+    Set<Point> ret = repo.getPoints(new Point(0, 0, 0), new Point(0, 0, 0));
+    System.err.println(ret);
+    assertEquals(1, ret.size());
+
+    ret = repo.getPoints(new Point(-1, -1, -1), new Point(1, 1, 1));
+    System.err.println(ret);
+    assertEquals(2, ret.size());
+
+    ret = repo.getPoints(new Point(-5, -5, -5), new Point(5, 5, 5));
+    System.err.println(ret);
+    assertEquals(3, ret.size());
   }
 
   @Test
@@ -294,13 +328,13 @@ public class DBTest {
     System.err.println(c1);
     System.err.println(c2);
 
-    // tran = session.beginTransaction();
     Client c = repo.getClientByName("clientOne");
     System.err.println(c);
+
     assertEquals(c1, c);
 
-    assertNotNull(c.getChildren());
-    assertEquals(1, c.getChildren().size());
+    assertNotNull(c.getChildren(), "null children");
+    assertEquals(1, c.getChildren().size(), "no children");
 
     c = repo.getClientByName("clientTwo");
     System.err.println(c);
@@ -309,6 +343,7 @@ public class DBTest {
   }
 
   @Test
+  @Transactional
   public void testObjectProperties() {
     VRObject obj = new VRObject();
     Map<String, Object> properties = new HashMap<>();
@@ -330,6 +365,7 @@ public class DBTest {
     o = repo.save(o);
     System.err.println(o);
     o = repo.get(VRObject.class, o.getId());
+
     System.err.println(o);
     assertEquals(1, o.getRotation().getX(), 0.01);
     assertEquals(2, o.getRotation().getY(), 0.01);
@@ -337,11 +373,11 @@ public class DBTest {
     assertEquals(4, o.getRotation().getAngle(), 0.01);
   }
 
-  @Test(expected = DataIntegrityViolationException.class)
+  @Test
   @Transactional
   public void testUniqueIndex() throws Exception {
     repo.save(new Client("test"));
-    repo.save(new Client("test"));
+    assertThrows(DataIntegrityViolationException.class, () -> repo.save(new Client("test")));
   }
 
   @Test
@@ -359,15 +395,15 @@ public class DBTest {
     Long ownedId = c.getOwned().iterator().next().getId();
     Long childId = c.getChildren().get(0).getId();
 
-    assertTrue(repo.findById(pointId).isPresent());
-    assertTrue(repo.findById(ownedId).isPresent());
-    assertTrue(repo.findById(childId).isPresent());
+    assertTrue(repo.findById(Point.class, pointId).isPresent());
+    assertTrue(repo.findById(VRObject.class, ownedId).isPresent());
+    assertTrue(repo.findById(VRObject.class, childId).isPresent());
 
     repo.delete(c);
 
-    assertFalse(repo.findById(pointId).isPresent());
-    assertTrue(repo.findById(ownedId).isPresent());
-    assertTrue(repo.findById(childId).isPresent());
+    assertFalse(repo.findById(Point.class, pointId).isPresent());
+    assertTrue(repo.findById(VRObject.class, ownedId).isPresent());
+    assertTrue(repo.findById(VRObject.class, childId).isPresent());
   }
 
   @Test
@@ -381,7 +417,7 @@ public class DBTest {
     recorder.sendMessage(event);
     recorder = repo.save(recorder);
 
-    EventRecorder found = repo.get(recorder.getClass(), recorder.getId());
+    EventRecorder found = repo.get(EventRecorder.class, recorder.getId());
     assertEquals(recorder, found);
     assertNotNull(recorder.getEvents());
     assertTrue(recorder.getEvents().iterator().hasNext());
@@ -390,6 +426,28 @@ public class DBTest {
     assertNotNull(stored);
     assertNotNull(stored.getId());
     assertEquals(event.getPayload(), stored.getPayload());
+  }
+
+  // CHECKME: better place to test mapping
+  @Test
+  public void testMetadata() throws Exception {
+    List<Class<?>> classes = worldManager.listClasses();
+    System.err.println(classes);
+
+    assertNotNull(classes);
+    assertTrue(classes.size() > 0);
+
+    Collection<TypeInformation<?>> types = ctx.getManagedTypes();
+    System.err.println(types);
+    for (TypeInformation<?> type : types) {
+      Class<?> c = type.getType();
+      if (!Modifier.isAbstract(c.getModifiers())) {
+        classes.remove(c);
+      }
+    }
+
+    assertEquals(0, classes.size());
+
   }
 
 }

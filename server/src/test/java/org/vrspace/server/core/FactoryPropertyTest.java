@@ -2,11 +2,9 @@ package org.vrspace.server.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.vrspace.server.config.FactoryConfig;
 
 /**
@@ -17,7 +15,6 @@ import org.vrspace.server.config.FactoryConfig;
  */
 @SpringBootTest(properties = {
     "org.vrspace.server.clientFactory:org.vrspace.server.core.FactoryPropertyTest$TestClientFactory" }, classes = FactoryConfig.class)
-@RunWith(SpringRunner.class)
 public class FactoryPropertyTest {
   @Autowired
   ClientFactory clientFactory;

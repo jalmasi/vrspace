@@ -1,12 +1,10 @@
 package org.vrspace.server.core;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.junit.jupiter.api.Test;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.Echo;
@@ -17,7 +15,6 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.EventRecorder;
 import org.vrspace.server.obj.VRObject;
 
-@RunWith(SpringRunner.class)
 public class ClassUtilTest {
   @Test
   public void testSubClasses() throws Exception {

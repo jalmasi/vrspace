@@ -3,7 +3,8 @@ package org.vrspace.server.obj;
 import java.util.List;
 import java.util.Map;
 
-import org.neo4j.ogm.annotation.NodeEntity;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.Remove;
@@ -21,7 +22,7 @@ import lombok.ToString;
  *
  */
 @Data
-@NodeEntity
+@Node
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = false)
 public class PersistentEvent extends Entity {
@@ -29,6 +30,7 @@ public class PersistentEvent extends Entity {
   private String type;
   private VRObject source;
   // Neo4j can't store this:
+  @Transient
   private transient Map<String, Object> changes;
   // so we store it converted to JSON string:
   private String payload;
