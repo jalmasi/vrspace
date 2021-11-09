@@ -1,5 +1,6 @@
 package org.vrspace.server.core;
 
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
@@ -58,6 +61,9 @@ public class WorldManager {
   @Autowired
   protected ClientFactory clientFactory; // used in tests
 
+  @Autowired
+  private Neo4jMappingContext mappingContext;
+
   private Dispatcher dispatcher;
 
   protected SessionTracker sessionTracker;
@@ -75,6 +81,14 @@ public class WorldManager {
   public void init() {
     this.dispatcher = new Dispatcher(jackson);
     this.sessionTracker = new SessionTracker(config);
+  }
+
+  // CHECKME: should this be here?
+  public List<Class<?>> listClasses() {
+    // gotta love oneliners :)
+    return mappingContext.getManagedTypes().stream().filter(
+        info -> !Modifier.isAbstract(info.getType().getModifiers()) && Entity.class.isAssignableFrom(info.getType()))
+        .map(i -> i.getType()).collect(Collectors.toList());
   }
 
   public Set<VRObject> getPermanents(Client client) {

@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -15,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
@@ -30,6 +35,12 @@ public class DBTest {
 
   @Autowired
   VRObjectRepository repo;
+
+  @Autowired
+  Neo4jMappingContext ctx;
+
+  @Autowired
+  WorldManager worldManager;
 
   @Test
   @Transactional
@@ -415,6 +426,28 @@ public class DBTest {
     assertNotNull(stored);
     assertNotNull(stored.getId());
     assertEquals(event.getPayload(), stored.getPayload());
+  }
+
+  // CHECKME: better place to test mapping
+  @Test
+  public void testMetadata() throws Exception {
+    List<Class<?>> classes = worldManager.listClasses();
+    System.err.println(classes);
+
+    assertNotNull(classes);
+    assertTrue(classes.size() > 0);
+
+    Collection<TypeInformation<?>> types = ctx.getManagedTypes();
+    System.err.println(types);
+    for (TypeInformation<?> type : types) {
+      Class<?> c = type.getType();
+      if (!Modifier.isAbstract(c.getModifiers())) {
+        classes.remove(c);
+      }
+    }
+
+    assertEquals(0, classes.size());
+
   }
 
 }
