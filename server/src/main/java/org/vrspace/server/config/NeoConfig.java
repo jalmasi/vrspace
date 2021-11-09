@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.configuration.connectors.BoltConnector;
 import org.neo4j.configuration.connectors.HttpConnector;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -50,6 +51,7 @@ public class NeoConfig {
   public void neoStart(Path dbDir) {
     log.info("Starting database on " + neoUri);
     DatabaseManagementService managementService = new DatabaseManagementServiceBuilder(dbDir)
+        .setConfig(GraphDatabaseSettings.allow_upgrade, true)
         .setConfig(BoltConnector.enabled, neoUri.startsWith("bolt:"))
         .setConfig(HttpConnector.enabled, neoUri.startsWith("http:")).build();
     graphDb = managementService.database("neo4j");

@@ -42,6 +42,9 @@ public class WorldManagerTest {
   @Mock
   private StreamManager streamManager;
 
+  @Mock
+  private WriteBack writeBack;
+
   ServerConfig config = new ServerConfig();
 
   @InjectMocks
