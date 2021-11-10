@@ -175,14 +175,28 @@ export class WorldTemplate extends World {
                       }
                   });
                   button.onPointerDownObservable.add( () => {
-                    console.log("TODO: Download "+result.uri);
                     console.log(result);
+                    console.log("TODO: Download "+result.uri+" as "+result.uid);
+                    //this.sketchfabLogin();
+                    fetch("/download?uid="+result.uid).then( () => {
+                      console.log("should be downloaded");
+                    })
                   });
                   
               });
           });
       });
-    
+      
+  }
+  sketchfabLogin() {
+    var clientId = "u9ILgUMHeTRX77rbxPR6OYseVUQrYRD9CoIbNHbK";
+    var redirectUri = "http://localhost:8080/callback";
+    window.open(
+      "https://sketchfab.com/oauth2/authorize/?response_type=code"+
+      "&client_id="+clientId+
+      "&redirect_uri="+redirectUri,
+      "Sketchfab Login"
+    );
   }
 }
 
