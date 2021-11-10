@@ -12,8 +12,10 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.util.StringUtils;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.ContentCategory;
 import org.vrspace.server.obj.Embedded;
 import org.vrspace.server.obj.Entity;
+import org.vrspace.server.obj.GltfModel;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
@@ -99,4 +101,9 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
       deleteById(e.getClass(), e.getId());
     }
   }
+
+  Optional<GltfModel> findGltfModelByUid(String uid);
+
+  Optional<ContentCategory> findContentCategoryByName(String name);
+
 }

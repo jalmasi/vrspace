@@ -1,16 +1,11 @@
 package org.vrspace.server.web;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +20,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.vrspace.server.core.ClassUtil;
+import org.vrspace.server.core.FileUtil;
+import org.vrspace.server.core.VRObjectRepository;
+import org.vrspace.server.obj.ContentCategory;
+import org.vrspace.server.obj.GltfModel;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -39,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SketchfabController {
   @Autowired
   ObjectMapper objectMapper;
+  @Autowired
+  VRObjectRepository db;
 
   // TODO: constants, properties
   private String loginUrl = "https://sketchfab.com/oauth2/token/";
@@ -111,9 +112,25 @@ public class SketchfabController {
   // as explained in
   // https://sketchfab.com/developers/download-api/downloading-models
   @GetMapping("/download")
-  public void download(String uid) {
-    // TODO: if not authorized ( null token ) authorize first
+  public GltfModel download(String uid) {
+    // TODO: if not authorised ( null token ) authorise first
 
+    GltfModel model;
+    Optional<GltfModel> existing = db.findGltfModelByUid(uid);
+    if (existing.isPresent()) {
+      model = existing.get();
+      log.warn("Model already already exists: " + existing.get().getId());
+      File modelFile = new File(
+          ClassUtil.projectHomeDirectory() + "/content/" + model.mainCategory() + "/" + model.getFileName());
+      if (modelFile.exists()) {
+        log.warn("Model directory also exists, exiting: " + modelFile);
+        return model;
+      } else {
+        log.warn("Model directory does not exist, downloading again");
+      }
+    }
+
+    // download request call
     String url = "https://api.sketchfab.com/v3/models/" + uid + "/download";
     RestTemplate restTemplate = new RestTemplate();
     HttpHeaders headers = new HttpHeaders();
@@ -123,57 +140,44 @@ public class SketchfabController {
         DownloadResponse.class);
     log.debug("Download response: " + response);
     FileInfo gltf = response.getBody().getGltf();
-    log.info("Downloading " + gltf.getUrl() + " size " + gltf.getSize());
 
     try {
-      // download
+      // get metadata - categories and stuff
+      model = modelInfo(uid);
+      if (existing.isPresent()) {
+        model.setId(existing.get().getId());
+        log.warn("Overriding existing model data " + model.getId());
+      }
+      String category = model.mainCategory();
+
+      // source file name
       URL fileUrl = new URL(gltf.getUrl());
       String fileName = fileUrl.getPath();
-      fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
-      File file = new File(downloadDir(), fileName);
-      IOUtils.copy(fileUrl, file);
-      log.info("Downloaded to " + file.getCanonicalPath());
-
-      // categories and stuff
-      String category = modelInfo(uid).mainCategory();
-
-      // unzip to content directory
-      String dir = ClassUtil.projectHomeDirectory() + "/content/" + category;
-      Path dest = unzip(file, new File(dir + "/" + fileName.substring(0, fileName.lastIndexOf("."))));
-      log.info("Unzipped to " + dest);
-
-      // TODO database
-    } catch (Exception e) {
-      log.error("Error downloading " + gltf.getUrl(), e);
-    }
-  }
-
-  private File downloadDir() {
-    File dir = new File(System.getProperty("user.home") + "/Downloads");
-    if (!(dir.isDirectory() && dir.canWrite())) {
-      dir = new File(System.getProperty("java.io.tmpdir"));
-    }
-    return dir;
-  }
-
-  public Path unzip(File file, File dir) throws IOException {
-    Path targetDir = dir.toPath().toAbsolutePath();
-    try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(file))) {
-      for (ZipEntry entry; (entry = zipIn.getNextEntry()) != null;) {
-        Path resolvedPath = targetDir.resolve(entry.getName()).normalize();
-        if (!resolvedPath.startsWith(targetDir)) {
-          // see: https://snyk.io/research/zip-slip-vulnerability
-          throw new RuntimeException("Entry with an illegal path: " + entry.getName());
-        }
-        if (entry.isDirectory()) {
-          Files.createDirectories(resolvedPath);
-        } else {
-          Files.createDirectories(resolvedPath.getParent());
-          Files.copy(zipIn, resolvedPath);
-        }
+      fileName = fileName.substring(fileName.lastIndexOf("/") + 1); // includes .zip
+      // destination directory
+      File modelDir = new File(
+          FileUtil.contentDir() + "/" + category + "/" + fileName.substring(0, fileName.lastIndexOf(".")));
+      if (modelDir.exists()) {
+        log.warn("Destination directory already exists, download skipped: " + modelDir);
+      } else {
+        // download
+        log.info("Downloading " + gltf.getUrl() + " size " + gltf.getSize());
+        File file = new File(FileUtil.downloadDir(), fileName);
+        IOUtils.copy(fileUrl, file);
+        log.info("Downloaded to " + file.getCanonicalPath());
+        // unzip to content directory
+        Path dest = FileUtil.unzip(file, modelDir);
+        log.info("Unzipped to " + dest);
       }
+      // store to the database
+      model.setFileName(modelDir.getName());
+      model.setMesh("/content" + model.mainCategory() + "/" + model.getFileName() + "/scene.gltf");
+      db.save(model);
+      log.info("Stored " + model);
+      return model;
+    } catch (Exception e) {
+      throw new RuntimeException("Error downloading " + gltf.getUrl(), e);
     }
-    return targetDir;
   }
 
   @Data
@@ -191,27 +195,8 @@ public class SketchfabController {
     private int expires;
   }
 
-  @Data
-  @NoArgsConstructor
-  public static class ModelInfo {
-    private String uid;
-    private String uri;
-    private String name;
-    private String description;
-    private String license;
-    private String author;
-    private List<String> categories = new ArrayList<String>();
-
-    public String mainCategory() {
-      if (categories.size() == 0) {
-        return "unsorted";
-      }
-      return categories.get(0);
-    }
-  }
-
-  private ModelInfo modelInfo(String uid) throws JsonMappingException, JsonProcessingException {
-    ModelInfo ret = new ModelInfo();
+  private GltfModel modelInfo(String uid) throws JsonMappingException, JsonProcessingException {
+    GltfModel ret = new GltfModel();
 
     RestTemplate restTemplate = new RestTemplate();
     String url = "https://api.sketchfab.com/v3/models/" + uid;
@@ -220,6 +205,7 @@ public class SketchfabController {
 
     Map info = objectMapper.readValue(json, Map.class);
     ret.setUid((String) info.get("uid"));
+    ret.setUri((String) info.get("uri"));
     ret.setName((String) info.get("name"));
     ret.setDescription((String) info.get("description"));
     ret.setLicense((String) ((Map) info.get("license")).get("slug"));
@@ -228,7 +214,15 @@ public class SketchfabController {
     List<Map> categories = (List<Map>) info.get("categories");
     for (Map category : categories) {
       log.debug("Category: " + category.get("slug") + " " + category.get("name"));
-      ret.getCategories().add((String) category.get("slug"));
+      String catName = (String) category.get("slug");
+      Optional<ContentCategory> oCat = db.findContentCategoryByName(catName);
+      if (oCat.isPresent()) {
+        ret.getCategories().add(oCat.get());
+      } else {
+        ContentCategory cat = new ContentCategory(catName);
+        cat = db.save(cat);
+        ret.getCategories().add(cat);
+      }
     }
 
     return ret;

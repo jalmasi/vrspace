@@ -178,9 +178,9 @@ export class WorldTemplate extends World {
                     console.log(result);
                     console.log("TODO: Download "+result.uri+" as "+result.uid);
                     //this.sketchfabLogin();
-                    fetch("/download?uid="+result.uid).then( () => {
-                      console.log("should be downloaded");
-                    })
+                    fetch("/download?uid="+result.uid)
+                      .then(res => res.json())
+                      .then(res => console.log(res));
                   });
                   
               });

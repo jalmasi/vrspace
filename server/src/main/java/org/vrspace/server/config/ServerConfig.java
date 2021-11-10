@@ -31,4 +31,5 @@ public class ServerConfig {
   @Value("${org.vrspace.server.sessionStartTimeout:0}")
   private int sessionStartTimeout;
 
+  // TODO introduce getters for server directories, e.g. content dir
 }
