@@ -4,7 +4,7 @@
   <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
-    <title>VRSpace:World Template</title>
+    <title>VRSpace:World Editor</title>
     ﻿<style type="text/css">
     html, body {
       width: 100%;
@@ -40,8 +40,7 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 var myScene;
 
-// Step 1: load world script
-import("./search-test.js").then( (module) =>{
+import("./world-editor.js").then( (module) =>{
   
   var world = module.WORLD;
 

@@ -171,7 +171,7 @@ public class SketchfabController {
       }
       // store to the database
       model.setFileName(modelDir.getName());
-      model.setMesh("/content" + model.mainCategory() + "/" + model.getFileName() + "/scene.gltf");
+      model.setMesh("/content/" + model.mainCategory() + "/" + model.getFileName() + "/scene.gltf");
       db.save(model);
       log.info("Stored " + model);
       return model;

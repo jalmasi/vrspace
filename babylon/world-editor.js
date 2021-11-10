@@ -1,10 +1,11 @@
-import { World, VRSPACEUI } from './js/vrspace-min.js';
+import { World, VRSPACEUI, WorldManager } from './js/vrspace-min.js';
 
 export class WorldTemplate extends World {
   async load() {
     // we're not loading any models
     // but we're displaying UI instead
     this.makeUI();
+    this.connect();
   }
   async createCamera() {
     // utility function to create UniversalCamera:
@@ -56,7 +57,7 @@ export class WorldTemplate extends World {
   
   makeUI() {
     var anchor = new BABYLON.TransformNode("SearchAnchor");
-    
+
     anchor.position.y = 2;
     var manager = new BABYLON.GUI.GUI3DManager(this.scene);
     this.panel = new BABYLON.GUI.CylinderPanel();
@@ -120,6 +121,59 @@ export class WorldTemplate extends World {
     }
   }
   
+  connect() {
+    new WorldManager(this);
+    //this.worldManager.debug = true; // multi-user debug info
+    //this.worldManager.VRSPACE.debug = true; // network debug info
+
+    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
+    
+    this.worldManager.loadCallback = (object, container) => this.objectLoaded(object,container);    
+  }
+  
+  objectLoaded( vrObject, assetContainer ) {
+    console.log("Loaded:");
+    console.log(vrObject);
+    if ( vrObject.properties && vrObject.properties.objectMode == 'editing') {
+      var scale = 1/this.worldManager.bBoxMax(assetContainer);
+      this.worldManager.VRSPACE.sendEvent(vrObject, {scale: { x:scale, y:scale, z:scale }} );
+      
+      this.take(vrObject);
+    }
+  }
+
+  take(obj) {
+    var root = obj.container.meshes[0];
+    var parent = new BABYLON.TransformNode("NewObject");
+    parent.position.z = 2;
+    parent.position.y = -.5;
+    parent.parent = this.scene.activeCamera;
+    root.parent = parent;
+    this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
+      switch (pointerInfo.type) {
+        case BABYLON.PointerEventTypes.POINTERDOWN:
+          break;
+        case BABYLON.PointerEventTypes.POINTERUP:
+          var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
+          console.log(pickedRoot.name);
+          if(pointerInfo.pickInfo.hit && pickedRoot == parent.parent) {
+            this.drop(obj);
+          }
+          break;
+      }
+    });
+  }
+
+  drop(obj) {
+    var root = obj.container.meshes[0];
+    var pos = root.parent.absolutePosition;
+    console.log(root.parent.absolutePosition);
+    this.worldManager.VRSPACE.sendEvent(obj, {position: { x:pos.x, y:pos.y, z:pos.z }} );
+    var parent = root.parent;
+    root.parent = null;
+    parent.dispose();
+  }
+
   doFetch(url) {
       fetch(url).then(response => {
           response.json().then( obj=> {
@@ -180,7 +234,18 @@ export class WorldTemplate extends World {
                     //this.sketchfabLogin();
                     fetch("/download?uid="+result.uid)
                       .then(res => res.json())
-                      .then(res => console.log(res));
+                      .then(res => {
+                        console.log(res);
+                        this.worldManager.VRSPACE.createSharedObject({
+                          mesh: res.mesh,
+                          position:{x:0, y:0, z:0},
+                          properties:{ objectMode:'editing' },
+                          active:true
+                        }, (obj)=>{
+                          console.log("Created new VRObject", obj);
+                          // obj1 = obj; // see addSceneListener below
+                        });
+                      });
                   });
                   
               });

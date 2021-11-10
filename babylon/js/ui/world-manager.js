@@ -393,6 +393,14 @@ export class WorldManager {
     console.log("BBoxMax: "+maxSize);
     return maxSize;
   }
+
+  /**
+  Utility method, calculates bounding box for an AssetContainer and returns maximum of x,y,z
+   */
+  bBoxMax(container) {
+    var bbox = this.boundingBox(container);
+    return Math.max( bbox.x, Math.max(bbox.y, bbox.z));
+  }
   
   /** Apply remote changes to an object. */
   changeObject(obj,changes, node) {
@@ -411,6 +419,11 @@ export class WorldManager {
           obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
         }
         VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+      } else if ( 'scale' === field ) {
+        if ( ! obj.rescale ) {
+          obj.rescale = VRSPACEUI.createAnimation(node, "scaling", this.fps);
+        }
+        VRSPACEUI.updateAnimation(obj.rescale, node.scaling, obj.scale);
       } else {
         this.routeEvent( obj, field, node );
       }
