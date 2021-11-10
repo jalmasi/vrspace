@@ -6,6 +6,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 
+import javax.annotation.PreDestroy;
+
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.configuration.connectors.BoltConnector;
 import org.neo4j.configuration.connectors.HttpConnector;
@@ -34,7 +36,9 @@ public class NeoConfig {
   private String dbPath;
   @Value("${spring.neo4j.uri:bolt://localhost}")
   private String neoUri;
-  GraphDatabaseService graphDb;
+
+  private GraphDatabaseService graphDb;
+  private DatabaseManagementService managementService;
 
   @Bean
   public GraphDatabaseService config() throws URISyntaxException, IOException {
@@ -50,30 +54,22 @@ public class NeoConfig {
 
   public void neoStart(Path dbDir) {
     log.info("Starting database on " + neoUri);
-    DatabaseManagementService managementService = new DatabaseManagementServiceBuilder(dbDir)
-        .setConfig(GraphDatabaseSettings.allow_upgrade, true)
+    managementService = new DatabaseManagementServiceBuilder(dbDir).setConfig(GraphDatabaseSettings.allow_upgrade, true)
         .setConfig(BoltConnector.enabled, neoUri.startsWith("bolt:"))
         .setConfig(HttpConnector.enabled, neoUri.startsWith("http:")).build();
     graphDb = managementService.database("neo4j");
-    registerShutdownHook(managementService);
 
     // and now indexes
     graphDb.executeTransactionally("CREATE CONSTRAINT worldName IF NOT EXISTS ON (w:World) ASSERT w.name IS UNIQUE");
     graphDb.executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS ON (c:Client) ASSERT c.name IS UNIQUE");
     graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.world)");
     graphDb.executeTransactionally("CREATE INDEX pointCoord IF NOT EXISTS FOR (p:Point) ON (p.x, p.y, p.z)");
+
   }
 
-  private static void registerShutdownHook(final DatabaseManagementService managementService) {
-    // Registers a shutdown hook for the Neo4j instance so that it
-    // shuts down nicely when the VM exits (even if you "Ctrl-C" the
-    // running application).
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        managementService.shutdown();
-      }
-    });
+  @PreDestroy
+  public void stop() {
+    managementService.shutdown();
   }
 
 }
