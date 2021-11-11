@@ -8,6 +8,7 @@ export class WorldTemplate extends World {
     this.connect();
     this.editingObjects=[];
     this.installClickHandler();
+    this.createButtons();
   }
   async createCamera() {
     this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
@@ -58,21 +59,21 @@ export class WorldTemplate extends World {
   }
   
   makeUI() {
-    var anchor = new BABYLON.TransformNode("SearchAnchor");
+    this.uiRoot = new BABYLON.TransformNode("SearchUI");
 
-    anchor.position.y = 2;
-    var manager = new BABYLON.GUI.GUI3DManager(this.scene);
+    this.uiRoot.position.y = 2;
+    this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
     this.panel = new BABYLON.GUI.CylinderPanel();
     this.panel.margin = 0.05;
     this.panel.columns = 6;
-    manager.addControl(this.panel);
-    this.panel.linkToTransformNode(anchor);
+    this.guiManager.addControl(this.panel);
+    this.panel.linkToTransformNode(this.uiRoot);
     //panel.position.z = -1.5;
 
     this.buttonPrev = new BABYLON.GUI.HolographicButton("prev");
     this.buttonPrev.imageUrl = "//www.babylonjs-playground.com/textures/icons/Upload.png";
-    manager.addControl(this.buttonPrev);
-    this.buttonPrev.linkToTransformNode(anchor);
+    this.guiManager.addControl(this.buttonPrev);
+    this.buttonPrev.linkToTransformNode(this.uiRoot);
     this.buttonPrev.position = new BABYLON.Vector3(-4,0,4);
     this.buttonPrev.mesh.rotation = new BABYLON.Vector3(0,0,Math.PI/2);
     this.buttonPrev.tooltipText = "Previous";
@@ -80,8 +81,8 @@ export class WorldTemplate extends World {
 
     this.buttonNext = new BABYLON.GUI.HolographicButton("next");
     this.buttonNext.imageUrl = "//www.babylonjs-playground.com/textures/icons/Upload.png";
-    manager.addControl(this.buttonNext);
-    this.buttonNext.linkToTransformNode(anchor);
+    this.guiManager.addControl(this.buttonNext);
+    this.buttonNext.linkToTransformNode(this.uiRoot);
     this.buttonNext.position = new BABYLON.Vector3(4,0,4);
     this.buttonNext.mesh.rotation = new BABYLON.Vector3(0,0,-Math.PI/2);
     this.buttonNext.tooltipText = "Next";
@@ -134,6 +135,7 @@ export class WorldTemplate extends World {
   }
   
   objectLoaded( vrObject, rootMesh ) {
+    VRSPACEUI.indicator.remove("Download");
     console.log("Loaded:");
     console.log(vrObject);
     if ( vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id ) {
@@ -149,12 +151,106 @@ export class WorldTemplate extends World {
     }
   }
 
+  makeAButton(text, imageUrl, action) {
+    var button = new BABYLON.GUI.HolographicButton(text+"Button");
+    this.guiManager.addControl(button);
+    button.imageUrl = imageUrl;
+    button.text=text;
+    button.position = new BABYLON.Vector3(this.buttonLeft,-0.1,.5);
+    button.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    button.mesh.parent = this.camera;
+    button.onPointerDownObservable.add( () => {
+      if ( this.activeButton == button ) {
+        // already pressed, turn it off
+        this.activeButton = null;
+        this.displayButtons(true);
+      } else {
+        this.displayButtons(false);
+        button.isVisible = true;
+        this.activeButton = button;
+      }
+    });
+    button.customAction = action;
+    this.buttons.push( button );
+    this.buttonLeft += .075;
+    return button;
+  }
+  
+  createButtons() {
+    this.buttons = [];
+    this.buttonLeft = -.2+0.025/2;
+  
+    this.rotateButton = this.makeAButton( "Rotate", "//www.babylonjs-playground.com/textures/icons/Refresh.png");  
+    this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png");
+    this.alignButton = this.makeAButton("Align", "//www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
+    this.alignButton = this.makeAButton("Upright", "//www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
+    this.deleteButton = this.makeAButton("Remove", "//www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
+    this.searchButton = this.makeAButton("Search", "//www.babylonjs-playground.com/textures/icons/Zoom.png");
+    
+    this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
+    //this.displayButtons(false);
+  }
+  
+  manipulateObject(obj, action) {
+    if ( ! action ) {
+      this.displayButtons(true);
+      return;
+    }
+    action(obj);
+  }
+  
+  alignObject(obj) {
+    var origin = obj.position;
+    var direction = new BABYLON.Vector3(0,-1,0);
+    var length = 100;
+    var ray = new BABYLON.Ray(origin, direction, length);
+    var pickInfo = this.scene.pickWithRay(ray, (mesh) => {
+      var pickedRoot = VRSPACEUI.findRootNode(mesh);
+      return pickedRoot != obj;
+    });
+    console.log(pickInfo);
+    var y = obj.position.y - pickInfo.distance;
+    this.worldManager.VRSPACE.sendEvent(obj.VRObject, {position: { x:obj.position.x, y:y, z:obj.position.z }} );
+  }
+  
+  upright(obj) {
+    this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:0, y:0, z:0 }} );
+  }
+
+  removeObject(obj) {
+    this.worldManager.VRSPACE.deleteSharedObject(obj.VRObject);
+  }
+
+  displayButtons(show) {
+    this.buttons.forEach( button => button.isVisible = show);
+    this.displayingButtons = show;
+    if ( show ) {
+      this.activeButton = null;
+    }
+  }  
+  
+  relocatePanel() {
+    var forwardDirection = this.scene.activeCamera.getForwardRay(6).direction;
+    this.uiRoot.position = this.scene.activeCamera.position.add(forwardDirection);
+    //this.uiRoot.rotation = new BABYLON.Vector3(0,this.scene.activeCamera.rotation.y,0);
+    this.uiRoot.rotation = new BABYLON.Vector3(this.scene.activeCamera.rotation.x,this.scene.activeCamera.rotation.y,this.scene.activeCamera.rotation.z);
+    this.displayButtons(true);
+  }
+  
   installClickHandler() {
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
       switch (pointerInfo.type) {
         case BABYLON.PointerEventTypes.POINTERDOWN:
-          this.taking = pickedRoot;
+          if ( this.activeButton ) {
+            if ( pickedRoot.VRObject ) {
+              // make an action on the object
+              console.log("Manipulating shared object "+pickedRoot.VRObject.id+" "+pickedRoot.name);
+              this.manipulateObject(pickedRoot, this.activeButton.customAction);
+            }
+          } else {
+            this.taking = pickedRoot;
+          }
           break;
         case BABYLON.PointerEventTypes.POINTERUP:
           if ( this.taking == pickedRoot && pickedRoot.VRObject ) {
@@ -200,6 +296,7 @@ export class WorldTemplate extends World {
       100
     });
     console.log("took "+obj.id);
+    this.displayButtons(false);
   }
 
   sendPos(obj) {
@@ -223,6 +320,7 @@ export class WorldTemplate extends World {
     this.sendPos(obj);
     this.worldManager.changeCallback = null;
     console.log("dropped "+obj.id);
+    this.displayButtons(true);
   }
 
   doFetch(url) {
@@ -280,6 +378,7 @@ export class WorldTemplate extends World {
                       }
                   });
                   button.onPointerDownObservable.add( () => {
+                    VRSPACEUI.indicator.add("Download");
                     console.log(result);
                     console.log("TODO: Download "+result.uri+" as "+result.uid);
                     //this.sketchfabLogin();

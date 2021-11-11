@@ -356,12 +356,11 @@ export class WorldManager {
       var file = obj.mesh.substring(pos+1);
       BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, this.scene).then((container) =>
       {
-        container.createRootMesh();
+        var mesh = container.createRootMesh();
         container.numberOfInstances = 1;
         this.containers[obj.mesh] = container;
         
         // Adds all elements to the scene
-        var mesh = container.createRootMesh();
         mesh.VRObject = obj;
         mesh.name = obj.mesh;
         mesh.id = obj.className+" "+obj.id;
@@ -537,22 +536,22 @@ export class WorldManager {
     if ( this.mediaStreams ) {
       this.mediaStreams.removeClient(obj);
     }
-    if ( obj.container ) {
-      if ( this.containers[obj.mesh] ) {
-        // instantiate
-        var container = this.containers[obj.mesh];
-        container.numberOfInstances--;
-        if ( container.numberOfInstances == 0 ) {
-          container.dispose();
-          delete this.containers[obj.mesh];
-        }
-        if ( obj.instantiatedEntries ) {
-          console.log("CHECKME: Should instantiated entries be disposed/removed?")
-        }
+    if ( this.containers[obj.mesh] ) {
+      // instantiate
+      var container = this.containers[obj.mesh];
+      container.numberOfInstances--;
+      if ( obj.instantiatedEntries ) {
+        obj.instantiatedEntries.rootNodes.forEach( node => node.dispose() );
       } else {
-        obj.container.dispose();
+        // well we can't dispose of container just like that
+        container.meshes[0].setEnabled(false);
       }
-      obj.container = null;
+      if ( container.numberOfInstances == 0 ) {
+        container.dispose();
+        delete this.containers[obj.mesh];
+      }
+    } else if (obj.container){
+      obj.container.dispose();
     }
     if ( obj.video ) {
       obj.video.dispose();
