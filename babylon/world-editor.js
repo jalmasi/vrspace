@@ -7,10 +7,11 @@ export class WorldTemplate extends World {
     this.makeUI();
     this.connect();
     this.editingObjects=[];
+    this.installClickHandler();
   }
   async createCamera() {
-    // utility function to create UniversalCamera:
     this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
+    this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;
     this.camera.applyGravity = false;
@@ -143,7 +144,30 @@ export class WorldTemplate extends World {
     }
   }
 
+  installClickHandler() {
+    this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
+      var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
+      switch (pointerInfo.type) {
+        case BABYLON.PointerEventTypes.POINTERDOWN:
+          this.taking = pickedRoot;
+          break;
+        case BABYLON.PointerEventTypes.POINTERUP:
+          if ( this.taking == pickedRoot && pickedRoot.VRObject ) {
+            var vrObject = pickedRoot.VRObject;
+            console.log("Picked shared object "+vrObject.id+" "+pickedRoot.name);
+            console.log(this.editingObjects);
+            if ( ! this.editingObjects.includes(vrObject.id)) {
+              this.editingObjects.push(vrObject.id);
+              this.take(vrObject);
+            }
+          }
+          break;
+      }
+    });
+  }
+  
   take(obj) {
+    this.taking = null;
     if ( obj.changeListener ) {
       // already tracking
       return;
@@ -152,19 +176,25 @@ export class WorldTemplate extends World {
     this.sendPos(obj);
     obj.changeListener = () => this.sendPos(obj);
     this.worldManager.addMyChangeListener( obj.changeListener );
-    obj.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      switch (pointerInfo.type) {
-        case BABYLON.PointerEventTypes.POINTERDOWN:
-          break;
-        case BABYLON.PointerEventTypes.POINTERUP:
-          var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
-          console.log(pickedRoot.name);
-          if(pointerInfo.pickInfo.hit && pickedRoot == root) {
-            this.drop(obj);
-          }
-          break;
-      }
+    setTimeout( () => {
+      obj.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
+        var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
+        switch (pointerInfo.type) {
+          case BABYLON.PointerEventTypes.POINTERDOWN:
+            if(pointerInfo.pickInfo.hit && pickedRoot == root) {
+              this.dropping = root;
+            }
+            break;
+          case BABYLON.PointerEventTypes.POINTERUP:
+            if(pointerInfo.pickInfo.hit && pickedRoot == root && this.dropping == root) {
+              this.drop(obj);
+            }
+            break;
+        }
+      }),
+      100
     });
+    console.log("took "+obj.id);
   }
 
   sendPos(obj) {
@@ -175,6 +205,7 @@ export class WorldTemplate extends World {
   }
   
   drop(obj) {
+    this.dropping = null;
     var pos = this.editingObjects.indexOf(obj.id);
     if ( pos > -1 ) {
       this.editingObjects.splice(pos,1);
@@ -183,8 +214,10 @@ export class WorldTemplate extends World {
     this.scene.onPointerObservable.remove(obj.clickHandler);
     this.worldManager.removeMyChangeListener( obj.changeListener );
     delete obj.clickHandler;
+    delete obj.changeListener;
     this.sendPos(obj);
     this.worldManager.changeCallback = null;
+    console.log("dropped "+obj.id);
   }
 
   doFetch(url) {
