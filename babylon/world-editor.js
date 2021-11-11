@@ -130,17 +130,22 @@ export class WorldTemplate extends World {
 
     this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
     
-    this.worldManager.loadCallback = (object, container) => this.objectLoaded(object,container);    
+    this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);    
   }
   
-  objectLoaded( vrObject, assetContainer ) {
+  objectLoaded( vrObject, rootMesh ) {
     console.log("Loaded:");
     console.log(vrObject);
-    if ( this.editingObjects.includes(vrObject.id)) {
+    if ( vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id ) {
+      this.editingObjects.push(vrObject.id);
       console.log("Loaded my object "+vrObject.id)
-      var scale = 1/this.worldManager.bBoxMax(assetContainer);
-      this.worldManager.VRSPACE.sendEvent(vrObject, {scale: { x:scale, y:scale, z:scale }} );
       this.take(vrObject);
+      // CHECKME: in case of instancing existing container, it may not be displayed yet, does not resize
+      setTimeout( () => {
+        var scale = 1/this.worldManager.bBoxMax(rootMesh);
+        //var scale = 1/this.worldManager.bBoxMax(this.worldManager.getRootNode(vrObject));
+        this.worldManager.VRSPACE.sendEvent(vrObject, {scale: { x:scale, y:scale, z:scale }} );
+      }, 100 );
     }
   }
 
@@ -172,7 +177,7 @@ export class WorldTemplate extends World {
       // already tracking
       return;
     }
-    var root = obj.container.meshes[0];
+    var root = this.worldManager.getRootNode(obj);
     this.sendPos(obj);
     obj.changeListener = () => this.sendPos(obj);
     this.worldManager.addMyChangeListener( obj.changeListener );
@@ -284,11 +289,11 @@ export class WorldTemplate extends World {
                         console.log(res);
                         this.worldManager.VRSPACE.createSharedObject({
                           mesh: res.mesh,
+                          properties: {editing: this.worldManager.VRSPACE.me.id},
                           position:{x:0, y:0, z:0},
                           active:true
                         }, (obj)=>{
                           console.log("Created new VRObject", obj);
-                          this.editingObjects.push(obj.id);
                         });
                       });
                   });

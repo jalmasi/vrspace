@@ -73,6 +73,8 @@ export class WorldManager {
     /** User height in real world, default 1.8 */
     this.userHeight = 1.8;
     this.interval = null;
+    // contains asset containers - name and number of used instances
+    this.containers={};
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     /** Enable debug output */
@@ -331,6 +333,49 @@ export class WorldManager {
     VRSPACE.removeListener( this.myChangeListeners, listener );
   }
   
+  // TODO refactor this to VRSpaceUI
+  loadOrInstantiate(obj, callback) {
+    if ( this.containers[obj.mesh] ) {
+      // instantiate
+      var container = this.containers[obj.mesh];
+      container.numberOfInstances++;
+      obj.instantiatedEntries = container.instantiateModelsToScene();
+      console.log(obj.instantiatedEntries);
+      // Adds all elements to the scene
+      var mesh = obj.instantiatedEntries.rootNodes[0];
+      mesh.VRObject = obj;
+      mesh.name = obj.mesh;
+      mesh.scaling = new BABYLON.Vector3(1,1,1);
+      mesh.refreshBoundingInfo();
+      mesh.id = obj.className+" "+obj.id;
+      callback(mesh);
+    } else {
+      // load
+      var pos = obj.mesh.lastIndexOf('/');
+      var path = obj.mesh.substring(0,pos+1);
+      var file = obj.mesh.substring(pos+1);
+      BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, this.scene).then((container) =>
+      {
+        container.createRootMesh();
+        container.numberOfInstances = 1;
+        this.containers[obj.mesh] = container;
+        
+        // Adds all elements to the scene
+        var mesh = container.createRootMesh();
+        mesh.VRObject = obj;
+        mesh.name = obj.mesh;
+        mesh.id = obj.className+" "+obj.id;
+        
+        container.addAllToScene();
+  
+        obj.container = container;
+        
+        this.log("Added "+obj.mesh);
+        
+        callback(mesh);
+      });
+    }
+  }
   /**
   Load an object and attach a listener.
    */
@@ -340,26 +385,8 @@ export class WorldManager {
       console.log("Null mesh of client "+obj.id);
       return;
     }
-    var pos = obj.mesh.lastIndexOf('/');
-    var path = obj.mesh.substring(0,pos+1);
-    var file = obj.mesh.substring(pos+1);
-    BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, this.scene).then((container) => {
+    this.loadOrInstantiate(obj, (mesh) => {
       this.log("loaded "+obj.mesh);
-      var bbox = this.boundingBox(container);
-      
-      // Adds all elements to the scene
-      var mesh = container.createRootMesh();
-      mesh.VRObject = obj;
-      mesh.name = obj.mesh;
-      // obfuscator gets in the way 
-      //mesh.id = obj.constructor.name+" "+obj.id;
-      mesh.id = obj.className+" "+obj.id;
-      
-      container.addAllToScene();
-
-      obj.container = container;
-      
-      this.log("Added "+obj.mesh);
       
       var initialPosition = { position: {} };
       this.changeObject( obj, initialPosition );
@@ -373,7 +400,7 @@ export class WorldManager {
       if ( this.mediaStreams ) {
         this.mediaStreams.streamToMesh(obj, mesh);        
       }
-      this.notifyLoadListeners(obj, container);
+      this.notifyLoadListeners(obj, mesh);
     });
   }
 
@@ -388,12 +415,12 @@ export class WorldManager {
       //container.meshes[i].computeWorldMatrix(true);
       container.meshes[i].refreshBoundingInfo();
       var boundingInfo = container.meshes[i].getBoundingInfo().boundingBox;
-      console.log("max: "+boundingInfo.maximumWorld+" min: "+boundingInfo.minimumWorld);
+      //console.log("max: "+boundingInfo.maximumWorld+" min: "+boundingInfo.minimumWorld);
       var size = new BABYLON.Vector3(
         boundingInfo.maximumWorld.x - boundingInfo.minimumWorld.x,
         boundingInfo.maximumWorld.y - boundingInfo.minimumWorld.y,
         boundingInfo.maximumWorld.z - boundingInfo.minimumWorld.z
-        );
+      );
       maxSize.x = Math.max(maxSize.x,size.x);
       maxSize.y = Math.max(maxSize.y,size.y);
       maxSize.z = Math.max(maxSize.z,size.z);
@@ -405,19 +432,56 @@ export class WorldManager {
     return maxSize;
   }
 
+  // works only for already displayed meshes
+  bBox(mesh, maxSize) {
+    if ( !maxSize ) {
+      maxSize = new BABYLON.Vector3(0,0,0);
+    }
+    for ( var i = 0; i < mesh.getChildren().length; i++ ) {
+      maxSize = this.bBox(mesh.getChildren()[i], maxSize);
+    }
+    if ( ! mesh.refreshBoundingInfo ) {
+      // TypeError: mesh.refreshBoundingInfo is not a function
+      return maxSize;
+    }
+    mesh.computeWorldMatrix(true);
+    console.log(mesh.id);
+    var boundingInfo = mesh.getBoundingInfo().boundingBox;
+    var size = new BABYLON.Vector3(
+      boundingInfo.maximumWorld.x - boundingInfo.minimumWorld.x,
+      boundingInfo.maximumWorld.y - boundingInfo.minimumWorld.y,
+      boundingInfo.maximumWorld.z - boundingInfo.minimumWorld.z
+    );
+    maxSize.x = Math.max(maxSize.x,size.x);
+    maxSize.y = Math.max(maxSize.y,size.y);
+    maxSize.z = Math.max(maxSize.z,size.z);
+    console.log("BBoxMax: "+maxSize);
+    return maxSize;
+  }
+
   /**
-  Utility method, calculates bounding box for an AssetContainer and returns maximum of x,y,z
+  Utility method, calculates bounding box for an AssetContainer and returns maximum of x,y,z.
+  Works only for meshes already rendered
    */
-  bBoxMax(container) {
-    var bbox = this.boundingBox(container);
+  bBoxMax(mesh) {
+    var bbox = this.bBox( mesh );
+    console.log("BBox: "+bbox);
     return Math.max( bbox.x, Math.max(bbox.y, bbox.z));
   }
   
+  getRootNode( obj ) {
+    if ( obj.container ) {
+      return obj.container.meshes[0];
+    } else if ( obj.instantiatedEntries ) {
+      return obj.instantiatedEntries.rootNodes[0];
+    }
+    console.log("ERROR: unknown root for "+obj);
+  }
   /** Apply remote changes to an object. */
   changeObject(obj,changes, node) {
     this.log("Changes on "+obj.id+": "+JSON.stringify(changes));
     if ( ! node ) {
-      node = obj.container.meshes[0];      
+      node = this.getRootNode(obj);
     }
     for ( var field in changes ) {
       if ( 'position' === field ) {
@@ -474,7 +538,20 @@ export class WorldManager {
       this.mediaStreams.removeClient(obj);
     }
     if ( obj.container ) {
-      obj.container.dispose();
+      if ( this.containers[obj.mesh] ) {
+        // instantiate
+        var container = this.containers[obj.mesh];
+        container.numberOfInstances--;
+        if ( container.numberOfInstances == 0 ) {
+          container.dispose();
+          delete this.containers[obj.mesh];
+        }
+        if ( obj.instantiatedEntries ) {
+          console.log("CHECKME: Should instantiated entries be disposed/removed?")
+        }
+      } else {
+        obj.container.dispose();
+      }
       obj.container = null;
     }
     if ( obj.video ) {
@@ -488,6 +565,10 @@ export class WorldManager {
     if ( obj.rotate ) {
       obj.rotate.dispose();
       obj.rotate = null;
+    }
+    if ( obj.rescale ) {
+      obj.rescale.dispose();
+      obj.rescale = null;
     }
     if ( obj.streamToMesh ) {
       obj.streamToMesh.dispose();

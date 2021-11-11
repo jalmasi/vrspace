@@ -548,7 +548,6 @@ export class VRSpace {
       msg += ',';
     };
     msg = msg.substring(0,msg.length-1)+'}}';
-    console.log(msg);
     this.send(msg);
   }
 
