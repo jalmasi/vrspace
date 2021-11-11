@@ -180,15 +180,15 @@ export class WorldTemplate extends World {
     this.buttons = [];
     this.buttonLeft = -.2+0.025/2;
   
-    this.rotateButton = this.makeAButton( "Rotate", "//www.babylonjs-playground.com/textures/icons/Refresh.png");  
-    this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png");
+    this.rotateButton = this.makeAButton( "Rotate", "//www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
+    this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png", (o)=>this.resizeObject(o));
     this.alignButton = this.makeAButton("Align", "//www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
     this.alignButton = this.makeAButton("Upright", "//www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
     this.deleteButton = this.makeAButton("Remove", "//www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
     this.searchButton = this.makeAButton("Search", "//www.babylonjs-playground.com/textures/icons/Zoom.png");
     
     this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
-    //this.displayButtons(false);
+    this.displayButtons(false);
   }
   
   manipulateObject(obj, action) {
@@ -198,6 +198,59 @@ export class WorldTemplate extends World {
     }
     action(obj);
   }
+  
+  resizeObject(obj) {
+    var point;
+    var resizeHandler = this.scene.onPointerObservable.add((pointerInfo) => {
+      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
+        point = pointerInfo.pickInfo.pickedPoint;
+      }
+      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
+        this.scene.onPointerObservable.remove(resizeHandler);
+        if ( pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj ) {
+          var diff = pointerInfo.pickInfo.pickedPoint.y - point.y; 
+          var scale = obj.scaling.y + diff;
+          scale = Math.max(scale, obj.scaling.y * .1);
+          console.log("Scaling: "+obj.scaling.y+" to "+scale); 
+          this.worldManager.VRSPACE.sendEvent(obj.VRObject, {scale: { x:scale, y:scale, z:scale }} );
+        }
+      }
+    });
+  }
+  rotateObject(obj) {
+    var point;
+    var rotateHandler = this.scene.onPointerObservable.add((pointerInfo) => {
+      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
+        point = pointerInfo.pickInfo.pickedPoint;
+      }
+      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
+        this.scene.onPointerObservable.remove(rotateHandler);
+        if ( pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj ) {
+          var diff = pointerInfo.pickInfo.pickedPoint.subtract(point).normalize();
+          console.log(diff);
+          var ax = Math.abs(diff.x);
+          var ay = Math.abs(diff.y);
+          var az = Math.abs(diff.z);
+          // TODO spatial transformations
+          var rot = new BABYLON.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z); 
+          console.log(rot);
+          if ( ax > ay && ax > az ) {
+            rot.y += diff.y;
+          } else if ( ay > ax && ay > az ) {
+            rot.z += diff.z;
+          } else if ( az > ay && az > ax ) {
+            rot.x += diff.x;
+          } else {
+            console.log("CHECKME - zero?")
+            return;
+          }
+          console.log(rot);
+          this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:rot.x, y:rot.y, z:rot.z}} );
+        }
+      }
+    });
+  }
+  
   
   alignObject(obj) {
     var origin = obj.position;
