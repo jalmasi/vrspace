@@ -545,11 +545,10 @@ export class VRSpace {
     for ( var change in changes ){
       msg += this.stringifyPair(change,changes[change]);
       index++;
-      if ( index < changes.length ) {
-        msg += ',';
-      }
+      msg += ',';
     };
-    msg += '}}';
+    msg = msg.substring(0,msg.length-1)+'}}';
+    console.log(msg);
     this.send(msg);
   }
 

@@ -6,6 +6,7 @@ export class WorldTemplate extends World {
     // but we're displaying UI instead
     this.makeUI();
     this.connect();
+    this.editingObjects=[];
   }
   async createCamera() {
     // utility function to create UniversalCamera:
@@ -134,29 +135,31 @@ export class WorldTemplate extends World {
   objectLoaded( vrObject, assetContainer ) {
     console.log("Loaded:");
     console.log(vrObject);
-    if ( vrObject.properties && vrObject.properties.objectMode == 'editing') {
+    if ( this.editingObjects.includes(vrObject.id)) {
+      console.log("Loaded my object "+vrObject.id)
       var scale = 1/this.worldManager.bBoxMax(assetContainer);
       this.worldManager.VRSPACE.sendEvent(vrObject, {scale: { x:scale, y:scale, z:scale }} );
-      
       this.take(vrObject);
     }
   }
 
   take(obj) {
+    if ( obj.changeListener ) {
+      // already tracking
+      return;
+    }
     var root = obj.container.meshes[0];
-    var parent = new BABYLON.TransformNode("NewObject");
-    parent.position.z = 2;
-    parent.position.y = -.5;
-    parent.parent = this.scene.activeCamera;
-    root.parent = parent;
-    this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
+    this.sendPos(obj);
+    obj.changeListener = () => this.sendPos(obj);
+    this.worldManager.addMyChangeListener( obj.changeListener );
+    obj.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       switch (pointerInfo.type) {
         case BABYLON.PointerEventTypes.POINTERDOWN:
           break;
         case BABYLON.PointerEventTypes.POINTERUP:
           var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
           console.log(pickedRoot.name);
-          if(pointerInfo.pickInfo.hit && pickedRoot == parent.parent) {
+          if(pointerInfo.pickInfo.hit && pickedRoot == root) {
             this.drop(obj);
           }
           break;
@@ -164,14 +167,24 @@ export class WorldTemplate extends World {
     });
   }
 
+  sendPos(obj) {
+    var forwardDirection = this.scene.activeCamera.getForwardRay(2).direction;
+    var pos = this.scene.activeCamera.position.add(forwardDirection).add(new BABYLON.Vector3(0,-.5,0));
+    var rot = this.scene.activeCamera.rotation;
+    this.worldManager.VRSPACE.sendEvent(obj, {position: { x:pos.x, y:pos.y, z:pos.z }, rotation: { x:rot.x, y:rot.y, z:rot.z }} );
+  }
+  
   drop(obj) {
-    var root = obj.container.meshes[0];
-    var pos = root.parent.absolutePosition;
-    console.log(root.parent.absolutePosition);
-    this.worldManager.VRSPACE.sendEvent(obj, {position: { x:pos.x, y:pos.y, z:pos.z }} );
-    var parent = root.parent;
-    root.parent = null;
-    parent.dispose();
+    var pos = this.editingObjects.indexOf(obj.id);
+    if ( pos > -1 ) {
+      this.editingObjects.splice(pos,1);
+    }
+
+    this.scene.onPointerObservable.remove(obj.clickHandler);
+    this.worldManager.removeMyChangeListener( obj.changeListener );
+    delete obj.clickHandler;
+    this.sendPos(obj);
+    this.worldManager.changeCallback = null;
   }
 
   doFetch(url) {
@@ -239,11 +252,10 @@ export class WorldTemplate extends World {
                         this.worldManager.VRSPACE.createSharedObject({
                           mesh: res.mesh,
                           position:{x:0, y:0, z:0},
-                          properties:{ objectMode:'editing' },
                           active:true
                         }, (obj)=>{
                           console.log("Created new VRObject", obj);
-                          // obj1 = obj; // see addSceneListener below
+                          this.editingObjects.push(obj.id);
                         });
                       });
                   });

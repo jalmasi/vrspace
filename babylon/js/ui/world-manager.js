@@ -32,8 +32,8 @@ export class WorldManager {
     this.mesh = null;
     /** This is set once we connect to streaming server */
     this.mediaStreams = null;
-    /** Optionally called after own avatar property has changed */
-    this.changeCallback = null;
+    /** Listeners notified after own avatar property (e.g. position) has changed and published */
+    this.myChangeListeners = []
     /** Change listeners receive changes applied to all shared objects */
     this.changeListeners = [];
     /** Optionally called after an avatar has loaded. Callback is passed VRObject and avatar object as parameters.
@@ -323,6 +323,14 @@ export class WorldManager {
     this.changeListeners.forEach( (l) => l(obj,field,node) );
   }
   
+  addMyChangeListener( listener ) {
+    VRSPACE.addListener( this.myChangeListeners, listener );
+  }
+  
+  removeMyChangeListener( listener ) {
+    VRSPACE.removeListener( this.myChangeListeners, listener );
+  }
+  
   /**
   Load an object and attach a listener.
    */
@@ -355,6 +363,9 @@ export class WorldManager {
       
       var initialPosition = { position: {} };
       this.changeObject( obj, initialPosition );
+      if ( obj.scale ) {
+        this.changeObject( obj, {scale: {x:obj.scale.x, y:obj.scale.y, z:obj.scale.z}});
+      }
 
       // add listener to process changes
       obj.addListener((obj, changes) => this.changeObject(obj, changes));
@@ -488,8 +499,8 @@ export class WorldManager {
   /**
   Periodically executed, as specified by fps. 
   Tracks changes to camera and XR controllers. 
-  Calls checkChange, and if anything has changed, changes are sent to server.
-  Optionally, changeCallback is executed. 
+  Calls checkChange, and if anything has changed, changes are sent to server,
+  and to myChangeListeners. 
    */
   trackChanges() {
     var changes = [];
@@ -546,9 +557,7 @@ export class WorldManager {
     }
     if ( changes.length > 0 ) {
       VRSPACE.sendMyChanges(changes);
-      if ( this.changeCallback ) {
-        this.changeCallback(changes);
-      }
+      this.myChangeListeners.forEach( (listener) => listener(changes));
     }
 
   }
