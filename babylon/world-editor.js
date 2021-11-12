@@ -208,9 +208,13 @@ export class WorldTemplate extends World {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
         this.scene.onPointerObservable.remove(resizeHandler);
         if ( pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj ) {
-          var diff = pointerInfo.pickInfo.pickedPoint.y - point.y; 
-          var scale = obj.scaling.y + diff;
-          scale = Math.max(scale, obj.scaling.y * .1);
+          var diff = pointerInfo.pickInfo.pickedPoint.y - point.y;
+          var bbox = this.worldManager.bBoxMax(obj);
+          console.log("bBoxMax:"+bbox+" diff:"+diff+" scaling:"+obj.scaling.y);
+          //var scale = obj.scaling.y + diff;
+          var scale = obj.scaling.y*(bbox+diff)/bbox;
+          scale = Math.max(scale, obj.scaling.y * .2);
+          scale = Math.min(scale, obj.scaling.y * 5);
           console.log("Scaling: "+obj.scaling.y+" to "+scale); 
           this.worldManager.VRSPACE.sendEvent(obj.VRObject, {scale: { x:scale, y:scale, z:scale }} );
         }
@@ -302,7 +306,7 @@ export class WorldTemplate extends World {
       var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
       switch (pointerInfo.type) {
         case BABYLON.PointerEventTypes.POINTERDOWN:
-          if ( this.activeButton ) {
+          if ( this.activeButton && this.activeButton.isVisible ) {
             if ( pickedRoot.VRObject ) {
               // make an action on the object
               console.log("Manipulating shared object "+pickedRoot.VRObject.id+" "+pickedRoot.name);
@@ -383,6 +387,31 @@ export class WorldTemplate extends World {
     this.displayButtons(true);
   }
 
+  search(text, args) {
+      var url = new URL('https://api.sketchfab.com/v3/search');
+      /*
+      interesting params:
+        categories - dropdown, radio? Array[string]
+        downloadable
+        animated
+        rigged
+        license: by = CC-BY, sketchfab default
+      */
+      var params = { 
+          q:text,
+          type:'models',
+          downloadable:true
+      };
+      if ( args ) {
+        for ( var arg in args ) {
+          params[arg] = args[arg];
+        }
+      }
+      url.search = new URLSearchParams(params).toString();
+
+      this.doFetch(url);      
+  }
+  
   doFetch(url) {
       fetch(url).then(response => {
           response.json().then( obj=> {
@@ -438,9 +467,8 @@ export class WorldTemplate extends World {
                       }
                   });
                   button.onPointerDownObservable.add( () => {
+                    VRSPACEUI.indicator.animate();
                     VRSPACEUI.indicator.add("Download");
-                    console.log(result);
-                    console.log("TODO: Download "+result.uri+" as "+result.uid);
                     //this.sketchfabLogin();
                     fetch("/download?uid="+result.uid)
                       .then(res => res.json())

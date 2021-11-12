@@ -12,6 +12,7 @@
       margin: 0px;
       padding: 0px;
       color: white;
+      background-color: black;
     }
     canvas {
       width: 98%;
@@ -50,24 +51,14 @@ import("./world-editor.js").then( (module) =>{
     document.getElementById('searchText').addEventListener('change', (e)=>{
     	console.log('search: '+e.target.value);
       canvas.focus();
-      
-      var url = new URL('https://api.sketchfab.com/v3/search');
-      /*
-      interesting params:
-        categories - dropdown, radio? Array[string]
-        downloadable
-        animated
-        rigged
-        license: by = CC-BY, sketchfab default
-      */
-      var params = { 
-    		  q:e.target.value,
-          type:'models',
-          downloadable:true
-    	};
-      url.search = new URLSearchParams(params).toString();
-
-      world.doFetch(url);      
+      var args = {};
+      if (document.getElementById('animated').checked) {
+    	  args.animated = true;
+      }
+      if (document.getElementById('rigged').checked) {
+          args.rigged = true;
+        }
+      world.search(e.target.value, args);
     });
     
   });
@@ -93,9 +84,28 @@ function debugOnOff() {
       <button onClick="debugOnOff()">Debug</button>
     </div>
     
-    <div id="searchForm" style="position:absolute;bottom:50px;right:45%;">
+    <div id="searchForm" style="position:absolute;bottom:50px;right:40%;">
       <label for="searchText">Search:</label>
       <input id="searchText" type="text">
+      <label for="animated">Animated:</label>
+      <input id="animated" type="checkbox">
+      <label for="rigged">Rigged:</label>
+      <input id="rigged" type="checkbox">
+      <!-- do we really care? 
+      <label for="license">License:</label>
+      <select id="license">
+        <option value=""></option>
+        <option value="by">by</option>
+        <option value="by-sa">by-sa</option>
+        <option value="by-nd">by-nd</option>
+        <option value="by-nc">by-nc</option>
+        <option value="by-nc-sa">by-nc-sa</option>
+        <option value="by-nc-sa-nd">by-nc-sa-nd</option>
+        <option value="cc0">cc0</option>
+        <option value="ed">ed</option>
+        <option value="st">st</option>
+      </select>
+       -->
     </div>
   
   </body>
