@@ -226,26 +226,33 @@ export class WorldTemplate extends World {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
         this.scene.onPointerObservable.remove(rotateHandler);
         if ( pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj ) {
-          var diff = pointerInfo.pickInfo.pickedPoint.subtract(point).normalize();
-          console.log(diff);
-          var ax = Math.abs(diff.x);
-          var ay = Math.abs(diff.y);
-          var az = Math.abs(diff.z);
-          // TODO spatial transformations
-          var rot = new BABYLON.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z); 
-          console.log(rot);
-          if ( ax > ay && ax > az ) {
-            rot.y += diff.y;
-          } else if ( ay > ax && ay > az ) {
-            rot.z += diff.z;
-          } else if ( az > ay && az > ax ) {
-            rot.x += diff.x;
+          var dest = pointerInfo.pickInfo.pickedPoint;
+
+          //var center = obj.position;
+          var center = new BABYLON.Vector3(obj.position.x, (dest.y+point.y)/2, obj.position.z);
+          var vFrom = point.subtract(center).normalize();
+          var vTo = dest.subtract(center).normalize();
+           
+          var rotationMatrix = new BABYLON.Matrix();
+          BABYLON.Matrix.RotationAlignToRef(vFrom, vTo, rotationMatrix);
+          var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
+          var result = BABYLON.Quaternion.FromEulerVector(obj.rotation).multiply(quat).toEulerAngles();
+
+          console.log( obj.rotation+"->"+result);
+
+          // vertical pointer movement:
+          var dy = dest.y - point.y;
+          // horizontal pointer movement:
+          var dxz = new BABYLON.Vector3(dest.x,0,dest.z).subtract(new BABYLON.Vector3(point.x,0,point.z)).length();
+          if ( Math.abs(dxz) > Math.abs(dy*3) ) {
+            // mostly horizontal movement, rotation only around y
+            console.log("Y rotation")
+            this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:obj.rotation.x, y:result.y, z:obj.rotation.z}} );
           } else {
-            console.log("CHECKME - zero?")
-            return;
+            // rotating around all axes
+            this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:result.x, y:result.y, z:result.z}} );
           }
-          console.log(rot);
-          this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:rot.x, y:rot.y, z:rot.z}} );
+
         }
       }
     });
