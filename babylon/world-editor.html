@@ -47,19 +47,23 @@ import("./world-editor.js").then( (module) =>{
 
   world.init(engine, 'search').then((scene) => {
 	  myScene = scene;
-    
-    document.getElementById('searchText').addEventListener('change', (e)=>{
-    	console.log('search: '+e.target.value);
+
+	  var search = () => {
       canvas.focus();
+	    var text = document.getElementById('searchText').value;
+      console.log('search: '+text);
       var args = {};
       if (document.getElementById('animated').checked) {
-    	  args.animated = true;
+        args.animated = true;
       }
       if (document.getElementById('rigged').checked) {
           args.rigged = true;
         }
-      world.search(e.target.value, args);
-    });
+      world.search(text, args);
+	  }
+	  document.getElementById('searchText').addEventListener('change', () => search() );
+	  document.getElementById('animated').addEventListener('change', () => search() );
+    document.getElementById('rigged').addEventListener('change', () => search() );
     
   });
 
