@@ -7,11 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -41,17 +45,21 @@ public class SketchfabController {
   @Autowired
   VRObjectRepository db;
 
-  // TODO: constants, properties
-  private String loginUrl = "https://sketchfab.com/oauth2/token/";
-  private String clientId = "u9ILgUMHeTRX77rbxPR6OYseVUQrYRD9CoIbNHbK";
-  private String clientSecret = "5NyPA76cIHDAyU2BuKcVL2oT730QV3Kv6iHybeiHdkEeaRMH25MS9vofZT7XwFkysd1BGdhOJTCXikTtzzdYb7kqMJULwTQrzJC0F3hug1naQ4ivg7QcZSSPJHMfUfkn";
-  private String redirectUri = "http://localhost:8080/callback";
+  private final String loginUrl = "https://sketchfab.com/oauth2/token/";
 
-  private String token = "QIEnWRz9vp3F5SPjpFTDs7u2lThAxp";
+  @Value("${sketchfab.clientId:none}")
+  private String clientId;
+  @Value("${sketchfab.clientSecret:none}")
+  private String clientSecret;
+  @Value("${sketchfab.redirectUri:none}")
+  private String redirectUri;
+
+  private String token;
+  private String referrer;
 
   // as explained in https://sketchfab.com/developers/oauth#implement-auth-code
   @GetMapping("/callback")
-  public void login(String code) {
+  public ResponseEntity<String> login(String code) {
     log.info("Login code " + code);
 
     MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
@@ -77,6 +85,7 @@ public class SketchfabController {
     // and now we have token to make calls
     // and now what? :)
     this.token = auth.getAccess_token();
+    return ResponseEntity.status(HttpStatus.FOUND).header("Location", referrer).body("Redirecting to " + referrer);
   }
 
   private HttpEntity<MultiValueMap<String, String>> authRequest(MultiValueMap<String, String> fields) {
@@ -112,8 +121,12 @@ public class SketchfabController {
   // as explained in
   // https://sketchfab.com/developers/download-api/downloading-models
   @GetMapping("/download")
-  public GltfModel download(String uid) {
-    // TODO: if not authorised ( null token ) authorise first
+  public ResponseEntity<GltfModel> download(String uid, HttpServletRequest request) {
+    // if not authorised ( null token ) authorise first
+    if (this.token == null) {
+      this.referrer = request.getHeader(HttpHeaders.REFERER);
+      return new ResponseEntity<GltfModel>(HttpStatus.UNAUTHORIZED);
+    }
 
     GltfModel model;
     Optional<GltfModel> existing = db.findGltfModelByUid(uid);
@@ -124,7 +137,7 @@ public class SketchfabController {
           ClassUtil.projectHomeDirectory() + "/content/" + model.mainCategory() + "/" + model.getFileName());
       if (modelFile.exists()) {
         log.warn("Model directory also exists, exiting: " + modelFile);
-        return model;
+        return new ResponseEntity<GltfModel>(model, HttpStatus.OK);
       } else {
         log.warn("Model directory does not exist, downloading again");
       }
@@ -174,7 +187,7 @@ public class SketchfabController {
       model.setMesh("/content/" + model.mainCategory() + "/" + model.getFileName() + "/scene.gltf");
       db.save(model);
       log.info("Stored " + model);
-      return model;
+      return new ResponseEntity<GltfModel>(model, HttpStatus.OK);
     } catch (Exception e) {
       throw new RuntimeException("Error downloading " + gltf.getUrl(), e);
     }

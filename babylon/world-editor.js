@@ -278,7 +278,7 @@ export class WorldTemplate extends World {
   }
   
   upright(obj) {
-    this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:0, y:0, z:0 }} );
+    this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:0, y:obj.rotation.y, z:0 }} );
   }
 
   removeObject(obj) {
@@ -306,8 +306,8 @@ export class WorldTemplate extends World {
       var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
       switch (pointerInfo.type) {
         case BABYLON.PointerEventTypes.POINTERDOWN:
-          if ( this.activeButton && this.activeButton.isVisible ) {
-            if ( pickedRoot.VRObject ) {
+          if ( this.activeButton ) {
+            if ( pickedRoot.VRObject && this.activeButton.isVisible) {
               // make an action on the object
               console.log("Manipulating shared object "+pickedRoot.VRObject.id+" "+pickedRoot.name);
               this.manipulateObject(pickedRoot, this.activeButton.customAction);
@@ -323,7 +323,7 @@ export class WorldTemplate extends World {
             console.log(this.editingObjects);
             if ( ! this.editingObjects.includes(vrObject.id)) {
               this.editingObjects.push(vrObject.id);
-              this.take(vrObject);
+              this.take(vrObject, pickedRoot.absolutePosition);
             }
           }
           break;
@@ -331,14 +331,49 @@ export class WorldTemplate extends World {
     });
   }
   
-  take(obj) {
+  take(obj, position) {
     this.taking = null;
     if ( obj.changeListener ) {
       // already tracking
       return;
     }
     var root = this.worldManager.getRootNode(obj);
-    this.sendPos(obj);
+
+    // default position
+    if ( ! position ) {
+      var forwardDirection = this.scene.activeCamera.getForwardRay(2).direction;
+      var forwardLower = forwardDirection.add(new BABYLON.Vector3(0,-.5,0));
+      position = this.scene.activeCamera.position.add(forwardLower);
+      obj.position.x = position.x;
+      obj.position.y = position.y;
+      obj.position.z = position.z;
+      this.sendPos(obj);
+    }
+
+    // create an object and bind it to camera to track the position
+    var targetDirection = position.subtract(this.camera.position);
+    var forwardDirection = this.camera.getForwardRay(targetDirection.length()).direction;
+
+    var rotationMatrix = new BABYLON.Matrix();
+    BABYLON.Matrix.RotationAlignToRef(forwardDirection.normalizeToNew(), targetDirection.normalizeToNew(), rotationMatrix);
+    var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
+
+    var pos = new BABYLON.Vector3(0,0,targetDirection.length());
+    pos.rotateByQuaternionToRef(quat, pos);
+    
+    var target = BABYLON.MeshBuilder.CreateBox("Position of "+obj.id, {size: .5}, this.scene);
+    target.isPickable = false;
+    target.isVisible = false;
+    target.position = pos;
+    if ( obj.rotation ) {
+      var rot = new BABYLON.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z);
+      var quat = BABYLON.Quaternion.FromEulerVector(rot);
+      quat = BABYLON.Quaternion.Inverse(this.camera.absoluteRotation).multiply(quat);
+      target.rotation = quat.toEulerAngles()
+    }
+    target.parent = this.camera;
+    obj.target = target;
+    
     obj.changeListener = () => this.sendPos(obj);
     this.worldManager.addMyChangeListener( obj.changeListener );
     setTimeout( () => {
@@ -352,7 +387,7 @@ export class WorldTemplate extends World {
             break;
           case BABYLON.PointerEventTypes.POINTERUP:
             if(pointerInfo.pickInfo.hit && pickedRoot == root && this.dropping == root) {
-              this.drop(obj);
+              this.drop(obj, position);
             }
             break;
         }
@@ -364,10 +399,13 @@ export class WorldTemplate extends World {
   }
 
   sendPos(obj) {
-    var forwardDirection = this.scene.activeCamera.getForwardRay(2).direction;
-    var pos = this.scene.activeCamera.position.add(forwardDirection).add(new BABYLON.Vector3(0,-.5,0));
-    var rot = this.scene.activeCamera.rotation;
-    this.worldManager.VRSPACE.sendEvent(obj, {position: { x:pos.x, y:pos.y, z:pos.z }, rotation: { x:rot.x, y:rot.y, z:rot.z }} );
+    var rot = this.camera.rotation;
+    var pos = obj.position;
+    if ( obj.target ) {
+      pos = obj.target.absolutePosition;
+      rot = obj.target.absoluteRotationQuaternion.toEulerAngles();
+    }
+    this.worldManager.VRSPACE.sendEvent(obj, {position: { x:pos.x, y:pos.y, z:pos.z }, rotation: {x:rot.x, y:rot.y, z:rot.z}} );
   }
   
   drop(obj) {
@@ -376,12 +414,19 @@ export class WorldTemplate extends World {
     if ( pos > -1 ) {
       this.editingObjects.splice(pos,1);
     }
-
+    console.log("Dropping "+obj.target);
+    
     this.scene.onPointerObservable.remove(obj.clickHandler);
     this.worldManager.removeMyChangeListener( obj.changeListener );
     delete obj.clickHandler;
     delete obj.changeListener;
     this.sendPos(obj);
+
+    if ( obj.target ) {
+      obj.target.parent = null;
+      obj.target.dispose();
+      obj.target = null;
+    }
     this.worldManager.changeCallback = null;
     console.log("dropped "+obj.id);
     this.displayButtons(true);
@@ -469,36 +514,40 @@ export class WorldTemplate extends World {
                   button.onPointerDownObservable.add( () => {
                     VRSPACEUI.indicator.animate();
                     VRSPACEUI.indicator.add("Download");
-                    //this.sketchfabLogin();
                     fetch("/download?uid="+result.uid)
-                      .then(res => res.json())
-                      .then(res => {
-                        console.log(res);
-                        this.worldManager.VRSPACE.createSharedObject({
-                          mesh: res.mesh,
-                          properties: {editing: this.worldManager.VRSPACE.me.id},
-                          position:{x:0, y:0, z:0},
-                          active:true
-                        }, (obj)=>{
-                          console.log("Created new VRObject", obj);
-                        });
-                      });
+                      .then(response => {
+                          console.log(response);
+                          if ( response.status == 401 ) {
+                            console.log("Redirecting to login form")
+                            this.sketchfabLogin();
+                            return;
+                          }
+                          response.json().then(res => {
+                            console.log(res);
+                            this.worldManager.VRSPACE.createSharedObject({
+                              mesh: res.mesh,
+                              properties: {editing: this.worldManager.VRSPACE.me.id},
+                              position:{x:0, y:0, z:0},
+                              active:true
+                            }, (obj)=>{
+                              console.log("Created new VRObject", obj);
+                            });
+                          });
+                      }).catch( err => console.log(err) );
                   });
                   
               });
           });
-      });
+      }).catch( err => console.log(err));
       
   }
   sketchfabLogin() {
     var clientId = "u9ILgUMHeTRX77rbxPR6OYseVUQrYRD9CoIbNHbK";
     var redirectUri = "http://localhost:8080/callback";
-    window.open(
-      "https://sketchfab.com/oauth2/authorize/?response_type=code"+
-      "&client_id="+clientId+
-      "&redirect_uri="+redirectUri,
-      "Sketchfab Login"
-    );
+    var loginUrl = "https://sketchfab.com/oauth2/authorize/?response_type=code"+
+        "&client_id="+clientId+
+        "&redirect_uri="+redirectUri
+    window.open( loginUrl, "_self" );
   }
 }
 
