@@ -99,7 +99,7 @@ export class VRObject {
     }
   }
   
-  /** publish the object to the server */
+  /** Publish the object to the server. Can be used only on new objects. */
   publish() {
     if ( ! this.VRSPACE ) {
       throw "the object is not shared yet";
@@ -110,6 +110,7 @@ export class VRObject {
         event.changes[key] = this[key];
       }
     }
+    // FIXME: TypeError: cyclic object value
     let json = JSON.stringify(event);
     this.VRSPACE.log(json);
     this.VRSPACE.send(json);
@@ -544,11 +545,9 @@ export class VRSpace {
     for ( var change in changes ){
       msg += this.stringifyPair(change,changes[change]);
       index++;
-      if ( index < changes.length ) {
-        msg += ',';
-      }
+      msg += ',';
     };
-    msg += '}}';
+    msg = msg.substring(0,msg.length-1)+'}}';
     this.send(msg);
   }
 

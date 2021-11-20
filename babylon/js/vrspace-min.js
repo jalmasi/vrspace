@@ -13,6 +13,7 @@ export { Buttons } from "./ui/buttons.js";
 export { VRHelper } from "./ui/vr-helper.js";
 export { World } from "./ui/world.js";
 export { WorldManager } from "./ui/world-manager.js";
+export { WorldEditor } from "./ui/world-editor.js";
 export { MediaStreams, OpenViduStreams } from "./ui/media-streams.js";
 export { VideoAvatar } from "./ui/video-avatar.js";
 
