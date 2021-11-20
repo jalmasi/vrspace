@@ -41,6 +41,7 @@ export class WorldTemplate extends World {
     // handy material
     this.ground.material = new BABYLON.GridMaterial("groundMaterial", this.scene);
     this.ground.material.opacity = 0.95;
+    this.ground.material.alphaMode = BABYLON.Constants.ALPHA_PREMULTIPLIED;
     return this.ground;
   }
   

@@ -363,7 +363,7 @@ export class AvatarSelection extends World {
           // CHECKME better way to flag publishing video?
           this.worldManager.pubSub(welcome.client, 'video' === avatarUrl);
           if ( this.afterEnter ) {
-            this.afterEnter(this);
+            this.afterEnter(this, world);
           }
         }).catch((e)=>{
           console.log("TODO: disconnected", e);
