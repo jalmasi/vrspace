@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.vrspace.server.core.ClassUtil;
@@ -33,11 +34,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@RequestMapping("/sketchfab")
 @Slf4j
 public class SketchfabController {
   @Autowired
@@ -57,9 +60,38 @@ public class SketchfabController {
   private String token;
   private String referrer;
 
-  // as explained in https://sketchfab.com/developers/oauth#implement-auth-code
-  @GetMapping("/callback")
-  public ResponseEntity<String> login(String code) {
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class LoginResponse {
+    String url;
+  }
+
+  /**
+   * Start of the login sequence. Returns the sketchfab login url, containing
+   * client id and redirect url. Client is then expected to open that url and
+   * authorise there. Saves the referrer for later use in callback.
+   */
+  @GetMapping("/login")
+  public LoginResponse login(HttpServletRequest request) {
+    this.referrer = request.getHeader(HttpHeaders.REFERER);
+    // CHECKME: return entire url or better structured response?
+    LoginResponse ret = new LoginResponse("https://sketchfab.com/oauth2/authorize/?response_type=code&client_id="
+        + clientId + "&redirect_uri=" + redirectUri);
+    return ret;
+  }
+
+  /**
+   * Sketchfab oauth2 callback, as explained in
+   * https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided
+   * by client to authorise at sketchfab, and returns 302 redirect to the saved
+   * referrer.
+   * 
+   * @param code provided to the client by sketchfab
+   * @return
+   */
+  @GetMapping("/oauth2")
+  public ResponseEntity<String> callback(String code) {
     log.info("Login code " + code);
 
     MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
@@ -118,8 +150,18 @@ public class SketchfabController {
     private String refresh_token;
   }
 
-  // as explained in
-  // https://sketchfab.com/developers/download-api/downloading-models
+  /**
+   * Sketchfab download, as explained in
+   * https://sketchfab.com/developers/download-api/downloading-models Requires
+   * successful authentication, returns 401 unauthorised unless the server is
+   * authorised with sketchfab (token exists). In that case, client is expected to
+   * attempt to login.
+   * 
+   * @param uid     unique id of the model
+   * @param request original request, referrer is saved for later use in case the
+   *                authentication fails
+   * @return
+   */
   @GetMapping("/download")
   public ResponseEntity<GltfModel> download(String uid, HttpServletRequest request) {
     // if not authorised ( null token ) authorise first

@@ -1,6 +1,6 @@
 import { World, VRSPACEUI, WorldManager } from './js/vrspace-min.js';
 
-export class WorldTemplate extends World {
+export class WorldEditorExample extends World {
   async load() {
     // we're not loading any models
     // but we're displaying UI instead
@@ -36,6 +36,8 @@ export class WorldTemplate extends World {
     this.ground.material = new BABYLON.GridMaterial("groundMaterial", this.scene);
     this.ground.material.opacity = 0.999;
     this.ground.material.backFaceCulling = false;
+    this.ground.material.alphaMode = BABYLON.Constants.ALPHA_PREMULTIPLIED;
+    //this.ground.material.alphaMode = BABYLON.Constants.ALPHA_ONEONE; // also fine
     return this.ground;
   }
   
@@ -71,7 +73,7 @@ export class WorldTemplate extends World {
     //panel.position.z = -1.5;
 
     this.buttonPrev = new BABYLON.GUI.HolographicButton("prev");
-    this.buttonPrev.imageUrl = "//www.babylonjs-playground.com/textures/icons/Upload.png";
+    this.buttonPrev.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Upload.png";
     this.guiManager.addControl(this.buttonPrev);
     this.buttonPrev.linkToTransformNode(this.uiRoot);
     this.buttonPrev.position = new BABYLON.Vector3(-4,0,4);
@@ -80,7 +82,7 @@ export class WorldTemplate extends World {
     this.buttonPrev.isVisible = false;
 
     this.buttonNext = new BABYLON.GUI.HolographicButton("next");
-    this.buttonNext.imageUrl = "//www.babylonjs-playground.com/textures/icons/Upload.png";
+    this.buttonNext.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Upload.png";
     this.guiManager.addControl(this.buttonNext);
     this.buttonNext.linkToTransformNode(this.uiRoot);
     this.buttonNext.position = new BABYLON.Vector3(4,0,4);
@@ -180,12 +182,12 @@ export class WorldTemplate extends World {
     this.buttons = [];
     this.buttonLeft = -.2+0.025/2;
   
-    this.rotateButton = this.makeAButton( "Rotate", "//www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
+    this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
     this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png", (o)=>this.resizeObject(o));
-    this.alignButton = this.makeAButton("Align", "//www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
-    this.alignButton = this.makeAButton("Upright", "//www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
-    this.deleteButton = this.makeAButton("Remove", "//www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
-    this.searchButton = this.makeAButton("Search", "//www.babylonjs-playground.com/textures/icons/Zoom.png");
+    this.alignButton = this.makeAButton("Align", "https://www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
+    this.alignButton = this.makeAButton("Upright", "https://www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
+    this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
+    this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
     
     this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
     this.displayButtons(false);
@@ -514,7 +516,7 @@ export class WorldTemplate extends World {
                   button.onPointerDownObservable.add( () => {
                     VRSPACEUI.indicator.animate();
                     VRSPACEUI.indicator.add("Download");
-                    fetch("/download?uid="+result.uid)
+                    fetch("/sketchfab/download?uid="+result.uid)
                       .then(response => {
                           console.log(response);
                           if ( response.status == 401 ) {
@@ -542,12 +544,12 @@ export class WorldTemplate extends World {
       
   }
   sketchfabLogin() {
-    var clientId = "u9ILgUMHeTRX77rbxPR6OYseVUQrYRD9CoIbNHbK";
-    var redirectUri = "http://localhost:8080/callback";
-    var loginUrl = "https://sketchfab.com/oauth2/authorize/?response_type=code"+
-        "&client_id="+clientId+
-        "&redirect_uri="+redirectUri
-    window.open( loginUrl, "_self" );
+    fetch("/sketchfab/login").then(response => {
+        console.log(response);
+        response.json().then(login => {
+          window.open( login.url, "_self" );
+        });
+    });
   }
 }
 
