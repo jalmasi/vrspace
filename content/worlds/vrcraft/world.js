@@ -1,11 +1,16 @@
-import { World, VRSPACEUI, WorldManager, WorldEditor } from './js/vrspace-min.js';
+import { World, VRSPACEUI, WorldEditor } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldEditorExample extends World {
-  async load() {
-    // we're not loading any models
-    // but we're displaying UI instead
-    this.connect();
+  async load(callback) {
+    // we're not loading any models, only ones sent by the server
+    // but we do need to init SEARCH UI
+    this.makeUI();
+    // now proceed with normal loading sequence
+    if ( callback ) {
+      callback(this);
+    }
   }
+  
   async createCamera() {
     this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
     this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
@@ -56,11 +61,43 @@ export class WorldEditorExample extends World {
     return skybox;
   }
   
-  connect() {
-    new WorldManager(this);
-    //this.worldManager.debug = true; // multi-user debug info
-    //this.worldManager.VRSPACE.debug = true; // network debug info
-    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => this.worldEditor = new WorldEditor(this));
+  entered(welcome) {
+    console.log("Entered the world, starting world manager", welcome);
+    this.worldEditor = new WorldEditor(this);
+  }
+
+  // this shouldn't be here, but in HTML file
+  makeUI() {
+    var div = document.createElement("div");
+    div.id = "searchForm";
+    div.style = "position:absolute;bottom:80px;right:40%;color:white;";
+    var html = 
+      `<label for="searchText">Search:</label>
+      <input id="searchText" type="text">
+      <label for="animated">Animated:</label>
+      <input id="animated" type="checkbox">
+      <label for="rigged">Rigged:</label>
+      <input id="rigged" type="checkbox">`;
+    
+    div.innerHTML = html;
+    document.body.appendChild(div);
+    
+    var search = () => {
+      canvas.focus();
+      var text = document.getElementById('searchText').value;
+      console.log('search: '+text);
+      var args = {};
+      if (document.getElementById('animated').checked) {
+        args.animated = true;
+      }
+      if (document.getElementById('rigged').checked) {
+        args.rigged = true;
+      }
+      this.search(text, args);
+    }
+    document.getElementById('searchText').addEventListener('change', () => search() );
+    document.getElementById('animated').addEventListener('change', () => search() );
+    document.getElementById('rigged').addEventListener('change', () => search() );
   }
   
   search( what ) {
