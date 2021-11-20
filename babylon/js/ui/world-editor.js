@@ -1,63 +1,17 @@
-import { World, VRSPACEUI, WorldManager } from './js/vrspace-min.js';
-
-export class WorldEditorExample extends World {
-  async load() {
-    // we're not loading any models
-    // but we're displaying UI instead
-    this.makeUI();
-    this.connect();
+export class WorldEditor {
+  constructor( world ) {
+    if ( ! world.worldManager ) {
+      throw "World editor requires connection to the server - enter a world first";
+    }
+    this.world = world;
+    this.scene = world.scene;
+    this.camera = world.scene.activeCamera;
+    this.worldManager = world.worldManager;
     this.editingObjects=[];
+    this.makeUI();
     this.installClickHandler();
     this.createButtons();
-  }
-  async createCamera() {
-    this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
-    this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
-    this.camera.setTarget(new BABYLON.Vector3(0,2,0));
-    this.camera.speed = .2;
-    this.camera.applyGravity = false;
-    return this.camera;
-  }
-
-  async createGround() {
-    this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {radius:1000}, this.scene);
-    this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
-    this.ground.position = new BABYLON.Vector3( 0, -0.05, 0 );
-    this.ground.parent = this.floorGroup;
-    //this.ground.isVisible = false;
-    this.ground.checkCollisions = false;
-    
-    // handy function for dynamic script loading
-    await VRSPACEUI.loadScriptsToDocument([ 
-      //"//www.vrspace.org/babylon/babylon.gridMaterial.min.js"
-      "/babylon/js/lib/babylon.gridMaterial.min.js"
-    ]);
-    // handy material
-    this.ground.material = new BABYLON.GridMaterial("groundMaterial", this.scene);
-    this.ground.material.opacity = 0.999;
-    this.ground.material.backFaceCulling = false;
-    this.ground.material.alphaMode = BABYLON.Constants.ALPHA_PREMULTIPLIED;
-    //this.ground.material.alphaMode = BABYLON.Constants.ALPHA_ONEONE; // also fine
-    return this.ground;
-  }
-  
-  async createLights() {
-    var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), this.scene);
-    light.intensity = 2;
-    var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
-    return light1;
-  }
-  
-  async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, this.scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("/content/skybox/eso_milkyway/milkyway"), this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-    return skybox;
+    this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);    
   }
   
   makeUI() {
@@ -89,6 +43,46 @@ export class WorldEditorExample extends World {
     this.buttonNext.mesh.rotation = new BABYLON.Vector3(0,0,-Math.PI/2);
     this.buttonNext.tooltipText = "Next";
     this.buttonNext.isVisible = false;
+  }
+  
+  createButtons() {
+    this.buttons = [];
+    this.buttonLeft = -.2+0.025/2;
+  
+    this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
+    this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png", (o)=>this.resizeObject(o));
+    this.alignButton = this.makeAButton("Align", "https://www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
+    this.alignButton = this.makeAButton("Upright", "https://www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
+    this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
+    this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
+    
+    this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
+    this.displayButtons(false);
+  }
+
+  makeAButton(text, imageUrl, action) {
+    var button = new BABYLON.GUI.HolographicButton(text+"Button");
+    this.guiManager.addControl(button);
+    button.imageUrl = imageUrl;
+    button.text=text;
+    button.position = new BABYLON.Vector3(this.buttonLeft,-0.1,.5);
+    button.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    button.mesh.parent = this.camera;
+    button.onPointerDownObservable.add( () => {
+      if ( this.activeButton == button ) {
+        // already pressed, turn it off
+        this.activeButton = null;
+        this.displayButtons(true);
+      } else {
+        this.displayButtons(false);
+        button.isVisible = true;
+        this.activeButton = button;
+      }
+    });
+    button.customAction = action;
+    this.buttons.push( button );
+    this.buttonLeft += .075;
+    return button;
   }
   
   async _initWriter() {
@@ -126,21 +120,11 @@ export class WorldEditorExample extends World {
     }
   }
   
-  connect() {
-    new WorldManager(this);
-    //this.worldManager.debug = true; // multi-user debug info
-    //this.worldManager.VRSPACE.debug = true; // network debug info
-
-    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
-    
-    this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);    
-  }
-  
   objectLoaded( vrObject, rootMesh ) {
-    VRSPACEUI.indicator.remove("Download");
     console.log("Loaded:");
     console.log(vrObject);
     if ( vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id ) {
+      VRSPACEUI.indicator.remove("Download");
       this.editingObjects.push(vrObject.id);
       console.log("Loaded my object "+vrObject.id)
       this.take(vrObject);
@@ -153,46 +137,6 @@ export class WorldEditorExample extends World {
     }
   }
 
-  makeAButton(text, imageUrl, action) {
-    var button = new BABYLON.GUI.HolographicButton(text+"Button");
-    this.guiManager.addControl(button);
-    button.imageUrl = imageUrl;
-    button.text=text;
-    button.position = new BABYLON.Vector3(this.buttonLeft,-0.1,.5);
-    button.scaling = new BABYLON.Vector3( .05, .05, .05 );
-    button.mesh.parent = this.camera;
-    button.onPointerDownObservable.add( () => {
-      if ( this.activeButton == button ) {
-        // already pressed, turn it off
-        this.activeButton = null;
-        this.displayButtons(true);
-      } else {
-        this.displayButtons(false);
-        button.isVisible = true;
-        this.activeButton = button;
-      }
-    });
-    button.customAction = action;
-    this.buttons.push( button );
-    this.buttonLeft += .075;
-    return button;
-  }
-  
-  createButtons() {
-    this.buttons = [];
-    this.buttonLeft = -.2+0.025/2;
-  
-    this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
-    this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png", (o)=>this.resizeObject(o));
-    this.alignButton = this.makeAButton("Align", "https://www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
-    this.alignButton = this.makeAButton("Upright", "https://www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
-    this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
-    this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
-    
-    this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
-    this.displayButtons(false);
-  }
-  
   manipulateObject(obj, action) {
     if ( ! action ) {
       this.displayButtons(true);
@@ -296,10 +240,9 @@ export class WorldEditorExample extends World {
   }  
   
   relocatePanel() {
-    var forwardDirection = this.scene.activeCamera.getForwardRay(6).direction;
-    this.uiRoot.position = this.scene.activeCamera.position.add(forwardDirection);
-    //this.uiRoot.rotation = new BABYLON.Vector3(0,this.scene.activeCamera.rotation.y,0);
-    this.uiRoot.rotation = new BABYLON.Vector3(this.scene.activeCamera.rotation.x,this.scene.activeCamera.rotation.y,this.scene.activeCamera.rotation.z);
+    var forwardDirection = this.camera.getForwardRay(6).direction;
+    this.uiRoot.position = this.camera.position.add(forwardDirection);
+    this.uiRoot.rotation = new BABYLON.Vector3(this.camera.rotation.x,this.camera.rotation.y,this.camera.rotation.z);
     this.displayButtons(true);
   }
   
@@ -343,9 +286,9 @@ export class WorldEditorExample extends World {
 
     // default position
     if ( ! position ) {
-      var forwardDirection = this.scene.activeCamera.getForwardRay(2).direction;
+      var forwardDirection = this.camera.getForwardRay(2).direction;
       var forwardLower = forwardDirection.add(new BABYLON.Vector3(0,-.5,0));
-      position = this.scene.activeCamera.position.add(forwardLower);
+      position = this.camera.position.add(forwardLower);
       obj.position.x = position.x;
       obj.position.y = position.y;
       obj.position.z = position.z;
@@ -541,8 +484,8 @@ export class WorldEditorExample extends World {
               });
           });
       }).catch( err => console.log(err));
-      
   }
+  
   sketchfabLogin() {
     fetch("/sketchfab/login").then(response => {
         console.log(response);
@@ -552,5 +495,3 @@ export class WorldEditorExample extends World {
     });
   }
 }
-
-export const WORLD = new WorldTemplate();
