@@ -11,6 +11,7 @@ import javax.annotation.PreDestroy;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.configuration.connectors.BoltConnector;
 import org.neo4j.configuration.connectors.HttpConnector;
+import org.neo4j.configuration.helpers.SocketAddress;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -53,9 +54,20 @@ public class NeoConfig {
   }
 
   public void neoStart(Path dbDir) {
+    int port = BoltConnector.DEFAULT_PORT;
+    int pos = neoUri.indexOf(":", neoUri.indexOf("://") + 1);
+    if (pos > 0) {
+      String sPort = neoUri.substring(pos + 1);
+      try {
+        port = Integer.valueOf(sPort);
+      } catch (Exception e) {
+        log.error("Can't parse database port from " + neoUri + " - " + e);
+      }
+    }
     log.info("Starting database on " + neoUri);
     managementService = new DatabaseManagementServiceBuilder(dbDir).setConfig(GraphDatabaseSettings.allow_upgrade, true)
         .setConfig(BoltConnector.enabled, neoUri.startsWith("bolt:"))
+        .setConfig(BoltConnector.listen_address, new SocketAddress("localhost", port))
         .setConfig(HttpConnector.enabled, neoUri.startsWith("http:")).build();
     graphDb = managementService.database("neo4j");
 
