@@ -8,14 +8,24 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 @ControllerAdvice
 public class ApiExceptionResolver extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(value = { ApiException.class })
   protected ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
-    // CHECKME: return json string?
-    String responseBody = ex.getMessage();
+    // return plain text
+    // String responseBody = ex.getMessage();
+    // return json string:
+    ErrorMessage responseBody = new ErrorMessage(ex.getMessage());
     return handleExceptionInternal(ex, responseBody, new HttpHeaders(), HttpStatus.PRECONDITION_REQUIRED, request);
   }
 
+  @Data
+  @AllArgsConstructor
+  public class ErrorMessage {
+    private String message;
+  }
 }

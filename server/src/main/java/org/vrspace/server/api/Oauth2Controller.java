@@ -49,6 +49,7 @@ public class Oauth2Controller {
   }
 
   // TODO this should be hashed
+  // CHECKME some kind of universal identity
   private String identity(OAuth2AuthenticationToken token) {
     String authority = token.getAuthorizedClientRegistrationId();
     String realName = token.getPrincipal().getAttribute("name");
