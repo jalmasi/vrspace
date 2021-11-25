@@ -43,11 +43,25 @@ var scene;
 import("./avatar-selection.js").then( (module) =>{
   
   var world = module.WORLD;
-
-  document.getElementById('nickname').addEventListener('input', (e)=>{
-    world.setName(e.target.value);
+  var nameInput = document.getElementById('nickname');
+  nameInput.addEventListener('input', (e)=>{
+    world.setMyName(e.target.value);
   });
 
+  nameInput.addEventListener('change', (e)=>{
+    world.setLoginName(e.target.value).then((valid) => {
+      var nameLabel = document.getElementById('namelabel');
+      console.log("Valid name: "+valid);
+      if ( valid ) {
+        nameLabel.innerHTML="Name:"
+        canvas.focus();
+      } else {
+        nameLabel.innerHTML="INVALID NAME, try another:"
+      }
+      world.portalsEnabled(valid);
+    });
+  });
+  
   document.getElementById('chatBox').style.display = 'none';
   document.getElementById('chatInput').addEventListener('change', (e)=>{
     world.worldManager.sendMy({wrote:e.target.value});
@@ -94,7 +108,7 @@ function debugOnOff() {
 </script>
 
 <div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
-<label for="nickname">Name:</label>
+<label id="namelabel" for="nickname">Name:</label>
 <input id="nickname" type="text">
 </div>
 

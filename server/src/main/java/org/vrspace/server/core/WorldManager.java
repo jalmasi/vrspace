@@ -1,6 +1,7 @@
 package org.vrspace.server.core;
 
 import java.lang.reflect.Modifier;
+import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -182,17 +183,18 @@ public class WorldManager {
 
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
+    Principal principal = session.getPrincipal();
     HttpHeaders headers = session.getHandshakeHeaders();
     Map<String, Object> attributes = session.getAttributes();
-    log.debug("Login principal: " + session.getPrincipal() + " headers: " + headers + " attributes: " + attributes);
+    log.debug("Login principal: " + principal + " headers: " + headers + " attributes: " + attributes);
     // principal may be OAuth2AuthenticationToken, in that case getName() returns
     // token value, getAuthorizedClientRegistrationId() return the authority
     // (github, facebook...)
     Client client = null;
     if (session.getPrincipal() != null) {
-      client = clientFactory.findClient(session.getPrincipal().getName(), db, headers, attributes);
+      client = clientFactory.findClient(principal, db, headers, attributes);
       if (client == null) {
-        throw new SecurityException("Unauthorized " + session.getPrincipal().getName());
+        throw new SecurityException("Unauthorized client " + session.getPrincipal().getName());
       }
     } else if (config.isGuestAllowed()) {
       client = clientFactory.createGuestClient(headers, attributes);
@@ -272,6 +274,11 @@ public class WorldManager {
     }
     sessionTracker.addSession(client);
 
+    // client must have position to have scene
+    // depending on how we create client that may not be the case
+    if (client.getPosition() == null) {
+      client.setPosition(new Point());
+    }
     // client has now entered the world
     client.setActive(true);
     client = save(client);

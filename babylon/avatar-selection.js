@@ -194,7 +194,7 @@ export class AvatarSelection extends World {
         this.portalsEnabled(true);
       }
       this.character = loaded.replace(this.character);
-      this.setName(this.userName);
+      this.character.setName(this.userName);
       this.animationButtons(this.character);
       if ( this.selectionCallback ) {
         this.selectionCallback(this.character);
@@ -202,11 +202,17 @@ export class AvatarSelection extends World {
     });
   }
 
-  setName(name) {
+  setMyName(name) {
     this.userName = name;
     if ( this.character ) {
       this.character.setName(this.userName);
     }
+  }
+
+  async setLoginName(name) {
+    // TODO: provide API calls lib
+    var response = await fetch("/user/available?name="+name);
+    return await response.json();
   }
   
   animationButtons(avatar) {
@@ -302,9 +308,13 @@ export class AvatarSelection extends World {
   portalsEnabled(enable) {
     if (this.portals) {
       for ( var i = 0; i < this.portals.length; i++ ) {
-        this.portals[i].enabled(enable);
+        this.portals[i].enabled(enable&&this.hasAvatar());
       }
     }
+  }
+  
+  hasAvatar() {
+    return this.video || this.character;
   }
   
   removePortals() {

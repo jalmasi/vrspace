@@ -47,6 +47,7 @@ public class Scene {
   protected Scene() {
   }
 
+  @SuppressWarnings("static-access")
   private static Set<VRObject> newScene() {
     return new ConcurrentHashMap<VRObject, ID>().newKeySet();
   }

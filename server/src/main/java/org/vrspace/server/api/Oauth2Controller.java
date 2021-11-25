@@ -1,6 +1,7 @@
 package org.vrspace.server.api;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -10,6 +11,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.Client;
 
@@ -21,9 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 public class Oauth2Controller {
   @Autowired
   VRObjectRepository db;
+  @Autowired
+  ClientFactory clientFactory;
 
   @GetMapping("/login")
-  public void login(String name) {
+  public void login(String name, HttpSession session) {
     // at this point client is already authenticated
     if (ObjectUtils.isEmpty(name)) {
       throw new ApiException("Argument required: name");
@@ -46,6 +50,7 @@ public class Oauth2Controller {
       client = db.save(client);
     }
     // CHECKME do we need to return anything?
+    session.setAttribute(clientFactory.clientAttribute(), name);
   }
 
   // TODO this should be hashed

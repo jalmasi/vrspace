@@ -69,7 +69,9 @@ public class NeoConfig {
 
   @PreDestroy
   public void stop() {
+    log.info("Database shutting down...");
     managementService.shutdown();
+    log.info("Database shutting down complete");
   }
 
 }
