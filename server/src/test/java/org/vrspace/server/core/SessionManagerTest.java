@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -117,6 +118,10 @@ public class SessionManagerTest {
         return "tester";
       }
     });
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put(ClientFactory.CLIENT_ATTRIBUTE, "tester");
+    when(session.getAttributes()).thenReturn(attributes);
+
     testUser = new Client();
     testUser.setName("tester");
     testUser.setPosition(new Point(1, 2, 3));
@@ -164,12 +169,9 @@ public class SessionManagerTest {
   @Test
   public void testInvalidLoginFail() throws Exception {
     config.setGuestAllowed(false);
-    when(session.getPrincipal()).thenReturn(new Principal() {
-      @Override
-      public String getName() {
-        return "unknown";
-      }
-    });
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put(ClientFactory.CLIENT_ATTRIBUTE, "unknown");
+    when(session.getAttributes()).thenReturn(attributes);
     sessionManager.afterConnectionEstablished(session);
 
     String errorMsg = getMessage();
