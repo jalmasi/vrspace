@@ -55,6 +55,10 @@ public class Client extends VRObject {
   @Transient
   transient private String token;
 
+  @Private
+  @JsonIgnore
+  private String identity;
+
   @JsonIgnore
   @Transient
   transient private ConcurrentWebSocketSessionDecorator session;

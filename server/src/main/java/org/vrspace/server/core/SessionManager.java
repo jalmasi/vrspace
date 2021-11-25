@@ -107,11 +107,14 @@ public class SessionManager extends TextWebSocketHandler {
   @Override
   public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
     Client client = sessions.remove(session.getId());
-    clients.remove(client.getId());
-    log.info("Session closed: " + session.getId() + " on " + session.getLocalAddress() + " from "
-        + session.getRemoteAddress() + " user " + session.getPrincipal() + " reason " + status + " remaining sessions "
-        + sessions.size());
-    worldManager.logout(client);
+    if (client != null && client.getId() != null) {
+      // may be null in case of authentication failure
+      clients.remove(client.getId());
+      log.info("Session closed: " + session.getId() + " on " + session.getLocalAddress() + " from "
+          + session.getRemoteAddress() + " user " + session.getPrincipal() + " reason " + status
+          + " remaining sessions " + sessions.size());
+      worldManager.logout(client);
+    }
   }
 
   public Client getClient(Long id) {

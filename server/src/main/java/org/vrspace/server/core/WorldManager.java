@@ -3,6 +3,7 @@ package org.vrspace.server.core;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -182,14 +183,19 @@ public class WorldManager {
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
     HttpHeaders headers = session.getHandshakeHeaders();
+    Map<String, Object> attributes = session.getAttributes();
+    log.debug("Login principal: " + session.getPrincipal() + " headers: " + headers + " attributes: " + attributes);
+    // principal may be OAuth2AuthenticationToken, in that case getName() returns
+    // token value, getAuthorizedClientRegistrationId() return the authority
+    // (github, facebook...)
     Client client = null;
     if (session.getPrincipal() != null) {
-      client = clientFactory.findClient(session.getPrincipal().getName(), db, headers);
+      client = clientFactory.findClient(session.getPrincipal().getName(), db, headers, attributes);
       if (client == null) {
         throw new SecurityException("Unauthorized " + session.getPrincipal().getName());
       }
     } else if (config.isGuestAllowed()) {
-      client = clientFactory.createGuestClient(headers);
+      client = clientFactory.createGuestClient(headers, attributes);
       if (client == null) {
         throw new SecurityException("Guest disallowed");
       }
@@ -197,7 +203,7 @@ public class WorldManager {
       client.setGuest(true);
       client = db.save(client);
     } else {
-      client = clientFactory.handleUnknownClient(headers);
+      client = clientFactory.handleUnknownClient(headers, attributes);
       if (client == null) {
         throw new SecurityException("Unauthorized");
       }

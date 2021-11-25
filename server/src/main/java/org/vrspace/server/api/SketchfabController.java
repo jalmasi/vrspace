@@ -1,4 +1,4 @@
-package org.vrspace.server.web;
+package org.vrspace.server.api;
 
 import java.io.File;
 import java.net.URL;
