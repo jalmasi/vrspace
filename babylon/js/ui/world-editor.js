@@ -7,7 +7,6 @@ export class WorldEditor {
     this.scene = world.scene;
     this.camera = world.scene.activeCamera;
     this.worldManager = world.worldManager;
-    this.editingObjects=[];
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
@@ -17,14 +16,15 @@ export class WorldEditor {
   makeUI() {
     this.uiRoot = new BABYLON.TransformNode("SearchUI");
 
-    this.uiRoot.position.y = 2;
+    this.uiRoot.position = new BABYLON.Vector3(0,2,0);
+    this.uiRoot.rotation = new BABYLON.Vector3(0,0,0);
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
     this.panel = new BABYLON.GUI.CylinderPanel();
+    this.panel.blocklayout = true; // optimization, requires updateLayout() call
     this.panel.margin = 0.05;
     this.panel.columns = 6;
     this.guiManager.addControl(this.panel);
     this.panel.linkToTransformNode(this.uiRoot);
-    //panel.position.z = -1.5;
 
     this.buttonPrev = new BABYLON.GUI.HolographicButton("prev");
     this.buttonPrev.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Upload.png";
@@ -47,13 +47,15 @@ export class WorldEditor {
   
   createButtons() {
     this.buttons = [];
-    this.buttonLeft = -.25+0.025/2;
+    this.buttonLeft = -.275+0.025/2;
   
+    this.moveButton = this.makeAButton( "Move", "/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
+    this.moveButton.onPointerUpObservable.add(()=>this.dropObject());
     this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
     this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png", (o)=>this.resizeObject(o));
     this.alignButton = this.makeAButton("Align", "https://www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
     this.alignButton = this.makeAButton("Upright", "https://www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
-    this.deleteButton = this.makeAButton("Copy", "/content/icons/copy.png", (o)=>this.copyObject(o));
+    this.copyButton = this.makeAButton("Copy", "/content/icons/copy.png", (o)=>this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
     this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
     
@@ -126,17 +128,16 @@ export class WorldEditor {
     console.log(vrObject);
     if ( vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id ) {
       VRSPACEUI.indicator.remove("Download");
-      this.editingObjects.push(vrObject.id);
       console.log("Loaded my object "+vrObject.id)
       if ( ! vrObject.scale ) {
-        this.take(vrObject);
+        this.takeObject(vrObject);
         setTimeout( () => {
           var scale = 1/this.worldManager.bBoxMax(rootMesh);
           //var scale = 1/this.worldManager.bBoxMax(this.worldManager.getRootNode(vrObject));
           this.worldManager.VRSPACE.sendEvent(vrObject, {scale: { x:scale, y:scale, z:scale }} );
         }, 100 );
       } else {
-        this.take(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
+        this.takeObject(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
       }
     }
   }
@@ -158,7 +159,9 @@ export class WorldEditor {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
         this.scene.onPointerObservable.remove(resizeHandler);
         if ( pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj ) {
-          var diff = pointerInfo.pickInfo.pickedPoint.y - point.y;
+          //var diff = pointerInfo.pickInfo.pickedPoint.y - point.y;
+          var sign = Math.sign(pointerInfo.pickInfo.pickedPoint.y - point.y);
+          var diff = pointerInfo.pickInfo.pickedPoint.subtract(point).length() * sign;
           var bbox = this.worldManager.bBoxMax(obj);
           console.log("bBoxMax:"+bbox+" diff:"+diff+" scaling:"+obj.scaling.y);
           //var scale = obj.scaling.y + diff;
@@ -250,12 +253,14 @@ export class WorldEditor {
     if ( show ) {
       this.activeButton = null;
     }
-  }  
+  }
   
   relocatePanel() {
+    //this.panel.linkToTransformNode();
     var forwardDirection = this.camera.getForwardRay(6).direction;
     this.uiRoot.position = this.camera.position.add(forwardDirection);
     this.uiRoot.rotation = new BABYLON.Vector3(this.camera.rotation.x,this.camera.rotation.y,this.camera.rotation.z);
+    //this.panel.linkToTransformNode(this.uiRoot);
     this.displayButtons(true);
   }
   
@@ -270,42 +275,46 @@ export class WorldEditor {
               console.log("Manipulating shared object "+pickedRoot.VRObject.id+" "+pickedRoot.name);
               this.manipulateObject(pickedRoot, this.activeButton.customAction);
             }
-          } else {
-            this.taking = pickedRoot;
           }
           break;
         case BABYLON.PointerEventTypes.POINTERUP:
-          if ( this.taking == pickedRoot && pickedRoot.VRObject ) {
-            var vrObject = pickedRoot.VRObject;
-            console.log("Picked shared object "+vrObject.id+" "+pickedRoot.name);
-            console.log(this.editingObjects);
-            if ( ! this.editingObjects.includes(vrObject.id)) {
-              this.editingObjects.push(vrObject.id);
-              this.take(vrObject, pickedRoot.absolutePosition);
-            }
-          }
           break;
       }
     });
   }
   
-  take(obj, position) {
-    this.taking = null;
-    if ( obj.changeListener ) {
+  dropObject() {
+    if ( ! this.activeButton && this.carrying ) {
+      console.log("dropping");
+      this.drop(this.carrying);
+      this.carrying = null;
+    }
+  }
+  
+  takeObject(vrObject, position) {
+    this.activeButton = this.moveButton;
+    this.displayButtons(false);
+    this.moveButton.isVisible = true;
+    this.take(vrObject, position);
+  }
+  
+  take(vrObject, position) {
+    if ( vrObject.changeListener || this.carrying ) {
       // already tracking
       return;
     }
-    var root = this.worldManager.getRootNode(obj);
 
+    this.carrying = vrObject;
+    
     // default position
     if ( ! position ) {
       var forwardDirection = this.camera.getForwardRay(2).direction;
       var forwardLower = forwardDirection.add(new BABYLON.Vector3(0,-.5,0));
       position = this.camera.position.add(forwardLower);
-      obj.position.x = position.x;
-      obj.position.y = position.y;
-      obj.position.z = position.z;
-      this.sendPos(obj);
+      vrObject.position.x = position.x;
+      vrObject.position.y = position.y;
+      vrObject.position.z = position.z;
+      this.sendPos(vrObject);
     }
 
     // create an object and bind it to camera to track the position
@@ -319,41 +328,22 @@ export class WorldEditor {
     var pos = new BABYLON.Vector3(0,0,targetDirection.length());
     pos.rotateByQuaternionToRef(quat, pos);
     
-    var target = BABYLON.MeshBuilder.CreateBox("Position of "+obj.id, {size: .5}, this.scene);
+    var target = BABYLON.MeshBuilder.CreateBox("Position of "+vrObject.id, {size: .5}, this.scene);
     target.isPickable = false;
     target.isVisible = false;
     target.position = pos;
-    if ( obj.rotation ) {
-      var rot = new BABYLON.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z);
+    if ( vrObject.rotation ) {
+      var rot = new BABYLON.Vector3(vrObject.rotation.x, vrObject.rotation.y, vrObject.rotation.z);
       var quat = BABYLON.Quaternion.FromEulerVector(rot);
       quat = BABYLON.Quaternion.Inverse(this.camera.absoluteRotation).multiply(quat);
       target.rotation = quat.toEulerAngles()
     }
     target.parent = this.camera;
-    obj.target = target;
+    vrObject.target = target;
     
-    obj.changeListener = () => this.sendPos(obj);
-    this.worldManager.addMyChangeListener( obj.changeListener );
-    setTimeout( () => {
-      obj.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-        var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
-        switch (pointerInfo.type) {
-          case BABYLON.PointerEventTypes.POINTERDOWN:
-            if(pointerInfo.pickInfo.hit && pickedRoot == root) {
-              this.dropping = root;
-            }
-            break;
-          case BABYLON.PointerEventTypes.POINTERUP:
-            if(pointerInfo.pickInfo.hit && pickedRoot == root && this.dropping == root) {
-              this.drop(obj, position);
-            }
-            break;
-        }
-      }),
-      100
-    });
-    console.log("took "+obj.id);
-    this.displayButtons(false);
+    vrObject.changeListener = () => this.sendPos(vrObject);
+    this.worldManager.addMyChangeListener( vrObject.changeListener );
+    console.log("took "+vrObject.id);
   }
 
   sendPos(obj) {
@@ -367,11 +357,6 @@ export class WorldEditor {
   }
   
   drop(obj) {
-    this.dropping = null;
-    var pos = this.editingObjects.indexOf(obj.id);
-    if ( pos > -1 ) {
-      this.editingObjects.splice(pos,1);
-    }
     console.log("Dropping "+obj.target);
     
     this.scene.onPointerObservable.remove(obj.clickHandler);
@@ -412,15 +397,21 @@ export class WorldEditor {
       }
       url.search = new URLSearchParams(params).toString();
 
-      this.doFetch(url);      
+      this.doFetch(url, true);
   }
   
-  doFetch(url) {
+  doFetch(url, relocate) {
       fetch(url).then(response => {
           response.json().then( obj=> {
               console.log(obj);
-              this.panel.children.forEach( (button) => button.dispose() );
-
+              // workaround for panel buttons all messed up
+              var previous = { pos:this.uiRoot.position, rot:this.uiRoot.rotation };
+              this.uiRoot.position = new BABYLON.Vector3(0,2,0);
+              this.uiRoot.rotation = new BABYLON.Vector3(0,0,0);
+              this.panel.linkToTransformNode();
+              
+              this.panel.children.forEach( (button) => {button.dispose()} );
+              
               this.buttonNext.isVisible = (obj.next != null);
               this.buttonNext.onPointerDownObservable.clear();
               this.buttonNext.onPointerDownObservable.add( () => {this.doFetch(obj.next)});
@@ -488,6 +479,15 @@ export class WorldEditor {
                   });
                   
               });
+              // ending workaround:
+              this.panel.linkToTransformNode(this.uiRoot);
+              this.panel.updateLayout();
+              if ( relocate ) {
+                this.relocatePanel();
+              } else {
+                this.uiRoot.position = previous.pos;
+                this.uiRoot.rotation = previous.rot;
+              }
           });
       }).catch( err => console.log(err));
   }
