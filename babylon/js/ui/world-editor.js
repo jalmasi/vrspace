@@ -475,7 +475,10 @@ export class WorldEditor {
                             console.log(res);
                             this.createSharedObject(res.mesh);
                           });
-                      }).catch( err => console.log(err) );
+                      }).catch( err => {
+                        console.log(err);
+                        VRSPACEUI.indicator.remove("Download");
+                      });
                   });
                   
               });
