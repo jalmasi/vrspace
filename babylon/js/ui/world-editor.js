@@ -47,12 +47,13 @@ export class WorldEditor {
   
   createButtons() {
     this.buttons = [];
-    this.buttonLeft = -.2+0.025/2;
+    this.buttonLeft = -.25+0.025/2;
   
     this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
     this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png", (o)=>this.resizeObject(o));
     this.alignButton = this.makeAButton("Align", "https://www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
     this.alignButton = this.makeAButton("Upright", "https://www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
+    this.deleteButton = this.makeAButton("Copy", "/content/icons/copy.png", (o)=>this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
     this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
     
@@ -127,13 +128,16 @@ export class WorldEditor {
       VRSPACEUI.indicator.remove("Download");
       this.editingObjects.push(vrObject.id);
       console.log("Loaded my object "+vrObject.id)
-      this.take(vrObject);
-      // CHECKME: in case of instancing existing container, it may not be displayed yet, does not resize
-      setTimeout( () => {
-        var scale = 1/this.worldManager.bBoxMax(rootMesh);
-        //var scale = 1/this.worldManager.bBoxMax(this.worldManager.getRootNode(vrObject));
-        this.worldManager.VRSPACE.sendEvent(vrObject, {scale: { x:scale, y:scale, z:scale }} );
-      }, 100 );
+      if ( ! vrObject.scale ) {
+        this.take(vrObject);
+        setTimeout( () => {
+          var scale = 1/this.worldManager.bBoxMax(rootMesh);
+          //var scale = 1/this.worldManager.bBoxMax(this.worldManager.getRootNode(vrObject));
+          this.worldManager.VRSPACE.sendEvent(vrObject, {scale: { x:scale, y:scale, z:scale }} );
+        }, 100 );
+      } else {
+        this.take(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
+      }
     }
   }
 
@@ -167,6 +171,7 @@ export class WorldEditor {
       }
     });
   }
+  
   rotateObject(obj) {
     var point;
     var rotateHandler = this.scene.onPointerObservable.add((pointerInfo) => {
@@ -231,6 +236,14 @@ export class WorldEditor {
     this.worldManager.VRSPACE.deleteSharedObject(obj.VRObject);
   }
 
+  copyObject(obj) {
+    var vrObject = obj.VRObject;
+    console.log(vrObject);
+    this.activeButton = null;
+    this.displayButtons(true);
+    this.createSharedObject(vrObject.mesh, {position:vrObject.position, rotation:vrObject.rotation, scale:vrObject.scale});
+  }
+  
   displayButtons(show) {
     this.buttons.forEach( button => button.isVisible = show);
     this.displayingButtons = show;
@@ -469,14 +482,7 @@ export class WorldEditor {
                           }
                           response.json().then(res => {
                             console.log(res);
-                            this.worldManager.VRSPACE.createSharedObject({
-                              mesh: res.mesh,
-                              properties: {editing: this.worldManager.VRSPACE.me.id},
-                              position:{x:0, y:0, z:0},
-                              active:true
-                            }, (obj)=>{
-                              console.log("Created new VRObject", obj);
-                            });
+                            this.createSharedObject(res.mesh);
                           });
                       }).catch( err => console.log(err) );
                   });
@@ -484,6 +490,23 @@ export class WorldEditor {
               });
           });
       }).catch( err => console.log(err));
+  }
+  
+  createSharedObject( mesh, properties ) {
+    var object = {
+      mesh: mesh,
+      properties: {editing: this.worldManager.VRSPACE.me.id},
+      position:{x:0, y:0, z:0},
+      active:true
+    };
+    if ( properties ) {
+      for ( var p in properties ) {
+        object[p] = properties[p];
+      }
+    }
+    this.worldManager.VRSPACE.createSharedObject(object, (obj)=>{
+      console.log("Created new VRObject", obj);
+    });
   }
   
   sketchfabLogin() {
