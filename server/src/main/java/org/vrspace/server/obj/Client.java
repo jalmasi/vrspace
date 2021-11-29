@@ -43,6 +43,8 @@ public class Client extends VRObject {
   transient private Double userHeight;
 
   // CHECKME: this needs to get refactored eventually
+  // FIXME: data model bug, messes up owned VRObject members - position,
+  // rotation...
   @JsonIgnore
   private Set<VRObject> owned;
 

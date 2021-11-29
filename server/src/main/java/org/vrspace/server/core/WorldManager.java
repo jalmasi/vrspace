@@ -161,7 +161,9 @@ public class WorldManager {
         o.setTemporary(true);
       }
       o = db.save(o);
-      client.addOwned(o);
+      // FIXME: data model bug, messes up owned VRObject members - position,
+      // rotation...
+      // client.addOwned(o);
       cache.put(o.getObjectId(), o);
       return o;
     }).collect(Collectors.toList());
