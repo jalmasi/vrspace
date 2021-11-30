@@ -7,16 +7,19 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = false)
 public class Point extends Embedded {
   // @Index - created in NeoConfig
+  @EqualsAndHashCode.Include
   private double x;
   // @Index
+  @EqualsAndHashCode.Include
   private double y;
   // @Index
+  @EqualsAndHashCode.Include
   private double z;
 
   public Point(Point position) {
@@ -58,5 +61,17 @@ public class Point extends Embedded {
     y -= val;
     z -= val;
     return this;
+  }
+
+  /**
+   * Utility method, confirms that coordinates of this point match the coordinates
+   * of the other point. Method equals() can't be used for that purpose as it
+   * includes object id - requirement for persistence.
+   * 
+   * @param p Point to compare
+   * @return true if all coordinates are equal
+   */
+  public boolean isEqual(Point p) {
+    return p.x == x && p.y == y && p.z == z;
   }
 }

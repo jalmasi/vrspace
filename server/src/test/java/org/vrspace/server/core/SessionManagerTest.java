@@ -16,6 +16,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -239,7 +240,10 @@ public class SessionManagerTest {
     login();
     startSession();
 
-    String add = "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}}, {\"VRObject\":{}}]}}}";
+    // String add =
+    // "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}},
+    // {\"VRObject\":{}}]}}}";
+    String add = "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}}, {\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}}]}}}";
     sendMessage(add);
 
     // response to add + scene update, called from Client.sendMessage()
@@ -259,8 +263,13 @@ public class SessionManagerTest {
     assertEquals(2, addCommand.getObjects().size());
 
     // verify objects exist in the database
-    assertTrue(repo.findById(VRObject.class, ids.get(0).values().iterator().next()).isPresent());
-    assertTrue(repo.findById(VRObject.class, ids.get(1).values().iterator().next()).isPresent());
+    Optional<VRObject> obj1 = repo.findById(VRObject.class, ids.get(0).values().iterator().next());
+    Optional<VRObject> obj2 = repo.findById(VRObject.class, ids.get(1).values().iterator().next());
+    assertTrue(obj1.isPresent());
+    assertTrue(obj2.isPresent());
+    // verify their positions are different
+    // (ownership data model may mess that up)
+    assertFalse(obj1.get().getPosition().getId().equals(obj2.get().getPosition().getId()));
 
     // verify ownership
     assertNotNull(testUser.getOwned());
@@ -372,9 +381,9 @@ public class SessionManagerTest {
 
     // verify that client's properties have changed in other scenes
     Point expected = new Point(3, 2, 1);
-    assertEquals(expected, client.getPosition());
-    assertEquals(expected, user1.getScene().get(client.getObjectId()).getPosition());
-    assertEquals(expected, user2.getScene().get(client.getObjectId()).getPosition());
+    assertTrue(expected.isEqual(client.getPosition()));
+    assertTrue(expected.isEqual(user1.getScene().get(client.getObjectId()).getPosition()));
+    assertTrue(expected.isEqual(user2.getScene().get(client.getObjectId()).getPosition()));
 
     // set properties of a client
     String msg = "{\"object\":{\"Client\":" + clientId

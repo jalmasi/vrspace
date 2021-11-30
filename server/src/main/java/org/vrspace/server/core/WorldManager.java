@@ -134,8 +134,6 @@ public class WorldManager {
       if (cached != null) {
         return cached;
       } else {
-        // FIXME: hard coded depth
-        // session.load(o.getClass(), o.getId(), 2);
         db.get(o.getClass(), o.getId());
         cache.put(id, o);
         return o;
@@ -161,9 +159,7 @@ public class WorldManager {
         o.setTemporary(true);
       }
       o = db.save(o);
-      // FIXME: data model bug, messes up owned VRObject members - position,
-      // rotation...
-      // client.addOwned(o);
+      client.addOwned(o);
       cache.put(o.getObjectId(), o);
       return o;
     }).collect(Collectors.toList());

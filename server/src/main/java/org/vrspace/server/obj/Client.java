@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
@@ -42,10 +43,8 @@ public class Client extends VRObject {
   @Transient
   transient private Double userHeight;
 
-  // CHECKME: this needs to get refactored eventually
-  // FIXME: data model bug, messes up owned VRObject members - position,
-  // rotation...
   @JsonIgnore
+  @Relationship(type = "OWNS", direction = Relationship.Direction.OUTGOING)
   private Set<VRObject> owned;
 
   @Private
