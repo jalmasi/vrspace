@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.Client;
+
+import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,9 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/user")
 public class UserController {
   @Autowired
-  VRObjectRepository db;
+  private VRObjectRepository db;
   @Autowired
-  ClientFactory clientFactory;
+  private ClientFactory clientFactory;
+  @Autowired
+  private ServerConfig config;
 
   /**
    * Verifies that user name is available: if user is not logged in, that there's
@@ -31,6 +36,9 @@ public class UserController {
    */
   @GetMapping("/available")
   public boolean checkName(String name, HttpSession session) {
+    if (StringUtils.isBlank(name)) {
+      return config.isGuestAllowed();
+    }
     Client client = db.getClientByName(name);
     Object currentName = session.getAttribute(clientFactory.clientAttribute());
     boolean valid = client == null || (client.getName() != null && client.getName().equals(currentName));

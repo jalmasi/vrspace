@@ -32,6 +32,7 @@ import org.vrspace.server.types.Filter;
 import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import io.openvidu.java.client.OpenViduException;
 import lombok.extern.slf4j.Slf4j;
@@ -262,7 +263,7 @@ public class WorldManager {
   }
 
   public void startSession(Client client) throws SessionException {
-    if (client.getName() != null) {
+    if (StringUtils.isNotBlank(client.getName())) {
       // new client can't have the same name as existing one
       Client existing = getClientByName(client.getName());
       if (existing != null && existing.getName() != null && client.getName().equals(existing.getName())

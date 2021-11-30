@@ -39,6 +39,7 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 canvas.focus();
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 var scene;
+var anonymousAllowed = true;
 
 import("./avatar-selection.js").then( (module) =>{
   
@@ -47,19 +48,27 @@ import("./avatar-selection.js").then( (module) =>{
   nameInput.addEventListener('input', (e)=>{
     world.setMyName(e.target.value);
   });
+  
+  var checkValidName = (name) => {
+    if ( name ) {
+      world.setLoginName(name).then((valid) => {
+        var nameLabel = document.getElementById('namelabel');
+        console.log("Valid name: "+valid);
+        if ( valid ) {
+          nameLabel.innerHTML="Name:"
+          canvas.focus();
+        } else {
+          nameLabel.innerHTML="INVALID NAME, try another:"
+        }
+        world.portalsEnabled(valid);
+      });
+    } else {
+      world.portalsEnabled(anonymousAllowed);
+    }
+  }
 
   nameInput.addEventListener('change', (e)=>{
-    world.setLoginName(e.target.value).then((valid) => {
-      var nameLabel = document.getElementById('namelabel');
-      console.log("Valid name: "+valid);
-      if ( valid ) {
-        nameLabel.innerHTML="Name:"
-        canvas.focus();
-      } else {
-        nameLabel.innerHTML="INVALID NAME, try another:"
-      }
-      world.portalsEnabled(valid);
-    });
+    checkValidName(e.target.value);
   });
   
   document.getElementById('chatBox').style.display = 'none';
@@ -73,6 +82,7 @@ import("./avatar-selection.js").then( (module) =>{
     scene = s;
     world.createSelection((avatar)=>{
       console.log("Selected avatar: "+avatar.getUrl());
+      checkValidName(world.getMyName());
     });
     world.showPortals();
     world.beforeEnter = () => {

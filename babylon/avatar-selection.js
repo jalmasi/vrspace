@@ -208,6 +208,10 @@ export class AvatarSelection extends World {
       this.character.setName(this.userName);
     }
   }
+  
+  getMyName() {
+    return this.userName;
+  }
 
   async setLoginName(name) {
     // TODO: provide API calls lib
