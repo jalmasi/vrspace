@@ -477,27 +477,7 @@ export class WorldEditor {
                         this.write(button);
                       }
                   });
-                  button.onPointerDownObservable.add( () => {
-                    VRSPACEUI.indicator.animate();
-                    VRSPACEUI.indicator.add("Download");
-                    fetch("/sketchfab/download?uid="+result.uid)
-                      .then(response => {
-                          console.log(response);
-                          if ( response.status == 401 ) {
-                            console.log("Redirecting to login form")
-                            this.sketchfabLogin();
-                            return;
-                          }
-                          response.json().then(res => {
-                            console.log(res);
-                            this.createSharedObject(res.mesh);
-                          });
-                      }).catch( err => {
-                        console.log(err);
-                        VRSPACEUI.indicator.remove("Download");
-                      });
-                  });
-                  
+                  button.onPointerDownObservable.add( () => this.download(result));
               });
               // ending workaround:
               this.panel.linkToTransformNode(this.uiRoot);
@@ -512,6 +492,32 @@ export class WorldEditor {
       }).catch( err => console.log(err));
   }
   
+  download(result) {
+    if ( this.fetching || this.activeButton ) {
+      return;
+    }
+    this.fetching = result;
+    VRSPACEUI.indicator.animate();
+    VRSPACEUI.indicator.add("Download");
+    fetch("/sketchfab/download?uid="+result.uid)
+      .then(response => {
+          this.fetching = null;
+          console.log(response);
+          if ( response.status == 401 ) {
+            console.log("Redirecting to login form")
+            this.sketchfabLogin();
+            return;
+          }
+          response.json().then(res => {
+            console.log(res);
+            this.createSharedObject(res.mesh);
+          });
+      }).catch( err => {
+        this.fetching = null;
+        console.log(err);
+        VRSPACEUI.indicator.remove("Download");
+      });
+  }
   createSharedObject( mesh, properties ) {
     var object = {
       mesh: mesh,
