@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.FileSystemUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,11 +36,14 @@ import lombok.extern.slf4j.Slf4j;
 public class NeoConfig {
   @Value("${org.vrspace.db}")
   private String dbPath;
+  @Value("${org.vrspace.db.cleanup:false}")
+  private boolean cleanup;
   @Value("${spring.neo4j.uri:bolt://localhost}")
   private String neoUri;
 
   private GraphDatabaseService graphDb;
   private DatabaseManagementService managementService;
+  private File dbDir;
 
   @Bean
   public GraphDatabaseService config() throws URISyntaxException, IOException {
@@ -47,9 +51,9 @@ public class NeoConfig {
     log.info("Configured database uri: " + path);
     path = path.replace('\\', '/');
     URI uri = new URI(path);
-    File file = new File(uri.getSchemeSpecificPart()).getCanonicalFile().getAbsoluteFile();
-    log.info("Absolute database path: " + file);
-    neoStart(file.toPath());
+    dbDir = new File(uri.getSchemeSpecificPart()).getCanonicalFile().getAbsoluteFile();
+    log.info("Absolute database path: " + dbDir);
+    neoStart(dbDir.toPath());
     return graphDb;
   }
 
@@ -84,6 +88,10 @@ public class NeoConfig {
     log.info("Database shutting down...");
     managementService.shutdown();
     log.info("Database shutting down complete");
+    if (cleanup && dbDir != null) {
+      log.info("Deleting database directory " + dbDir);
+      FileSystemUtils.deleteRecursively(dbDir);
+    }
   }
 
 }
