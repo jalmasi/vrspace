@@ -43,10 +43,22 @@ export class WorldEditor {
     this.buttonNext.mesh.rotation = new BABYLON.Vector3(0,0,-Math.PI/2);
     this.buttonNext.tooltipText = "Next";
     this.buttonNext.isVisible = false;
+    
+  }
+  
+  // buttons don't fit screen on aspect ration less than 1.5
+  rescaleHUD() {
+    var aspectRatio = this.world.engine.getAspectRatio(this.world.scene.activeCamera);
+    var scale = Math.min(1, aspectRatio/1.5);
+    this.hud.scaling = new BABYLON.Vector3(scale,scale,1);
+    console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+scale);
   }
   
   createButtons() {
     this.buttons = [];
+    this.hud = new BABYLON.TransformNode("HUD");
+    this.hud.position = new BABYLON.Vector3(0,-0.1,.5);
+    this.hud.parent = this.camera;
     this.buttonLeft = -.275+0.025/2;
   
     this.moveButton = this.makeAButton( "Move", "/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
@@ -61,6 +73,11 @@ export class WorldEditor {
     
     this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
     this.displayButtons(false);
+    
+    window.addEventListener("resize", () => {
+      this.rescaleHUD();
+    });
+    this.rescaleHUD();
   }
 
   makeAButton(text, imageUrl, action) {
@@ -68,9 +85,9 @@ export class WorldEditor {
     this.guiManager.addControl(button);
     button.imageUrl = imageUrl;
     button.text=text;
-    button.position = new BABYLON.Vector3(this.buttonLeft,-0.1,.5);
+    button.position = new BABYLON.Vector3(this.buttonLeft,0,0);
     button.scaling = new BABYLON.Vector3( .05, .05, .05 );
-    button.mesh.parent = this.camera;
+    button.mesh.parent = this.hud;
     button.onPointerDownObservable.add( () => {
       if ( this.activeButton == button ) {
         // already pressed, turn it off
