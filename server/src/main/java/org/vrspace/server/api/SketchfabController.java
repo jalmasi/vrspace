@@ -209,9 +209,12 @@ public class SketchfabController {
       URL fileUrl = new URL(gltf.getUrl());
       String fileName = fileUrl.getPath();
       fileName = fileName.substring(fileName.lastIndexOf("/") + 1); // includes .zip
+      String modelName = fileName.substring(0, fileName.lastIndexOf(".")); // without .zip
+      // model name still can contain dot, but directory can not
+      // CHECKME: what else we need to clear out?
+      modelName = modelName.replaceAll("\\.", "");
       // destination directory
-      File modelDir = new File(
-          FileUtil.contentDir() + "/" + category + "/" + fileName.substring(0, fileName.lastIndexOf(".")));
+      File modelDir = new File(FileUtil.contentDir() + "/" + category + "/" + modelName);
       if (modelDir.exists()) {
         log.warn("Destination directory already exists, download skipped: " + modelDir);
       } else {

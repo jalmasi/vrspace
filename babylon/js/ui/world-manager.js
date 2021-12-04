@@ -72,6 +72,8 @@ export class WorldManager {
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     /** User height in real world, default 1.8 */
     this.userHeight = 1.8;
+    /** Called when loading fails, default null. Installed on every object just before and deleted just after loading. */
+    this.loadErrorHandler = null;
     this.interval = null;
     // contains asset containers - name and number of used instances
     this.containers={};
@@ -372,6 +374,11 @@ export class WorldManager {
         this.log("Added "+obj.mesh);
         
         callback(mesh);
+      }).catch(exception=>{
+        if (obj._loadErrorHandler) {
+          obj._loadErrorHandler(obj, exception);
+          delete obj.loadErrorHandler;
+        }
       });
     }
   }
@@ -384,8 +391,14 @@ export class WorldManager {
       console.log("Null mesh of client "+obj.id);
       return;
     }
+    if ( this.loadErrorHandler ) {
+      obj._loadErrorHandler = this.loadErrorHandler;
+    }
     this.loadOrInstantiate(obj, (mesh) => {
       this.log("loaded "+obj.mesh);
+      if ( obj._loadErrorHandler ) {
+        delete obj._loadErrorHandler;
+      }
       
       var initialPosition = { position: {} };
       this.changeObject( obj, initialPosition );
