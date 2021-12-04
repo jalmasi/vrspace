@@ -1,3 +1,6 @@
+import {VRSPACEUI} from './vrspace-ui.js';
+import {TextWriter} from './text-writer.js'
+
 export class WorldEditor {
   constructor( world ) {
     if ( ! world.worldManager ) {
@@ -7,10 +10,14 @@ export class WorldEditor {
     this.scene = world.scene;
     this.camera = world.scene.activeCamera;
     this.worldManager = world.worldManager;
+    this.defaultErrorHandler = world.worldManager.loadErrorHandler;
+    this.defaultloadCallback = world.worldManager.loadCallback;
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
-    this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);    
+    this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
+    this.worldManager.loadErrorHandler= (object, exception) => this.loadingFailed(object, exception);
+    this.writer = new TextWriter(this.scene);
   }
   
   makeUI() {
@@ -43,7 +50,6 @@ export class WorldEditor {
     this.buttonNext.mesh.rotation = new BABYLON.Vector3(0,0,-Math.PI/2);
     this.buttonNext.tooltipText = "Next";
     this.buttonNext.isVisible = false;
-    
   }
   
   // buttons don't fit screen on aspect ration less than 1.5
@@ -105,41 +111,6 @@ export class WorldEditor {
     return button;
   }
   
-  async _initWriter() {
-    if ( ! this.Writer ) {
-      await VRSPACEUI.loadScriptsToDocument([ 
-        "https://cdn.rawgit.com/BabylonJS/Extensions/master/MeshWriter/meshwriter.min.js"
-      ]);
-      this.Writer = BABYLON.MeshWriter(this.scene, {scale:.02,defaultFont:"Arial"});
-    }
-  }
-  
-  async write(button, text) {
-    await this._initWriter();
-    if ( button.textMesh ) {
-      button.textMesh.dispose();
-      button.textParent.dispose();
-      delete button.textMesh;
-      delete button.textParent;
-    }
-    if ( text && text.length > 0 ) {
-      button.textMesh = new this.Writer(
-                          text,
-                          {
-                              anchor: "center",
-                              "letter-height": 8,
-                              color: "#1C3870",
-                          }
-                      );
-      button.textParent = new BABYLON.TransformNode('textParent');
-      button.textParent.parent = button.node;
-      button.textParent.position.z = -1;
-      
-      button.textMesh.getMesh().rotation.x = -Math.PI/2;
-      button.textMesh.getMesh().parent = button.textParent;
-    }
-  }
-  
   objectLoaded( vrObject, rootMesh ) {
     console.log("Loaded:");
     console.log(vrObject);
@@ -156,9 +127,15 @@ export class WorldEditor {
       } else {
         this.takeObject(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
       }
+    } else if ( this.defaultloadCallback ) {
+      this.defaultloadCallback(vrObject, rootMesh);
     }
   }
 
+  loadingFailed( obj, exception ) {
+    VRSPACEUI.indicator.remove("Download");
+  }
+  
   manipulateObject(obj, action) {
     if ( ! action ) {
       this.displayButtons(true);
@@ -469,12 +446,12 @@ export class WorldEditor {
                   
                   button.onPointerEnterObservable.add( () => {
                       if ( ! button.textMesh ) {
-                        this.write(button,result.name);
+                        this.writer.write(button,result.name);
                       }
                   });
                   button.onPointerOutObservable.add( () => {
                       if ( button.textMesh ) {
-                        this.write(button);
+                        this.writer.write(button);
                       }
                   });
                   button.onPointerDownObservable.add( () => this.download(result));
