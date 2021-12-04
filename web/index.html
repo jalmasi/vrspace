@@ -147,14 +147,35 @@ thanks folks!
   canvas.focus();
   var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
   var scene;
-  
+  var anonymousAllowed = true;
+
   import("../babylon/avatar-selection.js").then( (module) =>{
   
-    document.getElementById('nickname').addEventListener('input', (e)=>{
-      world.setName(e.target.value);
+    var nameInput = document.getElementById('nickname');
+    nameInput.addEventListener('input', (e)=>{
+      world.setMyName(e.target.value);
     });
-    document.getElementById('nickname').addEventListener('change', (e)=>{
-      canvas.focus();
+    
+    var checkValidName = (name) => {
+      if ( name ) {
+        world.setLoginName(name).then((valid) => {
+          var nameLabel = document.getElementById('namelabel');
+          console.log("Valid name: "+valid);
+          if ( valid ) {
+            nameLabel.innerHTML="Name:"
+            canvas.focus();
+          } else {
+            nameLabel.innerHTML="INVALID NAME, try another:"
+          }
+          world.portalsEnabled(valid);
+        });
+      } else {
+        world.portalsEnabled(anonymousAllowed);
+      }
+    }
+  
+    nameInput.addEventListener('change', (e)=>{
+      checkValidName(e.target.value);
     });
     
     document.getElementById('chatBox').style.display = 'none';
@@ -179,7 +200,10 @@ thanks folks!
   
     world.init(engine, 'avatar').then((s) => {
       scene = s;
-      world.createSelection();
+      world.createSelection((avatar)=>{
+        console.log("Selected avatar: "+avatar.getUrl());
+        checkValidName(world.getMyName());
+      });
       world.showPortals();
       engine.resize();
       canvas.focus();
@@ -307,6 +331,7 @@ thanks folks!
 
   <div id="loginForm" style="position:absolute;bottom:50px;width:100%;text-align:center;">
     <div>
+      <label id="namelabel" for="nickname">Name:</label>
       <input id="nickname" type="text" placeholder="Your nick name">
     </div>
   </div>

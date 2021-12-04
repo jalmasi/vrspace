@@ -8,6 +8,8 @@ import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
 
+import com.nimbusds.oauth2.sdk.util.StringUtils;
+
 public class VRSpaceDBImpl implements VRSpaceDB {
   @Autowired
   Neo4jTemplate template;
@@ -28,6 +30,9 @@ public class VRSpaceDBImpl implements VRSpaceDB {
 
   @Override
   public Client getClientByName(String name) {
+    if (StringUtils.isBlank(name)) {
+      throw new IllegalArgumentException("Empty client name: " + name);
+    }
     Optional<Client> c = template.findOne("MATCH (o:Client) WHERE o.name = $name RETURN o",
         Collections.singletonMap("name", name), Client.class);
     if (c.isPresent()) {

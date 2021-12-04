@@ -19,6 +19,7 @@ public class SessionTracker {
 
   public SessionTracker(ServerConfig config) {
     this.config = config;
+    this.setMaxSessions(config.getMaxSessions());
   }
 
   public void setMaxSessions(int max) {
@@ -28,7 +29,9 @@ public class SessionTracker {
       activeSessions = new ArrayBlockingQueue<>(max);
     } else {
       ArrayBlockingQueue<Long> q = new ArrayBlockingQueue<>(max);
-      activeSessions.drainTo(q);
+      if (activeSessions != null) {
+        activeSessions.drainTo(q);
+      }
       activeSessions = q;
     }
     config.setMaxSessions(max);

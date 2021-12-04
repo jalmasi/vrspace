@@ -1,8 +1,10 @@
 package org.vrspace.server.core;
 
 import java.lang.reflect.Modifier;
+import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -30,6 +32,7 @@ import org.vrspace.server.types.Filter;
 import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import io.openvidu.java.client.OpenViduException;
 import lombok.extern.slf4j.Slf4j;
@@ -132,8 +135,6 @@ public class WorldManager {
       if (cached != null) {
         return cached;
       } else {
-        // FIXME: hard coded depth
-        // session.load(o.getClass(), o.getId(), 2);
         db.get(o.getClass(), o.getId());
         cache.put(id, o);
         return o;
@@ -181,15 +182,21 @@ public class WorldManager {
 
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
+    Principal principal = session.getPrincipal();
     HttpHeaders headers = session.getHandshakeHeaders();
+    Map<String, Object> attributes = session.getAttributes();
+    log.debug("Login principal: " + principal + " headers: " + headers + " attributes: " + attributes);
+    // principal may be OAuth2AuthenticationToken, in that case getName() returns
+    // token value, getAuthorizedClientRegistrationId() return the authority
+    // (github, facebook...)
     Client client = null;
     if (session.getPrincipal() != null) {
-      client = clientFactory.findClient(session.getPrincipal().getName(), db, headers);
+      client = clientFactory.findClient(principal, db, headers, attributes);
       if (client == null) {
-        throw new SecurityException("Unauthorized " + session.getPrincipal().getName());
+        throw new SecurityException("Unauthorized client " + session.getPrincipal().getName());
       }
     } else if (config.isGuestAllowed()) {
-      client = clientFactory.createGuestClient(headers);
+      client = clientFactory.createGuestClient(headers, attributes);
       if (client == null) {
         throw new SecurityException("Guest disallowed");
       }
@@ -197,7 +204,7 @@ public class WorldManager {
       client.setGuest(true);
       client = db.save(client);
     } else {
-      client = clientFactory.handleUnknownClient(headers);
+      client = clientFactory.handleUnknownClient(headers, attributes);
       if (client == null) {
         throw new SecurityException("Unauthorized");
       }
@@ -256,7 +263,7 @@ public class WorldManager {
   }
 
   public void startSession(Client client) throws SessionException {
-    if (client.getName() != null) {
+    if (StringUtils.isNotBlank(client.getName())) {
       // new client can't have the same name as existing one
       Client existing = getClientByName(client.getName());
       if (existing != null && existing.getName() != null && client.getName().equals(existing.getName())
@@ -266,6 +273,11 @@ public class WorldManager {
     }
     sessionTracker.addSession(client);
 
+    // client must have position to have scene
+    // depending on how we create client that may not be the case
+    if (client.getPosition() == null) {
+      client.setPosition(new Point());
+    }
     // client has now entered the world
     client.setActive(true);
     client = save(client);

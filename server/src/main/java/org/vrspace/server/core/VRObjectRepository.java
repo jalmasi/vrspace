@@ -89,7 +89,8 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
         Method getter = cls.getMethod("get" + StringUtils.capitalize(f.getName()));
         Embedded e = (Embedded) getter.invoke(obj);
         if (e != null && e.getId() != null) {
-          log.debug("Deleting " + f.getName() + " of " + obj.getClass().getSimpleName() + " " + obj.getId());
+          log.debug("Deleting " + f.getName() + " " + e.getClass().getSimpleName() + ":" + e.getId() + " of "
+              + obj.getClass().getSimpleName() + " " + obj.getId());
           deleteById(e.getClass(), e.getId());
         }
       }

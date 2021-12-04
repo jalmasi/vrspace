@@ -2,10 +2,15 @@ package org.vrspace.server.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.security.Principal;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.vrspace.server.config.FactoryConfig;
+import org.vrspace.server.obj.Client;
 
 /**
  * Replace Client factory by changing a property
@@ -26,6 +31,12 @@ public class FactoryPropertyTest {
 
   // inner class has to be static, otherwise can't be instantiated elsewhere
   public static class TestClientFactory implements ClientFactory {
+
+    @Override
+    public Client findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
+        Map<String, Object> attributes) {
+      return null;
+    }
   }
 
 }

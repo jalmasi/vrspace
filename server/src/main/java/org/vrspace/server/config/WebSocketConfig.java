@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 import org.vrspace.server.core.SessionManager;
 
 /**
@@ -28,6 +29,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
     // setAllowedOrigins or 403 forbidden when behind proxy
-    registry.addHandler(sessionManager, path).setAllowedOrigins(origins);
+    registry.addHandler(sessionManager, path).setAllowedOrigins(origins)
+        .addInterceptors(new HttpSessionHandshakeInterceptor());
   }
 }

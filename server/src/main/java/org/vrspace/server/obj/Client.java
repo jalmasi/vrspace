@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
@@ -42,8 +43,8 @@ public class Client extends VRObject {
   @Transient
   transient private Double userHeight;
 
-  // CHECKME: this needs to get refactored eventually
   @JsonIgnore
+  @Relationship(type = "OWNS", direction = Relationship.Direction.OUTGOING)
   private Set<VRObject> owned;
 
   @Private
@@ -54,6 +55,10 @@ public class Client extends VRObject {
   @Private
   @Transient
   transient private String token;
+
+  @Private
+  @JsonIgnore
+  private String identity;
 
   @JsonIgnore
   @Transient
