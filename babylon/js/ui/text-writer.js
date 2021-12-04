@@ -19,6 +19,9 @@ export class TextWriter {
     this.relativePosition = new BABYLON.Vector3(0,0,-1);
     /** Rotation relative to parent, default x PI/2 */
     this.relativeRotation = new BABYLON.Vector3( -Math.PI/2, 0, 0 );
+    /** Billboard mode for the text, default none */
+    this.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
+
   }
   async _initWriter() {
     if ( ! this.Writer ) {
@@ -31,41 +34,47 @@ export class TextWriter {
   }
 
   clear(node) {
-    if ( node._textRows ) {
-      for ( var i = 0; i < node._textRows.length; i++ ) {
-        var row = node._textRows[i];
-        row.mesh.dispose();
-        row.parent.dispose();
+    if ( node._text ) {
+      for ( var i = 0; i < node._text.length; i++ ) {
+        var row = node._text.rows[i];
+        row.dispose();
       }
-      delete node._textRows;
+      node._text.root.dispose();
+      delete node._text;
     }
   }
   
   async write(node, text, offset = new BABYLON.Vector3(0,0,0)) {
     await this._initWriter();
     if ( text && text.length > 0 ) {
-      if ( ! node._textRows ) {
-        node._textRows = [];
+      if ( ! node._text ) {
+        node._text = {
+          root: new BABYLON.TransformNode('textParent'),
+          rows:[]
+        };
+        node._text.root.parent = node;
+        node._text.root.position = this.relativePosition;
+        node._text.root.billboardMode = this.billboardMode;
       }
       var textMesh = new this.Writer( text, this.textProperties );
-      var textParent = new BABYLON.TransformNode('textParent');
-      textParent.parent = node;
-      textParent.position = this.relativePosition.add(offset);
-      
+      textMesh.getMesh().position = textMesh.getMesh().position.add(offset);
       textMesh.getMesh().rotation = this.relativeRotation;
-      textMesh.getMesh().parent = textParent;
+      textMesh.getMesh().parent = node._text.root;
       
-      node._textRows.push( {mesh:textMesh, parent:textParent} );
+      node._text.rows.push( textMesh );
     }
   }
   
   async writeArray( node, rows ) {
     if ( rows ) {
-      var textRows = [];
       for ( var i = 0; i < rows.length; i++ ) {
-        var row = this.write(node, rows[i], new BABYLON.Vector3(0,-i*this.writerProperties.scale*this.textProperties["letter-height"],0));
-        textRows.push(row);
+        this.write(node, rows[i], new BABYLON.Vector3(0,-i*this.writerProperties.scale*this.textProperties["letter-height"],0));
       }
     }
+  }
+  
+  dispose() {
+    this.clear();
+    this.Writer.dispose();
   }
 }

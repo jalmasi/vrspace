@@ -1,4 +1,5 @@
-import { VRSPACEUI } from './vrspace-ui.js';
+import { TextWriter } from './text-writer.js';
+
 /**
 GLTF 3D Avatar.
 Once GLTF file is loaded, skeleton is inspected for existing arms, legs and head that can be animated.
@@ -49,6 +50,9 @@ export class Avatar {
     this.animationTargets = [];
     this.character = null;
     this.activeAnimation = null;
+    this.writer = new TextWriter(this.scene);
+    this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
     /** Debug output, default false */
     this.debug = false;
     this.debugViewer1;
@@ -199,8 +203,6 @@ export class Avatar {
       // Adds all elements to the scene
       container.addAllToScene();
       this.castShadows( this.shadowGenerator );
-      // FIXME throws too much exceptions
-      //VRSPACEUI.optimizeScene(this.scene);
 
       // try to place feet on the ground
       // CHECKME is this really guaranteed to work in every time?
@@ -1437,65 +1439,15 @@ export class Avatar {
     return scale;
   }
 
-  async _initWriter() {
-    if ( ! this.Writer ) {
-      await VRSPACEUI.loadScriptsToDocument([ 
-        "https://cdn.rawgit.com/BabylonJS/Extensions/master/MeshWriter/meshwriter.min.js"
-      ]);
-      this.Writer = BABYLON.MeshWriter(this.scene, {scale:.02,defaultFont:"Arial"});
-    }
-  }
-  
   /** 
   Set the name and display it above the avatar 
   @param name 
   */
   async setName(name) {
-    await this._initWriter();
-    if ( this.nameMesh ) {
-      this.nameMesh.dispose();
-      this.nameParent.dispose();
-    }
-    if ( name && name.length > 0 ) {
-      this.nameMesh = new this.Writer(
-                          name,
-                          {
-                              anchor: "center",
-                              "letter-height": 8,
-                              color: "#1C3870",
-                          }
-                      );
-      this.nameParent = new BABYLON.TransformNode('nameParent');
-      this.nameParent.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-      var pos = this.headPos().clone();
-      pos.y += .4;
-      this.nameParent.position = pos;
-      this.nameParent.parent = this.parentMesh;
-      this.nameMesh.getMesh().rotation.x = -Math.PI/2;
-      this.nameMesh.getMesh().parent = this.nameParent;
-    }
-  }
-  // CHECKME: use texture to display avatar name?
-  _setName1(name) {
-    if ( ! this.nameTag ) {
-      this.nameTag = BABYLON.MeshBuilder.CreatePlane('nameTag', {width:1, height:.5}, this.scene);
-      var pos = this.headPos().clone();
-      pos.y += .5;
-      this.nameTag.position = pos;
-      this.nameTag.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-      this.nameTag.material = new BABYLON.StandardMaterial('nameTag', this.scene);;
-      this.nameTag.material.emissiveColor = BABYLON.Color3.White();
-      this.nameTag.material.diffuseTexture = new BABYLON.DynamicTexture("nameTag", {width:128, height:64}, this.scene);
-    }
-    this.nameTag.material.diffuseTexture.drawText(name, 
-      null, 
-      null, 
-      'bold 12px monospace', 
-      'black', 
-      'white', 
-      true, 
-      true
-    );
+    this.writer.clear(this.parentMesh);
+    this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4,0));
+    this.writer.write(this.parentMesh, name);
+    this.name = name;
   }
 
   /** Called when avatar size/height changes, TODO notify listeners */ 
@@ -1508,9 +1460,8 @@ export class Avatar {
   }
   
   async wrote(client) {
-   await this._initWriter();
-   var limit = 20;
-    var text = [];
+    var limit = 20;
+    var text = [this.name];
     var line = '';
     client.wrote.split(' ').forEach((word) => {
       if ( line.length + word.length > limit ) {
@@ -1521,30 +1472,9 @@ export class Avatar {
     });
     text.push(line);
     
-    if ( this.nameMesh ) {
-      // TODO move it up/down as required
-      var pos = this.headPos().clone();
-      pos.y += .4+.2*(text.length);
-      this.nameParent.position = pos;
-    }
-    
-    if (this.textParent) {
-      this.textParent.dispose();
-      this.textParent = null;
-    }
-    this.textParent = new BABYLON.TransformNode('textParent');
-    var pos = this.headPos().clone();
-    pos.y += .4+.2*(text.length-1);
-    this.textParent.position = pos;
-    this.textParent.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-    this.textParent.parent = this.parentMesh;
-    for ( var i = 0; i < text.length; i++ ) {
-      var t = text[i];
-      var mesh = new this.Writer( t,{anchor: "center", "letter-height": 8, color: "#1C3870" });
-      mesh.getMesh().rotation.x = -Math.PI/2;
-      mesh.getMesh().position.y = -i*.2;
-      mesh.getMesh().parent = this.textParent;
-    }
+    this.writer.clear(this.parentMesh);
+    this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4+.2*(text.length-1),0));
+    this.writer.writeArray(this.parentMesh, text);
   }
   
 }
