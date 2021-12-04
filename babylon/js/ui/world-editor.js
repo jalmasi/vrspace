@@ -445,14 +445,17 @@ export class WorldEditor {
                   button.content.scaleY = 2;
                   
                   button.onPointerEnterObservable.add( () => {
-                      if ( ! button.textMesh ) {
-                        this.writer.write(button,result.name);
-                      }
+                      this.writer.writeArray(button.node,
+                        [result.name, 
+                        'by '+result.user.displayName,
+                        (result.archives.gltf.size/1024/1024).toFixed(2)+"MB"
+                        //'Faces: '+result.faceCount,
+                        //'Vertices: '+result.vertexCount
+                        ]
+                      );
                   });
                   button.onPointerOutObservable.add( () => {
-                      if ( button.textMesh ) {
-                        this.writer.write(button);
-                      }
+                      this.writer.clear(button.node);
                   });
                   button.onPointerDownObservable.add( () => this.download(result));
               });
