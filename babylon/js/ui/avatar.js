@@ -403,6 +403,13 @@ export class Avatar {
           if ( progress ) {
             progress(evt);
           }
+        },
+        (err) => {
+          if ( failure ) {
+            failure(err);
+          } else {
+            console.log("Error loading "+this.name, err);
+          }
         }
       );
       plugin.onParsedObservable.add(gltfBabylon => {

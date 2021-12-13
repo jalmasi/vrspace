@@ -3,6 +3,7 @@ import {VRSPACEUI} from './vrspace-ui.js';
 import {Avatar} from './avatar.js';
 import {VideoAvatar} from './video-avatar.js';
 import {ServerFolder} from './server-folder.js';
+import {AssetLoader} from './asset-loader.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -75,8 +76,7 @@ export class WorldManager {
     /** Called when loading fails, default null. Installed on every object just before and deleted just after loading. */
     this.loadErrorHandler = null;
     this.interval = null;
-    // contains asset containers - name and number of used instances
-    this.containers={};
+    this.loader = new AssetLoader(this.scene);
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     /** Enable debug output */
@@ -335,53 +335,6 @@ export class WorldManager {
     VRSPACE.removeListener( this.myChangeListeners, listener );
   }
   
-  // TODO refactor this to VRSpaceUI
-  loadOrInstantiate(obj, callback) {
-    if ( this.containers[obj.mesh] ) {
-      // instantiate
-      var container = this.containers[obj.mesh];
-      container.numberOfInstances++;
-      obj.instantiatedEntries = container.instantiateModelsToScene();
-      console.log(obj.instantiatedEntries);
-      // Adds all elements to the scene
-      var mesh = obj.instantiatedEntries.rootNodes[0];
-      mesh.VRObject = obj;
-      mesh.name = obj.mesh;
-      mesh.scaling = new BABYLON.Vector3(1,1,1);
-      mesh.refreshBoundingInfo();
-      mesh.id = obj.className+" "+obj.id;
-      callback(mesh);
-    } else {
-      // load
-      var pos = obj.mesh.lastIndexOf('/');
-      var path = obj.mesh.substring(0,pos+1);
-      var file = obj.mesh.substring(pos+1);
-      BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, this.scene).then((container) =>
-      {
-        var mesh = container.createRootMesh();
-        container.numberOfInstances = 1;
-        this.containers[obj.mesh] = container;
-        
-        // Adds all elements to the scene
-        mesh.VRObject = obj;
-        mesh.name = obj.mesh;
-        mesh.id = obj.className+" "+obj.id;
-        
-        container.addAllToScene();
-  
-        obj.container = container;
-        
-        this.log("Added "+obj.mesh);
-        
-        callback(mesh);
-      }).catch(exception=>{
-        if (obj._loadErrorHandler) {
-          obj._loadErrorHandler(obj, exception);
-          delete obj.loadErrorHandler;
-        }
-      });
-    }
-  }
   /**
   Load an object and attach a listener.
    */
@@ -394,7 +347,7 @@ export class WorldManager {
     if ( this.loadErrorHandler ) {
       obj._loadErrorHandler = this.loadErrorHandler;
     }
-    this.loadOrInstantiate(obj, (mesh) => {
+    this.loader.loadOrInstantiate(obj, (mesh) => {
       this.log("loaded "+obj.mesh);
       if ( obj._loadErrorHandler ) {
         delete obj._loadErrorHandler;
@@ -549,23 +502,7 @@ export class WorldManager {
     if ( this.mediaStreams ) {
       this.mediaStreams.removeClient(obj);
     }
-    if ( this.containers[obj.mesh] ) {
-      // instantiate
-      var container = this.containers[obj.mesh];
-      container.numberOfInstances--;
-      if ( obj.instantiatedEntries ) {
-        obj.instantiatedEntries.rootNodes.forEach( node => node.dispose() );
-      } else {
-        // well we can't dispose of container just like that
-        container.meshes[0].setEnabled(false);
-      }
-      if ( container.numberOfInstances == 0 ) {
-        container.dispose();
-        delete this.containers[obj.mesh];
-      }
-    } else if (obj.container){
-      obj.container.dispose();
-    }
+    this.loader.unload(obj);
     if ( obj.video ) {
       obj.video.dispose();
       obj.video = null;
