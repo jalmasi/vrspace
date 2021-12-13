@@ -3,7 +3,6 @@ import {VRSPACEUI} from './vrspace-ui.js';
 import {Avatar} from './avatar.js';
 import {VideoAvatar} from './video-avatar.js';
 import {ServerFolder} from './server-folder.js';
-import {AssetLoader} from './asset-loader.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -73,10 +72,9 @@ export class WorldManager {
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     /** User height in real world, default 1.8 */
     this.userHeight = 1.8;
-    /** Called when loading fails, default null. Installed on every object just before and deleted just after loading. */
+    /** Called when loading fails, default null. */
     this.loadErrorHandler = null;
     this.interval = null;
-    this.loader = new AssetLoader(this.scene);
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     /** Enable debug output */
@@ -344,14 +342,8 @@ export class WorldManager {
       console.log("Null mesh of client "+obj.id);
       return;
     }
-    if ( this.loadErrorHandler ) {
-      obj._loadErrorHandler = this.loadErrorHandler;
-    }
-    this.loader.loadOrInstantiate(obj, (mesh) => {
+    var plugin = VRSPACEUI.assetLoader.loadObject(obj, (mesh) => {
       this.log("loaded "+obj.mesh);
-      if ( obj._loadErrorHandler ) {
-        delete obj._loadErrorHandler;
-      }
       
       var initialPosition = { position: {} };
       this.changeObject( obj, initialPosition );
@@ -366,7 +358,7 @@ export class WorldManager {
         this.mediaStreams.streamToMesh(obj, mesh);        
       }
       this.notifyLoadListeners(obj, mesh);
-    });
+    }, this.loadErrorHandler);
   }
 
   /**
@@ -502,7 +494,7 @@ export class WorldManager {
     if ( this.mediaStreams ) {
       this.mediaStreams.removeClient(obj);
     }
-    this.loader.unload(obj);
+    VRSPACEUI.assetLoader.unloadObject(obj);
     if ( obj.video ) {
       obj.video.dispose();
       obj.video = null;

@@ -432,10 +432,11 @@ export class AvatarSelection extends World {
     this.hemisphere.dispose();
     this.removePortals();
     this.room.dispose(); // AKA ground
-    // TODO properly dispose of avatar
+    // CHECKME properly dispose of avatar
     if ( this.character ) {
-      this.character.dispose();
-      this.character = null;          
+      //this.character.dispose();
+      VRSPACEUI.assetLoader.unloadAsset(this.character.getUrl());
+      this.character = null;
     }
     
     this.mainButtons.dispose();

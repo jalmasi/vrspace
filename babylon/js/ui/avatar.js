@@ -1,4 +1,5 @@
 import { TextWriter } from './text-writer.js';
+import {VRSPACEUI} from './vrspace-ui.js';
 
 /**
 GLTF 3D Avatar.
@@ -148,7 +149,10 @@ export class Avatar {
 
   /** Dispose of everything */
   dispose() {
-    this.character.dispose();
+    if ( this.character ) {
+      delete this.character.avatar;
+      this.character.dispose();
+    }
     if ( this.debugViewer1 ) {
       this.debugViewer1.dispose();
     }
@@ -239,7 +243,7 @@ export class Avatar {
         this.body.processed = true;
 
         if ( this.debugViewier1 || this.debugViewer2 ) {
-          this.scene.registerBeforeRender(function () {
+          this.scene.registerBeforeRender(() => {
               if (this.debugViewer1) {
                 this.debugViewer1.update();
               }
@@ -262,7 +266,9 @@ export class Avatar {
 
       this.parentMesh = container.createRootMesh();
       this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
+      container.avatar = this;
 
+      console.log("Avatar loaded: "+this.name);
       if ( onSuccess ) {
         onSuccess(this);
       }
@@ -333,7 +339,7 @@ export class Avatar {
   Returns all animation groups of this avatar.
   Applies fixes first, if any.
   */
-  getAnimationGroups() {
+  getAnimationGroups(animationGroups = this.character.animationGroups) {
     if (!this.animationGroups) {
       var loopAnimations = true;
       if ( this.fixes && typeof this.fixes.loopAnimations !== 'undefined' ) {
@@ -345,8 +351,8 @@ export class Avatar {
         for ( var j = 0; j < this.fixes.animationGroups.length; j++ ) {
           var override = this.fixes.animationGroups[j];
           // find source group
-          for ( var i = 0; i < this.character.animationGroups.length; i++ ) {
-            var group = this.character.animationGroups[i];
+          for ( var i = 0; i < animationGroups.length; i++ ) {
+            var group = animationGroups[i];
             if ( group.name == override.source ) {
               var newGroup = group;
               if ( override.start || override.end ) {
@@ -367,7 +373,7 @@ export class Avatar {
           }
         }
       } else {
-        this.animationGroups = this.character.animationGroups;
+        this.animationGroups = animationGroups;
         for ( var i=0; i<this.animationGroups.length; i++ ) {
           this.animationGroups[i].loopAnimation = loopAnimations;
         }
@@ -384,39 +390,48 @@ export class Avatar {
   /**
   Loads the avatar.
   @param success callback to execute on success
-  @param progress optional progress indicator, passed progress event
-  @param failure TODO
+  @param failure executed if loading fails
    */
-  load(success, progress, failure) {
+  load(success, failure) {
     this.loadFixes().then( () => {
       this.log("loading from "+this.folder.url());
-      var plugin = BABYLON.SceneLoader.LoadAssetContainer(
-        this.folder.baseUrl+this.folder.name+"/",
-        "scene.gltf",
-        this.scene,
+      var plugin = VRSPACEUI.assetLoader.loadAsset(
+        this.getUrl(),
         // onSuccess:
-        (container) => {
-          this._processContainer(container,success)
-        },
-        // onProgress:
-        (evt) => {
-          if ( progress ) {
-            progress(evt);
+        (container, instantiatedEntries ) => {
+          // https://doc.babylonjs.com/typedoc/classes/babylon.assetcontainer
+          // https://doc.babylonjs.com/typedoc/classes/babylon.instantiatedentries
+          if ( instantiatedEntries ) {
+            console.log("TODO: avatar "+this.name+" already loaded", container.avatar);
+            // copy body bones from processed avatar
+            this.neckQuat = container.avatar.neckQuat;
+            this.neckQuatInv = container.avatar.neckQuatInv;
+            this.headQuat = container.avatar.headQuat;
+            this.headQuatInv = container.avatar.headQuatInv;
+            this.body = container.avatar.body;
+            // use skeleton and animationGroups from the instance
+            this.parentMesh = instantiatedEntries.rootNodes[0];
+            this.rootMesh = this.parentMesh.getChildren(0);
+            this.getAnimationGroups(instantiatedEntries.animationGroups);
+            this.skeleton = instantiatedEntries.skeletons[0];
+          } else {
+            this._processContainer(container,success)
           }
         },
-        (err) => {
+        (exception)=>{
           if ( failure ) {
-            failure(err);
+            failure(exception);
           } else {
-            console.log("Error loading "+this.name, err);
+            console.log(exception);
           }
         }
       );
-      plugin.onParsedObservable.add(gltfBabylon => {
-          var manifest = gltfBabylon.json;
-          this.info = manifest.asset.extras;
-      });
-      return plugin;
+      if ( plugin ) {
+        plugin.onParsedObservable.add(gltfBabylon => {
+            var manifest = gltfBabylon.json;
+            this.info = manifest.asset.extras;
+        });
+      }
     });
   }
 
