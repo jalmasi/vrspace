@@ -34,6 +34,10 @@ export class Avatar {
     this.fixes = null;
     /** Wheter to generate animations for arm movement, default true */
     this.animateArms = true;
+    /** Return to rest after cloning, default true (otherwise keeps the pose)*/
+    this.returnToRest = true;
+    /** GLTF characters are facing the user when loaded, turn it around, default false*/
+    this.turnAround = false;
     /** Object containing author, license, source, title */
     this.info = null;
     // state variables
@@ -193,6 +197,10 @@ export class Avatar {
       var meshes = container.meshes;
       this.rootMesh = meshes[0];
       this.animationTargets = [];
+      if ( this.turnAround ) {
+        // GLTF characters are facing the user when loaded, turn it around
+        this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
+      }
 
       if (container.animationGroups && container.animationGroups.length > 0) {
         container.animationGroups[0].stop();
@@ -416,8 +424,17 @@ export class Avatar {
             // use skeleton and animationGroups from the instance
             this.parentMesh = instantiatedEntries.rootNodes[0];
             this.rootMesh = this.parentMesh.getChildren()[0];
+            if ( this.parentMesh.getChildren().length > 1 ) {
+              // clean up any existing text cloned along with container
+              this.parentMesh.getChildren()[1].dispose();
+            }
             this.getAnimationGroups(instantiatedEntries.animationGroups);
             this.skeleton = instantiatedEntries.skeletons[0];
+            if ( this.returnToRest ) {
+              this.standUp();
+              this.skeleton.returnToRest();
+            }
+            this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
             this.instantiatedEntries = instantiatedEntries;
             if ( success ) {
               success(this);
@@ -756,7 +773,7 @@ export class Avatar {
       if ( this.jumping ) {
         var delay = Date.now() - this.jumping;
         if ( height <= this.maxUserHeight && delay > 300 ) {
-          this.character.standUp();
+          this.standUp();
           this.jumping = null;
           this.log("jump stopped")
         } else if ( delay > 500 ) {

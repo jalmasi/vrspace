@@ -44,7 +44,7 @@ var characters = [];
 var instances = [];
 var crouch = false;
 var userName;
-
+var rest = false;
 import('./js/vrspace-min.js').then( (ui) => {
   import("./avatar-test.js").then( (module) =>{
     var world = module.WORLD;
@@ -164,6 +164,7 @@ var instantiate = () => {
     var index = document.getElementById("avatarName").value;
     var folder = characters[index];
     var loaded = new module.Avatar(scene, folder, shadowGenerator);
+    loaded.returnToRest = rest;
     loaded.debug = false;
     loaded.load((c) => {
       instances.push(loaded);
@@ -179,6 +180,10 @@ var remove = () => {
     instances[instances.length-1].dispose();
     instances.pop();
   }
+}
+
+function toggleRest() {
+  rest = !rest;
 }
 
 // Watch for browser/canvas resize events
@@ -203,6 +208,7 @@ function debugOnOff() {
   </select>
   <button onClick="instantiate()">More</button>
   <button onClick="remove()">Less</button>
+  <input type="checkbox" onClick="toggleRest()"/>Rest Pose
 </div>
 
 <div id="animations" style="position: absolute;top:10px;text-align: left;right:20%;width: 15%; float:right;">
