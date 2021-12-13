@@ -150,8 +150,11 @@ export class Avatar {
   /** Dispose of everything */
   dispose() {
     if ( this.character ) {
-      delete this.character.avatar;
-      this.character.dispose();
+      VRSPACEUI.assetLoader.unloadAsset(this.getUrl(), this.instantiatedEntries);
+      delete this.instantiatedEntries;
+      this.character = null;
+      //delete this.character.avatar;
+      //this.character.dispose();
     }
     if ( this.debugViewer1 ) {
       this.debugViewer1.dispose();
@@ -404,6 +407,7 @@ export class Avatar {
           if ( instantiatedEntries ) {
             console.log("TODO: avatar "+this.name+" already loaded", container.avatar);
             // copy body bones from processed avatar
+            this.character = container;
             this.neckQuat = container.avatar.neckQuat;
             this.neckQuatInv = container.avatar.neckQuatInv;
             this.headQuat = container.avatar.headQuat;
@@ -411,9 +415,13 @@ export class Avatar {
             this.body = container.avatar.body;
             // use skeleton and animationGroups from the instance
             this.parentMesh = instantiatedEntries.rootNodes[0];
-            this.rootMesh = this.parentMesh.getChildren(0);
+            this.rootMesh = this.parentMesh.getChildren()[0];
             this.getAnimationGroups(instantiatedEntries.animationGroups);
             this.skeleton = instantiatedEntries.skeletons[0];
+            this.instantiatedEntries = instantiatedEntries;
+            if ( success ) {
+              success(this);
+            }
           } else {
             this._processContainer(container,success)
           }

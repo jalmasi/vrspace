@@ -434,8 +434,8 @@ export class AvatarSelection extends World {
     this.room.dispose(); // AKA ground
     // CHECKME properly dispose of avatar
     if ( this.character ) {
-      //this.character.dispose();
-      VRSPACEUI.assetLoader.unloadAsset(this.character.getUrl());
+      this.character.dispose();
+      //VRSPACEUI.assetLoader.unloadAsset(this.character.getUrl());
       this.character = null;
     }
     

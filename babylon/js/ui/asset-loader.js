@@ -102,13 +102,7 @@ export class AssetLoader {
     if ( this.containers[obj.mesh] ) {
       // loaded by asset loader
       var container = this.containers[obj.mesh];
-      if ( obj.instantiatedEntries ) {
-        obj.instantiatedEntries.rootNodes.forEach( node => node.dispose() );
-      } else {
-        // well we can't dispose of container just like that
-        container.meshes[0].setEnabled(false);
-      }
-      this.unloadAsset(obj.mesh);
+      this.unloadAsset(obj.mesh, obj.instantiatedEntries);
       return container.numberOfInstances;
     } else if ( obj.container ) {
       // TODO remove after refactoring
@@ -118,10 +112,18 @@ export class AssetLoader {
       return 0;
     }
   }
-  unloadAsset(url) {
+  unloadAsset(url, instantiatedEntries) {
     if ( this.containers[url] ) {
       // loaded by asset loader
       var container = this.containers[url];
+      if ( instantiatedEntries ) {
+        instantiatedEntries.rootNodes.forEach( node => node.dispose() );
+        instantiatedEntries.skeletons.forEach( node => node.dispose() );
+        instantiatedEntries.animationGroups.forEach( node => node.dispose() );
+      } else {
+        // well we can't dispose of container just like that
+        container.meshes[0].setEnabled(false);
+      }
       container.numberOfInstances--;
       this.log("Removing an instance of "+url+", "+container.numberOfInstances+" remaining");
       if ( container.numberOfInstances == 0 ) {
