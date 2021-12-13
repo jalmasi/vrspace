@@ -63,8 +63,8 @@ export class WorldEditorExample extends World {
     this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => this.worldEditor = new WorldEditor(this));
   }
   
-  search( what ) {
-    this.worldEditor.search( what );
+  search( what, flags ) {
+    this.worldEditor.search( what, flags );
   }
 }
 

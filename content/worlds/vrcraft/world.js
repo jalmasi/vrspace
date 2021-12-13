@@ -99,8 +99,8 @@ export class WorldEditorExample extends World {
     document.getElementById('rigged').addEventListener('change', () => search() );
   }
   
-  search( what ) {
-    this.worldEditor.search( what );
+  search( what, flags ) {
+    this.worldEditor.search( what, flags );
   }
 }
 
