@@ -72,11 +72,9 @@ export class WorldManager {
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     /** User height in real world, default 1.8 */
     this.userHeight = 1.8;
-    /** Called when loading fails, default null. Installed on every object just before and deleted just after loading. */
+    /** Called when loading fails, default null. */
     this.loadErrorHandler = null;
     this.interval = null;
-    // contains asset containers - name and number of used instances
-    this.containers={};
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     /** Enable debug output */
@@ -253,14 +251,13 @@ export class WorldManager {
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;
     avatar.animateArms = this.createAnimations;
-    avatar.debug = true;
+    avatar.turnAround = true; // GLTF characters are facing the user when loaded, turn it around
+    avatar.debug = false;
     avatar.load( (avatar) => {
       // FIXME: this is not container but avatar
       obj.container = avatar;
+      obj.instantiatedEntries = avatar.instantiatedEntries;
       avatar.VRObject = obj;
-      // GLTF characters are facing the user when loaded, turn it around
-      // CHECKME do it somewhere in Avatar class
-      avatar.rootMesh.rotationQuaternion = avatar.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
       // apply current name, position and rotation
       this.changeAvatar(obj, { name: obj.name, position: obj.position });
       if ( obj.rotation ) {
@@ -335,53 +332,6 @@ export class WorldManager {
     VRSPACE.removeListener( this.myChangeListeners, listener );
   }
   
-  // TODO refactor this to VRSpaceUI
-  loadOrInstantiate(obj, callback) {
-    if ( this.containers[obj.mesh] ) {
-      // instantiate
-      var container = this.containers[obj.mesh];
-      container.numberOfInstances++;
-      obj.instantiatedEntries = container.instantiateModelsToScene();
-      console.log(obj.instantiatedEntries);
-      // Adds all elements to the scene
-      var mesh = obj.instantiatedEntries.rootNodes[0];
-      mesh.VRObject = obj;
-      mesh.name = obj.mesh;
-      mesh.scaling = new BABYLON.Vector3(1,1,1);
-      mesh.refreshBoundingInfo();
-      mesh.id = obj.className+" "+obj.id;
-      callback(mesh);
-    } else {
-      // load
-      var pos = obj.mesh.lastIndexOf('/');
-      var path = obj.mesh.substring(0,pos+1);
-      var file = obj.mesh.substring(pos+1);
-      BABYLON.SceneLoader.LoadAssetContainerAsync(path, file, this.scene).then((container) =>
-      {
-        var mesh = container.createRootMesh();
-        container.numberOfInstances = 1;
-        this.containers[obj.mesh] = container;
-        
-        // Adds all elements to the scene
-        mesh.VRObject = obj;
-        mesh.name = obj.mesh;
-        mesh.id = obj.className+" "+obj.id;
-        
-        container.addAllToScene();
-  
-        obj.container = container;
-        
-        this.log("Added "+obj.mesh);
-        
-        callback(mesh);
-      }).catch(exception=>{
-        if (obj._loadErrorHandler) {
-          obj._loadErrorHandler(obj, exception);
-          delete obj.loadErrorHandler;
-        }
-      });
-    }
-  }
   /**
   Load an object and attach a listener.
    */
@@ -391,14 +341,8 @@ export class WorldManager {
       console.log("Null mesh of client "+obj.id);
       return;
     }
-    if ( this.loadErrorHandler ) {
-      obj._loadErrorHandler = this.loadErrorHandler;
-    }
-    this.loadOrInstantiate(obj, (mesh) => {
+    var plugin = VRSPACEUI.assetLoader.loadObject(obj, (mesh) => {
       this.log("loaded "+obj.mesh);
-      if ( obj._loadErrorHandler ) {
-        delete obj._loadErrorHandler;
-      }
       
       var initialPosition = { position: {} };
       this.changeObject( obj, initialPosition );
@@ -413,7 +357,7 @@ export class WorldManager {
         this.mediaStreams.streamToMesh(obj, mesh);        
       }
       this.notifyLoadListeners(obj, mesh);
-    });
+    }, this.loadErrorHandler);
   }
 
   /**
@@ -549,23 +493,7 @@ export class WorldManager {
     if ( this.mediaStreams ) {
       this.mediaStreams.removeClient(obj);
     }
-    if ( this.containers[obj.mesh] ) {
-      // instantiate
-      var container = this.containers[obj.mesh];
-      container.numberOfInstances--;
-      if ( obj.instantiatedEntries ) {
-        obj.instantiatedEntries.rootNodes.forEach( node => node.dispose() );
-      } else {
-        // well we can't dispose of container just like that
-        container.meshes[0].setEnabled(false);
-      }
-      if ( container.numberOfInstances == 0 ) {
-        container.dispose();
-        delete this.containers[obj.mesh];
-      }
-    } else if (obj.container){
-      obj.container.dispose();
-    }
+    VRSPACEUI.assetLoader.unloadObject(obj);
     if ( obj.video ) {
       obj.video.dispose();
       obj.video = null;

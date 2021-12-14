@@ -1,5 +1,6 @@
 import {VRSPACE} from '../client/vrspace.js';
 import {ScriptLoader} from './script-loader.js';
+import {AssetLoader} from './asset-loader.js';
 import {LoadProgressIndicator} from './load-progress-indicator.js';
 import {ServerFolder} from './server-folder.js';
 
@@ -35,6 +36,8 @@ export class VRSpaceUI {
     this.optimizingScene = false;
     /** reference to VRSpace singleton */
     this.VRSPACE = VRSPACE;
+    /** reference to AssetLoader singleton */
+    this.assetLoader;
   }
 
   /** Preloads vrspace.org logo and portal for later use 
@@ -43,6 +46,7 @@ export class VRSpaceUI {
   async init(scene) {
     if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
+      this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script
       var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.contentBase+"/babylon/","logo.glb",this.scene);
       this.logo = container.meshes[0];
