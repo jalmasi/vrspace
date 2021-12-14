@@ -256,6 +256,7 @@ export class WorldManager {
     avatar.load( (avatar) => {
       // FIXME: this is not container but avatar
       obj.container = avatar;
+      obj.instantiatedEntries = avatar.instantiatedEntries;
       avatar.VRObject = obj;
       // apply current name, position and rotation
       this.changeAvatar(obj, { name: obj.name, position: obj.position });

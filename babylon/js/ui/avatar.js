@@ -414,7 +414,7 @@ export class Avatar {
           // https://doc.babylonjs.com/typedoc/classes/babylon.assetcontainer
           // https://doc.babylonjs.com/typedoc/classes/babylon.instantiatedentries
           if ( instantiatedEntries ) {
-            console.log("TODO: avatar "+this.name+" already loaded", container.avatar);
+            console.log("CHECKME: avatar "+this.name+" already loaded", container.avatar);
             // copy body bones from processed avatar
             this.character = container;
             this.neckQuat = container.avatar.neckQuat;
@@ -427,6 +427,7 @@ export class Avatar {
             this.rootMesh = this.parentMesh.getChildren()[0];
             if ( this.parentMesh.getChildren().length > 1 ) {
               // clean up any existing text cloned along with container
+              console.log("Disposing of text ", this.parentMesh.getChildren()[1])
               this.parentMesh.getChildren()[1].dispose();
             }
             this.getAnimationGroups(instantiatedEntries.animationGroups);

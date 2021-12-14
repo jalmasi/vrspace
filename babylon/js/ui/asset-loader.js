@@ -17,12 +17,13 @@ class AssetSync {
       await this.promise;
       this.numberOfInstances++;
       this.instantiate(callback);
+      return;
     }
     this.promise = new Promise( (resolve, reject) => {
-      this.numberOfInstances++;
       if ( this.container ) {
         resolve();
       } else {
+        this.numberOfInstances++;
         console.log('loading sync '+this.url+" "+this.numberOfInstances);
         // load
         var pos = this.url.lastIndexOf('/');
@@ -94,7 +95,7 @@ export class AssetLoader {
   loadObject(obj, callback, failure) {
     this.loadAsset(
       obj.mesh, 
-      (container, instantiatedEntries) => {
+      (container, info, instantiatedEntries) => {
         if ( instantiatedEntries ) {
           obj.instantiatedEntries = instantiatedEntries;
     
@@ -106,7 +107,7 @@ export class AssetLoader {
           mesh.refreshBoundingInfo();
           mesh.id = obj.className+" "+obj.id;
     
-          console.log("Instantiated "+this.numberOfInstances+" of "+obj.mesh);
+          console.log("Instantiated "+this.numberOfInstances+" of "+obj.mesh, obj);
     
           callback(mesh);
     
@@ -137,6 +138,7 @@ export class AssetLoader {
   unloadObject(obj) {
     if ( this.containers[obj.mesh] ) {
       // loaded by asset loader
+      console.log("Unloading object ",obj);
       var container = this.containers[obj.mesh];
       this.unloadAsset(obj.mesh, obj.instantiatedEntries);
       return container.numberOfInstances;
@@ -153,16 +155,17 @@ export class AssetLoader {
       // loaded by asset loader
       var asset = this.containers[url];
       var container = this.containers[url].container;
+      asset.numberOfInstances--;
       if ( instantiatedEntries ) {
+        console.log("Removing an instance of "+url+", "+asset.numberOfInstances+" remaining");
         instantiatedEntries.rootNodes.forEach( node => node.dispose() );
         instantiatedEntries.skeletons.forEach( node => node.dispose() );
         instantiatedEntries.animationGroups.forEach( node => node.dispose() );
       } else {
-        // well we can't dispose of container just like that
+        console.log("Disabling main instance of "+url+", "+asset.numberOfInstances+" remaining");
+      // well we can't dispose of container just like that
         container.meshes[0].setEnabled(false);
       }
-      asset.numberOfInstances--;
-      console.log("Removing an instance of "+url+", "+asset.numberOfInstances+" remaining");
       if ( asset.numberOfInstances == 0 ) {
         console.log("Unloaded "+url);
         container.dispose();
