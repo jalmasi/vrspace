@@ -409,7 +409,8 @@ export class Avatar {
       var plugin = VRSPACEUI.assetLoader.loadAsset(
         this.getUrl(),
         // onSuccess:
-        (container, instantiatedEntries ) => {
+        (container, info, instantiatedEntries ) => {
+          this.info = info
           // https://doc.babylonjs.com/typedoc/classes/babylon.assetcontainer
           // https://doc.babylonjs.com/typedoc/classes/babylon.instantiatedentries
           if ( instantiatedEntries ) {
@@ -451,12 +452,6 @@ export class Avatar {
           }
         }
       );
-      if ( plugin ) {
-        plugin.onParsedObservable.add(gltfBabylon => {
-            var manifest = gltfBabylon.json;
-            this.info = manifest.asset.extras;
-        });
-      }
     });
   }
 

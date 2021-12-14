@@ -1,3 +1,70 @@
+class AssetSync {
+  constructor(url, scene) {
+    this.url = url;
+    this.scene = scene;
+    this.container = null;
+    this.numberOfInstances = 0;
+    this.info = null;
+  }
+  load(callback,failure) {
+    console.log('loading '+this.url);
+    //await this.loadSync(callback,failure);
+    this.loadAsset(callback,failure);
+    console.log('loaded '+this.url+" "+this.numberOfInstances);
+  }
+  async loadAsset(callback,failure) {
+    if ( this.promise ) {
+      await this.promise;
+      this.numberOfInstances++;
+      this.instantiate(callback);
+    }
+    this.promise = new Promise( (resolve, reject) => {
+      this.numberOfInstances++;
+      if ( this.container ) {
+        resolve();
+      } else {
+        console.log('loading sync '+this.url+" "+this.numberOfInstances);
+        // load
+        var pos = this.url.lastIndexOf('/');
+        var path = this.url.substring(0,pos+1);
+        var file = this.url.substring(pos+1);
+        var plugin = BABYLON.SceneLoader.LoadAssetContainer(path, file, this.scene, (container) =>
+          {
+            console.log("Loaded asset "+this.url);
+            //var root = container.createRootMesh();
+            this.container = container;
+            container.addAllToScene();
+            callback(container, this.info);
+
+            resolve();
+          }, null, (scene, message, exception)=>{
+            if ( failure ) {
+              failure(exception);
+            } else {
+              console.log(message, exception);
+            }
+            reject();
+          }
+        );
+        plugin.onParsedObservable.add(gltfBabylon => {
+            var manifest = gltfBabylon.json;
+            this.info = manifest.asset.extras;
+            console.log(this.info);
+        });
+      }
+    });
+    return this.promise;
+    
+  }
+  instantiate(callback) {
+    console.log('instantiating '+this.numberOfInstances+" of "+this.url);
+    // instantiate
+    var instances = this.container.instantiateModelsToScene();
+    console.log("Instantiated "+this.numberOfInstances+" of "+this.url);
+    callback(this.container, this.info, instances);
+  }
+}
+
 /** 
 Loads assets from GLTF files and keeps references, creates clones of already loaded assets.
  */
@@ -8,45 +75,14 @@ export class AssetLoader {
     this.containers={};
     this.debug=true;
   }
-  log(something) {
-    if ( this.debug ) {
-      console.log(something);
-    }
+  async loadAsset( url, callback, failure ) {
+    await this.createAsset(url);
+    this.containers[url].load(callback, failure);
   }
-  loadAsset( url, callback, failure ) {
-    if ( this.containers[url] ) {
-      // instantiate
-      var container = this.containers[url];
-      container.numberOfInstances++;
-      var instances = container.instantiateModelsToScene();
-
-      this.log("Instantiated "+container.numberOfInstances+" of "+url);
-
-      callback(container, instances);
-    } else {
-      // load
-      var pos = url.lastIndexOf('/');
-      var path = url.substring(0,pos+1);
-      var file = url.substring(pos+1);
-      var plugin = BABYLON.SceneLoader.LoadAssetContainer(path, file, this.scene, (container) =>
-        {
-          //var root = container.createRootMesh();
-          container.numberOfInstances = 1;
-          this.containers[url] = container;
-          container.addAllToScene();
-
-          this.log("Loaded asset "+url);
-
-          callback(container);
-        }, null, (scene, message, exception)=>{
-          if ( failure ) {
-            failure(exception);
-          } else {
-            console.log(message, exception);
-          }
-        }
-      );
-      return plugin;
+  async createAsset(url) {
+    if ( !this.containers[url] ) {
+      console.log("Creating asset "+url);
+      this.containers[url] = new AssetSync(url, this.scene);
     }
   }
   /**
@@ -70,7 +106,7 @@ export class AssetLoader {
           mesh.refreshBoundingInfo();
           mesh.id = obj.className+" "+obj.id;
     
-          this.log("Instantiated "+container.numberOfInstances+" of "+obj.mesh);
+          console.log("Instantiated "+this.numberOfInstances+" of "+obj.mesh);
     
           callback(mesh);
     
@@ -84,7 +120,7 @@ export class AssetLoader {
           
           obj.container = container;
           
-          this.log("Loaded "+obj.mesh);
+          console.log("Loaded "+obj.mesh);
           
           callback(mesh);
         }
@@ -115,7 +151,8 @@ export class AssetLoader {
   unloadAsset(url, instantiatedEntries) {
     if ( this.containers[url] ) {
       // loaded by asset loader
-      var container = this.containers[url];
+      var asset = this.containers[url];
+      var container = this.containers[url].container;
       if ( instantiatedEntries ) {
         instantiatedEntries.rootNodes.forEach( node => node.dispose() );
         instantiatedEntries.skeletons.forEach( node => node.dispose() );
@@ -124,10 +161,10 @@ export class AssetLoader {
         // well we can't dispose of container just like that
         container.meshes[0].setEnabled(false);
       }
-      container.numberOfInstances--;
-      this.log("Removing an instance of "+url+", "+container.numberOfInstances+" remaining");
-      if ( container.numberOfInstances == 0 ) {
-        this.log("Unloaded "+url);
+      asset.numberOfInstances--;
+      console.log("Removing an instance of "+url+", "+asset.numberOfInstances+" remaining");
+      if ( asset.numberOfInstances == 0 ) {
+        console.log("Unloaded "+url);
         container.dispose();
         delete this.containers[url];
       }
