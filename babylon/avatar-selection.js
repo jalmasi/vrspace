@@ -216,7 +216,15 @@ export class AvatarSelection extends World {
   async setLoginName(name) {
     // TODO: provide API calls lib
     var response = await fetch("/user/available?name="+name);
-    return await response.json();
+    var validName =response.json();
+    if ( validName ) {
+      this.userName = name;
+    }
+    return validName;
+  }
+  
+  oauth2login() {
+    window.open('/oauth2/login?name='+this.userName, '_top');
   }
   
   animationButtons(avatar) {
