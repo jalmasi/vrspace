@@ -1,4 +1,5 @@
 import {VRSPACE} from '../client/vrspace.js';
+import {VRSPACEUI} from './vrspace-ui.js';
 
 /**
 Event Recorder is server-side component.
@@ -11,49 +12,20 @@ export class RecorderUI {
     // parameters
     this.scene = scene;
     this.recorder = null;
-    // state variables
-    scene.onActiveCameraChanged.add( (s) => this.cameraChanged() );
-  }
-  cameraChanged() {
-    console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
-    this.camera = this.scene.activeCamera;
-    this.recordButton.mesh.parent = this.camera;
-    this.stopButton.mesh.parent = this.camera;
-    this.playButton.mesh.parent = this.camera;
   }
   /** Shows the UI */
   showUI() {
-    this.camera = this.scene.activeCamera;
 
-    var manager = new BABYLON.GUI.GUI3DManager(this.scene);
 
-    this.recordButton = new BABYLON.GUI.HolographicButton("RecordEvents");
-    manager.addControl(this.recordButton);
-    this.recordButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Dot.png"; // FIXME: cdn
-    this.recordButton.text="REC";
-    this.recordButton.position = new BABYLON.Vector3(-0.1,-0.1,.5);
-    this.recordButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.recordButton = VRSPACEUI.hud.addButton("REC", "//www.babylonjs-playground.com/textures/icons/Dot.png"); // FIXME: cdn
     this.recordButton.onPointerDownObservable.add( () => this.record());
-    this.recordButton.mesh.parent = this.camera;
     
-    this.stopButton = new BABYLON.GUI.HolographicButton("StopRecording");
-    this.stopButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Pause.png"; // FIXME: cdn
-    this.stopButton.text="Stop";
-    manager.addControl(this.stopButton);
-    this.stopButton.position = new BABYLON.Vector3(0,-0.1,.5);
-    this.stopButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.stopButton = VRSPACEUI.hud.addButton("Stop","//www.babylonjs-playground.com/textures/icons/Pause.png"); // FIXME: cdn
     this.stopButton.onPointerDownObservable.add( () => this.stop());
-    this.stopButton.mesh.parent = this.camera;
     this.stopButton.isVisible = false;
 
-    this.playButton = new BABYLON.GUI.HolographicButton("StartPlaying");
-    this.playButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Play.png"; // FIXME: cdn
-    manager.addControl(this.playButton);
-    this.playButton.text="Play";
-    this.playButton.position = new BABYLON.Vector3(0.1,-0.1,.5);
-    this.playButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.playButton = VRSPACEUI.hud.addButton( "Play", "//www.babylonjs-playground.com/textures/icons/Play.png"); // FIXME: cdn
     this.playButton.onPointerDownObservable.add( () => this.play());
-    this.playButton.mesh.parent = this.camera;
     this.playButton.isVisible = false;
   }
   
