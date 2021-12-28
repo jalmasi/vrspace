@@ -276,7 +276,7 @@ export class World {
   
   /** Load the world, then execute given callback passing self as argument.
   Loads an AssetContainer, and adds it to the scene. Takes care of loading progress.
-  Calls loadingStart, loaded, loadingStop, collisions, optimizeScene - each may be overridden.
+  Calls loadingStart, loaded, loadingStop, collisions - each may be overridden.
   @param callback to execute after the content has loaded
    */
   load(callback) {
@@ -300,11 +300,7 @@ export class World {
         // do something with the scene
         VRSPACEUI.log("World loaded");
         this.loadingStop(this.name);
-        //floor = new FloorRibbon(this.scene);
-        //floor.showUI();
         this.collisions(this.collisionsEnabled);
-        // FIXME throws too much exceptions
-        //this.optimizeScene();
         if ( callback ) {
           callback(this);
         }
@@ -325,11 +321,6 @@ export class World {
    */
   loaded( file, mesh ) {
     this.initXR();
-  }
-  
-  /**  Optimize the scene */
-  optimizeScene() {
-    VRSPACEUI.optimizeScene(this.scene);    
   }
   
   /** Register render loop. */

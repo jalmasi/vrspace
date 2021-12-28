@@ -1,4 +1,4 @@
-import { World } from '../../../babylon/js/vrspace-min.js';
+import { World, FloorRibbon } from '../../../babylon/js/vrspace-min.js';
 
 export class Cave extends World {
   async createCamera() {
@@ -98,7 +98,9 @@ export class Cave extends World {
   }
   
   loaded( file, mesh ) {
-    //super.loaded(file, mesh); // FIXME: calling initXR() twice
+    // floor editor example (used to create floors in createGround method)
+    //this.floor = new FloorRibbon(this.scene);
+    //this.floor.showUI();
   }
   
 }
