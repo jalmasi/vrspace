@@ -50,6 +50,10 @@ export class WorldEditor {
     this.buttonNext.mesh.rotation = new BABYLON.Vector3(0,0,-Math.PI/2);
     this.buttonNext.tooltipText = "Next";
     this.buttonNext.isVisible = false;
+    
+    // same material used for all buttons in this UI:
+    this.buttonNext.backMaterial.alpha = .5;
+
   }
   
   createButtons() {
@@ -410,7 +414,6 @@ export class WorldEditor {
                   button.imageUrl = thumbnail.url;
                   
                   button.plateMaterial.disableLighting = true;
-                  button.backMaterial.alpha = .5;
 
                   button.content.scaleX = 2;
                   button.content.scaleY = 2;
