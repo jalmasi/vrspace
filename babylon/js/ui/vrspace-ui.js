@@ -2,6 +2,7 @@ import {VRSPACE} from '../client/vrspace.js';
 import {ScriptLoader} from './script-loader.js';
 import {AssetLoader} from './asset-loader.js';
 import {LoadProgressIndicator} from './load-progress-indicator.js';
+import {HUD} from './hud.js';
 import {ServerFolder} from './server-folder.js';
 
 /**
@@ -26,6 +27,8 @@ export class VRSpaceUI {
     this.contentBase = '';
     /** Pointer to function, defaults to this.loadProgressIndiciatorFactory */
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
+    /** Head-up display */
+    this.hud = null;
     /** Script loader */
     this.scriptLoader = new ScriptLoader();
     /** @private */ 
@@ -46,6 +49,7 @@ export class VRSpaceUI {
   async init(scene) {
     if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
+      this.hud = new HUD(scene);
       this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script
       var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.contentBase+"/babylon/","logo.glb",this.scene);

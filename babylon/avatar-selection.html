@@ -49,6 +49,11 @@ import("./avatar-selection.js").then( (module) =>{
     world.setMyName(e.target.value);
   });
   
+  var loginButton = document.getElementById('loginButton');
+  loginButton.addEventListener('click', (e)=>{
+    world.oauth2login();
+  });
+
   var checkValidName = (name) => {
     if ( name ) {
       world.setLoginName(name).then((valid) => {
@@ -69,8 +74,9 @@ import("./avatar-selection.js").then( (module) =>{
 
   nameInput.addEventListener('change', (e)=>{
     checkValidName(e.target.value);
+    loginButton.disabled=false;
   });
-  
+
   document.getElementById('chatBox').style.display = 'none';
   document.getElementById('chatInput').addEventListener('change', (e)=>{
     world.worldManager.sendMy({wrote:e.target.value});
@@ -120,6 +126,7 @@ function debugOnOff() {
 <div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
 <label id="namelabel" for="nickname">Name:</label>
 <input id="nickname" type="text">
+<button id="loginButton" disabled>Login</button>
 </div>
 
 <div id="chatBox" style="position:absolute;bottom:50px;left:15%">

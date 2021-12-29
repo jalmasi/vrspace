@@ -4,6 +4,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -27,7 +30,10 @@ public class Oauth2Controller {
   ClientFactory clientFactory;
 
   @GetMapping("/login")
-  public void login(String name, HttpSession session) {
+  public ResponseEntity<String> login(String name, HttpSession session, HttpServletRequest request) {
+    String referrer = request.getHeader(HttpHeaders.REFERER);
+    log.info("Referer: " + referrer);
+
     // at this point client is already authenticated
     if (ObjectUtils.isEmpty(name)) {
       throw new ApiException("Argument required: name");
@@ -51,6 +57,7 @@ public class Oauth2Controller {
     }
     // CHECKME do we need to return anything?
     session.setAttribute(clientFactory.clientAttribute(), name);
+    return ResponseEntity.status(HttpStatus.FOUND).header("Location", referrer).body("Redirecting to " + referrer);
   }
 
   // TODO this should be hashed

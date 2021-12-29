@@ -1,3 +1,5 @@
+import {VRSPACEUI} from './vrspace-ui.js';
+
 /** UI to create floors, see {@link https://www.youtube.com/watch?v=8RxToSgtoko|this youtube video}.
 Start recording, then edit, then save, either as js or json.
 UI Buttons are bound to current camera.
@@ -39,55 +41,25 @@ export class FloorRibbon {
     this.camera = this.scene.activeCamera;
     this.left.parent = this.camera;
     this.right.parent = this.camera;
-    this.recordButton.mesh.parent = this.camera;
-    this.editButton.mesh.parent = this.camera;
-    this.jsonButton.mesh.parent = this.camera;
-    this.jsButton.mesh.parent = this.camera;
   }
+
   /** Shows the UI */
   showUI() {
-    this.camera = this.scene.activeCamera;
-
-    var manager = new BABYLON.GUI.GUI3DManager(this.scene);
-
-    this.recordButton = new BABYLON.GUI.HolographicButton("RecordPath");
-    manager.addControl(this.recordButton);
-    this.recordButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Play.png"; // FIXME: cdn
-    this.recordButton.position = new BABYLON.Vector3(-0.1,-0.1,.5);
-    this.recordButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.recordButton = VRSPACEUI.hud.addButton("Start", "//www.babylonjs-playground.com/textures/icons/Play.png"); // FIXME: cdn
     this.recordButton.onPointerDownObservable.add( () => this.startStopCancel());
 
-    this.editButton = new BABYLON.GUI.HolographicButton("EditPath");
-    this.editButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Edit.png"; // FIXME: cdn
-    manager.addControl(this.editButton);
-    this.editButton.position = new BABYLON.Vector3(0,-0.1,.5);
-    this.editButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.editButton = VRSPACEUI.hud.addButton("Edit","//www.babylonjs-playground.com/textures/icons/Edit.png"); // FIXME: cdn
     this.editButton.onPointerDownObservable.add( () => this.edit());
 
-    this.jsonButton = new BABYLON.GUI.HolographicButton("SavePathJson");
-    this.jsonButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Download.png"; // FIXME: cdn
-    manager.addControl(this.jsonButton);
-    this.jsonButton.text="JSON";
-    this.jsonButton.position = new BABYLON.Vector3(0.1,-0.1,.5);
-    this.jsonButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.jsonButton = VRSPACEUI.hud.addButton("JSON", "//www.babylonjs-playground.com/textures/icons/Download.png"); // FIXME: cdn
     this.jsonButton.onPointerDownObservable.add( () => this.saveJson());
 
-    this.jsButton = new BABYLON.GUI.HolographicButton("SavePathJs");
-    this.jsButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Download.png"; // FIXME: cdn
-    manager.addControl(this.jsButton);
-    this.jsButton.text="JS";
-    this.jsButton.position = new BABYLON.Vector3(0.2,-0.1,.5);
-    this.jsButton.scaling = new BABYLON.Vector3( .05, .05, .05 );
+    this.jsButton = VRSPACEUI.hud.addButton("JS", "//www.babylonjs-playground.com/textures/icons/Download.png"); // FIXME: cdn
     this.jsButton.onPointerDownObservable.add( () => this.saveJs());
 
     this.editButton.isVisible = false;
     this.jsonButton.isVisible = false;
     this.jsButton.isVisible = false;
-
-    this.recordButton.mesh.parent = this.camera;
-    this.editButton.mesh.parent = this.camera;
-    this.jsonButton.mesh.parent = this.camera;
-    this.jsButton.mesh.parent = this.camera;
   }
   startStopCancel() {
     if ( this.floorMesh ) {
@@ -97,14 +69,17 @@ export class FloorRibbon {
       this.leftPath = [];
       this.rightPath = [];
       this.pathArray = [ this.leftPath, this.rightPath ];
+      this.recordButton.text="Start";
     } else {
       this.recording = !this.recording;
       if ( this.recording ) {
         // start
         this.startRecording();
+        this.recordButton.text="Pause";
       } else {
         // stop
         this.createPath();
+        this.recordButton.text="Cancel";
       }
     }
     this.updateUI();

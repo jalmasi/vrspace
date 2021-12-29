@@ -52,21 +52,7 @@ export class WorldEditor {
     this.buttonNext.isVisible = false;
   }
   
-  // buttons don't fit screen on aspect ration less than 1.5
-  rescaleHUD() {
-    var aspectRatio = this.world.engine.getAspectRatio(this.world.scene.activeCamera);
-    var scale = Math.min(1, aspectRatio/1.5);
-    this.hud.scaling = new BABYLON.Vector3(scale,scale,1);
-    console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+scale);
-  }
-  
   createButtons() {
-    this.buttons = [];
-    this.hud = new BABYLON.TransformNode("HUD");
-    this.hud.position = new BABYLON.Vector3(0,-0.1,.5);
-    this.hud.parent = this.camera;
-    this.buttonLeft = -.275+0.025/2;
-  
     this.moveButton = this.makeAButton( "Move", "/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
     this.moveButton.onPointerUpObservable.add(()=>this.dropObject());
     this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
@@ -78,22 +64,10 @@ export class WorldEditor {
     this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
     
     this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
-    this.displayButtons(false);
-    
-    window.addEventListener("resize", () => {
-      this.rescaleHUD();
-    });
-    this.rescaleHUD();
   }
 
   makeAButton(text, imageUrl, action) {
-    var button = new BABYLON.GUI.HolographicButton(text+"Button");
-    this.guiManager.addControl(button);
-    button.imageUrl = imageUrl;
-    button.text=text;
-    button.position = new BABYLON.Vector3(this.buttonLeft,0,0);
-    button.scaling = new BABYLON.Vector3( .05, .05, .05 );
-    button.mesh.parent = this.hud;
+    var button = VRSPACEUI.hud.addButton(text,imageUrl);
     button.onPointerDownObservable.add( () => {
       if ( this.activeButton == button ) {
         // already pressed, turn it off
@@ -106,8 +80,6 @@ export class WorldEditor {
       }
     });
     button.customAction = action;
-    this.buttons.push( button );
-    this.buttonLeft += .075;
     return button;
   }
   
@@ -242,8 +214,7 @@ export class WorldEditor {
   }
   
   displayButtons(show) {
-    this.buttons.forEach( button => button.isVisible = show);
-    this.displayingButtons = show;
+    VRSPACEUI.hud.showButtons(show);
     if ( show ) {
       this.activeButton = null;
     }
