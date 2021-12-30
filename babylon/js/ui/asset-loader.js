@@ -174,10 +174,32 @@ export class AssetLoader {
     }
     // TODO else error
   }
+  /** 
+  Returns all currently loaded assets, with spatial coordinates of all instances.
+   */
   dump() {
-    this.scene.rootNodes.forEach( (node) => console.log(node.id, node.name) );
-    for ( var url in this.containers ) {
-      console.log(url, this.containers[url]);
-    }
+    var dump = {};
+    this.scene.rootNodes.forEach( (node) => {
+      var url = node.name;
+      // CHECKME: do we want also to return user avatars? (starts with Client)
+      if ( node.id.startsWith("VRObject") && this.containers[url] ) {
+        if ( ! dump[url] ) {
+          dump[url] = {
+            info: this.containers[url].info,
+            numberOfInstances: this.containers[url].numberOfInstances,
+            instances: []
+          };
+        } 
+        var vrObject = node.VRObject;
+        var obj = {
+          id: vrObject.id,
+          position: vrObject.position,
+          rotation: vrObject.rotation,
+          scale: vrObject.scale
+        };
+        dump[url].instances.push(obj);
+      }
+    });
+    return dump;
   }
 }

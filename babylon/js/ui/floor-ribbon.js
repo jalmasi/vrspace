@@ -301,12 +301,12 @@ export class FloorRibbon {
   }
   saveJson() {
     var json = this.printJson();
-    this.saveFile('FloorRibbon'+this.floorCount+'.json', json);
+    VRSPACEUI.saveFile('FloorRibbon'+this.floorCount+'.json', json);
     this.clear();
   }
   saveJs() {
     var js = this.printJs();
-    this.saveFile('FloorRibbon'+this.floorCount+'.js', js);
+    VRSPACEUI.saveFile('FloorRibbon'+this.floorCount+'.js', js);
     this.clear();
   }
   printJson() {
@@ -344,13 +344,6 @@ export class FloorRibbon {
     }
     ret += "["+path[path.length-1].x.toFixed(this.decimals)+","+path[path.length-1].y.toFixed(this.decimals)+","+path[path.length-1].z.toFixed(this.decimals)+"]";
     return ret;
-  }
-  saveFile(filename, content) {
-    var a = document.createElement('a');
-    var blob = new Blob([content], {'type':'application/octet-stream'});
-    a.href = window.URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
   }
 }
 

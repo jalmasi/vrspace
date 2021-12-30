@@ -389,6 +389,19 @@ export class VRSpaceUI {
     return parent;
   }
 
+  /**
+  Utility method to save a file with given name and file content.
+  @param filename to save
+  @param content of the file, typically some JSON string
+   */
+  saveFile(filename, content) {
+    var a = document.createElement('a');
+    var blob = new Blob([content], {'type':'application/octet-stream'});
+    a.href = window.URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
 }
 
 // this does not ensure singleton in the browser

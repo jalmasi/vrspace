@@ -67,10 +67,10 @@ export class WorldEditor {
     this.copyButton = this.makeAButton("Copy", "/content/icons/copy.png", (o)=>this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
     this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
-    //this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Download.png");
+    this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Save.png");
     
     this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
-    //this.saveButton.onPointerDownObservable.add( () => {this.displayButtons(true);VRSPACEUI.assetLoader.dump()});
+    this.saveButton.onPointerDownObservable.add( () => {this.save()});
   }
 
   makeAButton(text, imageUrl, action) {
@@ -370,6 +370,14 @@ export class WorldEditor {
       url.search = new URLSearchParams(params).toString();
 
       this.doFetch(url, true);
+  }
+
+  save() {
+    this.displayButtons(true);
+    var dump = VRSPACEUI.assetLoader.dump();
+    if ( Object.keys(dump).length > 0 ) {
+      VRSPACEUI.saveFile(this.world.name+".json", JSON.stringify(dump));
+    }
   }
   
   doFetch(url, relocate) {
