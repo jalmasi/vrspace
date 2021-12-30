@@ -16,7 +16,7 @@ export class HUD {
     // constants
     this.buttonSize = .05;
     this.buttonSpacing = 0.025;
-    this.alpha=0.6; // button opacity
+    this.alpha=0.7; // button opacity
     this.distance = .5;
     this.vertical = -0.1;
     this.verticalXR = -0.2;
@@ -68,13 +68,13 @@ export class HUD {
     });
     var button = new BABYLON.GUI.HolographicButton(text+"Button");
     this.guiManager.addControl(button);
-    button.backMaterial.alpha = this.alpha;
     button.imageUrl = imageUrl;
     button.text=text;
     button.position = new BABYLON.Vector3(this.buttons.length*width/2,0,0);
     button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
     button.mesh.parent = this.root;
     this.buttons.push( button );
+    button.backMaterial.alpha = this.alpha;
     return button;
   }
   /**
