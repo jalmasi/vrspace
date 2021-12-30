@@ -25,7 +25,8 @@ export class WorldEditor {
 
     this.uiRoot.position = new BABYLON.Vector3(0,2,0);
     this.uiRoot.rotation = new BABYLON.Vector3(0,0,0);
-    this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
+    //this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene); // causes transparency issues
+    this.guiManager = VRSPACEUI.guiManager;
     this.panel = new BABYLON.GUI.CylinderPanel();
     this.panel.blocklayout = true; // optimization, requires updateLayout() call
     this.panel.margin = 0.05;
@@ -66,8 +67,10 @@ export class WorldEditor {
     this.copyButton = this.makeAButton("Copy", "/content/icons/copy.png", (o)=>this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
     this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
+    //this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Download.png");
     
     this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
+    //this.saveButton.onPointerDownObservable.add( () => {this.displayButtons(true);VRSPACEUI.assetLoader.dump()});
   }
 
   makeAButton(text, imageUrl, action) {
@@ -488,7 +491,7 @@ export class WorldEditor {
       console.log("Created new VRObject", obj);
     });
   }
-  
+
   sketchfabLogin() {
     fetch("/sketchfab/login").then(response => {
         console.log(response);

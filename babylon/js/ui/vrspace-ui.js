@@ -29,6 +29,8 @@ export class VRSpaceUI {
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
     /** Head-up display */
     this.hud = null;
+    /** babylon GUI manager - multiple instances may cause issues with transparency */
+    this.guiManager = null;
     /** Script loader */
     this.scriptLoader = new ScriptLoader();
     /** @private */ 
@@ -50,6 +52,7 @@ export class VRSpaceUI {
     if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
       this.hud = new HUD(scene);
+      this.guiManager = this.hud.guiManager;
       this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script
       var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.contentBase+"/babylon/","logo.glb",this.scene);

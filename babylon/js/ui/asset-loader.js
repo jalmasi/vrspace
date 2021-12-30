@@ -174,4 +174,10 @@ export class AssetLoader {
     }
     // TODO else error
   }
+  dump() {
+    this.scene.rootNodes.forEach( (node) => console.log(node.id, node.name) );
+    for ( var url in this.containers ) {
+      console.log(url, this.containers[url]);
+    }
+  }
 }
