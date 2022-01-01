@@ -24,6 +24,7 @@
     </style>﻿
         <script src="https://cdn.babylonjs.com/babylon.js"></script>
         <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
         <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
         <script src="/babylon/js/vrspace-min.js" type="module"></script>
     </head>
@@ -45,7 +46,7 @@ import("./world.js").then( (module) =>{
   world.init(engine, 'classroom').then((s) => {
     scene = s;
     
-    import('/babylon/vrspace-ui.js').then(ui => {
+    import('/babylon/js/vrspace-min.js').then(ui => {
       var net = new ui.WorldManager(world);
       net.debug = true; // multi-user debug info
       net.VRSPACE.debug = true; // network debug info
