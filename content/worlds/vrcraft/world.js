@@ -70,8 +70,8 @@ export class WorldEditorExample extends World {
     var div = document.createElement("div");
     div.id = "searchForm";
     div.style = "position:absolute;bottom:80px;right:40%;color:white;";
-    var html = 
-      `<label for="searchText">Search:</label>
+    var html =
+      `<label for="searchText">Search Sketchfab:</label> // CHECKME: link?
       <input id="searchText" type="text">
       <label for="animated">Animated:</label>
       <input id="animated" type="checkbox">
