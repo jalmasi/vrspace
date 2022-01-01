@@ -24,15 +24,19 @@ class AssetSync {
         this.numberOfInstances++;
         console.log('loading sync '+this.url+" "+this.numberOfInstances);
         // load
+        var path = "";
+        var file = this.url;
         var pos = this.url.lastIndexOf('/');
-        var path = this.url.substring(0,pos+1);
-        var file = this.url.substring(pos+1);
+        if ( pos >= 0 ) {
+          path = this.url.substring(0,pos+1);
+          file = this.url.substring(pos+1);
+        }
         var plugin = BABYLON.SceneLoader.LoadAssetContainer(path, file, this.scene, (container) =>
           {
             console.log("Loaded asset "+this.url);
             //var root = container.createRootMesh();
             this.container = container;
-            container.addAllToScene();
+            //container.addAllToScene();
             if ( callback ) {
               callback(container, this.info);
             }
@@ -111,6 +115,7 @@ export class AssetLoader {
     
         } else {
           var mesh = container.createRootMesh();
+          container.addAllToScene();
           
           // Adds all elements to the scene
           mesh.VRObject = obj;
