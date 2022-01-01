@@ -7,17 +7,15 @@ class AssetSync {
     this.info = null;
   }
   load(callback,failure) {
-    console.log('loading '+this.url);
-    //await this.loadSync(callback,failure);
     this.loadAsset(callback,failure);
-    console.log('loaded '+this.url+" "+this.numberOfInstances);
+    return this.promise;
   }
   async loadAsset(callback,failure) {
     if ( this.promise ) {
       await this.promise;
       this.numberOfInstances++;
       this.instantiate(callback);
-      return;
+      return this.promise;
     }
     this.promise = new Promise( (resolve, reject) => {
       if ( this.container ) {
@@ -35,16 +33,17 @@ class AssetSync {
             //var root = container.createRootMesh();
             this.container = container;
             container.addAllToScene();
-            callback(container, this.info);
-
-            resolve();
+            if ( callback ) {
+              callback(container, this.info);
+            }
+            resolve(container, this.info);
           }, null, (scene, message, exception)=>{
             if ( failure ) {
               failure(exception);
             } else {
               console.log(message, exception);
             }
-            reject();
+            reject(exception);
           }
         );
         plugin.onParsedObservable.add(gltfBabylon => {
@@ -55,7 +54,6 @@ class AssetSync {
       }
     });
     return this.promise;
-    
   }
   instantiate(callback) {
     console.log('instantiating '+this.numberOfInstances+" of "+this.url);
@@ -78,7 +76,7 @@ export class AssetLoader {
   }
   async loadAsset( url, callback, failure ) {
     await this.createAsset(url);
-    this.containers[url].load(callback, failure);
+    return this.containers[url].load(callback, failure);
   }
   async createAsset(url) {
     if ( !this.containers[url] ) {

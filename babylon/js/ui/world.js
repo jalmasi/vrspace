@@ -282,6 +282,7 @@ export class World {
   load(callback) {
     this.loadingStart(this.name);
 
+    // TODO: use asset loader
     BABYLON.SceneLoader.LoadAssetContainer(this.baseUrl,
       this.file,
       this.scene,
@@ -340,10 +341,9 @@ export class World {
   Utility method to fix the path and load the file, executes LoadAssetContainerAsync.
   @param relativePath path relative to current world directory
   @param file file name to load
-  @param scene
    */
-  async loadAsset(relativePath, file, scene) {
-    return BABYLON.SceneLoader.LoadAssetContainerAsync(this.assetPath(relativePath), file, scene);
+  async loadAsset(relativePath, file) {
+    return VRSPACEUI.assetLoader.loadAsset(this.assetPath(relativePath)+file);
   }
   
   /**
