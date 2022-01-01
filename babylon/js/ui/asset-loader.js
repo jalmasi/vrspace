@@ -6,11 +6,11 @@ class AssetSync {
     this.numberOfInstances = 0;
     this.info = null;
   }
-  load(callback,failure) {
-    this.loadAsset(callback,failure);
+  load(callback,failure,progress) {
+    this.loadAsset(callback,failure,progress);
     return this.promise;
   }
-  async loadAsset(callback,failure) {
+  async loadAsset(callback,failure,progress) {
     if ( this.promise ) {
       await this.promise;
       this.numberOfInstances++;
@@ -41,7 +41,9 @@ class AssetSync {
               callback(container, this.info);
             }
             resolve(container, this.info);
-          }, null, (scene, message, exception)=>{
+          }, 
+          progress, 
+          (scene, message, exception)=>{
             if ( failure ) {
               failure(exception);
             } else {
@@ -78,9 +80,9 @@ export class AssetLoader {
     this.containers={};
     this.debug=true;
   }
-  async loadAsset( url, callback, failure ) {
+  async loadAsset( url, callback, failure, progress ) {
     await this.createAsset(url);
-    return this.containers[url].load(callback, failure);
+    return this.containers[url].load(callback, failure, progress);
   }
   async createAsset(url) {
     if ( !this.containers[url] ) {
@@ -129,7 +131,8 @@ export class AssetLoader {
           callback(mesh);
         }
       }, 
-      failure 
+      failure,
+      progress
     );
   }
   

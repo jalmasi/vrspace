@@ -256,6 +256,21 @@ export class World {
     }
   }
   /**
+  Called if loading the world fails. Passes the exception to this.onFailure handler if it exists,
+  otherwise logs it to the console.
+  @param exception whatever caused loading to fail
+   */
+  loadFailed( exception ) {
+    if (this.onFailure) {
+      this.onFailure( exception );
+    } else {
+      console.log( "Error loading world "+this.name, exception);
+    }
+    if ( this.indicator ) {
+      this.indicator.remove(this.name);
+    }
+  }
+  /**
   Called when loading starts. Calls this.indicator.add if available.
   @param name
    */
@@ -282,10 +297,7 @@ export class World {
   load(callback) {
     this.loadingStart(this.name);
 
-    // TODO: use asset loader
-    BABYLON.SceneLoader.LoadAssetContainer(this.baseUrl,
-      this.file,
-      this.scene,
+    VRSPACEUI.assetLoader.loadAsset( this.baseUrl+this.file,
       // onSuccess:
       (container) => {
         this.sceneMeshes = container.meshes;
@@ -306,8 +318,10 @@ export class World {
           callback(this);
         }
       },
+      // onError:
+      exception => this.loadFailed( exception ),
       // onProgress:
-      (evt) => { this.loadProgress(evt, name) }
+      evt => this.loadProgress(evt, this.name)
     );
     
     return this;
