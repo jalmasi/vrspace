@@ -41,8 +41,8 @@ class AssetSync {
               callback(container, this.info);
             }
             resolve(container, this.info);
-          }, 
-          progress, 
+          },
+          (evt, name) => {if ( progress ) progress(evt, name)}, 
           (scene, message, exception)=>{
             if ( failure ) {
               failure(exception);
@@ -96,7 +96,7 @@ export class AssetLoader {
   @param callback function executed on success
   @param failure function executed on failure
    */
-  loadObject(obj, callback, failure) {
+  loadObject(obj, callback, failure, progress) {
     this.loadAsset(
       obj.mesh, 
       (container, info, instantiatedEntries) => {
@@ -130,7 +130,7 @@ export class AssetLoader {
           
           callback(mesh);
         }
-      }, 
+      },
       failure,
       progress
     );

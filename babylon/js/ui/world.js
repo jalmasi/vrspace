@@ -39,8 +39,10 @@ export class World {
     this.worldManager = null;
     
     // now override defaults
-    for ( var param in params ) {
-      this[param] = params[param];
+    if ( params ) {
+      for ( var param in params ) {
+        this[param] = params[param];
+      }
     }
     
   }
@@ -322,8 +324,9 @@ export class World {
   load(callback) {
     this.loadingStart(this.name);
 
+    var promises = [];
     if ( this.file ) {
-      VRSPACEUI.assetLoader.loadAsset( this.baseUrl+this.file,
+      var scenePromise = VRSPACEUI.assetLoader.loadAsset( this.baseUrl+this.file,
         // onSuccess:
         (container) => {
           this.sceneMeshes = container.meshes;
@@ -336,20 +339,63 @@ export class World {
         
           this.loaded( this.file, mesh );
           
-          // do something with the scene
-          VRSPACEUI.log("World loaded");
-          this.loadingStop(this.name);
-          this.collisions(this.collisionsEnabled);
-          if ( callback ) {
-            callback(this);
-          }
         },
         // onError:
         exception => this.loadFailed( exception ),
         // onProgress:
         evt => this.loadProgress(evt, this.name)
       );
+      promises.push(scenePromise);
     }
+    
+    if ( this.worldObjects ) {
+      for ( var url in this.worldObjects ) {
+        var name = url;
+        var instances = this.worldObjects[url].instances;
+        if ( !url.startsWith("/") ) {
+          // relative url, make it relative to world script path
+          url = this.baseUrl+url;
+        }
+        instances.forEach( (instance) => {
+          var objPromise = VRSPACEUI.assetLoader.loadAsset(url,
+            // callback 
+            (container,info,instances)=>{
+              if ( instances ) {
+                var mesh = obj.instantiatedEntries.rootNodes[0];
+              } else {
+                // Adds all elements to the scene
+                var mesh = container.createRootMesh();
+                mesh.name = name;
+                container.addAllToScene();
+              }
+              if ( instance.position ) {
+                mesh.position = new BABYLON.Vector3(instance.position.x, instance.position.y, instance.position.z);
+              }
+              if ( instance.rotation ) {
+                mesh.rotation = new BABYLON.Vector3(instance.rotation.x, instance.rotation.y, instance.rotation.z);
+              }
+              if ( instance.scale ) {
+                mesh.scaling = new BABYLON.Vector3(instance.scale.x, instance.scale.y, instance.scale.z);
+              }
+            },
+            // onError:
+            exception => this.loadFailed( exception ),
+            // onProgress:
+            evt => this.loadProgress(evt, name)
+          );
+          promises.push(objPromise);
+        });
+      }
+    }
+    
+    Promise.all(promises).then(() => {
+      VRSPACEUI.log("World loaded");
+      this.loadingStop(this.name);
+      this.collisions(this.collisionsEnabled);
+      if ( callback ) {
+        callback(this);
+      }
+    });
     
     return this;
   }
