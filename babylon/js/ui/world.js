@@ -5,13 +5,44 @@ import {VRHelper} from './vr-helper.js';
 Basic world, intended to be overridden.
 Provides function placeholders for implementations, and safe implementation of basic functions, 
 like loading of world file(s) and XR support.
-There is no constructor, so subclasses are free to add any world specifics to their own constructors.
-A world can also define defaults in the constructor, like baseUrl or file.
+A world may contain one or more scene files. Defaults are set for one file loaded from scene.gltf file, as it is, from current directory.
+To load multiple files, use this.worldObjects structure, that along the name allows to specifiy position, rotation and scale for each object.
+(the structure is the same one that is also used by AssetLoader and WorldEditor)
 @abstract
  */
 export class World {
-  constructor() {
+  /**
+  Constructor takes parems that allow to override default values.
+  @param params object to override world defaults - all properties are copied to world properties
+   */
+  constructor(params) {
+    /** World name, default null */
+    this.name = null;
+    /** Base URL of related content, default "" (current location) */
+    this.baseUrl = "";
+    /** World scene file name to load, default scene.gltf */
+    this.file = "scene.gltf";
+    /** World objects to load, default null */
+    this.worldObjects = null;
+    /** Wheter gravity is enabled, default true */
+    this.gravityEnabled = true;
+    /** Wheter collisions are enabled, default true */
+    this.collisionsEnabled = true;
+    /** Progress indicator */
+    this.indicator = null;
+    /** Progress indicator functon */
+    this.onProgress = null;
+    
+    /** Handy reference to VRSpaceUI */
     this.VRSPACEUI = VRSPACEUI;
+    /** Reference to worldManager, set by WorldManager once that user goes online */
+    this.worldManager = null;
+    
+    // now override defaults
+    for ( var param in params ) {
+      this[param] = params[param];
+    }
+    
   }
   /** Create, load and and show the world.
   Enables gravity and collisions, then executes createScene method, optionally creates load indicator,
@@ -27,25 +58,17 @@ export class World {
   async init(engine, name, scene, callback, baseUrl, file) {
     this.canvas = engine.getInputElement();
     this.engine = engine;
-    this.name = name;
+    if ( name ) {
+      this.name = name;
+    }
     this.scene = scene;
     this.vrHelper = null;
-    if ( !this.file ) {
-      if ( file ) {
-        this.file = file;
-      } else {
-        this.file = "scene.gltf";
-      }
+    if ( !this.baseUrl && baseUrl ) {
+      this.baseUrl = baseUrl;
     }
-    if ( !this.baseUrl ){
-      if ( baseUrl ) {
-        this.baseUrl = baseUrl;
-      } else {
-        this.baseUrl = "";
-      }
+    if ( !this.file && file ) {
+      this.file = file;
     }
-    this.gravityEnabled = true;
-    this.collisionsEnabled = true;
     await this.createScene(engine);
     if ( ! this.onProgress ) {
       this.indicator = VRSPACEUI.loadProgressIndicator(this.scene, this.camera);
@@ -290,39 +313,43 @@ export class World {
   }
   
   /** Load the world, then execute given callback passing self as argument.
-  Loads an AssetContainer, and adds it to the scene. Takes care of loading progress.
+  Loads an AssetContainer from file specified by this.file, if any (by default scene.gltf), and adds it to the scene.
+  Then loads all world objects specified in this.objects, if any.
+  Takes care of loading progress.
   Calls loadingStart, loaded, loadingStop, collisions - each may be overridden.
   @param callback to execute after the content has loaded
    */
   load(callback) {
     this.loadingStart(this.name);
 
-    VRSPACEUI.assetLoader.loadAsset( this.baseUrl+this.file,
-      // onSuccess:
-      (container) => {
-        this.sceneMeshes = container.meshes;
-        this.container = container;
-
-        // Adds all elements to the scene
-        var mesh = container.createRootMesh();
-        mesh.name = this.name;
-        container.addAllToScene();
-      
-        this.loaded( this.file, mesh );
+    if ( this.file ) {
+      VRSPACEUI.assetLoader.loadAsset( this.baseUrl+this.file,
+        // onSuccess:
+        (container) => {
+          this.sceneMeshes = container.meshes;
+          this.container = container;
+  
+          // Adds all elements to the scene
+          var mesh = container.createRootMesh();
+          mesh.name = this.name;
+          container.addAllToScene();
         
-        // do something with the scene
-        VRSPACEUI.log("World loaded");
-        this.loadingStop(this.name);
-        this.collisions(this.collisionsEnabled);
-        if ( callback ) {
-          callback(this);
-        }
-      },
-      // onError:
-      exception => this.loadFailed( exception ),
-      // onProgress:
-      evt => this.loadProgress(evt, this.name)
-    );
+          this.loaded( this.file, mesh );
+          
+          // do something with the scene
+          VRSPACEUI.log("World loaded");
+          this.loadingStop(this.name);
+          this.collisions(this.collisionsEnabled);
+          if ( callback ) {
+            callback(this);
+          }
+        },
+        // onError:
+        exception => this.loadFailed( exception ),
+        // onProgress:
+        evt => this.loadProgress(evt, this.name)
+      );
+    }
     
     return this;
   }
