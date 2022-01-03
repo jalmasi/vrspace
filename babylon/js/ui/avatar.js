@@ -442,6 +442,7 @@ export class Avatar {
               success(this);
             }
           } else {
+            container.addAllToScene();
             this._processContainer(container,success)
           }
         },

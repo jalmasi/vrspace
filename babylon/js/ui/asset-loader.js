@@ -6,18 +6,16 @@ class AssetSync {
     this.numberOfInstances = 0;
     this.info = null;
   }
-  load(callback,failure) {
-    console.log('loading '+this.url);
-    //await this.loadSync(callback,failure);
-    this.loadAsset(callback,failure);
-    console.log('loaded '+this.url+" "+this.numberOfInstances);
+  load(callback,failure,progress) {
+    this.loadAsset(callback,failure,progress);
+    return this.promise;
   }
-  async loadAsset(callback,failure) {
+  async loadAsset(callback,failure,progress) {
     if ( this.promise ) {
       await this.promise;
       this.numberOfInstances++;
       this.instantiate(callback);
-      return;
+      return this.promise;
     }
     this.promise = new Promise( (resolve, reject) => {
       if ( this.container ) {
@@ -26,25 +24,32 @@ class AssetSync {
         this.numberOfInstances++;
         console.log('loading sync '+this.url+" "+this.numberOfInstances);
         // load
+        var path = "";
+        var file = this.url;
         var pos = this.url.lastIndexOf('/');
-        var path = this.url.substring(0,pos+1);
-        var file = this.url.substring(pos+1);
+        if ( pos >= 0 ) {
+          path = this.url.substring(0,pos+1);
+          file = this.url.substring(pos+1);
+        }
         var plugin = BABYLON.SceneLoader.LoadAssetContainer(path, file, this.scene, (container) =>
           {
             console.log("Loaded asset "+this.url);
             //var root = container.createRootMesh();
             this.container = container;
-            container.addAllToScene();
-            callback(container, this.info);
-
-            resolve();
-          }, null, (scene, message, exception)=>{
+            //container.addAllToScene();
+            if ( callback ) {
+              callback(container, this.info);
+            }
+            resolve(container, this.info);
+          },
+          (evt, name) => {if ( progress ) progress(evt, name)}, 
+          (scene, message, exception)=>{
             if ( failure ) {
               failure(exception);
             } else {
               console.log(message, exception);
             }
-            reject();
+            reject(exception);
           }
         );
         plugin.onParsedObservable.add(gltfBabylon => {
@@ -55,7 +60,6 @@ class AssetSync {
       }
     });
     return this.promise;
-    
   }
   instantiate(callback) {
     console.log('instantiating '+this.numberOfInstances+" of "+this.url);
@@ -76,9 +80,9 @@ export class AssetLoader {
     this.containers={};
     this.debug=true;
   }
-  async loadAsset( url, callback, failure ) {
+  async loadAsset( url, callback, failure, progress ) {
     await this.createAsset(url);
-    this.containers[url].load(callback, failure);
+    return this.containers[url].load(callback, failure, progress);
   }
   async createAsset(url) {
     if ( !this.containers[url] ) {
@@ -92,7 +96,7 @@ export class AssetLoader {
   @param callback function executed on success
   @param failure function executed on failure
    */
-  loadObject(obj, callback, failure) {
+  loadObject(obj, callback, failure, progress) {
     this.loadAsset(
       obj.mesh, 
       (container, info, instantiatedEntries) => {
@@ -113,6 +117,7 @@ export class AssetLoader {
     
         } else {
           var mesh = container.createRootMesh();
+          container.addAllToScene();
           
           // Adds all elements to the scene
           mesh.VRObject = obj;
@@ -125,8 +130,9 @@ export class AssetLoader {
           
           callback(mesh);
         }
-      }, 
-      failure 
+      },
+      failure,
+      progress
     );
   }
   
@@ -174,10 +180,32 @@ export class AssetLoader {
     }
     // TODO else error
   }
+  /** 
+  Returns all currently loaded assets, with spatial coordinates of all instances.
+   */
   dump() {
-    this.scene.rootNodes.forEach( (node) => console.log(node.id, node.name) );
-    for ( var url in this.containers ) {
-      console.log(url, this.containers[url]);
-    }
+    var dump = {};
+    this.scene.rootNodes.forEach( (node) => {
+      var url = node.name;
+      // CHECKME: do we want also to return user avatars? (starts with Client)
+      if ( node.id.startsWith("VRObject") && this.containers[url] ) {
+        if ( ! dump[url] ) {
+          dump[url] = {
+            info: this.containers[url].info,
+            numberOfInstances: this.containers[url].numberOfInstances,
+            instances: []
+          };
+        } 
+        var vrObject = node.VRObject;
+        var obj = {
+          id: vrObject.id,
+          position: vrObject.position,
+          rotation: vrObject.rotation,
+          scale: vrObject.scale
+        };
+        dump[url].instances.push(obj);
+      }
+    });
+    return dump;
   }
 }

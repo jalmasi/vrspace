@@ -34,7 +34,7 @@ export class Desert {
 
       // load all meshes and create terrain
       Promise.all([
-          world.loadAsset("../../plants/cactus_low_poly/", "scene.gltf", world.scene).then((container) => {
+          world.loadAsset("../../plants/cactus_low_poly/", "scene.gltf").then((container) => {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.2,.2,.2));
@@ -42,7 +42,7 @@ export class Desert {
               world.indicator.remove("../../plants/cactus_low_poly/");
           })
           ,
-          world.loadAsset("../../plants/cactus_1_downloadable/", "scene.gltf", world.scene).then((container) => {
+          world.loadAsset("../../plants/cactus_1_downloadable/", "scene.gltf").then((container) => {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.5,.5,.5));
@@ -50,7 +50,7 @@ export class Desert {
               world.indicator.remove("../../plants/cactus_1_downloadable/");
           })
           ,
-          world.loadAsset("../../plants/palm_tree/", "palm.glb", world.scene).then((container) => {
+          world.loadAsset("../../plants/palm_tree/", "palm.glb").then((container) => {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Scaling(.001,.001,.001));
               container.materials[0].needDepthPrePass = true;
@@ -58,7 +58,7 @@ export class Desert {
               world.indicator.remove("../../plants/palm_tree/");
           })
           ,
-          world.loadAsset("../../plants/bush/", "scene.gltf", world.scene).then((container) => {
+          world.loadAsset("../../plants/bush/", "scene.gltf").then((container) => {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0,2,0));
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
@@ -67,7 +67,7 @@ export class Desert {
               world.indicator.remove("../../plants/bush/");
           })
           ,
-          world.loadAsset("../../plants/hand_painted_bush/", "scene.gltf", world.scene).then((container) => {
+          world.loadAsset("../../plants/hand_painted_bush/", "scene.gltf").then((container) => {
               var mesh = container.meshes[container.meshes.length-1];
               mesh = mesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI/2));
               this.terrainObjects.push( mesh );

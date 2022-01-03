@@ -2,13 +2,16 @@ import {VRSPACEUI} from './vrspace-ui.js';
 import {TextWriter} from './text-writer.js'
 
 export class WorldEditor {
-  constructor( world ) {
+  constructor( world, fileInput ) {
     if ( ! world.worldManager ) {
       throw "World editor requires connection to the server - enter a world first";
     }
     this.world = world;
     this.scene = world.scene;
     this.camera = world.scene.activeCamera;
+    if ( fileInput ) {
+      this.setFileInput( fileInput );
+    }
     this.worldManager = world.worldManager;
     this.defaultErrorHandler = world.worldManager.loadErrorHandler;
     this.defaultloadCallback = world.worldManager.loadCallback;
@@ -67,10 +70,12 @@ export class WorldEditor {
     this.copyButton = this.makeAButton("Copy", "/content/icons/copy.png", (o)=>this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
     this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
-    //this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Download.png");
+    this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Save.png");
+    this.loadButton = this.makeAButton("Load", "https://www.babylonjs-playground.com/textures/icons/Open.png");
     
     this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
-    //this.saveButton.onPointerDownObservable.add( () => {this.displayButtons(true);VRSPACEUI.assetLoader.dump()});
+    this.saveButton.onPointerDownObservable.add( () => {this.save()});
+    this.loadButton.onPointerDownObservable.add( () => {this.load()});
   }
 
   makeAButton(text, imageUrl, action) {
@@ -370,6 +375,62 @@ export class WorldEditor {
       url.search = new URLSearchParams(params).toString();
 
       this.doFetch(url, true);
+  }
+
+  save() {
+    this.displayButtons(true);
+    var dump = VRSPACEUI.assetLoader.dump();
+    if ( Object.keys(dump).length > 0 ) {
+      VRSPACEUI.saveFile(this.world.name+".json", JSON.stringify(dump));
+    }
+  }
+
+  setFileInput(fileInput) {
+    this.fileInput = fileInput;
+    fileInput.addEventListener('change', ()=>{
+      const selectedFile = fileInput.files[0];
+      if ( selectedFile ) {
+        console.log(selectedFile);
+        const reader = new FileReader();
+        reader.onload = e => {
+          var objects = JSON.parse(e.target.result);
+          console.log(objects);
+          this.publish(objects);
+        }
+        reader.readAsText(selectedFile);
+      }
+    }, false );
+  }  
+  
+  load() {
+    this.displayButtons(true);
+    if ( this.fileInput ) {
+      this.fileInput.click();
+    } else {
+      console.log("WARNING no file input element");
+    }
+  }
+  
+  publish( objects ) {
+    for ( var url in objects) {
+      var instances = objects[url].instances;
+      if ( !url.startsWith("/") ) {
+        // relative url, make it relative to world script path
+        url = this.baseUrl+url;
+      }
+      instances.forEach( (instance) => {
+        var mesh = { 
+          mesh: url,
+          active: true,
+          position: instance.position,
+          rotation: instance.rotation,
+          scale: instance.scale 
+        };
+        this.worldManager.VRSPACE.createSharedObject(mesh, (obj)=>{
+          console.log("Created new VRObject", obj);
+        });
+      });
+    }
   }
   
   doFetch(url, relocate) {

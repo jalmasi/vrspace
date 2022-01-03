@@ -51,8 +51,12 @@ export class VRSpaceUI {
   async init(scene) {
     if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
-      this.hud = new HUD(scene);
-      this.guiManager = this.hud.guiManager;
+      try {
+        this.hud = new HUD(scene);
+        this.guiManager = this.hud.guiManager;
+      } catch ( exception ) {
+        console.log( "WARNING: Can't create HUD - make sure to load babylon.gui.min.js");
+      }
       this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script
       var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.contentBase+"/babylon/","logo.glb",this.scene);
@@ -387,6 +391,19 @@ export class VRSpaceUI {
       parent = parent.parent;
     }
     return parent;
+  }
+
+  /**
+  Utility method to save a file with given name and file content.
+  @param filename to save
+  @param content of the file, typically some JSON string
+   */
+  saveFile(filename, content) {
+    var a = document.createElement('a');
+    var blob = new Blob([content], {'type':'application/octet-stream'});
+    a.href = window.URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
   }
 
 }

@@ -341,7 +341,7 @@ export class WorldManager {
       console.log("Null mesh of client "+obj.id);
       return;
     }
-    var plugin = VRSPACEUI.assetLoader.loadObject(obj, (mesh) => {
+    VRSPACEUI.assetLoader.loadObject(obj, (mesh) => {
       this.log("loaded "+obj.mesh);
       
       var initialPosition = { position: {} };
