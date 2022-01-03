@@ -52,7 +52,10 @@ export class HUD {
    */
   rescaleHUD() {
     var aspectRatio = this.scene.getEngine().getAspectRatio(this.scene.activeCamera);
-    var scale = Math.min(1, aspectRatio/1.5); // TODO calculate aspect ratio depending on number of buttons
+    // TODO exactly calculate aspect ratio depending on number of buttons, size, spacing
+    // 0.75 (10 buttons) on this distance fits at aspect of 2
+    var requiredRatio = this.buttons.length/10*2;
+    var scale = Math.min(1, aspectRatio/requiredRatio); 
     this.root.scaling = new BABYLON.Vector3(scale,scale,1);
     console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+scale);
   }
