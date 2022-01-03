@@ -45,6 +45,9 @@ import("./world-editor-test.js").then( (module) =>{
   
   var world = module.WORLD;
 
+  var fileInput = document.getElementById('fileInput');
+  world.fileInputElement = fileInput;
+
   world.init(engine, 'world-editor-test').then((scene) => {
 	  myScene = scene;
 
@@ -95,6 +98,7 @@ function debugOnOff() {
       <input id="animated" type="checkbox">
       <label for="rigged">Rigged:</label>
       <input id="rigged" type="checkbox">
+      <input type="file" id="fileInput" accept=".json" style="display:none;">
       <!-- do we really care? 
       <label for="license">License:</label>
       <select id="license">

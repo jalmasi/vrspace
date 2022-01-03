@@ -5,8 +5,10 @@ import {VRHelper} from './vr-helper.js';
 Basic world, intended to be overridden.
 Provides function placeholders for implementations, and safe implementation of basic functions, 
 like loading of world file(s) and XR support.
-A world may contain one or more scene files. Defaults are set for one file loaded from scene.gltf file, as it is, from current directory.
-To load multiple files, use this.worldObjects structure, that along the name allows to specifiy position, rotation and scale for each object.
+A world may contain one or more scene files. Defaults are set for one file loaded from scene.gltf file, 
+as it is, from current directory.
+To load multiple files, use this.worldObjects structure or objectsFile file, that along the name allow to specifiy position, 
+rotation and scale for each object.
 (the structure is the same one that is also used by AssetLoader and WorldEditor)
 @abstract
  */
@@ -24,6 +26,8 @@ export class World {
     this.file = "scene.gltf";
     /** World objects to load, default null */
     this.worldObjects = null;
+    /** World objects json file, as saved by WorldEditor and AssetLoader, default null */
+    this.objectsFile = null;
     /** Wheter gravity is enabled, default true */
     this.gravityEnabled = true;
     /** Wheter collisions are enabled, default true */
@@ -316,12 +320,13 @@ export class World {
   
   /** Load the world, then execute given callback passing self as argument.
   Loads an AssetContainer from file specified by this.file, if any (by default scene.gltf), and adds it to the scene.
-  Then loads all world objects specified in this.objects, if any.
+  Then loads all world objects specified in this.objectsFile or this.worldObjects, if any - file takes precedence.
   Takes care of loading progress.
   Calls loadingStart, loaded, loadingStop, collisions - each may be overridden.
   @param callback to execute after the content has loaded
+  @returns world object
    */
-  load(callback) {
+  async load(callback) {
     this.loadingStart(this.name);
 
     var promises = [];
@@ -346,6 +351,12 @@ export class World {
         evt => this.loadProgress(evt, this.name)
       );
       promises.push(scenePromise);
+    }
+    
+    if ( this.objectsFile ) {
+      var response = await fetch(this.baseUrl+this.objectsFile);
+      var json = response.json();
+      this.worldObjects = JSON.parse(json);
     }
     
     if ( this.worldObjects ) {

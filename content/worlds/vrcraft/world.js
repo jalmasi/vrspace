@@ -62,7 +62,7 @@ export class WorldEditorExample extends World {
   
   entered(welcome) {
     console.log("Entered the world, starting world manager", welcome);
-    this.worldEditor = new WorldEditor(this);
+    this.worldEditor = new WorldEditor(this, this.fileInputElement);
   }
 
   // this shouldn't be here, but in HTML file
@@ -77,11 +77,14 @@ export class WorldEditorExample extends World {
       <label for="animated">Animated:</label>
       <input id="animated" type="checkbox">
       <label for="rigged">Rigged:</label>
-      <input id="rigged" type="checkbox">`;
+      <input id="rigged" type="checkbox">
+      <input type="file" id="fileInput" accept=".json" style="display:none;">`;
     
     div.innerHTML = html;
     document.body.appendChild(div);
     
+    this.fileInputElement = document.getElementById('fileInput');
+
     var search = () => {
       canvas.focus();
       var text = document.getElementById('searchText').value;
