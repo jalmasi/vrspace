@@ -16,6 +16,7 @@ export { WorldManager } from "./ui/world-manager.js";
 export { WorldEditor } from "./ui/world-editor.js";
 export { MediaStreams, OpenViduStreams } from "./ui/media-streams.js";
 export { VideoAvatar } from "./ui/video-avatar.js";
+export { UnityWorld } from "./ui/unity-world.js";
 
 export { Avatar } from "./ui/avatar.js";
 
