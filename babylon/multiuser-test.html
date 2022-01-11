@@ -60,6 +60,7 @@ import('./js/vrspace-min.js').then( (ui) => {
       skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
       
       debugLayer = this.scene.debugLayer;
+      ui.VRSPACEUI.init(this.scene); // make sure to initialize the singleton
     }
   }
 
