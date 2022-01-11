@@ -50,16 +50,7 @@ import('./js/vrspace-min.js').then( (ui) => {
       this.camera.attachControl( canvas );
       var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
       light.intensity = 0.7;
-      /*
-      var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
-      var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-      skyboxMaterial.backFaceCulling = false;
-      skyboxMaterial.disableLighting = true;
-      skybox.material = skyboxMaterial;
-      skybox.infiniteDistance = true;
-      skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("//www.vrspace.org/content/skybox/eso_milkyway/milkyway", this.scene);
-      skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-      */
+
       debugLayer = this.scene.debugLayer;
       ui.VRSPACEUI.init(this.scene); // make sure to initialize the singleton
     }
@@ -91,19 +82,6 @@ import('./js/vrspace-min.js').then( (ui) => {
         }
       }
     });
-    /*
-	  document.body.addEventListener("touchstart", function (e) {
-		  if (e.target == canvas) {
-		    e.preventDefault();
-		  }
-		}, false);
-	  canvas.addEventListener("touchstart", (e) => {
-		  arHelper.placeMarker();
-		}, false);
-    */
-	  //canvas.addEventListener("touchend", (e) => {
-      //arHelper.placeMarker();
-	  //}, false);
   });
 
 });

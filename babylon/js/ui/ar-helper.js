@@ -22,7 +22,7 @@ export class ARHelper {
         this.hitTest = this.featuresManager.enableFeature(BABYLON.WebXRHitTest, "latest");
         this.anchorSystem = this.featuresManager.enableFeature(BABYLON.WebXRAnchorSystem, "latest");
     
-        //this.createMarker();    
+        //this.createMarker();
         this.tracker = (results) => {
           if (this.tracking && results.length) {
             var hitTest = results[0];
@@ -49,7 +49,6 @@ export class ARHelper {
     this.tracking = true;
   }
   async placeMarker() {
-    //const anchorPromise = anchorSystem.addAnchorPointUsingHitTestResultAsync(lastHitTest);
     this.anchorSystem.addAnchorAtPositionAndRotationAsync(this.marker.position, this.marker.rotationQuaternion);
     this.anchorSystem.onAnchorAddedObservable.add((anchor) => {
       anchor.attachedNode = this.marker;
