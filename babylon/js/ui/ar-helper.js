@@ -61,6 +61,10 @@ export class ARHelper {
       this.anchor = null;
     }
     this.tracking = true;
+    if ( this.world.worldManager ) {
+      // CHECKME stop sending user position/rotation?
+      this.world.worldManager.trackMesh();
+    }
     console.log("tracking started");
   }
   async placeMarker() {
@@ -71,6 +75,10 @@ export class ARHelper {
         this.anchor = anchor;
       });
       this.tracking = false;
+      if ( this.world.worldManager ) {
+        // TODO start sending user position/rotation - needs to be recalculated
+        this.world.worldManager.trackMesh(this.anchor);
+      }
       console.log("Anchor placed");
     }
   }
