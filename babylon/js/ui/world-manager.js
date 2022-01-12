@@ -46,6 +46,10 @@ export class WorldManager {
     this.defaultPosition = new BABYLON.Vector3( 1000, 1000, 1000 );
     /** Default rotation applied after an avatar loads */
     this.defaultRotation = new BABYLON.Vector3( 0, 0, 0 );
+    /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
+    Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
+     */
+    this.remoteLogging = false;
     if ( ! this.scene.activeCamera ) {
       console.log("Undefined camera in WorldManager, tracking disabled")
     } else {
@@ -619,6 +623,9 @@ export class WorldManager {
       var afterEnter = (welcome) => {
         VRSPACE.removeWelcomeListener(afterEnter);
         this.world.entered(welcome)
+        if ( this.remoteLogging ) {
+          this.enableRemoteLogging();
+        }
         resolve(welcome);
       };
       var afterConnect = (welcome) => {
@@ -661,6 +668,26 @@ export class WorldManager {
    */
   sendMy( obj ) {
     VRSPACE.sendMyEvent(obj);
+  }
+  
+  enableRemoteLogging() {
+    var console=
+    { 
+      log: (arg) => {
+        VRSPACE.sendCommand("Log", {message:arg}); // default log level is debug
+      },
+      info: (arg) => {
+        VRSPACE.sendCommand("Log", {message:arg, severity:"info"});
+      },
+      warn: (arg) => {
+        VRSPACE.sendCommand("Log", {message:arg, severity:"warn"});
+      },
+      error: (arg) => {
+        VRSPACE.sendCommand("Log", {message:arg, severity:"error"});
+      }
+    };
+    
+    window.console = console;    
   }
   
 }
