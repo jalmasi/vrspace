@@ -7,20 +7,26 @@ export class ARHelper {
   /**
   @param world attaches the control to the World
    */
-  async initXR(world) {
+  async initXR(world, enter) {
     this.world = world;
     this.createMarker();
     this.world.scene.createDefaultXRExperienceAsync({
       // ask for an ar-session
       uiOptions: {
         sessionMode: "immersive-ar",
+        referenceSpaceType: "unbounded"
       },
       optionalFeatures: true      
-    }).then(xr=>{
-      if ( xr && xr.baseExperience ) {
+    }).then( xr => {
+      this.xr = xr;
+      if ( this.xr && this.xr.baseExperience ) {
         this.featuresManager = xr.baseExperience.featuresManager;
         this.hitTest = this.featuresManager.enableFeature(BABYLON.WebXRHitTest, "latest");
         this.anchorSystem = this.featuresManager.enableFeature(BABYLON.WebXRAnchorSystem, "latest");
+  
+        if ( enter ) {
+          this.enterAR();
+        }
     
         //this.createMarker();
         this.tracker = (results) => {
@@ -36,9 +42,17 @@ export class ARHelper {
       } else {
         console.log("XR unavailable");
       }
-
+      
     });
+    
+
     return this;
+  }
+  // This must be done within a user interaction e.g. button click
+  async enterAR() {
+    if ( this.xr && this.xr.baseExperience ) {
+      return this.baseExperience.enterXRAsync("immersive-ar", "unbounded", this.xr.renderTarget);
+    }
   }
   startTracking() {
     if (this.anchor) {
@@ -47,14 +61,18 @@ export class ARHelper {
       this.anchor = null;
     }
     this.tracking = true;
+    console.log("tracking started");
   }
   async placeMarker() {
-    this.anchorSystem.addAnchorAtPositionAndRotationAsync(this.marker.position, this.marker.rotationQuaternion);
-    this.anchorSystem.onAnchorAddedObservable.add((anchor) => {
-      anchor.attachedNode = this.marker;
-      this.anchor = anchor;
-    });
-    this.tracking = false;
+    if ( this.anchorSystem ) {
+      this.anchorSystem.addAnchorAtPositionAndRotationAsync(this.marker.position, this.marker.rotationQuaternion);
+      this.anchorSystem.onAnchorAddedObservable.add((anchor) => {
+        anchor.attachedNode = this.marker;
+        this.anchor = anchor;
+      });
+      this.tracking = false;
+      console.log("Anchor placed");
+    }
   }
   createMarker() {
     this.marker = new BABYLON.TransformNode("Marker", this.world.scene);
