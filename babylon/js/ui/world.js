@@ -452,5 +452,16 @@ export class World {
     return this.baseUrl+relativePath;
   }
   
+  /**
+  Write some text to world chat. Usually text appears above avatar's head and/or in chat log,
+  but this method only sends own 'wrote' event.
+  @param text something to say
+   */
+  write(text) {
+    if ( this.worldManager && text ) {
+      this.worldManager.sendMy({wrote:text});
+    }
+  }
+  
 }
 

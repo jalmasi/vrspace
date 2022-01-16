@@ -18,7 +18,6 @@
       padding-right: 0;
       margin-left: auto;
       margin-right: auto;
-      display: block;
     }
     </style>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
@@ -79,7 +78,7 @@ import("./avatar-selection.js").then( (module) =>{
 
   document.getElementById('chatBox').style.display = 'none';
   document.getElementById('chatInput').addEventListener('change', (e)=>{
-    world.worldManager.sendMy({wrote:e.target.value});
+    world.write(e.target.value);
     e.target.value = '';
     canvas.focus();
   });
@@ -104,6 +103,30 @@ import("./avatar-selection.js").then( (module) =>{
       setTimeout(() => document.location.reload(), 5000);
     }
   });
+
+  // drag and drop to chat
+  document.getElementById('renderCanvas').ondragover = (e) => {
+    return false;
+  }
+  document.getElementById('renderCanvas').ondrop = (e) => {
+    e.preventDefault();
+    for ( var i = 0; i < e.dataTransfer.items.length; i++ ) {
+    	var item = e.dataTransfer.items[i];
+    	if ( item.kind == 'string') {
+    		if ('text/plain' == item.type) {
+    			// say that
+    			item.getAsString(s=>{
+	          world.write(s);
+    			});
+    		}
+        // text/html ignored, text/urilist is the same as plain text
+    	//} else {
+    		// file upload unsafe
+    		//console.log('Unsupported kind: '+item.kind);
+    	}
+    };
+  }
+
 
 })
 
