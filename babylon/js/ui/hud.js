@@ -45,6 +45,13 @@ export class HUD {
       }
     } else {
       this.root.parent = this.camera;
+      if ( "WebXRCamera" == this.camera.getClassName() ) {
+        this.root.scaling = new BABYLON.Vector3(.5, .5, .5);
+        this.root.position = new BABYLON.Vector3(0,this.verticalXR,this.distance);
+      } else {
+        this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
+        this.rescaleHUD();
+      }
     }
   }
   /**
