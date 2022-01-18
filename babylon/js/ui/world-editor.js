@@ -8,7 +8,6 @@ export class WorldEditor {
     }
     this.world = world;
     this.scene = world.scene;
-    this.camera = world.scene.activeCamera;
     if ( fileInput ) {
       this.setFileInput( fileInput );
     }
@@ -21,6 +20,12 @@ export class WorldEditor {
     this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
     this.worldManager.loadErrorHandler= (object, exception) => this.loadingFailed(object, exception);
     this.writer = new TextWriter(this.scene);
+    
+    this.worldPickPredicate = world.isSelectableMesh;
+    // override world method to make every VRObject selectable
+    world.isSelectableMesh = (mesh) => {
+      return this.worldPickPredicate(mesh) || VRSPACEUI.findRootNode(mesh).VRObject;
+    }
   }
   
   makeUI() {
@@ -234,28 +239,32 @@ export class WorldEditor {
   
   relocatePanel() {
     //this.panel.linkToTransformNode();
-    var forwardDirection = this.camera.getForwardRay(6).direction;
-    this.uiRoot.position = this.camera.position.add(forwardDirection);
-    this.uiRoot.rotation = new BABYLON.Vector3(this.camera.rotation.x,this.camera.rotation.y,this.camera.rotation.z);
+    var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(6).direction;
+    this.uiRoot.position = VRSPACEUI.hud.camera.position.add(forwardDirection);
+    this.uiRoot.rotation = new BABYLON.Vector3(VRSPACEUI.hud.camera.rotation.x,VRSPACEUI.hud.camera.rotation.y,VRSPACEUI.hud.camera.rotation.z);
     //this.panel.linkToTransformNode(this.uiRoot);
     this.displayButtons(true);
   }
   
   installClickHandler() {
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
-      switch (pointerInfo.type) {
-        case BABYLON.PointerEventTypes.POINTERDOWN:
-          if ( this.activeButton ) {
-            if ( pickedRoot.VRObject && this.activeButton.isVisible) {
-              // make an action on the object
-              console.log("Manipulating shared object "+pickedRoot.VRObject.id+" "+pickedRoot.name);
-              this.manipulateObject(pickedRoot, this.activeButton.customAction);
+      if ( pointerInfo.pickInfo.pickedMesh ) {
+        var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
+        switch (pointerInfo.type) {
+          case BABYLON.PointerEventTypes.POINTERDOWN:
+            if ( this.activeButton ) {
+              console.log("pickedMesh", pointerInfo.pickInfo.pickedMesh);
+              console.log("pickedRoot", pickedRoot);
+              if ( pickedRoot.VRObject && this.activeButton.isVisible) {
+                // make an action on the object
+                console.log("Manipulating shared object "+pickedRoot.VRObject.id+" "+pickedRoot.name);
+                this.manipulateObject(pickedRoot, this.activeButton.customAction);
+              }
             }
-          }
-          break;
-        case BABYLON.PointerEventTypes.POINTERUP:
-          break;
+            break;
+          case BABYLON.PointerEventTypes.POINTERUP:
+            break;
+        }
       }
     });
   }
@@ -285,9 +294,9 @@ export class WorldEditor {
     
     // default position
     if ( ! position ) {
-      var forwardDirection = this.camera.getForwardRay(2).direction;
+      var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(2).direction;
       var forwardLower = forwardDirection.add(new BABYLON.Vector3(0,-.5,0));
-      position = this.camera.position.add(forwardLower);
+      position = VRSPACEUI.hud.camera.position.add(forwardLower);
       vrObject.position.x = position.x;
       vrObject.position.y = position.y;
       vrObject.position.z = position.z;
@@ -295,8 +304,8 @@ export class WorldEditor {
     }
 
     // create an object and bind it to camera to track the position
-    var targetDirection = position.subtract(this.camera.position);
-    var forwardDirection = this.camera.getForwardRay(targetDirection.length()).direction;
+    var targetDirection = position.subtract(VRSPACEUI.hud.camera.position);
+    var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(targetDirection.length()).direction;
 
     var rotationMatrix = new BABYLON.Matrix();
     BABYLON.Matrix.RotationAlignToRef(forwardDirection.normalizeToNew(), targetDirection.normalizeToNew(), rotationMatrix);
@@ -312,10 +321,10 @@ export class WorldEditor {
     if ( vrObject.rotation ) {
       var rot = new BABYLON.Vector3(vrObject.rotation.x, vrObject.rotation.y, vrObject.rotation.z);
       var quat = BABYLON.Quaternion.FromEulerVector(rot);
-      quat = BABYLON.Quaternion.Inverse(this.camera.absoluteRotation).multiply(quat);
+      quat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(quat);
       target.rotation = quat.toEulerAngles()
     }
-    target.parent = this.camera;
+    target.parent = VRSPACEUI.hud.camera;
     vrObject.target = target;
     
     vrObject.changeListener = () => this.sendPos(vrObject);
@@ -324,7 +333,7 @@ export class WorldEditor {
   }
 
   sendPos(obj) {
-    var rot = this.camera.rotation;
+    var rot = VRSPACEUI.hud.camera.rotation;
     var pos = obj.position;
     if ( obj.target ) {
       pos = obj.target.absolutePosition;

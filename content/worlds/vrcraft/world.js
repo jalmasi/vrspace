@@ -106,6 +106,7 @@ export class WorldEditorExample extends World {
   search( what, flags ) {
     this.worldEditor.search( what, flags );
   }
+  
 }
 
 export const WORLD = new WorldEditorExample();
