@@ -99,7 +99,8 @@ public class WriteBack {
       deleted.get().add(o);
     }
     db.delete(o);
-    optionallyFlush();
+    // CHECKME has to be flushed at once
+    flush(null);
   }
 
 }
