@@ -67,9 +67,6 @@ public class WorldManager {
   @Autowired
   private Neo4jMappingContext mappingContext;
 
-  @Autowired
-  private WriteBack writeBack;
-
   private Dispatcher dispatcher;
 
   protected SessionTracker sessionTracker;
@@ -169,15 +166,18 @@ public class WorldManager {
   }
 
   public void remove(Client client, VRObject obj) {
-    ID objId = obj.getObjectId();
     // CHECKME: remove invisible objects?
     if (!client.isOwner(obj)) {
-      throw new SecurityException("Not yours to remove");
+      throw new SecurityException("Not yours to remove: " + obj.getClass().getSimpleName() + " " + obj.getId());
     }
-    cache.remove(objId);
-    writeBack.delete(obj);
     client.removeOwned(obj);
     db.save(client);
+    delete(client, obj);
+  }
+
+  private void delete(Client client, VRObject obj) {
+    cache.remove(obj.getObjectId());
+    client.getWriteBack().delete(obj);
   }
 
   @Transactional
@@ -212,6 +212,10 @@ public class WorldManager {
     client.setSession(session);
     client.setMapper(jackson);
     client.setSceneProperties(sceneProperties.newInstance());
+    WriteBack writeBack = new WriteBack(db);
+    writeBack.setActive(config.isWriteBackActive());
+    writeBack.setDelay(config.getWriteBackDelay());
+    client.setWriteBack(writeBack);
     cache.put(new ID(client), client);
 
     return enter(client, defaultWorld());
@@ -299,17 +303,15 @@ public class WorldManager {
       if (client.getOwned() != null) {
         for (VRObject owned : client.getOwned()) {
           if (owned.isTemporary()) {
-            cache.remove(owned.getObjectId());
-            writeBack.delete(owned);
+            delete(client, owned);
             log.debug("Deleted owned temporary " + owned.getObjectId());
           }
         }
       }
-      cache.remove(new ID(client));
-      writeBack.delete(client);
+      delete(client, client);
       log.debug("Deleted guest client " + client.getId());
     }
-    writeBack.flush(null);
+    client.getWriteBack().flush();
   }
 
   private void exit(Client client) {
@@ -367,7 +369,7 @@ public class WorldManager {
         }
       }
       dispatcher.dispatch(event);
-      writeBack.write(event.getSource());
+      client.getWriteBack().write(event.getSource());
     }
     if (scene != null) {
       scene.update();

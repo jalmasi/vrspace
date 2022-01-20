@@ -10,6 +10,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
+import org.vrspace.server.core.WriteBack;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.types.Owned;
@@ -55,6 +56,10 @@ public class Client extends VRObject {
   @Private
   @Transient
   transient private String token;
+
+  @JsonIgnore
+  @Transient
+  transient private WriteBack writeBack;
 
   @Private
   @JsonIgnore

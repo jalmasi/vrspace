@@ -77,6 +77,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
       log.error("Cannot delete members of " + o.getClass().getSimpleName() + " " + o.getId(), e);
     }
     deleteById(o.getClass(), o.getId());
+    log.debug("Deleted " + o.getClass().getSimpleName() + " " + o.getId());
   }
 
   default void deleteMembers(Class<?> cls, VRObject obj) throws NoSuchMethodException, SecurityException,

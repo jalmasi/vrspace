@@ -5,11 +5,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Configuration
 @EnableWebSecurity
-@Slf4j
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   String protocol = "https";
 

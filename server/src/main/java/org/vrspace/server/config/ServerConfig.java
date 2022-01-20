@@ -31,5 +31,12 @@ public class ServerConfig {
   @Value("${org.vrspace.server.sessionStartTimeout:0}")
   private int sessionStartTimeout;
 
+  // CHECKME: somewhere else?
+  @Value("${org.vrspace.writeback.enabled:true}")
+  private volatile boolean writeBackActive = true;
+
+  @Value("${org.vrspace.writeback.delay:1000}")
+  private long writeBackDelay = 1000;
+
   // TODO introduce getters for server directories, e.g. content dir
 }
