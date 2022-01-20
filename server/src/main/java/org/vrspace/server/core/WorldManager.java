@@ -309,7 +309,7 @@ public class WorldManager {
       writeBack.delete(client);
       log.debug("Deleted guest client " + client.getId());
     }
-
+    writeBack.flush(null);
   }
 
   private void exit(Client client) {
@@ -367,7 +367,6 @@ public class WorldManager {
         }
       }
       dispatcher.dispatch(event);
-      // writes takes typically 10+ ms, depending on what's changed, using write-back
       writeBack.write(event.getSource());
     }
     if (scene != null) {

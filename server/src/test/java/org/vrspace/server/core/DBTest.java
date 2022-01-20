@@ -489,9 +489,9 @@ public class DBTest {
       o2.getPosition().setY(i);
       writeBack.write(o1);
       writeBack.write(o2);
-      Thread.yield();
     }
-    waitFor(1000);
+    waitFor(writeBack.getDelay());
+    writeBack.flush(null);
     assertEquals(0, writeBack.size());
     System.err.println(
         "update rate " + total * 1000.0 / (System.currentTimeMillis() - start) + "/s, writes " + writeBack.writes());
@@ -505,7 +505,7 @@ public class DBTest {
 
   }
 
-  private void waitFor(int millis) throws Exception {
+  private void waitFor(long millis) throws Exception {
     int sleep = 10;
     int count = 0;
     while (writeBack.size() > 0 && ++count < millis / sleep) {
