@@ -58,6 +58,9 @@ public class WriteBack {
 
   // CHECKME: public?
   public void flush(VRObject first) {
+    if (!active) {
+      return;
+    }
     Long time = System.currentTimeMillis();
     HashSet<VRObject> changes = new HashSet<>();
     objects.get().drainTo(changes);
@@ -97,10 +100,9 @@ public class WriteBack {
   public void delete(VRObject o) {
     if (active) {
       deleted.get().add(o);
+      optionallyFlush();
     }
     db.delete(o);
-    // CHECKME has to be flushed at once
-    flush(null);
   }
 
 }
