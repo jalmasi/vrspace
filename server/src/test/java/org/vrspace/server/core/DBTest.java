@@ -491,10 +491,10 @@ public class DBTest {
       writeBack.write(o2);
     }
     waitFor(writeBack.getDelay());
-    writeBack.flush(null);
+    writeBack.flush();
     assertEquals(0, writeBack.size());
-    System.err.println(
-        "update rate " + total * 1000.0 / (System.currentTimeMillis() - start) + "/s, writes " + writeBack.writes());
+    System.err.println("update rate " + writeBack.writeRequests() * 1000.0 / (System.currentTimeMillis() - start)
+        + "/s, writes " + writeBack.writes());
 
     long writes = writeBack.writes();
     VRObject o3 = repo.save(new VRObject(0, 0, 0));

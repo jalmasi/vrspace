@@ -24,11 +24,11 @@ export class HUD {
     scene.onActiveCameraChanged.add( () => this.trackCamera() );
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
     this.buttons = [];
+    this.root = new BABYLON.TransformNode("HUD");
+    this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
     window.addEventListener("resize", () => {
       this.rescaleHUD();
     });
-    this.root = new BABYLON.TransformNode("HUD");
-    this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
     this.trackCamera();
   }
   /**
@@ -85,6 +85,7 @@ export class HUD {
     button.mesh.parent = this.root;
     this.buttons.push( button );
     button.backMaterial.alpha = this.alpha;
+    this.rescaleHUD();
     return button;
   }
   /**

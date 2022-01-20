@@ -34,14 +34,14 @@ public class CommandTest {
   @Mock
   private VRObjectRepository repo;
 
-  @Mock
-  private WriteBack writeBack;
-
   @InjectMocks
   private WorldManager world;
 
   @Mock
   private Scene scene;
+
+  @Mock
+  private WriteBack writeBack;
 
   private ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
@@ -58,6 +58,7 @@ public class CommandTest {
     client.setMapper(new ObjectMapper());
     client.setScene(scene);
     client.setSession(session);
+    client.setWriteBack(writeBack);
   }
 
   @Test

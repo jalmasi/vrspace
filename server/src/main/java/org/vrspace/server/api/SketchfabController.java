@@ -261,16 +261,16 @@ public class SketchfabController {
     String json = restTemplate.getForEntity(url, String.class).getBody();
     log.debug("Model info: " + json);
 
-    Map info = objectMapper.readValue(json, Map.class);
+    Map<?, ?> info = objectMapper.readValue(json, Map.class);
     ret.setUid((String) info.get("uid"));
     ret.setUri((String) info.get("uri"));
     ret.setName((String) info.get("name"));
     ret.setDescription((String) info.get("description"));
-    ret.setLicense((String) ((Map) info.get("license")).get("slug"));
-    ret.setAuthor((String) ((Map) info.get("user")).get("displayName"));
+    ret.setLicense((String) ((Map<?, ?>) info.get("license")).get("slug"));
+    ret.setAuthor((String) ((Map<?, ?>) info.get("user")).get("displayName"));
     @SuppressWarnings("unchecked")
-    List<Map> categories = (List<Map>) info.get("categories");
-    for (Map category : categories) {
+    List<Map<String, String>> categories = (List<Map<String, String>>) info.get("categories");
+    for (Map<?, ?> category : categories) {
       log.debug("Category: " + category.get("slug") + " " + category.get("name"));
       String catName = (String) category.get("slug");
       Optional<ContentCategory> oCat = db.findContentCategoryByName(catName);

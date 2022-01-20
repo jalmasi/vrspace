@@ -70,15 +70,11 @@ public class SessionManagerTest {
   @Autowired
   private ObjectMapper mapper;
 
-  @Autowired
-  private WriteBack writeBack;
-
   private Client testUser;
   private Client dbUser;
 
   @BeforeEach
   public void setUp() throws Exception {
-    writeBack.setActive(false);
     mockup(this.session, "testSession");
     createTestUser();
   }
