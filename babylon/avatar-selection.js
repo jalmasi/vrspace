@@ -299,7 +299,7 @@ export class AvatarSelection extends World {
   }
   
   showPortals() {
-    this.portals = [];
+    this.portals = {};
     VRSPACEUI.listThumbnails(VRSPACEUI.contentBase+'/content/worlds', (worlds) => {
       var radius = this.room.diameter/2;
       var angleIncrement = 2*Math.PI/worlds.length;
@@ -310,17 +310,34 @@ export class AvatarSelection extends World {
         // heavy performance impact
         //new Portal( scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
         var portal = new Portal( scene, worlds[i], (p)=>this.enter(p));
-        this.portals.push(portal);
+        this.portals[portal.name] = portal;
         portal.loadAt( x,0,z, angle);
         angle += angleIncrement;
       }
+      this.showActiveUsers();
     });
   }
 
+  showActiveUsers() {
+    fetch('/worlds/users').then(response=>response.json().then(worldStats=>{
+      if ( worldStats ) {
+        worldStats.forEach(stat=>{
+          console.log(stat);
+          if ( this.portals[stat.worldName] ) {
+            if ( stat.activeUsers > 0 ) {
+              this.portals[stat.worldName].setTitle('Users: '+stat.activeUsers+'/'+stat.totalUsers);
+            } else {
+              this.portals[stat.worldName].setTitle(null);
+            }
+          }
+        });
+      }
+    }));
+  }
   portalsEnabled(enable) {
     if (this.portals) {
-      for ( var i = 0; i < this.portals.length; i++ ) {
-        this.portals[i].enabled(enable&&this.hasAvatar());
+      for ( var worldName in this.portals ) {
+        this.portals[worldName].enabled(enable&&this.hasAvatar());
       }
     }
   }
@@ -331,8 +348,8 @@ export class AvatarSelection extends World {
   
   removePortals() {
     if (this.portals) {
-      for ( var i = 0; i < this.portals.length; i++ ) {
-        this.portals[i].dispose();
+      for ( var worldName in this.portals) {
+        this.portals[worldName].dispose();
       }
       delete this.portals;
     }

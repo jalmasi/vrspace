@@ -15,6 +15,7 @@ export class Portal {
     this.serverFolder = serverFolder;
     this.callback = callback;
     this.name = serverFolder.name;
+    this.subTitle = null;
     if ( serverFolder.relatedUrl() ) {
       this.thumbnail = new BABYLON.Texture(serverFolder.relatedUrl());
     }
@@ -109,15 +110,31 @@ export class Portal {
     var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 128,128);
     this.materials.push(this.title.material);
     
-    var titleText = new BABYLON.GUI.TextBlock();
-    titleText.text = this.name;
-    titleText.color = "white";
+    this.titleText = new BABYLON.GUI.TextBlock();
+    this.titleText.color = "white";
+    this.showTitle();
 
-    titleTexture.addControl(titleText);
+    titleTexture.addControl(this.titleText);
     //this.controls.push(titleText); // CHECKME doesn's seem required
     this.textures.push(titleTexture);
     
     return this;
+  }
+  showTitle() {
+    if ( this.titleText ) {
+      if ( this.subTitle) {
+        this.titleText.text = this.name.toUpperCase()+'\n'+this.subTitle;
+      } else {
+        this.titleText.text = this.name;
+      }
+    }
+  }
+  setTitle(title) {
+    this.subTitle = title;
+    this.showTitle();
+  }
+  getTitle() {
+    return this.subTitle;
   }
   /** Enables or disables the portal
   @param enable
