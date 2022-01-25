@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -23,6 +24,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.VREvent;
+import org.vrspace.server.dto.WorldStatus;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.EventRecorder;
 import org.vrspace.server.obj.PersistentEvent;
@@ -510,6 +512,63 @@ public class DBTest {
     int count = 0;
     while (writeBack.size() > 0 && ++count < millis / sleep) {
       Thread.sleep(sleep);
+    }
+  }
+
+  @Test
+  @Transactional
+  public void testWorlds() {
+    World w1 = repo.save(new World("one"));
+    World w2 = repo.save(new World("two"));
+    repo.save(new VRObject());
+    repo.save(new Client("aClient"));
+    List<World> worlds = repo.listWorlds();
+    assertEquals(2, worlds.size());
+    assertTrue(worlds.contains(w1));
+    assertTrue(worlds.contains(w2));
+  }
+
+  @Test
+  @Transactional
+  public void testCountUsers() {
+    World w1 = repo.save(new World("one"));
+    World w2 = repo.save(new World("two"));
+
+    Client c1 = new Client();
+    c1.setWorld(w1);
+    c1.setActive(true);
+    repo.save(c1);
+
+    Client c2 = new Client();
+    c2.setWorld(w1);
+    c2.setActive(false);
+    repo.save(c2);
+
+    int total = repo.countUsers(w1.getId());
+    assertEquals(2, total);
+
+    int active = repo.countUsers(w1.getId(), true);
+    assertEquals(1, active);
+
+    int inactive = repo.countUsers(w1.getId(), false);
+    assertEquals(1, inactive);
+
+    int empty = repo.countUsers(w2.getId());
+    assertEquals(0, empty);
+
+    Collection<WorldStatus> stats = repo.countUsers();
+    System.err.println(stats);
+    assertEquals(2, stats.size());
+    for (WorldStatus stat : stats) {
+      if ("one".equals(stat.getWorldName())) {
+        assertEquals(1, stat.getActiveUsers());
+        assertEquals(2, stat.getTotalUsers());
+      } else if ("two".equals(stat.getWorldName())) {
+        assertEquals(0, stat.getActiveUsers());
+        assertEquals(0, stat.getTotalUsers());
+      } else {
+        fail("Invalid stats: " + stats);
+      }
     }
   }
 }

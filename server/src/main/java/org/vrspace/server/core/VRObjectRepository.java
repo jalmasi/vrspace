@@ -3,6 +3,8 @@ package org.vrspace.server.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.util.StringUtils;
+import org.vrspace.server.dto.WorldStatus;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.ContentCategory;
 import org.vrspace.server.obj.Embedded;
@@ -108,4 +111,30 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   Optional<ContentCategory> findContentCategoryByName(String name);
 
+  @Query("MATCH (o:World) RETURN o")
+  List<World> listWorlds();
+
+  @Query("MATCH (o:Client)-[i:IN_WORLD]->(w:World) WHERE ID(w) = $worldId RETURN count(*)")
+  int countUsers(long worldId);
+
+  @Query("MATCH (o:Client)-[i:IN_WORLD]->(w:World) WHERE ID(w) = $worldId AND o.active = $active RETURN count(*)")
+  int countUsers(long worldId, boolean active);
+
+  // queries like this just do not work
+  // @Query("MATCH (o:Client)-[i:IN_WORLD]->(w:World) RETURN w.name AS name,
+  // o.active AS active, count(*) as COUNT")
+  // see
+  // https://community.neo4j.com/t/issue-when-retrieving-result-from-neo4jrepository/34966/6
+  // workaround is multitude of queries
+  default List<WorldStatus> countUsers() {
+    ArrayList<WorldStatus> ret = new ArrayList<>();
+    for (World world : listWorlds()) {
+      WorldStatus status = new WorldStatus();
+      status.setWorldName(world.getName());
+      status.setTotalUsers(countUsers(world.getId()));
+      status.setActiveUsers(countUsers(world.getId(), true));
+      ret.add(status);
+    }
+    return ret;
+  }
 }
