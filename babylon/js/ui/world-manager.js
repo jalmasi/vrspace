@@ -249,7 +249,7 @@ export class WorldManager {
     pos = path.lastIndexOf('/');
     var baseUrl = path.substring(0,pos+1);
     var dir = path.substring(pos+1);
-    var fix = null; //TODO find if fix file exist
+    var fix = dir+"-fixes.json"; //TODO find if fix file exist
     var dir = new ServerFolder( baseUrl, dir, fix );
     var avatar = new Avatar(this.scene, dir);
     avatar.fps = this.fps;
@@ -268,7 +268,10 @@ export class WorldManager {
         // FIXME rotation can be null sometimes (offline users?)
         this.changeAvatar(obj, { rotation: obj.rotation });
       }
-      // TODO also apply other properties here (name?)
+      // TODO also apply other non-null properties here
+      if ( obj.animation ) {
+        this.changeAvatar( obj, {animation: obj.animation});
+      }
       // add listener to process changes
       obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
       // subscribe to media stream here if available
@@ -292,7 +295,7 @@ export class WorldManager {
     var avatar = obj.container;
     for ( var field in changes ) {
       var node = avatar.parentMesh;
-      // TODO introduce event handler functions
+      // TODO introduce event handler functions in Avatar class, use only routeEvent here
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
           obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
@@ -303,6 +306,8 @@ export class WorldManager {
           obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
         }
         VRSPACEUI.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
+      } else if ( 'animation' === field ) {
+        avatar.startAnimation(obj.animation);
       } else if ( 'leftArmPos' === field ) {
         var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
         avatar.reachFor(avatar.body.rightArm, pos);

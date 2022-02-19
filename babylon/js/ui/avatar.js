@@ -267,17 +267,7 @@ export class Avatar {
         console.log("NOT an avatar - no skeletons");
       }
 
-      // apply loaded fixes
-      // CHECKME not used since proper bounding box calculation
-      // might be required in some special cases
-      // TODO move to postprocess method
-      if ( this.fixes ) {
-        if ( typeof this.fixes.standing !== 'undefined' ) {
-          this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
-          this.groundLevel(this.fixes.standing);
-        }
-        this.disableNodes();
-      }
+      //this.postProcess();
 
       this.parentMesh = container.createRootMesh();
       this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
@@ -290,18 +280,38 @@ export class Avatar {
   }
 
   /**
+  Apply fixes after loading/instantiation
+   */
+  postProcess() {
+    if ( this.fixes ) {
+      if ( typeof this.fixes.standing !== 'undefined' ) {
+        // CHECKME not used since proper bounding box calculation
+        // might be required in some special cases
+        this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
+        this.groundLevel(this.fixes.standing);
+      }
+      this.disableNodes();
+    }
+    
+  }
+  /**
   Load fixes from json file in the same folder, with the same name, and suffix .fixes.
   Called from load().
    */
   async loadFixes() {
+    this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.related);
     if ( this.folder.related ) {
-      this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.related);
       return fetch(this.folder.baseUrl+"/"+this.folder.related, {cache: 'no-cache'})
-      .then(response => response.json())
-      .then(json => {
-          this.fixes = json;
-          this.log( "Loaded fixes: " );
-          this.log( json );
+      .then(response => {
+        if ( response.ok ) {
+          response.json().then(json => {
+            this.fixes = json;
+            this.log( "Loaded fixes: " );
+            this.log( json );
+          });
+        } else {
+          console.log('Error loading fixes: ' + response.status);
+        }
       });
     }
   }
@@ -472,6 +482,7 @@ export class Avatar {
             container.addAllToScene();
             this._processContainer(container,success)
           }
+          this.postProcess();
         },
         (exception)=>{
           if ( failure ) {
