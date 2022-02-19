@@ -270,9 +270,13 @@ export class Avatar {
       // apply loaded fixes
       // CHECKME not used since proper bounding box calculation
       // might be required in some special cases
-      if ( this.fixes && typeof this.fixes.standing !== 'undefined' ) {
-        this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
-        this.groundLevel(this.fixes.standing);
+      // TODO move to postprocess method
+      if ( this.fixes ) {
+        if ( typeof this.fixes.standing !== 'undefined' ) {
+          this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
+          this.groundLevel(this.fixes.standing);
+        }
+        this.disableNodes();
       }
 
       this.parentMesh = container.createRootMesh();
@@ -302,6 +306,29 @@ export class Avatar {
     }
   }
 
+  /**
+  Disable nodes marked in fixes file
+   */
+  disableNodes() {
+    if ( typeof this.fixes.nodesDisabled !== 'undefined' ) {
+      this.enableNodes( this.fixes.nodesDisabled, false );
+    }
+  }
+  
+  /**
+  Enable/disable given nodes
+  @param nodeIds array of node identifiers
+  @param enable true/false
+   */
+  enableNodes( nodeIds, enable ) {
+    this.character.getNodes().forEach( node => {
+      if ( nodeIds.includes(node.id)) {
+        this.log("Node "+node.id+" enabled: "+enable);
+        node.setEnabled(enable);
+      }
+    });
+  }
+  
   /** 
   Slice an animation group
   @param group AnimationGroup to slice
@@ -1433,9 +1460,20 @@ export class Avatar {
           group.pause();
           this.log("paused "+animationName);
         } else {
-          if ( this.fixes && typeof this.fixes.beforeAnimation !== 'undefined' ) {
-            this.log( "Applying fixes for: "+this.folder.name+" beforeAnimation: "+this.fixes.beforeAnimation);
-            this.groundLevel( this.fixes.beforeAnimation );
+          if ( this.fixes ) {
+            if (typeof this.fixes.beforeAnimation !== 'undefined' ) {
+              this.log( "Applying fixes for: "+this.folder.name+" beforeAnimation: "+this.fixes.beforeAnimation);
+              this.groundLevel( this.fixes.beforeAnimation );
+            }
+            this.disableNodes();
+            if (typeof this.fixes.before !== 'undefined' ) {
+              this.fixes.before.forEach( obj => {
+                if ( animationName == obj.animation && obj.enableNodes ) {
+                  console.log(obj);
+                  this.enableNodes(obj.enableNodes, true);
+                }
+              });
+            }
           }
           this.jump(0);
           group.play(group.loopAnimation);

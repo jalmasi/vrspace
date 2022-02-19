@@ -1,0 +1,9 @@
+{
+  "nodesDisabled": ["node92"],
+  "before": [
+    {
+      "animation": "armature|gun_idle",
+      "enableNodes": ["node92"]
+    }
+  ]
+}
