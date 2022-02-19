@@ -57,6 +57,9 @@ export class Avatar {
     this.activeAnimation = null;
     this.writer = new TextWriter(this.scene);
     this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    /** fetch API cache control - use no-cache in development */
+    this.cache = 'default';
+    //this.cache = 'no-cache';
 
     /** Debug output, default false */
     this.debug = false;
@@ -301,7 +304,7 @@ export class Avatar {
   async loadFixes() {
     this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.related);
     if ( this.folder.related ) {
-      return fetch(this.folder.baseUrl+"/"+this.folder.related, {cache: 'no-cache'})
+      return fetch(this.folder.baseUrl+"/"+this.folder.related, {cache: this.cache})
       .then(response => {
         if ( response.ok ) {
           response.json().then(json => {

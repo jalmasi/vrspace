@@ -84,6 +84,7 @@ export class WorldManager {
     /** Enable debug output */
     this.debug = false;
     this.world.worldManager = this;
+    this.notFound = []; // 404 cache used for avatar fix files
   }
 
   /** Publish and subscribe */
@@ -240,7 +241,7 @@ export class WorldManager {
   }
   
   /** Load a 3D avatar, attach a listener to it */
-  loadAvatar(obj) {
+  async loadAvatar(obj) {
     this.log("loading avatar "+obj.mesh);
     var pos = obj.mesh.lastIndexOf('/');
     var path = obj.mesh.substring(0,pos);
@@ -249,7 +250,19 @@ export class WorldManager {
     pos = path.lastIndexOf('/');
     var baseUrl = path.substring(0,pos+1);
     var dir = path.substring(pos+1);
-    var fix = dir+"-fixes.json"; //TODO find if fix file exist
+    
+    //find if fix file exist
+    var fix = dir+"-fixes.json"; 
+    if ( ! this.notFound.includes(fix)) {
+      await fetch(baseUrl+"/"+fix, {cache: 'no-cache'}).then(response => {
+        if ( ! response.ok ) {
+          this.notFound.push( fix );
+          fix = null;
+        }
+      });
+    } else {
+      fix = null;
+    }
     var dir = new ServerFolder( baseUrl, dir, fix );
     var avatar = new Avatar(this.scene, dir);
     avatar.fps = this.fps;
