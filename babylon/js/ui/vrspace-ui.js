@@ -15,16 +15,24 @@ export class VRSpaceUI {
   constructor( ) {
     /** babylon scene*/
     this.scene = null;
+    /** content base (prefix), default empty (same host) */
+    this.contentBase = '';
+    /** Path to logo, defaults to contentBase+/babylon */
+    this.logoPath = this.contentBase+"/babylon/"
+    /** Logo file name, defaults to logo.glb */
+    this.logoFile = "logo.glb";
     /** vrspace.org logo mesh */
     this.logo = null;
+    /** Path to logo, defaults to contentBase+/babylon/portal */
+    this.portalPath = this.contentBase+"/babylon/portal/"
+    /** Portal file name, defaults to logo.glb */
+    this.portalFile = "scene.gltf";
     /** portal mesh */
     this.portal = null;
     /** debug output enabled */
     this.debug = false;
     /** frames per second */ 
     this.fps = 5; // CHECKME: reasonable default fps
-    /** content base (prefix), default empty (same host) */
-    this.contentBase = '';
     /** Pointer to function, defaults to this.loadProgressIndiciatorFactory */
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
     /** Head-up display */
@@ -59,7 +67,7 @@ export class VRSpaceUI {
       }
       this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.contentBase+"/babylon/","logo.glb",this.scene);
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoPath,this.logoFile,this.scene);
       this.logo = container.meshes[0];
       for ( var i = 0; i < container.meshes; i++ ) {
         container.meshes[i].checkCollisions = false;
@@ -97,7 +105,7 @@ export class VRSpaceUI {
   */
   async loadPortal(scene) {
     if ( ! this.portal ) {
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.contentBase+"/babylon/portal/", "scene.gltf", scene)
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.portalPath, this.portalFile, scene)
       container.materials[0].albedoColor = BABYLON.Color3.FromHexString('#B3EEF3');
       container.materials[0].metallic = 0.85;
       
