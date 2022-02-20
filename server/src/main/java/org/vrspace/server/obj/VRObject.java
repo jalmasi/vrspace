@@ -49,21 +49,32 @@ public class VRObject extends Entity {
   @Relationship(type = "HAS_SCALE", direction = Relationship.Direction.OUTGOING)
   private Point scale;
 
+  /** Permanent objects are always present (e.g. sky) */
   private Boolean permanent;
 
   /**
-   * temporary objects will be deleted from the database along with their owner
+   * Temporary objects will be deleted from the database along with their owner
    */
   @Transient
   private transient Boolean temporary;
 
+  /**
+   * Whether an object is active (can send events). E.g. online users, robots.
+   */
   // @JsonIgnore CHECKME: should we publish that?
   private Boolean active;
 
+  /**
+   * URL of the file containing the mesh.
+   */
   private String mesh;
 
   private String script;
 
+  /** Currently active animation */
+  private String animation;
+
+  /** Custom object properties */
   @Transient
   private transient Map<String, Object> properties;
 

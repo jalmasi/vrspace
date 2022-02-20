@@ -57,6 +57,9 @@ export class Avatar {
     this.activeAnimation = null;
     this.writer = new TextWriter(this.scene);
     this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    /** fetch API cache control - use no-cache in development */
+    this.cache = 'default';
+    //this.cache = 'no-cache';
 
     /** Debug output, default false */
     this.debug = false;
@@ -267,13 +270,7 @@ export class Avatar {
         console.log("NOT an avatar - no skeletons");
       }
 
-      // apply loaded fixes
-      // CHECKME not used since proper bounding box calculation
-      // might be required in some special cases
-      if ( this.fixes && typeof this.fixes.standing !== 'undefined' ) {
-        this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
-        this.groundLevel(this.fixes.standing);
-      }
+      //this.postProcess();
 
       this.parentMesh = container.createRootMesh();
       this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
@@ -286,22 +283,65 @@ export class Avatar {
   }
 
   /**
+  Apply fixes after loading/instantiation
+   */
+  postProcess() {
+    if ( this.fixes ) {
+      if ( typeof this.fixes.standing !== 'undefined' ) {
+        // CHECKME not used since proper bounding box calculation
+        // might be required in some special cases
+        this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
+        this.groundLevel(this.fixes.standing);
+      }
+      this.disableNodes();
+    }
+    
+  }
+  /**
   Load fixes from json file in the same folder, with the same name, and suffix .fixes.
   Called from load().
    */
   async loadFixes() {
+    this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.related);
     if ( this.folder.related ) {
-      this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.related);
-      return fetch(this.folder.baseUrl+"/"+this.folder.related, {cache: 'no-cache'})
-      .then(response => response.json())
-      .then(json => {
-          this.fixes = json;
-          this.log( "Loaded fixes: " );
-          this.log( json );
+      return fetch(this.folder.baseUrl+"/"+this.folder.related, {cache: this.cache})
+      .then(response => {
+        if ( response.ok ) {
+          response.json().then(json => {
+            this.fixes = json;
+            this.log( "Loaded fixes: " );
+            this.log( json );
+          });
+        } else {
+          console.log('Error loading fixes: ' + response.status);
+        }
       });
     }
   }
 
+  /**
+  Disable nodes marked in fixes file
+   */
+  disableNodes() {
+    if ( typeof this.fixes.nodesDisabled !== 'undefined' ) {
+      this.enableNodes( this.fixes.nodesDisabled, false );
+    }
+  }
+  
+  /**
+  Enable/disable given nodes
+  @param nodeIds array of node identifiers
+  @param enable true/false
+   */
+  enableNodes( nodeIds, enable ) {
+    this.character.getNodes().forEach( node => {
+      if ( nodeIds.includes(node.id)) {
+        this.log("Node "+node.id+" enabled: "+enable);
+        node.setEnabled(enable);
+      }
+    });
+  }
+  
   /** 
   Slice an animation group
   @param group AnimationGroup to slice
@@ -445,6 +485,7 @@ export class Avatar {
             container.addAllToScene();
             this._processContainer(container,success)
           }
+          this.postProcess();
         },
         (exception)=>{
           if ( failure ) {
@@ -1433,9 +1474,20 @@ export class Avatar {
           group.pause();
           this.log("paused "+animationName);
         } else {
-          if ( this.fixes && typeof this.fixes.beforeAnimation !== 'undefined' ) {
-            this.log( "Applying fixes for: "+this.folder.name+" beforeAnimation: "+this.fixes.beforeAnimation);
-            this.groundLevel( this.fixes.beforeAnimation );
+          if ( this.fixes ) {
+            if (typeof this.fixes.beforeAnimation !== 'undefined' ) {
+              this.log( "Applying fixes for: "+this.folder.name+" beforeAnimation: "+this.fixes.beforeAnimation);
+              this.groundLevel( this.fixes.beforeAnimation );
+            }
+            this.disableNodes();
+            if (typeof this.fixes.before !== 'undefined' ) {
+              this.fixes.before.forEach( obj => {
+                if ( animationName == obj.animation && obj.enableNodes ) {
+                  console.log(obj);
+                  this.enableNodes(obj.enableNodes, true);
+                }
+              });
+            }
           }
           this.jump(0);
           group.play(group.loopAnimation);
