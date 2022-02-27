@@ -75,8 +75,10 @@ public class SessionManagerTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    System.err.println("Database objects before: " + repo.count());
     mockup(this.session, "testSession");
     createTestUser();
+    System.err.println("Database objects on start: " + repo.count());
   }
 
   private WebSocketSession mockup(WebSocketSession session, String sessionId) throws Exception {
@@ -88,13 +90,20 @@ public class SessionManagerTest {
 
   @AfterEach
   public void tearDown() throws Exception {
-    // writeBack.delete(dbUser);
     repo.delete(dbUser);
-    // System.err.println("Database objects after: " + repo.count());
+    System.err.println("Database objects after: " + repo.count());
+    repo.findAll().forEach(e -> {
+      if (e instanceof World && ((World) e).isDefaultWorld()) {
+        System.err.println("Not deleting " + e);
+      } else {
+        System.err.println("Deleting " + e);
+        repo.delete(e);
+      }
+    });
+    System.err.println("Database objects after: " + repo.count());
   }
 
   @Test
-  @Transactional
   public void testAnonymousLogin() throws Exception {
     config.setGuestAllowed(true);
     when(session.getPrincipal()).thenReturn(null);
@@ -212,7 +221,6 @@ public class SessionManagerTest {
   }
 
   @Test
-  @Transactional
   public void testChangeOwnProperty() throws Exception {
     Long clientId = login();
     assertEquals(1, testUser.getPosition().getX(), 0.01);
@@ -231,7 +239,6 @@ public class SessionManagerTest {
   }
 
   @Test
-  @Transactional
   public void testAddRemove() throws Exception {
     login();
     startSession();
@@ -319,7 +326,6 @@ public class SessionManagerTest {
   }
 
   @Test
-  @Transactional
   public void testMulticast() throws Exception {
     config.setGuestAllowed(true);
 
