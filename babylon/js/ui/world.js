@@ -360,6 +360,7 @@ export class World {
     }
     
     if ( this.worldObjects ) {
+      this.sceneMeshes = [];
       for ( var url in this.worldObjects ) {
         var name = url;
         var instances = this.worldObjects[url].instances;
@@ -373,11 +374,15 @@ export class World {
             (container,info,instances)=>{
               if ( instances ) {
                 var mesh = obj.instantiatedEntries.rootNodes[0];
+                // CHECKME: untested
+                var children = mesh.getChildMeshes();
+                this.sceneMeshes.push(...children);
               } else {
                 // Adds all elements to the scene
                 var mesh = container.createRootMesh();
                 mesh.name = name;
                 container.addAllToScene();
+                this.sceneMeshes.push(...container.meshes);
               }
               if ( instance.position ) {
                 mesh.position = new BABYLON.Vector3(instance.position.x, instance.position.y, instance.position.z);
