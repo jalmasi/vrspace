@@ -309,7 +309,7 @@ export class AvatarSelection extends World {
         var z = Math.cos(angle)*radius;
         // heavy performance impact
         //new Portal( scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
-        var portal = new Portal( scene, worlds[i], (p)=>this.enter(p));
+        var portal = new Portal( scene, worlds[i], (p)=>this.enterPortal(p));
         this.portals[portal.name] = portal;
         portal.loadAt( x,0,z, angle);
         angle += angleIncrement;
@@ -355,7 +355,7 @@ export class AvatarSelection extends World {
     }
   }
 
-  async enter( portal ) {
+  async enterPortal( portal ) {
     var avatarUrl = "video";
     if ( this.character ) {
       avatarUrl = this.character.getUrl(); 
@@ -365,11 +365,15 @@ export class AvatarSelection extends World {
       //delete this.video;
       this.video.attachToCamera();
     }
-    console.log("Entering world "+portal.worldUrl()+'/world.js as '+avatarUrl);
+    this.enterWorld(portal.worldUrl(), avatarUrl, portal.name );
+  }
+  
+  async enterWorld( worldUrl, avatarUrl, worldName, worldScript  = 'world.js') {
+    console.log("Entering world "+worldUrl+'/'+ worldScript+' as '+avatarUrl);
     if ( this.beforeEnter ) {
       this.beforeEnter(this);
     }
-    import(portal.worldUrl()+'/world.js').then((world)=>{
+    import(worldUrl+'/'+worldScript).then((world)=>{
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;
         
@@ -418,7 +422,7 @@ export class AvatarSelection extends World {
       // TODO: new camera may be of type that doesn't support gamepad
       var gamepad = this.camera.inputs.attached.gamepad.gamepad;
 
-      world.WORLD.init(this.engine, portal.name, this.scene, afterLoad, portal.worldUrl()+"/").then((newScene)=>{
+      world.WORLD.init(this.engine, worldName, this.scene, afterLoad, worldUrl+"/").then((newScene)=>{
         this.vrHelper.stopTracking();
         this.camera.detachControl(this.canvas);
 
@@ -464,8 +468,12 @@ export class AvatarSelection extends World {
       this.character = null;
     }
     
-    this.mainButtons.dispose();
-    this.characterButtons.dispose();
+    if ( this.mainButtons ) {
+      this.mainButtons.dispose();
+    }
+    if ( this.addCharacterButtons ) {
+      this.characterButtons.dispose();
+    }
     
     if ( this.animationSelection ) {
       this.animationSelection.dispose();
