@@ -11,6 +11,8 @@ export class AvatarSelection extends World {
     this.afterEnter = null;
     /** function to call after exiting a world */
     this.afterExit = null;
+    /** whether to list animations after character loads, default true */
+    this.showAnimationButtons=true;
     /** movement tracking/animation frames per second */
     this.fps = 50;
     /** default user height, 1.8 m */
@@ -228,6 +230,9 @@ export class AvatarSelection extends World {
   }
   
   animationButtons(avatar) {
+    if ( ! this.showAnimationButtons ) {
+      return;
+    }
     var names = []
     var playing;
     for ( var i = 0; i < avatar.getAnimationGroups().length; i++ ) {
@@ -471,7 +476,7 @@ export class AvatarSelection extends World {
     if ( this.mainButtons ) {
       this.mainButtons.dispose();
     }
-    if ( this.addCharacterButtons ) {
+    if ( this.characterButtons ) {
       this.characterButtons.dispose();
     }
     
