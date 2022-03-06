@@ -13,6 +13,8 @@ export class AvatarSelection extends World {
     this.afterExit = null;
     /** whether to list animations after character loads, default true */
     this.showAnimationButtons=true;
+    /** wheter to display own video avatar, default true */
+    this.displayOwnVideo=true;
     /** movement tracking/animation frames per second */
     this.fps = 50;
     /** default user height, 1.8 m */
@@ -369,21 +371,26 @@ export class AvatarSelection extends World {
     }
   }
 
-  async enterPortal( portal ) {
-    var avatarUrl = "video";
+  avatarUrl() {
+    var url = "video";
     if ( this.character ) {
-      avatarUrl = this.character.getUrl(); 
-    } else if ( this.video ) {
+      url = this.character.getUrl(); 
+    }
+    return url;
+  }
+  
+  async enterPortal( portal ) {
+    this.enterWorld(portal.worldUrl(), this.avatarUrl(), portal.name );
+  }
+  
+  async enterWorld( worldUrl, worldName, avatarUrl = this.avatarUrl(), worldScript  = 'world.js') {
+    console.log("Entering world "+worldUrl+'/'+ worldScript+' as '+avatarUrl);
+    if ( this.video && this.displayOwnVideo ) {
       // CHECKME: dispose or attach?
       //this.video.dispose();
       //delete this.video;
       this.video.attachToCamera();
     }
-    this.enterWorld(portal.worldUrl(), avatarUrl, portal.name );
-  }
-  
-  async enterWorld( worldUrl, avatarUrl, worldName, worldScript  = 'world.js') {
-    console.log("Entering world "+worldUrl+'/'+ worldScript+' as '+avatarUrl);
     if ( this.beforeEnter ) {
       this.beforeEnter(this);
     }
