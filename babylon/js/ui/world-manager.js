@@ -259,6 +259,10 @@ export class WorldManager {
           this.notFound.push( fix );
           fix = null;
         }
+      }).catch(err=>{
+        // rather than not found we can get CORS error
+        this.notFound.push(fix);
+        fix = null;
       });
     } else {
       fix = null;
