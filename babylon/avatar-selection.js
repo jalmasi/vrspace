@@ -154,21 +154,33 @@ export class AvatarSelection extends World {
         buttons.group.position = new BABYLON.Vector3(1.3,2.2,-.5);
         this.characterButtons = buttons;
       });
-    } else if (! this.video ) {
-      // load video avatar and start streaming video
-      this.video = new VideoAvatar( this.scene, () => {
-        if ( this.character ) {
-          this.character.dispose();
-          delete this.character;
-          this.guiManager.dispose();
-          delete this.guiManager;
-        }
-        this.portalsEnabled(true);        
-      });
-      await this.video.show();
-      
+    } else {
+      this.createVideoAvatar();
     }
             
+  }
+  
+  async createVideoAvatar() {
+    if ( this.video ) {
+      return;
+    }
+    // load video avatar and start streaming video
+    this.video = new VideoAvatar( this.scene, () => {
+      if ( this.character ) {
+        this.character.dispose();
+        delete this.character;
+        this.guiManager.dispose();
+        delete this.guiManager;
+      }
+      this.portalsEnabled(true);        
+    });
+    await this.video.show();
+  }
+  removeVideoAvatar() {
+    if ( this.video ) {
+      this.video.dispose();
+      delete this.video;
+    }
   }
 
   loadCharacter(dir) {
@@ -185,10 +197,7 @@ export class AvatarSelection extends World {
     loaded.animateArms = false;
     //loaded.debug = true;
     loaded.load( (c) => {
-      if ( this.video ) {
-        this.video.dispose();
-        delete this.video;
-      }
+      this.removeVideoAvatar();
       this.tracking = true;
       this.indicator.remove(dir);
       if ( ! this.character ) {
