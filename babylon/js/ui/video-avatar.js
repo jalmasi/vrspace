@@ -122,6 +122,13 @@ export class VideoAvatar {
       this.deviceId = deviceId;
     }
     if ( ! this.deviceId ) {
+      try {
+        // prompts for permission to use camera
+        await navigator.mediaDevices.getUserMedia({video:true});
+      } catch(err) {
+        console.log("User permission denied ", err);
+        return;
+      }
       var devices = await navigator.mediaDevices.enumerateDevices();
       for (var idx = 0; idx < devices.length; ++idx) {
         if (devices[idx].kind === "videoinput") {
