@@ -165,7 +165,7 @@ export class WorldManager {
       } else {
         // TODO server needs to ensure that mesh exists
         // in the meantime we define default behavior here
-        console.log("WARNING: can't load "+e.objectId+" - no mesh")
+        console.log("WARNING: can't load "+e.objectId+" - no mesh");
       }
     } else if (e.removed != null) {
       this.log("REMOVED " + e.objectId + " new size " + e.scene.size)
@@ -263,6 +263,7 @@ export class WorldManager {
         // rather than not found we can get CORS error
         this.notFound.push(fix);
         fix = null;
+        console.log(err);
       });
     } else {
       fix = null;
@@ -499,6 +500,8 @@ export class WorldManager {
       object = obj.container;
     } else if ( obj.video ) {
       object = obj.video;
+    } else if ( obj.instantiatedEntries ) {
+      object = obj.instantiatedEntries;
     } else {
       console.log("Ignoring unknown event "+field+" to object "+obj.id);
       return;      

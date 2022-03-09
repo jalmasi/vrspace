@@ -83,8 +83,17 @@ import('./js/vrspace-min.js').then( (ui) => {
   // connect, set own avatar and start the session
   net.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
 
+  // TODO: method to retrieve nodes as appropriate 
+  var getAnimationGroup = (vrObject) => {
+    var container = vrObject.container;
+    if ( ! container ) {
+      container = vrObject.instantiatedEntries;
+    }
+    return container.animationGroups[0];
+  }
+  
   var receiveEvent = (o) => {
-    var animationGroup = o.container.animationGroups[0];
+    var animationGroup = getAnimationGroup(o);
     if ( o.myEvent ) {
       animationGroup.play(true);
     } else {
@@ -138,7 +147,7 @@ import('./js/vrspace-min.js').then( (ui) => {
     // root contains VRObject - a shared object
     if ( pickedRoot.VRObject ) {
       console.log('picked shared object ', pickedRoot.VRObject);
-      var animationGroup = pickedRoot.VRObject.container.animationGroups[0];
+      var animationGroup = getAnimationGroup(pickedRoot.VRObject);
       if ( obj1 && pickedRoot.VRObject == obj1 ) {
         // send a custom event - desired animation state
         net.VRSPACE.sendEvent(obj1, {myEvent:!animationGroup.isPlaying});

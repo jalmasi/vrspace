@@ -19,6 +19,8 @@ export class AvatarSelection extends World {
     this.fps = 50;
     /** default user height, 1.8 m */
     this.userHeight = 1.8;
+    /** enable plenty of debug info */
+    this.debug=false;
     // state variables
     this.mirror = true;
     this.trackTime = Date.now();
@@ -197,7 +199,7 @@ export class AvatarSelection extends World {
     }
     loaded.userHeight = this.userHeight;
     loaded.animateArms = false;
-    //loaded.debug = true;
+    loaded.debug = this.debug;
     loaded.load( (c) => {
       this.removeVideoAvatar();
       this.tracking = true;
@@ -402,8 +404,8 @@ export class AvatarSelection extends World {
         
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
-        //this.worldManager.debug = true; // scene debug
-        //this.worldManager.VRSPACE.debug = true; // network debug
+        this.worldManager.debug = this.debug; // scene debug
+        this.worldManager.VRSPACE.debug = this.debug; // network debug
         
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
