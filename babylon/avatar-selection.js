@@ -382,7 +382,7 @@ export class AvatarSelection extends World {
   }
   
   async enterPortal( portal ) {
-    this.enterWorld(portal.worldUrl(), this.avatarUrl(), portal.name );
+    this.enterWorld(portal.worldUrl(), portal.name );
   }
   
   async enterWorld( worldUrl, worldName, avatarUrl = this.avatarUrl(), worldScript  = 'world.js') {
