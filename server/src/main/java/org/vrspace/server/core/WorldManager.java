@@ -102,9 +102,26 @@ public class WorldManager {
     return db.getWorldByName(name);
   }
 
+  public World getOrCreateWorld(String name) {
+    World world = getWorld(name);
+    if (world == null) {
+      if (config.isCreateWorlds()) {
+        world = db.save(new World(name));
+      } else {
+        throw new IllegalArgumentException("Unknown world: " + name);
+      }
+    }
+    return world;
+  }
+
   public Client getClientByName(String name) {
     Client ret = db.getClientByName(name);
     return (Client) updateCache(ret);
+  }
+
+  public <T extends Client> T getClientByName(String name, Class<T> cls) {
+    T ret = db.getClientByName(name, cls);
+    return (T) updateCache(ret);
   }
 
   public <T extends VRObject> T save(T obj) {
@@ -220,7 +237,8 @@ public class WorldManager {
       }
     }
     client.setSession(session);
-    return login(client);
+    login(client);
+    return enter(client, defaultWorld());
   }
 
   /**
@@ -228,9 +246,8 @@ public class WorldManager {
    * on websocket session, can be used for internal login, e.g. bots.
    * 
    * @param client
-   * @return Welcome message
    */
-  public Welcome login(Client client) {
+  public void login(Client client) {
     client.setMapper(jackson);
     client.setSceneProperties(sceneProperties.newInstance());
     WriteBack writeBack = new WriteBack(db);
@@ -238,8 +255,6 @@ public class WorldManager {
     writeBack.setDelay(config.getWriteBackDelay());
     client.setWriteBack(writeBack);
     cache.put(new ID(client), client);
-
-    return enter(client, defaultWorld());
   }
 
   public World defaultWorld() {
@@ -256,14 +271,7 @@ public class WorldManager {
   }
 
   public Welcome enter(Client client, String worldName) {
-    World world = getWorld(worldName);
-    if (world == null) {
-      if (config.isCreateWorlds()) {
-        world = db.save(new World(worldName));
-      } else {
-        throw new IllegalArgumentException("Unknown world: " + worldName);
-      }
-    }
+    World world = getOrCreateWorld(worldName);
     return enter(client, world);
   }
 

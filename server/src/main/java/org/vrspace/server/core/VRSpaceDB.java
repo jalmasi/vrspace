@@ -12,6 +12,8 @@ public interface VRSpaceDB {
 
   Client getClientByName(String name);
 
+  <T extends Client> T getClientByName(String name, Class<T> cls);
+
   <T extends Entity> Optional<T> findById(Class<T> cls, Long id);
 
   <T extends Entity> void deleteById(Class<T> cls, Long id);

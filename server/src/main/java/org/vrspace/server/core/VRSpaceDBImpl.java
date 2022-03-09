@@ -29,16 +29,21 @@ public class VRSpaceDBImpl implements VRSpaceDB {
   }
 
   @Override
-  public Client getClientByName(String name) {
+  public <T extends Client> T getClientByName(String name, Class<T> cls) {
     if (StringUtils.isBlank(name)) {
       throw new IllegalArgumentException("Empty client name: " + name);
     }
-    Optional<Client> c = template.findOne("MATCH (o:Client) WHERE o.name = $name RETURN o",
+    Optional<Client> c = template.findOne("MATCH (o:" + cls.getSimpleName() + ") WHERE o.name = $name RETURN o",
         Collections.singletonMap("name", name), Client.class);
     if (c.isPresent()) {
-      return get(Client.class, c.get().getId());
+      return get(cls, c.get().getId());
     }
     return null;
+  }
+
+  @Override
+  public Client getClientByName(String name) {
+    return getClientByName(name, Client.class);
   }
 
   @Override
