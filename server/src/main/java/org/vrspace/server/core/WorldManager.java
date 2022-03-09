@@ -180,6 +180,16 @@ public class WorldManager {
     client.getWriteBack().delete(obj);
   }
 
+  /**
+   * Remote user login over websocket. Called SessionManager, after websocket
+   * session has been established. Uses session security context (principal) to
+   * identify user and fetch/create the appropriate Client object from the
+   * ClientFactory. May create a new guest client, if guest (anonymous)
+   * connections are allowed.
+   * 
+   * @param session websocket session
+   * @return Welcome message
+   */
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
     Principal principal = session.getPrincipal();
@@ -210,6 +220,17 @@ public class WorldManager {
       }
     }
     client.setSession(session);
+    return login(client);
+  }
+
+  /**
+   * Stage 2 of login, executed once client has been identified. Does not depend
+   * on websocket session, can be used for internal login, e.g. bots.
+   * 
+   * @param client
+   * @return Welcome message
+   */
+  public Welcome login(Client client) {
     client.setMapper(jackson);
     client.setSceneProperties(sceneProperties.newInstance());
     WriteBack writeBack = new WriteBack(db);
