@@ -5,7 +5,7 @@ export class ServerFolder {
   /**
   @param baseUrl parent folder
   @param name folder name
-  @param related name of related file
+  @param related name of related file in the parent folder, or full path to the file
    */
   constructor( baseUrl, name, related ) {
     /** base url */
@@ -19,9 +19,13 @@ export class ServerFolder {
   url() {
     return this.baseUrl+this.name;
   }
-  /** returns full path of related file */
+  /** Returns full path of related file */
   relatedUrl() {
     if ( this.related ) {
+      if ( this.related.indexOf('/')>=0) {
+        // absolute URL
+        return this.related;
+      }
       return this.baseUrl+this.related;
     }
     return null;

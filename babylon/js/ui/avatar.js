@@ -296,6 +296,10 @@ export class Avatar {
         this.groundLevel(this.fixes.standing);
       }
       this.disableNodes();
+      if ( typeof this.fixes.autoPlay !== 'undefined' ) {
+        // start playing the animation
+        this.startAnimation(this.fixes.autoPlay);
+      }
     }
     
   }
@@ -304,9 +308,9 @@ export class Avatar {
   Called from load().
    */
   async loadFixes() {
-    this.log('Loading fixes from '+this.folder.baseUrl+"/"+this.folder.related);
+    this.log('Loading fixes from '+this.folder.relatedUrl());
     if ( this.folder.related ) {
-      return fetch(this.folder.baseUrl+"/"+this.folder.related, {cache: this.cache})
+      return fetch(this.folder.relatedUrl(), {cache: this.cache})
       .then(response => {
         if ( response.ok ) {
           response.json().then(json => {

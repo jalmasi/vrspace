@@ -252,9 +252,13 @@ export class WorldManager {
     var dir = path.substring(pos+1);
     
     //find if fix file exist
-    var fix = dir+"-fixes.json"; 
+    var fix = baseUrl+dir+"-fixes.json"; // gltf fix - expected in top-level directory
+    if ( file.toLowerCase().endsWith('.glb')) {
+      // glb fixes - expected in the same directory
+      fix = obj.mesh.substring(0,obj.mesh.lastIndexOf('.'))+'-fixes.json';
+    }
     if ( ! this.notFound.includes(fix)) {
-      await fetch(baseUrl+"/"+fix, {cache: 'no-cache'}).then(response => {
+      await fetch(fix, {cache: 'no-cache'}).then(response => {
         if ( ! response.ok ) {
           this.notFound.push( fix );
           fix = null;
