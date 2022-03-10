@@ -82,7 +82,7 @@ export class WorldManager {
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     /** Enable debug output */
-    this.debug = false;
+    this.debug = true;
     this.world.worldManager = this;
     this.notFound = []; // 404 cache used for avatar fix files
   }

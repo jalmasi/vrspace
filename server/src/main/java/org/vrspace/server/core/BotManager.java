@@ -44,6 +44,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
 
       bot.setName(botName);
       bot.setUrl(props.getUrl());
+      bot.setMesh(props.getMesh());
 
       if (props.getWorld() != null) {
         World world = worldManager.getOrCreateWorld(props.getWorld());

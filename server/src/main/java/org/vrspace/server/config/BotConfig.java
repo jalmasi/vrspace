@@ -26,6 +26,7 @@ public class BotConfig {
     private String name;
     private String url;
     private String world;
+    private String mesh;
     private List<Double> position;
     private List<Double> rotation;
     private List<Double> scale;

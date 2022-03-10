@@ -178,6 +178,22 @@ export class EventRecorder extends Client {
 }
 
 /**
+Robot base class, useful for chatbots.
+@extends Client
+ */
+export class Bot extends Client {
+  constructor() {
+    super();
+    /** Server-side class name */
+    this.className = 'Bot';
+  }
+  /** FIXME always returns true */
+  hasAvatar() {
+    return true;
+  }
+}
+
+/**
 An event that happened to an object.
 @param obj VRObject instance
 @param changes optional object encapsulating changes to the object (field:value)
@@ -238,7 +254,7 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot };
     // exposing each class
     for( var c in this.sharedClasses ) {
       this[c] = this.sharedClasses[c];

@@ -3,7 +3,9 @@ package org.vrspace.server.obj;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.http.ResponseEntity;
@@ -88,12 +90,24 @@ public class Bot extends Client {
     return result;
   }
 
+  private void write(String what) {
+    VREvent event = new VREvent(this);
+    Map<String, Object> changes = new HashMap<>();
+    changes.put("wrote", what);
+    event.setChanges(changes);
+    this.notifyListeners(event);
+  }
+
   @Override
   public void processEvent(VREvent event) {
     log.debug(this + " received event: " + event);
     if (!event.getSource().isActive()) {
       // stop listening to inactive objects (disconnected clients)
       event.getSource().removeListener(this);
+    } else if (event.getChanges().containsKey("wrote")) {
+      String what = (String) event.getChanges().get("wrote");
+      String response = getResponse(what);
+      write(response);
     }
   }
 
