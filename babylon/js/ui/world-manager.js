@@ -82,7 +82,7 @@ export class WorldManager {
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
     /** Enable debug output */
-    this.debug = true;
+    this.debug = false;
     this.world.worldManager = this;
     this.notFound = []; // 404 cache used for avatar fix files
   }
@@ -268,8 +268,9 @@ export class WorldManager {
     } else {
       fix = null;
     }
-    var dir = new ServerFolder( baseUrl, dir, fix );
-    var avatar = new Avatar(this.scene, dir);
+    var folder = new ServerFolder( baseUrl, dir, fix );
+    var avatar = new Avatar(this.scene, folder);
+    avatar.file = file;
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;
     avatar.animateArms = this.createAnimations;

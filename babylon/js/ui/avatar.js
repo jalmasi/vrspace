@@ -18,6 +18,8 @@ export class Avatar {
     this.scene = scene;
     /** ServerFolder with content path */
     this.folder = folder;
+    /** File name, default scene.gltf */
+    this.file="scene.gltf";
     /** Optional ShadowGenerator */
     this.shadowGenerator = shadowGenerator;
     /** Mirror mode, default true. (Switch left/right side) */
@@ -435,7 +437,7 @@ export class Avatar {
 
   /** Returns file name of this avatar, consisting of folder name and scene file name */
   getUrl() {
-    return this.folder.url()+"/scene.gltf";
+    return this.folder.url()+"/"+this.file;
   }
   
   /**
