@@ -72,7 +72,7 @@ public class Bot extends Client {
   public String getResponse(String what) {
     String ret = "";
     try {
-      ResponseEntity<String> result = sendQuery("hello world");
+      ResponseEntity<String> result = sendQuery(what);
       Response response = getMapper().readValue(result.getBody(), Response.class);
       ret = response.getResponse();
     } catch (Exception e) {
