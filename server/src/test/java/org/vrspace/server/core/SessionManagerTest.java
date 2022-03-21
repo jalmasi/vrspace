@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,7 @@ public class SessionManagerTest {
 
   @Autowired
   private VRObjectRepository repo;
+  private static VRObjectRepository staticRepo;
 
   @Autowired
   private ServerConfig config;
@@ -75,6 +77,7 @@ public class SessionManagerTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    staticRepo = this.repo;
     System.err.println("Database objects before: " + repo.count());
     mockup(this.session, "testSession");
     createTestUser();
@@ -101,6 +104,15 @@ public class SessionManagerTest {
       }
     });
     System.err.println("Database objects after: " + repo.count());
+  }
+
+  @AfterAll
+  public static void cleanUp() throws Exception {
+    System.err.println("Database at end: " + staticRepo.count());
+    staticRepo.findAll().forEach(e -> {
+      System.err.println("Deleting " + e);
+      staticRepo.delete(e);
+    });
   }
 
   @Test
