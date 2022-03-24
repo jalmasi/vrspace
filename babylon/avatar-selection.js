@@ -15,6 +15,8 @@ export class AvatarSelection extends World {
     this.showAnimationButtons=true;
     /** wheter to display own video avatar, default true */
     this.displayOwnVideo=true;
+    /** custom video avatar options, default null */
+    this.customOptions=null;
     /** movement tracking/animation frames per second */
     this.fps = 50;
     /** default user height, 1.8 m */
@@ -169,15 +171,19 @@ export class AvatarSelection extends World {
       return;
     }
     // load video avatar and start streaming video
-    this.video = new VideoAvatar( this.scene, () => {
-      if ( this.character ) {
-        this.character.dispose();
-        delete this.character;
-        this.guiManager.dispose();
-        delete this.guiManager;
-      }
-      this.portalsEnabled(true);        
-    });
+    this.video = new VideoAvatar( 
+      this.scene, 
+      () => {
+        if ( this.character ) {
+          this.character.dispose();
+          delete this.character;
+          this.guiManager.dispose();
+          delete this.guiManager;
+        }
+        this.portalsEnabled(true);        
+      }, 
+      this.customOptions
+    );
     await this.video.show();
   }
   removeVideoAvatar() {
@@ -404,6 +410,7 @@ export class AvatarSelection extends World {
         
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
+        this.worldManager.customOptons = this.customOptions;
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
         
