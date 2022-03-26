@@ -10,6 +10,7 @@ export { ServerFolder } from "./ui/server-folder.js";
 export { RecorderUI } from "./ui/recorder-ui.js";
 export { FloorRibbon } from "./ui/floor-ribbon.js";
 export { Buttons } from "./ui/buttons.js";
+export { Label } from "./ui/label.js";
 export { World } from "./ui/world.js";
 export { WorldManager } from "./ui/world-manager.js";
 export { WorldEditor } from "./ui/world-editor.js";
