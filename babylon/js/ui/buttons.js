@@ -92,28 +92,6 @@ export class Buttons {
       buttonLabel.display();
       this.controls.push(buttonLabel);
 
-      /*
-      var buttonWidth = buttonText.text.length;
-      var buttonPlane = BABYLON.MeshBuilder.CreatePlane("Text"+option, {height:1,width:buttonWidth}, this.scene);
-      buttonPlane.position = new BABYLON.Vector3(buttonWidth/2+this.buttonHeight,-i*this.spacing,0);
-      buttonText.color = this.color;
-      buttonPlane.parent = this.group;
-
-      var aTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
-        buttonPlane,
-        buttonText.fontSizeInPixels*buttonText.text.length, // CHECKME: this is about twice the size of the text
-        buttonText.fontSizeInPixels+2, // CHECKME: padding or something?
-        false // mouse events disabled
-      );
-      //aTexture.background="black";
-      aTexture.addControl(buttonText);
-      this.controls.push(buttonText);
-      this.textures.push(aTexture);
-      // buttonPlane.material.needDepthPrePass = true; // trying to get proper transparency
-      buttonPlane.material.alphaMode = 5; // ALPHA_MAXIMIZED
-      this.materials.push(buttonPlane.material);
-      */
-      
       var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:this.buttonHeight*.8}, this.scene);
       button.material = this.unselectedMaterial;
       button.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);

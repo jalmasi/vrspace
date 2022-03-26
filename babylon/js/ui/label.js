@@ -21,6 +21,8 @@ export class Label {
     this.height = 1;
     /** default none (null), may be "transparent", "white", "rgba(50,50,200,0.5)" etc */
     this.background = null;
+    /** hack for calculating background width */
+    this.fontRatio=1.8;
     /** background border thickness, default 0 (no border)*/
     this.border = 0;
     /** background corner radius, default 0 */
@@ -60,7 +62,7 @@ export class Label {
       back.horizontalAlignment = this.horizontalAlignment;
       back.background = this.background;
       back.height = (height)+"px";
-      back.width = (width/1.8)+"px";
+      back.width = (width/this.fontRatio)+"px";
       back.cornerRadius = this.cornerRadius;
       back.thickness = this.border;
       this.texture.addControl(back); 
@@ -71,7 +73,9 @@ export class Label {
     this.textBlock.dispose();
     this.textPlane.material.dispose();
     this.textPlane.dispose();
+    this.texture.dispose();
     delete this.textBlock;
     delete this.textPlane;
+    delete this.texture;
   }
 }
