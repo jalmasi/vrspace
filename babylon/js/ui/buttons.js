@@ -1,3 +1,5 @@
+import { Label } from './label.js';
+
 /** Menu consisting of vertical buttons in 3D space and associated labels.
  */
 export class Buttons {
@@ -15,15 +17,15 @@ export class Buttons {
     this.callback = callback;
     this.property = property;
     this.buttonHeight = 1;
+    this.spacing = 1.1;
     this.color = "white";
-    this.addBackground = false; // experimental
+    //this.background = true; //experimental
     this.group = new BABYLON.TransformNode("ButtonGroup:"+this.title, scene);
     this.groupWidth = 0;
     this.buttons = [];
     this.selectedOption = -1;
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    this.turOff = false;
     this.controls = [];
     this.textures = [];
     this.materials = [];
@@ -55,9 +57,6 @@ export class Buttons {
 
   /** Display the menu, adds a pointer observable */
   display() {
-    var buttonHeight = 1;
-    var spacing = 1.1;
-
     // CHECKME: better use emissive color?
     this.selectedMaterial = new BABYLON.StandardMaterial("selectedButtonMaterial", this.scene);
     this.selectedMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
@@ -71,26 +70,12 @@ export class Buttons {
     this.materials.push(this.unselectedMaterial);
 
     if ( this.title && this.title.length > 0 ) {
-      var titleText = new BABYLON.GUI.TextBlock();
-      titleText.text = this.title;
-      titleText.textHorizontalAlignment = this.horizontalAlignment;
-      titleText.textVerticalAlignment = this.verticalAlignment;
-      titleText.color = this.color;
-
-      var titlePlane = BABYLON.MeshBuilder.CreatePlane("Text"+this.title, {height:2,width:this.title.length*2}, this.scene);
-      titlePlane.parent = this.group;
-      titlePlane.position = new BABYLON.Vector3(this.title.length,spacing*2,0);
-
-      var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
-        titlePlane,
-        titleText.fontSizeInPixels * titleText.text.length,
-        titleText.fontSizeInPixels,
-        false // mouse events disabled
-      );
-      titleTexture.addControl(titleText);
-      this.controls.push(titleText);
-      this.textures.push(titleTexture);
-      this.materials.push(titlePlane.material);
+      var titleLabel = new Label( this.title, new BABYLON.Vector3(this.title.length,this.spacing*2,0), this.group );
+      titleLabel.height = 2;
+      titleLabel.horizontalAlignment = this.horizontalAlignment;
+      titleLabel.verticalAlignment = this.verticalAlignment;
+      titleLabel.display();
+      this.controls.push(titleLabel);
     }
 
     for ( var i = 0; i < this.options.length; i ++ ) {
@@ -100,14 +85,17 @@ export class Buttons {
         var option = this.options[i];
       }
       this.groupWidth = Math.max( this.groupWidth, option.length);
-      var buttonText = new BABYLON.GUI.TextBlock();
-      buttonText.text = option;
-      buttonText.textHorizontalAlignment = this.horizontalAlignment;
-      buttonText.textVerticalAlignment = this.verticalAlignment;
+      
+      var buttonLabel = new Label( option, new BABYLON.Vector3(option.length/2+this.buttonHeight,-i*this.spacing,0), this.group );
+      buttonLabel.horizontalAlignment = this.horizontalAlignment;
+      buttonLabel.verticalAlignment = this.verticalAlignment;
+      buttonLabel.display();
+      this.controls.push(buttonLabel);
 
+      /*
       var buttonWidth = buttonText.text.length;
       var buttonPlane = BABYLON.MeshBuilder.CreatePlane("Text"+option, {height:1,width:buttonWidth}, this.scene);
-      buttonPlane.position = new BABYLON.Vector3(buttonWidth/2+buttonHeight,-i*spacing,0);
+      buttonPlane.position = new BABYLON.Vector3(buttonWidth/2+this.buttonHeight,-i*this.spacing,0);
       buttonText.color = this.color;
       buttonPlane.parent = this.group;
 
@@ -124,11 +112,12 @@ export class Buttons {
       // buttonPlane.material.needDepthPrePass = true; // trying to get proper transparency
       buttonPlane.material.alphaMode = 5; // ALPHA_MAXIMIZED
       this.materials.push(buttonPlane.material);
-
-      var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:buttonHeight*.8}, this.scene);
+      */
+      
+      var button = BABYLON.MeshBuilder.CreateCylinder("Button"+option, {height:.1, diameter:this.buttonHeight*.8}, this.scene);
       button.material = this.unselectedMaterial;
       button.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
-      button.position = new BABYLON.Vector3(buttonHeight/2, -i*spacing, 0);
+      button.position = new BABYLON.Vector3(this.buttonHeight/2, -i*this.spacing, 0);
       button.parent = this.group;
       this.buttons.push(button);
     }
@@ -149,13 +138,13 @@ export class Buttons {
     });
 
     // paints background plane, can't be semi-transparent though
-    if ( this.addBackground ) {
+    if ( this.background ) {
       console.log("Group width: "+this.groupWidth);
       var backgroundWidth = this.groupWidth/1.8;
-      var backgroundHeight = this.options.length*spacing;
-      var backgroundOffset = buttonHeight*.8; // same as button cylinder diameter
+      var backgroundHeight = this.options.length*this.spacing;
+      var backgroundOffset = this.buttonHeight*.8; // same as button cylinder diameter
       var backPlane = BABYLON.MeshBuilder.CreatePlane("ButtonBackground:"+this.title, {height:backgroundHeight,width:backgroundWidth}, this.scene);
-      backPlane.position = new BABYLON.Vector3(backgroundWidth/2+backgroundOffset,-backgroundHeight/2+spacing/2,.2);
+      backPlane.position = new BABYLON.Vector3(backgroundWidth/2+backgroundOffset,-backgroundHeight/2+this.spacing/2,.2);
       backPlane.parent = this.group;
       var backgroundMaterial = new BABYLON.StandardMaterial("unselectedButtonMaterial", this.scene);
       backgroundMaterial.disableLighting = true;
