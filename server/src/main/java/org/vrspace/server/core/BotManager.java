@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
-  // @Value("${org.vrspace.server.bot}")
   @Autowired
   BotConfig botConfig;
 
@@ -23,6 +22,23 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
   WorldManager worldManager;
 
   String world = "default";
+
+  private Class<? extends Bot> getBotClass(String className) throws Exception {
+    if (className.indexOf('.') < 0) {
+      className = "org.vrspace.server.obj." + className;
+    }
+    @SuppressWarnings("unchecked")
+    Class<? extends Bot> cls = (Class<? extends Bot>) Class.forName(className);
+    return cls;
+  }
+
+  // factory method
+  private Bot createBot(String className) throws Exception {
+    Class<? extends Bot> cls = getBotClass(className);
+    Bot instance = cls.getDeclaredConstructor((Class<?>[]) null).newInstance();
+    log.info("Created new " + className);
+    return instance;
+  }
 
   @Override
   public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -35,11 +51,17 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
       if (!StringUtils.isEmpty(props.getName())) {
         botName = props.getName();
       }
-      Bot bot = worldManager.getClientByName(botName, Bot.class);
+      Bot bot = null;
 
-      if (bot == null) {
-        // make new bot
-        bot = new Bot();
+      try {
+        bot = worldManager.getClientByName(botName, getBotClass(props.getType()));
+        if (bot == null) {
+          // make new bot
+          bot = createBot(props.getType());
+        }
+      } catch (Exception e) {
+        log.error("Can't load or create bot of type " + props.getType(), e);
+        continue;
       }
 
       bot.setName(botName);

@@ -22,7 +22,7 @@ public class BotConfig {
   @Data
   @NoArgsConstructor
   public static class BotProperties {
-    private String type = "json";
+    private String type;
     private String name;
     private String url;
     private String world;

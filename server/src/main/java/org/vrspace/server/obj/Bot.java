@@ -1,27 +1,22 @@
 package org.vrspace.server.obj;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.annotation.Transient;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.vrspace.server.dto.Add;
+import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.VREvent;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * A bot is a Client that has no session. It does have own scene, and observes
- * all events in the scene.
+ * A Bot is a Client that has no session. It does have own scene, and observes
+ * all events in the scene. It also responds to something that user(s) write.
  * 
  * @author joe
  *
@@ -29,68 +24,32 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-public class Bot extends Client {
+public abstract class Bot extends Client {
   @JsonIgnore
   private String url;
-  @JsonIgnore
-  private String method = "GET";
 
-  @JsonIgnore
-  @Transient
-  private RestTemplate restTemplate = new RestTemplate();
+  /**
+   * Self test runs on server startup. Exceptions are logged but otherwise
+   * ignored.
+   * 
+   * @throws Exception
+   */
+  public abstract void selfTest() throws Exception;
 
-  @Data
-  @NoArgsConstructor
-  public static class Response {
-    private String response;
+  public abstract String getResponse(Client c, String query);
+
+  /**
+   * Get response to something that a client "said", and write it
+   */
+  public void respondTo(Client c, String what) {
+    String response = getResponse(c, what);
+    write(response);
   }
 
-  public void selfTest() throws Exception {
-    ResponseEntity<String> result = sendQuery("hello world");
-    if (result.getStatusCodeValue() == 200) {
-      String response = result.getBody();
-      log.debug(this + " initial response: " + response);
-    } else {
-      throw new IllegalStateException("Invalid response code: " + result.getStatusCodeValue());
-    }
-    List<String> contentType = result.getHeaders().get("Content-Type");
-    if (contentType.size() == 0) {
-      throw new IllegalStateException("Invalid response - no content type");
-    }
-    if (contentType.size() == 1) {
-      String cType = contentType.get(0);
-      log.debug("Response content type: " + cType);
-      if (!"application/json".equals(cType)) {
-        throw new IllegalStateException("Invalid response content type: " + contentType);
-      }
-    } else {
-      throw new IllegalStateException("Invalid response content type - size " + contentType.size() + " " + contentType);
-    }
-    log.debug(getResponse("hello again"));
-  }
-
-  public String getResponse(String what) {
-    String ret = "";
-    try {
-      ResponseEntity<String> result = sendQuery(what);
-      Response response = getMapper().readValue(result.getBody(), Response.class);
-      ret = response.getResponse();
-    } catch (Exception e) {
-      log.error("Can't get response to: " + what, e);
-    }
-    return ret;
-  }
-
-  public ResponseEntity<String> sendQuery(String what) throws Exception {
-    log.debug(this + " request: " + what);
-    String encoded = URLEncoder.encode(what, StandardCharsets.UTF_8.toString());
-    URI uri = new URI(url + encoded);
-    ResponseEntity<String> result = restTemplate.getForEntity(uri, String.class);
-    log.debug(this + " response: " + result.getBody());
-    return result;
-  }
-
-  private void write(String what) {
+  /**
+   * Utility method - "say" something.
+   */
+  public void write(String what) {
     VREvent event = new VREvent(this);
     Map<String, Object> changes = new HashMap<>();
     changes.put("wrote", what);
@@ -98,6 +57,10 @@ public class Bot extends Client {
     this.notifyListeners(event);
   }
 
+  /**
+   * Process an event. If that's something that a user wrote, calls respondTo
+   * method. Other events are ignored.
+   */
   @Override
   public void processEvent(VREvent event) {
     log.debug(this + " received event: " + event);
@@ -106,19 +69,44 @@ public class Bot extends Client {
       event.getSource().removeListener(this);
     } else if (event.getChanges().containsKey("wrote")) {
       String what = (String) event.getChanges().get("wrote");
-      String response = getResponse(what);
-      write(response);
+      respondTo(event.getClient(), what);
     }
   }
 
+  /**
+   * New objects in the scene, typically a client that has arrived. This
+   * implementation does nothing, utility method for subclasses.
+   */
+  public void objectsAdded(List<VRObject> objects) {
+    log.debug("New objects in the scene " + objects);
+  }
+
+  /**
+   * Objects removed from the scene, typically a client that has left. This
+   * implementation does nothing, utility method for subclasses.
+   * 
+   * @param objects
+   */
+  public void objectsRemoved(List<Map<String, Long>> objects) {
+    log.debug("Removed objects from the scene " + objects);
+  }
+
+  /**
+   * Scene management method, called when the scene changes.
+   */
   @Override
   public void sendMessage(Object o) {
     log.debug(this + " received message:" + o);
     // TODO: process Add/Remove commands
+    if (o instanceof Add) {
+      objectsAdded(((Add) o).getObjects());
+    } else if (o instanceof Remove) {
+      objectsRemoved(((Remove) o).getObjects());
+    }
   }
 
   @Override
   public String toString() {
-    return "Bot " + getId();
+    return getId().toString();
   }
 }
