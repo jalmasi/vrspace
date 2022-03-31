@@ -192,6 +192,10 @@ export class Bot extends Client {
     return true;
   }
 }
+export class ArthurBot extends Bot {
+}
+export class BotLibre extends Bot {
+}
 
 /**
 An event that happened to an object.
@@ -254,7 +258,7 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre };
     // exposing each class
     for( var c in this.sharedClasses ) {
       this[c] = this.sharedClasses[c];

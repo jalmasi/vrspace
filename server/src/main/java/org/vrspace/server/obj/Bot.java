@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.annotation.Transient;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.VREvent;
@@ -27,6 +28,16 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class Bot extends Client {
   @JsonIgnore
   private String url;
+  @JsonIgnore
+  @Transient
+  private Map<String, String> parameterMap = new HashMap<>();
+
+  /**
+   * Returns a parameter from parameter map
+   */
+  public String getParameter(String key) {
+    return parameterMap.get(key);
+  }
 
   /**
    * Self test runs on server startup. Exceptions are logged but otherwise
