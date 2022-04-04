@@ -237,8 +237,11 @@ export class Avatar {
         this.createBody();
         //this.log("bones: "+bonesTotal+" "+bonesProcessed);
 
-        //this.rootMesh.computeWorldMatrix(true);
         this.skeleton.computeAbsoluteTransforms();
+        // different ways to enforce calculation:
+        //this.skeleton.computeAbsoluteTransforms(true);
+        //this.rootMesh.computeWorldMatrix(true);
+        //this.scene.render();
         this.skeleton.name = this.folder.name;
 
         this.processBones(this.skeleton.bones);
@@ -507,7 +510,12 @@ export class Avatar {
   /** Returns position of the the head 'bone' */
   headPos() {
     var head = this.skeleton.bones[this.body.head];
-    var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).add(this.rootMesh.position);
+    //head.computeAbsoluteTransforms();
+    //head.getTransformNode().computeWorldMatrix(true);
+    this.scene.render(); // FIXME workaround
+    console.log("Head at "+head.getAbsolutePosition()+" tran "+head.getTransformNode().getAbsolutePosition(), head);
+    //var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).add(this.rootMesh.position);
+    var headPos = head.getTransformNode().getAbsolutePosition();
     return headPos;
   }
 
@@ -1532,11 +1540,14 @@ export class Avatar {
   Resize the avatar taking into account userHeight and headPos.
    */
   resize() {
-    var scale = this.rootMesh.scaling.y;
-    scale = scale*this.userHeight/this.headPos().y;
+    var oldScale = this.rootMesh.scaling.y;
+    var oldHeadPos = this.headPos();
+    var scale = oldScale*this.userHeight/oldHeadPos.y;
     this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
+    //this.rootMesh.computeWorldMatrix(true);
+    //this.scene.render();
     this.initialHeadPos = this.headPos();
-    this.log("Rescaling to "+scale+", head position "+this.initialHeadPos);
+    this.log("Rescaling from "+oldScale+ " to "+scale+", head position from "+oldHeadPos+" to "+this.initialHeadPos);
     this.changed();
     return scale;
   }
