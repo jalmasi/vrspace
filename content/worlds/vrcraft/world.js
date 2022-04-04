@@ -27,11 +27,6 @@ export class WorldEditorExample extends World {
     //this.ground.isVisible = false;
     this.ground.checkCollisions = false;
     
-    // handy function for dynamic script loading
-    await VRSPACEUI.loadScriptsToDocument([ 
-      //"//www.vrspace.org/babylon/babylon.gridMaterial.min.js"
-      "/babylon/js/lib/babylon.gridMaterial.min.js"
-    ]);
     // handy material
     this.ground.material = new BABYLON.GridMaterial("groundMaterial", this.scene);
     this.ground.material.opacity = 0.999;
