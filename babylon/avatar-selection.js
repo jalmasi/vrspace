@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, OpenViduStreams } from './js/vrspace-min.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, OpenViduStreams, ServerFolder } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -25,6 +25,7 @@ export class AvatarSelection extends World {
     this.debug=false;
     // state variables
     this.mirror = true;
+    this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000/this.fps;
   }
@@ -141,8 +142,11 @@ export class AvatarSelection extends World {
     this.selectionCallback = selectionCallback;
     VRSPACEUI.listMatchingFiles( VRSPACEUI.contentBase+'/content/char/', (folders) => {
       folders.push({name:"video"});
+      if ( this.customAvatarFrame ) {
+        folders.push({name:"custom"});
+      }
       var buttons = new Buttons(this.scene,"Avatars",folders,(dir) => this.createAvatarSelection(dir),"name");
-      buttons.setHeight(.3);
+      buttons.setHeight(.5);
       buttons.group.position = new BABYLON.Vector3(.5,2.2,-.5);
       buttons.select(0);
       this.mainButtons = buttons;
@@ -160,8 +164,10 @@ export class AvatarSelection extends World {
         buttons.group.position = new BABYLON.Vector3(1.3,2.2,-.5);
         this.characterButtons = buttons;
       });
-    } else {
+    } else if (folder.name == "video") {
       this.createVideoAvatar();
+    } else if (folder.name == "custom") {
+      this.createCustomAvatar();
     }
             
   }
@@ -193,14 +199,76 @@ export class AvatarSelection extends World {
     }
   }
 
-  loadCharacter(dir) {
+  async createCustomAvatar() {
+    this.removeVideoAvatar();
+    // based on example from
+    // https://github.com/readyplayerme/Example-iframe/blob/develop/src/iframe.html   
+    if ( !this.customAvatarFrame ) {
+      return;
+    }
+    
+    this.customAvatarFrame.src = `https://vrspace.readyplayer.me/avatar?frameApi`;
+    this.customAvatarFrame.hidden = false;
+
+    const subscribe = (event) => {
+      //console.log(event.data);
+      try {
+        var json = JSON.parse(event.data);
+      } catch ( error ) {
+        return;
+      }
+
+      if (json?.source !== 'readyplayerme') {
+        return;
+      }
+
+      // Susbribe to all events sent from Ready Player Me once frame is ready
+      if (json.eventName === 'v1.frame.ready') {
+        this.customAvatarFrame.contentWindow.postMessage(
+          JSON.stringify({
+            target: 'readyplayerme',
+            type: 'subscribe',
+            eventName: 'v1.**'
+          }),
+          '*'
+        );
+      }
+
+      // Get avatar GLB URL
+      if (json.eventName === 'v1.avatar.exported') {
+        var avatarUrl = json.data.url;
+        // something like
+        // https://d1a370nemizbjq.cloudfront.net/a13ab5dc-358d-45e4-a602-446b9c840155.glb
+        console.log("Avatar URL: "+avatarUrl);
+        this.customAvatarFrame.hidden = true;
+        var pos = avatarUrl.lastIndexOf('/');
+        var path = avatarUrl.substring(0,pos);
+        var file = avatarUrl.substring(pos+1);
+        var folder = new ServerFolder( path, "");
+        this.loadCharacter(folder, file);
+      }
+
+      // Get user id
+      if (json.eventName === 'v1.user.set') {
+        console.log(`User with id ${json.data.id} set: ${JSON.stringify(json)}`);
+      }
+    }
+
+
+    window.addEventListener('message', subscribe);
+    document.addEventListener('message', subscribe);
+    
+  }
+
+  loadCharacter(dir, file="scene.gltf") {
     this.tracking = false;
     this.indicator.add(dir);
     this.indicator.animate();
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(this.scene, dir, this.shadowGenerator);
+    loaded.file = file;
     // resize the character to real-world height
-    if ( this.inXR) {
+    if ( this.inXR ) {
       this.userHeight = this.vrHelper.camera().realWorldHeight;
     }
     loaded.userHeight = this.userHeight;
@@ -346,7 +414,7 @@ export class AvatarSelection extends World {
     fetch('/worlds/users').then(response=>response.json().then(worldStats=>{
       if ( worldStats ) {
         worldStats.forEach(stat=>{
-          console.log(stat);
+          //console.log(stat);
           if ( this.portals[stat.worldName] ) {
             if ( stat.activeUsers > 0 ) {
               this.portals[stat.worldName].setTitle('Users: '+stat.activeUsers+'/'+stat.totalUsers);
