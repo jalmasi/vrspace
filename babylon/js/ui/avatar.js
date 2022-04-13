@@ -513,12 +513,18 @@ export class Avatar {
     //head.computeAbsoluteTransforms();
     //head.getTransformNode().computeWorldMatrix(true);
     this.scene.render(); // FIXME workaround
-    console.log("Head at "+head.getAbsolutePosition()+" tran "+head.getTransformNode().getAbsolutePosition(), head);
+    console.log("Head at "+head.getAbsolutePosition()+" tran "+head.getTransformNode().getAbsolutePosition()+" root "+this.rootMesh.getAbsolutePosition(), head);
     //var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).add(this.rootMesh.position);
+    //var headPos = head.getTransformNode().getAbsolutePosition().subtract(this.rootMesh.getAbsolutePosition());
     var headPos = head.getTransformNode().getAbsolutePosition();
     return headPos;
   }
 
+  /** Returns current height - distance head to feet */
+  height() {
+    return this.headPos().y - this.rootMesh.getAbsolutePosition().y;
+  }
+  
   /** 
   Returns absolute value of vector, i.e. Math.abs() of every value
   @param vec Vector3 to get absolute
@@ -1558,7 +1564,8 @@ export class Avatar {
   */
   async setName(name) {
     this.writer.clear(this.parentMesh);
-    this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4,0));
+    //this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4,0));
+    this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
     this.writer.write(this.parentMesh, name);
     this.name = name;
   }
@@ -1573,6 +1580,7 @@ export class Avatar {
   }
   
   async wrote(client) {
+    console.log(client);
     var limit = 20;
     var text = [this.name];
     var line = '';
@@ -1584,9 +1592,11 @@ export class Avatar {
       line += word + ' ';
     });
     text.push(line);
+    console.log(text);
     
     this.writer.clear(this.parentMesh);
-    this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4+.2*(text.length-1),0));
+    //this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4+.2*(text.length-1),0));
+    this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
     this.writer.writeArray(this.parentMesh, text);
   }
   
