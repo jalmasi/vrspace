@@ -1103,6 +1103,7 @@ export class Avatar {
     var target = bone.children[0];
     var original = bone.getRotationQuaternion();
     var oldPos = target.getAbsolutePosition();
+    //var oldPos = target.getTransformNode().getAbsolutePosition();
     var rotationMatrix = BABYLON.Matrix.RotationAxis(axis,angle);
     var quat = bone.rotationQuaternion;
     var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
@@ -1111,10 +1112,11 @@ export class Avatar {
     //bone.computeWorldMatrix(true); // not required
     bone.computeAbsoluteTransforms();
     var newPos = target.getAbsolutePosition();
+    //var newPos = target.getTransformNode().getAbsolutePosition();
     bone.setRotationQuaternion(original);
     bone.computeAbsoluteTransforms();
     var ret = newPos.subtract(oldPos);
-    //this.log("Tried "+axis+" "+angle+" - "+ret.z);
+    this.log("Tried "+axis+" "+angle+" - "+ret.z+" "+bone.name);
     return ret;
   }
 
