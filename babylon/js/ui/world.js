@@ -395,6 +395,7 @@ export class World {
               if ( instance.scale ) {
                 mesh.scaling = new BABYLON.Vector3(instance.scale.x, instance.scale.y, instance.scale.z);
               }
+              this.loaded( loadedUrl, mesh );
             },
             // onError:
             exception => this.loadFailed( exception ),
