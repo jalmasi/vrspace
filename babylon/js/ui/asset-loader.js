@@ -99,7 +99,7 @@ export class AssetLoader {
   loadObject(obj, callback, failure, progress) {
     this.loadAsset(
       obj.mesh, 
-      (container, info, instantiatedEntries) => {
+      (loadedUrl, container, info, instantiatedEntries) => {
         if ( instantiatedEntries ) {
           obj.instantiatedEntries = instantiatedEntries;
     
