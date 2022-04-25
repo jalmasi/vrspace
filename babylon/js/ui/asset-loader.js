@@ -38,9 +38,9 @@ class AssetSync {
             this.container = container;
             //container.addAllToScene();
             if ( callback ) {
-              callback(container, this.info);
+              callback(this.url, container, this.info);
             }
-            resolve(container, this.info);
+            resolve(this.url, container, this.info);
           },
           (evt, name) => {if ( progress ) progress(evt, name)}, 
           (scene, message, exception)=>{
@@ -66,7 +66,7 @@ class AssetSync {
     // instantiate
     var instances = this.container.instantiateModelsToScene();
     console.log("Instantiated "+this.numberOfInstances+" of "+this.url);
-    callback(this.container, this.info, instances);
+    callback(this.url, this.container, this.info, instances);
   }
 }
 

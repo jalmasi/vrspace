@@ -458,7 +458,7 @@ export class Avatar {
       var plugin = VRSPACEUI.assetLoader.loadAsset(
         this.getUrl(),
         // onSuccess:
-        (container, info, instantiatedEntries ) => {
+        (loadedUrl, container, info, instantiatedEntries ) => {
           this.info = info
           // https://doc.babylonjs.com/typedoc/classes/babylon.assetcontainer
           // https://doc.babylonjs.com/typedoc/classes/babylon.instantiatedentries

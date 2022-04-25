@@ -362,7 +362,6 @@ export class World {
     if ( this.worldObjects ) {
       this.sceneMeshes = [];
       for ( var url in this.worldObjects ) {
-        var name = url;
         var instances = this.worldObjects[url].instances;
         if ( !url.startsWith("/") ) {
           // relative url, make it relative to world script path
@@ -371,7 +370,7 @@ export class World {
         instances.forEach( (instance) => {
           var objPromise = VRSPACEUI.assetLoader.loadAsset(url,
             // callback 
-            (container,info,instances)=>{
+            (loadedUrl, container,info,instances)=>{
               if ( instances ) {
                 var mesh = obj.instantiatedEntries.rootNodes[0];
                 // CHECKME: untested
@@ -380,7 +379,10 @@ export class World {
               } else {
                 // Adds all elements to the scene
                 var mesh = container.createRootMesh();
-                mesh.name = name;
+                var pos = loadedUrl.lastIndexOf('/');
+                if ( pos >= 0 ) {
+                  mesh.name = loadedUrl.substring(pos+1);
+                }
                 container.addAllToScene();
                 this.sceneMeshes.push(...container.meshes);
               }
@@ -397,7 +399,7 @@ export class World {
             // onError:
             exception => this.loadFailed( exception ),
             // onProgress:
-            evt => this.loadProgress(evt, name)
+            evt => this.loadProgress(evt, url)
           );
           promises.push(objPromise);
         });
