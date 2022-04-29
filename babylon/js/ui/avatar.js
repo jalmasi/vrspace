@@ -1088,7 +1088,7 @@ export class Avatar {
       for ( var j = 0; j<angles.length; j++ ) {
         var ret = this.tryRotation(bone, axes[i], angles[j]).multiply(maxAxis);
         var result = ret.x+ret.y+ret.z;
-        if ( result > max ) {
+        if ( result >= max ) {
           axis = axes[i];
           angle = angles[j];
           max = result;
