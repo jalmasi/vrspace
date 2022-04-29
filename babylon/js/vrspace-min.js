@@ -6,7 +6,7 @@ export { ScriptLoader } from "./ui/script-loader.js";
 export { LogoRoom } from "./ui/logo-room.js";
 export { Portal } from "./ui/portal.js";
 export { LoadProgressIndicator } from "./ui/load-progress-indicator.js";
-export { ServerFolder } from "./ui/server-folder.js";
+export { ServerFolder, ServerFile } from "./ui/server-folder.js";
 export { RecorderUI } from "./ui/recorder-ui.js";
 export { FloorRibbon } from "./ui/floor-ribbon.js";
 export { Buttons } from "./ui/buttons.js";

@@ -143,7 +143,24 @@ var startAnimation = function(animationName) {
   animationButtons(character);
 }
 
-var replaceAvatar = function() {
+var loadAvatar = () => {
+  import('./js/vrspace-min.js').then( (module) => {
+    var url = document.getElementById("avatarUrl").value;
+    var folder = new module.ServerFile(url);
+    console.log(folder);
+    var loaded = new module.Avatar(scene, folder, shadowGenerator);
+    loaded.debug = true;
+    loaded.load((c) => {
+      angle = 0;
+      character = loaded.replace(character);
+      animationButtons(character);
+      crouch = false;
+      loaded.setName(userName);
+    } );
+  });
+};
+
+var replaceAvatar = () => {
   import('./js/ui/avatar.js').then( (module) => {
     var index = document.getElementById("avatarName").value;
     var folder = characters[index];
@@ -204,6 +221,9 @@ function debugOnOff() {
 </script>
 
 <div style="position: absolute;top:10px;left: 20%;">
+  URL:
+  <input id="avatarUrl" type="text" onChange="loadAvatar()">
+  or
   <select id="avatarName" name="avatarName" onChange="replaceAvatar()">
     <option selected>Avatar</option>
   </select>
