@@ -40,7 +40,7 @@ class AssetSync {
             if ( callback ) {
               callback(this.url, container, this.info);
             }
-            resolve(this.url, container, this.info);
+            resolve(container);
           },
           (evt, name) => {if ( progress ) progress(evt, name)}, 
           (scene, message, exception)=>{

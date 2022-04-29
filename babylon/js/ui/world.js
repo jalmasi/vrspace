@@ -333,7 +333,7 @@ export class World {
     if ( this.file ) {
       var scenePromise = VRSPACEUI.assetLoader.loadAsset( this.baseUrl+this.file,
         // onSuccess:
-        (container) => {
+        (url, container, info ) => {
           this.sceneMeshes = container.meshes;
           this.container = container;
   
