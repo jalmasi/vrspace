@@ -5,6 +5,8 @@ export class AvatarSelection extends World {
     super();
     /** server to connect to */
     this.serverUrl = null;
+    /** content base, defaults to VRSPACEUI.contentBase */
+    this.contentBase = VRSPACEUI.contentBase;
     /** function to call just before entering a world */
     this.beforeEnter = null;
     /** function to call after entering a world */
@@ -37,7 +39,7 @@ export class AvatarSelection extends World {
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(VRSPACEUI.contentBase+"/content/skybox/mp_drakeq/drakeq", this.scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.contentBase+"/content/skybox/mp_drakeq/drakeq", this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     return skybox;
   }
@@ -140,7 +142,7 @@ export class AvatarSelection extends World {
 
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
-    VRSPACEUI.listMatchingFiles( VRSPACEUI.contentBase+'/content/char/', (folders) => {
+    VRSPACEUI.listMatchingFiles( this.contentBase+'/content/char/', (folders) => {
       folders.push({name:"video"});
       if ( this.customAvatarFrame ) {
         folders.push({name:"custom"});
@@ -392,7 +394,7 @@ export class AvatarSelection extends World {
   
   showPortals() {
     this.portals = {};
-    VRSPACEUI.listThumbnails(VRSPACEUI.contentBase+'/content/worlds', (worlds) => {
+    VRSPACEUI.listThumbnails(this.contentBase+'/content/worlds', (worlds) => {
       var radius = this.room.diameter/2;
       var angleIncrement = 2*Math.PI/worlds.length;
       var angle = 0;
