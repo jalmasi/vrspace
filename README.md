@@ -25,3 +25,8 @@ Wiki, forums, and everything else: https://redmine.vrspace.org/projects/vrspace-
 Facebook page: https://www.facebook.com/vrspace.org
 
 Youtube channel: https://www.youtube.com/channel/UCLdSg22i9MZ3u7ityj_PBxw
+
+# Server binary
+
+Instead of building the server, you can simply download built executable jar file.
+Snapshots are available at https://s01.oss.sonatype.org/content/repositories/snapshots/org/vrspace/server/
