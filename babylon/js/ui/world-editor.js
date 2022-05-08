@@ -11,6 +11,7 @@ export class WorldEditor {
     if ( fileInput ) {
       this.setFileInput( fileInput );
     }
+    this.contentBase=VRSPACEUI.contentBase;
     this.worldManager = world.worldManager;
     this.defaultErrorHandler = world.worldManager.loadErrorHandler;
     this.defaultloadCallback = world.worldManager.loadCallback;
@@ -66,13 +67,13 @@ export class WorldEditor {
   }
   
   createButtons() {
-    this.moveButton = this.makeAButton( "Move", "/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
+    this.moveButton = this.makeAButton( "Move", this.contentBase+"/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
     this.moveButton.onPointerUpObservable.add(()=>this.dropObject());
     this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
-    this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png", (o)=>this.resizeObject(o));
+    this.scaleButton = this.makeAButton("Resize", this.contentBase+"/content/icons/resize.png", (o)=>this.resizeObject(o));
     this.alignButton = this.makeAButton("Align", "https://www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
     this.alignButton = this.makeAButton("Upright", "https://www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
-    this.copyButton = this.makeAButton("Copy", "/content/icons/copy.png", (o)=>this.copyObject(o));
+    this.copyButton = this.makeAButton("Copy", this.contentBase+"/content/icons/copy.png", (o)=>this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
     this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
     this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Save.png");
