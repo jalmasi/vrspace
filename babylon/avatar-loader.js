@@ -85,12 +85,12 @@ export class AvatarLoader extends AvatarSelection {
     text.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
     var selectButton = new BABYLON.GUI.HolographicButton("select:"+avatar.folder.name);
-    selectButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Zoom.png"; // FIXME: cdn
+    selectButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Zoom.png"; // FIXME: cdn
     //selectButton.contentResolution = 1024;
     selectButton.contentScaleRatio = 4;
     selectButton.onPointerDownObservable.add( function() {
         console.log( "Selected "+avatar.folder.name );
-        selectButton.imageUrl = "//www.babylonjs-playground.com/textures/icons/Back.png"; // FIXME: cdn
+        selectButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Back.png"; // FIXME: cdn
         if ( avatar.caption ) {
           avatar.caption.dispose();
           avatar.caption = null;
@@ -158,7 +158,7 @@ export class AvatarLoader extends AvatarSelection {
     particleSystem.colorDead = new BABYLON.Color4(particleSystem.color2.r/10,particleSystem.color2.g/10,particleSystem.color2.b/10,0);
     particleSystem.emitRate = 10;
     particleSystem.particleEmitterType = new BABYLON.SphereParticleEmitter(0.5);
-    particleSystem.particleTexture = new BABYLON.Texture("//www.babylonjs-playground.com//textures/flare.png", scene); // FIXME: cdn
+    particleSystem.particleTexture = new BABYLON.Texture("https://www.babylonjs-playground.com//textures/flare.png", scene); // FIXME: cdn
     particleSystem.gravity = new BABYLON.Vector3(0, 2, 0);
     particleSystem.minLifeTime = 0.5;
     particleSystem.maxLifeTime = 3;
