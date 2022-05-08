@@ -23,9 +23,9 @@ export class VRSpaceUI {
     this.logoFile = "logo.glb";
     /** vrspace.org logo mesh */
     this.logo = null;
-    /** Path to logo, defaults to contentBase+/babylon/portal */
-    this.portalPath = this.contentBase+"/babylon/portal/"
-    /** Portal file name, defaults to logo.glb */
+    /** Path to logo, null defaults to contentBase+/babylon/portal */
+    this.portalPath = null;
+    /** Portal file name, defaults to scene.gltf */
     this.portalFile = "scene.gltf";
     /** portal mesh */
     this.portal = null;
@@ -87,6 +87,13 @@ export class VRSpaceUI {
     return this.contentBase+"/babylon/";
   }
   
+  /** Returns portalPath if exists, defaults to contentBase+/babylon/portal */
+  portalDir() {
+    if ( this.portalPath ) {
+      return this.portalPath;
+    }
+    return this.contentBase+"/babylon/portal/";
+  }
   /** Creates default LoadProgressIndicator bound to given camera, if one does not already exist.
   @param scene
   @param camera
@@ -113,7 +120,7 @@ export class VRSpaceUI {
   */
   async loadPortal(scene) {
     if ( ! this.portal ) {
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.portalPath, this.portalFile, scene)
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.portalDir(), this.portalFile, scene)
       container.materials[0].albedoColor = BABYLON.Color3.FromHexString('#B3EEF3');
       container.materials[0].metallic = 0.85;
       
