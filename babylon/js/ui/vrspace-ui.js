@@ -17,8 +17,8 @@ export class VRSpaceUI {
     this.scene = null;
     /** content base (prefix), default empty (same host) */
     this.contentBase = '';
-    /** Path to logo, defaults to contentBase+/babylon */
-    this.logoPath = this.contentBase+"/babylon/"
+    /** Path to logo, null defaults to contentBase+/babylon (vrspace.org logo)*/
+    this.logoPath = null;
     /** Logo file name, defaults to logo.glb */
     this.logoFile = "logo.glb";
     /** vrspace.org logo mesh */
@@ -67,7 +67,7 @@ export class VRSpaceUI {
       }
       this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoPath,this.logoFile,this.scene);
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoDir(),this.logoFile,this.scene);
       this.logo = container.meshes[0];
       for ( var i = 0; i < container.meshes; i++ ) {
         container.meshes[i].checkCollisions = false;
@@ -79,6 +79,14 @@ export class VRSpaceUI {
     return this;
   }
 
+  /** Used in init, return logPath if exists, or default path to vrspace.org logo */
+  logoDir() {
+    if ( this.logoPath ) {
+      return this.logoPath;
+    }
+    return this.contentBase+"/babylon/";
+  }
+  
   /** Creates default LoadProgressIndicator bound to given camera, if one does not already exist.
   @param scene
   @param camera
