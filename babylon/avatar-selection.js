@@ -7,6 +7,12 @@ export class AvatarSelection extends World {
     this.serverUrl = null;
     /** content base, defaults to VRSPACEUI.contentBase */
     this.contentBase = VRSPACEUI.contentBase;
+    /** background base dir, null defaults to contentBase */
+    this.backgroundPath = null;
+    /** character base dir, null defaults to contentBase */
+    this.characterPath = null;
+    /** world base dir, null defaults to contentBase */
+    this.worldPath = null;
     /** function to call just before entering a world */
     this.beforeEnter = null;
     /** function to call after entering a world */
@@ -39,7 +45,7 @@ export class AvatarSelection extends World {
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.contentBase+"/content/skybox/mp_drakeq/drakeq", this.scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir()+"/content/skybox/mp_drakeq/drakeq", this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     return skybox;
   }
@@ -71,7 +77,26 @@ export class AvatarSelection extends World {
   async createPhysics() {
     // 1g makes nasty floor collisions
     this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
-  }  
+  }
+  
+  backgroundDir() {
+    if ( this.backgroundPath ) {
+      return this.backgroundPath;
+    }
+    return this.contentBase;
+  }
+  characterDir() {
+    if ( this.characterPath ) {
+      return this.characterPath;
+    }
+    return this.contentBase;
+  }
+  worldDir() {
+    if ( this.worldPath ) {
+      return this.worldPath;
+    }
+    return this.contentBase;
+  }
   
   isSelectableMesh(mesh) {
     return mesh == this.ground || mesh.name && (mesh.name.startsWith("Button") || mesh.name.startsWith("PortalEntrance"));
@@ -142,7 +167,7 @@ export class AvatarSelection extends World {
 
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
-    VRSPACEUI.listMatchingFiles( this.contentBase+'/content/char/', (folders) => {
+    VRSPACEUI.listMatchingFiles( this.characterDir()+'/content/char/', (folders) => {
       folders.push({name:"video"});
       if ( this.customAvatarFrame ) {
         folders.push({name:"custom"});
@@ -394,7 +419,7 @@ export class AvatarSelection extends World {
   
   showPortals() {
     this.portals = {};
-    VRSPACEUI.listThumbnails(this.contentBase+'/content/worlds', (worlds) => {
+    VRSPACEUI.listThumbnails(this.worldDir()+'/content/worlds', (worlds) => {
       var radius = this.room.diameter/2;
       var angleIncrement = 2*Math.PI/worlds.length;
       var angle = 0;
