@@ -174,7 +174,7 @@ export class AssetLoader {
       }
       if ( asset.numberOfInstances == 0 ) {
         console.log("Unloaded "+url);
-        this.disposeOfContainer(contaner);
+        this.disposeOfContainer(container);
         delete this.containers[url];
       }
     }
