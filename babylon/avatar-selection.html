@@ -55,17 +55,18 @@ import("./avatar-selection.js").then( (module) =>{
   });
 
   var checkValidName = (name) => {
+    console.log( 'checking name ', name );
     if ( name ) {
-      world.setLoginName(name).then((valid) => {
+      world.setLoginName(name).then( validName => {
         var nameLabel = document.getElementById('namelabel');
-        console.log("Valid name: "+valid);
-        if ( valid ) {
+        console.log("Valid name: "+validName);
+        if ( validName ) {
           nameLabel.innerHTML="Name:"
           canvas.focus();
         } else {
           nameLabel.innerHTML="INVALID NAME, try another:"
         }
-        world.portalsEnabled(valid);
+        world.portalsEnabled(validName);
       });
     } else {
       world.portalsEnabled(anonymousAllowed);
@@ -86,6 +87,21 @@ import("./avatar-selection.js").then( (module) =>{
 
   world.init(engine, 'avatar').then((s) => {
     scene = s;
+    
+    // testing various REST calls here
+    world.getAuthenticated().then( isAuthenticated => {
+      if ( isAuthenticated ) {
+        document.getElementById('loginForm').style.display = 'none';
+        world.getUserName().then( name => world.setMyName(name));
+        world.getUserObject().then( me => {
+          console.log("user mesh "+me.mesh, me);
+          if ( me.mesh ) {
+            world.loadCharacterUrl( me.mesh );
+          }
+        });
+      }
+    });
+  
     world.createSelection((avatar)=>{
       console.log("Selected avatar: "+avatar.getUrl());
       checkValidName(world.getMyName());

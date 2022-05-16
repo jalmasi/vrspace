@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, OpenViduStreams, ServerFolder } from './js/vrspace-min.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, OpenViduStreams, ServerFolder, ServerFile } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -287,6 +287,12 @@ export class AvatarSelection extends World {
     
   }
 
+  loadCharacterUrl( url ) {
+    console.log('loading character from '+url);
+    var file = new ServerFile( url );
+    this.loadCharacter( file, file.file);
+  }
+  
   loadCharacter(dir, file="scene.gltf") {
     this.tracking = false;
     this.indicator.add(dir);
@@ -329,10 +335,32 @@ export class AvatarSelection extends World {
     return this.userName;
   }
 
+  // TODO: provide API calls lib
+  async getJson(url){
+    let data = await this.getText(url);
+    try {
+      console.log( url+' returned '+data);
+      return JSON.parse(data);
+    } catch ( err ) {
+      console.log("JSON error: ", err);
+    }
+  }
+  
+  async getText(url){
+    let data = await (fetch(url)
+      .then(res => {
+        return res.text();
+      })
+      .catch(err => {
+        console.log("Fetch error: ", err);
+      })
+    );
+    return data;
+  }
+
   async setLoginName(name) {
-    // TODO: provide API calls lib
-    var response = await fetch("/user/available?name="+name);
-    var validName =response.json();
+    var validName = await this.getText("/user/available?name="+name);
+    console.log("Valid name: "+validName);
     if ( validName ) {
       this.userName = name;
     }
@@ -341,6 +369,24 @@ export class AvatarSelection extends World {
   
   oauth2login() {
     window.open('/oauth2/login?name='+this.userName, '_top');
+  }
+  
+  async getUserName() {
+    var loginName = await this.getText("/user/name");
+    console.log("User name: "+loginName);
+    return loginName;
+  }
+  
+  async getUserObject() {
+    var userObject = await this.getJson("/user/object");
+    console.log("User object ", userObject);
+    return userObject.Client;
+  }
+  
+  async getAuthenticated() {
+    var isAuthenticated = await this.getText("/user/authenticated");
+    console.log("User is authenticated: "+isAuthenticated);
+    return 'true' === isAuthenticated;
   }
   
   animationButtons(avatar) {

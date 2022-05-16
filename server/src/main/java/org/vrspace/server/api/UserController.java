@@ -31,7 +31,7 @@ public class UserController {
    * no such user, or user's name in the database matches name in current session.
    * 
    * @param name    user name to verify
-   * @param session http session, automatically provide
+   * @param session http session, automatically provided
    * @return true if user can log in with given name
    */
   @GetMapping("/available")
@@ -40,12 +40,52 @@ public class UserController {
       return config.isGuestAllowed();
     }
     Client client = db.getClientByName(name);
-    Object currentName = session.getAttribute(clientFactory.clientAttribute());
+    String currentName = userName(session);
     boolean valid = client == null || (client.getName() != null && client.getName().equals(currentName));
 
-    log.debug("Client name " + name + " available: " + (client == null));
+    log.debug("Client name " + name + " available for " + currentName + ": " + valid);
     // TODO security - this method allows for user name enumeration
     // add some configurable delay here in case of invalid user name
     return valid;
   }
+
+  /**
+   * Check if the user is already authenticated
+   * 
+   * @param session http session, automatically provided
+   * @return true if user is currently authenticated
+   */
+  @GetMapping("/authenticated")
+  public boolean authenticated(HttpSession session) {
+    return userName(session) != null;
+  }
+
+  /**
+   * Returns current user name
+   * 
+   * @param session
+   * @return authenticated user name, or null if user is not authenticated
+   */
+  @GetMapping("/name")
+  public String userName(HttpSession session) {
+    Object currentName = session.getAttribute(clientFactory.clientAttribute());
+    log.debug("Current name:" + currentName);
+    return (String) currentName;
+  }
+
+  /**
+   * Returns current user object
+   * 
+   * @param session
+   * @return current user Client object, or null if user is not authenticated
+   */
+  @GetMapping("/object")
+  public Client userObject(HttpSession session) {
+    String currentName = userName(session);
+    if (currentName != null) {
+      return db.getClientByName(currentName);
+    }
+    return null;
+  }
+
 }
