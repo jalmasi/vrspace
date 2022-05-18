@@ -508,7 +508,7 @@ export class WorldManager {
     } else if ( obj.instantiatedEntries ) {
       object = obj.instantiatedEntries;
     } else {
-      console.log("Ignoring unknown event "+field+" to object "+obj.id);
+      this.log("Ignoring unknown event "+field+" to object "+obj.id);
       return;      
     }
     if (typeof object[field] === 'function') {

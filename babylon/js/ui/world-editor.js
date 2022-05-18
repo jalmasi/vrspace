@@ -370,7 +370,7 @@ export class WorldEditor {
     } else {
       obj.properties.editing = null;
     }
-    this.worldManager.VRSPACE.sendEvent(object, {properties: obj.properties.editing} );
+    this.worldManager.VRSPACE.sendEvent(obj, {properties: obj.properties} );
   }
 
   search(text, args) {
