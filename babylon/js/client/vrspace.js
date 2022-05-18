@@ -420,7 +420,9 @@ export class VRSpace {
     if ( typeof value == "string") {
       return '"'+field+'":"'+value+'"';
     } else if ( typeof value == 'object') {
-      if(value.hasOwnProperty('w')) {
+      if ( value == null ) {
+        return '"'+field+'":null';
+      } if(value.hasOwnProperty('w')) {
         return '"'+field+'":'+this.stringifyQuaternion(value);
       } else if (value.hasOwnProperty('x') || value.hasOwnProperty('_x')) {
         return '"'+field+'":'+this.stringifyVector(value);
