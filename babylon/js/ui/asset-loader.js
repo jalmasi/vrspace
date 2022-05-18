@@ -38,7 +38,11 @@ class AssetSync {
             this.container = container;
             //container.addAllToScene();
             if ( callback ) {
-              callback(this.url, container, this.info);
+              try {
+                callback(this.url, container, this.info);                
+              } catch ( err ) {
+                console.log( "Error in callback for "+this.url, err);
+              }
             }
             resolve(container);
           },
@@ -66,7 +70,11 @@ class AssetSync {
     // instantiate
     var instances = this.container.instantiateModelsToScene();
     console.log("Instantiated "+this.numberOfInstances+" of "+this.url);
-    callback(this.url, this.container, this.info, instances);
+    try {
+      callback(this.url, this.container, this.info, instances);
+    } catch ( err ) {
+      console.log( "Error in callback for "+this.url, err);
+    }
   }
 }
 

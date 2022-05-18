@@ -292,7 +292,8 @@ export class WorldEditor {
     }
 
     this.carrying = vrObject;
-    
+    this.editObject( vrObject, true );
+        
     // default position
     if ( ! position ) {
       var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(2).direction;
@@ -345,7 +346,8 @@ export class WorldEditor {
   
   drop(obj) {
     console.log("Dropping "+obj.target);
-    
+    this.editObject(obj, false);
+        
     this.scene.onPointerObservable.remove(obj.clickHandler);
     this.worldManager.removeMyChangeListener( obj.changeListener );
     delete obj.clickHandler;
@@ -360,6 +362,15 @@ export class WorldEditor {
     this.worldManager.changeCallback = null;
     console.log("dropped "+obj.id);
     this.displayButtons(true);
+  }
+  
+  editObject(obj, editing) {
+    if ( editing ) {
+      obj.properties.editing = this.worldManager.VRSPACE.me.id;
+    } else {
+      obj.properties.editing = null;
+    }
+    this.worldManager.VRSPACE.sendEvent(object, {properties: obj.properties.editing} );
   }
 
   search(text, args) {
