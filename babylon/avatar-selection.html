@@ -75,7 +75,7 @@ import("./avatar-selection.js").then( (module) =>{
 
   nameInput.addEventListener('change', (e)=>{
     checkValidName(e.target.value);
-    loginButton.disabled=false;
+    //loginButton.disabled=false;
   });
 
   document.getElementById('chatBox').style.display = 'none';
@@ -166,7 +166,7 @@ function debugOnOff() {
 <div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
   <label id="namelabel" for="nickname">Name:</label>
   <input id="nickname" type="text">
-  <button id="loginButton" disabled>Login</button>
+  <button id="loginButton">Login</button>
 </div>
 
 <div id="chatBox" style="position:absolute;bottom:50px;left:15%">
