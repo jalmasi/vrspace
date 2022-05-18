@@ -381,6 +381,9 @@ export class WorldManager {
       if ( obj.scale ) {
         this.changeObject( obj, {scale: {x:obj.scale.x, y:obj.scale.y, z:obj.scale.z}});
       }
+      if ( obj.rotation ) {
+        this.changeObject( obj, {rotation: {x:obj.rotation.x, y:obj.rotation.y, z:obj.rotation.z}});
+      }
 
       // add listener to process changes
       obj.addListener((obj, changes) => this.changeObject(obj, changes));
