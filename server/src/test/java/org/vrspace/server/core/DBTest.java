@@ -571,4 +571,49 @@ public class DBTest {
       }
     }
   }
+
+  @Test
+  @Transactional
+  public void testOwned() {
+    // client owns an object:
+    Client c1 = new Client();
+    c1 = repo.save(c1);
+    VRObject o1 = new VRObject();
+    o1.setPosition(new Point(1, 2, 3));
+    o1.setScale(new Point(4, 5, 6));
+    o1.setRotation(new Rotation(7, 8, 9, 0));
+    c1.addOwned(o1);
+    c1 = repo.save(c1);
+    System.err.println(c1);
+    System.err.println(o1);
+
+    // confirm owned object persist along with client:
+    Client result = repo.getClient(c1.getId());
+    System.err.println(result);
+    VRObject owned = result.getOwned().iterator().next();
+    System.err.println(owned);
+    assertEquals(o1, owned);
+    assertEquals(o1.getPosition(), owned.getPosition());
+    assertEquals(o1.getRotation(), owned.getRotation());
+    assertEquals(o1.getScale(), owned.getScale());
+
+    // change the object:
+    o1.getPosition().setX(11);
+    o1.setScale(new Point(1, 1, 1));
+    o1.getRotation().setAngle(1);
+    o1 = repo.save(o1);
+    System.err.println(o1);
+
+    result.addOwned(o1);
+    // note that old result contains old copy of old object
+    System.err.println(result);
+    // ensure the the changes took:
+    Client newResult = repo.getClient(c1.getId());
+    System.err.println(newResult);
+    VRObject newOwned = newResult.getOwned().iterator().next();
+    assertEquals(o1, newOwned);
+    assertEquals(o1.getPosition(), newOwned.getPosition());
+    assertEquals(o1.getRotation(), newOwned.getRotation());
+    assertEquals(o1.getScale(), newOwned.getScale());
+  }
 }
