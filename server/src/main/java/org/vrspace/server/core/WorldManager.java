@@ -149,7 +149,7 @@ public class WorldManager {
       if (cached != null) {
         return cached;
       } else {
-        db.get(o.getClass(), o.getId());
+        o = db.get(o.getClass(), o.getId());
         cache.put(id, o);
         return o;
       }
