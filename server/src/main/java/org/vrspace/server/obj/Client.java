@@ -1,12 +1,9 @@
 package org.vrspace.server.obj;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
@@ -26,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@ToString(callSuper = false)
+@ToString(callSuper = true)
 @Node
 @Owned
 @Slf4j
@@ -43,10 +40,6 @@ public class Client extends VRObject {
   transient private Quaternion rightArmRot;
   @Transient
   transient private Double userHeight;
-
-  @JsonIgnore
-  @Relationship(type = "OWNS", direction = Relationship.Direction.OUTGOING)
-  private Set<VRObject> owned;
 
   @Private
   @Transient
@@ -141,27 +134,6 @@ public class Client extends VRObject {
       log.error("Can't send message " + obj, e);
     }
 
-  }
-
-  public void addOwned(VRObject... objects) {
-    if (owned == null) {
-      owned = new HashSet<VRObject>();
-    }
-    for (VRObject obj : objects) {
-      owned.add(obj);
-    }
-  }
-
-  public void removeOwned(VRObject... objects) {
-    if (owned != null) {
-      for (VRObject obj : objects) {
-        owned.remove(obj);
-      }
-    }
-  }
-
-  public boolean isOwner(VRObject obj) {
-    return this.equals(obj) || owned != null && obj != null && owned.contains(obj);
   }
 
 }

@@ -80,7 +80,10 @@ public class NeoConfig {
     graphDb.executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS ON (c:Client) ASSERT c.name IS UNIQUE");
     graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.world)");
     graphDb.executeTransactionally("CREATE INDEX pointCoord IF NOT EXISTS FOR (p:Point) ON (p.x, p.y, p.z)");
-
+    // only single property uniqueness constraints are supported
+    // "CREATE CONSTRAINT ownership IF NOT EXISTS on (o:Ownership) ASSERT
+    // (o.owner,o.owned) IS UNIQUE");
+    graphDb.executeTransactionally("CREATE INDEX ownership IF NOT EXISTS FOR (o:Ownership) ON (o.owner,o.owned)");
   }
 
   @PreDestroy

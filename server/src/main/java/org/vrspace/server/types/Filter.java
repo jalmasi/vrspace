@@ -12,14 +12,6 @@ public interface Filter extends Function<VRObject, Boolean> {
     return o -> o.isActive();
   }
 
-  static Filter isOwned(Client c) {
-    return o -> c.isOwner(o);
-  }
-
-  static Filter isActiveOrOwned(Client c) {
-    return o -> o.isActive() || c.isOwner(o);
-  }
-
   static Filter removeOfflineClients() {
     return o -> !(o instanceof Client) || ((Client) o).isActive();
   }

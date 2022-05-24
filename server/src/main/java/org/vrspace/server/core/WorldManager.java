@@ -25,6 +25,7 @@ import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
+import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
@@ -174,7 +175,8 @@ public class WorldManager {
         o.setTemporary(true);
       }
       o = db.save(o);
-      client.addOwned(o);
+      Ownership ownership = new Ownership(client, o);
+      db.save(ownership);
       cache.put(o.getObjectId(), o);
       return o;
     }).collect(Collectors.toList());
@@ -183,11 +185,12 @@ public class WorldManager {
   }
 
   public void remove(Client client, VRObject obj) {
+    Ownership own = db.getOwnership(client.getId(), obj.getId());
     // CHECKME: remove invisible objects?
-    if (!client.isOwner(obj)) {
+    if (own == null) {
       throw new SecurityException("Not yours to remove: " + obj.getClass().getSimpleName() + " " + obj.getId());
     }
-    client.removeOwned(obj);
+    db.delete(own);
     db.save(client);
     delete(client, obj);
   }
@@ -329,11 +332,13 @@ public class WorldManager {
     exit(client);
     // delete guest client
     if (client.isGuest()) {
-      if (client.getOwned() != null) {
-        for (VRObject owned : client.getOwned()) {
-          if (owned.isTemporary()) {
-            delete(client, owned);
-            log.debug("Deleted owned temporary " + owned.getObjectId());
+      List<Ownership> owned = db.getOwned(client.getId());
+      if (owned != null) {
+        for (Ownership ownership : owned) {
+          if (ownership.getOwned().isTemporary()) {
+            delete(client, ownership.getOwned());
+            db.delete(ownership);
+            log.debug("Deleted owned temporary " + ownership.getOwned().getObjectId());
           }
         }
       }
@@ -397,6 +402,8 @@ public class WorldManager {
           event.setSource(obj);
         }
       }
+      Ownership ownership = db.getOwnership(client.getId(), event.getSource().getId());
+      event.setOwnership(ownership);
       dispatcher.dispatch(event);
       client.getWriteBack().write(event.getSource());
     }

@@ -58,7 +58,7 @@ public class Dispatcher {
     VRObject source = event.getSource();
 
     // ownership check
-    if (!event.getClient().isOwner(source)) {
+    if (!event.isOwner()) {
       if (source.getClass().isAnnotationPresent(Owned.class)) {
         throw new SecurityException("Cannot change owned object'");
       } else {

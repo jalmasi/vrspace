@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.ID;
 
@@ -40,6 +41,8 @@ public class VREvent {
   private Client client;
   @JsonIgnore
   private String payload;
+  @JsonIgnore
+  private Ownership ownership;
 
   public VREvent(VRObject source, Client client) {
     this(source);
@@ -80,6 +83,12 @@ public class VREvent {
   @JsonIgnore
   public boolean sourceIs(VRObject obj) {
     return getSourceId().equals(obj.getId()) && getSourceClassName().equals(obj.getClass().getSimpleName());
+  }
+
+  @JsonIgnore
+  public boolean isOwner() {
+    return this.getSource().equals(this.getClient()) || ownership != null && this.getSource() != null
+        && ownership.getOwned().equals(this.getSource()) && ownership.getOwner().equals(this.getClient());
   }
 
 }

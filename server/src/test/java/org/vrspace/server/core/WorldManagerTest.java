@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,6 +27,7 @@ import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
@@ -50,6 +51,9 @@ public class WorldManagerTest {
   @InjectMocks
   WorldManager worldManager;
 
+  List<Ownership> owned = new ArrayList<>();
+  long id = 0;
+
   @BeforeEach
   public void setUp() {
     worldManager.config = config;
@@ -59,7 +63,18 @@ public class WorldManagerTest {
     World world = new World("test");
     world.setId(0L);
     lenient().when(repo.save(any(World.class))).thenReturn(world);
-    lenient().when(repo.save(any(VRObject.class))).then(returnsFirstArg());
+    lenient().when(repo.save(any(VRObject.class))).then(i -> {
+      VRObject o = i.getArgument(0, VRObject.class);
+      if (o.getId() == null) {
+        o.setId(id++);
+      }
+      return o;
+    });
+    lenient().when(repo.save(any(Ownership.class))).then(i -> {
+      owned.add(i.getArgument(0, Ownership.class));
+      return i.getArgument(0, Ownership.class);
+    });
+    lenient().when(repo.getOwned(anyLong())).thenReturn(owned);
     // doNothing().when(repo).delete(any(VRObject.class));
   }
 
