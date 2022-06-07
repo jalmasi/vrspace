@@ -45,6 +45,26 @@ public class BotLibre extends Bot {
     /** conversation id, initially empty, returned with each bots answer */
     private String conversation;
     private String message;
+    /**
+     * emotion to tag the message with. This is one of LOVE, LIKE, DISLIKE, HATE,
+     * RAGE, ANGER, CALM, SERENE, ECSTATIC, HAPPY, SAD, CRYING, PANIC, AFRAID,
+     * CONFIDENT, COURAGEOUS, SURPRISE, BORED, LAUGHTER, SERIOUS.
+     */
+    private String emote;
+    /**
+     * boolean that defines the chat message is a correction to the bot's last
+     * answer.
+     */
+    private boolean correction;
+    /*
+     * boolean that defines the bot's last answer as offensive. The message will be
+     * flagged for the bot's administrator to review.
+     */
+    private boolean offensive;
+    /* boolean that defines the end of the conversation. */
+    private boolean disconnect;
+    /* boolean that indicates the question should be included in the response. */
+    private boolean includeQuestion;
   }
 
   @Data
@@ -52,6 +72,7 @@ public class BotLibre extends Bot {
   public static class Response {
     private String message;
     private String conversation;
+    /** Explained in query class. Default emote in response seems to be NONE */
     private String emote;
     private String avatar;
     private String avatarType;
