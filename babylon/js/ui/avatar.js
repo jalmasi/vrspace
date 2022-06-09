@@ -512,7 +512,7 @@ export class Avatar {
     var head = this.skeleton.bones[this.body.head];
     //head.computeAbsoluteTransforms();
     //head.getTransformNode().computeWorldMatrix(true);
-    this.scene.render(); // FIXME workaround
+    //this.scene.render(); // FIXME workaround
     console.log("Head at "+head.getAbsolutePosition()+" tran "+head.getTransformNode().getAbsolutePosition()+" root "+this.rootMesh.getAbsolutePosition(), head);
     //var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).add(this.rootMesh.position);
     //var headPos = head.getTransformNode().getAbsolutePosition().subtract(this.rootMesh.getAbsolutePosition());
