@@ -64,9 +64,8 @@ export class Avatar {
     //this.cache = 'no-cache';
 
     /** Debug output, default false */
-    this.debug = false;
-    this.debugViewer1;
-    this.debugViewer2;
+    this.debug = true;
+    this.viewers = [];
   }
 
   createBody() {
@@ -165,12 +164,9 @@ export class Avatar {
       //delete this.character.avatar;
       //this.character.dispose();
     }
-    if ( this.debugViewer1 ) {
-      this.debugViewer1.dispose();
-    }
-    if ( this.debugViewer2 ) {
-      this.debugViewer2.dispose();
-    }
+
+    for (let i=0; i<this.viewers.length; i++) this.viewers[i].dispose();
+
     if ( this.nameTag ) {
       this.nameTag.dispose();
     }
@@ -261,16 +257,9 @@ export class Avatar {
 
         this.body.processed = true;
 
-        if ( this.debugViewier1 || this.debugViewer2 ) {
-          this.scene.registerBeforeRender(() => {
-              if (this.debugViewer1) {
-                this.debugViewer1.update();
-              }
-              if (this.debugViewer2) {
-                this.debugViewer2.update();
-              }
-          });
-        }
+        this.scene.registerBeforeRender(() => {
+          for (let i=0; i<this.viewers.length; i++) this.viewers[i].update();
+        });
       } else {
         console.log("NOT an avatar - no skeletons");
       }
@@ -279,13 +268,115 @@ export class Avatar {
 
       this.parentMesh = container.createRootMesh();
       this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
+      console.log("ParentMesh: " + this.parentMesh.name);
       container.avatar = this;
+      this.skeleton.prepare();
+      if (this.detectTransformed(this.rootMesh))
+      {
+        console.log("Detected PROBLEMATIC model...");
+        console.log(this.body.head);
+        console.log(this.body.spine);
+        let diff = this.skeleton.bones[this.body.head].getAbsolutePosition().subtract(this.skeleton.bones[this.body.spine[0]].getAbsolutePosition());
+        if (Math.abs(diff.z) > Math.abs(diff.y))
+        {
+          console.log("ROOT NEEDS ROTATION");
+          this.parentMesh.rotate(BABYLON.Axis.X, Math.PI/2);
+        }
+        else
+        {
+          console.log("ROOT DOES NOT NEED ROTATION");
+        }
+        this.applyTransforms(this.rootMesh);
+      }
+      else
+      {
+        console.log("Detected NORMAL model...");
+      }
 
       console.log("Avatar loaded: "+this.name);
       if ( onSuccess ) {
         onSuccess(this);
       }
   }
+
+
+  detectTransformed(mesh)
+  {
+    let res = false;
+
+    if (mesh.skeleton)
+    {
+      let min = new BABYLON.Vector3(99999, 99999, 99999);
+      let max = new BABYLON.Vector3(-99999, -99999, -99999);
+      for (let i=0; i<mesh.skeleton.bones.length; i++)
+      {
+        let pos = mesh.skeleton.bones[i].getAbsolutePosition();
+
+        if (pos.x > max.x) max.x = pos.x;
+        if (pos.y > max.y) max.y = pos.y;
+        if (pos.z > max.z) max.z = pos.z;
+
+        if (pos.x < min.x) min.x = pos.x;
+        if (pos.y < min.y) min.y = pos.y;
+        if (pos.z < min.z) min.z = pos.z;
+      }
+
+      if (max.z > max.y)
+      {
+        // found a problematic model, most probably...
+        res = true;
+      }
+    }
+    else
+    {
+      for (let i=0; i<mesh.getChildren().length; i++)
+      {
+        res = this.detectTransformed(mesh.getChildren()[i]);
+        if (res) return res;
+      }
+    }
+
+    return res;
+  }
+
+
+  applyTransforms(mesh)
+  {
+    if (mesh.Vertices)
+    {
+      mesh.bakeCurrentTransformIntoVertices();
+      mesh.setScale(1, 1, 1);
+    }
+
+    if (mesh.name.includes("Root") && mesh.rotationQuaternion)
+    {
+      console.log("Applying transforms to " + mesh.name);
+      mesh.rotationQuaternion.set(0, 0, 0, 1);
+    }
+    else
+    {
+      //console.log("Skipping " + mesh.name);
+
+      // ### this is ignored by bjs
+      if (mesh.skeleton)
+      {
+        //console.log("Checking bones...");
+        //for (let i=0; i<mesh.skeleton.bones.length; i++)
+        //{
+        //  let pos = mesh.skeleton.bones[i].getPosition();
+        //  pos.scaleInPlace(100);
+        //  mesh.skeleton.bones[i].position.copyFrom(pos);
+        //  //mesh.skeleton.bones[i].rotate(BABYLON.Axis.X, -Math.PI/2);
+        //}
+      }
+    }
+
+    for (let i=0; i<mesh.getChildren().length; i++)
+    {
+      this.applyTransforms(mesh.getChildren()[i]);
+    }
+  }
+
 
   /**
   Apply fixes after loading/instantiation
@@ -1039,8 +1130,6 @@ export class Avatar {
     //this.body.rightArm.frontAxis = this.guessRotation(rightUpperArm, BABYLON.Axis.Z);
     this.body.rightArm.frontAxis = this.guessRotation(rightUpperArm, BABYLON.Axis.Z, this.body.leftArm.frontAxis.axis);
 
-    //this.debugViewer1 = new BABYLON.Debug.BoneAxesViewer(scene, leftUpperArm, this.rootMesh);
-
     this.log("Left arm axis, side: "+this.body.leftArm.sideAxis.sign + this.body.leftArm.sideAxis.axis);
     this.log("Left arm axis, front: "+this.body.leftArm.frontAxis.sign + this.body.leftArm.frontAxis.axis);
     this.log("Right arm axis, side: "+this.body.rightArm.sideAxis.sign + this.body.rightArm.sideAxis.axis);
@@ -1060,9 +1149,6 @@ export class Avatar {
     var rightUpperLeg = this.skeleton.bones[this.body.rightLeg.upper];
     var rightLowerLeg = this.skeleton.bones[this.body.rightLeg.lower];
 
-    //this.debugViewer1 = new BABYLON.Debug.BoneAxesViewer(scene, leftUpperLeg, this.rootMesh);
-    //this.debugViewer2 = new BABYLON.Debug.BoneAxesViewer(scene, leftLowerLeg, this.rootMesh);
-
     this.body.leftLeg.frontAxis = this.guessRotation(leftUpperLeg, BABYLON.Axis.Z);
     this.body.rightLeg.frontAxis = this.guessRotation(rightUpperLeg, BABYLON.Axis.Z, this.body.leftLeg.frontAxis.axis);
 
@@ -1076,6 +1162,7 @@ export class Avatar {
   }
 
   guessRotation(bone, maxAxis, rotationAxis) {
+    this.viewers.push(new BABYLON.BoneAxesViewer(scene, bone, this.rootMesh, 0.3));
     var axes = [BABYLON.Axis.X,BABYLON.Axis.Y,BABYLON.Axis.Z];
     if ( rotationAxis ) {
       axes = [ rotationAxis ];
@@ -1096,6 +1183,7 @@ export class Avatar {
       }
     }
     //this.log("Got it: "+axis+" "+angle+" - "+max);
+    console.log(this.viewers.length + " BoneAxesViewers added");
     return {axis:axis,sign:Math.sign(angle)};
   }
 
@@ -1601,5 +1689,5 @@ export class Avatar {
     this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
     this.writer.writeArray(this.parentMesh, text);
   }
-  
 }
+  

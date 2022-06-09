@@ -226,6 +226,7 @@ thanks folks!
 
     world.init(engine, 'avatar').then((s) => {
       scene = s;
+      scene.debugLayer.show();
       world.createSelection((avatar)=>{
         console.log("Selected avatar: "+avatar.getUrl());
         checkValidName(world.getMyName());
