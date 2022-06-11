@@ -507,12 +507,15 @@ export class Avatar {
     });
   }
 
+  /** Returns head 'bone' */
+  head() {
+    return this.skeleton.bones[this.body.head];
+  }
   /** Returns position of the the head 'bone' */
   headPos() {
-    var head = this.skeleton.bones[this.body.head];
-    head.getTransformNode().computeWorldMatrix(true);
-    //console.log("Head at "+head.getAbsolutePosition()+" tran "+head.getTransformNode().getAbsolutePosition()+" root "+this.rootMesh.getAbsolutePosition(), head);
-    var headPos = head.getTransformNode().getAbsolutePosition();
+    // FIXME this is way suboptimal as it forces computation
+    this.head().getTransformNode().computeWorldMatrix(true);
+    var headPos = this.head().getTransformNode().getAbsolutePosition();
     return headPos;
   }
 
@@ -1562,7 +1565,6 @@ export class Avatar {
   */
   async setName(name) {
     this.writer.clear(this.parentMesh);
-    //this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4,0));
     this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
     this.writer.write(this.parentMesh, name);
     this.name = name;
@@ -1593,7 +1595,6 @@ export class Avatar {
     console.log(text);
     
     this.writer.clear(this.parentMesh);
-    //this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4+.2*(text.length-1),0));
     this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
     this.writer.writeArray(this.parentMesh, text);
   }
