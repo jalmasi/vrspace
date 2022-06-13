@@ -561,8 +561,8 @@ export class Avatar {
     target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(totalRot),target);
 
     // CHECKME: exact calculus?
-    //var targetVector = target.subtract(this.headPos()).add(totalPos);
-    var targetVector = target.subtract(this.headPos());
+    var targetVector = target.subtract(this.headPos()).add(totalPos);
+    //var targetVector = target.subtract(this.headPos());
     if ( this.headAxisFix == -1 ) {
       // FIX: neck and head opposite orientation
       // businessman, robot, adventurer, unreal male
