@@ -603,19 +603,33 @@ export class Avatar {
   @param t target position
    */
   reachFor( arm, t ) {
+    // this can be used as argument for bone getAbsolutePosition() with unknown purpose
+    var rootBoneTransform = this.skeleton.bones[0].getTransformNode();
 
     var upperArm = this.skeleton.bones[arm.upper];
     var lowerArm = this.skeleton.bones[arm.lower];
 
     var scaling = this.rootMesh.scaling.x;
 
+    console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
     var totalRot = this.parentMesh.rotationQuaternion.multiply(this.rootMesh.rotationQuaternion);
-    // current values
-    var armPos = upperArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
-    var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
-
     var rootQuatInv = BABYLON.Quaternion.Inverse(totalRot);
+    
+    // current values
+    // {X: 0.1751229093843536 Y: 1.6291742177001083 Z: -0.03606258881607194}
+    //var armPos = upperArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
+    // {X: -0.1751229166984558 Y: 1.6363257910392377 Z: 0.036062587052583694}
+    var armPos = upperArm.getAbsolutePosition(rootBoneTransform).subtract(totalPos);
+    // {X: -0.1751229166984558 Y: 1.6363260294578168 Z: 0.03606260195374489}
+    //var armPos = upperArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
+    armPos.rotateByQuaternionToRef(rootQuatInv,armPos);
+    console.log("Arm pos: "+armPos+" "+upperArm.getAbsolutePosition().scale(scaling).subtract(totalPos));
+    //var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
+    var elbowPos = lowerArm.getAbsolutePosition(rootBoneTransform).subtract(totalPos);
+    //var elbowPos = lowerArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
+    elbowPos.rotateByQuaternionToRef(rootQuatInv,elbowPos);
+
 
     // set or get initial values
     if ( arm.upperQuat ) {
@@ -635,6 +649,8 @@ export class Avatar {
       armVector.rotateByQuaternionToRef(worldQuatInv,armVector);
       arm.armVector = armVector;
     }
+    
+    console.log("World quat:"+worldQuat);
 
     // calc target pos in coordinate system of character
     var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
@@ -642,9 +658,12 @@ export class Avatar {
     target.rotateByQuaternionToRef(rootQuatInv,target);
 
     // calc target vectors in local coordinate system of the arm
-    var targetVector = target.subtract(armPos).subtract(totalPos);
+    var targetVector = target.subtract(armPos);
     targetVector.rotateByQuaternionToRef(worldQuatInv,targetVector);
 
+    console.log("arm vector: "+armVector);
+    console.log("target vector: "+targetVector);
+    
     if ( arm.pointerQuat ) {
 
       // vector pointing down in local space:
@@ -874,6 +893,7 @@ export class Avatar {
    */
   standUp() {
     this.jump(0);
+    this.rootMesh.computeWorldMatrix(true); // CHECKME
     this.bendLeg( this.body.leftLeg, 10 );
     this.bendLeg( this.body.rightLeg, 10 );
   }
@@ -920,6 +940,7 @@ export class Avatar {
     this.bendLeg( this.body.rightLeg, length );
 
     this.rootMesh.position.y -= height;
+    this.rootMesh.computeWorldMatrix(true); // CHECKME
     this.changed();
   }
 
@@ -1108,7 +1129,7 @@ export class Avatar {
     var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
     bone.setRotationQuaternion(quat.multiply(rotated));
     //this.scene.render(); // doesn't work in XR
-    //bone.computeWorldMatrix(true); // not required
+    bone.computeWorldMatrix(true); // not required
     bone.computeAbsoluteTransforms();
     var newPos = target.getAbsolutePosition();
     //var newPos = target.getTransformNode().getAbsolutePosition();
@@ -1469,7 +1490,7 @@ export class Avatar {
       if ( !this.animationTargets.includes(targeted[j].target.name) ) {
         this.animationTargets.push(targeted[j].target.name);
         if ( ! this.bonesProcessed.includes(targeted[j].target.name) ) {
-          this.log("Missing target "+targeted[j].target.name);
+          //this.log("Missing target "+targeted[j].target.name);
         }
       }
       var keys = targeted[j].animation.getKeys();
