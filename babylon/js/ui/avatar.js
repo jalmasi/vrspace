@@ -35,7 +35,7 @@ export class Avatar {
     /** Object containing fixes */
     this.fixes = null;
     /** Wheter to generate animations for arm movement, default true */
-    this.animateArms = true;
+    this.animateArms = false;
     /** Return to rest after cloning, default true (otherwise keeps the pose)*/
     this.returnToRest = true;
     /** GLTF characters are facing the user when loaded, turn it around, default false*/
@@ -630,7 +630,6 @@ export class Avatar {
     //var elbowPos = lowerArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
     elbowPos.rotateByQuaternionToRef(rootQuatInv,elbowPos);
 
-
     // set or get initial values
     if ( arm.upperQuat ) {
       var upperQuat = arm.upperQuat;
@@ -638,15 +637,25 @@ export class Avatar {
       var worldQuat = arm.worldQuat;
       var worldQuatInv = arm.worldQuatInv;
     } else {
-      var worldQuat = BABYLON.Quaternion.FromRotationMatrix(upperArm.getWorldMatrix().getRotationMatrix());
-      arm.worldQuat = worldQuat;
+      //var matrix = upperArm.getRotationMatrix(BABYLON.Space.WORLD);
+      //var matrix = upperArm.getWorldMatrix().getRotationMatrix();
+      //var matrix = upperArm.getTransformNode().getWorldMatrix().getRotationMatrix();
+      //var worldQuat = BABYLON.Quaternion.FromRotationMatrix(matrix);
+      var worldQuat = upperArm.getRotationQuaternion(BABYLON.Space.WORLD);
+      //var worldQuat = upperArm.getTransformNode().rotationQuaternion;
+      //var worldQuat = upperArm.rotationQuaternion.clone();
+      arm.worldQuat = worldQuat.clone();
       this.log("Arm angles: "+worldQuat.toEulerAngles());
       var worldQuatInv = BABYLON.Quaternion.Inverse(worldQuat);
       arm.worldQuatInv = worldQuatInv;
-      var upperQuat = upperArm.getRotationQuaternion();
-      arm.upperQuat = upperQuat;
+      //var upperQuat = upperArm.getRotationQuaternion(BABYLON.Space.BONE);
+      //var upperQuat = upperArm.getTransformNode().rotationQuaternion;
+      var upperQuat = upperArm.rotationQuaternion;
+      arm.upperQuat = upperQuat.clone();
       var armVector = elbowPos.subtract(armPos);
+      console.log("Arm vector: "+armVector);
       armVector.rotateByQuaternionToRef(worldQuatInv,armVector);
+      console.log("Arm vector rotated: "+armVector);
       arm.armVector = armVector;
     }
     
@@ -721,7 +730,7 @@ export class Avatar {
 
     // then bend arm
     var length = targetVector.length();
-    var bent = this.bendArm(arm, length);
+    //var bent = this.bendArm(arm, length);
 
     this.renderArmRotation(arm);
     return quat;
