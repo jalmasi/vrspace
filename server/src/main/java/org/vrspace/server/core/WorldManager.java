@@ -399,9 +399,9 @@ public class WorldManager {
       }
       dispatcher.dispatch(event);
       client.getWriteBack().write(event.getSource());
-    }
-    if (scene != null) {
-      scene.update();
+      if (scene != null) {
+        scene.update();
+      }
     }
   }
 
