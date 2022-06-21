@@ -89,14 +89,14 @@ export class WorldManager {
 
   /** Publish and subscribe */
   pubSub( client, autoPublishVideo ) {
-    this.log("Subscribing as client "+client.id+" with token "+client.token);
-    if ( client.token && this.mediaStreams ) {
+    this.log("Subscribing as client "+client.id+" with token "+client.tokens.OpenVidu);
+    if ( client.tokens.OpenVidu && this.mediaStreams ) {
       // obtain token and start pub/sub voices
       if ( autoPublishVideo ) {
         this.mediaStreams.startVideo = true;
         this.mediaStreams.videoSource = undefined;
       }
-      this.mediaStreams.connect(client.token).then(() => this.mediaStreams.publish());
+      this.mediaStreams.connect(client.tokens.OpenVidu).then(() => this.mediaStreams.publish());
     }
   }
 

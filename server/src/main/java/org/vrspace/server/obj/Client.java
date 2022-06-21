@@ -15,17 +15,15 @@ import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WriteBack;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
+import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.types.Owned;
 import org.vrspace.server.types.Private;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,12 +55,8 @@ public class Client extends VRObject {
   @Transient
   transient private SceneProperties sceneProperties;
 
-  // CHECKME OpenVidu token; should that be Map tokens?
   @Private
   @Transient
-  @JsonIgnore
-  @Getter(value = AccessLevel.NONE)
-  @Setter(value = AccessLevel.NONE)
   transient private Map<String, String> tokens = new HashMap<>();
 
   @JsonIgnore
@@ -82,6 +76,13 @@ public class Client extends VRObject {
   @JsonIgnore
   @Transient
   transient private ObjectMapper mapper;
+  /**
+   * private mapper even serializes private fields (so that client can receive own
+   * secrets)
+   */
+  @JsonIgnore
+  @Transient
+  transient private ObjectMapper privateMapper;
   @JsonIgnore
   @Transient
   transient private boolean guest;
@@ -143,7 +144,11 @@ public class Client extends VRObject {
   // serialisation optimisation
   public void sendMessage(Object obj) {
     try {
-      send(mapper.writeValueAsString(obj));
+      if (this.equals(obj) || obj instanceof Welcome) {
+        send(privateMapper.writeValueAsString(obj));
+      } else {
+        send(mapper.writeValueAsString(obj));
+      }
     } catch (Exception e) {
       // I don't see how this can happen, but if it does, make sure it's logged
       log.error("Can't send message " + obj, e);
@@ -189,4 +194,5 @@ public class Client extends VRObject {
   public String clearToken(String serviceId) {
     return tokens.remove(serviceId);
   }
+
 }
