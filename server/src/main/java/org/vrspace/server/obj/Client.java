@@ -1,7 +1,9 @@
 package org.vrspace.server.obj;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.annotation.Transient;
@@ -19,8 +21,11 @@ import org.vrspace.server.types.Private;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +60,10 @@ public class Client extends VRObject {
   // CHECKME OpenVidu token; should that be Map tokens?
   @Private
   @Transient
-  transient private String token;
+  @JsonIgnore
+  @Getter(value = AccessLevel.NONE)
+  @Setter(value = AccessLevel.NONE)
+  transient private Map<String, String> tokens = new HashMap<>();
 
   @JsonIgnore
   @Transient
@@ -164,4 +172,21 @@ public class Client extends VRObject {
     return this.equals(obj) || owned != null && obj != null && owned.contains(obj);
   }
 
+  /** Returns token for a given service */
+  public String getToken(String serviceId) {
+    return tokens.get(serviceId);
+  }
+
+  /** Set token for a given service */
+  public void setToken(String serviceId, String value) {
+    if (value == null) {
+      this.clearToken(serviceId);
+    }
+    tokens.put(serviceId, value);
+  }
+
+  /** Remove token for a given service */
+  public String clearToken(String serviceId) {
+    return tokens.remove(serviceId);
+  }
 }

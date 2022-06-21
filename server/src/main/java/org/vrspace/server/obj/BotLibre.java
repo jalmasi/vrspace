@@ -37,9 +37,42 @@ public class BotLibre extends Bot {
 
   @Data
   @NoArgsConstructor
+  public static class Query {
+    /** user id at botlibre.com/biz/local */
+    private String application;
+    /** bot instance */
+    private String instance;
+    /** conversation id, initially empty, returned with each bots answer */
+    private String conversation;
+    private String message;
+    /**
+     * emotion to tag the message with. This is one of LOVE, LIKE, DISLIKE, HATE,
+     * RAGE, ANGER, CALM, SERENE, ECSTATIC, HAPPY, SAD, CRYING, PANIC, AFRAID,
+     * CONFIDENT, COURAGEOUS, SURPRISE, BORED, LAUGHTER, SERIOUS.
+     */
+    private String emote;
+    /**
+     * boolean that defines the chat message is a correction to the bot's last
+     * answer.
+     */
+    private boolean correction;
+    /*
+     * boolean that defines the bot's last answer as offensive. The message will be
+     * flagged for the bot's administrator to review.
+     */
+    private boolean offensive;
+    /* boolean that defines the end of the conversation. */
+    private boolean disconnect;
+    /* boolean that indicates the question should be included in the response. */
+    private boolean includeQuestion;
+  }
+
+  @Data
+  @NoArgsConstructor
   public static class Response {
     private String message;
     private String conversation;
+    /** Explained in query class. Default emote in response seems to be NONE */
     private String emote;
     private String avatar;
     private String avatarType;
@@ -50,7 +83,7 @@ public class BotLibre extends Bot {
 
   @Override
   public void selfTest() throws Exception {
-    ResponseEntity<String> result = sendQuery("hello world");
+    ResponseEntity<String> result = sendQuery(new Client(), "hello world");
     if (result.getStatusCodeValue() == 200) {
       String response = result.getBody();
       log.debug(this + " initial response: " + response);
@@ -70,31 +103,42 @@ public class BotLibre extends Bot {
     } else {
       throw new IllegalStateException("Invalid response content type - size " + contentType.size() + " " + contentType);
     }
-    log.debug(getResponse(null, "hello again"));
+    log.debug(getResponse(new Client(), "hello again"));
 
   }
 
   @Override
-  public String getResponse(Client c, String query) {
+  public String getResponse(Client client, String message) {
     String ret = "";
     try {
-      ResponseEntity<String> result = sendQuery(query);
+      ResponseEntity<String> result = sendQuery(client, message);
       Response response = getMapper().readValue(result.getBody(), Response.class);
       ret = response.getMessage();
+      String conversationId = response.getConversation();
+      client.setToken(serviceId(), conversationId);
     } catch (Exception e) {
-      log.error("Can't get response to: " + query, e);
+      log.error("Can't get response to: " + message, e);
     }
     return ret;
   }
 
-  private ResponseEntity<String> sendQuery(String what) throws Exception {
-    log.debug(this + " request: " + what);
+  private ResponseEntity<String> sendQuery(Client client, String message) throws Exception {
+    Query q = new Query();
+    q.setApplication(getParameter("application"));
+    q.setInstance(getParameter("instance"));
+    q.setConversation(client.getToken(serviceId()));
+    q.setMessage(message);
+
+    log.debug(this + " request: " + q);
     URI uri = new URI(getUrl());
-    String body = "{\"application\":\"" + getParameter("application") + "\", \"instance\":\"" + getParameter("instance")
-        + "\",\"message\":\"" + what + "\"}";
+    String body = getMapper().writeValueAsString(q);
     RequestEntity<String> requestEntity = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(body);
     ResponseEntity<String> result = restTemplate.exchange(requestEntity, String.class);
     log.debug(this + " response: " + result.getBody());
     return result;
+  }
+
+  private String serviceId() {
+    return getObjectId().toString();
   }
 }

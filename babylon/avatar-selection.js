@@ -7,8 +7,11 @@ export class AvatarSelection extends World {
     this.serverUrl = null;
     /** content base, defaults to VRSPACEUI.contentBase */
     this.contentBase = VRSPACEUI.contentBase;
-    /** background base dir, null defaults to contentBase+"/content/skybox/mp_drakeq/drakeq" */
+    /** background base dir, null defaults to contentBase+"/content/skybox/mp_drakeq/drakeq" (box) 
+    or "/content/skybox/eso_milkyway/eso0932a.jpg" (panoramic)*/
     this.backgroundPath = null;
+    /** Is backgroundPath a panoramic image? Default false (directory containing 6 images) */
+    this.backgroundPanorama = false;
     /** character base dir, null defaults to contentBase+'/content/char/' */
     this.characterPath = null;
     /** world base dir, null defaults to contentBase+'/content/worlds' */
@@ -38,15 +41,26 @@ export class AvatarSelection extends World {
     this.trackDelay = 1000/this.fps;
   }
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
-    skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    if ( this.backgroundPanorama ) {
+      var skybox= new BABYLON.PhotoDome("skyDome", 
+        this.backgroundDir(),
+        {
+          resolution: 32,
+          size: 1000
+        },
+        this.scene
+      );
+    } else {
+      var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
+      skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
+      var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+      skyboxMaterial.backFaceCulling = false;
+      skyboxMaterial.disableLighting = true;
+      skybox.material = skyboxMaterial;
+      skybox.infiniteDistance = true;
+      skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
+      skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    }
     return skybox;
   }
   async createCamera() {
@@ -82,6 +96,9 @@ export class AvatarSelection extends World {
   backgroundDir() {
     if ( this.backgroundPath ) {
       return this.backgroundPath;
+    }
+    if ( this.backgroundPanorama ) {
+      return this.contentBase+"/content/skybox/eso_milkyway/eso0932a.jpg";
     }
     return this.contentBase+"/content/skybox/mp_drakeq/drakeq";
   }
