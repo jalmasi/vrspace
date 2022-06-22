@@ -33,7 +33,7 @@ export class AvatarSelection extends World {
     /** default user height, 1.8 m */
     this.userHeight = 1.8;
     /** enable plenty of debug info */
-    this.debug=true;
+    this.debug=false;
     // state variables
     this.mirror = true;
     this.customAvatarFrame = document.getElementById('customAvatarFrame');

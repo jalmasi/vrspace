@@ -221,8 +221,6 @@ export class Avatar {
       this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
       this.recompute();
 
-      // Adds all elements to the scene
-      container.addAllToScene();
       this.castShadows( this.shadowGenerator );
 
       // try to place feet on the ground
