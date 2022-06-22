@@ -89,8 +89,9 @@ export class WorldManager {
 
   /** Publish and subscribe */
   pubSub( client, autoPublishVideo ) {
-    this.log("Subscribing as client "+client.id+" with token "+client.tokens.OpenVidu);
-    if ( client.tokens.OpenVidu && this.mediaStreams ) {
+    // CHECKME: should it be OpenVidu or general streaming service name?
+    if ( this.mediaStreams && client.tokens && client.tokens.OpenVidu ) {
+      this.log("Subscribing as client "+client.id+" with token "+client.tokens.OpenVidu);
       // obtain token and start pub/sub voices
       if ( autoPublishVideo ) {
         this.mediaStreams.startVideo = true;
