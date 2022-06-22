@@ -92,15 +92,15 @@ export class Portal {
     this.material = new BABYLON.StandardMaterial(this.name+"-noise", this.scene);
     plane.material = this.material;
 
-    this.material.disableLighting = true;
-    this.material.backFaceCulling = false;
-    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
-    this.material.lightmapTexture = noiseTexture;
-    noiseTexture.octaves = 4;
-    noiseTexture.persistence = 1.2;
-    noiseTexture.animationSpeedFactor = 2;
-    plane.visibility = 0.85;
-    this.textures.push( noiseTexture );
+    //this.material.disableLighting = true;
+    //this.material.backFaceCulling = false;
+    //var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
+    //this.material.lightmapTexture = noiseTexture;
+    //noiseTexture.octaves = 4;
+    //noiseTexture.persistence = 1.2;
+    //noiseTexture.animationSpeedFactor = 2;
+    //plane.visibility = 0.85;
+    //this.textures.push( noiseTexture );
 
     this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:1,width:2}, this.scene);
     this.title.parent = this.group;
@@ -117,7 +117,7 @@ export class Portal {
     titleTexture.addControl(this.titleText);
     //this.controls.push(titleText); // CHECKME doesn's seem required
     this.textures.push(titleTexture);
-    
+
     return this;
   }
   showTitle() {
