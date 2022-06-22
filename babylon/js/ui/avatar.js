@@ -1162,7 +1162,6 @@ export class Avatar {
   }
 
   guessRotation(bone, maxAxis, rotationAxis) {
-    this.viewers.push(new BABYLON.BoneAxesViewer(scene, bone, this.rootMesh, 0.3));
     var axes = [BABYLON.Axis.X,BABYLON.Axis.Y,BABYLON.Axis.Z];
     if ( rotationAxis ) {
       axes = [ rotationAxis ];
@@ -1182,8 +1181,6 @@ export class Avatar {
         }
       }
     }
-    //this.log("Got it: "+axis+" "+angle+" - "+max);
-    console.log(this.viewers.length + " BoneAxesViewers added");
     return {axis:axis,sign:Math.sign(angle)};
   }
 
@@ -1192,19 +1189,15 @@ export class Avatar {
     var original = bone.getRotationQuaternion();
     var oldPos = target.getAbsolutePosition();
     //var oldPos = target.getTransformNode().getAbsolutePosition();
-    var rotationMatrix = BABYLON.Matrix.RotationAxis(axis,angle);
-    var quat = bone.rotationQuaternion;
-    var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
-    bone.setRotationQuaternion(quat.multiply(rotated));
-    //this.scene.render(); // doesn't work in XR
-    //bone.computeWorldMatrix(true); // not required
+    bone.rotate(axis, angle, BABYLON.Space.LOCAL);
+    bone.getTransformNode().computeWorldMatrix(true);
     bone.computeAbsoluteTransforms();
     var newPos = target.getAbsolutePosition();
     //var newPos = target.getTransformNode().getAbsolutePosition();
     bone.setRotationQuaternion(original);
+    bone.getTransformNode().computeWorldMatrix(true);
     bone.computeAbsoluteTransforms();
     var ret = newPos.subtract(oldPos);
-    this.log("Tried "+axis+" "+angle+" - "+ret.z+" "+bone.name);
     return ret;
   }
 
