@@ -1181,6 +1181,7 @@ export class Avatar {
         }
       }
     }
+    //this.log("Got it: "+axis+" "+angle+" - "+max);
     return {axis:axis,sign:Math.sign(angle)};
   }
 
@@ -1189,15 +1190,19 @@ export class Avatar {
     var original = bone.getRotationQuaternion();
     var oldPos = target.getAbsolutePosition();
     //var oldPos = target.getTransformNode().getAbsolutePosition();
-    bone.rotate(axis, angle, BABYLON.Space.LOCAL);
-    bone.getTransformNode().computeWorldMatrix(true);
+    var rotationMatrix = BABYLON.Matrix.RotationAxis(axis,angle);
+    var quat = bone.rotationQuaternion;
+    var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
+    bone.setRotationQuaternion(quat.multiply(rotated));
+    //this.scene.render(); // doesn't work in XR
+    //bone.computeWorldMatrix(true); // not required
     bone.computeAbsoluteTransforms();
     var newPos = target.getAbsolutePosition();
     //var newPos = target.getTransformNode().getAbsolutePosition();
     bone.setRotationQuaternion(original);
-    bone.getTransformNode().computeWorldMatrix(true);
     bone.computeAbsoluteTransforms();
     var ret = newPos.subtract(oldPos);
+    this.log("Tried "+axis+" "+angle+" - "+ret.z+" "+bone.name);
     return ret;
   }
 
