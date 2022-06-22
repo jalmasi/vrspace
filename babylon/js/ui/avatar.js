@@ -980,9 +980,9 @@ export class Avatar {
       return;
     }
 
-    if ( this.headPos().y + height > this.initialHeadPos.y ) {
-      height = this.initialHeadPos.y - this.headPos().y;
-    }
+    //if ( this.headPos().y + height > this.initialHeadPos.y ) {
+    //  height = this.initialHeadPos.y - this.headPos().y;
+    //}
     var legLength = (this.body.leftLeg.length + this.body.rightLeg.length)/2;
     var length = legLength+height;
     this.bendLeg( this.body.leftLeg, length );
