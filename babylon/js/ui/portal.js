@@ -92,8 +92,8 @@ export class Portal {
     this.material = new BABYLON.StandardMaterial(this.name+"-noise", this.scene);
     plane.material = this.material;
 
-    //this.material.disableLighting = true;
-    //this.material.backFaceCulling = false;
+    this.material.disableLighting = true;
+    this.material.backFaceCulling = false;
     //var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
     //this.material.lightmapTexture = noiseTexture;
     //noiseTexture.octaves = 4;
