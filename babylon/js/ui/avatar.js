@@ -956,6 +956,7 @@ export class Avatar {
    */
   jump( height ) {
     this.rootMesh.position.y = this.groundHeight + height;
+    this.recompute();
     this.changed();
   }
 
