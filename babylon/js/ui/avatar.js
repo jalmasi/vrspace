@@ -54,7 +54,6 @@ export class Avatar {
     this.bonesTotal = 0;
     this.bonesProcessed = [];
     this.bonesDepth = 0;
-    this.animationTargets = [];
     this.character = null;
     this.activeAnimation = null;
     this.writer = new TextWriter(this.scene);
@@ -201,7 +200,15 @@ export class Avatar {
       
       var meshes = container.meshes;
       this.rootMesh = meshes[0];
-      this.animationTargets = [];
+      
+      // ReadyPlayerMe avatar:
+      for ( var i = 0; i < meshes.length; i++ ) {
+        if ( meshes[i].name == 'Wolf3D_Avatar' ) {
+          console.log('RPM avatar detected at '+i);
+          break;
+        }
+      }
+      
       if ( this.turnAround ) {
         // GLTF characters are facing the user when loaded, turn it around
         this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
@@ -210,8 +217,6 @@ export class Avatar {
       if (container.animationGroups && container.animationGroups.length > 0) {
         container.animationGroups[0].stop();
       }
-
-      this.animationTargets.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
 
       var bbox = this.rootMesh.getHierarchyBoundingVectors();
       this.log("Bounding box:");
@@ -1461,25 +1466,111 @@ export class Avatar {
     }
   }
 
-  // unused, use only for debugging characters
-  processAnimations(targeted) {
-    var frames = [];
-    for ( var j = 0; j < targeted.length; j++ ) {
-      //this.log("animation: "+animations[j].animation.name+" target: "+animations[i].target.name);
-      if ( !this.animationTargets.includes(targeted[j].target.name) ) {
-        this.animationTargets.push(targeted[j].target.name);
-        if ( ! this.bonesProcessed.includes(targeted[j].target.name) ) {
-          this.log("Missing target "+targeted[j].target.name);
-        }
+  /**
+  Load an animation group from an url
+   */
+  loadAnimations( url ) {
+    fetch(url).then( response => response.json().then( group => {
+      this.attachAnimations(group);
+    }) );
+  }
+  
+  /**
+  Create an animation group from given object and attach it to the character
+   */
+  attachAnimations( group ) {
+    console.log("Animation group:"+group.name, group);
+    var animationGroup = new BABYLON.AnimationGroup(group.name, this.scene);
+    group.animations.forEach( a => {
+      // CHECKME: fps
+      var animation = new BABYLON.Animation( a.animationName, a.propertyName, this.fps, a.dataType);
+      var bone = this.skeleton.getBoneIndexByName(a.targetName);
+      if ( bone ) {
+        var target = this.skeleton.bones[bone].getTransformNode();
+      } else {
+        console.log("Missing target "+a.targetName);
+        return;
       }
-      var keys = targeted[j].animation.getKeys();
-      for ( var i = 0; i < keys.length; i++ ) {
-        // square complexity
-        if ( ! frames.includes(keys[i].frame) ) {
-          frames.push( keys[i].frame );
-        }
+      var keys = [];
+      if ( a.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3 ) {
+        a.keys.forEach( key => {
+          var k = {frame: key.frame, value:new BABYLON.Vector3(key.x, key.y, key.z)};
+          if ( key.interpolation ) {
+            k.interpolation = key.interpolation;
+          }
+          keys.push( k );
+        });
+      } else if ( a.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION ) {
+        a.keys.forEach( key => {
+          keys.push( {frame: key.frame, value:new BABYLON.Quaternion(key.x, key.y, key.z, key.w)} );
+        });
+      } else {
+        // ERROR
+      }
+      animation.setKeys(keys);
+      animationGroup.addTargetedAnimation(animation, target);
+    });
+    console.log(animationGroup);
+    this.getAnimationGroups().push(animationGroup);
+  }
+  
+  /**
+  Saves all animations in given animation group.
+  Opens save file dialog.
+   */
+  saveAnimations(groupName) {
+    for ( i = 0; i < this.character.animationGroups.length; i++ ) {
+      var animationGroup = this.character.animationGroups[i];
+      if ( animationGroup.name === groupName ) {
+        var group = this.processAnimations(animationGroup);
+        var json = JSON.stringify(group);
+        //this.attachAnimations(group); //test
+        VRSPACEUI.saveFile(animationGroup.name+'.json', json);
+        return;
       }
     }
+    console.log("No such animation group:"+groupName);
+  }
+  
+  /**
+  Processes all animation in an animation group.
+  @returns object suitable for saving
+   */
+  processAnimations(animationGroup) {
+    var group = {
+      name: animationGroup.name,
+      animations: []
+    };
+    animationGroup.targetedAnimations.forEach( ta => {
+      //console.log("animation: "+ta.animation.name+" target: "+ta.target.name+" type "+ta.animation.dataType+" property "+ta.animation.targetProperty);
+      var animation = {
+        animationName:ta.animation.name,
+        targetName:ta.target.name,
+        propertyName: ta.animation.targetProperty,
+        dataType: ta.animation.dataType,
+        keys: []
+      };
+      var keys = ta.animation.getKeys();
+      // position, rotation, scaling
+      if ( ta.animation.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3 ) {
+        keys.forEach( key => {
+          var k = {frame:key.frame, value:{x:key.value.x, y:key.value.y, z:key.value.z}};
+          if ( key.interpolation ) {
+            k.interpolation = key.interpolation;
+          }
+          animation.keys.push(k);
+        });
+      } else if ( ta.animation.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION ) {
+        keys.forEach( key => {
+          animation.keys.push({frame:key.frame, value:{x:key.value.x, y:key.value.y, z:key.value.z, w:key.value.w}});
+        });
+      } else {
+        // ERROR
+        console.log("Error processing "+group.name+" = can't hanle type "+ta.animation.dataType)
+      }
+      group.animations.push(animation);
+    });
+    return group;
   }
 
   /**
@@ -1487,9 +1578,11 @@ export class Avatar {
   @param animationName animation to start
    */
   startAnimation(animationName) {
+    var started = false; // to ensure we start only one animation
     for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
       var group = this.getAnimationGroups()[i];
-      if ( group.name == animationName ) {
+      if ( group.name == animationName && !started ) {
+        started = true;
         //this.log("Animation group: "+animationName);
         if ( group.isPlaying ) {
           group.pause();
