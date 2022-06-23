@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class StreamManager {
+  public static final String serviceId = "OpenVidu";
 
   @Value("#{systemProperties['openvidu.publicurl'] ?: '${openvidu.publicurl:none}' }")
   private String openViduUrl;
@@ -84,7 +85,7 @@ public class StreamManager {
 
   public void disconnect(Client client) throws OpenViduException {
     // client is only connected if it has session token
-    if (client.getToken() != null && client.getWorld() != null) {
+    if (client.getToken(serviceId) != null && client.getWorld() != null) {
       String name = client.getWorld().getName();
       Session session = sessions.get(name);
       if (session != null) {
@@ -95,7 +96,7 @@ public class StreamManager {
         for (Connection connection : activeConnections) {
           if (client.getId().toString().equals(connection.getServerData())) {
             session.forceDisconnect(connection);
-            client.setToken(null);
+            client.clearToken(serviceId);
             log.debug("Disconnected client " + client.getId() + " from world " + name);
             if (activeConnections.size() <= 1) {
               sessions.remove(name);
@@ -126,7 +127,7 @@ public class StreamManager {
         Session session = startStreamingSession(world.getName());
         try {
           String token = generateToken(session, client);
-          client.setToken(token);
+          client.setToken(serviceId, token);
           log.debug("Client " + client.getId() + " joined session " + world.getName() + " with token " + token);
         } catch (OpenViduException e) {
           log.error("Can't generate OpenVidu token", e);

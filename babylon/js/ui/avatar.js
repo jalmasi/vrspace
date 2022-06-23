@@ -194,7 +194,7 @@ export class Avatar {
 
   _processContainer( container, onSuccess ) {
       this.character = container;
-
+      
       var meshes = container.meshes;
       this.rootMesh = meshes[0];
       this.animationTargets = [];
@@ -215,9 +215,8 @@ export class Avatar {
       var scale = this.userHeight/(bbox.max.y-bbox.min.y);
       this.log("Scaling: "+scale);
       this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
+      this.recompute();
 
-      // Adds all elements to the scene
-      container.addAllToScene();
       this.castShadows( this.shadowGenerator );
 
       // try to place feet on the ground
@@ -598,17 +597,16 @@ export class Avatar {
     });
   }
 
+  /** Returns head 'bone' */
+  head() {
+    return this.skeleton.bones[this.body.head];
+  }
   /** Returns position of the the head 'bone' */
   headPos() {
-    var head = this.skeleton.bones[this.body.head];
-    //head.computeAbsoluteTransforms();
-    //head.getTransformNode().computeWorldMatrix(true);
-    //this.scene.render(); // FIXME workaround
-    console.log("Head at "+head.getAbsolutePosition()+" tran "+head.getTransformNode().getAbsolutePosition()+" root "+this.rootMesh.getAbsolutePosition(), head);
-    //var headPos = head.getAbsolutePosition().scale(this.rootMesh.scaling.x).add(this.rootMesh.position);
-    //var headPos = head.getTransformNode().getAbsolutePosition().subtract(this.rootMesh.getAbsolutePosition());
-    var headPos = head.getTransformNode().getAbsolutePosition();
-    return headPos;
+    // FIXME this is way suboptimal as it forces computation
+    this.head().getTransformNode().computeWorldMatrix(true);
+    var headPos = this.head().getTransformNode().getAbsolutePosition();
+    return headPos.clone();
   }
 
   /** Returns current height - distance head to feet */
@@ -1631,15 +1629,24 @@ export class Avatar {
   }
 
   /**
+  After resizing and some other manipulations, matrices may need to be recomputed in a reliable way.
+  How to do it depends on babylon.js version.
+   */
+  recompute() {
+    //this.scene.render(false,true);
+    this.rootMesh.computeWorldMatrix(true);
+    this.character.transformNodes.forEach( t => t.computeWorldMatrix());
+  }
+  /**
   Resize the avatar taking into account userHeight and headPos.
    */
   resize() {
+    this.recompute();
     var oldScale = this.rootMesh.scaling.y;
     var oldHeadPos = this.headPos();
     var scale = oldScale*this.userHeight/oldHeadPos.y;
     this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
-    //this.rootMesh.computeWorldMatrix(true);
-    //this.scene.render();
+    this.recompute();
     this.initialHeadPos = this.headPos();
     this.log("Rescaling from "+oldScale+ " to "+scale+", head position from "+oldHeadPos+" to "+this.initialHeadPos);
     this.changed();
@@ -1652,7 +1659,6 @@ export class Avatar {
   */
   async setName(name) {
     this.writer.clear(this.parentMesh);
-    //this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4,0));
     this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
     this.writer.write(this.parentMesh, name);
     this.name = name;
@@ -1683,7 +1689,6 @@ export class Avatar {
     console.log(text);
     
     this.writer.clear(this.parentMesh);
-    //this.writer.relativePosition = this.headPos().add(new BABYLON.Vector3(0,.4+.2*(text.length-1),0));
     this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
     this.writer.writeArray(this.parentMesh, text);
   }

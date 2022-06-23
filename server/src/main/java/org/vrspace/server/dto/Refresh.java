@@ -22,7 +22,8 @@ public class Refresh implements Command {
     } else {
       client.getScene().setDirty();
     }
-    // WorldManager executes scene.update() after each command
+    // WorldManager does NOT execute scene.update() after each command
+    client.getScene().update();
     return null;
   }
 

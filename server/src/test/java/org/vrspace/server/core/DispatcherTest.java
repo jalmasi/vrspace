@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
 @SpringBootTest(classes = JacksonConfig.class)
 @ExtendWith(MockitoExtension.class)
@@ -41,7 +42,9 @@ public class DispatcherTest {
 
   @BeforeEach
   public void setUp() {
-    dispatcher = new Dispatcher(mapper);
+    ObjectMapper privateMapper = mapper.copy();
+    privateMapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
+    dispatcher = new Dispatcher(privateMapper);
   }
 
   @Test

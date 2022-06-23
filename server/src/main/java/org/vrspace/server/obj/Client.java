@@ -1,7 +1,9 @@
 package org.vrspace.server.obj;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.annotation.Transient;
@@ -13,6 +15,7 @@ import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WriteBack;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
+import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.types.Owned;
 import org.vrspace.server.types.Private;
 
@@ -52,10 +55,9 @@ public class Client extends VRObject {
   @Transient
   transient private SceneProperties sceneProperties;
 
-  // CHECKME OpenVidu token; should that be Map tokens?
   @Private
   @Transient
-  transient private String token;
+  transient private Map<String, String> tokens = new HashMap<>();
 
   @JsonIgnore
   @Transient
@@ -74,6 +76,13 @@ public class Client extends VRObject {
   @JsonIgnore
   @Transient
   transient private ObjectMapper mapper;
+  /**
+   * private mapper even serializes private fields (so that client can receive own
+   * secrets)
+   */
+  @JsonIgnore
+  @Transient
+  transient private ObjectMapper privateMapper;
   @JsonIgnore
   @Transient
   transient private boolean guest;
@@ -135,7 +144,11 @@ public class Client extends VRObject {
   // serialisation optimisation
   public void sendMessage(Object obj) {
     try {
-      send(mapper.writeValueAsString(obj));
+      if (this.equals(obj) || obj instanceof Welcome) {
+        send(privateMapper.writeValueAsString(obj));
+      } else {
+        send(mapper.writeValueAsString(obj));
+      }
     } catch (Exception e) {
       // I don't see how this can happen, but if it does, make sure it's logged
       log.error("Can't send message " + obj, e);
@@ -162,6 +175,24 @@ public class Client extends VRObject {
 
   public boolean isOwner(VRObject obj) {
     return this.equals(obj) || owned != null && obj != null && owned.contains(obj);
+  }
+
+  /** Returns token for a given service */
+  public String getToken(String serviceId) {
+    return tokens.get(serviceId);
+  }
+
+  /** Set token for a given service */
+  public void setToken(String serviceId, String value) {
+    if (value == null) {
+      this.clearToken(serviceId);
+    }
+    tokens.put(serviceId, value);
+  }
+
+  /** Remove token for a given service */
+  public String clearToken(String serviceId) {
+    return tokens.remove(serviceId);
   }
 
 }
