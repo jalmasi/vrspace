@@ -131,9 +131,12 @@ var animationButtons = function(avatar) {
   var animations = document.getElementById("animations");
   var html = ""
   var playing = null;
-  for ( i = 0; i < avatar.character.animationGroups.length; i++ ) {
-    var group = avatar.character.animationGroups[i];
-    //console.log("Animation group: "+group.name+" "+group.isPlaying);
+  var groups = avatar.getAnimationGroups();
+  //var groups = avatar.character.animationGroups;
+  console.log("Animation groups", groups);
+  for ( var i = 0; i < groups.length; i++ ) {
+    var group = groups[i];
+    console.log("Animation group: "+group.name+" "+group.isPlaying);
     var checked = "";
     if ( group.isPlaying ) {
       checked="checked";
@@ -159,7 +162,7 @@ var startAnimation = function(animationName) {
 
 var loadAnimation = () => {
   var url = document.getElementById("animationUrl").value;
-  character.loadAnimations(url);
+  character.loadAnimations(url, () => animationButtons(character));
 }
 
 var loadAvatar = () => {

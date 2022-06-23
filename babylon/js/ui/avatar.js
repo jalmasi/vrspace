@@ -1469,23 +1469,32 @@ export class Avatar {
   /**
   Load an animation group from an url
    */
-  loadAnimations( url ) {
-    fetch(url).then( response => response.json().then( group => {
-      this.attachAnimations(group);
-    }) );
+  loadAnimations( url, callback ) {
+    fetch(url).then( response => {
+      if ( response.ok ) {
+        response.json().then(group => {
+          this.attachAnimations(group);
+          if ( callback ) {
+            callback( this );
+          }
+        });
+      } else {
+        console.log('Error loading animations from: ' +url+' - '+ response.status);
+      }
+    });
   }
   
   /**
-  Create an animation group from given object and attach it to the character
+  Create an animation group from given object and attach it to the character.
    */
   attachAnimations( group ) {
     console.log("Animation group:"+group.name, group);
     var animationGroup = new BABYLON.AnimationGroup(group.name, this.scene);
     group.animations.forEach( a => {
       // CHECKME: fps
-      var animation = new BABYLON.Animation( a.animationName, a.propertyName, this.fps, a.dataType);
+      var animation = new BABYLON.Animation( a.animationName, a.propertyName, a.fps, a.dataType, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
       var bone = this.skeleton.getBoneIndexByName(a.targetName);
-      if ( bone ) {
+      if ( bone >= 0 ) {
         var target = this.skeleton.bones[bone].getTransformNode();
       } else {
         console.log("Missing target "+a.targetName);
@@ -1494,7 +1503,7 @@ export class Avatar {
       var keys = [];
       if ( a.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3 ) {
         a.keys.forEach( key => {
-          var k = {frame: key.frame, value:new BABYLON.Vector3(key.x, key.y, key.z)};
+          var k = {frame: key.frame, value:new BABYLON.Vector3(key.value.x, key.value.y, key.value.z)};
           if ( key.interpolation ) {
             k.interpolation = key.interpolation;
           }
@@ -1502,16 +1511,34 @@ export class Avatar {
         });
       } else if ( a.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION ) {
         a.keys.forEach( key => {
-          keys.push( {frame: key.frame, value:new BABYLON.Quaternion(key.x, key.y, key.z, key.w)} );
+          keys.push( {frame: key.frame, value:new BABYLON.Quaternion(key.value.x, key.value.y, key.value.z, key.value.w)} );
         });
       } else {
         // ERROR
+        console.log("Unsupported datatype "+a.dataType);
       }
       animation.setKeys(keys);
       animationGroup.addTargetedAnimation(animation, target);
     });
+    
+    console.log("Skeleton ", this.skeleton);
+    
+    animationGroup.loopAnimation = true; // CHECKME
     console.log(animationGroup);
-    this.getAnimationGroups().push(animationGroup);
+    var groups = this.getAnimationGroups();
+    for ( var i = 0; i < groups.length; i++ ) {
+      if ( groups[i].name == animationGroup.name ) {
+        var old = groups[i];
+        console.log("old",old);
+        groups[i] = animationGroup;
+        if ( old.isPlaying ) {
+          old.stop();
+        }
+        old.dispose();
+        return;
+      }
+    }
+    groups.push(animationGroup);
   }
   
   /**
@@ -1519,12 +1546,12 @@ export class Avatar {
   Opens save file dialog.
    */
   saveAnimations(groupName) {
-    for ( i = 0; i < this.character.animationGroups.length; i++ ) {
+    for ( var i = 0; i < this.character.animationGroups.length; i++ ) {
       var animationGroup = this.character.animationGroups[i];
       if ( animationGroup.name === groupName ) {
         var group = this.processAnimations(animationGroup);
         var json = JSON.stringify(group);
-        //this.attachAnimations(group); //test
+        this.attachAnimations(group);
         VRSPACEUI.saveFile(animationGroup.name+'.json', json);
         return;
       }
@@ -1542,9 +1569,10 @@ export class Avatar {
       animations: []
     };
     animationGroup.targetedAnimations.forEach( ta => {
-      //console.log("animation: "+ta.animation.name+" target: "+ta.target.name+" type "+ta.animation.dataType+" property "+ta.animation.targetProperty);
+      //console.log("animation: "+ta.animation.name+" target: "+ta.target.getClassName()+" "+ta.target.name+" type "+ta.animation.dataType+" property "+ta.animation.targetProperty);
       var animation = {
         animationName:ta.animation.name,
+        fps: ta.animation.framePerSecond,
         targetName:ta.target.name,
         propertyName: ta.animation.targetProperty,
         dataType: ta.animation.dataType,
@@ -1606,6 +1634,7 @@ export class Avatar {
           this.jump(0);
           group.play(group.loopAnimation);
           this.log("playing "+animationName);
+          this.log(group);
           this.activeAnimation = animationName;
         }
       } else if ( group.isPlaying ) {
