@@ -20,6 +20,7 @@ export class Avatars extends World {
     //camera.ellipsoidOffset = -0.2
     this.scene.collisionsEnabled = true;
     this.camera.checkCollisions = true;
+    this.camera.wheelPrecision = 100;
 
     // Add lights to the scene
     var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
