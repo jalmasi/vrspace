@@ -22,5 +22,6 @@ export { VRHelper } from "./ui/vr-helper.js";
 export { ARHelper } from "./ui/ar-helper.js";
 
 export { Avatar } from "./ui/avatar.js";
+export { AvatarController } from "./ui/avatar-controller.js";
 
 export { Desert } from "./ui/terrain-desert.js";

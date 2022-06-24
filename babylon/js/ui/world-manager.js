@@ -353,6 +353,7 @@ export class WorldManager {
     }
   }
 
+  /** Notify listeners of remote changes */
   notifyListeners(obj, field, node) {
     this.changeListeners.forEach( (l) => l(obj,field,node) );
   }
@@ -555,6 +556,13 @@ export class WorldManager {
     // TODO also remove object (avatar) from internal arrays
   }
 
+  /** Local user wrote something - send it over and notify local listener(s) */
+  write( text ) {
+    var change = {wrote:text};
+    this.sendMy(change);
+    this.myChangeListeners.forEach( (listener) => listener([change]));
+  }
+  
   /**
   Periodically executed, as specified by fps. 
   Tracks changes to camera and XR controllers. 

@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, OpenViduStreams, ServerFolder, ServerFile } from './js/vrspace-min.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -587,6 +587,8 @@ export class AvatarSelection extends World {
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
         
+        var controller = new AvatarController(this.worldManager, this.character);
+        
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
           this.worldManager.trackCamera(this.vrHelper.camera());
@@ -608,6 +610,7 @@ export class AvatarSelection extends World {
         ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
           this.worldManager.pubSub(welcome.client, 'video' === avatarUrl);
+          this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
           if ( this.afterEnter ) {
             this.afterEnter(this, world);
           }
@@ -665,11 +668,14 @@ export class AvatarSelection extends World {
     this.removePortals();
     this.room.dispose(); // AKA ground
     // CHECKME properly dispose of avatar
+    /*
+    // disposing of own character effectively disables 3rd person view etc
     if ( this.character ) {
       this.character.dispose();
       //VRSPACEUI.assetLoader.unloadAsset(this.character.getUrl());
       this.character = null;
     }
+    */
     
     if ( this.mainButtons ) {
       this.mainButtons.dispose();
