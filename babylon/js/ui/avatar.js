@@ -290,6 +290,7 @@ export class Avatar {
       console.log("Avatar loaded: "+this.name);
       
       if ( this.animations ) {
+        // CHECKME: we may need to add these animations to AssetContainer animations list
         var animCnt = 0;
         var animationLoaded = () => {
           if ( ++animCnt == this.animations.length ) {
@@ -1507,6 +1508,8 @@ export class Avatar {
     group.animations.forEach( a => {
       // CHECKME: fps
       var animation = new BABYLON.Animation( a.animationName, a.propertyName, a.fps, a.dataType, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+      animation.enableBlending = true;
+      animation.blendingSpeed = 0.1;
       var bone = this.skeleton.getBoneIndexByName(a.targetName);
       if ( bone >= 0 ) {
         var target = this.skeleton.bones[bone].getTransformNode();
@@ -1652,7 +1655,7 @@ export class Avatar {
       } else if ( group.isPlaying ) {
         // stop all other animations
         group.pause();
-        group.reset();
+        //group.reset(); // this disables blending
       }
     }
   }
