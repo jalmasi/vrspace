@@ -40,6 +40,10 @@ export class VRHelper {
         xrHelper.baseExperience.onInitialXRPoseSetObservable.add( this.initialPoseObserver ); 
       }
 
+      xrHelper.baseExperience.sessionManager.onXRFrameObservable.addOnce(() => {
+        xrHelper.baseExperience.camera.rigCameras[0].outputRenderTarget.skipInitialClear = false;
+      });
+
       if ( this.tracker ) {
         this.stopTracking();
       }
