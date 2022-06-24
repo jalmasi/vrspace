@@ -419,7 +419,7 @@ export class AvatarSelection extends World {
       if ( group.isPlaying ) {
         playing = i;
       }
-      avatar.processAnimations(group.targetedAnimations);
+      avatar.processAnimations(group);
     }
     console.log("Animations: "+names);
     if ( this.animationSelection ) {
