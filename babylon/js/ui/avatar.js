@@ -185,7 +185,15 @@ export class Avatar {
     }
     // TODO also dispose of materials and textures (asset container)
   }
-
+  hide() {
+    if ( this.nameMesh ) {
+      this.nameMesh.dispose();
+      this.nameParent.dispose();
+    }
+    if ( this.character && this.parentMesh ) {
+      this.parentMesh.setEnabled(false);
+    }
+  }
   /** 
   Utility method, dispose of avatar and return this one.
   @param avatar optional avatar to dispose of
