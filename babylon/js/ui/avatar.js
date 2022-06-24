@@ -22,6 +22,8 @@ export class Avatar {
     this.file = folder.file?folder.file:"scene.gltf";
     /** Optional ShadowGenerator */
     this.shadowGenerator = shadowGenerator;
+    /** Optional custom animations */
+    this.animations = null;
     /** Mirror mode, default true. (Switch left/right side) */
     this.mirror = true;
     /** Animation frames per second, default 10 */
@@ -286,7 +288,19 @@ export class Avatar {
       container.avatar = this;
 
       console.log("Avatar loaded: "+this.name);
-      if ( onSuccess ) {
+      
+      if ( this.animations ) {
+        var animCnt = 0;
+        var animationLoaded = () => {
+          if ( ++animCnt == this.animations.length ) {
+            console.log("All animations loaded");
+            if ( onSuccess ) {
+              onSuccess(this);
+            }
+          }
+        }
+        this.animations.forEach( a => this.loadAnimations(a, animationLoaded));
+      } else if ( onSuccess ) {
         onSuccess(this);
       }
   }
@@ -1488,7 +1502,7 @@ export class Avatar {
   Create an animation group from given object and attach it to the character.
    */
   attachAnimations( group ) {
-    console.log("Animation group:"+group.name, group);
+    this.log("Animation group:"+group.name, group);
     var animationGroup = new BABYLON.AnimationGroup(group.name, this.scene);
     group.animations.forEach( a => {
       // CHECKME: fps
@@ -1521,10 +1535,8 @@ export class Avatar {
       animationGroup.addTargetedAnimation(animation, target);
     });
     
-    console.log("Skeleton ", this.skeleton);
-    
     animationGroup.loopAnimation = true; // CHECKME
-    console.log(animationGroup);
+    
     var groups = this.getAnimationGroups();
     for ( var i = 0; i < groups.length; i++ ) {
       if ( groups[i].name == animationGroup.name ) {

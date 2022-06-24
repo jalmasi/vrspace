@@ -14,6 +14,8 @@ export class AvatarSelection extends World {
     this.backgroundPanorama = false;
     /** character base dir, null defaults to contentBase+'/content/char/' */
     this.characterPath = null;
+    /** character animation folder, null defaults to contentBase+'/content/rpm-anim/' */
+    this.animationPath = null;
     /** world base dir, null defaults to contentBase+'/content/worlds' */
     this.worldPath = null;
     /** function to call just before entering a world */
@@ -36,6 +38,7 @@ export class AvatarSelection extends World {
     this.debug=false;
     // state variables
     this.mirror = true;
+    this.customAnimations = [];
     this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000/this.fps;
@@ -107,6 +110,12 @@ export class AvatarSelection extends World {
       return this.characterPath;
     }
     return this.contentBase+'/content/char/';
+  }
+  animationDir() {
+    if ( this.animationPath ) {
+      return this.animationPath;
+    }
+    return this.contentBase+'/content/rpm-anim/';
   }
   worldDir() {
     if ( this.worldPath ) {
@@ -182,6 +191,12 @@ export class AvatarSelection extends World {
     return target;
   }
 
+  listAnimations() {
+    VRSPACEUI.listDirectory( this.animationDir(), animations => {
+      this.customAnimations = animations;
+    });
+  }
+  
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
     VRSPACEUI.listMatchingFiles( this.characterDir(), (folders) => {
@@ -195,6 +210,7 @@ export class AvatarSelection extends World {
       buttons.select(0);
       this.mainButtons = buttons;
     });
+    this.listAnimations();
   }
   
   async createAvatarSelection(folder) {
@@ -285,11 +301,7 @@ export class AvatarSelection extends World {
         // https://d1a370nemizbjq.cloudfront.net/a13ab5dc-358d-45e4-a602-446b9c840155.glb
         console.log("Avatar URL: "+avatarUrl);
         this.customAvatarFrame.hidden = true;
-        var pos = avatarUrl.lastIndexOf('/');
-        var path = avatarUrl.substring(0,pos);
-        var file = avatarUrl.substring(pos+1);
-        var folder = new ServerFolder( path, "");
-        this.loadCharacter(folder, file);
+        this.loadCharacterUrl(avatarUrl, this.customAnimations);
       }
 
       // Get user id
@@ -304,19 +316,22 @@ export class AvatarSelection extends World {
     
   }
 
-  loadCharacterUrl( url ) {
+  loadCharacterUrl( url, animations ) {
     console.log('loading character from '+url);
     var file = new ServerFile( url );
-    this.loadCharacter( file, file.file);
+    this.loadCharacter( file, file.file, animations);
   }
   
-  loadCharacter(dir, file="scene.gltf") {
+  loadCharacter(dir, file="scene.gltf", animations) {
     this.tracking = false;
     this.indicator.add(dir);
     this.indicator.animate();
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(this.scene, dir, this.shadowGenerator);
     loaded.file = file;
+    if ( animations ) {
+      loaded.animations = animations;
+    }
     // resize the character to real-world height
     if ( this.inXR ) {
       this.userHeight = this.vrHelper.camera().realWorldHeight;
