@@ -161,7 +161,7 @@ export class Client extends VRObject {
   }
   /** true if the client has avatar */
   hasAvatar() {
-    return this.mesh && this.mesh.toLowerCase().endsWith('.gltf');
+    return this.mesh; // && this.mesh.toLowerCase().endsWith('.gltf');
   }
 }
 

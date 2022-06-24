@@ -511,7 +511,16 @@ export class Avatar {
             }
           } else {
             container.addAllToScene();
-            this._processContainer(container,success)
+            try {
+              this._processContainer(container,success);
+            } catch ( exception ) {
+              VRSPACEUI.assetLoader.unloadAsset(this.getUrl());
+              if ( failure ) {
+                failure(exception);
+              } else {
+                console.log("Error loading "+this.name,exception);
+              }
+            }
           }
           this.postProcess();
         },

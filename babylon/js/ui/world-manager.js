@@ -85,6 +85,7 @@ export class WorldManager {
     this.debug = false;
     this.world.worldManager = this;
     this.notFound = []; // 404 cache used for avatar fix files
+    VRSPACEUI.init(this.scene); // to ensure assetLoader is available
   }
 
   /** Publish and subscribe */
@@ -303,7 +304,11 @@ export class WorldManager {
         this.mediaStreams.streamToMesh(obj, obj.container.parentMesh);        
       }
       this.notifyLoadListeners(obj, avatar);
-    });
+    }, (error) => {
+      console.log("Failed to load avatar, loading as mesh");
+      this.loadMesh(obj);
+    }
+    );
   }
   
   notifyLoadListeners(obj, avatar) {
