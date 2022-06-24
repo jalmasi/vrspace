@@ -26,6 +26,8 @@ export class WorldManager {
     this.createAnimations = true;
     /** Custom avatar options, applied to avatars after loading. Currently video avatars only */
     this.customOptions = null;
+    /** Custom avatar animations */
+    this.customAnimations = null;
     /** Whether to track user rotation, default true. */
     this.trackRotation = true;
     /** Used in 3rd person view */
@@ -276,6 +278,7 @@ export class WorldManager {
     }
     var folder = new ServerFolder( baseUrl, dir, fix );
     var avatar = new Avatar(this.scene, folder);
+    avatar.animations = this.customAnimations;
     avatar.file = file;
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;

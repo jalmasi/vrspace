@@ -197,19 +197,22 @@ export class Avatar {
     return this;
   }
 
+  hasCustomAnimations() {
+    // ReadyPlayerMe avatar:
+    for ( var i = 0; this.animations && i < this.character.meshes.length; i++ ) {
+      if ( this.character.meshes[i].name == 'Wolf3D_Avatar' ) {
+        console.log('RPM avatar detected at '+i);
+        return true;
+      }
+    }
+    return false;
+  }
+  
   _processContainer( container, onSuccess ) {
       this.character = container;
       
       var meshes = container.meshes;
       this.rootMesh = meshes[0];
-      
-      // ReadyPlayerMe avatar:
-      for ( var i = 0; i < meshes.length; i++ ) {
-        if ( meshes[i].name == 'Wolf3D_Avatar' ) {
-          console.log('RPM avatar detected at '+i);
-          break;
-        }
-      }
       
       if ( this.turnAround ) {
         // GLTF characters are facing the user when loaded, turn it around
@@ -289,7 +292,7 @@ export class Avatar {
 
       console.log("Avatar loaded: "+this.name);
       
-      if ( this.animations ) {
+      if ( this.hasCustomAnimations()) {
         // CHECKME: we may need to add these animations to AssetContainer animations list
         var animCnt = 0;
         var animationLoaded = () => {
@@ -1494,7 +1497,7 @@ export class Avatar {
   Load an animation group from an url
    */
   loadAnimations( url, callback ) {
-    fetch(url).then( response => {
+    fetch(url, {cache: this.cache}).then( response => {
       if ( response.ok ) {
         response.json().then(group => {
           this.attachAnimations(group);

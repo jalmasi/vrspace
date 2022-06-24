@@ -14,13 +14,9 @@ export class AvatarController {
     this.idleTimeout = 200;
     this.lastAnimation = null;
     this.worldManager = worldManager;
-    if ( avatar.animations ) {
-      this.animations = avatar.animations;
-    } else {
-      this.animations = [];
-      var groups = avatar.getAnimationGroups();
-      groups.forEach( group => this.animations.push(group.name));
-    }
+    this.animations = [];
+    var groups = avatar.getAnimationGroups();
+    groups.forEach( group => this.animations.push(group.name));
     this.otherAnimations = [];
     this.processAnimations();
     this.setupIdleTimer();
