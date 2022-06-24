@@ -22,6 +22,8 @@ export class Avatar {
     this.file = folder.file?folder.file:"scene.gltf";
     /** Optional ShadowGenerator */
     this.shadowGenerator = shadowGenerator;
+    /** Optional custom animations */
+    this.animations = null;
     /** Mirror mode, default true. (Switch left/right side) */
     this.mirror = true;
     /** Animation frames per second, default 10 */
@@ -54,7 +56,6 @@ export class Avatar {
     this.bonesTotal = 0;
     this.bonesProcessed = [];
     this.bonesDepth = 0;
-    this.animationTargets = [];
     this.character = null;
     this.activeAnimation = null;
     this.writer = new TextWriter(this.scene);
@@ -180,7 +181,15 @@ export class Avatar {
     }
     // TODO also dispose of materials and textures (asset container)
   }
-
+  hide() {
+    if ( this.nameMesh ) {
+      this.nameMesh.dispose();
+      this.nameParent.dispose();
+    }
+    if ( this.character && this.parentMesh ) {
+      this.parentMesh.setEnabled(false);
+    }
+  }
   /** 
   Utility method, dispose of avatar and return this one.
   @param avatar optional avatar to dispose of
@@ -192,12 +201,23 @@ export class Avatar {
     return this;
   }
 
+  hasCustomAnimations() {
+    // ReadyPlayerMe avatar:
+    for ( var i = 0; this.animations && i < this.character.meshes.length; i++ ) {
+      if ( this.character.meshes[i].name == 'Wolf3D_Avatar' ) {
+        console.log('RPM avatar detected at '+i);
+        return true;
+      }
+    }
+    return false;
+  }
+  
   _processContainer( container, onSuccess ) {
       this.character = container;
       
       var meshes = container.meshes;
       this.rootMesh = meshes[0];
-      this.animationTargets = [];
+      
       if ( this.turnAround ) {
         // GLTF characters are facing the user when loaded, turn it around
         this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
@@ -206,8 +226,6 @@ export class Avatar {
       if (container.animationGroups && container.animationGroups.length > 0) {
         container.animationGroups[0].stop();
       }
-
-      this.animationTargets.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
 
       var bbox = this.rootMesh.getHierarchyBoundingVectors();
       this.log("Bounding box:");
@@ -293,7 +311,20 @@ export class Avatar {
       }
 
       console.log("Avatar loaded: "+this.name);
-      if ( onSuccess ) {
+      
+      if ( this.hasCustomAnimations()) {
+        // CHECKME: we may need to add these animations to AssetContainer animations list
+        var animCnt = 0;
+        var animationLoaded = () => {
+          if ( ++animCnt == this.animations.length ) {
+            console.log("All animations loaded");
+            if ( onSuccess ) {
+              onSuccess(this);
+            }
+          }
+        }
+        this.animations.forEach( a => this.loadAnimations(a, animationLoaded));
+      } else if ( onSuccess ) {
         onSuccess(this);
       }
   }
@@ -582,7 +613,16 @@ export class Avatar {
             }
           } else {
             container.addAllToScene();
-            this._processContainer(container,success)
+            try {
+              this._processContainer(container,success);
+            } catch ( exception ) {
+              VRSPACEUI.assetLoader.unloadAsset(this.getUrl());
+              if ( failure ) {
+                failure(exception);
+              } else {
+                console.log("Error loading "+this.name,exception);
+              }
+            }
           }
           this.postProcess();
         },
@@ -1547,25 +1587,139 @@ export class Avatar {
     }
   }
 
-  // unused, use only for debugging characters
-  processAnimations(targeted) {
-    var frames = [];
-    for ( var j = 0; j < targeted.length; j++ ) {
-      //this.log("animation: "+animations[j].animation.name+" target: "+animations[i].target.name);
-      if ( !this.animationTargets.includes(targeted[j].target.name) ) {
-        this.animationTargets.push(targeted[j].target.name);
-        if ( ! this.bonesProcessed.includes(targeted[j].target.name) ) {
-          this.log("Missing target "+targeted[j].target.name);
-        }
+  /**
+  Load an animation group from an url
+   */
+  loadAnimations( url, callback ) {
+    fetch(url, {cache: this.cache}).then( response => {
+      if ( response.ok ) {
+        response.json().then(group => {
+          this.attachAnimations(group);
+          if ( callback ) {
+            callback( this );
+          }
+        });
+      } else {
+        console.log('Error loading animations from: ' +url+' - '+ response.status);
       }
-      var keys = targeted[j].animation.getKeys();
-      for ( var i = 0; i < keys.length; i++ ) {
-        // square complexity
-        if ( ! frames.includes(keys[i].frame) ) {
-          frames.push( keys[i].frame );
+    });
+  }
+  
+  /**
+  Create an animation group from given object and attach it to the character.
+   */
+  attachAnimations( group ) {
+    this.log("Animation group:"+group.name, group);
+    var animationGroup = new BABYLON.AnimationGroup(group.name, this.scene);
+    group.animations.forEach( a => {
+      // CHECKME: fps
+      var animation = new BABYLON.Animation( a.animationName, a.propertyName, a.fps, a.dataType, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+      animation.enableBlending = true;
+      animation.blendingSpeed = 0.1;
+      var bone = this.skeleton.getBoneIndexByName(a.targetName);
+      if ( bone >= 0 ) {
+        var target = this.skeleton.bones[bone].getTransformNode();
+      } else {
+        console.log("Missing target "+a.targetName);
+        return;
+      }
+      var keys = [];
+      if ( a.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3 ) {
+        a.keys.forEach( key => {
+          var k = {frame: key.frame, value:new BABYLON.Vector3(key.value.x, key.value.y, key.value.z)};
+          if ( key.interpolation ) {
+            k.interpolation = key.interpolation;
+          }
+          keys.push( k );
+        });
+      } else if ( a.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION ) {
+        a.keys.forEach( key => {
+          keys.push( {frame: key.frame, value:new BABYLON.Quaternion(key.value.x, key.value.y, key.value.z, key.value.w)} );
+        });
+      } else {
+        // ERROR
+        console.log("Unsupported datatype "+a.dataType);
+      }
+      animation.setKeys(keys);
+      animationGroup.addTargetedAnimation(animation, target);
+    });
+    
+    animationGroup.loopAnimation = true; // CHECKME
+    
+    var groups = this.getAnimationGroups();
+    for ( var i = 0; i < groups.length; i++ ) {
+      if ( groups[i].name == animationGroup.name ) {
+        var old = groups[i];
+        console.log("old",old);
+        groups[i] = animationGroup;
+        if ( old.isPlaying ) {
+          old.stop();
         }
+        old.dispose();
+        return;
       }
     }
+    groups.push(animationGroup);
+  }
+  
+  /**
+  Saves all animations in given animation group.
+  Opens save file dialog.
+   */
+  saveAnimations(groupName) {
+    for ( var i = 0; i < this.character.animationGroups.length; i++ ) {
+      var animationGroup = this.character.animationGroups[i];
+      if ( animationGroup.name === groupName ) {
+        var group = this.processAnimations(animationGroup);
+        var json = JSON.stringify(group);
+        this.attachAnimations(group);
+        VRSPACEUI.saveFile(animationGroup.name+'.json', json);
+        return;
+      }
+    }
+    console.log("No such animation group:"+groupName);
+  }
+  
+  /**
+  Processes all animation in an animation group.
+  @returns object suitable for saving
+   */
+  processAnimations(animationGroup) {
+    var group = {
+      name: animationGroup.name,
+      animations: []
+    };
+    animationGroup.targetedAnimations.forEach( ta => {
+      //console.log("animation: "+ta.animation.name+" target: "+ta.target.getClassName()+" "+ta.target.name+" type "+ta.animation.dataType+" property "+ta.animation.targetProperty);
+      var animation = {
+        animationName:ta.animation.name,
+        fps: ta.animation.framePerSecond,
+        targetName:ta.target.name,
+        propertyName: ta.animation.targetProperty,
+        dataType: ta.animation.dataType,
+        keys: []
+      };
+      var keys = ta.animation.getKeys();
+      // position, rotation, scaling
+      if ( ta.animation.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3 ) {
+        keys.forEach( key => {
+          var k = {frame:key.frame, value:{x:key.value.x, y:key.value.y, z:key.value.z}};
+          if ( key.interpolation ) {
+            k.interpolation = key.interpolation;
+          }
+          animation.keys.push(k);
+        });
+      } else if ( ta.animation.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION ) {
+        keys.forEach( key => {
+          animation.keys.push({frame:key.frame, value:{x:key.value.x, y:key.value.y, z:key.value.z, w:key.value.w}});
+        });
+      } else {
+        // ERROR
+        console.log("Error processing "+group.name+" = can't hanle type "+ta.animation.dataType)
+      }
+      group.animations.push(animation);
+    });
+    return group;
   }
 
   /**
@@ -1573,9 +1727,11 @@ export class Avatar {
   @param animationName animation to start
    */
   startAnimation(animationName) {
+    var started = false; // to ensure we start only one animation
     for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
       var group = this.getAnimationGroups()[i];
-      if ( group.name == animationName ) {
+      if ( group.name == animationName && !started ) {
+        started = true;
         //this.log("Animation group: "+animationName);
         if ( group.isPlaying ) {
           group.pause();
@@ -1599,12 +1755,13 @@ export class Avatar {
           this.jump(0);
           group.play(group.loopAnimation);
           this.log("playing "+animationName);
+          this.log(group);
           this.activeAnimation = animationName;
         }
       } else if ( group.isPlaying ) {
         // stop all other animations
         group.pause();
-        group.reset();
+        //group.reset(); // this disables blending
       }
     }
   }

@@ -467,7 +467,7 @@ export class World {
    */
   write(text) {
     if ( this.worldManager && text ) {
-      this.worldManager.sendMy({wrote:text});
+      this.worldManager.write(text);
     }
   }
   

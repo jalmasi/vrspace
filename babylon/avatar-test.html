@@ -130,23 +130,39 @@ import('./js/vrspace-min.js').then( (ui) => {
 var animationButtons = function(avatar) {
   var animations = document.getElementById("animations");
   var html = ""
-  for ( i = 0; i < avatar.character.animationGroups.length; i++ ) {
-    var group = avatar.character.animationGroups[i];
-    //console.log("Animation group: "+group.name+" "+group.isPlaying);
+  var playing = null;
+  var groups = avatar.getAnimationGroups();
+  //var groups = avatar.character.animationGroups;
+  console.log("Animation groups", groups);
+  for ( var i = 0; i < groups.length; i++ ) {
+    var group = groups[i];
+    console.log("Animation group: "+group.name+" "+group.isPlaying);
     var checked = "";
     if ( group.isPlaying ) {
       checked="checked";
+      playing = group.name;
     }
-    avatar.processAnimations(group.targetedAnimations);
     html = html +'<div style="background:rgba(100,100,100,0.5);color:white;"><input type="checkbox" '+checked+' onClick="startAnimation(\''+group.name+'\')"/>'+group.name+'</div>';
+  }
+  if ( playing ) {
+    html += '<div><button onClick="save(\''+playing+'\')">Save</button></div>';
   }
   animations.innerHTML = html;
 }
 
+var save = (groupName) => {
+  console.log("Saving group "+groupName);
+  character.saveAnimations(groupName);
+}
 var startAnimation = function(animationName) {
   character.startAnimation(animationName);
   // TODO don't draw buttons every time?
   animationButtons(character);
+}
+
+var loadAnimation = () => {
+  var url = document.getElementById("animationUrl").value;
+  character.loadAnimations(url, () => animationButtons(character));
 }
 
 var loadAvatar = () => {
@@ -238,7 +254,10 @@ function debugOnOff() {
   <input type="checkbox" onClick="toggleRest()"/>Rest Pose
 </div>
 
-<div id="animations" style="position: absolute;top:10px;text-align: left;right:20%;width: 15%; float:right;">
+<div style="position: absolute;top:10px;text-align: left;right:20%;width: 15%; float:right;">
+<input id="animationUrl" type="text" onChange="loadAnimation()">
+<div id="animations">
+</div>
 </div>
 
 <div id="loginForm" style="position:absolute;bottom:50px;right:45%;">

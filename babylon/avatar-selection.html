@@ -125,7 +125,7 @@ import("./avatar-selection.js").then( (module) =>{
       console.log('Exit:'+world.worldManager.error);
       document.getElementById('loginForm').style.display = 'block';
       document.getElementById('chatBox').style.display = 'none';
-      setTimeout(() => document.location.reload(), 5000);
+      //setTimeout(() => document.location.reload(), 5000);
     }
   });
 
@@ -189,7 +189,7 @@ function debugOnOff() {
 <div id="videos" hidden>
 </div>
 
-<div id="iframe" style="position:absolute;bottom:20px;width:100%;">
+<div id="iframe" style="position:absolute;top:0px;width:100%;">
   <iframe id="customAvatarFrame" allow="camera *; microphone *" width="100%" height="800" hidden="true"></iframe>
 </div>
 

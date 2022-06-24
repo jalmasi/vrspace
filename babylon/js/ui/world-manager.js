@@ -26,6 +26,8 @@ export class WorldManager {
     this.createAnimations = true;
     /** Custom avatar options, applied to avatars after loading. Currently video avatars only */
     this.customOptions = null;
+    /** Custom avatar animations */
+    this.customAnimations = null;
     /** Whether to track user rotation, default true. */
     this.trackRotation = true;
     /** Used in 3rd person view */
@@ -85,6 +87,7 @@ export class WorldManager {
     this.debug = false;
     this.world.worldManager = this;
     this.notFound = []; // 404 cache used for avatar fix files
+    VRSPACEUI.init(this.scene); // to ensure assetLoader is available
   }
 
   /** Publish and subscribe */
@@ -275,6 +278,7 @@ export class WorldManager {
     }
     var folder = new ServerFolder( baseUrl, dir, fix );
     var avatar = new Avatar(this.scene, folder);
+    avatar.animations = this.customAnimations;
     avatar.file = file;
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;
@@ -303,7 +307,11 @@ export class WorldManager {
         this.mediaStreams.streamToMesh(obj, obj.container.parentMesh);        
       }
       this.notifyLoadListeners(obj, avatar);
-    });
+    }, (error) => {
+      console.log("Failed to load avatar, loading as mesh");
+      this.loadMesh(obj);
+    }
+    );
   }
   
   notifyLoadListeners(obj, avatar) {
@@ -353,6 +361,7 @@ export class WorldManager {
     }
   }
 
+  /** Notify listeners of remote changes */
   notifyListeners(obj, field, node) {
     this.changeListeners.forEach( (l) => l(obj,field,node) );
   }
@@ -555,6 +564,13 @@ export class WorldManager {
     // TODO also remove object (avatar) from internal arrays
   }
 
+  /** Local user wrote something - send it over and notify local listener(s) */
+  write( text ) {
+    var change = {wrote:text};
+    this.sendMy(change);
+    this.myChangeListeners.forEach( (listener) => listener([change]));
+  }
+  
   /**
   Periodically executed, as specified by fps. 
   Tracks changes to camera and XR controllers. 
