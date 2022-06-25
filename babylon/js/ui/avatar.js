@@ -1640,7 +1640,7 @@ export class Avatar {
   Start a given animation
   @param animationName animation to start
    */
-  startAnimation(animationName) {
+  startAnimation(animationName, loop) {
     var started = false; // to ensure we start only one animation
     for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
       var group = this.getAnimationGroups()[i];
@@ -1667,7 +1667,11 @@ export class Avatar {
             }
           }
           this.jump(0);
-          group.play(group.loopAnimation);
+          if ( typeof loop != 'undefined') {
+            group.play(loop);
+          } else {
+            group.play(group.loopAnimation);
+          }
           this.log("playing "+animationName);
           this.log(group);
           this.activeAnimation = animationName;
@@ -1746,7 +1750,6 @@ export class Avatar {
   }
   
   async wrote(client) {
-    console.log(client);
     var limit = 20;
     var text = [this.name];
     var line = '';
@@ -1758,7 +1761,6 @@ export class Avatar {
       line += word + ' ';
     });
     text.push(line);
-    console.log(text);
     
     this.writer.clear(this.parentMesh);
     this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));

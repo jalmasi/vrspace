@@ -58,15 +58,32 @@ export class AvatarController {
   @param changes array of field,value object pairs
    */
   processChanges(changes) {
-    this.setupIdleTimer();
-    changes.forEach( change => {
+    if ( this.worldManager.world.inXR ) {
+      // do NOT send anything while in XR
+      return;
+    }
+    for ( var change of changes ) {
       this.lastChange = Date.now();
       if ( change.field == "position" ) {
+        this.setupIdleTimer();
         this.sendAnimation(this.walk);
+        break;
       } else if ( change.field == "rotation") {
+        // CHECKME anything?
       } else if ( change.field == "wrote") {
-        // TODO process text and try to find some meaninful animation
+        // process text and try to find some meaninful animation
+        var words = change.value.split(' ');
+        for ( var word of words ) {
+          if ( word.length > 1 ) {
+            var match = this.otherAnimations.find( e => e.includes(word.toLowerCase()));
+            if ( match ) {
+              this.sendAnimation(match);
+              break;
+            }
+          }
+        }
       }
-    });
+    }
   }
+  
 }

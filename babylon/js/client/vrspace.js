@@ -154,8 +154,10 @@ export class Client extends VRObject {
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     /** User height, default 1.8 */
     this.userHeight = 1.8;
-    /** Streaming token */
-    this.token = null; // CHECKME: string, should be object?
+    /** Private tokens */
+    this.tokens = null;
+    /** Active animation */
+    this.animation = null;
     /** Server-side class name */
     this.className = 'Client';
   }
