@@ -38,6 +38,16 @@ export class Point {
 }
 
 /**
+Currently active animation of an object.
+ */
+export class Animation {
+  constructor() {
+    this.name=null;
+    this.loop=false;
+  }
+}
+
+/**
 Basic VRObject, has the same properties as server counterpart.
  */
 export class VRObject {
@@ -58,6 +68,8 @@ export class VRObject {
     this.mesh = null;
     /** Active i.e. online users */
     this.active = false;
+    /** Active animation */
+    this.animation = null;
     /** Used for video/audio streaming */
     this.streamId = null;
     /** URL of dynamically loaded script TODO */
@@ -156,8 +168,6 @@ export class Client extends VRObject {
     this.userHeight = 1.8;
     /** Private tokens */
     this.tokens = null;
-    /** Active animation */
-    this.animation = null;
     /** Server-side class name */
     this.className = 'Client';
   }

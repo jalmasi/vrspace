@@ -47,9 +47,9 @@ export class AvatarController {
       }
     }, this.idleTimeout);
   }
-  sendAnimation(name) {
+  sendAnimation(name, loop=false) {
     if ( this.animations.includes(name) && name != this.lastAnimation ) {
-      this.worldManager.sendMy({animation:name});
+      this.worldManager.sendMy({animation:{name:name,loop:loop}});
       this.lastAnimation = name;
     }
   }
@@ -66,7 +66,7 @@ export class AvatarController {
       this.lastChange = Date.now();
       if ( change.field == "position" ) {
         this.setupIdleTimer();
-        this.sendAnimation(this.walk);
+        this.sendAnimation(this.walk,true);
         break;
       } else if ( change.field == "rotation") {
         // CHECKME anything?

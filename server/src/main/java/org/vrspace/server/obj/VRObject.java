@@ -72,7 +72,9 @@ public class VRObject extends Entity {
   private String script;
 
   /** Currently active animation */
-  private String animation;
+  @JsonMerge
+  @Relationship(type = "CURRENT_ANIMATION", direction = Relationship.Direction.OUTGOING)
+  private Animation animation;
 
   /** Custom object properties */
   @Transient

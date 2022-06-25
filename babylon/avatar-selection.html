@@ -114,6 +114,7 @@ import("./avatar-selection.js").then( (module) =>{
       console.log("Selected avatar: "+avatar.getUrl());
       checkValidName(world.getMyName());
     });
+    
     world.showPortals();
     world.beforeEnter = () => {
       document.getElementById('loginForm').style.display = 'none';
