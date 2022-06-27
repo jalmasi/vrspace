@@ -301,7 +301,7 @@ export class AvatarSelection extends World {
         // https://d1a370nemizbjq.cloudfront.net/a13ab5dc-358d-45e4-a602-446b9c840155.glb
         console.log("Avatar URL: "+avatarUrl);
         this.customAvatarFrame.hidden = true;
-        this.loadCharacterUrl(avatarUrl, this.customAnimations);
+        this.loadCharacterUrl(avatarUrl);
       }
 
       // Get user id
@@ -316,22 +316,20 @@ export class AvatarSelection extends World {
     
   }
 
-  loadCharacterUrl( url, animations ) {
+  loadCharacterUrl( url) {
     console.log('loading character from '+url);
     var file = new ServerFile( url );
-    this.loadCharacter( file, file.file, animations);
+    this.loadCharacter( file, file.file);
   }
   
-  loadCharacter(dir, file="scene.gltf", animations) {
+  loadCharacter(dir, file="scene.gltf") {
     this.tracking = false;
     this.indicator.add(dir);
     this.indicator.animate();
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(this.scene, dir, this.shadowGenerator);
     loaded.file = file;
-    if ( animations ) {
-      loaded.animations = animations;
-    }
+    loaded.animations = this.customAnimations;
     // resize the character to real-world height
     if ( this.inXR ) {
       this.userHeight = this.vrHelper.camera().realWorldHeight;

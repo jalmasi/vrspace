@@ -339,7 +339,7 @@ export class WorldManager {
         }
         VRSPACEUI.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
       } else if ( 'animation' === field ) {
-        avatar.startAnimation(obj.animation);
+        avatar.startAnimation(obj.animation.name, obj.animation.loop);
       } else if ( 'leftArmPos' === field ) {
         var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
         avatar.reachFor(avatar.body.rightArm, pos);
@@ -566,9 +566,9 @@ export class WorldManager {
 
   /** Local user wrote something - send it over and notify local listener(s) */
   write( text ) {
-    var change = {wrote:text};
-    this.sendMy(change);
-    this.myChangeListeners.forEach( (listener) => listener([change]));
+    var changes = [{field:'wrote',value:text}];
+    VRSPACE.sendMyChanges(changes);
+    this.myChangeListeners.forEach( (listener) => listener(changes));
   }
   
   /**
