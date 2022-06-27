@@ -970,7 +970,7 @@ export class Avatar {
         } else {
           this.jump(height - this.maxUserHeight);
         }
-      } else if ( height > this.maxUserHeight && Math.abs(speed) > 0.1 ) {
+      } else if ( height > this.maxUserHeight && Math.abs(speed) > 0.2 ) {
         // CHECKME speed is not really important here
         this.jump(height - this.maxUserHeight);
         this.jumping = Date.now();
@@ -1019,9 +1019,9 @@ export class Avatar {
       return;
     }
 
-    //if ( this.headPos().y + height > this.initialHeadPos.y ) {
-    //  height = this.initialHeadPos.y - this.headPos().y;
-    //}
+    if ( this.headPos().y + height > this.initialHeadPos.y ) {
+      height = this.initialHeadPos.y - this.headPos().y;
+    }
     var legLength = (this.body.leftLeg.length + this.body.rightLeg.length)/2;
     var length = legLength+height;
     this.bendLeg( this.body.leftLeg, length );
