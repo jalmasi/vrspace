@@ -879,7 +879,7 @@ export class Avatar {
         } else {
           this.jump(height - this.maxUserHeight);
         }
-      } else if ( height > this.maxUserHeight && Math.abs(speed) > 1 ) {
+      } else if ( height > this.maxUserHeight && Math.abs(speed) > 0.2 ) {
         // CHECKME speed is not really important here
         this.jump(height - this.maxUserHeight);
         this.jumping = Date.now();
