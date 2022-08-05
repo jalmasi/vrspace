@@ -173,7 +173,8 @@ export class Client extends VRObject {
   }
   /** true if the client has avatar */
   hasAvatar() {
-    return this.mesh; // && this.mesh.toLowerCase().endsWith('.gltf');
+    // FIXME as ugly as it gets, get rid of this video thing
+    return this.mesh && this.mesh !== 'video';
   }
 }
 

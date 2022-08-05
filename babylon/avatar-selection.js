@@ -586,8 +586,6 @@ export class AvatarSelection extends World {
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
         
-        var controller = new AvatarController(this.worldManager, this.character);
-        
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
           this.worldManager.trackCamera(this.vrHelper.camera());
@@ -609,7 +607,11 @@ export class AvatarSelection extends World {
         ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
           this.worldManager.pubSub(welcome.client, 'video' === avatarUrl);
-          this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
+          if ( this.character ) {
+            // character is null for e.g. video avatar
+            var controller = new AvatarController(this.worldManager, this.character);
+            this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
+          }
           if ( this.afterEnter ) {
             this.afterEnter(this, world);
           }
