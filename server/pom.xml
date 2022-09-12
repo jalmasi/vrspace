@@ -120,6 +120,7 @@
       </activation>
     <build>
       <plugins>
+
         <plugin>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
@@ -169,6 +170,23 @@
     <build>
       <plugins>
         <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>1.18.12.0</version>
+          <executions>
+            <execution>
+              <phase>generate-sources</phase>
+              <goals>
+                <goal>delombok</goal>
+              </goals>
+              <configuration>
+                <sourceDirectory>src/main/java</sourceDirectory>
+                <addOutputDirectory>false</addOutputDirectory>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <executions>
@@ -176,11 +194,12 @@
               <id>javadoc</id>
               <phase>package</phase>
               <goals>
-                <goal>javadoc</goal>
+                <goal>javadoc-no-fork</goal>
               </goals>
             </execution>
           </executions>
           <configuration>
+            <sourcepath>target/generated-sources/delombok/</sourcepath>
             <additionalJOption>--frames</additionalJOption>
           </configuration>
         </plugin>
