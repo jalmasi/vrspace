@@ -6,7 +6,7 @@ import org.vrspace.server.obj.Client;
 import lombok.Data;
 
 /**
- * FIXME: clear causes ConcurrentModificationException during scene removal
+ * Command to enforce Scene update.
  * 
  * @author joe
  *

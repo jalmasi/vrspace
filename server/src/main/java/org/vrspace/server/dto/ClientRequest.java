@@ -14,6 +14,13 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * A request received from a client, created by SessionManager. It can be either
+ * an an object, or a command.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor

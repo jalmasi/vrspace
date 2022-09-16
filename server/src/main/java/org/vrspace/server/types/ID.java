@@ -9,6 +9,12 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Object ID is class name + a number.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @RequiredArgsConstructor
 public class ID {

@@ -7,6 +7,12 @@ import org.vrspace.server.obj.Content;
 
 import lombok.Data;
 
+/**
+ * List of files, used by ContentManager.
+ * 
+ * @author joe
+ *
+ */
 @Data
 public class FileList {
   private String path;

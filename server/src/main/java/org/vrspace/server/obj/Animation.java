@@ -8,6 +8,13 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * A shared animation, embedded into VRObject. TODO more shared properties to
+ * come.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @NoArgsConstructor

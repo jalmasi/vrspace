@@ -27,6 +27,13 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Basic client class, adds user-related properties and business logic to
+ * VRObject.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = false)
@@ -34,55 +41,98 @@ import lombok.extern.slf4j.Slf4j;
 @Owned
 @Slf4j
 public class Client extends VRObject {
+  /**
+   * Client name - unique ID.
+   */
   // @Index(unique = true) - NeoConfig creates it
   private String name;
+  /**
+   * Left arm position, used in VR. Transient biometric data.
+   */
   @Transient
   transient private Point leftArmPos;
+  /**
+   * Right arm position, used in VR. Transient biometric data.
+   */
   @Transient
   transient private Point rightArmPos;
+  /**
+   * Left arm rotation, used in VR. Transient biometric data.
+   */
   @Transient
   transient private Quaternion leftArmRot;
+  /**
+   * Right arm rotation, used in VR. Transient biometric data.
+   */
   @Transient
   transient private Quaternion rightArmRot;
+  /**
+   * User's height in real life, used in VR. Transient biometric data.
+   */
   @Transient
   transient private Double userHeight;
-
+  /**
+   * Owned objects.
+   */
   @JsonIgnore
   @Relationship(type = "OWNS", direction = Relationship.Direction.OUTGOING)
   private Set<VRObject> owned;
-
+  /**
+   * Properties of the scene - how far a user sees, how much objects...
+   */
   @Private
   @Transient
   transient private SceneProperties sceneProperties;
-
+  /**
+   * Tokens used to access video/audio streaming servers, identify conversations
+   * with chatbots etc.
+   */
   @Private
   @Transient
   transient private Map<String, String> tokens = new HashMap<>();
-
+  /**
+   * Write-back cache to persist changes to all properties.
+   */
   @JsonIgnore
   @Transient
   transient private WriteBack writeBack;
-
+  /**
+   * Identity is a big unknown yet, will likely get encapsulated in a class. For
+   * the time being, it's something like username@oauth2provider, e.g.
+   * joe@facebook
+   */
   @Private
   @JsonIgnore
   private String identity;
-
+  /**
+   * Web socket.
+   */
   @JsonIgnore
   @Transient
   transient private ConcurrentWebSocketSessionDecorator session;
+  /**
+   * Scene contains all object that a client tracks, e.g. user sees.
+   */
   @JsonIgnore
   @Transient
   transient private Scene scene;
+  /**
+   * Mapper for publicly visible properties
+   */
   @JsonIgnore
   @Transient
   transient private ObjectMapper mapper;
   /**
-   * private mapper even serializes private fields (so that client can receive own
+   * Private mapper even serializes private fields (so that client can receive own
    * secrets)
    */
   @JsonIgnore
   @Transient
   transient private ObjectMapper privateMapper;
+  /**
+   * guest flag hints SceneManager to remove all created/owned object when client
+   * disconnects
+   */
   @JsonIgnore
   @Transient
   transient private boolean guest;
@@ -109,6 +159,10 @@ public class Client extends VRObject {
     this.session = session;
   }
 
+  /**
+   * Process an event received from other active objects, typically other users.
+   * This implementation serializes the event and sends it over websocket.
+   */
   @Override
   public void processEvent(VREvent event) {
     if (!event.getSource().isActive()) {
@@ -156,6 +210,12 @@ public class Client extends VRObject {
 
   }
 
+  /**
+   * Add some owned objects to this client. By default, all objects created by a
+   * client become owned.
+   * 
+   * @param objects
+   */
   public void addOwned(VRObject... objects) {
     if (owned == null) {
       owned = new HashSet<VRObject>();
@@ -165,6 +225,11 @@ public class Client extends VRObject {
     }
   }
 
+  /**
+   * Remove owned objects, i.e. give up ownership.
+   * 
+   * @param objects
+   */
   public void removeOwned(VRObject... objects) {
     if (owned != null) {
       for (VRObject obj : objects) {
@@ -173,6 +238,12 @@ public class Client extends VRObject {
     }
   }
 
+  /**
+   * Is this object owned by this client? Also, a client owns itself.
+   * 
+   * @param obj
+   * @return
+   */
   public boolean isOwner(VRObject obj) {
     return this.equals(obj) || owned != null && obj != null && owned.contains(obj);
   }

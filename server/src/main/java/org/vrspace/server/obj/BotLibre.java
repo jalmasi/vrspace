@@ -19,7 +19,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * BotLibre integration point, TODO
+ * BotLibre integration point. Forwards user query to configured url, sets
+ * application and service to configured values. Keeps track of conversation id.
  * 
  * @author joe
  *

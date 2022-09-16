@@ -8,6 +8,13 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * A point (3D coordinate) in space. Embedded in VRObject during serialization,
+ * does not exist on its own.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @NoArgsConstructor

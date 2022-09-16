@@ -22,6 +22,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Basic VR Object encapsulates minimal spatial and other properties.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @NoArgsConstructor
 @JsonInclude(Include.NON_EMPTY)
@@ -33,11 +39,15 @@ public class VRObject extends Entity {
 
   private List<VRObject> children;
 
+  /** World this object is in */
   @JsonIgnore
   @Relationship(type = "IN_WORLD", direction = Relationship.Direction.OUTGOING)
   // @Index - NeoConfig creates it
   private World world;
 
+  /**
+   * Position in 3D space, used for spatial operations.
+   */
   @JsonMerge
   @Relationship(type = "HAS_POSITION", direction = Relationship.Direction.OUTGOING)
   private Point position;
@@ -80,7 +90,7 @@ public class VRObject extends Entity {
   @Transient
   private transient Map<String, Object> properties;
 
-  // video/audio stream attached to this object
+  // video/audio stream attached to this object CHECKME not used yet?
   private transient String streamId;
 
   @JsonIgnore

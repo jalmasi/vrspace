@@ -10,9 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * This is whatever we need to store to the database. Should be abstract class
- * but Neo4J doesn't allow it.
- *
+ * This is whatever we need to store to the database.
  */
 @Data
 @NoArgsConstructor

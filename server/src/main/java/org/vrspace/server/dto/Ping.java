@@ -6,6 +6,13 @@ import org.vrspace.server.obj.Client;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Some ISPs and/or hosting providers close inactive websockets after some time.
+ * Ping is typically used to prevent this from happening.
+ * 
+ * @author Tero de la Rosa
+ *
+ */
 @Data
 @NoArgsConstructor
 public class Ping implements Command {
