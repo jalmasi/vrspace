@@ -12,9 +12,19 @@ import org.vrspace.server.obj.World;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * BotManger component starts right after server startup. For each Bot
+ * configured in BotConfig, sets properties, adds it to the world, and starts
+ * self test. If it passes, Bot remains in the world as a an active object,
+ * otherwise it's marked inactive.
+ * 
+ * @author joe
+ *
+ */
 @Component
 @Slf4j
 public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
+  /** Configuration bean */
   @Autowired
   BotConfig botConfig;
 
@@ -68,6 +78,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
       bot.setUrl(props.getUrl());
       bot.setMesh(props.getMesh());
 
+      log.debug(botName + " parameter map: " + props.getParameterMap());
       bot.setParameterMap(props.getParameterMap());
 
       if (props.getWorld() != null) {

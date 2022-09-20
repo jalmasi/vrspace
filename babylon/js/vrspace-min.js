@@ -14,13 +14,16 @@ export { Label } from "./ui/label.js";
 export { World } from "./ui/world.js";
 export { WorldManager } from "./ui/world-manager.js";
 export { WorldEditor } from "./ui/world-editor.js";
-export { MediaStreams, OpenViduStreams } from "./ui/media-streams.js";
 export { VideoAvatar } from "./ui/video-avatar.js";
 export { UnityWorld } from "./ui/unity-world.js";
+
+export { MediaStreams, OpenViduStreams } from "./ui/media-streams.js";
+export { Screencast } from "./ui/screencast.js";
 
 export { VRHelper } from "./ui/vr-helper.js";
 export { ARHelper } from "./ui/ar-helper.js";
 
 export { Avatar } from "./ui/avatar.js";
+export { AvatarController } from "./ui/avatar-controller.js";
 
 export { Desert } from "./ui/terrain-desert.js";

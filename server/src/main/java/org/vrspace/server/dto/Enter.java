@@ -6,9 +6,16 @@ import org.vrspace.server.obj.Client;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Enter a world.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @NoArgsConstructor
 public class Enter implements Command {
+  /** Name of the world to enter */
   private String world;
 
   @Override

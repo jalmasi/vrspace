@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
- * VRObject container, contains isolated parts of space, like chat room.
+ * VRObject container, contains isolated parts of space, like chat room. One
+ * default world is created on startup, others are typically created on demand,
+ * after Enter command is issued.
  * 
  * @author joe
  *

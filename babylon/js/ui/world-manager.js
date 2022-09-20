@@ -26,6 +26,8 @@ export class WorldManager {
     this.createAnimations = true;
     /** Custom avatar options, applied to avatars after loading. Currently video avatars only */
     this.customOptions = null;
+    /** Custom avatar animations */
+    this.customAnimations = null;
     /** Whether to track user rotation, default true. */
     this.trackRotation = true;
     /** Used in 3rd person view */
@@ -85,18 +87,20 @@ export class WorldManager {
     this.debug = false;
     this.world.worldManager = this;
     this.notFound = []; // 404 cache used for avatar fix files
+    VRSPACEUI.init(this.scene); // to ensure assetLoader is available
   }
 
   /** Publish and subscribe */
   pubSub( client, autoPublishVideo ) {
-    this.log("Subscribing as client "+client.id+" with token "+client.token);
-    if ( client.token && this.mediaStreams ) {
+    // CHECKME: should it be OpenVidu or general streaming service name?
+    if ( this.mediaStreams && client.tokens && client.tokens.OpenVidu ) {
+      this.log("Subscribing as client "+client.id+" with token "+client.tokens.OpenVidu);
       // obtain token and start pub/sub voices
       if ( autoPublishVideo ) {
         this.mediaStreams.startVideo = true;
         this.mediaStreams.videoSource = undefined;
       }
-      this.mediaStreams.connect(client.token).then(() => this.mediaStreams.publish());
+      this.mediaStreams.connect(client.tokens.OpenVidu).then(() => this.mediaStreams.publish());
     }
   }
 
@@ -274,6 +278,7 @@ export class WorldManager {
     }
     var folder = new ServerFolder( baseUrl, dir, fix );
     var avatar = new Avatar(this.scene, folder);
+    avatar.animations = this.customAnimations;
     avatar.file = file;
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;
@@ -302,7 +307,11 @@ export class WorldManager {
         this.mediaStreams.streamToMesh(obj, obj.container.parentMesh);        
       }
       this.notifyLoadListeners(obj, avatar);
-    });
+    }, (error) => {
+      console.log("Failed to load avatar, loading as mesh");
+      this.loadMesh(obj);
+    }
+    );
   }
   
   notifyLoadListeners(obj, avatar) {
@@ -330,7 +339,7 @@ export class WorldManager {
         }
         VRSPACEUI.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
       } else if ( 'animation' === field ) {
-        avatar.startAnimation(obj.animation);
+        avatar.startAnimation(obj.animation.name, obj.animation.loop);
       } else if ( 'leftArmPos' === field ) {
         var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
         avatar.reachFor(avatar.body.rightArm, pos);
@@ -352,6 +361,7 @@ export class WorldManager {
     }
   }
 
+  /** Notify listeners of remote changes */
   notifyListeners(obj, field, node) {
     this.changeListeners.forEach( (l) => l(obj,field,node) );
   }
@@ -554,6 +564,13 @@ export class WorldManager {
     // TODO also remove object (avatar) from internal arrays
   }
 
+  /** Local user wrote something - send it over and notify local listener(s) */
+  write( text ) {
+    var changes = [{field:'wrote',value:text}];
+    VRSPACE.sendMyChanges(changes);
+    this.myChangeListeners.forEach( (listener) => listener(changes));
+  }
+  
   /**
   Periodically executed, as specified by fps. 
   Tracks changes to camera and XR controllers. 

@@ -33,6 +33,7 @@ import org.vrspace.server.types.Filter;
 import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import io.openvidu.java.client.OpenViduException;
@@ -57,7 +58,9 @@ public class WorldManager {
   protected SceneProperties sceneProperties; // used in tests
 
   @Autowired
-  private ObjectMapper jackson;
+  protected ObjectMapper jackson;
+
+  private ObjectMapper privateJackson;
 
   @Autowired
   private StreamManager streamManager;
@@ -83,8 +86,10 @@ public class WorldManager {
 
   @PostConstruct
   public void init() {
-    this.dispatcher = new Dispatcher(jackson);
-    this.sessionTracker = new SessionTracker(config);
+    this.privateJackson = this.jackson.copy();
+    this.privateJackson.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
+    this.dispatcher = new Dispatcher(this.privateJackson);
+    this.sessionTracker = new SessionTracker(this.config);
   }
 
   // CHECKME: should this be here?
@@ -252,6 +257,7 @@ public class WorldManager {
    */
   public void login(Client client) {
     client.setMapper(jackson);
+    client.setPrivateMapper(privateJackson);
     client.setSceneProperties(sceneProperties.newInstance());
     WriteBack writeBack = new WriteBack(db);
     writeBack.setActive(config.isWriteBackActive());
@@ -406,9 +412,9 @@ public class WorldManager {
       event.setOwnership(ownership);
       dispatcher.dispatch(event);
       client.getWriteBack().write(event.getSource());
-    }
-    if (scene != null) {
-      scene.update();
+      if (scene != null) {
+        scene.update();
+      }
     }
   }
 

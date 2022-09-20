@@ -166,12 +166,52 @@ export class VRSpaceUI {
   listCharacters(dir, callback) {
     this.listMatchingFiles( dir, callback, '-fixes.json' )
   }
+
+  /**
+  List files in a server folder
+  @param dir directory to list
+  @param callback receives string array with urls
+  @param suffix optional suffix of listed files
+   */
+  listDirectory(dir, callback, suffix) {
+    if ( !dir.endsWith('/') ) {
+      dir += '/';
+    }
+    var ui = this;
+    return this.listFiles(dir, (xmlHttp) => {
+      var links = xmlHttp.responseXML.links;
+      var files = [];
+      
+      // first pass:
+      // iterate all links, collect avatar directories and fixes
+      for ( var i = 0; i < links.length; i++ ) {
+        var link = links[i];
+        var href = link.href;
+        if ( href.indexOf('?') > 0 ) {
+          continue;
+        }
+        if ( link.baseURI.length > link.href.length ) {
+          continue;
+        }
+        if ( link.href.endsWith('/') ) {
+          continue;
+        }
+        if ( ! suffix || href.endsWith(suffix)) {
+          ui.log(link.baseURI+' '+href);
+          files.push(href);
+        }
+      }
+
+      callback(files);
+    });
+  }
+  
   
   /**
   list server folders along with their matching files
   i.e. files with the same name, plus given suffix
   @param dir directory to list
-  @param callback to call
+  @param callback to call, receives ServerFolder list as argument
   @param suffix of related file
    */
   listMatchingFiles(dir, callback, suffix) {

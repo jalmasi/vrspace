@@ -3,6 +3,7 @@ package org.vrspace.server.api;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -60,12 +61,13 @@ public class Oauth2Controller {
     return ResponseEntity.status(HttpStatus.FOUND).header("Location", referrer).body("Redirecting to " + referrer);
   }
 
-  // TODO this should be hashed
   // CHECKME some kind of universal identity
   private String identity(OAuth2AuthenticationToken token) {
     String authority = token.getAuthorizedClientRegistrationId();
     String realName = token.getPrincipal().getAttribute("name");
-    return authority + ":" + realName;
+    // hash the name - we don't want any private data stored anywhere
+    String hashedName = DigestUtils.sha256Hex(realName);
+    return authority + ":" + hashedName;
   }
 
   @GetMapping("/callback")

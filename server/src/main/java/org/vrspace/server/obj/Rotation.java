@@ -7,6 +7,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * Rotation of an can be represented either by 3 or 4 coordinates (euler angles,
+ * quaternions), the server will store and distribute it either way.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor

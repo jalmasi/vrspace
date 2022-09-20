@@ -20,10 +20,18 @@ thanks folks!
   <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="main.css">
   
+  <!--
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
   <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
   <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+  -->
+  <script src="/babylon/js/lib/babylon.js"></script>
+  <script src="/babylon/js/lib/babylonjs.loaders.min.js"></script>
+  <script src="/babylon/js/lib/babylon.gui.min.js"></script>
+  <script src="/babylon/js/lib/babylonjs.materials.min.js"></script>
+  <script src="/babylon/js/lib/babylonjs.proceduralTextures.min.js"></script>
+
   <script src="/babylon/js/vrspace-min.js" type="module"></script>
     
 </head>
@@ -42,6 +50,7 @@ thanks folks!
           <nav>
               <ul>
                   <li><a href="#about">About</a></li>
+                  <li><a href="https://github.com/jalmasi/vrspace" target="_blank">GitHub</a></li>
                   <li><a href="https://redmine.vrspace.org/projects/vrspace-org/wiki" target="_blank">Wiki</a></li>
                   <li><a href="https://redmine.vrspace.org/projects/vrspace-org/boards" target="_blank">Forums</a></li>
                   <li><a href="docs/jsdoc/index.html" target="_blank">jsdoc</a></li>
@@ -370,7 +379,7 @@ thanks folks!
      <div style="color: white;">Chat Log</div>
   </div>
 
-  <div id="iframe" style="position:absolute;bottom:50px;width:100%;">
+  <div id="iframe" style="position:absolute;top:0px;width:100%;">
     <iframe id="customAvatarFrame" allow="camera *; microphone *" width="100%" height="800" hidden="true"></iframe>
   </div>
 

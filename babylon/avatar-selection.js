@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, OpenViduStreams, ServerFolder, ServerFile } from './js/vrspace-min.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -7,10 +7,15 @@ export class AvatarSelection extends World {
     this.serverUrl = null;
     /** content base, defaults to VRSPACEUI.contentBase */
     this.contentBase = VRSPACEUI.contentBase;
-    /** background base dir, null defaults to contentBase+"/content/skybox/mp_drakeq/drakeq" */
+    /** background base dir, null defaults to contentBase+"/content/skybox/mp_drakeq/drakeq" (box) 
+    or "/content/skybox/eso_milkyway/eso0932a.jpg" (panoramic)*/
     this.backgroundPath = null;
+    /** Is backgroundPath a panoramic image? Default false (directory containing 6 images) */
+    this.backgroundPanorama = false;
     /** character base dir, null defaults to contentBase+'/content/char/' */
     this.characterPath = null;
+    /** character animation folder, null defaults to contentBase+'/content/rpm-anim/' */
+    this.animationPath = null;
     /** world base dir, null defaults to contentBase+'/content/worlds' */
     this.worldPath = null;
     /** function to call just before entering a world */
@@ -33,20 +38,32 @@ export class AvatarSelection extends World {
     this.debug=false;
     // state variables
     this.mirror = true;
+    this.customAnimations = [];
     this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000/this.fps;
   }
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
-    skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    if ( this.backgroundPanorama ) {
+      var skybox= new BABYLON.PhotoDome("skyDome", 
+        this.backgroundDir(),
+        {
+          resolution: 32,
+          size: 1000
+        },
+        this.scene
+      );
+    } else {
+      var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
+      skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
+      var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+      skyboxMaterial.backFaceCulling = false;
+      skyboxMaterial.disableLighting = true;
+      skybox.material = skyboxMaterial;
+      skybox.infiniteDistance = true;
+      skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
+      skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    }
     return skybox;
   }
   async createCamera() {
@@ -83,6 +100,9 @@ export class AvatarSelection extends World {
     if ( this.backgroundPath ) {
       return this.backgroundPath;
     }
+    if ( this.backgroundPanorama ) {
+      return this.contentBase+"/content/skybox/eso_milkyway/eso0932a.jpg";
+    }
     return this.contentBase+"/content/skybox/mp_drakeq/drakeq";
   }
   characterDir() {
@@ -90,6 +110,12 @@ export class AvatarSelection extends World {
       return this.characterPath;
     }
     return this.contentBase+'/content/char/';
+  }
+  animationDir() {
+    if ( this.animationPath ) {
+      return this.animationPath;
+    }
+    return this.contentBase+'/content/rpm-anim/';
   }
   worldDir() {
     if ( this.worldPath ) {
@@ -165,6 +191,12 @@ export class AvatarSelection extends World {
     return target;
   }
 
+  listAnimations() {
+    VRSPACEUI.listDirectory( this.animationDir(), animations => {
+      this.customAnimations = animations;
+    });
+  }
+  
   createSelection(selectionCallback) {
     this.selectionCallback = selectionCallback;
     VRSPACEUI.listMatchingFiles( this.characterDir(), (folders) => {
@@ -178,6 +210,7 @@ export class AvatarSelection extends World {
       buttons.select(0);
       this.mainButtons = buttons;
     });
+    this.listAnimations();
   }
   
   async createAvatarSelection(folder) {
@@ -268,11 +301,7 @@ export class AvatarSelection extends World {
         // https://d1a370nemizbjq.cloudfront.net/a13ab5dc-358d-45e4-a602-446b9c840155.glb
         console.log("Avatar URL: "+avatarUrl);
         this.customAvatarFrame.hidden = true;
-        var pos = avatarUrl.lastIndexOf('/');
-        var path = avatarUrl.substring(0,pos);
-        var file = avatarUrl.substring(pos+1);
-        var folder = new ServerFolder( path, "");
-        this.loadCharacter(folder, file);
+        this.loadCharacterUrl(avatarUrl);
       }
 
       // Get user id
@@ -287,7 +316,7 @@ export class AvatarSelection extends World {
     
   }
 
-  loadCharacterUrl( url ) {
+  loadCharacterUrl( url) {
     console.log('loading character from '+url);
     var file = new ServerFile( url );
     this.loadCharacter( file, file.file);
@@ -300,6 +329,7 @@ export class AvatarSelection extends World {
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(this.scene, dir, this.shadowGenerator);
     loaded.file = file;
+    loaded.animations = this.customAnimations;
     // resize the character to real-world height
     if ( this.inXR ) {
       this.userHeight = this.vrHelper.camera().realWorldHeight;
@@ -402,7 +432,7 @@ export class AvatarSelection extends World {
       if ( group.isPlaying ) {
         playing = i;
       }
-      avatar.processAnimations(group.targetedAnimations);
+      avatar.processAnimations(group);
     }
     console.log("Animations: "+names);
     if ( this.animationSelection ) {
@@ -552,6 +582,7 @@ export class AvatarSelection extends World {
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
         this.worldManager.customOptons = this.customOptions;
+        this.worldManager.customAnimations = this.customAnimations;
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
         
@@ -576,6 +607,11 @@ export class AvatarSelection extends World {
         ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
           this.worldManager.pubSub(welcome.client, 'video' === avatarUrl);
+          if ( this.character ) {
+            // character is null for e.g. video avatar
+            var controller = new AvatarController(this.worldManager, this.character);
+            this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
+          }
           if ( this.afterEnter ) {
             this.afterEnter(this, world);
           }
@@ -633,10 +669,12 @@ export class AvatarSelection extends World {
     this.removePortals();
     this.room.dispose(); // AKA ground
     // CHECKME properly dispose of avatar
+    // disposing of own character effectively disables 3rd person view etc
     if ( this.character ) {
-      this.character.dispose();
+      //this.character.dispose();
       //VRSPACEUI.assetLoader.unloadAsset(this.character.getUrl());
-      this.character = null;
+      //this.character = null;
+      this.character.hide();
     }
     
     if ( this.mainButtons ) {

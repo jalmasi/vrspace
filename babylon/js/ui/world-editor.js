@@ -202,17 +202,34 @@ export class WorldEditor {
   
   
   alignObject(obj) {
-    var origin = obj.position;
-    var direction = new BABYLON.Vector3(0,-1,0);
+    var pickInfo = this.pick(obj, new BABYLON.Vector3(0,-1,0));
+    var newPos = { x:obj.position.x, y:obj.position.y, z:obj.position.z };
+    if ( pickInfo.hit ) {
+      // there was something below
+      newPos.y = obj.position.y - pickInfo.distance;
+    } else {
+      // nothing below, let's try to move up
+      pickInfo = this.pick(obj, new BABYLON.Vector3(0,1,0));      
+      newPos.y = obj.position.y + pickInfo.distance;
+    }
+    if ( pickInfo.hit ) {
+      this.worldManager.VRSPACE.sendEvent(obj.VRObject, {position: newPos} );
+    }
+  }
+
+  pick( obj, direction ) {
+    // CHECKME: we may need to compute world matrix or something to make sure this works
+    var bbox = obj.getHierarchyBoundingVectors();
+    //var origin = obj.position;
+    var origin = new BABYLON.Vector3((bbox.max.x-bbox.min.x)/2, bbox.min.y, (bbox.max.z-bbox.min.z)/2)
     var length = 100;
     var ray = new BABYLON.Ray(origin, direction, length);
     var pickInfo = this.scene.pickWithRay(ray, (mesh) => {
       var pickedRoot = VRSPACEUI.findRootNode(mesh);
       return pickedRoot != obj;
     });
-    console.log(pickInfo);
-    var y = obj.position.y - pickInfo.distance;
-    this.worldManager.VRSPACE.sendEvent(obj.VRObject, {position: { x:obj.position.x, y:y, z:obj.position.z }} );
+    //console.log(pickInfo);
+    return pickInfo;
   }
   
   upright(obj) {

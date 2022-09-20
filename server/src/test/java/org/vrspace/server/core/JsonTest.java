@@ -191,4 +191,12 @@ public class JsonTest {
     return res;
   }
 
+  @Test
+  public void testPrivateField() throws Exception {
+    Client c = new Client();
+    c.setToken("test", "secretToken");
+    String json = mapper.writeValueAsString(c);
+    System.err.println(json);
+    assertFalse(json.contains("secretToken"));
+  }
 }
