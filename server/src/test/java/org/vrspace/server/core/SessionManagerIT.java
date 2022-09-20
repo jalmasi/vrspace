@@ -48,7 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
-public class SessionManagerTest {
+public class SessionManagerIT {
 
   @Mock
   private WebSocketSession session;

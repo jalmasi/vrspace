@@ -34,7 +34,7 @@ import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
 @SpringBootTest
-public class DBTest {
+public class DBIT {
 
   @Autowired
   VRObjectRepository repo;
