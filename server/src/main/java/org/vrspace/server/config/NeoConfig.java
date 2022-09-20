@@ -34,10 +34,19 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @ConditionalOnProperty("org.vrspace.db")
 public class NeoConfig {
+  /** Directory containing embedded database, property org.vrspace.db */
   @Value("${org.vrspace.db}")
   private String dbPath;
+  /**
+   * Recursive removal database directory on startup and shutdown, used in tests.
+   * Property org.vrspace.db.cleanup, default false
+   */
   @Value("${org.vrspace.db.cleanup:false}")
   private boolean cleanup;
+  /**
+   * Neo4j database URI, defaults to embedded/local database, bolt://localhost.
+   * Property spring.neo4j.uri
+   */
   @Value("${spring.neo4j.uri:bolt://localhost}")
   private String neoUri;
 
@@ -57,7 +66,8 @@ public class NeoConfig {
     return graphDb;
   }
 
-  public void neoStart(Path dbDir) {
+  private void neoStart(Path dbDir) {
+    cleanup();
     int port = BoltConnector.DEFAULT_PORT;
     int pos = neoUri.indexOf(":", neoUri.indexOf("://") + 1);
     if (pos > 0) {
@@ -88,6 +98,10 @@ public class NeoConfig {
     log.info("Database shutting down...");
     managementService.shutdown();
     log.info("Database shutting down complete");
+    cleanup();
+  }
+
+  private void cleanup() {
     if (cleanup && dbDir != null) {
       log.info("Deleting database directory " + dbDir);
       FileSystemUtils.deleteRecursively(dbDir);
