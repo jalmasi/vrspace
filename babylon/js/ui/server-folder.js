@@ -30,5 +30,20 @@ export class ServerFolder {
     }
     return null;
   }
+  
 }
 
+export class ServerFile extends ServerFolder {
+ /** Create new server file from the url*/
+  constructor(url, related) {
+    super();
+    var pos = url.lastIndexOf('/');
+    var path = url.substring(0,pos);
+    this.file = url.substring(pos+1);
+    pos = path.lastIndexOf('/');
+    this.baseUrl = path.substring(0,pos+1);
+    this.name = path.substring(pos+1);
+    this.related = related;
+    this.fileUrl = url;
+  }
+}

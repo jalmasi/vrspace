@@ -17,6 +17,14 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Welcome message is first one sent once the client enters a world. Contains
+ * current Client object, used by the client to identify itself. Optionally it
+ * also contains list of permanent objects.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @JsonInclude(Include.NON_EMPTY)

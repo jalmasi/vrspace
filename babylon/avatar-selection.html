@@ -12,7 +12,7 @@
       padding: 0px;
     }
     canvas {
-      width: 98%;
+      width: 100%;
       height:96%;
       padding-left: 0;
       padding-right: 0;
@@ -20,11 +20,19 @@
       margin-right: auto;
     }
     </style>
+    <!-- 
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
     <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
     <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+     -->
+    <script src="./js/lib/babylon.js"></script>
+    <script src="./js/lib/babylonjs.loaders.min.js"></script>
+    <script src="./js/lib/babylon.gui.min.js"></script>
+    <script src="./js/lib/babylonjs.materials.min.js"></script>
+    <script src="./js/lib/babylonjs.proceduralTextures.min.js"></script>
+
     <script src="/babylon/js/vrspace-min.js" type="module"></script>
     <script src="./js/lib/perlin.js"></script>
     </head>
@@ -55,17 +63,18 @@ import("./avatar-selection.js").then( (module) =>{
   });
 
   var checkValidName = (name) => {
+    console.log( 'checking name ', name );
     if ( name ) {
-      world.setLoginName(name).then((valid) => {
+      world.setLoginName(name).then( validName => {
         var nameLabel = document.getElementById('namelabel');
-        console.log("Valid name: "+valid);
-        if ( valid ) {
+        console.log("Valid name: "+validName);
+        if ( validName ) {
           nameLabel.innerHTML="Name:"
           canvas.focus();
         } else {
           nameLabel.innerHTML="INVALID NAME, try another:"
         }
-        world.portalsEnabled(valid);
+        world.portalsEnabled(validName);
       });
     } else {
       world.portalsEnabled(anonymousAllowed);
@@ -74,7 +83,7 @@ import("./avatar-selection.js").then( (module) =>{
 
   nameInput.addEventListener('change', (e)=>{
     checkValidName(e.target.value);
-    loginButton.disabled=false;
+    //loginButton.disabled=false;
   });
 
   document.getElementById('chatBox').style.display = 'none';
@@ -86,10 +95,26 @@ import("./avatar-selection.js").then( (module) =>{
 
   world.init(engine, 'avatar').then((s) => {
     scene = s;
+    
+    // testing various REST calls here
+    world.getAuthenticated().then( isAuthenticated => {
+      if ( isAuthenticated ) {
+        document.getElementById('loginForm').style.display = 'none';
+        world.getUserName().then( name => world.setMyName(name));
+        world.getUserObject().then( me => {
+          console.log("user mesh "+me.mesh, me);
+          if ( me.mesh ) {
+            world.loadCharacterUrl( me.mesh );
+          }
+        });
+      }
+    });
+  
     world.createSelection((avatar)=>{
       console.log("Selected avatar: "+avatar.getUrl());
       checkValidName(world.getMyName());
     });
+    
     world.showPortals();
     world.beforeEnter = () => {
       document.getElementById('loginForm').style.display = 'none';
@@ -101,7 +126,7 @@ import("./avatar-selection.js").then( (module) =>{
       console.log('Exit:'+world.worldManager.error);
       document.getElementById('loginForm').style.display = 'block';
       document.getElementById('chatBox').style.display = 'none';
-      setTimeout(() => document.location.reload(), 5000);
+      //setTimeout(() => document.location.reload(), 5000);
     }
   });
 
@@ -148,21 +173,25 @@ function debugOnOff() {
 </script>
 
 <div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
-<label id="namelabel" for="nickname">Name:</label>
-<input id="nickname" type="text">
-<button id="loginButton" disabled>Login</button>
+  <label id="namelabel" for="nickname">Name:</label>
+  <input id="nickname" type="text">
+  <button id="loginButton">Login</button>
 </div>
 
 <div id="chatBox" style="position:absolute;bottom:50px;left:15%">
-<label for="chatInput">Chat:</label>
-<input id="chatInput" type="text" size=256 style="width:80%;">
+  <label for="chatInput">Chat:</label>
+  <input id="chatInput" type="text" size=256 style="width:80%;">
 </div>
 
 <div style="position:absolute;bottom:10px;right:50%;">
-<button onClick="debugOnOff()">Debug</button>
+  <button onClick="debugOnOff()">Debug</button>
 </div>
 
 <div id="videos" hidden>
+</div>
+
+<div id="iframe" style="position:absolute;top:0px;width:100%;">
+  <iframe id="customAvatarFrame" allow="camera *; microphone *" width="100%" height="800" hidden="true"></iframe>
 </div>
 
 </body>

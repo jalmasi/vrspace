@@ -70,12 +70,14 @@ export class Label {
   }
   
   dispose() {
-    this.textBlock.dispose();
-    this.textPlane.material.dispose();
-    this.textPlane.dispose();
-    this.texture.dispose();
-    delete this.textBlock;
-    delete this.textPlane;
-    delete this.texture;
+    if ( this.textBlock ) {
+      this.textBlock.dispose();
+      this.textPlane.material.dispose();
+      this.textPlane.dispose();
+      this.texture.dispose();
+      delete this.textBlock;
+      delete this.textPlane;
+      delete this.texture;
+    }
   }
 }

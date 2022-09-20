@@ -20,10 +20,18 @@ thanks folks!
   <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="main.css">
   
+  <!--
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
   <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
   <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+  -->
+  <script src="/babylon/js/lib/babylon.js"></script>
+  <script src="/babylon/js/lib/babylonjs.loaders.min.js"></script>
+  <script src="/babylon/js/lib/babylon.gui.min.js"></script>
+  <script src="/babylon/js/lib/babylonjs.materials.min.js"></script>
+  <script src="/babylon/js/lib/babylonjs.proceduralTextures.min.js"></script>
+
   <script src="/babylon/js/vrspace-min.js" type="module"></script>
     
 </head>
@@ -42,6 +50,7 @@ thanks folks!
           <nav>
               <ul>
                   <li><a href="#about">About</a></li>
+                  <li><a href="https://github.com/jalmasi/vrspace" target="_blank">GitHub</a></li>
                   <li><a href="https://redmine.vrspace.org/projects/vrspace-org/wiki" target="_blank">Wiki</a></li>
                   <li><a href="https://redmine.vrspace.org/projects/vrspace-org/boards" target="_blank">Forums</a></li>
                   <li><a href="docs/jsdoc/index.html" target="_blank">jsdoc</a></li>
@@ -96,15 +105,17 @@ thanks folks!
                       <p>On the web, ready to use with any WebXR enabled browser, on any device.</p>
                       <p><strong>Free and open</strong>, ready to help you make your own virtual worlds!</p>
                       <p>Oh, and it's <strong>multi-user</strong> enabled, so invite your friends over.</p>
-                      <p>And, and it's <strong>voice</strong> enabled, so you can chat with your friends.</p>
+                      <p>And, and it's <strong>voice</strong> enabled, so you can chat with your friends. (the browser will ask for your permission to use microphone)</p>
                       <p><br></p>
                       <p>To <strong>navigate</strong> in 3D space, drag mouse/finger, use arrow keys or WASD. </p>
                       <p>To <strong>enter VR</strong>, click/tap goggles icon on the right side of 3D view.</p>
                       <p><br></p>
                       <p>First step is to <strong>choose your avatar</strong> from the list of available avatars. Just select the button by avatar's name.</p>
                       <p>Once selected, the avatar will load, and list of available animations will appear on the left side. In VR, the avatar immediately mimics your movements - that's how other users will see you.</p>
+                      <p><strong>Or,</strong> choose a video avatar, and join as yourself! (the browser will ask for your permission to use camera)</p>
+                      <p><strong>Or,</strong> create your custom avatar. (provided by Ready Player Me, and set <strong>cookies</strong>)</p>
                       <p><br></p>
-                      <p>Once you've choosen an avatar, you can <strong>enter a virtual world</strong>.</p>
+                      <p>Once you've choosen your avatar, you can <strong>enter a virtual world</strong>.</p>
                       <p><br></p>
                       <p><strong>Have fun!</strong></p>
                       <p><br></p>
@@ -366,6 +377,10 @@ thanks folks!
 
   <div id="chatLog" style="position: absolute; margin-left: 10%; top: 80px; width:80%; height:70%; display: none; background-color: rgba(63, 63, 63, 0.5);" >
      <div style="color: white;">Chat Log</div>
+  </div>
+
+  <div id="iframe" style="position:absolute;top:0px;width:100%;">
+    <iframe id="customAvatarFrame" allow="camera *; microphone *" width="100%" height="800" hidden="true"></iframe>
   </div>
 
 </body>

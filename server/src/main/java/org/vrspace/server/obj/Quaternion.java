@@ -6,6 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Easier than Rotation to propagate quaternions, as it follows quaternion
+ * naming convention (w rather than angle).
+ * 
+ * @author joe
+ *
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor

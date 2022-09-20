@@ -6,6 +6,13 @@ import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+/**
+ * A 3D Model in GLTF format. Adds unique id, uri and other properties to
+ * Content class. Based on sketchfab models.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class GltfModel extends Content {

@@ -17,14 +17,14 @@ export class RecorderUI {
   showUI() {
 
 
-    this.recordButton = VRSPACEUI.hud.addButton("REC", "//www.babylonjs-playground.com/textures/icons/Dot.png"); // FIXME: cdn
+    this.recordButton = VRSPACEUI.hud.addButton("REC", "https://www.babylonjs-playground.com/textures/icons/Dot.png"); // FIXME: cdn
     this.recordButton.onPointerDownObservable.add( () => this.record());
     
-    this.stopButton = VRSPACEUI.hud.addButton("Stop","//www.babylonjs-playground.com/textures/icons/Pause.png"); // FIXME: cdn
+    this.stopButton = VRSPACEUI.hud.addButton("Stop","https://www.babylonjs-playground.com/textures/icons/Pause.png"); // FIXME: cdn
     this.stopButton.onPointerDownObservable.add( () => this.stop());
     this.stopButton.isVisible = false;
 
-    this.playButton = VRSPACEUI.hud.addButton( "Play", "//www.babylonjs-playground.com/textures/icons/Play.png"); // FIXME: cdn
+    this.playButton = VRSPACEUI.hud.addButton( "Play", "https://www.babylonjs-playground.com/textures/icons/Play.png"); // FIXME: cdn
     this.playButton.onPointerDownObservable.add( () => this.play());
     this.playButton.isVisible = false;
   }

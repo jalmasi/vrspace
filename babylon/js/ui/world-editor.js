@@ -11,6 +11,7 @@ export class WorldEditor {
     if ( fileInput ) {
       this.setFileInput( fileInput );
     }
+    this.contentBase=VRSPACEUI.contentBase;
     this.worldManager = world.worldManager;
     this.defaultErrorHandler = world.worldManager.loadErrorHandler;
     this.defaultloadCallback = world.worldManager.loadCallback;
@@ -66,13 +67,13 @@ export class WorldEditor {
   }
   
   createButtons() {
-    this.moveButton = this.makeAButton( "Move", "/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
+    this.moveButton = this.makeAButton( "Move", this.contentBase+"/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
     this.moveButton.onPointerUpObservable.add(()=>this.dropObject());
     this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
-    this.scaleButton = this.makeAButton("Resize", "/content/icons/resize.png", (o)=>this.resizeObject(o));
+    this.scaleButton = this.makeAButton("Resize", this.contentBase+"/content/icons/resize.png", (o)=>this.resizeObject(o));
     this.alignButton = this.makeAButton("Align", "https://www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
     this.alignButton = this.makeAButton("Upright", "https://www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
-    this.copyButton = this.makeAButton("Copy", "/content/icons/copy.png", (o)=>this.copyObject(o));
+    this.copyButton = this.makeAButton("Copy", this.contentBase+"/content/icons/copy.png", (o)=>this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
     this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
     this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Save.png");
@@ -201,17 +202,34 @@ export class WorldEditor {
   
   
   alignObject(obj) {
-    var origin = obj.position;
-    var direction = new BABYLON.Vector3(0,-1,0);
+    var pickInfo = this.pick(obj, new BABYLON.Vector3(0,-1,0));
+    var newPos = { x:obj.position.x, y:obj.position.y, z:obj.position.z };
+    if ( pickInfo.hit ) {
+      // there was something below
+      newPos.y = obj.position.y - pickInfo.distance;
+    } else {
+      // nothing below, let's try to move up
+      pickInfo = this.pick(obj, new BABYLON.Vector3(0,1,0));      
+      newPos.y = obj.position.y + pickInfo.distance;
+    }
+    if ( pickInfo.hit ) {
+      this.worldManager.VRSPACE.sendEvent(obj.VRObject, {position: newPos} );
+    }
+  }
+
+  pick( obj, direction ) {
+    // CHECKME: we may need to compute world matrix or something to make sure this works
+    var bbox = obj.getHierarchyBoundingVectors();
+    //var origin = obj.position;
+    var origin = new BABYLON.Vector3((bbox.max.x-bbox.min.x)/2, bbox.min.y, (bbox.max.z-bbox.min.z)/2)
     var length = 100;
     var ray = new BABYLON.Ray(origin, direction, length);
     var pickInfo = this.scene.pickWithRay(ray, (mesh) => {
       var pickedRoot = VRSPACEUI.findRootNode(mesh);
       return pickedRoot != obj;
     });
-    console.log(pickInfo);
-    var y = obj.position.y - pickInfo.distance;
-    this.worldManager.VRSPACE.sendEvent(obj.VRObject, {position: { x:obj.position.x, y:y, z:obj.position.z }} );
+    //console.log(pickInfo);
+    return pickInfo;
   }
   
   upright(obj) {
@@ -291,7 +309,8 @@ export class WorldEditor {
     }
 
     this.carrying = vrObject;
-    
+    this.editObject( vrObject, true );
+        
     // default position
     if ( ! position ) {
       var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(2).direction;
@@ -344,7 +363,8 @@ export class WorldEditor {
   
   drop(obj) {
     console.log("Dropping "+obj.target);
-    
+    this.editObject(obj, false);
+        
     this.scene.onPointerObservable.remove(obj.clickHandler);
     this.worldManager.removeMyChangeListener( obj.changeListener );
     delete obj.clickHandler;
@@ -359,6 +379,15 @@ export class WorldEditor {
     this.worldManager.changeCallback = null;
     console.log("dropped "+obj.id);
     this.displayButtons(true);
+  }
+  
+  editObject(obj, editing) {
+    if ( editing ) {
+      obj.properties.editing = this.worldManager.VRSPACE.me.id;
+    } else {
+      obj.properties.editing = null;
+    }
+    this.worldManager.VRSPACE.sendEvent(obj, {properties: obj.properties} );
   }
 
   search(text, args) {

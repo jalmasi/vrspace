@@ -17,15 +17,15 @@ export class VRSpaceUI {
     this.scene = null;
     /** content base (prefix), default empty (same host) */
     this.contentBase = '';
-    /** Path to logo, defaults to contentBase+/babylon */
-    this.logoPath = this.contentBase+"/babylon/"
+    /** Path to logo, null defaults to contentBase+/babylon (vrspace.org logo)*/
+    this.logoPath = null;
     /** Logo file name, defaults to logo.glb */
     this.logoFile = "logo.glb";
     /** vrspace.org logo mesh */
     this.logo = null;
-    /** Path to logo, defaults to contentBase+/babylon/portal */
-    this.portalPath = this.contentBase+"/babylon/portal/"
-    /** Portal file name, defaults to logo.glb */
+    /** Path to logo, null defaults to contentBase+/babylon/portal */
+    this.portalPath = null;
+    /** Portal file name, defaults to scene.gltf */
     this.portalFile = "scene.gltf";
     /** portal mesh */
     this.portal = null;
@@ -67,7 +67,7 @@ export class VRSpaceUI {
       }
       this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoPath,this.logoFile,this.scene);
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoDir(),this.logoFile,this.scene);
       this.logo = container.meshes[0];
       for ( var i = 0; i < container.meshes; i++ ) {
         container.meshes[i].checkCollisions = false;
@@ -79,6 +79,21 @@ export class VRSpaceUI {
     return this;
   }
 
+  /** Used in init, return logPath if exists, or default path to vrspace.org logo */
+  logoDir() {
+    if ( this.logoPath ) {
+      return this.logoPath;
+    }
+    return this.contentBase+"/babylon/";
+  }
+  
+  /** Returns portalPath if exists, defaults to contentBase+/babylon/portal */
+  portalDir() {
+    if ( this.portalPath ) {
+      return this.portalPath;
+    }
+    return this.contentBase+"/babylon/portal/";
+  }
   /** Creates default LoadProgressIndicator bound to given camera, if one does not already exist.
   @param scene
   @param camera
@@ -105,7 +120,7 @@ export class VRSpaceUI {
   */
   async loadPortal(scene) {
     if ( ! this.portal ) {
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.portalPath, this.portalFile, scene)
+      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.portalDir(), this.portalFile, scene)
       container.materials[0].albedoColor = BABYLON.Color3.FromHexString('#B3EEF3');
       container.materials[0].metallic = 0.85;
       
@@ -151,12 +166,52 @@ export class VRSpaceUI {
   listCharacters(dir, callback) {
     this.listMatchingFiles( dir, callback, '-fixes.json' )
   }
+
+  /**
+  List files in a server folder
+  @param dir directory to list
+  @param callback receives string array with urls
+  @param suffix optional suffix of listed files
+   */
+  listDirectory(dir, callback, suffix) {
+    if ( !dir.endsWith('/') ) {
+      dir += '/';
+    }
+    var ui = this;
+    return this.listFiles(dir, (xmlHttp) => {
+      var links = xmlHttp.responseXML.links;
+      var files = [];
+      
+      // first pass:
+      // iterate all links, collect avatar directories and fixes
+      for ( var i = 0; i < links.length; i++ ) {
+        var link = links[i];
+        var href = link.href;
+        if ( href.indexOf('?') > 0 ) {
+          continue;
+        }
+        if ( link.baseURI.length > link.href.length ) {
+          continue;
+        }
+        if ( link.href.endsWith('/') ) {
+          continue;
+        }
+        if ( ! suffix || href.endsWith(suffix)) {
+          ui.log(link.baseURI+' '+href);
+          files.push(href);
+        }
+      }
+
+      callback(files);
+    });
+  }
+  
   
   /**
   list server folders along with their matching files
   i.e. files with the same name, plus given suffix
   @param dir directory to list
-  @param callback to call
+  @param callback to call, receives ServerFolder list as argument
   @param suffix of related file
    */
   listMatchingFiles(dir, callback, suffix) {

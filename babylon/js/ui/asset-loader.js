@@ -38,9 +38,13 @@ class AssetSync {
             this.container = container;
             //container.addAllToScene();
             if ( callback ) {
-              callback(container, this.info);
+              try {
+                callback(this.url, container, this.info);                
+              } catch ( err ) {
+                console.log( "Error in callback for "+this.url, err);
+              }
             }
-            resolve(container, this.info);
+            resolve(container);
           },
           (evt, name) => {if ( progress ) progress(evt, name)}, 
           (scene, message, exception)=>{
@@ -66,7 +70,11 @@ class AssetSync {
     // instantiate
     var instances = this.container.instantiateModelsToScene();
     console.log("Instantiated "+this.numberOfInstances+" of "+this.url);
-    callback(this.container, this.info, instances);
+    try {
+      callback(this.url, this.container, this.info, instances);
+    } catch ( err ) {
+      console.log( "Error in callback for "+this.url, err);
+    }
   }
 }
 
@@ -99,7 +107,7 @@ export class AssetLoader {
   loadObject(obj, callback, failure, progress) {
     this.loadAsset(
       obj.mesh, 
-      (container, info, instantiatedEntries) => {
+      (loadedUrl, container, info, instantiatedEntries) => {
         if ( instantiatedEntries ) {
           obj.instantiatedEntries = instantiatedEntries;
     
@@ -152,7 +160,7 @@ export class AssetLoader {
       // TODO remove after refactoring
       // legacy, loaded by some other component (avatar.js)
       console.log("FIXME: disposing of "+obj.id);
-      obj.container.dispose();
+      this.disposeOfContainer(obj.container);
       return 0;
     }
   }
@@ -174,11 +182,19 @@ export class AssetLoader {
       }
       if ( asset.numberOfInstances == 0 ) {
         console.log("Unloaded "+url);
-        container.dispose();
+        this.disposeOfContainer(container);
         delete this.containers[url];
       }
     }
     // TODO else error
+  }
+  // workaround for https://forum.babylonjs.com/t/assetcontainer-dispose-throws-typeerror-r-metadata-is-null/30360
+  disposeOfContainer(container) {
+    try {
+      container.dispose();
+    } catch ( error ) {
+      console.log("Failed to dispose of container", error);
+    }
   }
   /** 
   Returns all currently loaded assets, with spatial coordinates of all instances.

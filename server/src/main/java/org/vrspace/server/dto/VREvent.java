@@ -17,17 +17,31 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * An event that happened to an object. Event can change one or more properties
+ * of an object, and can be generated internally. It's typically received from a
+ * client, and represents changes to clients own properties, e.g. position.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @NoArgsConstructor
 @JsonInclude(Include.NON_EMPTY)
 // ignore all internally set transient fields
 @EqualsAndHashCode(exclude = { "source", "client", "payload" })
 public class VREvent {
+  /**
+   * ID (class name + id ) suitable for serialization.
+   */
   private Map<String, Long> object = new LinkedHashMap<String, Long>(1);
-  // LinkedHashMap here implies that multiple changes are going to be 'collapsed',
-  // i.e. last value of a field overrides any previous values
+  /**
+   * Changes to the object. Multiple changes to same property are going to be
+   * 'collapsed', i.e. last value of a field overrides any previous values.
+   */
   private Map<String, Object> changes = new LinkedHashMap<String, Object>();
 
+  /** Event timestamp in UTC */
   private LocalDateTime timestamp = LocalDateTime.now(ZoneId.of("UTC"));
 
   @JsonIgnore
