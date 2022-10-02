@@ -4,6 +4,7 @@ export class TerrainEditor {
   constructor(world) {
     this.scene = world.scene;
     this.terrain = world.terrain;
+    this.heightIncrement=1;
   }
   edit() {
     this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
@@ -33,17 +34,19 @@ export class TerrainEditor {
     this.raiseButton = VRSPACEUI.hud.addButton("Raise", "https://www.babylonjs-playground.com/textures/icons/Upload.png"); // FIXME: cdn
     this.digButton = VRSPACEUI.hud.addButton("Dig", "https://www.babylonjs-playground.com/textures/icons/Download.png"); // FIXME: cdn
     this.raiseButton.onPointerDownObservable.add( () => {
-      this.heightIncrement = 1;
+      this.direction = 1;
       this.digButton.isVisible = !this.digButton.isVisible;
       this.editing = !this.raiseButton.isVisible || !this.digButton.isVisible
       this.terrain.terrainMaterial.wireframe = this.editing;
     });
     this.digButton.onPointerDownObservable.add( () => {
-      this.heightIncrement = -1;
+      this.direction = -1;
       this.raiseButton.isVisible = !this.raiseButton.isVisible;
       this.editing = !this.raiseButton.isVisible || !this.digButton.isVisible
       this.terrain.terrainMaterial.wireframe = this.editing;
     });
+    
+    VRSPACEUI.hud.addSlider("Height",0,2,this.heightIncrement).onValueChangedObservable.add(value=>{this.heightIncrement=value});
   }
   
   updatePicked( pickInfo ) {
@@ -57,7 +60,7 @@ export class TerrainEditor {
     //var sphere = BABYLON.MeshBuilder.CreateSphere("point", {diameter:0.1}, this.scene);
     //sphere.position = new BABYLON.Vector3(x,y,z);
     if ( this.editing ) {
-      ret = this.terrain.raise(x,z,this.heightIncrement);
+      ret = this.terrain.raise(x,z,this.heightIncrement*this.direction);
     }
     return ret;
   }
