@@ -1,6 +1,10 @@
 import { World, VRSPACEUI, Terrain } from './js/vrspace-min.js';
 
 export class TerrainEditorExample extends World {
+  constructor(params) {
+    super(params);
+    this.lastIndex = -1;
+  }
   async load() {
     // we're not loading any models
     // but we're displaying UI instead
@@ -47,7 +51,7 @@ export class TerrainEditorExample extends World {
     this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(.3, .3, .3);
     this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(0, .5, 0);
     this.terrain.terrainMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
-    this.terrain.terrainMaterial.wireframe = true;
+    //this.terrain.terrainMaterial.wireframe = true;
     //terrainTexture.uScale = 4.0;
     //terrainTexture.vScale = terrainTexture.uScale;
 
@@ -57,15 +61,21 @@ export class TerrainEditorExample extends World {
       switch (pointerInfo.type) {
         case BABYLON.PointerEventTypes.POINTERDOWN:
           if(pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh == this.terrain.mesh()) {
-            this.picked(pointerInfo.pickInfo);
+            this.lastIndex = this.updatePicked(pointerInfo.pickInfo);
+            this.terrain.mesh().enablePointerMoveEvents = true;
           }
           break;
         case BABYLON.PointerEventTypes.POINTERUP:
-          delete this.pickedPoint;
+          this.lastIndex = -1;
+          this.terrain.mesh().enablePointerMoveEvents = false;
           break;
         case BABYLON.PointerEventTypes.POINTERMOVE:
-          if ( this.pickedPoint && pointerInfo.pickInfo.pickedMesh == this.terrain.mesh() ) {
-            //this.resizeRibbon( pointerInfo.pickInfo.pickedPoint );
+          if ( this.lastIndex >= 0 && pointerInfo.pickInfo.pickedMesh == this.terrain.mesh() ) {
+            var newIndex = this.terrain.findIndex(pointerInfo.pickInfo.pickedPoint.x,pointerInfo.pickInfo.pickedPoint.z);
+            if ( newIndex != this.lastIndex ) {
+              this.lastIndex = newIndex;
+              this.updatePicked(pointerInfo.pickInfo);
+            }
           }
           break;
         }
@@ -77,17 +87,20 @@ export class TerrainEditorExample extends World {
       this.heightIncrement = 1;
       this.digButton.isVisible = !this.digButton.isVisible;
       this.editing = !this.raiseButton.isVisible || !this.digButton.isVisible
+      this.terrain.terrainMaterial.wireframe = this.editing;
     });
     this.digButton.onPointerDownObservable.add( () => {
       this.heightIncrement = -1;
       this.raiseButton.isVisible = !this.raiseButton.isVisible;
       this.editing = !this.raiseButton.isVisible || !this.digButton.isVisible
+      this.terrain.terrainMaterial.wireframe = this.editing;
     });
     
     
   }
   
-  picked( pickInfo ) {
+  updatePicked( pickInfo ) {
+    var ret = -1;
     //console.log(pickInfo);
     //console.log(pickInfo.pickedPoint);
     var x = pickInfo.pickedPoint.x;
@@ -97,8 +110,9 @@ export class TerrainEditorExample extends World {
     //var sphere = BABYLON.MeshBuilder.CreateSphere("point", {diameter:0.1}, this.scene);
     //sphere.position = new BABYLON.Vector3(x,y,z);
     if ( this.editing ) {
-      this.terrain.raise(x,z,this.heightIncrement);
+      ret = this.terrain.raise(x,z,this.heightIncrement);
     }
+    return ret;
   }
     
   connect() {

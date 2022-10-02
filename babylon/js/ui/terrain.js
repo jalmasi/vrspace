@@ -72,14 +72,16 @@ export class Terrain {
     var index = this.findIndex(x,z);
     this.terrain.mapData[index+1]=height;
     this.refresh(refresh);
+    return index;
   }
   raise(x,z,height,refresh=true) {
     var index = this.findIndex(x,z);
     this.terrain.mapData[index+1]+=height;
     this.refresh(refresh);
+    return index;
   }
   dig(x,z,depth,refresh=true) {
-    this.raise(x,z,-depth,refresh);
+    return this.raise(x,z,-depth,refresh);
   }
   refresh(force=true) {
     this.terrain.computeNormals = force;
