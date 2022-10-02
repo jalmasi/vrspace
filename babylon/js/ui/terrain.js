@@ -37,7 +37,7 @@ export class Terrain {
     this.terrain = new BABYLON.DynamicTerrain("terrain", this.params, this.scene);
     this.terrain.createUVMap();
     //this.terrain.LODLimits = [1, 2, 3, 4];
-    this.terrain.LODLimits = [10];
+    //this.terrain.LODLimits = [10];
     this.terrain.mesh.material = this.terrainMaterial;
     this.terrain.mesh.checkCollisions = this.checkCollisions;
 
