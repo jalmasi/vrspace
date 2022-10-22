@@ -120,7 +120,7 @@ export class HUD {
     slider.onValueChangedObservable.add((value) =>{
         header.text = text+": "+value;
     });
-    panel.addControl(slider);    
+    panel.addControl(slider);
     return slider;
   }
   /**

@@ -3,16 +3,21 @@ Wrapper around babylonjs dynamic terrain.
 See https://github.com/BabylonJS/Extensions/blob/b16eb03254c90438e8f6ea0ff5b3406f52035cd0/DynamicTerrain/src/babylon.dynamicTerrain.ts
  */
 export class Terrain {
-  constructor( xSize = 1000, zSize = 1000, visibility = 100 ) {
-    this.xSize = xSize;
-    this.zSize = zSize;
-    this.visibility = visibility;
+  constructor( params = {xSize:1000, zSize:1000, visibility:100, material:null }) {
+    this.xSize = params.xSize;
+    this.zSize = params.zSize;
+    this.visibility = params.visibility;
+    this.terrainMaterial = params.material;
+    this.checkCollisions = true;
+  }
+  buildGrid() {
     this.mapData = new Float32Array(this.xSize * this.zSize * 3);
     for (var col = 0; col < this.zSize; col++) {
       for (var row = 0; row < this.xSize; row++) {
         var x = (row - this.xSize* 0.5) * 2.0;
         var z = (col - this.zSize* 0.5) * 2.0;
-        var y = this.gridHeight(x,z);
+        let index = col * this.xSize + row;
+        var y = this.gridHeight(x, z, index, col, row);
         this.mapData[3 *(col * this.xSize + row)] = x;
         this.mapData[3 * (col * this.xSize + row) + 1] = y;
         this.mapData[3 * (col * this.xSize + row) + 2] = z;
@@ -26,7 +31,15 @@ export class Terrain {
       terrainSub: this.visibility
     }
   }
-  gridHeight(x,z) {
+  /** Height function used in constructor, intended to be overridden by subclasses
+  @param x coordinate of current grid element
+  @param y coordinate of current grid element
+  @param index index of of current element in mapData array
+  @param col current column
+  @param row current row
+  @returns 0
+   */
+  gridHeight(x,z,index,col,row) {
     return 0;
   }
   mesh() {
@@ -34,15 +47,37 @@ export class Terrain {
   }
   init(scene) {
     this.scene = scene;
+    this.buildGrid();
+    this.buildSPS();
     this.terrain = new BABYLON.DynamicTerrain("terrain", this.params, this.scene);
     this.terrain.createUVMap();
     //this.terrain.LODLimits = [1, 2, 3, 4];
     //this.terrain.LODLimits = [10];
     this.terrain.mesh.material = this.terrainMaterial;
+    // https://www.html5gamedevs.com/topic/35066-babylonjs-dynamic-terrain-collision-fps-issue/
+    // the most efficient way to check collisions with a dynamic terrain or any BJS Ground objects
+    // (although they aren't the same) keeps to use the methods
+    // getHeightAtCoordinates(x, z) and getNormalAtCoordinates(x, z)
+    // or getHeithFromMap(x, z) and getNormalFromMap(x, z)
+    // depending on the object class
     this.terrain.mesh.checkCollisions = this.checkCollisions;
 
-    this.terrain.update(true);    
+    this.terrain.update(true);
+    console.log('Terrain created');
   }
+  
+  /** Returns true if both this terrain and terrain mesh exist, i.e. safe to use */
+  isCreated() {
+    return this.terrain && this.terrain.mesh;
+  }
+  /** 
+  Build Solid Particle System, e.g. trees and other objects seeded over the terrain.
+  Called during initialization, before the terrain is created.
+  This implementation does nothing.  
+  */
+  buildSPS() {
+  }
+
   /** 
   Returns index in mapData containing point closest to given x,y. 
   Mapdata then contains x of the point on returned index, y at index+1 and z at index+2.
@@ -84,8 +119,11 @@ export class Terrain {
     return this.raise(x,z,-depth,refresh);
   }
   refresh(force=true) {
-    this.terrain.computeNormals = force;
-    this.terrain.update(force);
-    //this.terrain.computeNormals = false;
+    if (this.isCreated()) {
+      this.terrain.computeNormals = force;
+      this.terrain.update(force);
+    } else {
+      console.log('Terrain.update called before creation');
+    }
   }
 }
