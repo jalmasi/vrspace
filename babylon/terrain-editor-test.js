@@ -64,14 +64,39 @@ export class TerrainEditorExample extends World {
     new WorldManager(this);
     this.worldManager.debug = true; // multi-user debug info
     this.worldManager.VRSPACE.debug = true; // network debug info
+    this.worldManager.VRSPACE.addSceneListener(e=>this.sceneChanged(e));
     this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(
       //() => this.worldEditor = new WorldEditor(this, this.fileInputElement)
     );
+  }
+  // TODO move network functions to terrain editor
+  sceneChanged(e) {
+    if ( e.added && e.added.className == "Terrain") {
+      console.log("Terrain added", e.added);
+      this.terrainEditor.sharedTerrain = e.added;
+      e.added.addListener((obj,change)=>this.terrainChanged(change));
+    }
+  }
+  terrainChanged(e) {
+    console.log("Terrain changed", e);
+    this.terrainEditor.terrain.update(e.change.index, e.change.point.x, e.change.point.y, e.change.point.z);
+    this.terrainEditor.terrain.refresh();
   }
   entered(welcome) {
     console.log(welcome);
     if ( welcome.permanents ) {
       console.log( "Terrain exists");
+      welcome.permanents.forEach( obj => {
+        if (obj.Terrain) {
+          this.terrainEditor.sharedTerrain = obj.Terrain;
+          if ( obj.Terrain.points ) {
+            obj.Terrain.points.forEach( p => {
+              this.terrainEditor.terrain.update(p.index, p.x, p.y, p.z);
+            });
+            this.terrainEditor.terrain.refresh();
+          }
+        };
+      });
     } else {
       console.log("Creating new terrain");
       this.createSharedTerrain();
@@ -84,7 +109,8 @@ export class TerrainEditorExample extends World {
     };
     this.worldManager.VRSPACE.createSharedObject(object, (obj)=>{
       console.log("Created new Terrain", obj);
-    });
+      this.terrainEditor.sharedTerrain = obj;
+    }, "Terrain");
   }
 
 }

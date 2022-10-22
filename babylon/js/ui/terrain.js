@@ -104,6 +104,14 @@ export class Terrain {
     return idx;
   }
   /**
+  Update a grid element at index to given coordinates.
+   */
+  update(index,x,y,z) {
+    this.terrain.mapData[index]=x;
+    this.terrain.mapData[index+1]=y;
+    this.terrain.mapData[index+2]=z;
+  }
+  /**
   Set height at given coordinates
   @param x coordinate
   @param y coordinate
@@ -151,5 +159,8 @@ export class Terrain {
     } else {
       console.log('Terrain.update called before creation');
     }
+  }
+  point(index) {
+    return { x: this.terrain.mapData[index], y: this.terrain.mapData[index+1], z: this.terrain.mapData[index+2]}
   }
 }

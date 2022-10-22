@@ -30,6 +30,7 @@ import org.vrspace.server.obj.EventRecorder;
 import org.vrspace.server.obj.PersistentEvent;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
+import org.vrspace.server.obj.Terrain;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
@@ -615,5 +616,34 @@ public class DBIT {
     assertEquals(o1.getPosition(), newOwned.getPosition());
     assertEquals(o1.getRotation(), newOwned.getRotation());
     assertEquals(o1.getScale(), newOwned.getScale());
+  }
+
+  @Test
+  @Transactional
+  public void testTerrain() throws Exception {
+    World world = new World("test");
+    world = repo.save(world);
+    Terrain t = new Terrain();
+    t.setWorld(world);
+    t.setActive(true);
+    t.setPermanent(true);
+    Terrain.TerrainChange change = new Terrain.TerrainChange();
+    change.setIndex(100);
+    change.setPoint(new Point(1, 2, 3));
+    t.setChange(change);
+    t.changed();
+    t = repo.save(t);
+
+    Terrain result = repo.get(Terrain.class, t.getId());
+    System.err.println(result);
+    assertNotNull(result.getPoints());
+    assertEquals(1, result.getPoints().size());
+
+    // shallow object returned, solved in WorldManager.getPermanents()
+    // Set<VRObject> ret = repo.getPermanents(world.getId());
+    // System.err.println(ret);
+    // assertEquals(1, ret.size());
+    // Terrain tp = (Terrain) ret.iterator().next();
+    // assertEquals(1, tp.getPoints().size());
   }
 }

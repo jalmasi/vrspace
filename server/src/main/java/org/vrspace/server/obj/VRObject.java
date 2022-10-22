@@ -189,4 +189,7 @@ public class VRObject extends Entity {
   public boolean isTemporary() {
     return temporary != null && temporary;
   }
+
+  public void changed() {
+  }
 }

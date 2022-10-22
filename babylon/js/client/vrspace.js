@@ -219,6 +219,13 @@ export class ArthurBot extends Bot {
 export class BotLibre extends Bot {
 }
 
+export class Terrain extends VRObject {
+  constructor() {
+    super();
+    this.className = 'Terrain';
+  }
+}
+
 /**
 An event that happened to an object.
 @param obj VRObject instance
@@ -280,7 +287,7 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
     this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {
@@ -439,7 +446,10 @@ export class VRSpace {
     return '{"x":'+quat.x+',"y":'+quat.y+',"z":'+quat.z+',"w":'+quat.w+'}';
   }
 
-  /** Convert a key/value pair to json string
+  /** Convert a key/value pair to json string.
+  FIXME improperly stringifies objects having properties x, _x, or w. Properties other than x,y,z,w will be ignored.
+  See stringifyVector and stringifyQuaternion. 
+  This is essentially workaround for bablyon types, e.g. Vector3, that have _x, _y, _z properties.  
   @param field name of the field
   @param value string, object or number to convert
    */

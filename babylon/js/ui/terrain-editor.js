@@ -2,9 +2,11 @@ import {VRSPACEUI} from './vrspace-ui.js';
 
 export class TerrainEditor {
   constructor(world) {
+    this.world = world;
     this.scene = world.scene;
     this.terrain = world.terrain;
     this.heightIncrement=1;
+    this.sharedTerrain = null;
   }
   edit() {
     this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
@@ -50,7 +52,7 @@ export class TerrainEditor {
   }
   
   updatePicked( pickInfo ) {
-    var ret = -1;
+    var index = -1;
     //console.log(pickInfo);
     //console.log(pickInfo.pickedPoint);
     var x = pickInfo.pickedPoint.x;
@@ -60,9 +62,14 @@ export class TerrainEditor {
     //var sphere = BABYLON.MeshBuilder.CreateSphere("point", {diameter:0.1}, this.scene);
     //sphere.position = new BABYLON.Vector3(x,y,z);
     if ( this.editing ) {
-      ret = this.terrain.raise(x,z,this.heightIncrement*this.direction);
+      index = this.terrain.raise(x,z,this.heightIncrement*this.direction);
+      if ( this.world.isOnline() && this.sharedTerrain ) {
+        // TODO publish updates
+        var change = { change: {index: index, point: this.terrain.point(index)} };
+        this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, change);
+      }
     }
-    return ret;
+    return index;
   }
     
   

@@ -148,6 +148,7 @@ export class World {
   }
   /**
   Optional, empty implementation, notification that the user has entered a multiuser world.
+  @param welcome message containing users Client object and array of permanent objects
    */
   async entered(welcome) {
   }
@@ -469,6 +470,12 @@ export class World {
     if ( this.worldManager && text ) {
       this.worldManager.write(text);
     }
+  }
+  /**
+  Utility method, returns true if the world is online, i.e. the client is connected to the server.
+   */
+  isOnline() {
+    return this.worldManager && this.worldManager.isOnline();
   }
   
 }

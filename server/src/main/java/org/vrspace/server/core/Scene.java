@@ -151,6 +151,7 @@ public class Scene {
       p.addListener(client);
     }
     permanents.add(p);
+    allObjects.put(new ID(p), p);
   }
 
   private boolean isInRange(VRObject o) {
