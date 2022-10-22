@@ -103,21 +103,47 @@ export class Terrain {
     let idx = 3 * (row1 * this.xSize + col1);
     return idx;
   }
+  /**
+  Set height at given coordinates
+  @param x coordinate
+  @param y coordinate
+  @param height new height
+  @param refresh default true, triggers terrain update and renders the change
+   */
   setHeight(x,z,height,refresh=true) {
     var index = this.findIndex(x,z);
     this.terrain.mapData[index+1]=height;
     this.refresh(refresh);
     return index;
   }
+  /**
+  Set height at given coordinates
+  @param x coordinate
+  @param y coordinate
+  @param height how much to raise
+  @param refresh default true, triggers terrain update and renders the change
+   */
   raise(x,z,height,refresh=true) {
     var index = this.findIndex(x,z);
     this.terrain.mapData[index+1]+=height;
     this.refresh(refresh);
     return index;
   }
+  /**
+  Set height at given coordinates
+  @param x coordinate
+  @param y coordinate
+  @param depth how deep to dig
+  @param refresh default true, triggers terrain update and renders the change
+   */
   dig(x,z,depth,refresh=true) {
     return this.raise(x,z,-depth,refresh);
   }
+  /** 
+  Refresh (compute normals, update and render) the terrain.
+  Normally terrain only updates when moving around, update needs to be forced after grid data (e.g. height) changes.
+  @param force default true
+   */
   refresh(force=true) {
     if (this.isCreated()) {
       this.terrain.computeNormals = force;

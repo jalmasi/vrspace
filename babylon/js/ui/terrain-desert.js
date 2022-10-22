@@ -1,6 +1,10 @@
 import { VRSPACEUI } from './vrspace-ui.js';
 import { Terrain } from './terrain.js';
 
+/**
+Dynamic terrain - desert
+TODO refactor: generic randomized terrain
+ */
 export class Desert extends Terrain {
   constructor(world, terrainMaterial) {
     super({material: terrainMaterial, xSize:200, zSize:200, visibility:100});
@@ -108,6 +112,7 @@ export class Desert extends Terrain {
     var y = noise.simplex2(x * this.noiseScale, z * this.noiseScale);               // altitude
     y *= (0.5 + y) * y * this.elevationScale;
     
+    // FIXME ugly way to build sps map data - implicit, should be explicit
     if (Math.random() > 0.998) {
       let xp = x;
       let yp = y;
