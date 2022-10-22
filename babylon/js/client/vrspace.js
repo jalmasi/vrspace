@@ -48,6 +48,15 @@ export class Animation {
 }
 
 /**
+Welcome message received from the server when entering a world.
+ */
+export class Welcome {
+  constructor() {
+    this.client = null;
+    this.permanents = [];
+  }
+}
+/**
 Basic VRObject, has the same properties as server counterpart.
  */
 export class VRObject {
@@ -735,6 +744,9 @@ export class VRSpace {
         this.me = Object.assign(client,welcome.client);        
       }
       this.welcomeListeners.forEach((listener)=>listener(welcome));
+      if ( welcome.permanents ) {
+        welcome.permanents.forEach( o => this.addObject(o));
+      }
     } else if ( "response" in obj) {
       this.log("Response to command");
       if ( typeof this.responseListener === 'function') {

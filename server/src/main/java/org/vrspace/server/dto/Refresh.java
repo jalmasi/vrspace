@@ -19,6 +19,7 @@ public class Refresh implements Command {
   public ClientResponse execute(WorldManager world, Client client) {
     if (clear) {
       client.getScene().removeAll();
+      client.getScene().loadPermanents();
     } else {
       client.getScene().setDirty();
     }

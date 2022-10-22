@@ -1,4 +1,4 @@
-import { World, Terrain, TerrainEditor } from './js/vrspace-min.js';
+import { World, Terrain, TerrainEditor, WorldManager } from './js/vrspace-min.js';
 
 export class TerrainEditorExample extends World {
   constructor(params) {
@@ -61,12 +61,32 @@ export class TerrainEditorExample extends World {
   }
   
   connect() {
-    //new WorldManager(this);
-    //this.worldManager.debug = true; // multi-user debug info
-    //this.worldManager.VRSPACE.debug = true; // network debug info
-    //this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => this.worldEditor = new WorldEditor(this, this.fileInputElement));
+    new WorldManager(this);
+    this.worldManager.debug = true; // multi-user debug info
+    this.worldManager.VRSPACE.debug = true; // network debug info
+    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(
+      //() => this.worldEditor = new WorldEditor(this, this.fileInputElement)
+    );
   }
-  
+  entered(welcome) {
+    console.log(welcome);
+    if ( welcome.permanents ) {
+      console.log( "Terrain exists");
+    } else {
+      console.log("Creating new terrain");
+      this.createSharedTerrain();
+    }
+  }
+  createSharedTerrain() {
+    var object = {
+      permanent: true,
+      active:true
+    };
+    this.worldManager.VRSPACE.createSharedObject(object, (obj)=>{
+      console.log("Created new Terrain", obj);
+    });
+  }
+
 }
 
 export const WORLD = new TerrainEditorExample();

@@ -89,7 +89,6 @@ export class WorldManager {
     this.notFound = []; // 404 cache used for avatar fix files
     VRSPACEUI.init(this.scene); // to ensure assetLoader is available
   }
-
   /** Publish and subscribe */
   pubSub( client, autoPublishVideo ) {
     // CHECKME: should it be OpenVidu or general streaming service name?
@@ -395,11 +394,13 @@ export class WorldManager {
         this.changeObject( obj, {rotation: {x:obj.rotation.x, y:obj.rotation.y, z:obj.rotation.z}});
       }
 
-      // add listener to process changes
-      obj.addListener((obj, changes) => this.changeObject(obj, changes));
-      // subscribe to media stream here if available
-      if ( this.mediaStreams ) {
-        this.mediaStreams.streamToMesh(obj, mesh);        
+      // add listener to process changes - active objects only
+      if ( obj.active ) {
+        obj.addListener((obj, changes) => this.changeObject(obj, changes));
+        // subscribe to media stream here if available
+        if ( this.mediaStreams ) {
+          this.mediaStreams.streamToMesh(obj, mesh);        
+        }
       }
       this.notifyLoadListeners(obj, mesh);
     }, this.loadErrorHandler);
