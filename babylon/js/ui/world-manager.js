@@ -309,6 +309,7 @@ export class WorldManager {
       this.notifyLoadListeners(obj, avatar);
     }, (error) => {
       console.log("Failed to load avatar, loading as mesh");
+      obj.hasAvatar = false;
       this.loadMesh(obj);
     }
     );
