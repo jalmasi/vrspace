@@ -1,11 +1,20 @@
 import { VRSPACEUI } from './vrspace-ui.js';
+import { Terrain } from './terrain.js';
 
-export class Desert {
+/**
+Dynamic terrain - desert
+TODO refactor: generic randomized terrain
+ */
+export class Desert extends Terrain {
   constructor(world, terrainMaterial) {
+    super({material: terrainMaterial, xSize:200, zSize:200, visibility:100});
     this.world = world;
-    this.terrainMaterial = terrainMaterial;
     this.checkCollisions = true;
     this.terrainObjects=[];
+    this.seed = 0.3;                 // seed
+    this.noiseScale = 0.03;         // noise frequency
+    this.elevationScale = 1.0;
+    noise.seed(this.seed);
   }
 
   enabled( flag ) {
@@ -13,12 +22,7 @@ export class Desert {
     this.sps.mesh.setEnabled(flag);
   }
   
-  isCreated() {
-    return this.terrain && this.terrain.mesh;
-  }
-  
   createTerrain() {
-
     var world = this.world;
     
     world.indicator.add("../../plants/cactus_low_poly/");
@@ -92,103 +96,49 @@ export class Desert {
           */
       ]).then(() => {
         console.log("creating terrain");
-        this._createTerrain();
+        // SPMap with N object types
+        this.spsMapData = [];
+        for ( var i = 0; i < this.terrainObjects.length; i++ ) {
+          this.spsMapData.push([]);
+        }
+        this.init(this.world.scene);
       });
       
     });
 
-    
   }
   
-  //this is only safe to call after all resources have been loaded:
-  //terrain script and plant meshes
-  _createTerrain() {
-   // Map data creation
-   // The map is a flat array of successive 3D coordinates (x, y, z).
-   // It's defined by a number of points on its width : mapSubX
-   // and a number of points on its height : mapSubZ
+  gridHeight(x,z, index, col, row) {
+    var y = noise.simplex2(x * this.noiseScale, z * this.noiseScale);               // altitude
+    y *= (0.5 + y) * y * this.elevationScale;
+    
+    // FIXME ugly way to build sps map data - implicit, should be explicit
+    if (Math.random() > 0.998) {
+      let xp = x;
+      let yp = y;
+      let zp = z;
   
-   var mapSubX = 200;             // point number on X axis
-   var mapSubZ = 200;              // point number on Z axis
-   var seed = 0.3;                 // seed
-   var noiseScale = 0.03;         // noise frequency
-   var elevationScale = 1.0;
-   noise.seed(seed);
-   var mapData = new Float32Array(mapSubX * mapSubZ * 3); // x3 float values per point : x, y and z
+      let ry = Math.random() * 3.6;
+      //let sx = 0.75 + Math.random()/2;
+      let sx = 1;
+      let sy = 0.75 + Math.random()/2;
+      //let sz = 0.75 + Math.random()/2;
+      let sz = 1;
   
-   // SPMap with 3 object types
-   var SPmapData = [];
-   for ( var i = 0; i < this.terrainObjects.length; i++ ) {
-     SPmapData.push([]);
-   }
-  
-   for (var l = 0; l < mapSubZ; l++) {
-     for (var w = 0; w < mapSubX; w++) {
-       var x = (w - mapSubX * 0.5) * 2.0;
-       var z = (l - mapSubZ * 0.5) * 2.0;
-       var y = noise.simplex2(x * noiseScale, z * noiseScale);               // altitude
-       y *= (0.5 + y) * y * elevationScale;
-       // objects of the map
-       let index = l * mapSubX + w;
-       // let's populate randomly
-       if (Math.random() > 0.998) {
-         let xp = x;
-         let yp = y;
-         let zp = z;
-  
-         let ry = Math.random() * 3.6;
-         //let sx = 0.75 + Math.random()/2;
-         let sx = 1;
-         let sy = 0.75 + Math.random()/2;
-         //let sz = 0.75 + Math.random()/2;
-         let sz = 1;
-  
-         let type = index % this.terrainObjects.length;
-         SPmapData[index % this.terrainObjects.length].push(xp, yp, zp, 0, ry, 0, sx, sy, sz);
-       }
-  
-       mapData[3 *(l * mapSubX + w)] = x;
-       mapData[3 * (l * mapSubX + w) + 1] = y;
-       mapData[3 * (l * mapSubX + w) + 2] = z;
-  
-     }
-   }
-  
+      let type = index % this.terrainObjects.length;
+      this.spsMapData[index % this.terrainObjects.length].push(xp, yp, zp, 0, ry, 0, sx, sy, sz);
+    }
+    
+    return y;
+  }
+
+  buildSPS() {
    this.sps = new BABYLON.SolidParticleSystem("sps", this.world.scene, {useModelMaterial: true});
    for ( var i = 0; i < this.terrainObjects.length; i++ ) {
      this.sps.addShape(this.terrainObjects[i], 100);
    }
    this.sps.buildMesh();
-  
-   // Dynamic Terrain
-   // ===============
-   var terrainSub = 100;             // 100 terrain subdivisions
-   var params = {
-     mapData: mapData,               // data map declaration : what data to use ?
-     mapSubX: mapSubX,               // how are these data stored by rows and columns
-     mapSubZ: mapSubZ,
-     terrainSub: terrainSub,         // how many terrain subdivisions wanted
-     SPmapData: SPmapData,           // Object map
-     sps: this.sps
-   }
-   this.terrain = new BABYLON.DynamicTerrain("terrain", params, this.world.scene);
-   this.terrain.mesh.material = this.terrainMaterial;
-   // https://www.html5gamedevs.com/topic/35066-babylonjs-dynamic-terrain-collision-fps-issue/
-   // the most efficient way to check collisions with a dynamic terrain or any BJS Ground objects
-   // (although they aren't the same) keeps to use the methods
-   // getHeightAtCoordinates(x, z) and getNormalAtCoordinates(x, z)
-   // or getHeithFromMap(x, z) and getNormalFromMap(x, z)
-   // depending on the object class
-   this.terrain.mesh.checkCollisions = this.checkCollisions;
-  
-   this.terrain.update(true);
-   console.log('Terrain created');
-  }
-  update(force) {
-    if (this.isCreated()) {
-      this.terrain.update(force);
-    } else {
-      console.log('Terrain.update called before creation');
-    }
+   this.params.SPmapData = this.spsMapData;
+   this.params.sps = this.sps;
   }
 }

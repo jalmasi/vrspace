@@ -103,6 +103,8 @@ public class Dispatcher {
     if (event.getChanges().size() > 0) {
       source.notifyListeners(event);
     }
+    // and then finally notify the object
+    source.changed();
   }
 
   // returns Set of annotated private fields on class

@@ -89,6 +89,41 @@ export class HUD {
     return button;
   }
   /**
+  Adds a slider to the center of the HUD. Early version.
+  @return babylon Slider object
+   */
+  addSlider(text="Value",min,max,value=0) {
+    var plane = BABYLON.MeshBuilder.CreatePlane("hud-slider", {width: 0.07, height: 0.07});
+    plane.parent = this.root;
+    plane.position.z = 0.02;
+
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,256,256);
+
+    var panel = new BABYLON.GUI.StackPanel();
+    panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    advancedTexture.addControl(panel); 
+
+    var header = new BABYLON.GUI.TextBlock();
+    header.text = text+": "+value;
+    header.height = "30px";
+    header.color = "white";
+    panel.addControl(header); 
+
+    var slider = new BABYLON.GUI.Slider();
+    slider.minimum = min;
+    slider.maximum = max;
+    slider.value = value;
+    slider.isVertical = true;
+    slider.height = "220px";
+    slider.width = "20px";
+    slider.onValueChangedObservable.add((value) =>{
+        header.text = text+": "+value;
+    });
+    panel.addControl(slider);
+    return slider;
+  }
+  /**
   Show or hide all HUD elements (buttons)
   @param boolean show or hide
    */

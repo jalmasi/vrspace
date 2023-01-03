@@ -48,6 +48,15 @@ export class Animation {
 }
 
 /**
+Welcome message received from the server when entering a world.
+ */
+export class Welcome {
+  constructor() {
+    this.client = null;
+    this.permanents = [];
+  }
+}
+/**
 Basic VRObject, has the same properties as server counterpart.
  */
 export class VRObject {
@@ -213,6 +222,13 @@ export class ArthurBot extends Bot {
 export class BotLibre extends Bot {
 }
 
+export class Terrain extends VRObject {
+  constructor() {
+    super();
+    this.className = 'Terrain';
+  }
+}
+
 /**
 An event that happened to an object.
 @param obj VRObject instance
@@ -274,7 +290,7 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
     this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {
@@ -433,7 +449,10 @@ export class VRSpace {
     return '{"x":'+quat.x+',"y":'+quat.y+',"z":'+quat.z+',"w":'+quat.w+'}';
   }
 
-  /** Convert a key/value pair to json string
+  /** Convert a key/value pair to json string.
+  FIXME improperly stringifies objects having properties x, _x, or w. Properties other than x,y,z,w will be ignored.
+  See stringifyVector and stringifyQuaternion. 
+  This is essentially workaround for bablyon types, e.g. Vector3, that have _x, _y, _z properties.  
   @param field name of the field
   @param value string, object or number to convert
    */
@@ -738,6 +757,9 @@ export class VRSpace {
         this.me = Object.assign(client,welcome.client);        
       }
       this.welcomeListeners.forEach((listener)=>listener(welcome));
+      if ( welcome.permanents ) {
+        welcome.permanents.forEach( o => this.addObject(o));
+      }
     } else if ( "response" in obj) {
       this.log("Response to command");
       if ( typeof this.responseListener === 'function') {

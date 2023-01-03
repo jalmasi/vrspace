@@ -31,7 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 public class Scene {
   private Point oldPos = new Point();
 
-  private Set<VRObject> members = newScene(); // non-permanent transforms
+  private Set<VRObject> members = newScene(); // non-permanent objects
+  private Set<VRObject> permanents; // permanent objects
   private HashMap<ID, VRObject> allObjects = new HashMap<ID, VRObject>(); // all objects in the world
 
   private WorldManager world;
@@ -59,10 +60,17 @@ public class Scene {
     this.world = world;
     this.client = client;
     this.props = client.getSceneProperties();
+    this.loadPermanents();
   }
 
   public int size() {
     return members.size();
+  }
+
+  public void loadPermanents() {
+    this.permanents = world.getPermanents(client);
+    // listen to changes to all permanent active objects
+    this.permanents.stream().filter(p -> p.isActive()).forEach(p -> p.addListener(client));
   }
 
   /**
@@ -138,6 +146,14 @@ public class Scene {
     allObjects.put(new ID(t), t);
   }
 
+  private void addPermanent(VRObject p) {
+    if (p.isActive()) {
+      p.addListener(client);
+    }
+    permanents.add(p);
+    allObjects.put(new ID(p), p);
+  }
+
   private boolean isInRange(VRObject o) {
     return o.getPosition() == null
         || (o.getPosition().getX() == 0 && o.getPosition().getY() == 0 && o.getPosition().getZ() == 0)
@@ -162,6 +178,9 @@ public class Scene {
       // notify the client
       Add add = new Add().addObject(o);
       sendAdd(add);
+    } else if (o.isPermanent() && !permanents.contains(o)) {
+      addPermanent(o);
+      sendAdd(new Add().addObject(o));
     }
   }
 
@@ -181,6 +200,9 @@ public class Scene {
         // add to the scene
         members.add(o);
         add(o);
+        add.addObject(o);
+      } else if (o.isPermanent() && !permanents.contains(o)) {
+        addPermanent(o);
         add.addObject(o);
       }
     }
@@ -307,7 +329,7 @@ public class Scene {
   /**
    * Remove all objects from the scene, and stop listening to changes. Next call
    * to update() will reestablish the event model, and may cause sending removal
-   * messages to the client.
+   * messages to the client. Also stops listening to changes of permanent objects
    */
   public void removeAll() {
     Remove remove = new Remove();
@@ -315,6 +337,10 @@ public class Scene {
       for (VRObject t : members) {
         remove(remove, t);
       }
+      this.permanents.forEach(p -> {
+        // remove.removeObject(p); // CHECKME: removing permanent objects?
+        p.removeListener(client);
+      });
       sendRemove(remove);
       setDirty();
     } catch (Throwable e) {

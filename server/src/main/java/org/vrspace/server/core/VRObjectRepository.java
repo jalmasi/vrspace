@@ -40,8 +40,14 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
     throw new UnsupportedOperationException("This doesn't work, use deleteById(Class<T> cls, Long id) instead");
   }
 
+  // this returns shallow object - does not retrieve members
   @Query("MATCH (o:VRObject{permanent:true})-[r:IN_WORLD]->(w:World) WHERE ID(w)=$worldId RETURN o")
   Set<VRObject> getPermanents(Long worldId);
+
+  // default Set<VRObject> getPermanents(Long worldId) {
+  // return _getPermanents(worldId).stream().map(o -> get(o.getClass(),
+  // o.getId())).collect(Collectors.toSet());
+  // }
 
   // this returns shallow object - does not retrieve members
   // @Query("MATCH (o) WHERE ID(o) = $id RETURN *")

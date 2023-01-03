@@ -100,10 +100,6 @@ public class WorldManager {
         .map(i -> i.getType()).collect(Collectors.toList());
   }
 
-  public Set<VRObject> getPermanents(Client client) {
-    return db.getPermanents(client.getWorld().getId());
-  }
-
   public World getWorld(String name) {
     return db.getWorldByName(name);
   }
@@ -137,11 +133,16 @@ public class WorldManager {
   }
 
   public Set<VRObject> getRange(Client client, Point from, Point to) {
-    // CHECKME: what to do with client here?
+    return updateCache(db.getRange(client.getWorld().getId(), from, to));
+  }
+
+  public Set<VRObject> getPermanents(Client client) {
+    return updateCache(db.getPermanents(client.getWorld().getId()));
+  }
+
+  private Set<VRObject> updateCache(Set<VRObject> objects) {
     HashSet<VRObject> ret = new HashSet<VRObject>();
-    // takes typically 10 ms
-    Set<VRObject> inRange = db.getRange(client.getWorld().getId(), from, to);
-    for (VRObject o : inRange) {
+    for (VRObject o : objects) {
       ret.add(updateCache(o));
     }
     return ret;
