@@ -204,7 +204,8 @@ export class Bot extends Client {
   }
   /** FIXME always returns true */
   hasAvatar() {
-    return this.humanoid && this.mesh;
+    return true;
+    //return this.humanoid && this.mesh;
   }
 }
 export class ArthurBot extends Bot {
