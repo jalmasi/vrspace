@@ -154,6 +154,8 @@ export class Client extends VRObject {
     super();
     /** Client name, must be unique */
     this.name = null;
+    /** Does this client have humanoid avatar, default true */
+    this.humanoid = true;
     /** Scene properties */
     this.sceneProperties = null; // CHECKME private - should be declared?
     /** Left arm position */
@@ -174,7 +176,7 @@ export class Client extends VRObject {
   /** true if the client has avatar */
   hasAvatar() {
     // FIXME as ugly as it gets, get rid of this video thing
-    return this.mesh && this.mesh !== 'video';
+    return this.humanoid && this.mesh && this.mesh !== 'video';
   }
 }
 
@@ -202,7 +204,7 @@ export class Bot extends Client {
   }
   /** FIXME always returns true */
   hasAvatar() {
-    return true;
+    return this.humanoid && this.mesh;
   }
 }
 export class ArthurBot extends Bot {

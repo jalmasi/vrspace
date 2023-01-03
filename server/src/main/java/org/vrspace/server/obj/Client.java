@@ -43,6 +43,8 @@ public class Client extends VRObject {
    */
   // @Index(unique = true) - NeoConfig creates it
   private String name;
+  /** Does this client have humanoid avatar, default true */
+  private boolean isHumanoid = true;
   /**
    * Left arm position, used in VR. Transient biometric data.
    */
