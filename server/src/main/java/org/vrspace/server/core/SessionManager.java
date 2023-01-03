@@ -64,6 +64,8 @@ public class SessionManager extends TextWebSocketHandler {
     } catch (Exception e) {
       log.error("Error processing message from client " + client.getId() + ":" + message.getPayload(), e);
       client.sendMessage(error(e));
+    } catch (Throwable t) {
+      log.error("FATAL error", t);
     }
   }
 

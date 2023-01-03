@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Basic VR Object encapsulates minimal spatial and other properties.
@@ -34,7 +35,8 @@ import lombok.ToString;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
-@ToString(callSuper = true)
+@ToString(callSuper = true, onlyExplicitlyIncluded = true)
+@Slf4j
 public class VRObject extends Entity {
 
   private List<VRObject> children;
@@ -154,7 +156,11 @@ public class VRObject extends Entity {
   public void notifyListeners(VREvent event) {
     if (listeners != null) {
       for (VRObject listener : listeners.values()) {
-        listener.processEvent(event);
+        try {
+          listener.processEvent(event);
+        } catch (Exception e) {
+          log.error("Error processing event " + event, e);
+        }
       }
     }
   }

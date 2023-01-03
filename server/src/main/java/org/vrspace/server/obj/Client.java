@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@ToString(callSuper = true)
+@ToString(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
 @Owned
 @Slf4j
@@ -42,6 +42,7 @@ public class Client extends VRObject {
    * Client name - unique ID.
    */
   // @Index(unique = true) - NeoConfig creates it
+  @ToString.Include
   private String name;
   /** Does this client have humanoid avatar, default true */
   private boolean isHumanoid = true;
@@ -125,6 +126,7 @@ public class Client extends VRObject {
    */
   @JsonIgnore
   @Transient
+  @ToString.Include
   transient private boolean guest;
 
   public Client() {
