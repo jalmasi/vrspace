@@ -196,6 +196,9 @@ public class VRObject extends Entity {
     return temporary != null && temporary;
   }
 
+  /**
+   * Called after changes are applied to the object and propagated.
+   */
   public void changed() {
   }
 }

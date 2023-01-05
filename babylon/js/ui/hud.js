@@ -89,13 +89,19 @@ export class HUD {
     return button;
   }
   /**
-  Adds a slider to the center of the HUD. Early version.
+  Adds a slider to the HUD.
   @return babylon Slider object
    */
   addSlider(text="Value",min,max,value=0) {
+    var width = this.buttonSize+this.buttonSpacing;
+    this.buttons.forEach(b=>{
+      b.position.x = b.position.x - width/2;
+    });
+
     var plane = BABYLON.MeshBuilder.CreatePlane("hud-slider", {width: 0.07, height: 0.07});
     plane.parent = this.root;
-    plane.position.z = 0.02;
+    //plane.position.z = 0.02;
+    plane.position = new BABYLON.Vector3(this.buttons.length*width/2,0,0.02);
 
     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,256,256);
 
@@ -121,8 +127,51 @@ export class HUD {
         header.text = text+": "+value;
     });
     panel.addControl(slider);
+    this.buttons.push( plane );
+
     return slider;
   }
+  /**
+  Adds color picker to the HUD.
+  @return babylon ColorPicker object
+   */
+  addColorPicker(text="Color",value=new BABYLON.Color3()) {
+    var width = this.buttonSize+this.buttonSpacing;
+    this.buttons.forEach(b=>{
+      b.position.x = b.position.x - width/2;
+    });
+    
+    var plane = BABYLON.MeshBuilder.CreatePlane("color-picker", {width: 0.07, height: 0.07});
+    plane.parent = this.root;
+    plane.position = new BABYLON.Vector3(this.buttons.length*width/2,0,0);
+
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,256,256);
+    var panel = new BABYLON.GUI.StackPanel();
+    panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    advancedTexture.addControl(panel); 
+
+    var header = new BABYLON.GUI.TextBlock();
+    header.text = text;
+    header.height = "30px";
+    header.color = "white";
+    panel.addControl(header); 
+
+    var picker = new BABYLON.GUI.ColorPicker();
+    picker.value = value;
+    picker.height = "150px";
+    picker.width = "150px";
+    picker.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+    panel.addControl(picker);
+    //button.position = new BABYLON.Vector3(this.buttons.length*width/2,0,0);
+    //button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
+    this.buttons.push( plane );
+    //button.backMaterial.alpha = this.alpha;
+    this.rescaleHUD();
+    return picker;
+  }
+
   /**
   Show or hide all HUD elements (buttons)
   @param boolean show or hide

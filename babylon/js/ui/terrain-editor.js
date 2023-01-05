@@ -49,6 +49,22 @@ export class TerrainEditor {
     });
     
     VRSPACEUI.hud.addSlider("Height",0,2,this.heightIncrement).onValueChangedObservable.add(value=>{this.heightIncrement=value});
+    
+    this.specularPicker = VRSPACEUI.hud.addColorPicker("Specular", this.terrain.terrainMaterial.specularColor);
+    this.diffusePicker = VRSPACEUI.hud.addColorPicker("Diffuse", this.terrain.terrainMaterial.diffuseColor);
+    this.emissivePicker = VRSPACEUI.hud.addColorPicker("Emissive", this.terrain.terrainMaterial.emissiveColor);
+    this.specularPicker.onValueChangedObservable.add( (val) => {
+      this.terrain.terrainMaterial.specularColor.copyFrom(val);
+      this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {specularColor:val});      
+    });
+    this.diffusePicker.onValueChangedObservable.add( (val) => {
+      this.terrain.terrainMaterial.diffuseColor.copyFrom(val);
+      this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {diffuseColor:val});      
+    });
+    this.emissivePicker.onValueChangedObservable.add( (val) => {
+      this.terrain.terrainMaterial.emissiveColor.copyFrom(val);
+      this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {emissiveColor:val});      
+    });
   }
   
   updatePicked( pickInfo ) {

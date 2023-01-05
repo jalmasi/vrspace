@@ -21,6 +21,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
 public class Terrain extends VRObject {
+  private Color diffuseColor;
+  private Color emissiveColor;
+  private Color specularColor;
+
   /** Transient property, used only to propagate changes to other clients */
   @Transient
   transient volatile private TerrainChange change;
@@ -35,7 +39,12 @@ public class Terrain extends VRObject {
     private Point point;
   }
 
+  @Override
   public void changed() {
+    if (change == null) {
+      // points have not changed
+      return;
+    }
     if (points == null) {
       points = new HashSet<>();
     }
