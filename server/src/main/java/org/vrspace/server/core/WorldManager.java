@@ -408,10 +408,11 @@ public class WorldManager {
         }
         if (obj == null) {
           throw new UnsupportedOperationException("Unknown object: " + event.getSourceID());
-        } else if (!obj.isPermanent()) {
+          // } else if (!obj.isPermanent()) {
           // CKECKME: permanents only?
           // TODO test
-          throw new UnsupportedOperationException("Object not found in the scene: " + event.getSourceID());
+          // throw new UnsupportedOperationException("Object not found in the scene: " +
+          // event.getSourceID());
         }
         event.setSource(obj);
       }
