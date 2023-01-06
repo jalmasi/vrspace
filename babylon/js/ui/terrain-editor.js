@@ -55,35 +55,36 @@ export class TerrainEditor {
     this.specularPicker = VRSPACEUI.hud.addColorPicker("Specular", this.terrain.terrainMaterial.specularColor);
     this.emissivePicker = VRSPACEUI.hud.addColorPicker("Emissive", this.terrain.terrainMaterial.emissiveColor);
     this.specularPicker.onValueChangedObservable.add( (val) => {
-      this.terrain.terrainMaterial.specularColor.copyFrom(val);
+      //this.terrain.terrainMaterial.specularColor.copyFrom(val);
       this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {specularColor:val});      
     });
     this.diffusePicker.onValueChangedObservable.add( (val) => {
-      this.terrain.terrainMaterial.diffuseColor.copyFrom(val);
+      //this.terrain.terrainMaterial.diffuseColor.copyFrom(val);
       this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {diffuseColor:val});      
     });
     this.emissivePicker.onValueChangedObservable.add( (val) => {
-      this.terrain.terrainMaterial.emissiveColor.copyFrom(val);
+      //this.terrain.terrainMaterial.emissiveColor.copyFrom(val);
       this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {emissiveColor:val});      
     });
   }
   
   updatePicked( pickInfo ) {
     var index = -1;
-    //console.log(pickInfo);
-    //console.log(pickInfo.pickedPoint);
     var x = pickInfo.pickedPoint.x;
     var z = pickInfo.pickedPoint.z;
-    //var y = this.terrain.terrain.getHeightFromMap(x, z);
-    //console.log(x,y,z);
-    //var sphere = BABYLON.MeshBuilder.CreateSphere("point", {diameter:0.1}, this.scene);
-    //sphere.position = new BABYLON.Vector3(x,y,z);
     if ( this.editing ) {
-      index = this.terrain.raise(x,z,this.heightIncrement*this.direction);
-      if ( this.world.isOnline() && this.sharedTerrain ) {
-        // TODO publish updates
-        var change = { change: {index: index, point: this.terrain.point(index)} };
+      var online = this.world.isOnline() && this.sharedTerrain;
+      if ( online ) {
+        // if online, terrain is not refreshed untill the server responds with updated height
+        index = this.terrain.findIndex(x,z);
+        var point = this.terrain.point(index);;
+        point.y += this.heightIncrement*this.direction;
+        // publish updates
+        var index = this.terrain.findIndex(x,z);
+        var change = { change: {index: index, point: point} };
         this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, change);
+      } else {
+        index = this.terrain.raise(x,z,this.heightIncrement*this.direction, online);
       }
     }
     return index;
