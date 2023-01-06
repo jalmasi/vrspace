@@ -401,17 +401,24 @@ public class WorldManager {
         if (scene == null) {
           throw new UnsupportedOperationException("Client has no scene " + client);
         }
+        // find object source, either in scene or cache - it has to be seen by anyone
         VRObject obj = scene.get(event.getSourceID());
         if (obj == null) {
-          // TODO: scene could not find object - this should be allowed for admin
-          throw new UnsupportedOperationException("Object not found in the scene: " + event.getSourceID());
-        } else {
-          event.setSource(obj);
+          obj = cache.get(event.getSourceID());
         }
+        if (obj == null) {
+          throw new UnsupportedOperationException("Unknown object: " + event.getSourceID());
+        } else if (!obj.isPermanent()) {
+          throw new UnsupportedOperationException("Object not found in the scene: " + event.getSourceID());
+        }
+        event.setSource(obj);
       }
+      // CHECKME: cache ownership?
       Ownership ownership = db.getOwnership(client.getId(), event.getSource().getId());
       event.setOwnership(ownership);
+      // dispatch
       dispatcher.dispatch(event);
+      // write to the database after successful dispatch
       client.getWriteBack().write(event.getSource());
       if (scene != null) {
         scene.update();
