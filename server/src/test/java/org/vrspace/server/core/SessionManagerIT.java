@@ -213,7 +213,7 @@ public class SessionManagerIT {
     sendMessage(string);
     errorMsg = getMessage();
     assertTrue(errorMsg.contains("ERROR"));
-    assertTrue(errorMsg.contains("Object not found in the scene"));
+    assertTrue(errorMsg.contains("Unknown object"));
   }
 
   private void sendMessage(WebSocketSession session, String msg) throws Exception {
