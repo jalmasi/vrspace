@@ -60,8 +60,10 @@ export class VRSpaceUI {
     if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
       try {
-        this.hud = new HUD(scene);
-        this.guiManager = this.hud.guiManager;
+        if ( ! this.hud ) {
+          this.hud = new HUD(scene);
+          this.guiManager = this.hud.guiManager;
+        }
       } catch ( exception ) {
         console.log( "WARNING: Can't create HUD - make sure to load babylon.gui.min.js");
       }

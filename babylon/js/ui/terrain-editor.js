@@ -7,6 +7,7 @@ export class TerrainEditor {
     this.terrain = world.terrain;
     this.heightIncrement=1;
     this.sharedTerrain = null;
+    this.editing = false;
   }
   edit() {
     this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
@@ -35,23 +36,23 @@ export class TerrainEditor {
     
     this.raiseButton = VRSPACEUI.hud.addButton("Raise", "https://www.babylonjs-playground.com/textures/icons/Upload.png"); // FIXME: cdn
     this.digButton = VRSPACEUI.hud.addButton("Dig", "https://www.babylonjs-playground.com/textures/icons/Download.png"); // FIXME: cdn
+    this.raiseSlider = VRSPACEUI.hud.addSlider("Height",0,2,this.heightIncrement)
     this.raiseButton.onPointerDownObservable.add( () => {
       this.direction = 1;
-      this.digButton.isVisible = !this.digButton.isVisible;
-      this.editing = !this.raiseButton.isVisible || !this.digButton.isVisible
+      VRSPACEUI.hud.showButtons(this.editing,this.raiseButton,this.raiseSlider);
+      this.editing = !this.editing;
       this.terrain.terrainMaterial.wireframe = this.editing;
     });
     this.digButton.onPointerDownObservable.add( () => {
       this.direction = -1;
-      this.raiseButton.isVisible = !this.raiseButton.isVisible;
-      this.editing = !this.raiseButton.isVisible || !this.digButton.isVisible
+      VRSPACEUI.hud.showButtons(this.editing,this.digButton,this.raiseSlider);
+      this.editing = !this.editing;
       this.terrain.terrainMaterial.wireframe = this.editing;
     });
+    this.raiseSlider.onValueChangedObservable.add(value=>{this.heightIncrement=value});
     
-    VRSPACEUI.hud.addSlider("Height",0,2,this.heightIncrement).onValueChangedObservable.add(value=>{this.heightIncrement=value});
-    
-    this.specularPicker = VRSPACEUI.hud.addColorPicker("Specular", this.terrain.terrainMaterial.specularColor);
     this.diffusePicker = VRSPACEUI.hud.addColorPicker("Diffuse", this.terrain.terrainMaterial.diffuseColor);
+    this.specularPicker = VRSPACEUI.hud.addColorPicker("Specular", this.terrain.terrainMaterial.specularColor);
     this.emissivePicker = VRSPACEUI.hud.addColorPicker("Emissive", this.terrain.terrainMaterial.emissiveColor);
     this.specularPicker.onValueChangedObservable.add( (val) => {
       this.terrain.terrainMaterial.specularColor.copyFrom(val);

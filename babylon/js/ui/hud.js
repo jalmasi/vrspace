@@ -23,7 +23,8 @@ export class HUD {
     // state variables
     scene.onActiveCameraChanged.add( () => this.trackCamera() );
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
-    this.buttons = [];
+    this.elements = [];
+    this.controls = [];
     this.root = new BABYLON.TransformNode("HUD");
     this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
     window.addEventListener("resize", () => {
@@ -61,10 +62,18 @@ export class HUD {
     var aspectRatio = this.scene.getEngine().getAspectRatio(this.scene.activeCamera);
     // TODO exactly calculate aspect ratio depending on number of buttons, size, spacing
     // 0.75 (10 buttons) on this distance fits at aspect of 2
-    var requiredRatio = this.buttons.length/10*2;
+    var requiredRatio = this.elements.length/10*2;
     var scale = Math.min(1, aspectRatio/requiredRatio); 
     this.root.scaling = new BABYLON.Vector3(scale,scale,1);
     console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+scale);
+  }
+  
+  makeRoomForMore() {
+    var width = this.buttonSize+this.buttonSpacing;
+    this.elements.forEach(b=>{
+      b.position.x = b.position.x - width/2;
+    });
+    return width;
   }
   
   /**
@@ -72,18 +81,17 @@ export class HUD {
   @returns a BabylonJS HolographicButton
    */
   addButton(text, imageUrl) {
-    var width = this.buttonSize+this.buttonSpacing;
-    this.buttons.forEach(b=>{
-      b.position.x = b.position.x - width/2;
-    });
+    var width = this.makeRoomForMore();
+    
     var button = new BABYLON.GUI.HolographicButton(text+"Button");
     this.guiManager.addControl(button);
     button.imageUrl = imageUrl;
     button.text=text;
-    button.position = new BABYLON.Vector3(this.buttons.length*width/2,0,0);
+    button.position = new BABYLON.Vector3(this.elements.length*width/2,0,0);
     button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
     button.mesh.parent = this.root;
-    this.buttons.push( button );
+    this.elements.push( button );
+    this.controls.push(button);
     button.backMaterial.alpha = this.alpha;
     this.rescaleHUD();
     return button;
@@ -93,15 +101,12 @@ export class HUD {
   @return babylon Slider object
    */
   addSlider(text="Value",min,max,value=0) {
-    var width = this.buttonSize+this.buttonSpacing;
-    this.buttons.forEach(b=>{
-      b.position.x = b.position.x - width/2;
-    });
+    var width = this.makeRoomForMore();
 
-    var plane = BABYLON.MeshBuilder.CreatePlane("hud-slider", {width: 0.07, height: 0.07});
+    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-Slider:"+text, {width: 0.07, height: 0.07});
     plane.parent = this.root;
     //plane.position.z = 0.02;
-    plane.position = new BABYLON.Vector3(this.buttons.length*width/2,0,0.02);
+    plane.position = new BABYLON.Vector3(this.elements.length*width/2,0,0.02);
 
     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,256,256);
 
@@ -110,13 +115,13 @@ export class HUD {
     panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     advancedTexture.addControl(panel); 
 
-    var header = new BABYLON.GUI.TextBlock();
+    var header = new BABYLON.GUI.TextBlock("Text-Slider:"+text);
     header.text = text+": "+value;
     header.height = "30px";
     header.color = "white";
     panel.addControl(header); 
 
-    var slider = new BABYLON.GUI.Slider();
+    var slider = new BABYLON.GUI.Slider("Slider:"+text);
     slider.minimum = min;
     slider.maximum = max;
     slider.value = value;
@@ -127,8 +132,8 @@ export class HUD {
         header.text = text+": "+value;
     });
     panel.addControl(slider);
-    this.buttons.push( plane );
-
+    this.elements.push( plane );
+    this.controls.push(panel);
     return slider;
   }
   /**
@@ -136,14 +141,11 @@ export class HUD {
   @return babylon ColorPicker object
    */
   addColorPicker(text="Color",value=new BABYLON.Color3()) {
-    var width = this.buttonSize+this.buttonSpacing;
-    this.buttons.forEach(b=>{
-      b.position.x = b.position.x - width/2;
-    });
+    var width = this.makeRoomForMore();
     
-    var plane = BABYLON.MeshBuilder.CreatePlane("color-picker", {width: 0.07, height: 0.07});
+    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-Picker:"+text, {width: 0.07, height: 0.07});
     plane.parent = this.root;
-    plane.position = new BABYLON.Vector3(this.buttons.length*width/2,0,0);
+    plane.position = new BABYLON.Vector3(this.elements.length*width/2,0,0);
 
     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,256,256);
     var panel = new BABYLON.GUI.StackPanel();
@@ -151,33 +153,42 @@ export class HUD {
     panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     advancedTexture.addControl(panel); 
 
-    var header = new BABYLON.GUI.TextBlock();
+    var header = new BABYLON.GUI.TextBlock("Text-Picker:"+text);
     header.text = text;
     header.height = "30px";
     header.color = "white";
     panel.addControl(header); 
 
-    var picker = new BABYLON.GUI.ColorPicker();
+    var picker = new BABYLON.GUI.ColorPicker("Picker:"+text);
     picker.value = value;
     picker.height = "150px";
     picker.width = "150px";
     picker.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
 
     panel.addControl(picker);
-    //button.position = new BABYLON.Vector3(this.buttons.length*width/2,0,0);
-    //button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
-    this.buttons.push( plane );
-    //button.backMaterial.alpha = this.alpha;
+    this.elements.push( plane );
+    this.controls.push(panel);
+
     this.rescaleHUD();
     return picker;
   }
 
   /**
   Show or hide all HUD elements (buttons)
-  @param boolean show or hide
+  @param show show or hide
+  @param except optional element(s) to skip
    */
-  showButtons(show) {
-    this.buttons.forEach( button => button.isVisible = show);
+  showButtons(show, ...except) {
+    this.controls.forEach( (element) => {
+      if ( !except
+        // no children - button 
+        || (!element.children && !except.includes(element))
+        // panel contains text and control 
+        || ( element.children && !except.includes(element.children[1]))  
+      ) {
+        element.isVisible = show;
+      }
+    });
   }
 
 }
