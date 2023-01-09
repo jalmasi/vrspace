@@ -1,7 +1,10 @@
 package org.vrspace.server.core;
 
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +30,6 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
-import org.vrspace.server.obj.Terrain;
-import org.vrspace.server.obj.TerrainPoint;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 import org.vrspace.server.types.Filter;
@@ -75,8 +76,6 @@ public class WorldManager {
 
   private Dispatcher dispatcher;
 
-  private TerrainManager terrainManager;
-
   protected SessionTracker sessionTracker;
 
   // used in tests
@@ -88,13 +87,35 @@ public class WorldManager {
 
   private World defaultWorld;
 
+  @SuppressWarnings("rawtypes")
+  private Map<Class, PersistenceManager> persistors = new HashMap<>();
+
   @PostConstruct
   public void init() {
     this.privateJackson = this.jackson.copy();
     this.privateJackson.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
     this.dispatcher = new Dispatcher(this.privateJackson);
     this.sessionTracker = new SessionTracker(this.config);
-    this.terrainManager = new TerrainManager(this.db);
+    for (Class<?> c : ClassUtil.findSubclasses(PersistenceManager.class)) {
+      for (Type t : ((ParameterizedType) c.getGenericSuperclass()).getActualTypeArguments()) {
+        try {
+          @SuppressWarnings("rawtypes")
+          PersistenceManager p = (PersistenceManager) c.getConstructor(VRObjectRepository.class).newInstance(db);
+          persistors.put((Class) t, p);
+          log.debug("Instantiated " + p + " for " + t);
+        } catch (Exception e) {
+          log.error("Failed to instantiate " + c, e);
+        }
+      }
+    }
+    @SuppressWarnings("rawtypes")
+    PersistenceManager pm = new PersistenceManager();
+    for (Class<?> c : ClassUtil.findSubclasses(VRObject.class)) {
+      if (persistors.get(c) == null) {
+        persistors.put(c, pm);
+        log.debug("Instantiated " + pm + " for " + c);
+      }
+    }
   }
 
   // CHECKME: should this be here?
@@ -163,10 +184,7 @@ public class WorldManager {
       } else {
         o = db.get(o.getClass(), o.getId());
         // TODO: post-load operations
-        if (o instanceof Terrain) {
-          // FIXME make something better here
-          terrainManager.load((Terrain) o);
-        }
+        persistors.get(o.getClass()).postLoad(o);
         cache.put(id, o);
         return o;
       }
@@ -430,16 +448,11 @@ public class WorldManager {
       Ownership ownership = db.getOwnership(client.getId(), event.getSource().getId());
       event.setOwnership(ownership);
       // dispatch
-      Entity store = dispatcher.dispatch(event);
+      dispatcher.dispatch(event);
+
       // write to the database after successful dispatch
-      if (store == null) {
-        // not storing anything
-      } else if (event.getSource() instanceof Terrain) {
-        // TODO ugly as it gets
-        terrainManager.save((TerrainPoint) store);
-      } else {
-        client.getWriteBack().write(event.getSource());
-      }
+      persistors.get(event.getSource().getClass()).persist(event);
+
       if (scene != null) {
         scene.update();
       }

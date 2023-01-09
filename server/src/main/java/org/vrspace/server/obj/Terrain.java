@@ -1,6 +1,5 @@
 package org.vrspace.server.obj;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.data.annotation.Transient;
@@ -45,21 +44,5 @@ public class Terrain extends VRObject {
   public static class TerrainChange {
     private long index;
     private Point point;
-  }
-
-  @Override
-  public TerrainPoint changed() {
-    if (change == null) {
-      // points have not changed
-      return null;
-    }
-    if (points == null) {
-      points = new HashSet<>();
-    }
-    TerrainPoint point = new TerrainPoint(this, change.index, change.point);
-    points.remove(point);
-    points.add(point);
-    this.change = null; // CHECKME thread-safe?
-    return point;
   }
 }

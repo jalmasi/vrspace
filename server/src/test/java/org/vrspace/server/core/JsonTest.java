@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Terrain;
+import org.vrspace.server.obj.TerrainPoint;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.ID;
 
@@ -209,11 +211,14 @@ public class JsonTest {
     t.setActive(true);
     t.setPermanent(true);
     t.setId(1L);
-    Terrain.TerrainChange change = new Terrain.TerrainChange();
-    change.setIndex(100);
-    change.setPoint(new Point(1, 2, 3));
-    t.setChange(change);
-    t.changed();
+    /*
+     * // can't do this any longer Terrain.TerrainChange change = new
+     * Terrain.TerrainChange(); change.setIndex(100); change.setPoint(new Point(1,
+     * 2, 3)); t.setChange(change); t.changed();
+     */
+    TerrainPoint point = new TerrainPoint(t, 1L, new Point(1, 2, 3));
+    t.setPoints(Set.of(point));
+
     String json = mapper.writeValueAsString(t);
     System.err.println(json);
     assertTrue(json.contains("id\":1"));

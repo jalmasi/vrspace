@@ -32,7 +32,6 @@ import org.vrspace.server.obj.PersistentEvent;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.Terrain;
-import org.vrspace.server.obj.TerrainPoint;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
@@ -634,12 +633,13 @@ public class DBIT {
     change.setIndex(100);
     change.setPoint(new Point(1, 2, 3));
     t.setChange(change);
-    TerrainPoint tp = t.changed();
+
+    VREvent ev = new VREvent(t);
     // t = repo.save(t);
-    tm.save(tp);
+    tm.persist(ev);
 
     Terrain result = repo.get(Terrain.class, t.getId());
-    tm.load(result);
+    tm.postLoad(result);
     System.err.println(result);
     assertNotNull(result.getPoints());
     assertEquals(1, result.getPoints().size());

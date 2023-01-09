@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.vrspace.server.dto.VREvent;
-import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.Owned;
 import org.vrspace.server.types.Private;
@@ -45,7 +44,7 @@ public class Dispatcher {
   // cache of all fields annotated with @Owned
   private Map<Class<?>, Set<String>> ownedFields = new ConcurrentHashMap<Class<?>, Set<String>>();
 
-  protected Entity dispatch(VREvent event) throws JsonProcessingException, IOException {
+  protected void dispatch(VREvent event) throws JsonProcessingException, IOException {
     // sanity check
     if (event.getChanges().size() == 0) {
       throw new IllegalArgumentException("Event must contain changes");
@@ -104,8 +103,6 @@ public class Dispatcher {
     if (event.getChanges().size() > 0) {
       source.notifyListeners(event);
     }
-    // and then finally notify the object
-    return source.changed();
   }
 
   // returns Set of annotated private fields on class

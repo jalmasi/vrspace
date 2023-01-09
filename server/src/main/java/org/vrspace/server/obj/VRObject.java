@@ -196,12 +196,4 @@ public class VRObject extends Entity {
     return temporary != null && temporary;
   }
 
-  /**
-   * Called after changes are applied to the object and propagated. Returns this
-   * by default, meaning this object needs to be persisted to the database.
-   * Subclasses may return some other object.
-   */
-  public Entity changed() {
-    return this;
-  }
 }
