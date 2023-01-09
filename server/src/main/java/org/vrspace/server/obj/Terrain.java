@@ -14,12 +14,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @JsonInclude(Include.NON_EMPTY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
+@Slf4j
 public class Terrain extends VRObject {
   private Color diffuseColor;
   private Color emissiveColor;
@@ -30,7 +32,7 @@ public class Terrain extends VRObject {
   transient volatile private TerrainChange change;
 
   @JsonMerge
-  @Relationship(type = "HAS_POINT", direction = Relationship.Direction.OUTGOING)
+  @Relationship(type = "HAS_POINT", direction = Relationship.Direction.INCOMING)
   private Set<TerrainPoint> points;
 
   @Data
@@ -48,9 +50,13 @@ public class Terrain extends VRObject {
     if (points == null) {
       points = new HashSet<>();
     }
-    TerrainPoint point = new TerrainPoint(change.index, change.point);
-    points.remove(point);
-    points.add(point);
+    TerrainPoint point = new TerrainPoint(this, change.index, change.point);
+    if (points.remove(point)) {
+      log.debug("Point removed, size " + points.size());
+    }
+    if (points.add(point)) {
+      log.debug("Point added, size " + points.size());
+    }
     this.change = null; // CHECKME thread-safe?
   }
 }

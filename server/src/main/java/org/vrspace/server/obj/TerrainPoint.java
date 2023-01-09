@@ -16,19 +16,22 @@ import lombok.ToString;
  *
  */
 @Data
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = false)
 @Node
 public class TerrainPoint extends Embedded {
   @EqualsAndHashCode.Include
+  private Long terrainId;
+  @EqualsAndHashCode.Include
   private Long index;
   private double x;
   private double y;
   private double z;
 
-  public TerrainPoint(Long index, Point point) {
+  public TerrainPoint(Terrain t, Long index, Point point) {
+    this.terrainId = t.getId();
     this.index = index;
     this.x = point.getX();
     this.y = point.getY();
