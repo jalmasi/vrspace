@@ -14,14 +14,19 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Shared dynamic terrain, work in progress. Saving terrain with hundreds of
+ * points changed can easily take a few seconds.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @JsonInclude(Include.NON_EMPTY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
-@Slf4j
 public class Terrain extends VRObject {
   private Color diffuseColor;
   private Color emissiveColor;
@@ -51,12 +56,8 @@ public class Terrain extends VRObject {
       points = new HashSet<>();
     }
     TerrainPoint point = new TerrainPoint(this, change.index, change.point);
-    if (points.remove(point)) {
-      log.debug("Point removed, size " + points.size());
-    }
-    if (points.add(point)) {
-      log.debug("Point added, size " + points.size());
-    }
+    points.remove(point);
+    points.add(point);
     this.change = null; // CHECKME thread-safe?
   }
 }
