@@ -21,6 +21,7 @@ import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.GltfModel;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.TerrainPoint;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
@@ -172,4 +173,11 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
     }
     return null;
   }
+
+  @Query("MATCH (tp:TerrainPoint)-[r:IS_POINT_OF]->(t:Terrain) WHERE ID(t)=$terrainId RETURN tp")
+  Set<TerrainPoint> getTerrainPoints(Long terrainId);
+
+  @Query("MATCH (tp:TerrainPoint)-[r:IS_POINT_OF]->(t:Terrain) WHERE ID(t)=$terrainId and tp.index=$index RETURN tp")
+  TerrainPoint getTerrainPoint(Long terrainId, Long index);
+
 }

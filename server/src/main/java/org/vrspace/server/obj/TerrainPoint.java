@@ -1,6 +1,7 @@
 package org.vrspace.server.obj;
 
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,8 +23,9 @@ import lombok.ToString;
 @ToString(callSuper = false)
 @Node
 public class TerrainPoint extends Embedded {
+  @Relationship(type = "IS_POINT_OF", direction = Relationship.Direction.OUTGOING)
   @EqualsAndHashCode.Include
-  private Long terrainId;
+  private Terrain terrain;
   @EqualsAndHashCode.Include
   private Long index;
   private double x;
@@ -31,7 +33,7 @@ public class TerrainPoint extends Embedded {
   private double z;
 
   public TerrainPoint(Terrain t, Long index, Point point) {
-    this.terrainId = t.getId();
+    this.terrain = t;
     this.index = index;
     this.x = point.getX();
     this.y = point.getY();

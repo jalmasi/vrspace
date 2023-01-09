@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -37,7 +36,9 @@ public class Terrain extends VRObject {
   transient volatile private TerrainChange change;
 
   @JsonMerge
-  @Relationship(type = "HAS_POINT", direction = Relationship.Direction.INCOMING)
+  // @Relationship(type = "HAS_POINT", direction =
+  // Relationship.Direction.INCOMING)
+  @Transient
   private Set<TerrainPoint> points;
 
   @Data
@@ -47,10 +48,10 @@ public class Terrain extends VRObject {
   }
 
   @Override
-  public void changed() {
+  public TerrainPoint changed() {
     if (change == null) {
       // points have not changed
-      return;
+      return null;
     }
     if (points == null) {
       points = new HashSet<>();
@@ -59,5 +60,6 @@ public class Terrain extends VRObject {
     points.remove(point);
     points.add(point);
     this.change = null; // CHECKME thread-safe?
+    return point;
   }
 }

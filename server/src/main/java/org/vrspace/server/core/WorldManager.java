@@ -27,6 +27,8 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.Terrain;
+import org.vrspace.server.obj.TerrainPoint;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 import org.vrspace.server.types.Filter;
@@ -73,6 +75,8 @@ public class WorldManager {
 
   private Dispatcher dispatcher;
 
+  private TerrainManager terrainManager;
+
   protected SessionTracker sessionTracker;
 
   // used in tests
@@ -90,6 +94,7 @@ public class WorldManager {
     this.privateJackson.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
     this.dispatcher = new Dispatcher(this.privateJackson);
     this.sessionTracker = new SessionTracker(this.config);
+    this.terrainManager = new TerrainManager(this.db);
   }
 
   // CHECKME: should this be here?
@@ -127,7 +132,7 @@ public class WorldManager {
   }
 
   public <T extends VRObject> T save(T obj) {
-    T ret = db.save(obj);
+    T ret = db.save(obj); // CHECKME: writeback save/write ?
     cache.put(new ID(obj), ret);
     return ret;
   }
@@ -157,6 +162,11 @@ public class WorldManager {
         return cached;
       } else {
         o = db.get(o.getClass(), o.getId());
+        // TODO: post-load operations
+        if (o instanceof Terrain) {
+          // FIXME make something better here
+          terrainManager.load((Terrain) o);
+        }
         cache.put(id, o);
         return o;
       }
@@ -420,9 +430,16 @@ public class WorldManager {
       Ownership ownership = db.getOwnership(client.getId(), event.getSource().getId());
       event.setOwnership(ownership);
       // dispatch
-      dispatcher.dispatch(event);
+      Entity store = dispatcher.dispatch(event);
       // write to the database after successful dispatch
-      client.getWriteBack().write(event.getSource());
+      if (store == null) {
+        // not storing anything
+      } else if (event.getSource() instanceof Terrain) {
+        // TODO ugly as it gets
+        terrainManager.save((TerrainPoint) store);
+      } else {
+        client.getWriteBack().write(event.getSource());
+      }
       if (scene != null) {
         scene.update();
       }
