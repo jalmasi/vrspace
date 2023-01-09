@@ -149,9 +149,10 @@ export class WorldManager {
     return this.interval != null;
   }
 
-  /** Callend when scene has changed (scene listener). 
+  /** Called when scene has changed (scene listener). 
   If an object was added, calls either loadAvatar, loadStream or loadMesh, as appropriate.
   If an object was removed, calls removeMesh.
+  Any WorldListeners on the world are notified after changes are performed, by calling added and removed methods.
   @param e SceneEvent containing the change
   */
   sceneChanged(e) {
@@ -170,9 +171,31 @@ export class WorldManager {
         // in the meantime we define default behavior here
         console.log("WARNING: can't load "+e.objectId+" - no mesh");
       }
+      this.world.worldListeners.forEach(listener => {
+        try {
+          if ( listener.added ) {
+            listener.added(e.added);
+          }
+        } catch ( error ) {
+          console.log("Error in world listener", error);
+        }
+      });
     } else if (e.removed != null) {
       this.log("REMOVED " + e.objectId + " new size " + e.scene.size)
       this.removeMesh( e.removed );
+      try {
+        this.world.worldListeners.forEach(listener => {
+          try {
+            if ( listener.removed ) {
+              listener.removed(e.removed);
+            }
+          } catch ( error ) {
+            console.log("Error in world listener", error);
+          }
+        });
+      } catch ( error ) {
+        console.log("Error in scene listener",error);
+      }
     } else {
       this.log("ERROR: invalid scene event");
     }
@@ -662,7 +685,8 @@ export class WorldManager {
   
   /**
   Enter the world specified by world.name. If not already connected, 
-  first connect to world.serverUrl and set own properties, then start the session. 
+  first connect to world.serverUrl and set own properties, then start the session.
+  World and WorldListeners are notified by calling entered methods. 
   @param properties own properties to set before starting the session
   @return Welcome promise
    */
@@ -674,7 +698,17 @@ export class WorldManager {
     return new Promise( (resolve, reject) => {
       var afterEnter = (welcome) => {
         VRSPACE.removeWelcomeListener(afterEnter);
-        this.world.entered(welcome)
+        this.world.entered(welcome);
+        // CHECKME formalize this as WorldListener interface?
+        this.world.worldListeners.forEach(listener => {
+          try {
+            if ( listener.entered ) {
+              listener.entered(welcome);
+            }
+          } catch ( error ) {
+            console.log("Error in world listener", error);
+          }
+        });
         if ( this.remoteLogging ) {
           this.enableRemoteLogging();
         }

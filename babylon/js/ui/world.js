@@ -41,6 +41,11 @@ export class World {
     this.VRSPACEUI = VRSPACEUI;
     /** Reference to worldManager, set by WorldManager once that user goes online */
     this.worldManager = null;
+    /** List of world listeners. 
+    WorldManager executes enter(Welcome) method once user enters the world, after World.enter() method. 
+    Methods added(VRObject) and removed(VRObject) are executed whenever scene changes.
+    */
+    this.worldListeners = [];
     
     // now override defaults
     if ( params ) {

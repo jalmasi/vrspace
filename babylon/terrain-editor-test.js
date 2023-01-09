@@ -64,73 +64,9 @@ export class TerrainEditorExample extends World {
     new WorldManager(this);
     this.worldManager.debug = true; // multi-user debug info
     this.worldManager.VRSPACE.debug = true; // network debug info
-    this.worldManager.VRSPACE.addSceneListener(e=>this.sceneChanged(e));
     this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(
       //() => this.worldEditor = new WorldEditor(this, this.fileInputElement)
     );
-  }
-  // TODO move network functions to terrain editor
-  sceneChanged(e) {
-    if ( e.added && e.added.className == "Terrain") {
-      console.log("Terrain added", e.added);
-      this.terrainEditor.sharedTerrain = e.added;
-      e.added.addListener((obj,change)=>this.terrainChanged(change));
-    }
-  }
-  terrainChanged(e) {
-    console.log("Terrain changed", e);
-    if ( e.change ) {
-      this.terrainEditor.terrain.update(e.change.index, e.change.point.x, e.change.point.y, e.change.point.z);
-      this.terrainEditor.terrain.refresh();
-    } else {
-      for ( const color in e ) {
-        // e.g. emissiveColor, diffuseColor, specularColor
-        console.log(color + "="+e[color]);
-        this.terrainEditor.terrain.terrainMaterial[color] = new BABYLON.Color3(e[color].r, e[color].g, e[color].b);
-      }
-    }
-  }
-  entered(welcome) {
-    console.log(welcome);
-    if ( welcome.permanents ) {
-      console.log( "Terrain exists" );
-      welcome.permanents.forEach( obj => {
-        if (obj.Terrain) {
-          this.terrainEditor.sharedTerrain = obj.Terrain;
-          if ( obj.Terrain.points ) {
-            obj.Terrain.points.forEach( p => {
-              this.terrainEditor.terrain.update(p.index, p.x, p.y, p.z);
-            });
-            this.terrainEditor.terrain.refresh();
-          }
-          if ( obj.Terrain.specularColor ) {
-            this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(obj.Terrain.specularColor.r, obj.Terrain.specularColor.g, obj.Terrain.specularColor.b)
-          }
-          if ( obj.Terrain.diffuseColor ) {
-            this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(obj.Terrain.diffuseColor.r, obj.Terrain.diffuseColor.g, obj.Terrain.diffuseColor.b)
-          }
-          if ( obj.Terrain.emissiveColor ) {
-            this.terrain.terrainMaterial.emissiveColor = new BABYLON.Color3(obj.Terrain.emissiveColor.r, obj.Terrain.emissiveColor.g, obj.Terrain.emissiveColor.b)
-          }
-        };
-      });
-    } else {
-      console.log("Creating new terrain");
-      this.createSharedTerrain();
-    }
-  }
-  createSharedTerrain() {
-    var object = {
-      permanent: true,
-      active:true,
-      specularColor:this.terrain.terrainMaterial.specularColor,
-      diffuseColor:this.terrain.terrainMaterial.diffuseColor,
-      emissiveColor:this.terrain.terrainMaterial.emissiveColor
-    };
-    this.worldManager.VRSPACE.createSharedObject(object, (obj)=>{
-      console.log("Created new Terrain", obj);
-      this.terrainEditor.sharedTerrain = obj;
-    }, "Terrain");
   }
 
 }

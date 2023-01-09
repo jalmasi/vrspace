@@ -1,14 +1,82 @@
 import {VRSPACEUI} from './vrspace-ui.js';
+import {WorldListener} from './world-listener.js'
 
-export class TerrainEditor {
+export class TerrainEditor extends WorldListener {
   constructor(world) {
+    super();
     this.world = world;
     this.scene = world.scene;
     this.terrain = world.terrain;
     this.heightIncrement=1;
     this.sharedTerrain = null;
     this.editing = false;
+    world.worldListeners.push(this);
   }
+  /** Called by WorldManager when user enters the world */
+  entered(welcome) {
+    console.log(welcome);
+    if ( welcome.permanents ) {
+      console.log( "Terrain exists" );
+      welcome.permanents.forEach( obj => {
+        if (obj.Terrain) {
+          this.sharedTerrain = obj.Terrain;
+          if ( obj.Terrain.points ) {
+            obj.Terrain.points.forEach( p => {
+              this.terrain.update(p.index, p.x, p.y, p.z);
+            });
+            this.terrain.refresh();
+          }
+          if ( obj.Terrain.specularColor ) {
+            this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(obj.Terrain.specularColor.r, obj.Terrain.specularColor.g, obj.Terrain.specularColor.b)
+          }
+          if ( obj.Terrain.diffuseColor ) {
+            this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(obj.Terrain.diffuseColor.r, obj.Terrain.diffuseColor.g, obj.Terrain.diffuseColor.b)
+          }
+          if ( obj.Terrain.emissiveColor ) {
+            this.terrain.terrainMaterial.emissiveColor = new BABYLON.Color3(obj.Terrain.emissiveColor.r, obj.Terrain.emissiveColor.g, obj.Terrain.emissiveColor.b)
+          }
+        };
+      });
+    } else {
+      console.log("Creating new terrain");
+      this.createSharedTerrain();
+    }
+  }
+  added(added) {
+    if ( added && added.className == "Terrain") {
+      console.log("Terrain added", added);
+      this.sharedTerrain = added;
+      added.addListener((obj,change)=>this.terrainChanged(change));
+    }
+  }
+  terrainChanged(e) {
+    console.log("Terrain changed", e);
+    if ( e.change ) {
+      this.terrain.update(e.change.index, e.change.point.x, e.change.point.y, e.change.point.z);
+      this.terrain.refresh();
+    } else {
+      for ( const color in e ) {
+        // e.g. emissiveColor, diffuseColor, specularColor
+        console.log(color + "="+e[color]);
+        this.terrain.terrainMaterial[color] = new BABYLON.Color3(e[color].r, e[color].g, e[color].b);
+      }
+    }
+  }
+  
+  createSharedTerrain() {
+    var object = {
+      permanent: true,
+      active:true,
+      specularColor:this.terrain.terrainMaterial.specularColor,
+      diffuseColor:this.terrain.terrainMaterial.diffuseColor,
+      emissiveColor:this.terrain.terrainMaterial.emissiveColor
+    };
+    this.world.worldManager.VRSPACE.createSharedObject(object, (obj)=>{
+      console.log("Created new Terrain", obj);
+      this.sharedTerrain = obj;
+    }, "Terrain");
+  }
+  
   edit() {
     this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
       switch (pointerInfo.type) {
@@ -75,9 +143,9 @@ export class TerrainEditor {
     if ( this.editing ) {
       var online = this.world.isOnline() && this.sharedTerrain;
       if ( online ) {
-        // if online, terrain is not refreshed untill the server responds with updated height
+        // if online, terrain is not refreshed until the server responds with updated height
         index = this.terrain.findIndex(x,z);
-        var point = this.terrain.point(index);;
+        var point = this.terrain.point(index);
         point.y += this.heightIncrement*this.direction;
         // publish updates
         var index = this.terrain.findIndex(x,z);

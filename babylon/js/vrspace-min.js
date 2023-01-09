@@ -14,6 +14,7 @@ export { Label } from "./ui/label.js";
 export { World } from "./ui/world.js";
 export { WorldManager } from "./ui/world-manager.js";
 export { WorldEditor } from "./ui/world-editor.js";
+export { WorldListener } from "./ui/world-listener.js";
 export { VideoAvatar } from "./ui/video-avatar.js";
 export { UnityWorld } from "./ui/unity-world.js";
 
