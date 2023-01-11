@@ -10,7 +10,7 @@
   </parent>
   <groupId>org.vrspace</groupId>
   <artifactId>parent</artifactId>
-  <version>0.4.7-SNAPSHOT</version>
+  <version>0.4.8-SNAPSHOT</version>
   <name>VRSpace parent file</name>
   <description>VRSpace.org main project file</description>
   <packaging>pom</packaging>
