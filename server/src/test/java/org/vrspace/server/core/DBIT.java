@@ -592,14 +592,14 @@ public class DBIT {
     // confirm owned object persist along with client:
     Client result = repo.getClient(c1.getId());
     System.err.println(result);
-    System.err.println(repo.getOwnership(result.getId()));
-    VRObject owned = repo.getOwnership(result.getId()).iterator().next().getOwned();
+    System.err.println(repo.getOwnerships(result.getId()));
+    VRObject owned = repo.getOwned(result.getId()).iterator().next().getOwned();
     System.err.println(owned);
     assertEquals(o1, owned);
-    // we don't have any of member entities retrieved here - should we?
-    // assertEquals(o1.getPosition(), owned.getPosition());
-    // assertEquals(o1.getRotation(), owned.getRotation());
-    // assertEquals(o1.getScale(), owned.getScale());
+    // ensure deep copy is returned
+    assertEquals(o1.getPosition(), owned.getPosition());
+    assertEquals(o1.getRotation(), owned.getRotation());
+    assertEquals(o1.getScale(), owned.getScale());
 
     // change the object:
     o1.getPosition().setX(11);

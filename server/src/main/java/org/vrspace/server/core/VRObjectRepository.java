@@ -146,22 +146,29 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
     return ret;
   }
 
-  // WARNING this doesn't return full, useful owned VRObject - position and other
-  // members are missing
+  /**
+   * WARNING this doesn't return full, useful owned VRObject - position and other
+   * members are missing - use getOwned instead
+   * 
+   * @param clientId
+   * @return list of all ownerships
+   */
   @Query("MATCH (obj:VRObject)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE ID(c) = $clientId RETURN o,owns,c,owned,obj")
-  List<Ownership> getOwnership(long clientId);
+  List<Ownership> getOwnerships(long clientId);
 
   default List<Ownership> getOwned(long ownerId) {
     List<Ownership> ret = new ArrayList<>();
-    for (Ownership o : getOwnership(ownerId)) {
+    for (Ownership o : getOwnerships(ownerId)) {
       ret.add(get(Ownership.class, o.getId()));
     }
     return ret;
   }
 
-  // WARNING this doesn't return full, useful owned VRObject - position and other
-  // members are missing
+  /**
+   * WARNING this doesn't return full, useful owned VRObject - position and other
+   * members are missing - use getOwnership instead
+   */
   @Query("MATCH (obj:VRObject)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE ID(c) = $ownerId AND ID(obj) = $ownedId RETURN o,owns,c,owned,obj")
   Optional<Ownership> findOwnership(long ownerId, long ownedId);

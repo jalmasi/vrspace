@@ -116,6 +116,7 @@ public class WorldManager {
         log.debug("Instantiated " + pm + " for " + c);
       }
     }
+    persistors.put(VRObject.class, pm);
   }
 
   // CHECKME: should this be here?
@@ -368,13 +369,14 @@ public class WorldManager {
     // delete guest client
     if (client.isGuest()) {
       List<Ownership> owned = db.getOwned(client.getId());
-      if (owned != null) {
-        for (Ownership ownership : owned) {
-          if (ownership.getOwned().isTemporary()) {
-            delete(client, ownership.getOwned());
-            db.delete(ownership);
-            log.debug("Deleted owned temporary " + ownership.getOwned().getObjectId());
-          }
+      for (Ownership ownership : owned) {
+        // CHECKME getOwned seems to return shallow copy!?
+        VRObject ownedObject = cache.get(ownership.getOwned().getObjectId());
+        if (ownedObject.isTemporary()) {
+          // remove() doesn't free up cache
+          delete(client, ownedObject);
+          db.delete(ownership);
+          log.debug("Deleted owned temporary " + ownership.getOwned().getObjectId());
         }
       }
       delete(client, client);
@@ -451,7 +453,11 @@ public class WorldManager {
       dispatcher.dispatch(event);
 
       // write to the database after successful dispatch
-      persistors.get(event.getSource().getClass()).persist(event);
+      try {
+        persistors.get(event.getSource().getClass()).persist(event);
+      } catch (Exception e) {
+        log.error("Error persisting " + event, e);
+      }
 
       if (scene != null) {
         scene.update();
