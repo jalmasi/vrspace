@@ -21,11 +21,14 @@
       display: block;
     }
     </style>
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
-    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="./js/lib/babylon.js"></script>
+    <script src="./js/lib/babylonjs.loaders.min.js"></script>
+    <script src="./js/lib/babylon.gui.min.js"></script>
+    <script src="./js/lib/babylonjs.materials.min.js"></script>
+    <script src="./js/lib/babylonjs.proceduralTextures.min.js"></script>
+
     <script src="/babylon/js/vrspace-min.js" type="module"></script>
+    <script src="./js/lib/perlin.js"></script>
     </head>
   <body>
 
@@ -48,6 +51,7 @@ import("./avatar-selection.js").then( (module) =>{
   world.init(engine, 'avatar').then((s) => {
     scene = s;
      world.showPortals();
+     world.video = true; // won't activate portals otherwise
      setTimeout(() => world.portalsEnabled(true),3000);
   });
 
