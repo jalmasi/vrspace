@@ -36,6 +36,10 @@ export class Portal {
   }
   /** dispose of everything */
   dispose() {
+    this.playSound(false);
+    if (this.sound) {
+      this.sound.dispose();
+    }
     this.group.dispose();
     if (this.thumbnail) {
       this.thumbnail.dispose();
@@ -145,16 +149,13 @@ export class Portal {
     }
   }
   playSound(enable) {
-    if ( this.soundUrl ) {
+    if ( this.sound ) {
       if ( enable ) {
-        if ( ! this.sound ) {
-          this.attachSound();
-        }
         this.sound.play();
         // chrome hacks
         BABYLON.Engine.audioEngine.audioContext?.resume();
         BABYLON.Engine.audioEngine.setGlobalVolume(1);        
-      } else {
+      } else if ( this.sound ) {
         this.sound.stop();
       }
     }
@@ -190,7 +191,6 @@ export class Portal {
   }
   /** Executes callback on entry */
   enter() {
-    this.playSound(false);
     if ( this.callback ) {
       this.callback(this);
     }

@@ -544,6 +544,7 @@ export class AvatarSelection extends World {
   removePortals() {
     if (this.portals) {
       for ( var worldName in this.portals) {
+        console.log("Disposing of portal "+worldName);
         this.portals[worldName].dispose();
       }
       delete this.portals;
