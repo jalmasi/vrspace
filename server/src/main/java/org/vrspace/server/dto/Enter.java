@@ -3,6 +3,7 @@ package org.vrspace.server.dto;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Enter implements Command {
   /** Name of the world to enter */
   private String world;

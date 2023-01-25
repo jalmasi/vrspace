@@ -21,7 +21,9 @@ public class DefaultClientFactory implements ClientFactory {
    */
   @Override
   public Client createGuestClient(HttpHeaders headers, Map<String, Object> attributes) {
-    return new Client();
+    Client ret = new Client();
+    ret.setGuest(true);
+    return ret;
   }
 
   /**
