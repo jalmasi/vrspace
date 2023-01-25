@@ -21,6 +21,11 @@ public class ClientConfig {
   public VRSpaceClient connectToVRSpace() {
     URI uri = URI.create("wss://www.vrspace.org/vrspace");
     VRSpaceClient client = new VRSpaceClient(uri, objectMapper);
+    client.await();
+    client.enter("servers");
+    client.await();
+    // do not start session - we do not want to listen to everybody else
+    // client.send(new Session());
     return client;
   }
 

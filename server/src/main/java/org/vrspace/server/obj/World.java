@@ -1,6 +1,7 @@
 package org.vrspace.server.obj;
 
 import org.springframework.data.neo4j.core.schema.Node;
+import org.vrspace.server.core.WorldManager;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,4 +33,14 @@ public class World extends Entity {
   // there can be only one
   private boolean defaultWorld;
   // TODO more properties, e.g. streamingEnabled etc
+
+  /**
+   * Called when client enters the world. It may change some client properties,
+   * allow entrance or not, etc.
+   * 
+   * @return true if client is allowed to enter
+   */
+  public boolean enter(Client c, WorldManager wm) {
+    return true;
+  }
 }

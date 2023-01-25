@@ -68,8 +68,12 @@ public class VRSpaceClient implements WebSocket.Listener {
   }
 
   /** Hack, awaits for welcome message */
-  public void await() throws InterruptedException {
-    latch.await();
+  public void await() {
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+      log.error("Unexpected interrupt: ", e);
+    }
   }
 
   public Client getClient() {

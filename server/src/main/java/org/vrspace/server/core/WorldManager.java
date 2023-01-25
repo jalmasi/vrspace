@@ -14,13 +14,18 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.config.ServerConfig;
+import org.vrspace.server.config.WorldConfig;
+import org.vrspace.server.config.WorldConfig.WorldProperties;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.SceneProperties;
@@ -74,6 +79,9 @@ public class WorldManager {
   @Autowired
   private Neo4jMappingContext mappingContext;
 
+  @Autowired
+  private WorldConfig worldConfig;
+
   private Dispatcher dispatcher;
 
   protected SessionTracker sessionTracker;
@@ -117,6 +125,35 @@ public class WorldManager {
       }
     }
     persistors.put(VRObject.class, pm);
+  }
+
+  @EventListener(ApplicationReadyEvent.class)
+  public void runAfterStartup() {
+    for (String worldName : worldConfig.getWorld().keySet()) {
+      WorldProperties wp = worldConfig.getWorld().get(worldName);
+      log.info("Configuring world: " + worldName);
+      World world = db.getWorldByName(worldName);
+      if (world == null) {
+        log.info("World " + worldName + " to be created as " + wp);
+        world = new World();
+      } else {
+        log.info("World " + worldName + " already exists : " + world);
+      }
+      try {
+        String className = wp.getType();
+        if (!className.contains(".")) {
+          // using default package
+          className = "org.vrspace.server.obj." + className;
+        }
+        Class c = Class.forName(className);
+        World w = (World) c.getDeclaredConstructor().newInstance();
+      } catch (Exception e) {
+        log.error("Error configuring world " + worldName, e);
+      }
+      BeanUtils.copyProperties(wp, world);
+      db.save(world);
+    }
+    log.info("WorldManager ready");
   }
 
   // CHECKME: should this be here?
@@ -321,6 +358,10 @@ public class WorldManager {
       // exit current world first
       exit(client);
     }
+    if (!world.enter(client, this)) {
+      throw new SecurityException("Client forbidden to enter the world");
+    }
+
     // create audio stream
     streamManager.join(client, world);
 
