@@ -22,5 +22,7 @@ public class WorldConfig {
     private String type;
     private String name;
     private String url;
+    private String portalMesh;
+    private String portalThumbnail;
   }
 }

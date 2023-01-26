@@ -22,8 +22,9 @@ import lombok.ToString;
 public class ServerWorld extends World {
   @Override
   public boolean enter(Client client, WorldManager wm) {
-    // TODO position servers in a spiral
     // TODO set some pre-defined url, e.g. portal
+    client.setMesh(this.getPortalMesh());
+    // TODO position servers in a spiral
     return true;
   }
 }

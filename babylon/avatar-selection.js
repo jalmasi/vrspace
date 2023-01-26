@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile } from './js/vrspace-min.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, ServerFolder } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -495,22 +495,43 @@ export class AvatarSelection extends World {
   
   showPortals() {
     this.portals = {};
-    VRSPACEUI.listThumbnails(this.worldDir(), (worlds) => {
-      var radius = this.room.diameter/2;
+    var radius = this.room.diameter/2;
+    var angle = 0;
+
+    if ( window.location.search ) {
+      // use specified worlds
+      // at the moment, world folder still has to exist on the server
+      var worldList = new URLSearchParams(window.location.search).get("worlds");
+      // use specified worlds to bring up portals
+      var worlds = worldList.split(',');
       var angleIncrement = 2*Math.PI/worlds.length;
-      var angle = 0;
       for ( var i=0; i < worlds.length; i++ ) {
         var x = Math.sin(angle)*radius;
         var z = Math.cos(angle)*radius;
-        // heavy performance impact
-        //new Portal( scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
-        var portal = new Portal( scene, worlds[i], (p)=>this.enterPortal(p));
+        // CHECKME: this ignores baseUrl
+        var serverFolder = new ServerFolder(this.worldDir()+"/", worlds[i]);
+        var portal = new Portal( scene, serverFolder, (p)=>this.enterPortal(p));
         this.portals[portal.name] = portal;
         portal.loadAt( x,0,z, angle);
         angle += angleIncrement;
       }
-      this.showActiveUsers();
-    });
+    } else {
+      // by default, list worlds from /content/worlds directory
+      VRSPACEUI.listThumbnails(this.worldDir(), (worlds) => {
+        var angleIncrement = 2*Math.PI/worlds.length;
+        for ( var i=0; i < worlds.length; i++ ) {
+          var x = Math.sin(angle)*radius;
+          var z = Math.cos(angle)*radius;
+          // heavy performance impact
+          //new Portal( scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
+          var portal = new Portal( scene, worlds[i], (p)=>this.enterPortal(p));
+          this.portals[portal.name] = portal;
+          portal.loadAt( x,0,z, angle);
+          angle += angleIncrement;
+        }
+      });
+    }
+    this.showActiveUsers();
   }
 
   showActiveUsers() {

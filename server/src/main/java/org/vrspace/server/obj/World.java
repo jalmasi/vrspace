@@ -3,7 +3,6 @@ package org.vrspace.server.obj;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.core.WorldManager;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -22,7 +21,6 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
 @ToString(callSuper = true)
@@ -32,7 +30,14 @@ public class World extends Entity {
   private String name;
   // there can be only one
   private boolean defaultWorld;
-  // TODO more properties, e.g. streamingEnabled etc
+  private String url;
+  private String portalMesh;
+  private String portalThumbnail;
+
+  public World(String name, boolean defaultWorld) {
+    this.name = name;
+    this.defaultWorld = defaultWorld;
+  }
 
   /**
    * Called when client enters the world. It may change some client properties,
@@ -43,4 +48,5 @@ public class World extends Entity {
   public boolean enter(Client c, WorldManager wm) {
     return true;
   }
+
 }
