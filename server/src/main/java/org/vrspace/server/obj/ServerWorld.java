@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * World in which all servers reside
+ * World in which all servers reside. FIXME this class is never instantiated,
+ * all we ever get is World class
  * 
  * @author joe
  *
@@ -24,6 +25,7 @@ public class ServerWorld extends World {
   public boolean enter(Client client, WorldManager wm) {
     // TODO set some pre-defined url, e.g. portal
     client.setMesh(this.getPortalMesh());
+    wm.save(client);
     // TODO position servers in a spiral
     return true;
   }
