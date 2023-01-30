@@ -10,14 +10,12 @@ import org.vrspace.server.types.Owned;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
 @Owned
-@Slf4j
 public class User extends Client {
   /** Does this client have humanoid avatar, default true */
   private boolean isHumanoid = true;

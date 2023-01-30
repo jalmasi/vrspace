@@ -35,6 +35,7 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.RemoteServer;
 import org.vrspace.server.obj.User;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
@@ -75,6 +76,8 @@ public class WorldManager {
 
   @Autowired
   protected ClientFactory<User> userFactory; // used in tests
+  @Autowired
+  protected ClientFactory<RemoteServer> serverFactory;
 
   @Autowired
   private Neo4jMappingContext mappingContext;
@@ -273,7 +276,7 @@ public class WorldManager {
   }
 
   /**
-   * Remote user login over websocket. Called SessionManager, after websocket
+   * Remote user login over websocket. Called from SessionManager, after websocket
    * session has been established. Uses session security context (principal) to
    * identify user and fetch/create the appropriate Client object from the
    * ClientFactory. May create a new guest client, if guest (anonymous)
@@ -284,6 +287,32 @@ public class WorldManager {
    */
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
+    return login(session, User.class, userFactory);
+  }
+
+  /**
+   * Login for remote servers
+   * 
+   * @see #login(ConcurrentWebSocketSessionDecorator)
+   */
+  @Transactional
+  public Welcome serverLogin(ConcurrentWebSocketSessionDecorator session) {
+    return login(session, RemoteServer.class, serverFactory);
+  }
+
+  /**
+   * Common login procedure for both users and remote servers. This may change,
+   * same for the time being.
+   * 
+   * @see #login(ConcurrentWebSocketSessionDecorator)
+   * @param session       web socket session
+   * @param clientClass   either User or RemoteServer
+   * @param clientFactory either userFactory or serverFactory
+   * @return
+   */
+  @Transactional
+  public Welcome login(ConcurrentWebSocketSessionDecorator session, Class<? extends Client> clientClass,
+      ClientFactory<? extends Client> clientFactory) {
     Principal principal = session.getPrincipal();
     HttpHeaders headers = session.getHandshakeHeaders();
     Map<String, Object> attributes = session.getAttributes();
@@ -291,28 +320,28 @@ public class WorldManager {
     // principal may be OAuth2AuthenticationToken, in that case getName() returns
     // token value, getAuthorizedClientRegistrationId() return the authority
     // (github, facebook...)
-    User user = null;
+    Client client = null;
     if (session.getPrincipal() != null) {
-      user = userFactory.findClient(principal, db, headers, attributes);
-      if (user == null) {
+      client = clientFactory.findClient(principal, db, headers, attributes);
+      if (client == null) {
         throw new SecurityException("Unauthorized client " + session.getPrincipal().getName());
       }
     } else if (config.isGuestAllowed()) {
-      user = userFactory.createGuestClient(headers, attributes);
-      if (user == null) {
+      client = clientFactory.createGuestClient(headers, attributes);
+      if (client == null) {
         throw new SecurityException("Guest disallowed");
       }
-      user.setPosition(new Point());
-      user = db.save(user);
+      client.setPosition(new Point());
+      client = db.save(client);
     } else {
-      user = userFactory.handleUnknownClient(headers, attributes);
-      if (user == null) {
+      client = clientFactory.handleUnknownClient(headers, attributes);
+      if (client == null) {
         throw new SecurityException("Unauthorized");
       }
     }
-    user.setSession(session);
-    login(user);
-    return enter(user, defaultWorld());
+    client.setSession(session);
+    login(client);
+    return enter(client, defaultWorld());
   }
 
   /**

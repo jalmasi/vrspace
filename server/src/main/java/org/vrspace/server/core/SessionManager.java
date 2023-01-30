@@ -88,7 +88,9 @@ public class SessionManager extends TextWebSocketHandler {
   @Override
   public void afterConnectionEstablished(WebSocketSession session) {
     try {
-      Welcome welcome = worldManager.login(new ConcurrentWebSocketSessionDecorator(session, SEND_TIMEOUT, BUFFER_SIZE));
+      ConcurrentWebSocketSessionDecorator socket = new ConcurrentWebSocketSessionDecorator(session, SEND_TIMEOUT,
+          BUFFER_SIZE);
+      Welcome welcome = login(socket);
       sessions.put(session.getId(), welcome.getClient());
       clients.put(welcome.getClient().getId(), welcome.getClient());
       welcome.getClient().sendMessage(welcome);
@@ -107,6 +109,11 @@ public class SessionManager extends TextWebSocketHandler {
         log.error("Unexpected error ", e);
       }
     }
+  }
+
+  protected Welcome login(ConcurrentWebSocketSessionDecorator socket) {
+    Welcome welcome = worldManager.login(socket);
+    return welcome;
   }
 
   @Override

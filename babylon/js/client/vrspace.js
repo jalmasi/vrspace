@@ -215,9 +215,9 @@ export class EventRecorder extends Client {
 
 /**
 Robot base class, useful for chatbots.
-@extends Client
+@extends User
  */
-export class Bot extends Client {
+export class Bot extends User {
   constructor() {
     super();
     /** Server-side class name */
@@ -403,7 +403,7 @@ export class VRSpace {
   
   /**
   Connect to the server, attach listeners.
-  @param url optional websocket url, defaults to /vrspace on the same server
+  @param url optional websocket url, defaults to /vrspace/client on the same server
    */
   connect(url) {
     if ( ! url ) {
@@ -415,9 +415,8 @@ export class VRSpace {
       if ( protocol == 'https:' ) {
         webSocketProtocol = 'wss';
       }
-      //var end = url.lastIndexOf('/'); // localhost:8080/babylon/vrspace
-      let end = url.indexOf('/', start+2); // localhost:8080/vrspace      
-      url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace'; // ws://localhost:8080/vrspace
+      let end = url.indexOf('/', start+2);
+      url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace/client'; // ws://localhost:8080/vrspace
     }
     this.log("Connecting to "+url);
     this.ws = new WebSocket(url);

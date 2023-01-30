@@ -21,6 +21,7 @@ import lombok.ToString;
 @Node
 @ToString(callSuper = true)
 public class ServerWorld extends World {
+  // FIXME can't be here
   @Override
   public boolean enter(Client client, WorldManager wm) {
     // TODO set some pre-defined url, e.g. portal
