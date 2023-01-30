@@ -155,7 +155,7 @@ export class SceneProperties{
 }
 
 /**
-Representation of a client (user).
+Representation of a client (user, bot, remote server...).
 @extends VRObject
  */
 export class Client extends VRObject {
@@ -163,10 +163,24 @@ export class Client extends VRObject {
     super();
     /** Client name, must be unique */
     this.name = null;
-    /** Does this client have humanoid avatar, default true */
-    this.humanoid = true;
     /** Scene properties */
     this.sceneProperties = null; // CHECKME private - should be declared?
+    /** Private tokens */
+    this.tokens = null;
+    /** Server-side class name */
+    this.className = 'Client';
+  }
+}
+
+/**
+Representation of a user.
+@extends Client
+ */
+export class User extends Client {
+  constructor() {
+    super();
+    /** Does this client have humanoid avatar, default true */
+    this.humanoid = true;
     /** Left arm position */
     this.leftArmPos = { x: null, y: null, z: null };
     /** Right arm position */
@@ -177,12 +191,10 @@ export class Client extends VRObject {
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     /** User height, default 1.8 */
     this.userHeight = 1.8;
-    /** Private tokens */
-    this.tokens = null;
     /** Server-side class name */
-    this.className = 'Client';
+    this.className = 'User';
+    /** true if the client has avatar */
   }
-  /** true if the client has avatar */
   hasAvatar() {
     // FIXME as ugly as it gets, get rid of this video thing
     return this.humanoid && this.mesh && this.mesh !== 'video';
@@ -290,7 +302,7 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
     this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {
@@ -552,7 +564,7 @@ export class VRSpace {
    */
   sendMy(field,value) {
     if ( this.me != null) {
-      this.send('{"object":{"Client":'+this.me.id+'},"changes":{'+this.stringifyPair(field,value)+'}}');
+      this.send('{"object":{"'+this.me.className+'":'+this.me.id+'},"changes":{'+this.stringifyPair(field,value)+'}}');
     } else {
       this.log("No my ID yet, ignored user event "+field+"="+value);
     }
@@ -753,7 +765,7 @@ export class VRSpace {
       this.log("welcome "+welcome.client.id);
       if ( ! this.me ) {
         // FIXME: Uncaught TypeError: Cannot assign to read only property of function class
-        let client = new Client();
+        let client = new User();
         this.me = Object.assign(client,welcome.client);        
       }
       this.welcomeListeners.forEach((listener)=>listener(welcome));
