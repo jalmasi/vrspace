@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.vrspace.server.config.FactoryConfig;
-import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.User;
 
 /**
  * Replace Client factory by changing a property
@@ -30,10 +30,10 @@ public class FactoryPropertyTest {
   }
 
   // inner class has to be static, otherwise can't be instantiated elsewhere
-  public static class TestClientFactory implements ClientFactory {
+  public static class TestClientFactory implements ClientFactory<User> {
 
     @Override
-    public Client findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
+    public User findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
         Map<String, Object> attributes) {
       return null;
     }

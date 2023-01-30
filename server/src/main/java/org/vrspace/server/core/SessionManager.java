@@ -97,7 +97,10 @@ public class SessionManager extends TextWebSocketHandler {
           + session.getRemoteAddress() + " user " + session.getPrincipal() + " sessions active " + sessions.size());
     } catch (SecurityException se) {
       try {
-        log.error("Invalid login from session " + session.getId() + "/" + session.getRemoteAddress() + " - " + se);
+        // this may be too verbose
+        log.error("Invalid login from session " + session.getId() + "/" + session.getRemoteAddress(), se);
+        // log.error("Invalid login from session " + session.getId() + "/" +
+        // session.getRemoteAddress() + " - " + se);
         session.sendMessage(new TextMessage(mapper.writeValueAsString(error(se))));
         close(session);
       } catch (IOException e) {

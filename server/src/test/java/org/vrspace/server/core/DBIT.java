@@ -32,6 +32,7 @@ import org.vrspace.server.obj.PersistentEvent;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.Terrain;
+import org.vrspace.server.obj.User;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
@@ -347,6 +348,22 @@ public class DBIT {
     c = repo.getClientByName("clientTwo");
     System.err.println(c);
     assertEquals(c2, c);
+
+  }
+
+  @Test
+  @Transactional
+  public void testGetUser() throws Exception {
+
+    User u = new User();
+    u.setName("user");
+    u = repo.save(u);
+    System.err.println(u);
+
+    Client c = repo.getClientByName("user");
+    System.err.println(c);
+    assertEquals(User.class, c.getClass());
+    assertEquals(u, c);
 
   }
 

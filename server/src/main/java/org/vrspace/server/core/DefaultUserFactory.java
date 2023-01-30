@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.User;
 
 @Component
 /**
@@ -15,13 +15,14 @@ import org.vrspace.server.obj.Client;
  * @author joe
  *
  */
-public class DefaultClientFactory implements ClientFactory {
+public class DefaultUserFactory implements ClientFactory<User> {
   /**
    * Returns new client.
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public Client createGuestClient(HttpHeaders headers, Map<String, Object> attributes) {
-    Client ret = new Client();
+  public User createGuestClient(HttpHeaders headers, Map<String, Object> attributes) {
+    User ret = new User();
     ret.setGuest(true);
     return ret;
   }
@@ -31,11 +32,11 @@ public class DefaultClientFactory implements ClientFactory {
    * attribute value.
    */
   @Override
-  public Client findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
+  public User findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
       Map<String, Object> attributes) {
     Object name = attributes.get(clientAttribute());
     if (name != null && name instanceof String) {
-      return db.getClientByName((String) name);
+      return db.getClientByName((String) name, User.class);
     }
     throw new SecurityException("Unknown client name: " + name);
   }

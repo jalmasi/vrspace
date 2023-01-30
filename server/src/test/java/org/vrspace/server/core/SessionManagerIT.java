@@ -40,6 +40,7 @@ import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.User;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 import org.vrspace.server.types.ID;
@@ -72,8 +73,8 @@ public class SessionManagerIT {
   @Autowired
   private ObjectMapper mapper;
 
-  private Client testUser;
-  private Client dbUser;
+  private User testUser;
+  private User dbUser;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -140,7 +141,7 @@ public class SessionManagerIT {
     attributes.put(ClientFactory.CLIENT_ATTRIBUTE, "tester");
     when(session.getAttributes()).thenReturn(attributes);
 
-    testUser = new Client();
+    testUser = new User();
     testUser.setName("tester");
     testUser.setPosition(new Point(1, 2, 3));
     testUser = repo.save(testUser);
@@ -156,7 +157,7 @@ public class SessionManagerIT {
     System.err.println(welcome);
     assertNotNull(welcome.getClient());
     assertNotNull(welcome.getClient().getId());
-    testUser = (Client) worldManager.get(new ID(testUser));
+    testUser = (User) worldManager.get(new ID(testUser));
     return welcome.getClient().getId();
   }
 
@@ -239,7 +240,7 @@ public class SessionManagerIT {
     assertEquals(2, testUser.getPosition().getY(), 0.01);
     assertEquals(3, testUser.getPosition().getZ(), 0.01);
 
-    String string = "{\"object\":{\"Client\":" + clientId
+    String string = "{\"object\":{\"User\":" + clientId
         + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     System.err.println(string);
     sendMessage(string);
@@ -385,7 +386,7 @@ public class SessionManagerIT {
     assertEquals(2, client.getListeners().size());
 
     // move and verify movement received by listeners but not by self
-    String string = "{\"object\":{\"Client\":" + clientId
+    String string = "{\"object\":{\"User\":" + clientId
         + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     sendMessage(string);
 
@@ -400,7 +401,7 @@ public class SessionManagerIT {
     assertTrue(expected.isEqual(user2.getScene().get(client.getObjectId()).getPosition()));
 
     // set properties of a client
-    String msg = "{\"object\":{\"Client\":" + clientId
+    String msg = "{\"object\":{\"User\":" + clientId
         + "},\"changes\":{\"properties\":{\"string\":\"string\",\"number\":123.45}}}";
     sendMessage(msg);
     verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
@@ -412,7 +413,7 @@ public class SessionManagerIT {
     assertEquals(123.45, client.getProperties().get("number"));
 
     // custom event, e.g. chat
-    String text = "{\"object\":{\"Client\":" + clientId + "},\"changes\":{\"wrote\":\"hi\"}}";
+    String text = "{\"object\":{\"User\":" + clientId + "},\"changes\":{\"wrote\":\"hi\"}}";
     sendMessage(text);
     verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
     verify(session1, times(5)).sendMessage(any(WebSocketMessage.class));

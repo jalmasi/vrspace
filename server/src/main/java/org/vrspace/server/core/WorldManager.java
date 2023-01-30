@@ -35,9 +35,9 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.User;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
-import org.vrspace.server.types.Filter;
 import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -74,7 +74,7 @@ public class WorldManager {
   private StreamManager streamManager;
 
   @Autowired
-  protected ClientFactory clientFactory; // used in tests
+  protected ClientFactory<User> userFactory; // used in tests
 
   @Autowired
   private Neo4jMappingContext mappingContext;
@@ -291,28 +291,28 @@ public class WorldManager {
     // principal may be OAuth2AuthenticationToken, in that case getName() returns
     // token value, getAuthorizedClientRegistrationId() return the authority
     // (github, facebook...)
-    Client client = null;
+    User user = null;
     if (session.getPrincipal() != null) {
-      client = clientFactory.findClient(principal, db, headers, attributes);
-      if (client == null) {
+      user = userFactory.findClient(principal, db, headers, attributes);
+      if (user == null) {
         throw new SecurityException("Unauthorized client " + session.getPrincipal().getName());
       }
     } else if (config.isGuestAllowed()) {
-      client = clientFactory.createGuestClient(headers, attributes);
-      if (client == null) {
+      user = userFactory.createGuestClient(headers, attributes);
+      if (user == null) {
         throw new SecurityException("Guest disallowed");
       }
-      client.setPosition(new Point());
-      client = db.save(client);
+      user.setPosition(new Point());
+      user = db.save(user);
     } else {
-      client = clientFactory.handleUnknownClient(headers, attributes);
-      if (client == null) {
+      user = userFactory.handleUnknownClient(headers, attributes);
+      if (user == null) {
         throw new SecurityException("Unauthorized");
       }
     }
-    client.setSession(session);
-    login(client);
-    return enter(client, defaultWorld());
+    user.setSession(session);
+    login(user);
+    return enter(user, defaultWorld());
   }
 
   /**
@@ -394,12 +394,7 @@ public class WorldManager {
     client.setActive(true);
     client = save(client);
 
-    // create scene, TODO: scene filters
-    Scene scene = new Scene(this, client);
-    scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
-    client.setScene(scene);
-    scene.update();
-    scene.publish(client);
+    client.createScene(this);
   }
 
   @Transactional

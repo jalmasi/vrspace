@@ -9,6 +9,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
+import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.core.WriteBack;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
@@ -44,28 +45,6 @@ public class Client extends VRObject {
   // @Index(unique = true) - NeoConfig creates it
   @ToString.Include
   private String name;
-  /** Does this client have humanoid avatar, default true */
-  private boolean isHumanoid = true;
-  /**
-   * Left arm position, used in VR. Transient biometric data.
-   */
-  @Transient
-  transient private Point leftArmPos;
-  /**
-   * Right arm position, used in VR. Transient biometric data.
-   */
-  @Transient
-  transient private Point rightArmPos;
-  /**
-   * Left arm rotation, used in VR. Transient biometric data.
-   */
-  @Transient
-  transient private Quaternion leftArmRot;
-  /**
-   * Right arm rotation, used in VR. Transient biometric data.
-   */
-  @Transient
-  transient private Quaternion rightArmRot;
   /**
    * User's height in real life, used in VR. Transient biometric data.
    */
@@ -74,6 +53,20 @@ public class Client extends VRObject {
   @Private
   @Transient
   transient private SceneProperties sceneProperties;
+  /**
+   * Scene contains all object that a client tracks, e.g. user sees.
+   */
+  @JsonIgnore
+  @Transient
+  transient private Scene scene;
+  /**
+   * Identity is a big unknown yet, will likely get encapsulated in a class. For
+   * the time being, it's something like username@oauth2provider, e.g.
+   * joe@facebook
+   */
+  @Private
+  @JsonIgnore
+  private String identity;
   /**
    * Tokens used to access video/audio streaming servers, identify conversations
    * with chatbots etc.
@@ -88,25 +81,11 @@ public class Client extends VRObject {
   @Transient
   transient private WriteBack writeBack;
   /**
-   * Identity is a big unknown yet, will likely get encapsulated in a class. For
-   * the time being, it's something like username@oauth2provider, e.g.
-   * joe@facebook
-   */
-  @Private
-  @JsonIgnore
-  private String identity;
-  /**
    * Web socket.
    */
   @JsonIgnore
   @Transient
   transient private ConcurrentWebSocketSessionDecorator session;
-  /**
-   * Scene contains all object that a client tracks, e.g. user sees.
-   */
-  @JsonIgnore
-  @Transient
-  transient private Scene scene;
   /**
    * Mapper for publicly visible properties
    */
@@ -218,6 +197,13 @@ public class Client extends VRObject {
   /** Remove token for a given service */
   public String clearToken(String serviceId) {
     return tokens.remove(serviceId);
+  }
+
+  /**
+   * Create client's scene, called by WorldManager during login process. Default
+   * client doesn't have a scene.
+   */
+  public void createScene(WorldManager wm) {
   }
 
 }

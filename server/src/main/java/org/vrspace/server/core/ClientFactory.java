@@ -15,7 +15,7 @@ import org.vrspace.server.obj.Client;
  * @see WorldManager#login(org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator)
  *
  */
-public interface ClientFactory {
+public interface ClientFactory<T extends Client> {
   public static final String CLIENT_ATTRIBUTE = "local-user-name";
 
   /**
@@ -27,8 +27,7 @@ public interface ClientFactory {
    * @param attributes session attributes copied from HttpSession
    * @return a client found in the database or elsewhere
    */
-  public Client findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
-      Map<String, Object> attributes);
+  public T findClient(Principal principal, VRObjectRepository db, HttpHeaders headers, Map<String, Object> attributes);
 
   /**
    * Create a new guest client, called only if server configuration allows for
@@ -39,7 +38,7 @@ public interface ClientFactory {
    * @param attributes session attributes copied from HttpSession
    * @return new Client instance, null by default
    */
-  public default Client createGuestClient(HttpHeaders headers, Map<String, Object> attributes) {
+  public default T createGuestClient(HttpHeaders headers, Map<String, Object> attributes) {
     return null;
   }
 
@@ -52,7 +51,7 @@ public interface ClientFactory {
    * @param attributes session attributes copied from HttpSession
    * @return a Client determined by headers, null by default
    */
-  public default Client handleUnknownClient(HttpHeaders headers, Map<String, Object> attributes) {
+  public default T handleUnknownClient(HttpHeaders headers, Map<String, Object> attributes) {
     return null;
   }
 

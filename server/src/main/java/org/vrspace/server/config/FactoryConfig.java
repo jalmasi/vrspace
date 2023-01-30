@@ -17,7 +17,7 @@ import org.vrspace.server.core.ClientFactory;
  */
 @Configuration
 public class FactoryConfig {
-  @Value("${org.vrspace.server.clientFactory:org.vrspace.server.core.DefaultClientFactory}")
+  @Value("${org.vrspace.server.clientFactory:org.vrspace.server.core.DefaultUserFactory}")
   private String clientFactoryClass;
 
   /**
