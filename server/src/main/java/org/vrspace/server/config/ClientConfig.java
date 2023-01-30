@@ -4,14 +4,13 @@ import java.net.URI;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.vrspace.client.VRSpaceClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Configuration
+//@Configuration
 @Slf4j
 public class ClientConfig {
   @Autowired

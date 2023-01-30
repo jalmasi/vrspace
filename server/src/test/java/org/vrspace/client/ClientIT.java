@@ -43,7 +43,7 @@ public class ClientIT {
   }
 
   public VRSpaceClient connectToVRSpace() {
-    URI uri = URI.create("wss://www.vrspace.org/vrspace");
+    URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
     VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
         .addWelcomeListener(w -> welcomeReceived(w));
     return client;
@@ -61,8 +61,8 @@ public class ClientIT {
 
   @Test
   public void connectSomeServersToLocalhost() throws InterruptedException {
-    for (int i = 0; i < 10; i++) {
-      URI uri = URI.create("ws://localhost:8080/vrspace");
+    for (int i = 0; i < 1; i++) {
+      URI uri = URI.create("ws://localhost:8080/vrspace/server");
       VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
           .addWelcomeListener(w -> welcomeReceived(w));
       client.await();

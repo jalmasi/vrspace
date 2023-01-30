@@ -30,7 +30,7 @@ public class FactoryConfigTest {
     assertEquals(TestClientFactory.class, clientFactory.getClass());
   }
 
-  public static class TestClientFactory extends DefaultUserFactory {
+  public static class TestClientFactory extends DefaultClientFactory {
   }
 
   @Import({ FactoryConfig.class })

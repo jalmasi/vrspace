@@ -67,7 +67,7 @@ public class WorldManagerTest {
   public void setUp() {
     worldManager.config = config;
     worldManager.jackson = objectMapper;
-    worldManager.userFactory = new DefaultUserFactory();
+    worldManager.clientFactory = new DefaultClientFactory();
     worldManager.init();
     lenient().when(repo.getPermanents(any(Long.class))).thenReturn(new HashSet<VRObject>());
     World world = new World("test");

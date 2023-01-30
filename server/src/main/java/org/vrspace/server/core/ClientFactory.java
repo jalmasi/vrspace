@@ -15,30 +15,34 @@ import org.vrspace.server.obj.Client;
  * @see WorldManager#login(org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator)
  *
  */
-public interface ClientFactory<T extends Client> {
+public interface ClientFactory {
   public static final String CLIENT_ATTRIBUTE = "local-user-name";
 
   /**
    * Find an authorised known client, called only if security principal is known.
    * 
-   * @param principal  security principal of the client
-   * @param db         database repository
-   * @param headers    all HTTP headers
-   * @param attributes session attributes copied from HttpSession
+   * @param clientClass class implementing the client, typically User
+   * @param principal   security principal of the client
+   * @param db          database repository
+   * @param headers     all HTTP headers
+   * @param attributes  session attributes copied from HttpSession
    * @return a client found in the database or elsewhere
    */
-  public T findClient(Principal principal, VRObjectRepository db, HttpHeaders headers, Map<String, Object> attributes);
+  public <T extends Client> T findClient(Class<T> clientClass, Principal principal, VRObjectRepository db,
+      HttpHeaders headers, Map<String, Object> attributes);
 
   /**
    * Create a new guest client, called only if server configuration allows for
    * anonymous guest clients, and client name (security principal) is unknown.
    * Default implementation does not create a client.
    * 
-   * @param headers    all HTTP headers
-   * @param attributes session attributes copied from HttpSession
+   * @param clientClass class implementing the client, typically User
+   * @param headers     all HTTP headers
+   * @param attributes  session attributes copied from HttpSession
    * @return new Client instance, null by default
    */
-  public default T createGuestClient(HttpHeaders headers, Map<String, Object> attributes) {
+  public default <T extends Client> T createGuestClient(Class<T> clientClass, HttpHeaders headers,
+      Map<String, Object> attributes) {
     return null;
   }
 
@@ -47,11 +51,13 @@ public interface ClientFactory<T extends Client> {
    * is unknown. Implementation may yet return a client based on headers
    * available. Default implementation returns null.
    * 
-   * @param headers    all HTTP headers
-   * @param attributes session attributes copied from HttpSession
+   * @param clientClass class implementing the client, typically User
+   * @param headers     all HTTP headers
+   * @param attributes  session attributes copied from HttpSession
    * @return a Client determined by headers, null by default
    */
-  public default T handleUnknownClient(HttpHeaders headers, Map<String, Object> attributes) {
+  public default <T extends Client> T handleUnknownClient(Class<T> clientClass, HttpHeaders headers,
+      Map<String, Object> attributes) {
     return null;
   }
 
@@ -64,4 +70,5 @@ public interface ClientFactory<T extends Client> {
   public default String clientAttribute() {
     return CLIENT_ATTRIBUTE;
   }
+
 }

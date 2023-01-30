@@ -32,7 +32,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Welcome {
   @NonNull
-  @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+  // @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
   private Client client;
   @NonNull
   private Set<VRObject> permanents;

@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.vrspace.server.obj.User;
+import org.vrspace.server.obj.Client;
 
 @Component
 /**
@@ -15,16 +15,22 @@ import org.vrspace.server.obj.User;
  * @author joe
  *
  */
-public class DefaultUserFactory implements ClientFactory<User> {
+public class DefaultClientFactory implements ClientFactory {
+
   /**
    * Returns new client.
    */
   @SuppressWarnings("unchecked")
   @Override
-  public User createGuestClient(HttpHeaders headers, Map<String, Object> attributes) {
-    User ret = new User();
-    ret.setGuest(true);
-    return ret;
+  public <T extends Client> T createGuestClient(Class<T> clientClass, HttpHeaders headers,
+      Map<String, Object> attributes) {
+    try {
+      T ret = clientClass.getDeclaredConstructor().newInstance();
+      ret.setGuest(true);
+      return ret;
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to create client of class " + clientClass);
+    }
   }
 
   /**
@@ -32,11 +38,11 @@ public class DefaultUserFactory implements ClientFactory<User> {
    * attribute value.
    */
   @Override
-  public User findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
-      Map<String, Object> attributes) {
+  public <T extends Client> T findClient(Class<T> clientClass, Principal principal, VRObjectRepository db,
+      HttpHeaders headers, Map<String, Object> attributes) {
     Object name = attributes.get(clientAttribute());
     if (name != null && name instanceof String) {
-      return db.getClientByName((String) name, User.class);
+      return db.getClientByName((String) name, clientClass);
     }
     throw new SecurityException("Unknown client name: " + name);
   }

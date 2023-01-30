@@ -75,9 +75,7 @@ public class WorldManager {
   private StreamManager streamManager;
 
   @Autowired
-  protected ClientFactory<User> userFactory; // used in tests
-  @Autowired
-  protected ClientFactory<RemoteServer> serverFactory;
+  protected ClientFactory clientFactory; // used in tests
 
   @Autowired
   private Neo4jMappingContext mappingContext;
@@ -112,7 +110,7 @@ public class WorldManager {
         try {
           @SuppressWarnings("rawtypes")
           PersistenceManager p = (PersistenceManager) c.getConstructor(VRObjectRepository.class).newInstance(db);
-          persistors.put((Class) t, p);
+          persistors.put((Class<?>) t, p);
           log.debug("Instantiated " + p + " for " + t);
         } catch (Exception e) {
           log.error("Failed to instantiate " + c, e);
@@ -148,7 +146,7 @@ public class WorldManager {
           // using default package
           className = "org.vrspace.server.obj." + className;
         }
-        Class c = Class.forName(className);
+        Class<?> c = Class.forName(className);
         World w = (World) c.getDeclaredConstructor().newInstance();
       } catch (Exception e) {
         log.error("Error configuring world " + worldName, e);
@@ -287,7 +285,7 @@ public class WorldManager {
    */
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
-    return login(session, User.class, userFactory);
+    return login(session, User.class);
   }
 
   /**
@@ -297,7 +295,7 @@ public class WorldManager {
    */
   @Transactional
   public Welcome serverLogin(ConcurrentWebSocketSessionDecorator session) {
-    return login(session, RemoteServer.class, serverFactory);
+    return login(session, RemoteServer.class);
   }
 
   /**
@@ -311,8 +309,7 @@ public class WorldManager {
    * @return
    */
   @Transactional
-  public Welcome login(ConcurrentWebSocketSessionDecorator session, Class<? extends Client> clientClass,
-      ClientFactory<? extends Client> clientFactory) {
+  public Welcome login(ConcurrentWebSocketSessionDecorator session, Class<? extends Client> clientClass) {
     Principal principal = session.getPrincipal();
     HttpHeaders headers = session.getHandshakeHeaders();
     Map<String, Object> attributes = session.getAttributes();
@@ -322,19 +319,19 @@ public class WorldManager {
     // (github, facebook...)
     Client client = null;
     if (session.getPrincipal() != null) {
-      client = clientFactory.findClient(principal, db, headers, attributes);
+      client = clientFactory.findClient(clientClass, principal, db, headers, attributes);
       if (client == null) {
         throw new SecurityException("Unauthorized client " + session.getPrincipal().getName());
       }
     } else if (config.isGuestAllowed()) {
-      client = clientFactory.createGuestClient(headers, attributes);
+      client = clientFactory.createGuestClient(clientClass, headers, attributes);
       if (client == null) {
         throw new SecurityException("Guest disallowed");
       }
       client.setPosition(new Point());
       client = db.save(client);
     } else {
-      client = clientFactory.handleUnknownClient(headers, attributes);
+      client = clientFactory.handleUnknownClient(clientClass, headers, attributes);
       if (client == null) {
         throw new SecurityException("Unauthorized");
       }
