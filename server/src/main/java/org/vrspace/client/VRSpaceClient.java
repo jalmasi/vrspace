@@ -3,6 +3,7 @@ package org.vrspace.client;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -151,8 +152,13 @@ public class VRSpaceClient implements WebSocket.Listener {
 
   @Override
   public void onError(WebSocket webSocket, Throwable error) {
-    log.error("Websocket error " + webSocket.toString());
+    log.error("Websocket error " + webSocket);
     WebSocket.Listener.super.onError(webSocket, error);
   }
 
+  @Override
+  public CompletionStage<?> onPing(WebSocket webSocket, ByteBuffer message) {
+    // log.debug("Ping received " + webSocket);
+    return WebSocket.Listener.super.onPing(webSocket, message);
+  }
 }

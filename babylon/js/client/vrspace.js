@@ -303,7 +303,7 @@ export class VRSpace {
     this.errorListeners = [];
     this.responseListener = null;
     this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
-    this.pingTimerId = 0;
+    //this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {
       this[c] = this.sharedClasses[c];
@@ -422,13 +422,15 @@ export class VRSpace {
     this.ws = new WebSocket(url);
     this.ws.onopen = () => {
       this.connectionListeners.forEach((listener)=>listener(true));
+      /*
       this.pingTimerId = setInterval(() => {
         this.sendCommand("Ping");
       }, 20000);
+      */
     }
     this.ws.onclose = () => {
       this.connectionListeners.forEach((listener)=>listener(false));
-      clearInterval(this.pingTimerId);
+      //clearInterval(this.pingTimerId);
     }
     this.ws.onmessage = (data) => {
       this.receive(data.data);
