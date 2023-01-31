@@ -161,6 +161,13 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
     // log.debug("Pong received from " + session);
   }
 
+  // @Override
+  // public void handleTransportError(WebSocketSession session, Throwable
+  // exception) {
+  // log.error("Websocket error", exception);
+  // CHECKME cleanup? Seems that afterConnectionClosed triggers just fine.
+  // }
+
   @PreDestroy
   public void cleanup() {
     // this is to delete automatically created guest clients on shutdown

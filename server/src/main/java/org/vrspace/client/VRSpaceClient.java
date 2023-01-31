@@ -128,6 +128,8 @@ public class VRSpaceClient implements WebSocket.Listener {
       messageListeners.forEach(l -> l.apply(message));
       text = new StringBuilder();
       try {
+        // TODO this should work with deserialization out of the box
+        // introduce ERROR class etc
         if (message.startsWith("{\"Welcome\":{")) {
           Welcome welcome = mapper.readValue(message, Welcome.class);
           if (this.client == null) {
@@ -160,5 +162,11 @@ public class VRSpaceClient implements WebSocket.Listener {
   public CompletionStage<?> onPing(WebSocket webSocket, ByteBuffer message) {
     // log.debug("Ping received " + webSocket);
     return WebSocket.Listener.super.onPing(webSocket, message);
+  }
+
+  @Override
+  public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+    log.debug("Socket closed: " + statusCode + " " + reason);
+    return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
   }
 }

@@ -166,6 +166,8 @@ export class WorldManager {
         this.loadStream( e.added );
       } else if (e.added.mesh) {
         this.loadMesh(e.added);
+      } else if (e.added.script) {
+        this.loadScript(e.added);
       } else {
         // TODO server needs to ensure that mesh exists
         // in the meantime we define default behavior here
@@ -430,6 +432,20 @@ export class WorldManager {
     }, this.loadErrorHandler);
   }
 
+  loadScript(obj) {
+    import(obj.script).then(module=>{
+      console.log(module);
+      let className = Object.keys(module)[0];
+      console.log("TODO: loading script "+className);
+      let cls = module[className];
+      var instance = new cls(this.world, obj);
+      console.log("instance", instance);
+      var node = instance.init();
+      if ( node && obj.active ) {
+        obj.addListener((obj, changes) => this.changeObject(obj, changes, node));
+      }      
+    });
+  }
   /**
   Utility method, calculates bounding box for an AssetContainer.
   @returns Vector3 bounding box

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest(classes = JacksonConfig.class)
-//@Disabled
+@Disabled
 public class ClientIT {
   @Autowired
   ObjectMapper mapper;
@@ -42,7 +43,8 @@ public class ClientIT {
   }
 
   public VRSpaceClient connectToVRSpace() {
-    URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
+    // URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
+    URI uri = URI.create("ws://localhost:8080/vrspace/server");
     VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
         .addWelcomeListener(w -> welcomeReceived(w));
     return client;
@@ -60,7 +62,7 @@ public class ClientIT {
 
   @Test
   public void connectSomeServersToLocalhost() throws InterruptedException {
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 10; i++) {
       URI uri = URI.create("ws://localhost:8080/vrspace/server");
       VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
           .addWelcomeListener(w -> welcomeReceived(w));
@@ -70,11 +72,11 @@ public class ClientIT {
       ClientRequest changes = new ClientRequest(client.getClient());
       Point position = new Point(i, 0, 0);
       changes.addChange("position", position);
-      changes.addChange("mesh", "/babylon/portal/scene.gltf");
+      // changes.addChange("mesh", "/babylon/portal/scene.gltf");
       changes.addChange("humanoid", false);
       client.send(changes);
       client.send(new Session());
     }
-    Thread.sleep(1000 * 60 * 10);
+    Thread.sleep(1000 * 60 * 60);
   }
 }

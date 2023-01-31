@@ -24,5 +24,6 @@ public class WorldConfig {
     private String url;
     private String portalMesh;
     private String portalThumbnail;
+    private String portalScript;
   }
 }

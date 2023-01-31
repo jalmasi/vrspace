@@ -201,6 +201,16 @@ export class User extends Client {
   }
 }
 
+export class RemoteServer extends Client {
+  constructor() {
+    super();
+    this.url = null;
+    this.thumbnail = null;
+    this.humanoid = false;
+    this.className = 'RemoteServer';
+  }
+}
+
 /**
 See server side counterpart.
 @extends Client
@@ -302,7 +312,7 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
     //this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {

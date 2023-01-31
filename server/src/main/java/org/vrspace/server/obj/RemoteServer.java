@@ -14,4 +14,11 @@ import lombok.ToString;
 @Owned
 public class RemoteServer extends Client {
   private String url;
+  private String thumbnail;
+
+  // CHECKME basic VRObject should probably do that to prevent XSS for good
+  /*
+   * @Override public void setScript(String script) { throw new
+   * SecurityException("Forbidden"); }
+   */
 }

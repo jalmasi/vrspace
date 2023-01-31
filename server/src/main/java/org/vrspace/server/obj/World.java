@@ -30,9 +30,6 @@ public class World extends Entity {
   private String name;
   // there can be only one
   private boolean defaultWorld;
-  private String url;
-  private String portalMesh;
-  private String portalThumbnail;
 
   public World(String name, boolean defaultWorld) {
     this.name = name;

@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * World in which all servers reside. FIXME this class is never instantiated,
- * all we ever get is World class
+ * World in which all servers reside. Once a RemoteServer enters here, its
+ * properties are set to defaults defined in application.properties, i.e
+ * portalMesh, portalThumbnail and portalScript of this object. Properties of
+ * other clients (users) are not changed.
  * 
  * @author joe
  *
@@ -21,11 +23,20 @@ import lombok.ToString;
 @Node
 @ToString(callSuper = true)
 public class ServerWorld extends World {
-  // FIXME can't be here
+  private String url;
+  private String portalMesh;
+  private String portalThumbnail;
+  private String portalScript;
+
   @Override
   public boolean enter(Client client, WorldManager wm) {
-    // TODO set some pre-defined url, e.g. portal
-    client.setMesh(this.getPortalMesh());
+    if (client instanceof RemoteServer) {
+      client.setMesh(this.getPortalMesh());
+      client.setScript(this.getPortalScript());
+      ((RemoteServer) client).setUrl(this.getUrl());
+      ((RemoteServer) client).setThumbnail(this.getPortalThumbnail());
+    }
+    // TODO figure out positions
     wm.save(client);
     // TODO position servers in a spiral
     return true;

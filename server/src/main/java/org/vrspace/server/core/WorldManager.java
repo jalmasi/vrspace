@@ -136,20 +136,19 @@ public class WorldManager {
       World world = db.getWorldByName(worldName);
       if (world == null) {
         log.info("World " + worldName + " to be created as " + wp);
-        world = new World();
+        try {
+          String className = wp.getType();
+          if (!className.contains(".")) {
+            // using default package
+            className = "org.vrspace.server.obj." + className;
+          }
+          Class<?> c = Class.forName(className);
+          world = (World) c.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+          log.error("Error configuring world " + worldName, e);
+        }
       } else {
         log.info("World " + worldName + " already exists : " + world);
-      }
-      try {
-        String className = wp.getType();
-        if (!className.contains(".")) {
-          // using default package
-          className = "org.vrspace.server.obj." + className;
-        }
-        Class<?> c = Class.forName(className);
-        World w = (World) c.getDeclaredConstructor().newInstance();
-      } catch (Exception e) {
-        log.error("Error configuring world " + worldName, e);
       }
       BeanUtils.copyProperties(wp, world);
       db.save(world);
