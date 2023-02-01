@@ -1,5 +1,7 @@
 package org.vrspace.server.obj;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.core.WorldManager;
 
@@ -35,10 +37,38 @@ public class ServerWorld extends World {
       client.setScript(this.getPortalScript());
       ((RemoteServer) client).setUrl(this.getUrl());
       ((RemoteServer) client).setThumbnail(this.getPortalThumbnail());
+
+      // TODO figure out positions
+      // TODO position servers in a spiral
+      // dl^2 = k^2 * da^2 + k^2 * a^2 * da^2
+      // = da^2 * k^2 * (1+a^2)
+      // where l = lenght, a = angle (alpha), k = size parameter
+      // so to have constant dl (place portals same distance from one another)
+      // we have to change angle by
+      // da^2 = dl^2/(k^2*(1+a^2))
+      // da = sqrt(dl^2/(k^2*(1+a^2)))
+      // where a is the current angle
+      // List<VRObject> currentServers = wm.find(o ->
+      // (o.getClass().isInstance(RemoteServer.class)));
+      List<VRObject> currentServers = wm.find(o -> (true));
+      double dl = 10; // place portals that many meters apart
+      double k = 2; // is this two meters radius increase for 1 radian?
+      double angle = 0;
+      for (VRObject obj : currentServers) {
+        double da = Math.sqrt(dl * dl / (k * k * (1 + angle * angle)));
+        angle += da;
+        // TODO we probably need to recalculate positions of all portals
+        // since some servers may have disconnected in the meantime
+      }
+      double r = k * angle;
+      double x = Math.cos(angle) * r;
+      double z = Math.sin(angle) * r;
+
+      client.setPosition(new Point(x, 0, z));
+      Rotation rot = new Rotation(0, angle, 0);
+      client.setRotation(rot);
+      wm.save(client);
     }
-    // TODO figure out positions
-    wm.save(client);
-    // TODO position servers in a spiral
     return true;
   }
 }

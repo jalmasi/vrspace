@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -90,10 +91,6 @@ public class WorldManager {
   // used in tests
   protected ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
 
-  protected VRObject get(ID id) {
-    return cache.get(id);
-  }
-
   private World defaultWorld;
 
   @SuppressWarnings("rawtypes")
@@ -154,6 +151,20 @@ public class WorldManager {
       db.save(world);
     }
     log.info("WorldManager ready");
+  }
+
+  protected VRObject get(ID id) {
+    return cache.get(id);
+  }
+
+  /**
+   * Find some objects, in-memory operation on cache.
+   * 
+   * @param filter Predicate to select objects, e.g. o->o.isActive()
+   * @return
+   */
+  public List<VRObject> find(Predicate<? super VRObject> filter) {
+    return cache.values().stream().filter(filter).collect(Collectors.toList());
   }
 
   // CHECKME: should this be here?

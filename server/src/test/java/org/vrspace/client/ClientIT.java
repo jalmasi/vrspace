@@ -13,7 +13,6 @@ import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Session;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
-import org.vrspace.server.obj.Point;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -62,7 +61,7 @@ public class ClientIT {
 
   @Test
   public void connectSomeServersToLocalhost() throws InterruptedException {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
       URI uri = URI.create("ws://localhost:8080/vrspace/server");
       VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
           .addWelcomeListener(w -> welcomeReceived(w));
@@ -70,10 +69,11 @@ public class ClientIT {
       client.enter("servers");
       client.await();
       ClientRequest changes = new ClientRequest(client.getClient());
-      Point position = new Point(i, 0, 0);
-      changes.addChange("position", position);
+      // Point position = new Point(i, 0, 0);
+      // changes.addChange("position", position);
       // changes.addChange("mesh", "/babylon/portal/scene.gltf");
-      changes.addChange("humanoid", false);
+      // changes.addChange("humanoid", false);
+      changes.addChange("url", "https://server" + i + ".vrspace.org/");
       client.send(changes);
       client.send(new Session());
     }

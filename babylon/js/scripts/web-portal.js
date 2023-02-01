@@ -14,10 +14,14 @@ export class WebPortal extends BasicScript {
     var serverFolder = new ServerFolder("/content/worlds", name);
     var portal = new Portal( this.scene, serverFolder, (p)=>this.enterPortal(p));
     console.log("loading portal "+name);
-    portal.loadAt(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z, 0);
+    portal.loadAt(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z, Math.PI/2-this.vrObject.rotation.y);
+    if ( this.vrObject.url ) {
+      portal.setTitle(this.vrObject.url);
+      portal.enabled(true);
+    }
     return portal.group;
   }
   enterPortal(portal) {
-    console.log("Entering portal ",portal);
+    console.log("Entering portal "+this.vrObject.url);
   }
 }

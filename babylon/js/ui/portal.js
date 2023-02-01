@@ -87,7 +87,7 @@ export class Portal {
         if ( p.pickedMesh == plane ) {
           if ( this.isEnabled ) {
             console.log("Entering "+this.name);
-            this.scene.onPointerObservable.clear();
+            this.scene.onPointerObservable.remove(observable);
             this.enter();
           } else {
             console.log("Not entering "+this.name+" - disabled");
@@ -110,12 +110,12 @@ export class Portal {
     plane.visibility = 0.85;
     this.textures.push( noiseTexture );
 
-    this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:1,width:2}, this.scene);
+    this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:2,width:4}, this.scene);
     this.title.parent = this.group;
     this.title.position = new BABYLON.Vector3(0,2.5,0);
     this.title.isVisible = false;
 
-    var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 128,128);
+    var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 256,256);
     this.materials.push(this.title.material);
     
     this.titleText = new BABYLON.GUI.TextBlock();
