@@ -198,6 +198,13 @@ export class AvatarSelection extends World {
   }
   
   createSelection(selectionCallback) {
+    if ( window.location.search ) {
+      var avatarUrl = new URLSearchParams(window.location.search).get("avatarUrl");
+      if ( avatarUrl ) {
+        this.loadCharacterUrl(avatarUrl);
+      }
+    }
+    
     this.selectionCallback = selectionCallback;
     VRSPACEUI.listMatchingFiles( this.characterDir(), (folders) => {
       folders.push({name:"video"});
@@ -316,7 +323,7 @@ export class AvatarSelection extends World {
     
   }
 
-  loadCharacterUrl( url) {
+  loadCharacterUrl(url) {
     console.log('loading character from '+url);
     var file = new ServerFile( url );
     this.loadCharacter( file, file.file);
@@ -410,7 +417,8 @@ export class AvatarSelection extends World {
   async getUserObject() {
     var userObject = await this.getJson("/user/object");
     console.log("User object ", userObject);
-    return userObject.Client;
+    //return userObject.Client;
+    return userObject.User; //CHECKME
   }
   
   async getAuthenticated() {
@@ -498,6 +506,7 @@ export class AvatarSelection extends World {
     var radius = this.room.diameter/2;
     var angle = 0;
 
+    /* looks like failed experiment
     if ( window.location.search ) {
       // use specified worlds
       // at the moment, world folder still has to exist on the server
@@ -516,6 +525,7 @@ export class AvatarSelection extends World {
         angle += angleIncrement;
       }
     } else {
+    */
       // by default, list worlds from /content/worlds directory
       VRSPACEUI.listThumbnails(this.worldDir(), (worlds) => {
         var angleIncrement = 2*Math.PI/worlds.length;
@@ -530,7 +540,7 @@ export class AvatarSelection extends World {
           angle += angleIncrement;
         }
       });
-    }
+    //}
     this.showActiveUsers();
   }
 

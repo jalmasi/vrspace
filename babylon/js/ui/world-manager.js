@@ -734,7 +734,10 @@ export class WorldManager {
         VRSPACE.removeWelcomeListener(afterConnect);
         if ( properties ) {
           for ( var prop in properties ) {
+            // publish own properties
             VRSPACE.sendMy(prop, properties[prop]);
+            // and also set their values locally
+            VRSPACE.me[prop] = properties[prop];
           }
         }
         // FIXME for the time being, Enter first, then Session

@@ -22,6 +22,13 @@ export class WebPortal extends BasicScript {
     return portal.group;
   }
   enterPortal(portal) {
-    console.log("Entering portal "+this.vrObject.url);
+    var avatarUrl = this.VRSPACE.me.mesh;
+    if ( avatarUrl.startsWith('/')) {
+      if ( window.location.hostname != 'localhost') {
+        avatarUrl = window.location.protocol+"//"+window.location.hostname+avatarUrl;
+      }
+    }
+    console.log("Entering portal "+this.vrObject.url+" as "+avatarUrl);
+    window.open(this.vrObject.url+"?avatarUrl="+avatarUrl, "_self");
   }
 }

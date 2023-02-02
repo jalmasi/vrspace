@@ -69,11 +69,8 @@ public class ClientIT {
       client.enter("servers");
       client.await();
       ClientRequest changes = new ClientRequest(client.getClient());
-      // Point position = new Point(i, 0, 0);
-      // changes.addChange("position", position);
-      // changes.addChange("mesh", "/babylon/portal/scene.gltf");
-      // changes.addChange("humanoid", false);
-      changes.addChange("url", "https://server" + i + ".vrspace.org/");
+      // changes.addChange("url", "https://server" + i + ".vrspace.org/");
+      changes.addChange("url", "https://localhost/babylon/avatar-selection.html");
       client.send(changes);
       client.send(new Session());
     }
