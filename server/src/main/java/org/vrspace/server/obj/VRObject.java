@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonMerge;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
@@ -81,6 +82,11 @@ public class VRObject extends Entity {
    */
   private String mesh;
 
+  /**
+   * Script that client runs. To prevent cross-site scripting, this is a read-only
+   * property.
+   */
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private String script;
 
   /** Currently active animation */

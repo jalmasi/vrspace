@@ -24,6 +24,7 @@ import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.RemoteServer;
 import org.vrspace.server.obj.Terrain;
 import org.vrspace.server.obj.TerrainPoint;
 import org.vrspace.server.obj.VRObject;
@@ -236,5 +237,18 @@ public class JsonTest {
     assertTrue(welcome.contains("Terrain"));
     assertTrue(welcome.contains("points"));
 
+  }
+
+  @Test
+  public void testReadOnlyScript() throws Exception {
+    RemoteServer server = new RemoteServer();
+    server.setName("test");
+    server.setUrl("https://some.url/");
+    server.setScript("/portal.js");
+
+    String json = mapper.writeValueAsString(server);
+    println(json);
+    RemoteServer result = mapper.readValue(json, RemoteServer.class);
+    assertNull(result.getScript());
   }
 }

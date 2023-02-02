@@ -69,7 +69,9 @@ public class WorldManager {
 
   @Autowired
   protected ObjectMapper jackson;
-
+  // private mapper also serializes fields annotated with Private annotation, i.e.
+  // ignores custom annotations
+  // this allows Client to read own properties that aren't exposed to others
   private ObjectMapper privateJackson;
 
   @Autowired
