@@ -85,6 +85,12 @@
 	    <groupId>org.neo4j</groupId>
 	    <artifactId>neo4j</artifactId>
 	    <version>4.3.6</version>
+	    <exclusions>
+	       <exclusion>
+	         <groupId>org.slf4j</groupId>
+	         <artifactId>slf4j-nop</artifactId>
+	       </exclusion>
+	    </exclusions>
 		</dependency>
      
     <!-- audio/video streaming -->
