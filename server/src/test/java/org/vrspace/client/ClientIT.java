@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest(classes = JacksonConfig.class)
-@Disabled
+//@Disabled
 public class ClientIT {
   @Autowired
   ObjectMapper mapper;
@@ -66,11 +65,12 @@ public class ClientIT {
       VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
           .addWelcomeListener(w -> welcomeReceived(w));
       client.await();
-      client.enter("servers");
+      client.enter("galaxy");
       client.await();
       ClientRequest changes = new ClientRequest(client.getClient());
       // changes.addChange("url", "https://server" + i + ".vrspace.org/");
       changes.addChange("url", "https://localhost/babylon/avatar-selection.html");
+      changes.addChange("thumbnail", "/content/worlds/galaxy.jpg");
       client.send(changes);
       client.send(new Session());
     }

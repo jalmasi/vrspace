@@ -11,7 +11,7 @@ export class WebPortal extends BasicScript {
     if ( ! name ) {
       name = "Portal_"+this.vrObject.id;
     }
-    var serverFolder = new ServerFolder("/content/worlds", name);
+    var serverFolder = new ServerFolder("/content/worlds", name, this.vrObject.thumbnail);
     var portal = new Portal( this.scene, serverFolder, (p)=>this.enterPortal(p));
     console.log("loading portal "+name);
     portal.loadAt(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z, Math.PI/2-this.vrObject.rotation.y);

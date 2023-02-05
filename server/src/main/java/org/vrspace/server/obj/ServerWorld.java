@@ -38,8 +38,7 @@ public class ServerWorld extends World {
       ((RemoteServer) client).setUrl(this.getUrl());
       ((RemoteServer) client).setThumbnail(this.getPortalThumbnail());
 
-      // TODO figure out positions
-      // TODO position servers in a spiral
+      // position servers in a spiral
       // dl^2 = k^2 * da^2 + k^2 * a^2 * da^2
       // = da^2 * k^2 * (1+a^2)
       // where l = lenght, a = angle (alpha), k = size parameter
