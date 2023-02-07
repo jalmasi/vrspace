@@ -307,7 +307,9 @@ export class WorldManager {
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;
     avatar.animateArms = this.createAnimations;
-    avatar.turnAround = true; // GLTF characters are facing the user when loaded, turn it around
+    // GLTF characters are facing the user when loaded, turn it around
+    // FIXME this doesn't work for cloned characters, see Avatar.hide()
+    avatar.turnAround = true;
     avatar.debug = false;
     avatar.load( (avatar) => {
       // FIXME: this is not container but avatar
