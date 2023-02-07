@@ -12,7 +12,6 @@ import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Session;
 import org.vrspace.server.dto.Welcome;
-import org.vrspace.server.obj.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -26,23 +25,15 @@ public class ClientIT {
   ObjectMapper mapper;
 
   @Test
-  public void testSomething() throws Exception {
+  public void testConnect() throws Exception {
     VRSpaceClient client = connectToVRSpace();
-    client.await();
-    Client c = client.getClient();
-    ClientRequest req = new ClientRequest(c);
-    req.addChange("mesh", "/babylon/dolphin.glb");
-    client.send(req);
-    client.send(new Session());
-    client.enter("servers");
-    client.await();
-    client.send(new Session());
+    client.connectAndEnter("galaxy");
     Thread.sleep(1000);
     assertEquals(0, client.getErrorCount());
+    Thread.sleep(1000 * 60 * 60);
   }
 
-  public VRSpaceClient connectToVRSpace() {
-    // URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
+  private VRSpaceClient connectToVRSpace() {
     URI uri = URI.create("ws://localhost:8080/vrspace/server");
     VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
         .addWelcomeListener(w -> welcomeReceived(w));

@@ -4,20 +4,25 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.Enter;
+import org.vrspace.server.dto.Session;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @Slf4j
-public class VRSpaceClient implements WebSocket.Listener {
+public class VRSpaceClient implements WebSocket.Listener, Runnable {
   private ObjectMapper mapper;
   private URI uri;
   private WebSocket ws;
@@ -40,11 +45,52 @@ public class VRSpaceClient implements WebSocket.Listener {
   private CountDownLatch latch = new CountDownLatch(1);
   private Client client;
   private int errorCount = 0;
+  private ScheduledFuture<?> task;
+  private String world = null;
+  private CompletableFuture<WebSocket> future;
+  public static final long TIMEOUT = 5000;
+  public static final long RETRY = 10000;
 
   public VRSpaceClient(URI uri, ObjectMapper mapper) {
     this.uri = uri;
     this.mapper = mapper;
-    this.ws = HttpClient.newHttpClient().newWebSocketBuilder().buildAsync(uri, this).join();
+  }
+
+  public CompletableFuture<WebSocket> connect() {
+    future = new CompletableFuture<>();
+    this.task = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, RETRY, TimeUnit.MILLISECONDS);
+    return future;
+  }
+
+  public void startSession() {
+    send(new Session());
+  }
+
+  public void connectAndEnter(String world) {
+    connect().thenApply(ws -> {
+      await();
+      enter(world);
+      await();
+      return ws;
+    });
+  }
+
+  @Override
+  public void run() {
+    HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofMillis(TIMEOUT)).buildAsync(uri, this)
+        .thenApply(ws -> {
+          this.ws = ws;
+          this.task.cancel(true);
+          this.future.complete(ws);
+          return ws;
+        }).handle((ws, exception) -> {
+          if (exception != null) {
+            // too verbose
+            // log.error("Websocket exception connecting to " + uri, exception);
+            log.error("Websocket exception connecting to " + uri + " - " + exception);
+          }
+          return null;
+        }).join();
   }
 
   /**
@@ -85,6 +131,7 @@ public class VRSpaceClient implements WebSocket.Listener {
   public void enter(String world) {
     latch = new CountDownLatch(1);
     send(new Enter(world));
+    this.world = world;
   }
 
   /** Send a json string to the server */
@@ -98,7 +145,7 @@ public class VRSpaceClient implements WebSocket.Listener {
       String text = mapper.writeValueAsString(req);
       log.debug("Sending " + text);
       this.ws.sendText(text, true);
-    } catch (JsonProcessingException e) {
+    } catch (Exception e) {
       log.error("OOPS", e);
     }
   }
@@ -155,6 +202,7 @@ public class VRSpaceClient implements WebSocket.Listener {
   @Override
   public void onError(WebSocket webSocket, Throwable error) {
     log.error("Websocket error " + webSocket);
+    connectAndEnter(this.world);
     WebSocket.Listener.super.onError(webSocket, error);
   }
 
@@ -167,6 +215,7 @@ public class VRSpaceClient implements WebSocket.Listener {
   @Override
   public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
     log.debug("Socket closed: " + statusCode + " " + reason);
+    connectAndEnter(this.world);
     return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
   }
 }
