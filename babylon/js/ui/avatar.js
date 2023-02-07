@@ -501,9 +501,12 @@ export class Avatar {
             this.headQuat = container.avatar.headQuat;
             this.headQuatInv = container.avatar.headQuatInv;
             this.body = container.avatar.body;
+
             // use skeleton and animationGroups from the instance
             this.parentMesh = instantiatedEntries.rootNodes[0];
             this.rootMesh = this.parentMesh.getChildren()[0];
+            // CHECKME: turnAround for cloned character
+            this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
             if ( this.parentMesh.getChildren().length > 1 ) {
               // clean up any existing text cloned along with container
               console.log("Disposing of text ", this.parentMesh.getChildren()[1])
