@@ -537,12 +537,14 @@ public class DBIT {
   @Test
   @Transactional
   public void testWorlds() {
+    // default world is created on startup
+    assertEquals(1, repo.listWorlds().size());
     World w1 = repo.save(new World("one"));
     World w2 = repo.save(new World("two"));
     repo.save(new VRObject());
     repo.save(new Client("aClient"));
     List<World> worlds = repo.listWorlds();
-    assertEquals(2, worlds.size());
+    assertEquals(3, worlds.size());
     assertTrue(worlds.contains(w1));
     assertTrue(worlds.contains(w2));
   }
@@ -577,12 +579,16 @@ public class DBIT {
 
     Collection<WorldStatus> stats = repo.countUsers();
     System.err.println(stats);
-    assertEquals(2, stats.size());
+    // 3 because of default world automatically created
+    assertEquals(3, stats.size());
     for (WorldStatus stat : stats) {
       if ("one".equals(stat.getWorldName())) {
         assertEquals(1, stat.getActiveUsers());
         assertEquals(2, stat.getTotalUsers());
       } else if ("two".equals(stat.getWorldName())) {
+        assertEquals(0, stat.getActiveUsers());
+        assertEquals(0, stat.getTotalUsers());
+      } else if ("default".equals(stat.getWorldName())) {
         assertEquals(0, stat.getActiveUsers());
         assertEquals(0, stat.getTotalUsers());
       } else {
