@@ -90,16 +90,16 @@ export class WorldManager {
     VRSPACEUI.init(this.scene); // to ensure assetLoader is available
   }
   /** Publish and subscribe */
-  pubSub( client, autoPublishVideo ) {
+  pubSub( user, autoPublishVideo ) {
     // CHECKME: should it be OpenVidu or general streaming service name?
-    if ( this.mediaStreams && client.tokens && client.tokens.OpenVidu ) {
-      this.log("Subscribing as client "+client.id+" with token "+client.tokens.OpenVidu);
+    if ( this.mediaStreams && user.tokens && user.tokens.OpenVidu ) {
+      this.log("Subscribing as User "+user.id+" with token "+user.tokens.OpenVidu);
       // obtain token and start pub/sub voices
       if ( autoPublishVideo ) {
         this.mediaStreams.startVideo = true;
         this.mediaStreams.videoSource = undefined;
       }
-      this.mediaStreams.connect(client.tokens.OpenVidu).then(() => this.mediaStreams.publish());
+      this.mediaStreams.connect(user.tokens.OpenVidu).then(() => this.mediaStreams.publish());
     }
   }
 

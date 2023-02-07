@@ -35,7 +35,7 @@ export class AvatarSelection extends World {
     /** default user height, 1.8 m */
     this.userHeight = 1.8;
     /** enable plenty of debug info */
-    this.debug=false;
+    this.debug=true;
     // state variables
     this.mirror = true;
     this.customAnimations = [];
@@ -629,7 +629,7 @@ export class AvatarSelection extends World {
           mesh:avatarUrl, 
           userHeight:this.userHeight, 
           // send custom shared transient properties like this:
-          properties:{string:'string', number:123.456}
+          //properties:{string:'string', number:123.456}
         };
         if ( this.userName ) {
           myProperties.name = this.userName;
@@ -638,7 +638,7 @@ export class AvatarSelection extends World {
           myProperties
         ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
-          this.worldManager.pubSub(welcome.client, 'video' === avatarUrl);
+          this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
           if ( this.character ) {
             // character is null for e.g. video avatar
             var controller = new AvatarController(this.worldManager, this.character);
