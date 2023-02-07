@@ -129,6 +129,7 @@ public class WorldManager {
 
   @EventListener(ApplicationReadyEvent.class)
   public void runAfterStartup() {
+    defaultWorld();
     for (String worldName : worldConfig.getWorld().keySet()) {
       WorldProperties wp = worldConfig.getWorld().get(worldName);
       log.info("Configuring world: " + worldName);
@@ -406,7 +407,7 @@ public class WorldManager {
     // client has now entered the world
     client.setWorld(world);
     // client.setActive(true); // DON'T
-    client = save(client);
+    client = save(client); // CHECKME occasional deadlocks
 
     Welcome ret = new Welcome(client, getPermanents(client));
     return ret;

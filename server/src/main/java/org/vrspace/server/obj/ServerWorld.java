@@ -33,10 +33,16 @@ public class ServerWorld extends World {
   @Override
   public boolean enter(Client client, WorldManager wm) {
     if (client instanceof RemoteServer) {
-      client.setMesh(this.getPortalMesh());
-      client.setScript(this.getPortalScript());
-      ((RemoteServer) client).setUrl(this.getUrl());
-      ((RemoteServer) client).setThumbnail(this.getPortalThumbnail());
+      RemoteServer server = (RemoteServer) client;
+
+      server.setMesh(this.getPortalMesh());
+      server.setScript(this.getPortalScript());
+      if (server.getUrl() == null) {
+        server.setUrl(this.getUrl());
+      }
+      if (server.getThumbnail() == null) {
+        server.setThumbnail(this.getPortalThumbnail());
+      }
 
       // position servers in a spiral
       // dl^2 = k^2 * da^2 + k^2 * a^2 * da^2

@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
@@ -43,11 +44,12 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   private List<Function<VREvent, Void>> eventListeners = new ArrayList<>();
   private StringBuilder text = new StringBuilder();
   private CountDownLatch latch = new CountDownLatch(1);
-  private Client client;
+  private volatile Client client;
   private int errorCount = 0;
   private ScheduledFuture<?> task;
   private String world = null;
   private CompletableFuture<WebSocket> future;
+  private Map<String, String> settings = null;
   public static final long TIMEOUT = 5000;
   public static final long RETRY = 10000;
 
@@ -67,10 +69,21 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   }
 
   public void connectAndEnter(String world) {
+    connectAndEnter(world, settings);
+  }
+
+  public void connectAndEnter(String world, Map<String, String> params) {
     connect().thenApply(ws -> {
       await();
+      if (params != null) {
+        this.settings = params;
+        ClientRequest settings = new ClientRequest(getClient());
+        params.entrySet().forEach((e) -> settings.addChange(e.getKey(), e.getValue()));
+        send(settings);
+      }
       enter(world);
       await();
+      send(new Session());
       return ws;
     });
   }
@@ -179,9 +192,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
         // introduce ERROR class etc
         if (message.startsWith("{\"Welcome\":{")) {
           Welcome welcome = mapper.readValue(message, Welcome.class);
-          if (this.client == null) {
-            this.client = welcome.getClient();
-          }
+          this.client = welcome.getClient();
           latch.countDown();
           welcomeListeners.forEach(l -> l.apply(welcome));
         } else if (message.startsWith("{\"ERROR\"")) {

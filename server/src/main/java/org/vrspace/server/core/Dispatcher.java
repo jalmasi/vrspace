@@ -89,7 +89,8 @@ public class Dispatcher {
       } catch (Exception e) {
         throw new IllegalArgumentException("Invalid event payload: " + payload, e);
       }
-      log.debug("Processing changes " + changes);
+      log.debug("Processing changes from " + event.getClient().getObjectId() + " on " + event.getSource().getObjectId()
+          + ":" + changes);
     }
 
     // merge changes

@@ -13,6 +13,8 @@ import lombok.ToString;
 @Node
 @Owned
 public class RemoteServer extends Client {
+  private String description;
   private String url;
   private String thumbnail;
+  private boolean isPublic = false;
 }
