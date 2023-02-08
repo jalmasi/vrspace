@@ -117,7 +117,7 @@ public class WorldManagerTest {
     Welcome welcomeWorld = worldManager.enter(welcomeDefault.getClient(), world);
 
     assertNotNull(welcomeWorld);
-    assertEquals(world, welcomeWorld.getClient().getWorld());
+    assertEquals(world.getId(), welcomeWorld.getClient().getWorldId());
   }
 
   @Test

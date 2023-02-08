@@ -42,11 +42,9 @@ public class VRObject extends Entity {
 
   private List<VRObject> children;
 
-  /** World this object is in */
+  /* World this object is in */
   @JsonIgnore
-  @Relationship(type = "IN_WORLD", direction = Relationship.Direction.OUTGOING)
-  // @Index - NeoConfig creates it
-  private World world;
+  private Long worldId;
 
   /**
    * Position in 3D space, used for spatial operations.
@@ -106,12 +104,11 @@ public class VRObject extends Entity {
   private ConcurrentHashMap<ID, VRObject> listeners;
 
   public VRObject(World world) {
-    setWorld(world);
+    setWorldId(world.getId());
   }
 
   public VRObject(Long id, VRObject... vrObjects) {
     super(id);
-    setWorld(world);
     addChildren(vrObjects);
   }
 

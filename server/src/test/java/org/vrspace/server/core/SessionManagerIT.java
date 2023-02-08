@@ -354,9 +354,9 @@ public class SessionManagerIT {
     assertNotNull(client);
     assertNotNull(user1);
     assertNotNull(user2);
-    assertNotNull(client.getWorld());
-    assertEquals(client.getWorld(), user1.getWorld());
-    assertEquals(client.getWorld(), user2.getWorld());
+    assertNotNull(client.getWorldId());
+    assertEquals(client.getWorldId(), user1.getWorldId());
+    assertEquals(client.getWorldId(), user2.getWorldId());
 
     startSession();
     startSession(session1);
@@ -461,7 +461,7 @@ public class SessionManagerIT {
     assertNotNull(welcome.getClient().getId());
 
     Client client = repo.get(Client.class, welcome.getClient().getId());
-    assertEquals(world, client.getWorld());
+    assertEquals(world.getId(), client.getWorldId());
   }
 
 }

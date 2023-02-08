@@ -83,7 +83,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
 
       if (props.getWorld() != null) {
         World world = worldManager.getOrCreateWorld(props.getWorld());
-        bot.setWorld(world);
+        bot.setWorldId(world.getId());
       }
 
       if (props.hasPoint(props.getPosition())) {

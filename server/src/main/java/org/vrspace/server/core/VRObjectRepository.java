@@ -42,7 +42,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   }
 
   // this returns shallow object - does not retrieve members
-  @Query("MATCH (o:VRObject{permanent:true})-[r:IN_WORLD]->(w:World) WHERE ID(w)=$worldId RETURN o")
+  @Query("MATCH (o:VRObject{permanent:true}) WHERE o.worldId=$worldId RETURN o")
   Set<VRObject> getPermanents(Long worldId);
 
   // default Set<VRObject> getPermanents(Long worldId) {
@@ -68,7 +68,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
     return getRange(worldId, from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
   }
 
-  @Query("MATCH (w:World)<-[i:IN_WORLD]-(o:VRObject)-[r:HAS_POSITION]->(p:Point) WHERE ID(w) = $worldId AND p.x >= $x1 AND p.y >= $y1 AND p.z >= $z1 AND p.x <= $x2 AND p.y <= $y2 AND p.z <= $z2 RETURN o,r,p,i,w")
+  @Query("MATCH (o:VRObject)-[r:HAS_POSITION]->(p:Point) WHERE o.worldId = $worldId AND p.x >= $x1 AND p.y >= $y1 AND p.z >= $z1 AND p.x <= $x2 AND p.y <= $y2 AND p.z <= $z2 RETURN o,r,p")
   Set<VRObject> getRange(Long worldId, double x1, double y1, double z1, double x2, double y2, double z2);
 
   default Set<Point> getPoints(Point from, Point to) {
@@ -122,10 +122,10 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (o:World) RETURN o")
   List<World> listWorlds();
 
-  @Query("MATCH (o:Client)-[i:IN_WORLD]->(w:World) WHERE ID(w) = $worldId RETURN count(*)")
+  @Query("MATCH (o:Client) WHERE o.worldId = $worldId RETURN count(*)")
   int countUsers(long worldId);
 
-  @Query("MATCH (o:Client)-[i:IN_WORLD]->(w:World) WHERE ID(w) = $worldId AND o.active = $active RETURN count(*)")
+  @Query("MATCH (o:Client) WHERE o.worldId = $worldId AND o.active = $active RETURN count(*)")
   int countUsers(long worldId, boolean active);
 
   // queries like this just do not work

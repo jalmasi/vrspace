@@ -211,11 +211,11 @@ public class WorldManager {
   }
 
   public Set<VRObject> getRange(Client client, Point from, Point to) {
-    return updateCache(db.getRange(client.getWorld().getId(), from, to));
+    return updateCache(db.getRange(client.getWorldId(), from, to));
   }
 
   public Set<VRObject> getPermanents(Client client) {
-    return updateCache(db.getPermanents(client.getWorld().getId()));
+    return updateCache(db.getPermanents(client.getWorldId()));
   }
 
   private Set<VRObject> updateCache(Set<VRObject> objects) {
@@ -256,7 +256,7 @@ public class WorldManager {
       if (o.getPosition() == null && client.getPosition() != null) {
         o.setPosition(new Point(client.getPosition()));
       }
-      o.setWorld(client.getWorld());
+      o.setWorldId(client.getWorldId());
       if (o.getTemporary() == null && client.isGuest()) {
         o.setTemporary(true);
       }
@@ -390,8 +390,8 @@ public class WorldManager {
   }
 
   public Welcome enter(Client client, World world) {
-    if (client.getWorld() != null) {
-      if (client.getWorld().equals(world)) {
+    if (client.getWorldId() != null) {
+      if (client.getWorldId().equals(world.getId())) {
         throw new IllegalArgumentException("Already in world " + world);
       }
       // exit current world first
@@ -405,7 +405,7 @@ public class WorldManager {
     streamManager.join(client, world);
 
     // client has now entered the world
-    client.setWorld(world);
+    client.setWorldId(world.getId());
     // client.setActive(true); // DON'T
     client = save(client); // CHECKME occasional deadlocks
 
@@ -475,12 +475,18 @@ public class WorldManager {
     client.setListeners(null);
     // also remove the client from streaming session
     try {
-      streamManager.disconnect(client);
+      // CHECKME all these worldName operations
+      String worldName = null;
+      World world = db.get(World.class, client.getWorldId());
+      if (world != null) {
+        worldName = world.getName();
+      }
+      streamManager.disconnect(client, worldName);
     } catch (OpenViduException e) {
       log.error("Error disconnecting client " + client + " from streaming session", e);
     }
     // remove client from the world
-    client.setWorld(null);
+    client.setWorldId(null);
     client = save(client);
   }
 

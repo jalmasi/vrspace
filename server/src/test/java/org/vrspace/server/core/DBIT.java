@@ -126,7 +126,7 @@ public class DBIT {
     VRObject o1 = new VRObject(world, 0, 0, 0);
     VRObject o2 = new VRObject(world, 10.0, 0, 0);
     Client c1 = new Client();
-    c1.setWorld(world);
+    c1.setWorldId(world.getId());
     c1.setPosition(new Point(5, 0, 0));
     c1.setScale(new Point(1, 1, 1));
 
@@ -248,7 +248,7 @@ public class DBIT {
     assertEquals(1, ret1.size());
     assertEquals(0, ret2.size());
 
-    o1.setWorld(world2);
+    o1.setWorldId(world2.getId());
     o1 = repo.save(o1);
 
     // now o1 is not in world1, but is in world2
@@ -286,7 +286,7 @@ public class DBIT {
     assertEquals(1, ret.size());
 
     // move o2 to world2
-    o2.setWorld(world2);
+    o2.setWorldId(world2.getId());
     o2 = repo.save(o2);
 
     ret = repo.getRange(world1.getId(), from, to);
@@ -556,12 +556,12 @@ public class DBIT {
     World w2 = repo.save(new World("two"));
 
     Client c1 = new Client();
-    c1.setWorld(w1);
+    c1.setWorldId(w1.getId());
     c1.setActive(true);
     repo.save(c1);
 
     Client c2 = new Client();
-    c2.setWorld(w1);
+    c2.setWorldId(w1.getId());
     c2.setActive(false);
     repo.save(c2);
 
@@ -649,7 +649,7 @@ public class DBIT {
     TerrainManager tm = new TerrainManager(repo);
 
     Terrain t = new Terrain();
-    t.setWorld(world);
+    t.setWorldId(world.getId());
     t.setActive(true);
     t.setPermanent(true);
     Terrain.TerrainChange change = new Terrain.TerrainChange();

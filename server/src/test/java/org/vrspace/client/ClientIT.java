@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest(classes = { JacksonConfig.class, ServerConfig.class })
-@Disabled
+@Disabled("Not an automated integration test - requires server to be running locally")
 public class ClientIT {
   @Autowired
   ObjectMapper mapper;
