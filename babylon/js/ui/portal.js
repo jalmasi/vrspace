@@ -16,6 +16,7 @@ export class Portal {
     this.callback = callback;
     this.name = serverFolder.name;
     this.subTitle = null;
+    this.alwaysShowTitle = false;
     if ( serverFolder.relatedUrl() ) {
       this.thumbnail = new BABYLON.Texture(serverFolder.relatedUrl());
     }
@@ -113,7 +114,7 @@ export class Portal {
     this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:2,width:4}, this.scene);
     this.title.parent = this.group;
     this.title.position = new BABYLON.Vector3(0,2.5,0);
-    this.title.isVisible = false;
+    this.title.isVisible = this.alwaysShowTitle;
 
     var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 256,256);
     this.materials.push(this.title.material);
@@ -185,7 +186,7 @@ export class Portal {
     } else {
       this.material.emissiveTexture = null;
     }
-    this.title.isVisible = enable;
+    this.title.isVisible = enable || this.alwaysShowTitle;
     this.isEnabled = enable;
     this.playSound(enable);
   }

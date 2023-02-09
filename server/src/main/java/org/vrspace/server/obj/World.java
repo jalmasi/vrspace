@@ -46,4 +46,13 @@ public class World extends Entity {
     return true;
   }
 
+  /**
+   * Called after client exits the world
+   * 
+   * @param c
+   * @param wm
+   */
+  public void exit(Client c, WorldManager wm) {
+  }
+
 }

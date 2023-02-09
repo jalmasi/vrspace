@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -266,7 +267,10 @@ public class SessionManagerIT {
     verify(session, times(3)).sendMessage(any(TextMessage.class));
 
     // verify response to add command
-    List<WebSocketMessage<?>> values = message.getAllValues();
+    List<WebSocketMessage<?>> allValues = message.getAllValues();
+    // make sure to ignore any PingMessage
+    List<TextMessage> values = allValues.stream().filter(m -> TextMessage.class.isInstance(m)).map(m -> (TextMessage) m)
+        .collect(Collectors.toList());
     String addResponse = ((TextMessage) values.get(2)).getPayload();
     ClientResponse rIds = mapper.readValue(addResponse, ClientResponse.class);
     @SuppressWarnings("unchecked")
@@ -367,19 +371,19 @@ public class SessionManagerIT {
     assertEquals(2, client.getScene().size());
     assertNotNull(client.getScene().get(user1.getObjectId()));
     assertNotNull(client.getScene().get(user2.getObjectId()));
-    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+    verify(session, times(2)).sendMessage(any(TextMessage.class));
 
     user1.getScene().update();
     assertEquals(2, user1.getScene().size());
     assertNotNull(user1.getScene().get(client.getObjectId()));
     assertNotNull(user1.getScene().get(user2.getObjectId()));
-    verify(session1, times(2)).sendMessage(any(WebSocketMessage.class));
+    verify(session1, times(2)).sendMessage(any(TextMessage.class));
 
     user2.getScene().update();
     assertEquals(2, user2.getScene().size());
     assertNotNull(user2.getScene().get(client.getObjectId()));
     assertNotNull(user2.getScene().get(user1.getObjectId()));
-    verify(session2, times(2)).sendMessage(any(WebSocketMessage.class));
+    verify(session2, times(2)).sendMessage(any(TextMessage.class));
 
     assertEquals(2, user1.getListeners().size());
     assertEquals(2, user2.getListeners().size());
@@ -390,9 +394,9 @@ public class SessionManagerIT {
         + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     sendMessage(string);
 
-    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
-    verify(session1, times(3)).sendMessage(any(WebSocketMessage.class));
-    verify(session2, times(3)).sendMessage(any(WebSocketMessage.class));
+    verify(session, times(2)).sendMessage(any(TextMessage.class));
+    verify(session1, times(3)).sendMessage(any(TextMessage.class));
+    verify(session2, times(3)).sendMessage(any(TextMessage.class));
 
     // verify that client's properties have changed in other scenes
     Point expected = new Point(3, 2, 1);
@@ -404,9 +408,9 @@ public class SessionManagerIT {
     String msg = "{\"object\":{\"User\":" + clientId
         + "},\"changes\":{\"properties\":{\"string\":\"string\",\"number\":123.45}}}";
     sendMessage(msg);
-    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
-    verify(session1, times(4)).sendMessage(any(WebSocketMessage.class));
-    verify(session2, times(4)).sendMessage(any(WebSocketMessage.class));
+    verify(session, times(2)).sendMessage(any(TextMessage.class));
+    verify(session1, times(4)).sendMessage(any(TextMessage.class));
+    verify(session2, times(4)).sendMessage(any(TextMessage.class));
 
     assertNotNull(client.getProperties());
     assertEquals("string", client.getProperties().get("string"));
@@ -415,9 +419,9 @@ public class SessionManagerIT {
     // custom event, e.g. chat
     String text = "{\"object\":{\"User\":" + clientId + "},\"changes\":{\"wrote\":\"hi\"}}";
     sendMessage(text);
-    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
-    verify(session1, times(5)).sendMessage(any(WebSocketMessage.class));
-    verify(session2, times(5)).sendMessage(any(WebSocketMessage.class));
+    verify(session, times(2)).sendMessage(any(TextMessage.class));
+    verify(session1, times(5)).sendMessage(any(TextMessage.class));
+    verify(session2, times(5)).sendMessage(any(TextMessage.class));
   }
 
   @Test
@@ -431,12 +435,12 @@ public class SessionManagerIT {
 
     sendMessage("{\"command\":{\"Enter\":{}}}");
 
-    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+    verify(session, times(2)).sendMessage(any(TextMessage.class));
     assertTrue(getMessage().contains("Unknown world"));
 
     sendMessage("{\"command\":{\"Enter\":{\"world\":\"test\"}}}");
 
-    verify(session, times(3)).sendMessage(any(WebSocketMessage.class));
+    verify(session, times(3)).sendMessage(any(TextMessage.class));
     assertTrue(getMessage().contains("Unknown world"));
   }
 
@@ -452,7 +456,7 @@ public class SessionManagerIT {
 
     sendMessage("{\"command\":{\"Enter\":{\"world\":\"test\"}}}");
 
-    verify(session, times(2)).sendMessage(any(WebSocketMessage.class));
+    verify(session, times(2)).sendMessage(any(TextMessage.class));
 
     String welcomeMsg = getMessage();
     Welcome welcome = mapper.readValue(welcomeMsg, Welcome.class);

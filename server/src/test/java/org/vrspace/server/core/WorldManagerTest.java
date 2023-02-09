@@ -169,13 +169,13 @@ public class WorldManagerTest {
     newObjects.add(notTemp);
     worldManager.add(welcome.getClient(), newObjects);
 
-    // everything added to cache/db
-    assertEquals(3, worldManager.cache.size());
+    // everything added to cache/db, including the world
+    assertEquals(4, worldManager.cache.size());
 
     worldManager.logout(welcome.getClient());
 
-    // guest and temporary removed from cache and db
-    assertEquals(1, worldManager.cache.size());
+    // guest and temporary removed from cache and db, world and persistent remain
+    assertEquals(2, worldManager.cache.size());
 
   }
 }

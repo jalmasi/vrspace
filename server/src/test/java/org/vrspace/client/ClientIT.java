@@ -58,8 +58,9 @@ public class ClientIT {
     for (int i = 0; i < 100; i++) {
       VRSpaceClient client = connectToVRSpace();
       // client.connectAndEnter("galaxy");
-      client.connectAndEnter("galaxy", Map.of("url", serverConfig.getServerUrl(), "thumbnail",
-          serverConfig.getServerThumbnail(), "description", serverConfig.getServerDescripton()));
+      client.connectAndEnter("galaxy",
+          Map.of("url", serverConfig.getServerUrl(), "thumbnail", serverConfig.getServerThumbnail(), "description",
+              serverConfig.getServerDescripton() + i, "available", "" + (Math.floorMod(i, 2) == 0)));
       Thread.sleep(100);
     }
     Thread.sleep(1000 * 60 * 60);

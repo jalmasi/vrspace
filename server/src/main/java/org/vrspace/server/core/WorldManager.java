@@ -91,7 +91,7 @@ public class WorldManager {
   protected SessionTracker sessionTracker;
 
   // used in tests
-  protected ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
+  protected ConcurrentHashMap<ID, Entity> cache = new ConcurrentHashMap<>();
 
   private World defaultWorld;
 
@@ -118,13 +118,13 @@ public class WorldManager {
     }
     @SuppressWarnings("rawtypes")
     PersistenceManager pm = new PersistenceManager();
-    for (Class<?> c : ClassUtil.findSubclasses(VRObject.class)) {
+    for (Class<?> c : ClassUtil.findSubclasses(Entity.class)) {
       if (persistors.get(c) == null) {
         persistors.put(c, pm);
         log.debug("Instantiated " + pm + " for " + c);
       }
     }
-    persistors.put(VRObject.class, pm);
+    // persistors.put(VRObject.class, pm);
   }
 
   @EventListener(ApplicationReadyEvent.class)
@@ -133,7 +133,7 @@ public class WorldManager {
     for (String worldName : worldConfig.getWorld().keySet()) {
       WorldProperties wp = worldConfig.getWorld().get(worldName);
       log.info("Configuring world: " + worldName);
-      World world = db.getWorldByName(worldName);
+      World world = getWorld(worldName);
       if (world == null) {
         log.info("World " + worldName + " to be created as " + wp);
         try {
@@ -157,7 +157,7 @@ public class WorldManager {
   }
 
   protected VRObject get(ID id) {
-    return cache.get(id);
+    return (VRObject) cache.get(id);
   }
 
   /**
@@ -166,7 +166,7 @@ public class WorldManager {
    * @param filter Predicate to select objects, e.g. o->o.isActive()
    * @return
    */
-  public List<VRObject> find(Predicate<? super VRObject> filter) {
+  public List<Entity> find(Predicate<? super Entity> filter) {
     return cache.values().stream().filter(filter).collect(Collectors.toList());
   }
 
@@ -179,7 +179,8 @@ public class WorldManager {
   }
 
   public World getWorld(String name) {
-    return db.getWorldByName(name);
+    World ret = db.getWorldByName(name);
+    return (World) updateCache(ret);
   }
 
   public World getOrCreateWorld(String name) {
@@ -187,6 +188,7 @@ public class WorldManager {
     if (world == null) {
       if (config.isCreateWorlds()) {
         world = db.save(new World(name));
+        cache.put(new ID(world), world);
       } else {
         throw new IllegalArgumentException("Unknown world: " + name);
       }
@@ -219,18 +221,18 @@ public class WorldManager {
   }
 
   private Set<VRObject> updateCache(Set<VRObject> objects) {
-    HashSet<VRObject> ret = new HashSet<VRObject>();
-    for (VRObject o : objects) {
-      ret.add(updateCache(o));
+    HashSet<VRObject> ret = new HashSet<>();
+    for (Entity o : objects) {
+      ret.add((VRObject) updateCache(o));
     }
     return ret;
   }
 
-  private VRObject updateCache(VRObject o) {
+  private Entity updateCache(Entity o) {
     // CHECKME: should this be null safe?
     if (o != null) {
       ID id = new ID(o);
-      VRObject cached = cache.get(id);
+      Entity cached = cache.get(id);
       if (cached != null) {
         return cached;
       } else {
@@ -373,12 +375,11 @@ public class WorldManager {
 
   public World defaultWorld() {
     if (defaultWorld == null) {
-      synchronized (this) {
-        defaultWorld = db.getWorldByName("default");
-        if (defaultWorld == null) {
-          defaultWorld = db.save(new World("default", true));
-          log.info("Created default world: " + defaultWorld);
-        }
+      defaultWorld = getWorld("default");
+      if (defaultWorld == null) {
+        defaultWorld = db.save(new World("default", true));
+        cache.put(new ID(defaultWorld), defaultWorld);
+        log.info("Created default world: " + defaultWorld);
       }
     }
     return defaultWorld;
@@ -445,7 +446,7 @@ public class WorldManager {
       List<Ownership> owned = db.getOwned(client.getId());
       for (Ownership ownership : owned) {
         // CHECKME getOwned seems to return shallow copy!?
-        VRObject ownedObject = cache.get(ownership.getOwned().getObjectId());
+        VRObject ownedObject = get(ownership.getOwned().getObjectId());
         if (ownedObject.isTemporary()) {
           // remove() doesn't free up cache
           delete(client, ownedObject);
@@ -474,10 +475,10 @@ public class WorldManager {
     }
     client.setListeners(null);
     // also remove the client from streaming session
+    World world = db.get(World.class, client.getWorldId());
     try {
       // CHECKME all these worldName operations
       String worldName = null;
-      World world = db.get(World.class, client.getWorldId());
       if (world != null) {
         worldName = world.getName();
       }
@@ -488,6 +489,10 @@ public class WorldManager {
     // remove client from the world
     client.setWorldId(null);
     client = save(client);
+    // and notify the world
+    if (world != null) {
+      world.exit(client, this);
+    }
   }
 
   @Transactional
@@ -514,7 +519,7 @@ public class WorldManager {
         // find object source, either in scene or cache - it has to be seen by anyone
         VRObject obj = scene.get(event.getSourceID());
         if (obj == null) {
-          obj = cache.get(event.getSourceID());
+          obj = get(event.getSourceID());
         }
         if (obj == null) {
           throw new UnsupportedOperationException("Unknown object: " + event.getSourceID());

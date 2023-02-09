@@ -16,5 +16,5 @@ public class RemoteServer extends Client {
   private String description;
   private String url;
   private String thumbnail;
-  private boolean isPublic = false;
+  private boolean available = false;
 }
