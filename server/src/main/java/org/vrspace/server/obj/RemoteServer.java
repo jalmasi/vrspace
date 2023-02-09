@@ -3,6 +3,8 @@ package org.vrspace.server.obj;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.types.Owned;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -17,4 +19,6 @@ public class RemoteServer extends Client {
   private String url;
   private String thumbnail;
   private boolean available = false;
+  @JsonIgnore
+  private int order;
 }

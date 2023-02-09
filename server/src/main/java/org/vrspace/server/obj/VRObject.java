@@ -18,9 +18,11 @@ import com.fasterxml.jackson.annotation.JsonMerge;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,9 +44,23 @@ public class VRObject extends Entity {
 
   private List<VRObject> children;
 
-  /* World this object is in */
+  /* World this object is in, only id is persisted */
   @JsonIgnore
   private Long worldId;
+  @Transient
+  @Setter(AccessLevel.NONE)
+  @JsonIgnore
+  /* World this object is in, not persisted to avoid deadlocks */
+  private transient World world;
+
+  public void setWorld(World world) {
+    if (world == null) {
+      this.setWorldId(null);
+    } else {
+      this.setWorldId(world.getId());
+    }
+    this.world = world;
+  }
 
   /**
    * Position in 3D space, used for spatial operations.

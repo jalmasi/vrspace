@@ -258,7 +258,7 @@ public class WorldManager {
       if (o.getPosition() == null && client.getPosition() != null) {
         o.setPosition(new Point(client.getPosition()));
       }
-      o.setWorldId(client.getWorldId());
+      o.setWorld(client.getWorld());
       if (o.getTemporary() == null && client.isGuest()) {
         o.setTemporary(true);
       }
@@ -406,9 +406,9 @@ public class WorldManager {
     streamManager.join(client, world);
 
     // client has now entered the world
-    client.setWorldId(world.getId());
+    client.setWorld(world);
     // client.setActive(true); // DON'T
-    client = save(client); // CHECKME occasional deadlocks
+    client = save(client);
 
     Welcome ret = new Welcome(client, getPermanents(client));
     return ret;
@@ -474,25 +474,18 @@ public class WorldManager {
       client.getScene().removeAll();
     }
     client.setListeners(null);
+    World world = client.getWorld();
     // also remove the client from streaming session
-    World world = db.get(World.class, client.getWorldId());
     try {
-      // CHECKME all these worldName operations
-      String worldName = null;
-      if (world != null) {
-        worldName = world.getName();
-      }
-      streamManager.disconnect(client, worldName);
+      streamManager.disconnect(client, world.getName());
     } catch (OpenViduException e) {
       log.error("Error disconnecting client " + client + " from streaming session", e);
     }
     // remove client from the world
-    client.setWorldId(null);
+    client.setWorld(null);
     client = save(client);
     // and notify the world
-    if (world != null) {
-      world.exit(client, this);
-    }
+    world.exit(client, this);
   }
 
   @Transactional

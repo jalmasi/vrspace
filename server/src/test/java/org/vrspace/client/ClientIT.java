@@ -38,6 +38,7 @@ public class ClientIT {
 
   private VRSpaceClient connectToVRSpace() {
     URI uri = URI.create("ws://localhost:8080/vrspace/server");
+    // URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
     VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
         .addWelcomeListener(w -> welcomeReceived(w));
     return client;
