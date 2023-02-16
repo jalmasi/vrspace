@@ -157,11 +157,7 @@ export class ServerWorld extends World {
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/stars01/galaxy-background"), this.scene);
-    //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("/content/skybox/eso_milkyway/milkyway", this.scene);
-    //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/mp_drakeq/drakeq"), this.scene);
-    //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/mp_orbital/orbital-element"), this.scene);
-    //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("//www.babylonjs.com/assets/skybox/TropicalSunnyDay", this.scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/spacescape/galaxy-background"), this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     return skybox;
   }
