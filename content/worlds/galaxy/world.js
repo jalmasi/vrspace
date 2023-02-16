@@ -122,8 +122,8 @@ export class ServerWorld extends World {
 
   async createCamera() {
     // utility function to create UniversalCamera:
-    this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -10));
-    this.camera.setTarget(new BABYLON.Vector3(0, 2, 0));
+    this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, 0));
+    this.camera.setTarget(new BABYLON.Vector3(2, 2, -10));
     this.camera.speed = .2;
     return this.camera;
   }
