@@ -40,6 +40,10 @@ public class User extends Client {
   @Transient
   transient private Quaternion rightArmRot;
 
+  public User(String name) {
+    super(name);
+  }
+
   @Override
   public void createScene(WorldManager wm) {
     // create scene, TODO: scene filters
@@ -49,4 +53,5 @@ public class User extends Client {
     scene.update();
     scene.publish(this);
   }
+
 }

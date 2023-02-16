@@ -17,10 +17,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
-import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.User;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Oauth2 login is completely handled by spring security, this is just callback
+ * once it's all done. Client's identity is something like joe:facebook, but
+ * hashed. Login name must match the stored identity.
+ * 
+ * @author joe
+ *
+ */
 @RestController
 @Slf4j
 @RequestMapping("/oauth2")
@@ -30,6 +38,15 @@ public class Oauth2Controller {
   @Autowired
   ClientFactory clientFactory;
 
+  /**
+   * After successful Oauth2 login with external provider (fb, github, google...),
+   * fetch/create the Client object, and redirect back to the referring page.
+   * 
+   * @param name
+   * @param session
+   * @param request
+   * @return
+   */
   @GetMapping("/login")
   public ResponseEntity<String> login(String name, HttpSession session, HttpServletRequest request) {
     String referrer = request.getHeader(HttpHeaders.REFERER);
@@ -43,7 +60,7 @@ public class Oauth2Controller {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String identity = identity((OAuth2AuthenticationToken) authentication);
 
-    Client client = db.getClientByName(name);
+    User client = db.getClientByName(name, User.class);
     if (client != null) {
       if (client.getIdentity() != null && client.getIdentity().equals(identity)) {
         log.debug("Welcome back: " + name);
@@ -52,7 +69,7 @@ public class Oauth2Controller {
       }
     } else {
       log.debug("Welcome new user: " + name);
-      client = new Client(name);
+      client = new User(name);
       client.setIdentity(identity);
       client = db.save(client);
     }
@@ -70,6 +87,7 @@ public class Oauth2Controller {
     return authority + ":" + hashedName;
   }
 
+  // CHECKME unused?
   @GetMapping("/callback")
   public void callback(String code, String state, HttpServletRequest request) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
