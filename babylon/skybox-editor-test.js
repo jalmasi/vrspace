@@ -63,7 +63,14 @@ export class SkyboxEditorExample extends World {
     return skybox;
   }
   
+  isSelectableMesh(mesh) {
+    return this.boxes.includes(mesh) || super.isSelectableMesh();
+  }
+  
   connect() {
+    this.initXR(this.vrHelper);
+    
+    this.boxes=[];
     var skyboxes = new Set();
     var anchor = new BABYLON.TransformNode("anchor");
     anchor.position.y = 2;
@@ -94,7 +101,9 @@ export class SkyboxEditorExample extends World {
               button.onPointerDownObservable.add(() => {
                 console.log(box);
                 this.skyBox.material.reflectionTexture = box.material.reflectionTexture;
+
               });
+              this.boxes.push(box);
               panel.addControl(button);
             }
           });
