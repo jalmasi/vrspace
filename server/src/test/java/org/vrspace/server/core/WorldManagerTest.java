@@ -27,6 +27,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.config.ServerConfig;
+import org.vrspace.server.config.WorldConfig;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
@@ -50,6 +51,9 @@ public class WorldManagerTest {
   private VRObjectRepository repo;
 
   @Mock
+  private WorldConfig worldConfig;
+
+  @Mock
   private StreamManager streamManager;
 
   @Mock
@@ -68,7 +72,6 @@ public class WorldManagerTest {
     worldManager.config = config;
     worldManager.jackson = objectMapper;
     worldManager.clientFactory = new DefaultClientFactory();
-    worldManager.init();
     lenient().when(repo.getPermanents(any(Long.class))).thenReturn(new HashSet<VRObject>());
     World world = new World("test");
     world.setId(0L);
@@ -86,6 +89,7 @@ public class WorldManagerTest {
     });
     lenient().when(repo.getOwned(anyLong())).thenReturn(owned);
     // doNothing().when(repo).delete(any(VRObject.class));
+    worldManager.init();
   }
 
   @Test

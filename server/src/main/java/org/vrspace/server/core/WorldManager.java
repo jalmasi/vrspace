@@ -17,8 +17,7 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -57,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component("world")
 @Slf4j
+@DependsOn({ "database" })
 public class WorldManager {
   @Autowired
   protected ServerConfig config; // used in tests
@@ -125,10 +125,10 @@ public class WorldManager {
       }
     }
     // persistors.put(VRObject.class, pm);
+    createWorlds();
   }
 
-  @EventListener(ApplicationReadyEvent.class)
-  public void runAfterStartup() {
+  private void createWorlds() {
     defaultWorld();
     for (String worldName : worldConfig.getWorld().keySet()) {
       WorldProperties wp = worldConfig.getWorld().get(worldName);

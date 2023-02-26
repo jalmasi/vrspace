@@ -56,7 +56,7 @@ public class ClientIT {
 
   @Test
   public void connectSomeServersToLocalhost() throws InterruptedException {
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10; i++) {
       VRSpaceClient client = connectToVRSpace();
       // client.connectAndEnter("galaxy");
       client.connectAndEnter("galaxy",

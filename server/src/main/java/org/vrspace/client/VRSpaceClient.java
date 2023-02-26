@@ -43,7 +43,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   private List<Function<Welcome, Void>> welcomeListeners = new ArrayList<>();
   private List<Function<VREvent, Void>> eventListeners = new ArrayList<>();
   private StringBuilder text = new StringBuilder();
-  private CountDownLatch latch = new CountDownLatch(1);
+  private CountDownLatch latch;
   private volatile Client client;
   private int errorCount = 0;
   private ScheduledFuture<?> task;
@@ -59,6 +59,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   }
 
   public CompletableFuture<WebSocket> connect() {
+    latch = new CountDownLatch(1);
     future = new CompletableFuture<>();
     this.task = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, RETRY, TimeUnit.MILLISECONDS);
     return future;
@@ -142,7 +143,6 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
 
   /** Enter a world */
   public void enter(String world) {
-    latch = new CountDownLatch(1);
     send(new Enter(world));
     this.world = world;
   }
