@@ -636,8 +636,15 @@ export class WorldManager {
       if ( ! this.camera ) {
         return;
       }
-      // track camera movements
-      if ( this.camera.ellipsoid ) {
+      
+      var vrHelper = this.world.vrHelper;
+
+      // track camera movements, find out where feet are
+      if ( this.camera.getClassName() == 'WebXRCamera' ) {
+        // ellipsoid needs to be ignored, we have to use real world height instead
+        var height = this.camera.globalPosition.y - vrHelper.realWorldHeight();
+        this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
+      } else if ( this.camera.ellipsoid ) {
         var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
         if ( this.camera.ellipsoidOffset ) {
           height += this.camera.ellipsoidOffset.y;
@@ -656,7 +663,6 @@ export class WorldManager {
       }
       
       // and now track controllers
-      var vrHelper = this.world.vrHelper;
       if ( vrHelper ) {
         if ( vrHelper.leftController ) {
           this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftArmPos(), changes );
@@ -672,6 +678,7 @@ export class WorldManager {
           changes.push({field: 'userHeight', value: this.userHeight});
         }
       }
+      
     }
     if ( changes.length > 0 ) {
       VRSPACE.sendMyChanges(changes);
