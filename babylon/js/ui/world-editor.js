@@ -15,6 +15,7 @@ export class WorldEditor {
     this.worldManager = world.worldManager;
     this.defaultErrorHandler = world.worldManager.loadErrorHandler;
     this.defaultloadCallback = world.worldManager.loadCallback;
+    this.buttons=[];
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
@@ -98,6 +99,7 @@ export class WorldEditor {
       }
     });
     button.customAction = action;
+    this.buttons.push(button);
     return button;
   }
   
@@ -598,5 +600,11 @@ export class WorldEditor {
           window.open( login.url, "_self" );
         });
     });
+  }
+  
+  dispose() {
+    this.uiRoot.dispose();
+    this.panel.dispose();
+    this.buttons.forEach((b)=>b.dispose());    
   }
 }

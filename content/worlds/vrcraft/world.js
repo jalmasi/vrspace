@@ -1,4 +1,4 @@
-import { World, VRSPACEUI, WorldManager, WorldEditor } from '../../../babylon/js/vrspace-min.js';
+import { World, VRSPACEUI, WorldManager, WorldEditor, Terrain, TerrainEditor, SkyboxSelector } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldEditorExample extends World {
   async load() {
@@ -50,6 +50,17 @@ export class WorldEditorExample extends World {
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     return skybox;
   }
+
+  async createTerrain() {
+    this.terrain = new Terrain();
+    this.terrain.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", this.scene);
+    this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(.3, .3, .3);
+    this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(0, .5, 0);
+    this.terrain.terrainMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
+    this.terrain.init(this.scene);
+    this.terrain.mesh().setEnabled(false);
+    this.terrainEditor = new TerrainEditor(this);
+  }
   
   makeUI() {
     this.contentBase=VRSPACEUI.contentBase;
@@ -57,20 +68,91 @@ export class WorldEditorExample extends World {
     var terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i));
     var skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i));
   }
+  
+  // this shouldn't be here, but in HTML file
+  makeHtmlInput() {
+    this.div = document.createElement("div");
+    this.div.id = "searchForm";
+    this.div.style = "position:absolute;bottom:80px;right:40%;color:white;";
+    // CHECKME: sketchfab link?
+    var html =
+      `<label for="searchText">Search Sketchfab:</label>
+      <input id="searchText" type="text">
+      <label for="animated">Animated:</label>
+      <input id="animated" type="checkbox">
+      <label for="rigged">Rigged:</label>
+      <input id="rigged" type="checkbox">
+      <input type="file" id="fileInput" accept=".json" style="display:none;">`;
+
+    this.div.innerHTML = html;
+    document.body.appendChild(this.div);
+
+    this.fileInputElement = document.getElementById('fileInput');
+
+    var search = () => {
+      canvas.focus();
+      var text = document.getElementById('searchText').value;
+      console.log('search: '+text);
+      var args = {};
+      if (document.getElementById('animated').checked) {
+        args.animated = true;
+      }
+      if (document.getElementById('rigged').checked) {
+        args.rigged = true;
+      }
+      this.search(text, args);
+    }
+    document.getElementById('searchText').addEventListener('change', () => search() );
+    document.getElementById('animated').addEventListener('change', () => search() );
+    document.getElementById('rigged').addEventListener('change', () => search() );
+  }
+  
   editWorld(button, vector3WithInfo) {
     this.editing = !this.editing;
     console.log("World editor active:"+this.editing);
-    VRSPACEUI.hud.showButtons(!this.editing, button);
+    if ( this.editing ) {
+      this.makeHtmlInput();
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+      VRSPACEUI.hud.newRow();
+      this.worldEditor = new WorldEditor(this, this.fileInputElement);
+    } else {
+      VRSPACEUI.hud.clearRow();
+      this.worldEditor.dispose();
+      this.div.remove();
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+    }
   }
+  
   editTerrain(button, vector3WithInfo) {
     this.editing = !this.editing;
     console.log("Terrain editor active:"+this.editing);
-    VRSPACEUI.hud.showButtons(!this.editing, button);
+    if ( this.editing ) {
+      this.terrain.mesh().setEnabled(true);
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+      VRSPACEUI.hud.newRow();
+      this.terrainEditor.edit();
+    } else {
+      VRSPACEUI.hud.clearRow();
+      //this.terrainEditor.dispose();
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+    }
   }
+  
   editSkybox(button, vector3WithInfo) {
     this.editing = !this.editing;
     console.log("Skybox editor active:"+this.editing);
-    VRSPACEUI.hud.showButtons(!this.editing, button);
+    if ( this.editing ) {
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+      VRSPACEUI.hud.newRow();
+      if ( ! this.skyboxSelector ) {
+        this.skyboxSelector = new SkyboxSelector(this);
+      }
+      this.skyboxSelector.show();
+    } else {
+      VRSPACEUI.hud.clearRow();
+      this.skyboxSelector.hide();
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+    }
   }
   
   connect() {

@@ -25,8 +25,10 @@ export class HUD {
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
     this.elements = [];
     this.controls = [];
+    this.textures = [];
     this.root = new BABYLON.TransformNode("HUD");
     this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
+    this.rows = [{root: this.root, elements: this.elements, controls: this.controls, textures: this.textures}];
     window.addEventListener("resize", () => {
       this.rescaleHUD();
     });
@@ -93,7 +95,7 @@ export class HUD {
     button.position = new BABYLON.Vector3(this.elements.length*width/2,0,0);
     button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
     button.mesh.parent = this.root;
-    this.elements.push( button );
+    this.elements.push(button);
     this.controls.push(button);
     button.backMaterial.alpha = this.alpha;
     this.rescaleHUD();
@@ -119,7 +121,8 @@ export class HUD {
     var panel = new BABYLON.GUI.StackPanel();
     panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    advancedTexture.addControl(panel); 
+    advancedTexture.addControl(panel);
+    this.textures.push(advancedTexture);
 
     var header = new BABYLON.GUI.TextBlock("Text-Slider:"+text);
     header.text = text+": "+value;
@@ -138,7 +141,7 @@ export class HUD {
         header.text = text+": "+value;
     });
     panel.addControl(slider);
-    this.elements.push( plane );
+    this.elements.push(plane);
     this.controls.push(panel);
     return slider;
   }
@@ -157,8 +160,9 @@ export class HUD {
     var panel = new BABYLON.GUI.StackPanel();
     panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    advancedTexture.addControl(panel); 
-
+    advancedTexture.addControl(panel);
+    this.textures.push(advancedTexture);
+    
     var header = new BABYLON.GUI.TextBlock("Text-Picker:"+text);
     header.text = text;
     header.height = "30px";
@@ -172,7 +176,7 @@ export class HUD {
     picker.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
 
     panel.addControl(picker);
-    this.elements.push( plane );
+    this.elements.push(plane);
     this.controls.push(panel);
 
     this.rescaleHUD();
@@ -196,5 +200,43 @@ export class HUD {
       }
     });
   }
+  
+  newRow() {
+    this.root.scaling = new BABYLON.Vector3(.5,.5,.5);
+    this.root.position.y += this.vertical/2;
+ 
+    this.root = new BABYLON.TransformNode("HUD");
+    this.root.parent = this.camera;
+    this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
+ 
+    this.elements = [];
+    this.controls = [];
+    this.textures = [];
+    this.rows.push({root: this.root, elements: this.elements, controls: this.controls, textures: this.textures});
+  }
 
+  clearRow() {
+    // TODO check rows length
+    // CHECKME: dispose of all elements/controls?
+    this.controls.forEach(c=>c.dispose());
+    this.elements.forEach(e=>{
+      if ( e.material ) {
+        // apparently AdvancedDynamicTexture creates and leaks material for Plane
+        e.material.dispose();
+      }
+      e.dispose();
+    });
+    this.textures.forEach(t=>t.dispose());
+    this.root.dispose();
+    this.rows.pop();
+    var row = this.rows[this.rows.length-1]
+    this.root = row.root;
+    this.root.scaling = new BABYLON.Vector3(1,1,1);
+    this.root.position.y -= this.vertical/2;
+
+    this.elements = row.elements;
+    this.controls = row.controls;
+    this.textures = row.textures;
+  }
+  
 }

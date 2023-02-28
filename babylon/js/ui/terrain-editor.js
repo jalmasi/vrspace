@@ -158,5 +158,7 @@ export class TerrainEditor extends WorldListener {
     return index;
   }
     
-  
+  dispose() {
+    
+  }
 }

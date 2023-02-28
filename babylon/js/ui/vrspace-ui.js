@@ -470,7 +470,7 @@ export class VRSpaceUI {
     a.download = filename;
     a.click();
   }
-
+  
 }
 
 // this does not ensure singleton in the browser

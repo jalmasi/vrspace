@@ -1,4 +1,4 @@
-import { World, WorldManager, VRSPACEUI } from './js/vrspace-min.js';
+import { World, WorldManager, VRSPACEUI, SkyboxSelector } from './js/vrspace-min.js';
 
 export class SkyboxEditorExample extends World {
   async load() {
@@ -51,65 +51,15 @@ export class SkyboxEditorExample extends World {
     return skybox;
   }
 
-  makeSkyBox( dir,name ) {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox-"+name, 1, this.scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox-"+name, this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    //skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(dir, this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-    return skybox;
-  }
-  
   isSelectableMesh(mesh) {
-    return this.boxes.includes(mesh) || super.isSelectableMesh();
+    return this.skyboxSelector.boxes.includes(mesh) || super.isSelectableMesh();
   }
   
   connect() {
     this.initXR(this.vrHelper);
+    this.skyboxSelector = new SkyboxSelector(this);
+    this.skyboxSelector.show();
     
-    this.boxes=[];
-    var skyboxes = new Set();
-    var anchor = new BABYLON.TransformNode("anchor");
-    anchor.position.y = 2;
-    var panel = new BABYLON.GUI.CylinderPanel();
-    panel.margin = .2;
-    var manager = VRSPACEUI.guiManager;
-    manager.addControl(panel);
-    panel.linkToTransformNode(anchor);
-
-    VRSPACEUI.listMatchingFiles("/content/skybox/", list => {
-      // list is ServerFolder array
-      list.forEach( sf => {
-        // sf is ServerFolder object
-        VRSPACEUI.listDirectory(sf.url(), skyboxDir => {
-          console.log(sf.url(), skyboxDir);
-          skyboxDir.forEach( f => {
-            // f is an individual file
-            // name is directoryUrl+skyboxName+_axis+.jpg
-            var skyboxName = f.substring( f.lastIndexOf("/")+1, f.lastIndexOf("_") );
-            // and this is what we need to create cubeTexture:
-            var skyboxDir = f.substring( 0, f.lastIndexOf("_") );
-            console.log(f, skyboxName, skyboxDir);
-            if ( ! skyboxes.has(skyboxDir)) {
-              skyboxes.add(skyboxDir);
-              var box = this.makeSkyBox(skyboxDir,skyboxName);
-              //box.position = new BABYLON.Vector3(skyboxes.size*2, 1, 0);
-              var button = new BABYLON.GUI.MeshButton3D(box, "pushButton-"+skyboxName);
-              button.onPointerDownObservable.add(() => {
-                console.log(box);
-                this.skyBox.material.reflectionTexture = box.material.reflectionTexture;
-
-              });
-              this.boxes.push(box);
-              panel.addControl(button);
-            }
-          });
-        }, ".jpg");
-      }); 
-    });
     new WorldManager(this);
     //this.worldManager.debug = true; // multi-user debug info
     //this.worldManager.VRSPACE.debug = true; // network debug info
