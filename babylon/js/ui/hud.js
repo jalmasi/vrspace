@@ -78,9 +78,12 @@ export class HUD {
   
   /**
   Create a button with given text and image and add it to the HUD
+  @param text description to display
+  @param imageUrl image to display
+  @param onPointerDown callback function activated when pressed
   @returns a BabylonJS HolographicButton
    */
-  addButton(text, imageUrl) {
+  addButton(text, imageUrl, onPointerDown) {
     var width = this.makeRoomForMore();
     
     var button = new BABYLON.GUI.HolographicButton(text+"Button");
@@ -94,6 +97,9 @@ export class HUD {
     this.controls.push(button);
     button.backMaterial.alpha = this.alpha;
     this.rescaleHUD();
+    if ( onPointerDown ) {
+      button.onPointerDownObservable.add( (vector3WithInfo) => onPointerDown(button, vector3WithInfo) );
+    }
     return button;
   }
   /**

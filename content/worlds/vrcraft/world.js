@@ -1,4 +1,4 @@
-import { World, VRSPACEUI, WorldManager, WorldEditor } from '/babylon/js/vrspace-min.js';
+import { World, VRSPACEUI, WorldManager, WorldEditor } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldEditorExample extends World {
   async load() {
@@ -51,11 +51,36 @@ export class WorldEditorExample extends World {
     return skybox;
   }
   
+  makeUI() {
+    this.contentBase=VRSPACEUI.contentBase;
+    var worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world-edit.png", (b,i)=>this.editWorld(b,i));
+    var terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i));
+    var skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i));
+  }
+  editWorld(button, vector3WithInfo) {
+    this.editing = !this.editing;
+    console.log("World editor active:"+this.editing);
+    VRSPACEUI.hud.showButtons(!this.editing, button);
+  }
+  editTerrain(button, vector3WithInfo) {
+    this.editing = !this.editing;
+    console.log("Terrain editor active:"+this.editing);
+    VRSPACEUI.hud.showButtons(!this.editing, button);
+  }
+  editSkybox(button, vector3WithInfo) {
+    this.editing = !this.editing;
+    console.log("Skybox editor active:"+this.editing);
+    VRSPACEUI.hud.showButtons(!this.editing, button);
+  }
+  
   connect() {
     new WorldManager(this);
     //this.worldManager.debug = true; // multi-user debug info
     //this.worldManager.VRSPACE.debug = true; // network debug info
-    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => this.worldEditor = new WorldEditor(this, this.fileInputElement));
+    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => {
+      this.makeUI(); 
+      //this.worldEditor = new WorldEditor(this, this.fileInputElement);
+    });
   }
   
   search( what, flags ) {
