@@ -13,6 +13,7 @@ export { Buttons } from "./ui/buttons.js";
 export { Label } from "./ui/label.js";
 export { World } from "./ui/world.js";
 export { WorldManager } from "./ui/world-manager.js";
+export {ScrollablePanel} from "./ui/scrollable-panel.js";
 export { WorldEditor } from "./ui/world-editor.js";
 export { SkyboxSelector } from "./ui/skybox-selector.js";
 export { WorldListener } from "./ui/world-listener.js";

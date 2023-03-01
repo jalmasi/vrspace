@@ -1,5 +1,5 @@
 import {VRSPACEUI} from './vrspace-ui.js';
-import {TextWriter} from './text-writer.js'
+import {ScrollablePanel} from "./scrollable-panel.js";
 
 export class WorldEditor {
   constructor( world, fileInput ) {
@@ -21,7 +21,6 @@ export class WorldEditor {
     this.createButtons();
     this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
     this.worldManager.loadErrorHandler= (object, exception) => this.loadingFailed(object, exception);
-    this.writer = new TextWriter(this.scene);
     
     this.worldPickPredicate = world.isSelectableMesh;
     // override world method to make every VRObject selectable
@@ -31,40 +30,7 @@ export class WorldEditor {
   }
   
   makeUI() {
-    this.uiRoot = new BABYLON.TransformNode("SearchUI");
-
-    this.uiRoot.position = new BABYLON.Vector3(0,2,0);
-    this.uiRoot.rotation = new BABYLON.Vector3(0,0,0);
-    //this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene); // causes transparency issues
-    this.guiManager = VRSPACEUI.guiManager;
-    this.panel = new BABYLON.GUI.CylinderPanel();
-    this.panel.blocklayout = true; // optimization, requires updateLayout() call
-    this.panel.margin = 0.05;
-    this.panel.columns = 6;
-    this.guiManager.addControl(this.panel);
-    this.panel.linkToTransformNode(this.uiRoot);
-
-    this.buttonPrev = new BABYLON.GUI.HolographicButton("prev");
-    this.buttonPrev.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Upload.png";
-    this.guiManager.addControl(this.buttonPrev);
-    this.buttonPrev.linkToTransformNode(this.uiRoot);
-    this.buttonPrev.position = new BABYLON.Vector3(-4,0,4);
-    this.buttonPrev.mesh.rotation = new BABYLON.Vector3(0,0,Math.PI/2);
-    this.buttonPrev.tooltipText = "Previous";
-    this.buttonPrev.isVisible = false;
-
-    this.buttonNext = new BABYLON.GUI.HolographicButton("next");
-    this.buttonNext.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Upload.png";
-    this.guiManager.addControl(this.buttonNext);
-    this.buttonNext.linkToTransformNode(this.uiRoot);
-    this.buttonNext.position = new BABYLON.Vector3(4,0,4);
-    this.buttonNext.mesh.rotation = new BABYLON.Vector3(0,0,-Math.PI/2);
-    this.buttonNext.tooltipText = "Next";
-    this.buttonNext.isVisible = false;
-    
-    // same material used for all buttons in this UI:
-    this.buttonNext.backMaterial.alpha = .5;
-
+    this.searchPanel = new ScrollablePanel(this.scene, "SearchUI");
   }
   
   createButtons() {
@@ -80,7 +46,10 @@ export class WorldEditor {
     this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Save.png");
     this.loadButton = this.makeAButton("Load", "https://www.babylonjs-playground.com/textures/icons/Open.png");
     
-    this.searchButton.onPointerDownObservable.add( () => this.relocatePanel());
+    this.searchButton.onPointerDownObservable.add( () => {
+      this.searchPanel.relocatePanel();
+      this.displayButtons(true);
+    });
     this.saveButton.onPointerDownObservable.add( () => {this.save()});
     this.loadButton.onPointerDownObservable.add( () => {this.load()});
   }
@@ -255,15 +224,6 @@ export class WorldEditor {
     if ( show ) {
       this.activeButton = null;
     }
-  }
-  
-  relocatePanel() {
-    //this.panel.linkToTransformNode();
-    var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(6).direction;
-    this.uiRoot.position = VRSPACEUI.hud.camera.position.add(forwardDirection);
-    this.uiRoot.rotation = new BABYLON.Vector3(VRSPACEUI.hud.camera.rotation.x,VRSPACEUI.hud.camera.rotation.y,VRSPACEUI.hud.camera.rotation.z);
-    //this.panel.linkToTransformNode(this.uiRoot);
-    this.displayButtons(true);
   }
   
   installClickHandler() {
@@ -476,22 +436,12 @@ export class WorldEditor {
   doFetch(url, relocate) {
       fetch(url).then(response => {
           response.json().then( obj=> {
-              console.log(obj);
-              // workaround for panel buttons all messed up
-              var previous = { pos:this.uiRoot.position, rot:this.uiRoot.rotation };
-              this.uiRoot.position = new BABYLON.Vector3(0,2,0);
-              this.uiRoot.rotation = new BABYLON.Vector3(0,0,0);
-              this.panel.linkToTransformNode();
-              
-              this.panel.children.forEach( (button) => {button.dispose()} );
-              
-              this.buttonNext.isVisible = (obj.next != null);
-              this.buttonNext.onPointerDownObservable.clear();
-              this.buttonNext.onPointerDownObservable.add( () => {this.doFetch(obj.next)});
-              this.buttonPrev.isVisible = (obj.previous != null);
-              this.buttonPrev.onPointerDownObservable.clear();
-              this.buttonPrev.onPointerDownObservable.add( () => {this.doFetch(obj.previous)});
-                            
+              this.searchPanel.beginUpdate(
+                obj.previous != null, 
+                obj.next != null, 
+                () => this.doFetch(obj.previous),
+                () => this.doFetch(obj.next)
+              );
               obj.results.forEach(  result => {
                   // interesting result fields:
                   // next - url of next result page
@@ -512,40 +462,20 @@ export class WorldEditor {
                   });
                   //console.log(thumbnail);
                   
-                  var button = new BABYLON.GUI.HolographicButton(result.name);
-                  this.panel.addControl(button);
-
-                  button.imageUrl = thumbnail.url;
+                  this.searchPanel.addButton(
+                    [ result.name, 
+                      'by '+result.user.displayName,
+                      (result.archives.gltf.size/1024/1024).toFixed(2)+"MB"
+                      //'Faces: '+result.faceCount,
+                      //'Vertices: '+result.vertexCount
+                    ],
+                    thumbnail.url,
+                    () => this.download(result)
+                  );
                   
-                  button.plateMaterial.disableLighting = true;
-
-                  button.content.scaleX = 2;
-                  button.content.scaleY = 2;
-                  
-                  button.onPointerEnterObservable.add( () => {
-                      this.writer.writeArray(button.node,
-                        [result.name, 
-                        'by '+result.user.displayName,
-                        (result.archives.gltf.size/1024/1024).toFixed(2)+"MB"
-                        //'Faces: '+result.faceCount,
-                        //'Vertices: '+result.vertexCount
-                        ]
-                      );
-                  });
-                  button.onPointerOutObservable.add( () => {
-                      this.writer.clear(button.node);
-                  });
-                  button.onPointerDownObservable.add( () => this.download(result));
               });
               // ending workaround:
-              this.panel.linkToTransformNode(this.uiRoot);
-              this.panel.updateLayout();
-              if ( relocate ) {
-                this.relocatePanel();
-              } else {
-                this.uiRoot.position = previous.pos;
-                this.uiRoot.rotation = previous.rot;
-              }
+              this.searchPanel.endUpdate(relocate);
           });
       }).catch( err => console.log(err));
   }
@@ -604,7 +534,7 @@ export class WorldEditor {
   
   dispose() {
     this.uiRoot.dispose();
-    this.panel.dispose();
+    this.searchPanel.dispose();
     this.buttons.forEach((b)=>b.dispose());    
   }
 }
