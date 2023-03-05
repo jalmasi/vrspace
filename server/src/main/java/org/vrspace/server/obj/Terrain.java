@@ -29,6 +29,7 @@ public class Terrain extends VRObject {
   private Color diffuseColor;
   private Color emissiveColor;
   private Color specularColor;
+  private String diffuseTexture;
 
   /** Transient property, used only to propagate changes to other clients */
   @Transient

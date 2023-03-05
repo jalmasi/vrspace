@@ -98,7 +98,7 @@ export class ScrollablePanel {
     button.onPointerOutObservable.add( () => {
         this.writer.clear(button.node);
     });
-    button.onPointerDownObservable.add( callback );
+    button.onPointerDownObservable.add( ()=>callback(button) );
     
   }
   

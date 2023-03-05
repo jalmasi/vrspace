@@ -18,6 +18,7 @@ export class TextureSelector {
   show() {
     this.texturePanel = new ScrollablePanel(this.scene, "Textures");
     this.cols = this.texturePanel.panel.columns;
+    this.texturePanel.relocatePanel();
     this.showImages();
   }
   
@@ -43,10 +44,9 @@ export class TextureSelector {
       ()=>this.next()
     );
     for ( var i = this.index; i < this.index+this.cols*this.rows && i < this.textures.length ; i++ ) {
-      var imgUrl = this.textures[i];
-      //var text = imgUrl.substring(imgUrl.lastIndexOf('/')+1);
-      var text = imgUrl.split('/');
-      this.texturePanel.addButton(text, imgUrl, () => this.callback(imgUrl));
+      let imgUrl = this.textures[i];
+      let text = imgUrl.split('/');
+      this.texturePanel.addButton(text, imgUrl, ()=>this.callback(imgUrl));
     }
     this.texturePanel.endUpdate(false);
   }

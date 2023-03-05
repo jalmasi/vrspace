@@ -12,7 +12,7 @@ export class TerrainEditor extends WorldListener {
     this.sharedTerrain = null;
     this.editing = false;
     world.worldListeners.push(this);
-    this.textureSelector = new TextureSelector(this.scene, (imgUrl) => this.setTexture(imgUrl));
+    this.textureSelector = new TextureSelector(this.scene, (img) => this.publishTexture(img));
   }
   /** Called by WorldManager when user enters the world */
   entered(welcome) {
@@ -37,6 +37,9 @@ export class TerrainEditor extends WorldListener {
           if ( obj.Terrain.emissiveColor ) {
             this.terrain.terrainMaterial.emissiveColor = new BABYLON.Color3(obj.Terrain.emissiveColor.r, obj.Terrain.emissiveColor.g, obj.Terrain.emissiveColor.b)
           }
+          if ( obj.Terrain.diffuseTexture ) {
+            this.setTexture(obj.Terrain.diffuseTexture);
+          }
         };
       });
     } else {
@@ -51,16 +54,21 @@ export class TerrainEditor extends WorldListener {
       added.addListener((obj,change)=>this.terrainChanged(change));
     }
   }
+  
   terrainChanged(e) {
     console.log("Terrain changed", e);
     if ( e.change ) {
       this.terrain.update(e.change.index, e.change.point.x, e.change.point.y, e.change.point.z);
       this.terrain.refresh();
     } else {
-      for ( const color in e ) {
-        // e.g. emissiveColor, diffuseColor, specularColor
-        console.log(color + "="+e[color]);
-        this.terrain.terrainMaterial[color] = new BABYLON.Color3(e[color].r, e[color].g, e[color].b);
+      for ( const field in e ) {
+        if ( field.indexOf('Color') > 0 ) {
+          // e.g. emissiveColor, diffuseColor, specularColor
+          console.log(field + "="+e[field]);
+          this.terrain.terrainMaterial[field] = new BABYLON.Color3(e[field].r, e[field].g, e[field].b);
+        } else if (field.indexOf('Texture') > 0) {
+          this.setTexture(e[field]);
+        }
       }
     }
   }
@@ -170,8 +178,11 @@ export class TerrainEditor extends WorldListener {
     }
     return index;
   }
+  publishTexture(imgUrl) {
+    console.log("Publishing texture: "+imgUrl);
+    this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {diffuseTexture:imgUrl});
+  }
   setTexture(imgUrl) {
-    // TODO send network event here
     console.log("New texture: "+imgUrl);
     if ( this.terrainTexture ) {
       this.terrainTexture.dispose();
