@@ -11,9 +11,8 @@ export class TerrainEditor extends WorldListener {
     this.heightIncrement=1;
     this.sharedTerrain = null;
     this.editing = false;
-    this.textureSelector = null;
     world.worldListeners.push(this);
-    this.textureSelector = new TextureSelector(this.scene);
+    this.textureSelector = new TextureSelector(this.scene, (imgUrl) => this.setTexture(imgUrl));
   }
   /** Called by WorldManager when user enters the world */
   entered(welcome) {
@@ -171,8 +170,16 @@ export class TerrainEditor extends WorldListener {
     }
     return index;
   }
-    
+  setTexture(imgUrl) {
+    // TODO send network event here
+    console.log("New texture: "+imgUrl);
+    if ( this.terrainTexture ) {
+      this.terrainTexture.dispose();
+    }
+    this.terrainTexture = new BABYLON.Texture(imgUrl, this.scene);
+    this.terrain.mesh().material.diffuseTexture = this.terrainTexture;
+  }
   dispose() {
-    
+    // TODO
   }
 }

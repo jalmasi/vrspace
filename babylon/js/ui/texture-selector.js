@@ -1,8 +1,9 @@
 import {ScrollablePanel} from "./scrollable-panel.js";
 
 export class TextureSelector {
-  constructor( scene ) {
+  constructor( scene, callback ) {
     this.scene = scene;
+    this.callback = callback;
     this.rows = 4;
     this.index = 0;
     this.doFetch("/textures/list");
@@ -45,7 +46,7 @@ export class TextureSelector {
       var imgUrl = this.textures[i];
       //var text = imgUrl.substring(imgUrl.lastIndexOf('/')+1);
       var text = imgUrl.split('/');
-      this.texturePanel.addButton(text, imgUrl);
+      this.texturePanel.addButton(text, imgUrl, () => this.callback(imgUrl));
     }
     this.texturePanel.endUpdate(false);
   }

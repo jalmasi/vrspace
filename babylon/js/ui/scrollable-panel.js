@@ -103,6 +103,8 @@ export class ScrollablePanel {
   }
   
   dispose() {
+    this.buttonPrev.dispose();
+    this.buttonNext.dispose();
     this.panel.dispose();
   }
 }
