@@ -1,5 +1,6 @@
 import {VRSPACEUI} from './vrspace-ui.js';
-import {WorldListener} from './world-listener.js'
+import {WorldListener} from './world-listener.js';
+import {TextureSelector} from './texture-selector.js';
 
 export class TerrainEditor extends WorldListener {
   constructor(world) {
@@ -10,7 +11,9 @@ export class TerrainEditor extends WorldListener {
     this.heightIncrement=1;
     this.sharedTerrain = null;
     this.editing = false;
+    this.textureSelector = null;
     world.worldListeners.push(this);
+    this.textureSelector = new TextureSelector(this.scene);
   }
   /** Called by WorldManager when user enters the world */
   entered(welcome) {
@@ -102,9 +105,11 @@ export class TerrainEditor extends WorldListener {
         }
     });
     
-    this.raiseButton = VRSPACEUI.hud.addButton("Raise", "https://www.babylonjs-playground.com/textures/icons/Upload.png"); // FIXME: cdn
-    this.digButton = VRSPACEUI.hud.addButton("Dig", "https://www.babylonjs-playground.com/textures/icons/Download.png"); // FIXME: cdn
+    this.raiseButton = VRSPACEUI.hud.addButton("Raise", VRSPACEUI.contentBase+"/content/icons/upload.png");
+    this.digButton = VRSPACEUI.hud.addButton("Dig", VRSPACEUI.contentBase+"/content/icons/download.png");
+    this.textureButton = VRSPACEUI.hud.addButton("Texture", VRSPACEUI.contentBase+"/content/icons/terrain-texture.png");    
     this.raiseSlider = VRSPACEUI.hud.addSlider("Height",0,2,this.heightIncrement)
+    
     this.raiseButton.onPointerDownObservable.add( () => {
       this.direction = 1;
       VRSPACEUI.hud.showButtons(this.editing,this.raiseButton,this.raiseSlider);
@@ -116,6 +121,15 @@ export class TerrainEditor extends WorldListener {
       VRSPACEUI.hud.showButtons(this.editing,this.digButton,this.raiseSlider);
       this.editing = !this.editing;
       this.terrain.terrainMaterial.wireframe = this.editing;
+    });
+    this.textureButton.onPointerDownObservable.add( () => {
+      VRSPACEUI.hud.showButtons(this.editing,this.textureButton,this);
+      this.editing = !this.editing;
+      if ( this.editing ) {
+        this.textureSelector.show();
+      } else {
+        this.textureSelector.hide();
+      }
     });
     this.raiseSlider.onValueChangedObservable.add(value=>{this.heightIncrement=value});
     

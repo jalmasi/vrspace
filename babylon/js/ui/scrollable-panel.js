@@ -19,7 +19,7 @@ export class ScrollablePanel {
     this.panel.linkToTransformNode(this.uiRoot);
 
     this.buttonPrev = new BABYLON.GUI.HolographicButton("prev");
-    this.buttonPrev.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Upload.png";
+    this.buttonPrev.imageUrl = VRSPACEUI.contentBase+"/content/icons/upload.png";
     this.guiManager.addControl(this.buttonPrev);
     this.buttonPrev.linkToTransformNode(this.uiRoot);
     this.buttonPrev.position = new BABYLON.Vector3(-4,0,4);
@@ -28,7 +28,7 @@ export class ScrollablePanel {
     this.buttonPrev.isVisible = false;
 
     this.buttonNext = new BABYLON.GUI.HolographicButton("next");
-    this.buttonNext.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Upload.png";
+    this.buttonNext.imageUrl = VRSPACEUI.contentBase+"/content/icons/upload.png";
     this.guiManager.addControl(this.buttonNext);
     this.buttonNext.linkToTransformNode(this.uiRoot);
     this.buttonNext.position = new BABYLON.Vector3(4,0,4);
