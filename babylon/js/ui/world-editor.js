@@ -62,15 +62,21 @@ export class WorldEditor {
     } else {
       VRSPACEUI.hud.newRow();
       this.input = VRSPACEUI.hud.textInput((text)=>{
-        if ( text ) {
-          this.search(text);
-        }
-        VRSPACEUI.hud.clearRow();
-        delete this.input;
-        this.displayButtons(true);
+		    this.doSearch(text);
       });
-      this.okButton = this.makeAButton("Search", this.contentBase+"/content/icons/play.png");
+      this.okButton = VRSPACEUI.hud.addButton("Search", this.contentBase+"/content/icons/play.png", () => {
+		    this.doSearch(this.input.text);
+	    });
     }
+  }
+  
+  doSearch(text) {
+    if ( text ) {
+      this.search(text);
+    }
+    VRSPACEUI.hud.clearRow();
+    delete this.input;
+    this.displayButtons(true);
   }
   
   makeAButton(text, imageUrl, action) {

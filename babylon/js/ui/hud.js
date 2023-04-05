@@ -71,10 +71,14 @@ export class HUD {
   }
   
   makeRoomForMore() {
+	  // TODO take variable size of elements into account
     var width = this.buttonSize+this.buttonSpacing;
     this.elements.forEach(b=>{
       b.position.x = b.position.x - width/2;
     });
+    if ( this.input ) {
+		  width += .4;
+	  }
     return width;
   }
   
@@ -133,7 +137,7 @@ export class HUD {
   	var keyboard = new BABYLON.GUI.VirtualKeyboard();
   	keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
   	advancedTexture.addControl(keyboard);
-      //keyboard.addKeysRow(["\u2191"]);
+    keyboard.addKeysRow(["\u2191"]);
   	keyboard.connect(input);
   	
   	//input.focus(); // not available in babylon 4
@@ -147,6 +151,8 @@ export class HUD {
   	
     this.elements.push(plane);
     this.controls.push(panel);
+    
+    this.input = input;
   
   	return input;
   }
@@ -262,6 +268,10 @@ export class HUD {
   }
 
   clearRow() {
+	  if ( this.input ) {
+		  this.input.dispose();
+		  this.input = null;
+	  }
     // TODO check rows length
     // CHECKME: dispose of all elements/controls?
     this.controls.forEach(c=>c.dispose());
