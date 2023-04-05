@@ -45,16 +45,16 @@ export class FloorRibbon {
 
   /** Shows the UI */
   showUI() {
-    this.recordButton = VRSPACEUI.hud.addButton("Start", "https://www.babylonjs-playground.com/textures/icons/Play.png"); // FIXME: cdn
+    this.recordButton = VRSPACEUI.hud.addButton("Start", this.contentBase+"/content/icons/play.png");
     this.recordButton.onPointerDownObservable.add( () => this.startStopCancel());
 
-    this.editButton = VRSPACEUI.hud.addButton("Edit","https://www.babylonjs-playground.com/textures/icons/Edit.png"); // FIXME: cdn
+    this.editButton = VRSPACEUI.hud.addButton("Edit",this.contentBase+"/content/icons/edit.png");
     this.editButton.onPointerDownObservable.add( () => this.edit());
 
-    this.jsonButton = VRSPACEUI.hud.addButton("JSON", "https://www.babylonjs-playground.com/textures/icons/Download.png"); // FIXME: cdn
+    this.jsonButton = VRSPACEUI.hud.addButton("JSON", this.contentBase+"/content/icons/download.png");
     this.jsonButton.onPointerDownObservable.add( () => this.saveJson());
 
-    this.jsButton = VRSPACEUI.hud.addButton("JS", "https://www.babylonjs-playground.com/textures/icons/Download.png"); // FIXME: cdn
+    this.jsButton = VRSPACEUI.hud.addButton("JS", this.contentBase+"/content/icons/download.png");
     this.jsButton.onPointerDownObservable.add( () => this.saveJs());
 
     this.editButton.isVisible = false;
@@ -86,11 +86,11 @@ export class FloorRibbon {
   }
   updateUI() {
     if ( this.recording ) {
-      this.recordButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Pause.png"; // FIXME: cdn
+      this.recordButton.imageUrl = this.contentBase+"/content/icons/pause.png";
     } else if ( this.floorMesh) {
-      this.recordButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Undo.png"; // FIXME: cdn
+      this.recordButton.imageUrl = this.contentBase+"/content/icons/undo.png";
     } else {
-      this.recordButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Play.png"; // FIXME: cdn
+      this.recordButton.imageUrl = this.contentBase+"/content/icons/play.png";
     }
     this.editButton.isVisible = !this.recording && this.floorMesh;
     this.jsonButton.isVisible = !this.recording && this.floorMesh;
@@ -182,13 +182,13 @@ export class FloorRibbon {
       delete this.pathPoints;
       delete this.point1;
       delete this.point2;
-      this.editButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Edit.png"; // FIXME: cdn
+      this.editButton.imageUrl = this.contentBase+"/content/icons/edit.png";
       if ( this.edgeMesh ) {
         this.edgeMesh.dispose();
         delete this.edgeMesh;
       }
     } else if ( this.editing ) {
-      this.editButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Back.png"; // FIXME: cdn
+      this.editButton.imageUrl = this.contentBase+"/content/icons/back.png";
       this.editButton.text = "Pick 1";
       this.resizing = true;
       this.observer = this.scene.onPointerObservable.add((pointerInfo) => {

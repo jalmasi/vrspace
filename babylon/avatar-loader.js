@@ -85,12 +85,12 @@ export class AvatarLoader extends AvatarSelection {
     text.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
     var selectButton = new BABYLON.GUI.HolographicButton("select:"+avatar.folder.name);
-    selectButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Zoom.png"; // FIXME: cdn
+    selectButton.imageUrl = this.contentBase+"/content/icons/zoom.png";
     //selectButton.contentResolution = 1024;
     selectButton.contentScaleRatio = 4;
     selectButton.onPointerDownObservable.add( function() {
         console.log( "Selected "+avatar.folder.name );
-        selectButton.imageUrl = "https://www.babylonjs-playground.com/textures/icons/Back.png"; // FIXME: cdn
+        selectButton.imageUrl = this.contentBase+"/content/icons/back.png";
         if ( avatar.caption ) {
           avatar.caption.dispose();
           avatar.caption = null;
