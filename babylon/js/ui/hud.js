@@ -104,6 +104,52 @@ export class HUD {
     }
     return button;
   }
+  
+  textInput(callback) {
+  	//this.newRow();
+	
+    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: .5, height: .05});
+    plane.parent = this.root;
+    plane.position = new BABYLON.Vector3(0,0,0.02);
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,640,64);
+    // advancedTexture creates material and attaches it to the plane
+    plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
+    
+    var panel = new BABYLON.GUI.StackPanel();
+    panel.isVertical = false;
+    panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    
+    var input = new BABYLON.GUI.InputText();
+    input.width = 1;
+    input.fontSizeInPixels = 48;
+    // fine:
+    //input.widthInPixels = canvas.getBoundingClientRect().width/2;
+    //input.widthInPixels = scene.getEngine().getRenderingCanvas().getBoundingClientRect().width/2;
+    input.color = "white";
+    input.background = "green";
+  	advancedTexture.addControl(input);    
+  
+  	var keyboard = new BABYLON.GUI.VirtualKeyboard();
+  	keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+  	advancedTexture.addControl(keyboard);
+      //keyboard.addKeysRow(["\u2191"]);
+  	keyboard.connect(input);
+  	
+  	//input.focus(); // not available in babylon 4
+  	
+  	input.onBlurObservable.add(()=>{ 
+  	  console.log(input.text);
+  	  if ( callback ) {
+			  callback(input.text);
+		  }
+  	})
+  	
+    this.elements.push(plane);
+    this.controls.push(panel);
+  
+  	return input;
+  }
   /**
   Adds a slider to the HUD.
   @return babylon Slider object

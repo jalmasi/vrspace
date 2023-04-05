@@ -48,12 +48,31 @@ export class WorldEditor {
     
     this.searchButton.onPointerDownObservable.add( () => {
       this.searchPanel.relocatePanel();
-      this.displayButtons(true);
+      this.searchForm();
     });
     this.saveButton.onPointerDownObservable.add( () => {this.save()});
     this.loadButton.onPointerDownObservable.add( () => {this.load()});
   }
 
+  searchForm() {
+    if ( this.input ) {
+      VRSPACEUI.hud.clearRow();
+      delete this.input;
+      this.displayButtons(true);
+    } else {
+      VRSPACEUI.hud.newRow();
+      this.input = VRSPACEUI.hud.textInput((text)=>{
+        if ( text ) {
+          this.search(text);
+        }
+        VRSPACEUI.hud.clearRow();
+        delete this.input;
+        this.displayButtons(true);
+      });
+      this.okButton = this.makeAButton("Search", this.contentBase+"/content/icons/play.png");
+    }
+  }
+  
   makeAButton(text, imageUrl, action) {
     var button = VRSPACEUI.hud.addButton(text,imageUrl);
     button.onPointerDownObservable.add( () => {
@@ -506,6 +525,7 @@ export class WorldEditor {
         VRSPACEUI.indicator.remove("Download");
       });
   }
+  
   createSharedObject( mesh, properties ) {
     var object = {
       mesh: mesh,
