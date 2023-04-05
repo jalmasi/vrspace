@@ -20,7 +20,6 @@ public class DefaultClientFactory implements ClientFactory {
   /**
    * Returns new client.
    */
-  @SuppressWarnings("unchecked")
   @Override
   public <T extends Client> T createGuestClient(Class<T> clientClass, HttpHeaders headers,
       Map<String, Object> attributes) {

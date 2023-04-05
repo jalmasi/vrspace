@@ -36,15 +36,15 @@ export class WorldEditor {
   createButtons() {
     this.moveButton = this.makeAButton( "Move", this.contentBase+"/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
     this.moveButton.onPointerUpObservable.add(()=>this.dropObject());
-    this.rotateButton = this.makeAButton( "Rotate", "https://www.babylonjs-playground.com/textures/icons/Refresh.png", (o)=>this.rotateObject(o));  
+    this.rotateButton = this.makeAButton( "Rotate", this.contentBase+"/content/icons/refresh.png", (o)=>this.rotateObject(o));  
     this.scaleButton = this.makeAButton("Resize", this.contentBase+"/content/icons/resize.png", (o)=>this.resizeObject(o));
-    this.alignButton = this.makeAButton("Align", "https://www.babylonjs-playground.com/textures/icons/Download.png", (o)=>this.alignObject(o));
-    this.alignButton = this.makeAButton("Upright", "https://www.babylonjs-playground.com/textures/icons/Upload.png", (o)=>this.upright(o));
+    this.alignButton = this.makeAButton("Align", this.contentBase+"/content/icons/download.png", (o)=>this.alignObject(o));
+    this.alignButton = this.makeAButton("Upright", this.contentBase+"/content/icons/upload.png", (o)=>this.upright(o));
     this.copyButton = this.makeAButton("Copy", this.contentBase+"/content/icons/copy.png", (o)=>this.copyObject(o));
-    this.deleteButton = this.makeAButton("Remove", "https://www.babylonjs-playground.com/textures/icons/Delete.png", (o)=>this.removeObject(o));
-    this.searchButton = this.makeAButton("Search", "https://www.babylonjs-playground.com/textures/icons/Zoom.png");
-    this.saveButton = this.makeAButton("Save", "https://www.babylonjs-playground.com/textures/icons/Save.png");
-    this.loadButton = this.makeAButton("Load", "https://www.babylonjs-playground.com/textures/icons/Open.png");
+    this.deleteButton = this.makeAButton("Remove", this.contentBase+"/content/icons/delete.png", (o)=>this.removeObject(o));
+    this.searchButton = this.makeAButton("Search", this.contentBase+"/content/icons/zoom.png");
+    this.saveButton = this.makeAButton("Save", this.contentBase+"/content/icons/save.png");
+    this.loadButton = this.makeAButton("Load", this.contentBase+"/content/icons/open.png");
     
     this.searchButton.onPointerDownObservable.add( () => {
       this.searchPanel.relocatePanel();
