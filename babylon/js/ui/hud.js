@@ -68,7 +68,7 @@ export class HUD {
     var requiredRatio = this.elements.length/10*2;
     this.scale = Math.min(1, aspectRatio/requiredRatio); 
     this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
-    console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
+    //console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
   }
   
   makeRoomForMore() {
@@ -116,17 +116,19 @@ export class HUD {
     var plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: size*textureWidth/textureHeight, height: size});
     plane.parent = this.root;
     plane.position = new BABYLON.Vector3(0,0,0.02);
-    this.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,textureWidth,textureHeight);
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,textureWidth,textureHeight);
     // advancedTexture creates material and attaches it to the plane
     plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
     
-    this.advancedTexture.addControl(panel);
+    advancedTexture.addControl(panel);
 
     this.elements.push(plane);
     this.controls.push(panel);
+    this.textures.push(advancedTexture);
     
   	return this.advancedTexture;
   }
+  
   /**
   Adds a slider to the HUD.
   @return babylon Slider object
@@ -225,13 +227,15 @@ export class HUD {
   }
   
   newRow() {
-    this.root.scaling = new BABYLON.Vector3(this.scale*.5,this.scale*.5,this.scale*.5);
-    this.root.position.y += this.vertical/2;
+    this.rows.forEach(row=>{
+      row.root.scaling.scaleInPlace(.5);
+      row.root.position.y += this.vertical/(this.rows.length*2);
+    });
  
-    this.root = new BABYLON.TransformNode("HUD");
+    this.root = new BABYLON.TransformNode("HUD"+this.rows.length);
     this.root.parent = this.camera;
     this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
- 
+    console.log('pushed elements '+this.elements.length);
     this.elements = [];
     this.controls = [];
     this.textures = [];
@@ -239,10 +243,6 @@ export class HUD {
   }
 
   clearRow() {
-	  if ( this.advancedTexture ) {
-		  this.advancedTexture.dispose();
-		  delete this.advancedTexture;
-	  }
     // TODO check rows length
     // CHECKME: dispose of all elements/controls?
     this.controls.forEach(c=>c.dispose());
@@ -255,15 +255,20 @@ export class HUD {
     });
     this.textures.forEach(t=>t.dispose());
     this.root.dispose();
+    
     this.rows.pop();
-    var row = this.rows[this.rows.length-1]
-    this.root = row.root;
-    this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,this.scale);
-    this.root.position.y -= this.vertical/2;
 
+    this.rows.forEach(row=>{
+      row.root.scaling.scaleInPlace(2);
+      row.root.position.y -= this.vertical/(this.rows.length*2);
+    });
+
+    var row = this.rows[this.rows.length-1];
+    this.root = row.root;
     this.elements = row.elements;
     this.controls = row.controls;
     this.textures = row.textures;
-  }
+    console.log('popped elements '+this.elements.length);
+ }
   
 }
