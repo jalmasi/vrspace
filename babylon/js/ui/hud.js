@@ -21,6 +21,7 @@ export class HUD {
     this.vertical = -0.1;
     this.verticalXR = -0.2;
     // state variables
+    this.scale = 1;
     scene.onActiveCameraChanged.add( () => this.trackCamera() );
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
     this.elements = [];
@@ -65,9 +66,9 @@ export class HUD {
     // TODO exactly calculate aspect ratio depending on number of buttons, size, spacing
     // 0.75 (10 buttons) on this distance fits at aspect of 2
     var requiredRatio = this.elements.length/10*2;
-    var scale = Math.min(1, aspectRatio/requiredRatio); 
-    this.root.scaling = new BABYLON.Vector3(scale,scale,1);
-    console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+scale);
+    this.scale = Math.min(1, aspectRatio/requiredRatio); 
+    this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
+    console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
   }
   
   makeRoomForMore() {
@@ -109,13 +110,20 @@ export class HUD {
     return button;
   }
   
+  addPanel(panel) {
+    
+  }
+  
   textInput(callback) {
   	//this.newRow();
 	
-    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: .5, height: .05});
+	  var pxHeight = 64;
+	  var pxWidth = 1280;
+	  var size = 0.03 * this.scale;
+    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: size*pxWidth/pxHeight, height: size});
     plane.parent = this.root;
     plane.position = new BABYLON.Vector3(0,0,0.02);
-    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,640,64);
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,pxWidth,pxHeight);
     // advancedTexture creates material and attaches it to the plane
     plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
     
@@ -123,31 +131,80 @@ export class HUD {
     panel.isVertical = false;
     panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    
+    panel.width = 1;
+    panel.height = 1;
+    advancedTexture.addControl(panel);
+
+    var text1 = new BABYLON.GUI.TextBlock();
+    text1.text = "Search:";
+    text1.color = "white";
+    text1.fontSize = 48;
+    text1.heightInPixels = 48;
+    text1.resizeToFit = true;
+    panel.addControl(text1);    
+
     var input = new BABYLON.GUI.InputText();
-    input.width = 1;
+    input.widthInPixels = 500;
+    input.heightInPixels = 48;
     input.fontSizeInPixels = 48;
+    //input.paddingLeft = "10px";
+    //input.paddingRight = "10px";
     // fine:
     //input.widthInPixels = canvas.getBoundingClientRect().width/2;
     //input.widthInPixels = scene.getEngine().getRenderingCanvas().getBoundingClientRect().width/2;
     input.color = "white";
-    input.background = "green";
-  	advancedTexture.addControl(input);    
+    panel.addControl(input);
   
   	var keyboard = new BABYLON.GUI.VirtualKeyboard();
   	keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
   	advancedTexture.addControl(keyboard);
-    keyboard.addKeysRow(["\u2191"]);
+    //keyboard.addKeysRow(["\u2191"]);
   	keyboard.connect(input);
+
+    var text2 = new BABYLON.GUI.TextBlock();
+    text2.text = "Animated:";
+    text2.color = "white";
+    text2.fontSize = 48;
+    text2.heightInPixels = 48;
+    text2.resizeToFit = true;
+    text2.paddingLeft = "10px";
+    panel.addControl(text2);    
+
+    var animated = new BABYLON.GUI.Checkbox();
+    animated.heightInPixels = 48;
+    animated.widthInPixels = 48;
+    animated.color = "white";
+    panel.addControl(animated);    
+
+    var text3 = new BABYLON.GUI.TextBlock();
+    text3.text = "Rigged:";
+    text3.color = "white";
+    text3.fontSize = 48;
+    text3.heightInPixels = 48;
+    text3.resizeToFit = true;
+    text3.paddingLeft = "10px";
+    panel.addControl(text3);    
   	
-  	//input.focus(); // not available in babylon 4
+    var rigged = new BABYLON.GUI.Checkbox();
+    rigged.heightInPixels = 48;
+    rigged.widthInPixels = 48;
+    rigged.color = "white";
+    panel.addControl(rigged);    
+
+  	var enter = new BABYLON.GUI.Button.CreateImageOnlyButton("enter", VRSPACEUI.contentBase+"/content/icons/play.png");
+  	enter.widthInPixels = 58;
+  	enter.heightInPixels = 48;
+    enter.paddingLeft = "10px";
+    enter.background = "green";
+    enter.onPointerDownObservable.add(()=>{ 
+      console.log(input.text);
+      if ( callback ) {
+        callback(input.text);
+      }
+    });
+  	panel.addControl(enter);
   	
-  	input.onBlurObservable.add(()=>{ 
-  	  console.log(input.text);
-  	  if ( callback ) {
-			  callback(input.text);
-		  }
-  	})
+    //input.focus(); // not available in babylon 4
   	
     this.elements.push(plane);
     this.controls.push(panel);
@@ -254,7 +311,7 @@ export class HUD {
   }
   
   newRow() {
-    this.root.scaling = new BABYLON.Vector3(.5,.5,.5);
+    this.root.scaling = new BABYLON.Vector3(this.scale*.5,this.scale*.5,this.scale*.5);
     this.root.position.y += this.vertical/2;
  
     this.root = new BABYLON.TransformNode("HUD");
@@ -287,7 +344,7 @@ export class HUD {
     this.rows.pop();
     var row = this.rows[this.rows.length-1]
     this.root = row.root;
-    this.root.scaling = new BABYLON.Vector3(1,1,1);
+    this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,this.scale);
     this.root.position.y -= this.vertical/2;
 
     this.elements = row.elements;
