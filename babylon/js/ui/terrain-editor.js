@@ -16,7 +16,7 @@ export class TerrainEditor extends WorldListener {
     // override world method to make every VRObject selectable
     this.worldPickPredicate = world.isSelectableMesh;
     world.isSelectableMesh = (mesh) => {
-      return this.worldPickPredicate(mesh) || (this.terrain && mesh == this.terrain.mesh());
+      return this.worldPickPredicate(mesh) || this.isSelectableMesh(mesh);
     }
   }
   /** Called by WorldManager when user enters the world */
@@ -200,5 +200,8 @@ export class TerrainEditor extends WorldListener {
   }
   dispose() {
     // TODO
+  }
+  isSelectableMesh(mesh) {
+    return VRSPACEUI.hud.isSelectableMesh(mesh) || (this.terrain && mesh == this.terrain.mesh());
   }
 }

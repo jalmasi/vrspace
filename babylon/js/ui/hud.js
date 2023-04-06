@@ -272,6 +272,6 @@ export class HUD {
  }
  
  isSelectableMesh(mesh) {
-   return this.elements.includes(mesh) || this.controls.includes(mesh) || this.textures.includes(mesh);
+   return this.elements.includes(mesh);
  }
 }
