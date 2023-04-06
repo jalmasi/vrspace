@@ -13,6 +13,11 @@ export class TerrainEditor extends WorldListener {
     this.editing = false;
     world.worldListeners.push(this);
     this.textureSelector = new TextureSelector(this.scene, (img) => this.publishTexture(img));
+    // override world method to make every VRObject selectable
+    this.worldPickPredicate = world.isSelectableMesh;
+    world.isSelectableMesh = (mesh) => {
+      return this.worldPickPredicate(mesh) || (this.terrain && mesh == this.terrain.mesh());
+    }
   }
   /** Called by WorldManager when user enters the world */
   entered(welcome) {
@@ -166,12 +171,15 @@ export class TerrainEditor extends WorldListener {
       if ( online ) {
         // if online, terrain is not refreshed until the server responds with updated height
         index = this.terrain.findIndex(x,z);
-        var point = this.terrain.point(index);
-        point.y += this.heightIncrement*this.direction;
-        // publish updates
-        var index = this.terrain.findIndex(x,z);
-        var change = { change: {index: index, point: point} };
-        this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, change);
+        if ( index ) {
+          var point = this.terrain.point(index);
+          point.y += this.heightIncrement*this.direction;
+          // publish updates
+          var change = { change: {index: index, point: point} };
+          this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, change);
+        } else {
+          console.log("ERROR: index "+index+" for "+x+","+z);
+        }
       } else {
         index = this.terrain.raise(x,z,this.heightIncrement*this.direction, online);
       }

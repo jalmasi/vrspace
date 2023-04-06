@@ -129,7 +129,7 @@ export class VRHelper {
         this.world.camera.globalPosition.y = targetPosition.y;
         this.world.camera.globalPosition.z = targetPosition.z;
         if ( this.world.terrain ) {
-          this.world.terrain.update(true);
+          this.world.terrain.refresh(true);
         }
       });
       
@@ -144,7 +144,7 @@ export class VRHelper {
     this.world.camera.globalPosition.y = targetPosition.y;
     this.world.camera.globalPosition.z = targetPosition.z;
     if ( this.world.terrain ) {
-      this.world.terrain.update(false);
+      this.world.terrain.refresh(false);
     }
     // TODO we can modify camera y here, adding terrain height on top of ground height
   }

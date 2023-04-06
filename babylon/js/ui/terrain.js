@@ -84,11 +84,11 @@ export class Terrain {
   */
   findIndex(x, z) {
     // mostly copied from DynamicTerrain source
-    let mapSizeX = Math.abs(this.mapData[(this.xSize - 1) * 3] - this.mapData[0]);
-    let mapSizeZ = Math.abs(this.mapData[(this.zSize - 1) * this.xSize* 3 + 2] - this.mapData[2]);
+    let mapSizeX = Math.abs(this.terrain.mapData[(this.xSize - 1) * 3] - this.terrain.mapData[0]);
+    let mapSizeZ = Math.abs(this.terrain.mapData[(this.zSize - 1) * this.xSize* 3 + 2] - this.terrain.mapData[2]);
     
-    let x0 = this.mapData[0];
-    let z0 = this.mapData[2];
+    let x0 = this.terrain.mapData[0];
+    let z0 = this.terrain.mapData[2];
 
     // reset x and z in the map space so they are between 0 and the map size
     x = x - Math.floor((x - x0) / mapSizeX) * mapSizeX;
