@@ -698,7 +698,6 @@ export class WorldEditor {
   }
   
   dispose() {
-    this.uiRoot.dispose();
     this.searchPanel.dispose();
     this.buttons.forEach((b)=>b.dispose());    
   }
