@@ -110,108 +110,22 @@ export class HUD {
     return button;
   }
   
-  addPanel(panel) {
-    
-  }
-  
-  textInput(callback) {
-  	//this.newRow();
-	
-	  var pxHeight = 64;
-	  var pxWidth = 1280;
+  addPanel(panel,textureWidth,textureHeight) {
 	  var size = 0.03 * this.scale;
-    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: size*pxWidth/pxHeight, height: size});
+
+    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: size*textureWidth/textureHeight, height: size});
     plane.parent = this.root;
     plane.position = new BABYLON.Vector3(0,0,0.02);
-    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,pxWidth,pxHeight);
+    this.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,textureWidth,textureHeight);
     // advancedTexture creates material and attaches it to the plane
     plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
     
-    var panel = new BABYLON.GUI.StackPanel();
-    panel.isVertical = false;
-    panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    panel.width = 1;
-    panel.height = 1;
-    advancedTexture.addControl(panel);
+    this.advancedTexture.addControl(panel);
 
-    var text1 = new BABYLON.GUI.TextBlock();
-    text1.text = "Search:";
-    text1.color = "white";
-    text1.fontSize = 48;
-    text1.heightInPixels = 48;
-    text1.resizeToFit = true;
-    panel.addControl(text1);    
-
-    var input = new BABYLON.GUI.InputText();
-    input.widthInPixels = 500;
-    input.heightInPixels = 48;
-    input.fontSizeInPixels = 48;
-    //input.paddingLeft = "10px";
-    //input.paddingRight = "10px";
-    // fine:
-    //input.widthInPixels = canvas.getBoundingClientRect().width/2;
-    //input.widthInPixels = scene.getEngine().getRenderingCanvas().getBoundingClientRect().width/2;
-    input.color = "white";
-    panel.addControl(input);
-  
-  	var keyboard = new BABYLON.GUI.VirtualKeyboard();
-  	keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-  	advancedTexture.addControl(keyboard);
-    //keyboard.addKeysRow(["\u2191"]);
-  	keyboard.connect(input);
-
-    var text2 = new BABYLON.GUI.TextBlock();
-    text2.text = "Animated:";
-    text2.color = "white";
-    text2.fontSize = 48;
-    text2.heightInPixels = 48;
-    text2.resizeToFit = true;
-    text2.paddingLeft = "10px";
-    panel.addControl(text2);    
-
-    var animated = new BABYLON.GUI.Checkbox();
-    animated.heightInPixels = 48;
-    animated.widthInPixels = 48;
-    animated.color = "white";
-    panel.addControl(animated);    
-
-    var text3 = new BABYLON.GUI.TextBlock();
-    text3.text = "Rigged:";
-    text3.color = "white";
-    text3.fontSize = 48;
-    text3.heightInPixels = 48;
-    text3.resizeToFit = true;
-    text3.paddingLeft = "10px";
-    panel.addControl(text3);    
-  	
-    var rigged = new BABYLON.GUI.Checkbox();
-    rigged.heightInPixels = 48;
-    rigged.widthInPixels = 48;
-    rigged.color = "white";
-    panel.addControl(rigged);    
-
-  	var enter = new BABYLON.GUI.Button.CreateImageOnlyButton("enter", VRSPACEUI.contentBase+"/content/icons/play.png");
-  	enter.widthInPixels = 58;
-  	enter.heightInPixels = 48;
-    enter.paddingLeft = "10px";
-    enter.background = "green";
-    enter.onPointerDownObservable.add(()=>{ 
-      console.log(input.text);
-      if ( callback ) {
-        callback(input.text);
-      }
-    });
-  	panel.addControl(enter);
-  	
-    //input.focus(); // not available in babylon 4
-  	
     this.elements.push(plane);
     this.controls.push(panel);
     
-    this.input = input;
-  
-  	return input;
+  	return this.advancedTexture;
   }
   /**
   Adds a slider to the HUD.
@@ -325,9 +239,9 @@ export class HUD {
   }
 
   clearRow() {
-	  if ( this.input ) {
-		  this.input.dispose();
-		  this.input = null;
+	  if ( this.advancedTexture ) {
+		  this.advancedTexture.dispose();
+		  delete this.advancedTexture;
 	  }
     // TODO check rows length
     // CHECKME: dispose of all elements/controls?
