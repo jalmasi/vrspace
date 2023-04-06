@@ -159,7 +159,7 @@ export class WorldEditor {
     this.worldPickPredicate = world.isSelectableMesh;
     // override world method to make every VRObject selectable
     world.isSelectableMesh = (mesh) => {
-      return this.worldPickPredicate(mesh) || VRSPACEUI.findRootNode(mesh).VRObject;
+      return this.worldPickPredicate(mesh) || this.isSelectableMesh(mesh);
     }
   }
   
@@ -699,6 +699,12 @@ export class WorldEditor {
   
   dispose() {
     this.searchPanel.dispose();
-    this.buttons.forEach((b)=>b.dispose());    
+    this.buttons.forEach((b)=>b.dispose());
+    this.world.isSelectableMesh = this.worldPickPredicate;    
+  }
+  
+  // XR selection support
+  isSelectableMesh(mesh) {
+    return VRSPACEUI.hud.isSelectableMesh(mesh) || VRSPACEUI.findRootNode(mesh).VRObject;
   }
 }

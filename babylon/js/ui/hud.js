@@ -270,5 +270,8 @@ export class HUD {
     this.textures = row.textures;
     console.log('popped elements '+this.elements.length);
  }
-  
+ 
+ isSelectableMesh(mesh) {
+   return this.elements.includes(mesh) || this.controls.includes(mesh) || this.textures.includes(mesh);
+ }
 }

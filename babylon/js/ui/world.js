@@ -229,7 +229,7 @@ export class World {
   }
   
   /**
-  Used in mesh selection predicate. Default implementation returns true for members of this.floorMeshes.
+  Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.
    */
   isSelectableMesh(mesh) {
     return this.floorMeshes && this.floorMeshes.includes(mesh);
@@ -237,6 +237,7 @@ export class World {
 
   /**
   Returns this.floorMeshes or this.ground if exist, or empty array.
+  Used for movement in XR.
    */
   getFloorMeshes() {
     if ( this.floorMeshes ) {
