@@ -227,7 +227,6 @@ export class World {
   }
   trackXrDevices() {
   }
-  
   /**
   Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.
    */

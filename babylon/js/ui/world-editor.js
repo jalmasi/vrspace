@@ -1,6 +1,7 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 import {ScrollablePanel} from "./scrollable-panel.js";
 
+// TODO turn this into stand-alone public helper class
 class Form {
   constructor(params) {
     this.fontSize = 48;
@@ -118,7 +119,8 @@ class SearchForm {
     //input.focus(); // not available in babylon 4
   }
   keyboard(input, advancedTexture) {
-    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout();
+    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('search-keyboard');
+    keyboard.fontSizeInPixels = 36;
     keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     if (this.keyboardRows) {
       this.keyboardRows.forEach(row=>keyboard.addKeysRow(row));
@@ -132,6 +134,7 @@ class SearchForm {
     this.panel.dispose();
   }
 }
+
 export class WorldEditor {
   constructor( world, fileInput ) {
     if ( ! world.worldManager ) {
@@ -416,7 +419,8 @@ export class WorldEditor {
   }
   
   dropObject() {
-    if ( ! this.activeButton && this.carrying ) {
+    //if ( ! this.activeButton && this.carrying ) {
+    if ( this.carrying ) {
       console.log("dropping");
       this.drop(this.carrying);
       this.carrying = null;
@@ -471,7 +475,19 @@ export class WorldEditor {
       quat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(quat);
       target.rotation = quat.toEulerAngles()
     }
-    target.parent = VRSPACEUI.hud.camera;
+    if ( VRSPACEUI.hud.inXR() ) {
+      if (this.world.vrHelper.leftController) {
+        target.parent = this.world.vrHelper.leftController.pointer;
+        console.log('attached to',this.world.vrHelper.leftController.pointer);
+      } else if (this.world.vrHelper.rightController) {
+        target.parent = this.world.vrHelper.rightController.pointer;
+        console.log('attached to',this.world.vrHelper.rightController.pointer);
+      } else {
+        target.parent = VRSPACEUI.hud.camera;
+      }
+    } else {
+      target.parent = VRSPACEUI.hud.camera;
+    }
     vrObject.target = target;
     
     vrObject.changeListener = () => this.sendPos(vrObject);
@@ -510,6 +526,8 @@ export class WorldEditor {
   }
   
   editObject(obj, editing) {
+    // FIXME: fails for objects not created with world editor with
+    // Uncaught TypeError: Cannot set properties of null (setting 'editing')
     if ( editing ) {
       obj.properties.editing = this.worldManager.VRSPACE.me.id;
     } else {
@@ -700,6 +718,7 @@ export class WorldEditor {
   }
   
   dispose() {
+    this.dropObject(); // just in case
     this.searchPanel.dispose();
     this.buttons.forEach((b)=>b.dispose());
     this.world.isSelectableMesh = this.worldPickPredicate;    
