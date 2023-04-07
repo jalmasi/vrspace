@@ -101,8 +101,16 @@ export class VRHelper {
           console.log(xrController);
           if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
             this.leftController = xrController;
+            xrController.onMotionControllerInitObservable.add((motionController) => {
+              console.log('left motion controller:',motionController.getComponentIds());
+              this.trackMotionController(motionController ,'left');
+            });
           } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
             this.rightController = xrController;
+            xrController.onMotionControllerInitObservable.add((motionController) => {
+              console.log('right motion controller:',motionController.getComponentIds());
+              this.trackMotionController(motionController ,'right');
+            });
           } else {
             log("ERROR: don't know how to handle controller");
           }
@@ -138,6 +146,25 @@ export class VRHelper {
     console.log("VRHelper initialized", this.vrHelper);
   }
   
+  trackMotionController(controller, name) {
+    for( const prop in controller.components ) {
+      let component = controller.components[prop];
+      console.log(name+' '+prop+' '+component.isButton()+' '+component.isAxes()+' '+component.type);
+      if (component.isAxes()) {
+        component.onAxisValueChangedObservable.add((pos)=>{
+          console.log(name+' '+prop+" x="+pos.x+" y="+pos.y);
+        });
+      } else if (component.isButton()) {
+        // State change is either pressed / touched / value
+        component.onButtonStateChangedObservable.add((c)=>{
+          console.log(name+' '+prop+" "+c.value);
+        });
+      } else {
+        console.log("Don't know how to handle component "+component);
+      }
+    };
+  }
+  
   afterTeleportation() {
     var targetPosition = this.vrHelper.baseExperience.camera.position;
     this.world.camera.globalPosition.x = targetPosition.x;
@@ -149,10 +176,12 @@ export class VRHelper {
     // TODO we can modify camera y here, adding terrain height on top of ground height
   }
   trackXrDevices() {
-    // user height has to be tracked here due to
-    //XRFrame access outside the callback that produced it is invalid
-    this.userHeight = this.camera().realWorldHeight;
-    this.world.trackXrDevices();
+    if ( this.inXR ) {
+      // user height has to be tracked here due to
+      //XRFrame access outside the callback that produced it is invalid
+      this.userHeight = this.camera().realWorldHeight;
+      this.world.trackXrDevices();
+    }
   }
   startTracking() {
     this.world.scene.registerBeforeRender(this.tracker);
