@@ -17,8 +17,8 @@ export class HUD {
     this.buttonSize = .05;
     this.buttonSpacing = 0.025;
     this.alpha=0.7; // button opacity
-    this.distance = .5;
-    this.vertical = -0.1;
+    this.distance = .6;
+    this.verticalWeb = -0.1;
     this.verticalXR = -0.2;
     // state variables
     this.scale = 1;
@@ -28,7 +28,7 @@ export class HUD {
     this.controls = [];
     this.textures = [];
     this.root = new BABYLON.TransformNode("HUD");
-    this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
+    this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distance);
     this.rows = [{root: this.root, elements: this.elements, controls: this.controls, textures: this.textures}];
     window.addEventListener("resize", () => {
       this.rescaleHUD();
@@ -41,21 +41,38 @@ export class HUD {
   trackCamera() {
     console.log("HUD tracking camera: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
     this.camera = this.scene.activeCamera;
-    if ( this.onlyCamera ) {
-     if ( this.camera == this.onlyCamera ) {
-        // TODO activate this HUD
+    if ( this.camera ) {
+      if ( this.onlyCamera ) {
+       if ( this.camera == this.onlyCamera ) {
+          // TODO activate this HUD
+        } else {
+          // TODO deactivate this HUD
+        }
       } else {
-        // TODO deactivate this HUD
+        this.root.parent = this.camera;
+        if ( this.inXR() ) {
+          this.root.scaling = new BABYLON.Vector3(.5, .5, .5);
+          this.root.position = new BABYLON.Vector3(0,this.verticalXR,this.distance);
+        } else {
+          this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distance);
+          this.rescaleHUD();
+        }
       }
+      
+    }
+  }
+  
+  /** Returns true if XR mode is active (current camera is WebXRCamera) */
+  inXR() {
+    return this.camera && "WebXRCamera" == this.camera.getClassName();
+  }
+  
+  /** Returns vertical position of the HUD */
+  vertical() {
+    if ( this.inXR() ) {
+      return this.verticalXR;
     } else {
-      this.root.parent = this.camera;
-      if ( "WebXRCamera" == this.camera.getClassName() ) {
-        this.root.scaling = new BABYLON.Vector3(.5, .5, .5);
-        this.root.position = new BABYLON.Vector3(0,this.verticalXR,this.distance);
-      } else {
-        this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
-        this.rescaleHUD();
-      }
+      return this.verticalWeb;
     }
   }
   /**
@@ -110,13 +127,19 @@ export class HUD {
     return button;
   }
   
+  /**
+   * Adds a panel (typically babylon StackPanel) to the hud. Creates and returns AdvancedDynamicTexture to render the panel.
+   * @param panel to add
+   * @param textureWidth width in pixels
+   * @param textureHeight height in pixels
+   */
   addPanel(panel,textureWidth,textureHeight) {
-	  var size = 0.03 * this.scale;
+	  let size = 0.03 * this.scale * textureHeight/64;
 
-    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: size*textureWidth/textureHeight, height: size});
+    let plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: size*textureWidth/textureHeight, height: size});
     plane.parent = this.root;
-    plane.position = new BABYLON.Vector3(0,0,0.02);
-    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,textureWidth,textureHeight);
+    plane.position = new BABYLON.Vector3(0,size/2,0.02);
+    let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,textureWidth,textureHeight);
     // advancedTexture creates material and attaches it to the plane
     plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
     
@@ -126,7 +149,7 @@ export class HUD {
     this.controls.push(panel);
     this.textures.push(advancedTexture);
     
-  	return this.advancedTexture;
+  	return advancedTexture;
   }
   
   /**
@@ -229,12 +252,12 @@ export class HUD {
   newRow() {
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(.5);
-      row.root.position.y += this.vertical/(this.rows.length*2);
+      row.root.position.y += this.vertical()/(this.rows.length*2);
     });
  
     this.root = new BABYLON.TransformNode("HUD"+this.rows.length);
     this.root.parent = this.camera;
-    this.root.position = new BABYLON.Vector3(0,this.vertical,this.distance);
+    this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance);
     console.log('pushed elements '+this.elements.length);
     this.elements = [];
     this.controls = [];
@@ -260,7 +283,7 @@ export class HUD {
 
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(2);
-      row.root.position.y -= this.vertical/(this.rows.length*2);
+      row.root.position.y -= this.vertical()/(this.rows.length*2);
     });
 
     var row = this.rows[this.rows.length-1];

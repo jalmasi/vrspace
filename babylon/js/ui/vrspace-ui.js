@@ -65,7 +65,7 @@ export class VRSpaceUI {
           this.guiManager = this.hud.guiManager;
         }
       } catch ( exception ) {
-        console.log( "WARNING: Can't create HUD - make sure to load babylon.gui.min.js");
+        console.log( "WARNING: Can't create HUD - make sure to load babylon.gui.min.js", exception);
       }
       this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script

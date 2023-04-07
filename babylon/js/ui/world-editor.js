@@ -62,15 +62,6 @@ class Form {
     }
     return input;
   }
-  keyboard() {
-    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout();
-    keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-    if (this.keyboardRows) {
-      this.keyboardRows.forEach(row=>keyboard.addKeysRow(row));
-    }
-    return keyboard;
-  }
-  
 }
 
 class SearchForm {
@@ -95,12 +86,8 @@ class SearchForm {
 
     this.panel.addControl(form.textBlock("Search Sketchfab:"));    
 
-    var input = form.inputText();
-    this.panel.addControl(input);
-
-    //var keyboard = form.keyboard;
-    //advancedTexture.addControl(keyboard); // CHECKME: add control to panel or texture?
-    //keyboard.connect(input);
+    this.input = form.inputText();
+    this.panel.addControl(this.input);
 
     var text2 = form.textBlock("Animated:");
     text2.paddingLeft = "10px";
@@ -122,14 +109,24 @@ class SearchForm {
     enter.paddingLeft = "10px";
     enter.background = "green";
     enter.onPointerDownObservable.add(()=>{ 
-      console.log(input.text);
       if ( this.callback ) {
-        this.callback(input.text);
+        this.callback(this.input.text);
       }
     });
     this.panel.addControl(enter);
     
     //input.focus(); // not available in babylon 4
+  }
+  keyboard(input, advancedTexture) {
+    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout();
+    keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    if (this.keyboardRows) {
+      this.keyboardRows.forEach(row=>keyboard.addKeysRow(row));
+    }
+    advancedTexture.addControl(keyboard);
+    keyboard.connect(input);
+    
+    return keyboard;
   }
   dispose() {
     this.panel.dispose();
@@ -189,32 +186,37 @@ export class WorldEditor {
   }
 
   searchForm() {
-    if ( this.input ) {
+    if ( this.form ) {
       VRSPACEUI.hud.clearRow();
-      this.input.dispose();
-      delete this.input;
+      this.form.dispose();
+      delete this.form;
       this.displayButtons(true);
     } else {
-      this.input = new SearchForm((text)=>this.doSearch(text));
-      this.input.init();
+      this.form = new SearchForm((text)=>this.doSearch(text));
+      this.form.init();
       VRSPACEUI.hud.newRow();
-      VRSPACEUI.hud.addPanel(this.input.panel,1536,64);
+      if ( VRSPACEUI.hud.inXR() ) {
+        let texture = VRSPACEUI.hud.addPanel(this.form.panel,1536,512);
+        this.form.keyboard(this.form.input,texture);
+      } else {
+        VRSPACEUI.hud.addPanel(this.form.panel,1536,64);
+      }
     }
   }
   
   doSearch(text) {
     if ( text ) {
       var args = {};
-      if (this.input.animated.isChecked) {
+      if (this.form.animated.isChecked) {
         args.animated = true;
       }
-      if (this.input.rigged.isChecked) {
+      if (this.form.rigged.isChecked) {
         args.rigged = true;
       }
       this.search(text, args);
     }
     VRSPACEUI.hud.clearRow();
-    delete this.input;
+    delete this.form;
     this.displayButtons(true);
   }
   
