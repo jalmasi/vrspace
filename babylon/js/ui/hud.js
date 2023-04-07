@@ -17,7 +17,8 @@ export class HUD {
     this.buttonSize = .05;
     this.buttonSpacing = 0.025;
     this.alpha=0.7; // button opacity
-    this.distance = .6;
+    this.distanceWeb = .5;
+    this.distanceXR = .8;
     this.verticalWeb = -0.1;
     this.verticalXR = -0.2;
     // state variables
@@ -28,7 +29,7 @@ export class HUD {
     this.controls = [];
     this.textures = [];
     this.root = new BABYLON.TransformNode("HUD");
-    this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distance);
+    this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distanceWeb);
     this.rows = [{root: this.root, elements: this.elements, controls: this.controls, textures: this.textures}];
     window.addEventListener("resize", () => {
       this.rescaleHUD();
@@ -50,13 +51,7 @@ export class HUD {
         }
       } else {
         this.root.parent = this.camera;
-        if ( this.inXR() ) {
-          this.root.scaling = new BABYLON.Vector3(.5, .5, .5);
-          this.root.position = new BABYLON.Vector3(0,this.verticalXR,this.distance);
-        } else {
-          this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distance);
-          this.rescaleHUD();
-        }
+        this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
       }
       
     }
@@ -73,6 +68,14 @@ export class HUD {
       return this.verticalXR;
     } else {
       return this.verticalWeb;
+    }
+  }
+  /** Returns distance of the HUD from the camera*/
+  distance() {
+    if ( this.inXR() ) {
+      return this.distanceXR;
+    } else {
+      return this.distanceWeb;
     }
   }
   /**
@@ -257,8 +260,7 @@ export class HUD {
  
     this.root = new BABYLON.TransformNode("HUD"+this.rows.length);
     this.root.parent = this.camera;
-    this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance);
-    console.log('pushed elements '+this.elements.length);
+    this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
     this.elements = [];
     this.controls = [];
     this.textures = [];
@@ -291,7 +293,6 @@ export class HUD {
     this.elements = row.elements;
     this.controls = row.controls;
     this.textures = row.textures;
-    console.log('popped elements '+this.elements.length);
  }
  
  isSelectableMesh(mesh) {

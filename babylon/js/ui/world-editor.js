@@ -399,8 +399,8 @@ export class WorldEditor {
         switch (pointerInfo.type) {
           case BABYLON.PointerEventTypes.POINTERDOWN:
             if ( this.activeButton ) {
-              console.log("pickedMesh", pointerInfo.pickInfo.pickedMesh);
-              console.log("pickedRoot", pickedRoot);
+              //console.log("pickedMesh", pointerInfo.pickInfo.pickedMesh);
+              //console.log("pickedRoot", pickedRoot);
               if ( pickedRoot.VRObject && this.activeButton.isVisible) {
                 // make an action on the object
                 console.log("Manipulating shared object "+pickedRoot.VRObject.id+" "+pickedRoot.name);
