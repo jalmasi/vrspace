@@ -46,7 +46,7 @@ class Form {
     return checkbox;
   }
   inputText(params) {
-    var input = new BABYLON.GUI.InputText();
+    let input = new BABYLON.GUI.InputText();
     input.widthInPixels = this.inputWidth;
     input.heightInPixels = this.heightInPixels;
     input.fontSizeInPixels = this.fontSize;
@@ -58,7 +58,7 @@ class Form {
     input.color = this.color;
     input.background = this.background;
     if ( params ) {
-      for(var c of Object.keys(params)) {
+      for(let c of Object.keys(params)) {
         input[c] = params[c];
       }
     }
@@ -66,8 +66,9 @@ class Form {
   }
 }
 
-class SearchForm {
+class SearchForm extends Form {
   constructor(callback) {
+    super();
     this.callback = callback;
     this.fontSize = 48;
     this.heightInPixels = 48;
@@ -86,25 +87,23 @@ class SearchForm {
     this.panel.width = 1;
     this.panel.height = 1;
 
-    var form = new Form();
+    this.panel.addControl(this.textBlock("Search Sketchfab:"));    
 
-    this.panel.addControl(form.textBlock("Search Sketchfab:"));    
-
-    this.input = form.inputText();
+    this.input = this.inputText();
     this.panel.addControl(this.input);
 
-    var text2 = form.textBlock("Animated:");
+    var text2 = this.textBlock("Animated:");
     text2.paddingLeft = "10px";
     this.panel.addControl(text2);
 
-    this.animated = form.checkbox();
+    this.animated = this.checkbox();
     this.panel.addControl(this.animated);
 
-    var text3 = form.textBlock("Rigged:");
+    var text3 = this.textBlock("Rigged:");
     text3.paddingLeft = "10px";
     this.panel.addControl(text3);
     
-    this.rigged = form.checkbox();
+    this.rigged = this.checkbox();
     this.panel.addControl(this.rigged);
 
     var enter = new BABYLON.GUI.Button.CreateImageOnlyButton("enter", VRSPACEUI.contentBase+"/content/icons/play.png");
@@ -116,12 +115,12 @@ class SearchForm {
     this.panel.addControl(enter);
     
     //input.focus(); // not available in babylon 4
-    
-    this.speechInput.addCommand('search (sketchfab) (for) *text', (text) => this.voiceSearch(text));
+    var that = this;
+    this.speechInput.addCommand('search (sketchfab) (for) *text', (text) => that.voiceSearch(text));
     this.speechInput.addCommand('animated *onoff', (text) => this.toggleAnimated(text));
     this.speechInput.addCommand('rigged *onoff', (text) => this.toggleRigged(text));
-    this.speechInput.addCommand('submit.', (text) => this.submit());
-    this.speechInput.addCommand('submit', (text) => this.submit());
+    this.speechInput.addCommand('submit.', () => this.submit());
+    this.speechInput.addCommand('submit', () => this.submit());
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.speechInput.start();
   }
@@ -160,12 +159,24 @@ class SearchForm {
     }
     advancedTexture.addControl(keyboard);
     keyboard.connect(input);
-    
+    this.vKeyboard = keyboard;
     return keyboard;
   }
   dispose() {
+    if ( this.vKeyboard ) {
+      this.vKeyboard.dispose();
+      delete this.vKeyboard;
+    }
+    this.input.dispose();
+    delete this.input;
+    this.animated.dispose();
+    delete this.animated;
+    this.rigged.dispose();
+    delete this.rigged;
     this.panel.dispose();
+    delete this.panel;
     this.speechInput.dispose();
+    delete this.speechInput;
   }
 }
 
@@ -225,10 +236,7 @@ export class WorldEditor {
 
   searchForm() {
     if ( this.form ) {
-      VRSPACEUI.hud.clearRow();
-      this.form.dispose();
-      delete this.form;
-      this.displayButtons(true);
+      this.clearForm();
     } else {
       this.form = new SearchForm((text)=>this.doSearch(text));
       this.form.init();
@@ -241,7 +249,12 @@ export class WorldEditor {
       }
     }
   }
-  
+  clearForm() {
+    VRSPACEUI.hud.clearRow();
+    this.form.dispose();
+    delete this.form;
+    this.displayButtons(true);
+  }
   doSearch(text) {
     if ( text ) {
       var args = {};
@@ -253,9 +266,7 @@ export class WorldEditor {
       }
       this.search(text, args);
     }
-    VRSPACEUI.hud.clearRow();
-    delete this.form;
-    this.displayButtons(true);
+    this.clearForm();
   }
   
   makeAButton(text, imageUrl, action) {

@@ -10,6 +10,7 @@ export class SpeechInput {
     this.commands[command] = (text) => this.callback(text, callback);   
   }
   callback(text, callback) {
+    //console.log("Executing "+text, callback);
     if ( text ) {
       if (this.lowercase) {
         text = text.toLowerCase();
@@ -31,12 +32,11 @@ export class SpeechInput {
       }
 
       if ( this.noMatch ) {
-        annyang.addCallback('resultNoMatch', (phrases) => {
-          this.noMatch(phrases);
-        });
+        annyang.addCallback('resultNoMatch', this.noMatch);
       }
       // Start listening. You can call this here, or attach this call to an event, button, etc.
       annyang.start();
+      console.log("Speech recognition started: "+annyang.isListening(), this.commands);
     } else {
       console.log("Speech recognition unavailable");
     }
@@ -49,13 +49,18 @@ export class SpeechInput {
   dispose() {
     if (annyang) {
       // CHECKME what if we have multiple components using different voice inputs?
-      annyang.stop();
+      annyang.abort();
+      //annyang.pause();
       if ( this.commands ) {
-        annyang.removeCommands(this.commands);
+        // this doesn't work, old commands remain:
+        //annyang.removeCommands(this.commands);
+        annyang.removeCommands();
       }
       if ( this.noMatch ) {
         annyang.removeCallback('resultNoMatch', this.noMatch);
       }
+      console.log("Speech recognition stopped");
     }
+    this.commands = null;
   }
 }
