@@ -1,5 +1,6 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 import {ScrollablePanel} from "./scrollable-panel.js";
+import { SpeechInput } from './speech-input.js';
 
 // TODO turn this into stand-alone public helper class
 class Form {
@@ -74,6 +75,8 @@ class SearchForm {
     this.background = "black";
     this.submitColor = "green";
     this.verticalPanel = false;
+    
+    this.speechInput = new SpeechInput();
   }
   init() {
     this.panel = new BABYLON.GUI.StackPanel();
@@ -99,7 +102,7 @@ class SearchForm {
 
     var text3 = form.textBlock("Rigged:");
     text3.paddingLeft = "10px";
-    this.panel.addControl(text3);    
+    this.panel.addControl(text3);
     
     this.rigged = form.checkbox();
     this.panel.addControl(this.rigged);
@@ -109,14 +112,44 @@ class SearchForm {
     enter.heightInPixels = 48;
     enter.paddingLeft = "10px";
     enter.background = "green";
-    enter.onPointerDownObservable.add(()=>{ 
-      if ( this.callback ) {
-        this.callback(this.input.text);
-      }
-    });
+    enter.onPointerDownObservable.add(()=>{ this.submit() });
     this.panel.addControl(enter);
     
     //input.focus(); // not available in babylon 4
+    
+    this.speechInput.addCommand('search (sketchfab) (for) *text', (text) => this.voiceSearch(text));
+    this.speechInput.addCommand('animated *onoff', (text) => this.toggleAnimated(text));
+    this.speechInput.addCommand('rigged *onoff', (text) => this.toggleRigged(text));
+    this.speechInput.addCommand('submit.', (text) => this.submit());
+    this.speechInput.addCommand('submit', (text) => this.submit());
+    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
+    this.speechInput.start();
+  }
+  submit() {
+    if ( this.callback ) {
+      this.callback(this.input.text);
+    }
+  }
+  voiceSearch(text) {
+    this.input.text = text;
+  }
+  toggleAnimated(text){
+    if ( text == 'on' || text == 'true') {
+      this.animated.isChecked = true;
+    } else if ( text == 'off' || text == 'false') {
+      this.animated.isChecked = false;
+    } else {
+      console.log("Can't set animated to "+text);
+    }
+  }
+  toggleRigged(text){
+    if ( text == 'on' || text == 'true') {
+      this.rigged.isChecked = true;
+    } else if ( text == 'off' || text == 'false') {
+      this.rigged.isChecked = false;
+    } else {
+      console.log("Can't set rigged to "+text);
+    }
   }
   keyboard(input, advancedTexture) {
     var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('search-keyboard');
@@ -132,6 +165,7 @@ class SearchForm {
   }
   dispose() {
     this.panel.dispose();
+    this.speechInput.dispose();
   }
 }
 
@@ -161,6 +195,7 @@ export class WorldEditor {
     world.isSelectableMesh = (mesh) => {
       return this.worldPickPredicate(mesh) || this.isSelectableMesh(mesh);
     }
+    
   }
   
   makeUI() {

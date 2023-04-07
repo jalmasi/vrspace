@@ -23,6 +23,7 @@ export { UnityWorld } from "./ui/unity-world.js";
 
 export { MediaStreams, OpenViduStreams } from "./ui/media-streams.js";
 export { Screencast } from "./ui/screencast.js";
+export { SpeechInput } from "./ui/speech-input.js";
 
 export { VRHelper } from "./ui/vr-helper.js";
 export { ARHelper } from "./ui/ar-helper.js";
