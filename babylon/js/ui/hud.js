@@ -20,7 +20,7 @@ export class HUD {
     this.distanceWeb = .5;
     this.distanceXR = .8;
     this.verticalWeb = -0.1;
-    this.verticalXR = -0.3;
+    this.verticalXR = -0.1;
     // state variables
     this.scale = 1;
     scene.onActiveCameraChanged.add( () => this.trackCamera() );

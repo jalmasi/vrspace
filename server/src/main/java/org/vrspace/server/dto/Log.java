@@ -42,7 +42,7 @@ public class Log implements Command {
       log.warn(logEntry);
       break;
     case "error":
-      log.debug(logEntry);
+      log.error(logEntry);
       break;
     default:
       log.error("Invalid log level received from Client " + client.getId() + ": " + severity + " Message: " + logEntry);

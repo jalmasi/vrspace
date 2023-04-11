@@ -344,9 +344,11 @@ export class WorldEditor {
       }
     });
     // TODO: do this elsewhere
+    /*
     this.world.vrHelper.trackThumbsticks((pos, side)=>{
       console.log(side+' thumbstick  x='+pos.x+' y='+pos.y+' squeeze '+this.world.vrHelper.squeeze[side].pressed);
     });
+    */
   }
   
   rotateObject(obj) {

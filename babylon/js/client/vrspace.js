@@ -772,7 +772,6 @@ export class VRSpace {
       this.log(obj.ERROR);
       this.errorListeners.forEach((listener)=>listener(obj.ERROR));
     } else if ( "Welcome" in obj) {
-      console.log(obj);
       var welcome = obj.Welcome;
       if ( ! this.me ) {
         // FIXME: Uncaught TypeError: Cannot assign to read only property of function class

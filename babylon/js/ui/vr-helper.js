@@ -1,3 +1,4 @@
+import {VRSPACEUI} from './vrspace-ui.js';
 /** 
 Wrapper around BabylonJS XR/VR classes, whatever is available in current browser, if any.
 Attached to a World, uses World floor meshes and camera.
@@ -122,13 +123,16 @@ export class VRHelper {
         // actual class is WebXRInputSource
         this.controllerObserver = (xrController) => {
           console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
-          console.log(xrController);
           if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
             this.leftController = xrController;
             xrController.onMotionControllerInitObservable.add((motionController) => {
               console.log('left motion controller:',motionController.getComponentIds());
               this.trackMotionController(motionController ,'left');
             });
+            // bind hud to left controller grip
+            VRSPACEUI.hud.root.parent = xrController.grip;
+            VRSPACEUI.hud.root.position = new BABYLON.Vector3(VRSPACEUI.hud.vertical(),0,.1);
+            VRSPACEUI.hud.root.rotation = new BABYLON.Vector3(Math.PI/2,0,Math.PI/2);
           } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
             this.rightController = xrController;
             xrController.onMotionControllerInitObservable.add((motionController) => {
@@ -171,58 +175,60 @@ export class VRHelper {
   }
   
   trackMotionController(controller, side) {
-    for( const prop in controller.components ) {
-      // WebXRControllerComponent
-      let component = controller.components[prop];
-      console.log(side+' '+prop+' '+component.isButton()+' '+component.isAxes()+' '+component.type);
-      if (component.isAxes()) {
-        if ( component.type == BABYLON.WebXRControllerComponent.TOUCHPAD_TYPE ) {
-          this.touchpad[side] = component;
-        } else if ( component.type == BABYLON.WebXRControllerComponent.THUMBSTICK_TYPE ) {
-          this.thumbstick[side] = component;
-          console.log(this.thumbstick);
-        } else {
-          console.log("Unknown component type: "+component.type, component);
-        }
-        //component.onAxisValueChangedObservable.add((pos)=>{
-          //console.log(side+' '+prop+" x="+pos.x+" y="+pos.y);
-        //});
-      } else if (component.isButton()) {
-        if ( component.type == BABYLON.WebXRControllerComponent.TRIGGER_TYPE ) {
-          this.trigger[side] = component;
-          // TODO: make this removable
-          component.onButtonStateChangedObservable.add((c)=>{
-            console.log(side+' '+prop+" "+c.value);
-            if ( c.value == 0 && !this.vrHelper.teleportation.attached) {
-              this.vrHelper.teleportation.attach();
-            } else if (this.vrHelper.teleportation.attached) {
-              this.vrHelper.teleportation.detach();
-            }
+    try {
+      for( const prop in controller.components ) {
+        // WebXRControllerComponent
+        let component = controller.components[prop];
+        console.log(side+' '+prop+' '+component.isButton()+' '+component.isAxes()+' '+component.type);
+        if (component.isAxes()) {
+          if ( component.type == BABYLON.WebXRControllerComponent.TOUCHPAD_TYPE ) {
+            this.touchpad[side] = component;
+          } else if ( component.type == BABYLON.WebXRControllerComponent.THUMBSTICK_TYPE ) {
+            this.thumbstick[side] = component;
+          } else {
+            console.log("Unknown component type: "+component.type, component);
+          }
+          /*
+          component.onAxisValueChangedObservable.add((pos)=>{
+            console.log(side+' '+prop+" x="+pos.x+" y="+pos.y);
           });
-        } else if ( component.type == BABYLON.WebXRControllerComponent.SQUEEZE_TYPE ) {
-          this.squeeze[side] = component;
-          // TODO: make this removable
-          component.onButtonStateChangedObservable.add((c)=>{
-            console.log(side+' '+prop+" "+c.value);
-            if ( c.value == 1 ) {
-              this.vrHelper.teleportation.detach();
-            } else {
-              this.vrHelper.teleportation.attach();
-            }
-          });
-        } else if ( component.type == BABYLON.WebXRControllerComponent.BUTTON_TYPE ) {
-          this.button[side].push(component);
+          */
+        } else if (component.isButton()) {
+          // buttons can give values 0,1 or anywhere in between
+          if ( component.type == BABYLON.WebXRControllerComponent.TRIGGER_TYPE ) {
+            this.trigger[side] = component;
+            // TODO: make this removable
+            component.onButtonStateChangedObservable.add((c)=>{
+              //console.log(side+' '+prop+" "+c.value);
+              if ( c.value == 1 ) {
+                this.vrHelper.teleportation.detach();
+              } else if (c.value == 0) {
+                this.vrHelper.teleportation.attach();
+              }
+            });
+          } else if ( component.type == BABYLON.WebXRControllerComponent.SQUEEZE_TYPE ) {
+            this.squeeze[side] = component;
+            // TODO: make this removable
+            component.onButtonStateChangedObservable.add((c)=>{
+              //console.log(side+' '+prop+" "+c.value);
+              if ( c.value == 1 ) {
+                this.vrHelper.teleportation.detach();
+              } else if (c.value == 0) {
+                this.vrHelper.teleportation.attach();
+              }
+            });
+          } else if ( component.type == BABYLON.WebXRControllerComponent.BUTTON_TYPE ) {
+            this.buttons[side].push(component);
+          } else {
+            console.log("Unknown component type: "+component.type, component);
+          }
         } else {
-          console.log("Unknown component type: "+component.type, component);
+          console.log("Don't know how to handle component",component);
         }
-        // State change is either pressed / touched / value
-        //component.onButtonStateChangedObservable.add((c)=>{
-          //console.log(side+' '+prop+" "+c.value);
-        //});
-      } else {
-        console.log("Don't know how to handle component",component);
-      }
-    };
+      };
+    } catch (error) {
+      console.log('ERROR',error);
+    }
   }
   
   trackThumbsticks(callback) {
@@ -249,7 +255,7 @@ export class VRHelper {
     // TODO we can modify camera y here, adding terrain height on top of ground height
   }
   trackXrDevices() {
-    if ( this.inXR ) {
+    if ( this.world && this.world.inXR ) {
       // user height has to be tracked here due to
       //XRFrame access outside the callback that produced it is invalid
       this.userHeight = this.camera().realWorldHeight;

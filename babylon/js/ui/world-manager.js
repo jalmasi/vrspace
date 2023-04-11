@@ -785,24 +785,49 @@ export class WorldManager {
   }
   
   enableRemoteLogging() {
-    var console=
+    let oldConsole = window.console;
+    let console=
     { 
-      log: (arg) => {
-        VRSPACE.sendCommand("Log", {message:arg}); // default log level is debug
+      log: (...args) => {
+        oldConsole.log(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args)}); // default log level is debug
       },
-      info: (arg) => {
-        VRSPACE.sendCommand("Log", {message:arg, severity:"info"});
+      info: (...args) => {
+        oldConsole.info(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"info"});
       },
-      warn: (arg) => {
-        VRSPACE.sendCommand("Log", {message:arg, severity:"warn"});
+      warn: (...args) => {
+        oldConsole.warn(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"warn"});
       },
-      error: (arg) => {
-        VRSPACE.sendCommand("Log", {message:arg, severity:"error"});
+      error: (...args) => {
+        oldConsole.error(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"error"});
       }
     };
     
-    window.console = console;    
+    window.console = console;
+    console.log('log test');
+    console.info('info test');
+    console.warn('warn test');
+    console.error('error test');
   }
-  
+  concat(...args) {
+    let ret = "";
+
+    try {
+      args.forEach(e=>{
+        if ( typeof(e) === 'object') {
+          ret += JSON.stringify(e);
+        } else {
+          ret += e;
+        }
+        ret += " ";
+      });
+    } catch ( error ) {
+      ret += error;
+    }
+    return ret;
+  }
 }
 
