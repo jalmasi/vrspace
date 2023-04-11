@@ -224,6 +224,7 @@ export class World {
       this.vrHelper = new VRHelper();
     }
     this.vrHelper.initXR(this);
+    VRSPACEUI.hud.initXR(this.vrHelper);
   }
   trackXrDevices() {
   }

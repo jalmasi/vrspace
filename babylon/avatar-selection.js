@@ -147,21 +147,21 @@ export class AvatarSelection extends World {
       ) {
       this.trackTime = Date.now();
       // CHECKME: mirror left-right
-      if ( this.vrHelper.leftController ) {
+      if ( this.vrHelper.controller.left ) {
         if ( this.mirror ) {
-          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.leftController);
+          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.left);
           this.character.reachFor( this.character.body.leftArm, leftPos );
         } else {
-          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.leftController);
+          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.left);
           this.character.reachFor( this.character.body.rightArm, leftPos );
         }
       }
-      if ( this.vrHelper.rightController ) {
+      if ( this.vrHelper.controller.right ) {
         if ( this.mirror ) {
-          var rightPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.rightController );
+          var rightPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.right );
           this.character.reachFor( this.character.body.rightArm, rightPos );
         } else {
-          var rightPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.rightController );
+          var rightPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.right );
           this.character.reachFor( this.character.body.leftArm, rightPos );
         }
       }

@@ -528,13 +528,10 @@ export class WorldEditor {
       target.rotation = quat.toEulerAngles()
     }
     if ( VRSPACEUI.hud.inXR() ) {
-      // right controller takes priority because move button is on the left side
-      if (this.world.vrHelper.rightController) {
-        target.parent = this.world.vrHelper.rightController.pointer;
-        console.log('attached to',this.world.vrHelper.rightController.pointer);
-      } else if (this.world.vrHelper.leftController) {
-        target.parent = this.world.vrHelper.leftController.pointer;
-        console.log('attached to',this.world.vrHelper.leftController.pointer);
+      if (VRSPACEUI.hud.otherController()) {
+        target.parent = VRSPACEUI.hud.otherController().pointer;
+      } else if (VRSPACEUI.hud.attachedController()) {
+        target.parent = VRSPACEUI.hud.attachedController().pointer;
       } else {
         target.parent = VRSPACEUI.hud.camera;
       }

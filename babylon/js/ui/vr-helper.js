@@ -1,4 +1,3 @@
-import {VRSPACEUI} from './vrspace-ui.js';
 /** 
 Wrapper around BabylonJS XR/VR classes, whatever is available in current browser, if any.
 Attached to a World, uses World floor meshes and camera.
@@ -9,6 +8,7 @@ export class VRHelper {
     this.vrHelper = null;
     /** Function that currently tracks XR devices (headeset, controllers). Each world may install own one. */
     this.tracker = null;
+    this.controller = { left:null, right: null };
     /** Function that tracks enter/exit VR */
     this.stateChangeObserver = null;
     /** Function that tracks turning controllers on/off */
@@ -23,6 +23,8 @@ export class VRHelper {
     this.touchpad = { left: null, right: null };
     /** left and right buttons. */
     this.buttons = { left: [], right: [] };
+    this.squeezeListeners = [];
+    this.triggerListeners = [];
   }
   /**
   @param world attaches the control to the World
@@ -124,18 +126,13 @@ export class VRHelper {
         this.controllerObserver = (xrController) => {
           console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
           if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
-            this.leftController = xrController;
+            this.controller.left = xrController;
             xrController.onMotionControllerInitObservable.add((motionController) => {
               console.log('left motion controller:',motionController.getComponentIds());
               this.trackMotionController(motionController ,'left');
             });
-            // bind hud to left controller grip
-            // TODO move this to HUD
-            VRSPACEUI.hud.root.parent = xrController.grip;
-            VRSPACEUI.hud.root.position = new BABYLON.Vector3(VRSPACEUI.hud.vertical(),0,.1);
-            VRSPACEUI.hud.root.rotation = new BABYLON.Vector3(Math.PI/2,0,Math.PI/2);
           } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
-            this.rightController = xrController;
+            this.controller.right = xrController;
             xrController.onMotionControllerInitObservable.add((motionController) => {
               console.log('right motion controller:',motionController.getComponentIds());
               this.trackMotionController(motionController ,'right');
@@ -180,7 +177,7 @@ export class VRHelper {
       for( const prop in controller.components ) {
         // WebXRControllerComponent
         let component = controller.components[prop];
-        console.log(side+' '+prop+' '+component.isButton()+' '+component.isAxes()+' '+component.type);
+        //console.log(side+' '+prop+' '+component.isButton()+' '+component.isAxes()+' '+component.type);
         if (component.isAxes()) {
           if ( component.type == BABYLON.WebXRControllerComponent.TOUCHPAD_TYPE ) {
             this.touchpad[side] = component;
@@ -200,23 +197,13 @@ export class VRHelper {
             this.trigger[side] = component;
             // TODO: make this removable
             component.onButtonStateChangedObservable.add((c)=>{
-              //console.log(side+' '+prop+" "+c.value);
-              if ( c.value == 1 ) {
-                this.vrHelper.teleportation.detach();
-              } else if (c.value == 0) {
-                this.vrHelper.teleportation.attach();
-              }
+              this.triggerTracker(c,side);
             });
           } else if ( component.type == BABYLON.WebXRControllerComponent.SQUEEZE_TYPE ) {
             this.squeeze[side] = component;
             // TODO: make this removable
             component.onButtonStateChangedObservable.add((c)=>{
-              //console.log(side+' '+prop+" "+c.value);
-              if ( c.value == 1 ) {
-                this.vrHelper.teleportation.detach();
-              } else if (c.value == 0) {
-                this.vrHelper.teleportation.attach();
-              }
+              this.squeezeTracker(c,side);
             });
           } else if ( component.type == BABYLON.WebXRControllerComponent.BUTTON_TYPE ) {
             this.buttons[side].push(component);
@@ -233,7 +220,6 @@ export class VRHelper {
   }
   
   trackThumbsticks(callback) {
-    console.log('callback',callback);
     if ( this.thumbstick.left ) {
       this.thumbstick.left.onAxisValueChangedObservable.add((pos)=>{
         callback(pos, 'left');
@@ -244,6 +230,28 @@ export class VRHelper {
         callback(pos, 'right');
       });
     }
+  }
+  squeezeTracker(component,side) {
+    if ( component.value == 1 ) {
+      this.vrHelper.teleportation.detach();
+    } else if (component.value == 0) {
+      this.vrHelper.teleportation.attach();
+    }
+    this.squeezeListeners.forEach(callback=>{callback(component.value, side)});
+  }
+  trackSqueeze(callback) {
+    this.squeezeListeners.push(callback);
+  }
+  triggerTracker(component,side) {
+    if ( component.value == 1 ) {
+      this.vrHelper.teleportation.detach();
+    } else if (component.value == 0) {
+      this.vrHelper.teleportation.attach();
+    }
+    this.triggerListeners.forEach(callback=>{callback(component.value, side)});
+  }
+  trackTrigger(callback) {
+    this.triggerListeners.push(callback);
   }
   afterTeleportation() {
     var targetPosition = this.vrHelper.baseExperience.camera.position;
@@ -270,16 +278,16 @@ export class VRHelper {
     this.world.scene.unregisterBeforeRender(this.tracker);
   }
   leftArmPos() {
-    return this.leftController.grip.absolutePosition;
+    return this.controller.left.grip.absolutePosition;
   }
   rightArmPos() {
-    return this.rightController.grip.absolutePosition;
+    return this.controller.right.grip.absolutePosition;
   }
   leftArmRot() {
-    return this.leftController.pointer.rotationQuaternion;
+    return this.controller.left.pointer.rotationQuaternion;
   }
   rightArmRot() {
-    return this.rightController.pointer.rotationQuaternion;
+    return this.controller.right.pointer.rotationQuaternion;
   }
   realWorldHeight() {
     return this.userHeight;

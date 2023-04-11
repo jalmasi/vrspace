@@ -18,10 +18,13 @@ export class HUD {
     this.buttonSpacing = 0.025;
     this.alpha=0.7; // button opacity
     this.distanceWeb = .5;
-    this.distanceXR = .8;
+    this.distanceXR = .5;
     this.verticalWeb = -0.1;
-    this.verticalXR = -0.1;
+    this.verticalXR = -0.2;
+    this.rowOffset = new BABYLON.Vector3(0,this.verticalWeb,0);
     // state variables
+    this.vrHelper = null; // set by World.InitXR();
+    this.currentController = null;
     this.scale = 1;
     scene.onActiveCameraChanged.add( () => this.trackCamera() );
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
@@ -42,6 +45,7 @@ export class HUD {
   trackCamera() {
     console.log("HUD tracking camera: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
     this.camera = this.scene.activeCamera;
+    this.rescaleHUD();
     if ( this.camera ) {
       if ( this.onlyCamera ) {
        if ( this.camera == this.onlyCamera ) {
@@ -50,13 +54,16 @@ export class HUD {
           // TODO deactivate this HUD
         }
       } else {
-        this.root.parent = this.camera;
-        this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
+        this.attachToCamera();
       }
       
     }
   }
-  
+  attachToCamera() {
+    this.root.parent = this.camera;
+    this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
+    this.root.rotation = new BABYLON.Vector3(0,0,0);
+  }
   /** Returns true if XR mode is active (current camera is WebXRCamera) */
   inXR() {
     return this.camera && "WebXRCamera" == this.camera.getClassName();
@@ -86,9 +93,12 @@ export class HUD {
     // TODO exactly calculate aspect ratio depending on number of buttons, size, spacing
     // 0.75 (10 buttons) on this distance fits at aspect of 2
     var requiredRatio = this.elements.length/10*2;
-    this.scale = Math.min(1, aspectRatio/requiredRatio); 
+    if ( this.inXR() ) {
+      requiredRatio *= 2;
+    } 
+    this.scale = Math.min(1, aspectRatio/requiredRatio);
     this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
-    //console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
+    console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
   }
   
   makeRoomForMore() {
@@ -260,7 +270,8 @@ export class HUD {
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(.5);
       // CHECKME: may be rotated
-      row.root.position.y += this.vertical()/(this.rows.length*2);
+      //row.root.position.y += this.vertical()/(this.rows.length*2);
+      row.root.position.addInPlace(this.rowOffset.scale(1/(this.rows.length*2)));
     });
  
     this.root = new BABYLON.TransformNode("HUD"+this.rows.length);
@@ -294,7 +305,8 @@ export class HUD {
 
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(2);
-      row.root.position.y -= this.vertical()/(this.rows.length*2);
+      //row.root.position.y -= this.vertical()/(this.rows.length*2);
+      row.root.position.addInPlace(this.rowOffset.scale(-1/(this.rows.length*2)));
     });
 
     var row = this.rows[this.rows.length-1];
@@ -302,9 +314,68 @@ export class HUD {
     this.elements = row.elements;
     this.controls = row.controls;
     this.textures = row.textures;
- }
+  }
  
- isSelectableMesh(mesh) {
-   return this.elements.includes(mesh);
- }
+  isSelectableMesh(mesh) {
+    return this.elements.includes(mesh);
+  }
+  initXR(vrHelper) {
+    this.vrHelper = vrHelper;
+    this.vrHelper.trackSqueeze((value,side)=>{
+      let xrController = this.vrHelper.controller[side];
+      let intersects = this.intersects(xrController.grip);
+      console.log(side+' squeeze: '+value+"Intersects: "+intersects);
+      if ( value == 1 && intersects ) {
+        if ( side == 'left' ) {
+          this.attachToLeftController();
+        } else {
+          this.attachToRightController();
+        }
+      } else if (this.vrHelper.squeeze.left.value == 1 && this.vrHelper.squeeze.right.value == 1) {
+        this.attachToCamera();
+        // TODO improve this to position/scale HUD
+      }
+    });
+  }
+  attachToLeftController() {
+    this.root.parent = this.vrHelper.controller.left.grip;
+    this.root.position = new BABYLON.Vector3(this.verticalWeb,0,.1);
+    this.root.rotation = new BABYLON.Vector3(Math.PI/2,0,Math.PI/2);
+    this.rowOffset = new BABYLON.Vector3(0,0,this.verticalXR);
+    this.currentController = 'left';
+  }
+  attachToRightController() {
+    this.root.parent = this.vrHelper.controller.right.grip;
+    this.root.position = new BABYLON.Vector3(-this.verticalWeb,0,.1);
+    this.root.rotation = new BABYLON.Vector3(Math.PI/2,0,-Math.PI/2);
+    this.rowOffset = new BABYLON.Vector3(0,0,this.verticalXR);
+    this.currentController = 'right';
+  }
+  attachedController() {
+    if (this.currentController) {
+      return this.vrHelper.controller[this.currentController];
+    }
+    return null;
+  }
+  otherController() {
+    if ( this.currentController && this.vrHelper ) {
+      if ( 'left' == this.currentController ) {
+        return this.vrHelper.controller.right;
+      } else {
+        return this.vrHelper.controller.left;
+      }
+    }
+    return null;
+  }
+  intersects(mesh) {
+    let ret = false;
+    this.elements.forEach(e=>{
+      if (e.getClassName() == "HolographicButton") {
+        ret |= e.mesh.intersectsMesh(mesh);
+      } else {
+        ret |= e.intersectsMesh(mesh);
+      }
+    });
+    return ret;
+  }
 }

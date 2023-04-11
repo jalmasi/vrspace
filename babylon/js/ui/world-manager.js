@@ -664,11 +664,11 @@ export class WorldManager {
       
       // and now track controllers
       if ( vrHelper ) {
-        if ( vrHelper.leftController ) {
+        if ( vrHelper.controller.left) {
           this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftArmPos(), changes );
           this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftArmRot(), changes );
         }
-        if ( vrHelper.rightController ) {
+        if ( vrHelper.controller.right ) {
           this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightArmPos(), changes );
           this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightArmRot(), changes );
         }
@@ -807,10 +807,12 @@ export class WorldManager {
     };
     
     window.console = console;
+    /*
     console.log('log test');
     console.info('info test');
     console.warn('warn test');
     console.error('error test');
+    */
   }
   concat(...args) {
     let ret = "";
