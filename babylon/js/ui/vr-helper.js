@@ -130,6 +130,7 @@ export class VRHelper {
               this.trackMotionController(motionController ,'left');
             });
             // bind hud to left controller grip
+            // TODO move this to HUD
             VRSPACEUI.hud.root.parent = xrController.grip;
             VRSPACEUI.hud.root.position = new BABYLON.Vector3(VRSPACEUI.hud.vertical(),0,.1);
             VRSPACEUI.hud.root.rotation = new BABYLON.Vector3(Math.PI/2,0,Math.PI/2);

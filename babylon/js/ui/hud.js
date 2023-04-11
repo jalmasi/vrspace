@@ -253,14 +253,23 @@ export class HUD {
   }
   
   newRow() {
+    let parent = this.root.parent
+    let oldRootPos = this.root.position.clone();
+    let oldRootRot = this.root.rotation.clone();
+    
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(.5);
+      // CHECKME: may be rotated
       row.root.position.y += this.vertical()/(this.rows.length*2);
     });
  
     this.root = new BABYLON.TransformNode("HUD"+this.rows.length);
-    this.root.parent = this.camera;
-    this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
+    //this.root.parent = this.camera;
+    this.root.parent = parent;
+    //this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
+    this.root.position = oldRootPos;
+    this.root.rotation = oldRootRot;
+    
     this.elements = [];
     this.controls = [];
     this.textures = [];
