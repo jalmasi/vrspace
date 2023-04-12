@@ -18,9 +18,9 @@ export class HUD {
     this.buttonSpacing = 0.025;
     this.alpha=0.7; // button opacity
     this.distanceWeb = .5;
-    this.distanceXR = .5;
+    this.distanceXR = .4; // FIXME this is too close, visual issues
     this.verticalWeb = -0.1;
-    this.verticalXR = -0.2;
+    this.verticalXR = -0.1;
     this.rowOffset = new BABYLON.Vector3(0,this.verticalWeb,0);
     // state variables
     this.vrHelper = null; // set by World.InitXR();
@@ -33,7 +33,9 @@ export class HUD {
     this.textures = [];
     this.root = new BABYLON.TransformNode("HUD");
     this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distanceWeb);
-    this.rows = [{root: this.root, elements: this.elements, controls: this.controls, textures: this.textures}];
+    this.rowRoot = new BABYLON.TransformNode("HUD0");
+    this.rowRoot.parent = this.root;
+    this.rows = [{root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures}];
     window.addEventListener("resize", () => {
       this.rescaleHUD();
     });
@@ -63,6 +65,7 @@ export class HUD {
     this.root.parent = this.camera;
     this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
     this.root.rotation = new BABYLON.Vector3(0,0,0);
+    this.rowOffset = new BABYLON.Vector3(0,this.verticalWeb,0);
   }
   /** Returns true if XR mode is active (current camera is WebXRCamera) */
   inXR() {
@@ -93,9 +96,6 @@ export class HUD {
     // TODO exactly calculate aspect ratio depending on number of buttons, size, spacing
     // 0.75 (10 buttons) on this distance fits at aspect of 2
     var requiredRatio = this.elements.length/10*2;
-    if ( this.inXR() ) {
-      requiredRatio *= 2;
-    } 
     this.scale = Math.min(1, aspectRatio/requiredRatio);
     this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
     //console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
@@ -129,7 +129,7 @@ export class HUD {
     button.text=text;
     button.position = new BABYLON.Vector3(this.elements.length*width/2,0,0);
     button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
-    button.mesh.parent = this.root;
+    button.mesh.parent = this.rowRoot;
     this.elements.push(button);
     this.controls.push(button);
     button.backMaterial.alpha = this.alpha;
@@ -150,7 +150,7 @@ export class HUD {
 	  let size = 0.03 * this.scale * textureHeight/64;
 
     let plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: size*textureWidth/textureHeight, height: size});
-    plane.parent = this.root;
+    plane.parent = this.rowRoot;
     plane.position = new BABYLON.Vector3(0,size/2,0.02);
     let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,textureWidth,textureHeight);
     // advancedTexture creates material and attaches it to the plane
@@ -173,7 +173,7 @@ export class HUD {
     var width = this.makeRoomForMore();
 
     var plane = BABYLON.MeshBuilder.CreatePlane("Plane-Slider:"+text, {width: 0.07, height: 0.07});
-    plane.parent = this.root;
+    plane.parent = this.rowRoot;
     //plane.position.z = 0.02;
     plane.position = new BABYLON.Vector3(this.elements.length*width/2,0,0.02);
 
@@ -214,7 +214,7 @@ export class HUD {
     var width = this.makeRoomForMore();
     
     var plane = BABYLON.MeshBuilder.CreatePlane("Plane-Picker:"+text, {width: 0.07, height: 0.07});
-    plane.parent = this.root;
+    plane.parent = this.rowRoot;
     plane.position = new BABYLON.Vector3(this.elements.length*width/2,0,0);
 
     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,256,256);
@@ -263,28 +263,18 @@ export class HUD {
   }
   
   newRow() {
-    let parent = this.root.parent
-    let oldRootPos = this.root.position.clone();
-    let oldRootRot = this.root.rotation.clone();
-    
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(.5);
-      // CHECKME: may be rotated
-      //row.root.position.y += this.vertical()/(this.rows.length*2);
       row.root.position.addInPlace(this.rowOffset.scale(1/(this.rows.length*2)));
     });
  
-    this.root = new BABYLON.TransformNode("HUD"+this.rows.length);
-    //this.root.parent = this.camera;
-    this.root.parent = parent;
-    //this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
-    this.root.position = oldRootPos;
-    this.root.rotation = oldRootRot;
+    this.rowRoot = new BABYLON.TransformNode("HUD"+this.rows.length);
+    this.rowRoot.parent = this.root;
     
     this.elements = [];
     this.controls = [];
     this.textures = [];
-    this.rows.push({root: this.root, elements: this.elements, controls: this.controls, textures: this.textures});
+    this.rows.push({root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures});
   }
 
   clearRow() {
@@ -299,21 +289,21 @@ export class HUD {
       e.dispose();
     });
     this.textures.forEach(t=>t.dispose());
-    this.root.dispose();
+    this.rowRoot.dispose();
     
     this.rows.pop();
 
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(2);
-      //row.root.position.y -= this.vertical()/(this.rows.length*2);
       row.root.position.addInPlace(this.rowOffset.scale(-1/(this.rows.length*2)));
     });
 
     var row = this.rows[this.rows.length-1];
-    this.root = row.root;
+    this.rowRoot = row.root;
     this.elements = row.elements;
     this.controls = row.controls;
     this.textures = row.textures;
+    this.rescaleHUD();
   }
  
   isSelectableMesh(mesh) {
@@ -341,16 +331,16 @@ export class HUD {
     this.root.parent = this.vrHelper.controller.left.grip;
     this.root.position = new BABYLON.Vector3(this.verticalWeb,0,.1);
     this.root.rotation = new BABYLON.Vector3(Math.PI/2,0,Math.PI/2);
-    //this.rowOffset = new BABYLON.Vector3(0,0,this.verticalXR);
-    this.rowOffset = new BABYLON.Vector3(-this.verticalXR/2,0,0);
+    //this.rowOffset = new BABYLON.Vector3(-this.verticalXR,0,0);
+    this.rowOffset = new BABYLON.Vector3(0,this.verticalXR,0);
     this.currentController = 'left';
   }
   attachToRightController() {
     this.root.parent = this.vrHelper.controller.right.grip;
     this.root.position = new BABYLON.Vector3(-this.verticalWeb,0,.1);
     this.root.rotation = new BABYLON.Vector3(Math.PI/2,0,-Math.PI/2);
-    //this.rowOffset = new BABYLON.Vector3(0,0,this.verticalXR);
-    this.rowOffset = new BABYLON.Vector3(this.verticalXR/2,0,0);
+    //this.rowOffset = new BABYLON.Vector3(this.verticalXR,0,0);
+    this.rowOffset = new BABYLON.Vector3(0,this.verticalXR,0);
     this.currentController = 'right';
   }
   attachedController() {
