@@ -564,7 +564,7 @@ export class WorldManager {
     } else if ( obj.instantiatedEntries ) {
       object = obj.instantiatedEntries;
     } else {
-      this.log("Ignoring unknown event "+field+" to object "+obj.id);
+      //this.log("Ignoring unknown event "+field+" to object "+obj.id);
       return;      
     }
     if (typeof object[field] === 'function') {
@@ -573,7 +573,7 @@ export class WorldManager {
       obj[field+'Changed'](obj);
     //} else if (object.hasOwnProperty(field)) {
     } else {
-      console.log("Ignoring unknown event to "+obj+": "+field);
+      //console.log("Ignoring unknown event to "+obj+": "+field);
     }
   }
 

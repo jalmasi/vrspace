@@ -52,11 +52,13 @@ export class TerrainEditor extends WorldListener {
       this.createSharedTerrain();
     }
   }
+  
   added(added) {
     if ( added && added.className == "Terrain") {
       console.log("Terrain added", added);
       this.sharedTerrain = added;
       added.addListener((obj,change)=>this.terrainChanged(change));
+      this.terrain.mesh().setEnabled(true);
     }
   }
   
