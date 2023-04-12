@@ -341,14 +341,16 @@ export class HUD {
     this.root.parent = this.vrHelper.controller.left.grip;
     this.root.position = new BABYLON.Vector3(this.verticalWeb,0,.1);
     this.root.rotation = new BABYLON.Vector3(Math.PI/2,0,Math.PI/2);
-    this.rowOffset = new BABYLON.Vector3(0,0,this.verticalXR);
+    //this.rowOffset = new BABYLON.Vector3(0,0,this.verticalXR);
+    this.rowOffset = new BABYLON.Vector3(-this.verticalXR/2,0,0);
     this.currentController = 'left';
   }
   attachToRightController() {
     this.root.parent = this.vrHelper.controller.right.grip;
     this.root.position = new BABYLON.Vector3(-this.verticalWeb,0,.1);
     this.root.rotation = new BABYLON.Vector3(Math.PI/2,0,-Math.PI/2);
-    this.rowOffset = new BABYLON.Vector3(0,0,this.verticalXR);
+    //this.rowOffset = new BABYLON.Vector3(0,0,this.verticalXR);
+    this.rowOffset = new BABYLON.Vector3(this.verticalXR/2,0,0);
     this.currentController = 'right';
   }
   attachedController() {
