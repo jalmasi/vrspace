@@ -98,7 +98,7 @@ export class HUD {
     } 
     this.scale = Math.min(1, aspectRatio/requiredRatio);
     this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
-    console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
+    //console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
   }
   
   makeRoomForMore() {

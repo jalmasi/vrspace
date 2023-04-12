@@ -77,7 +77,9 @@ export class WorldEditorExample extends World {
       VRSPACEUI.hud.newRow();
       this.worldEditor = new WorldEditor(this, this.fileInputElement);
     } else {
-      VRSPACEUI.hud.clearRow();
+      while ( VRSPACEUI.hud.rows.length > 1 ) {
+        VRSPACEUI.hud.clearRow();
+      }
       this.worldEditor.dispose();
       VRSPACEUI.hud.showButtons(!this.editing, button);
     }
