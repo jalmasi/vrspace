@@ -1,6 +1,9 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 import {TextWriter} from './text-writer.js';
 
+/**
+ * A 3D panel displayed in the world, with arbitrary number of holographic buttons.
+ */
 export class ScrollablePanel {
   constructor(scene,name) {
     this.scene = scene;

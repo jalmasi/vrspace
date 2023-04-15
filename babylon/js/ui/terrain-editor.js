@@ -137,13 +137,13 @@ export class TerrainEditor extends WorldListener {
       this.terrain.terrainMaterial.wireframe = this.editing;
     });
     this.textureButton.onPointerDownObservable.add( () => {
-      VRSPACEUI.hud.showButtons(this.editing,this.textureButton,this);
       this.editing = !this.editing;
       if ( this.editing ) {
         this.textureSelector.show();
       } else {
         this.textureSelector.hide();
       }
+      VRSPACEUI.hud.showButtons(!this.editing,this.textureButton,this);
     });
     this.raiseSlider.onValueChangedObservable.add(value=>{this.heightIncrement=value});
     
