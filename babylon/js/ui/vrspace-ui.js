@@ -50,11 +50,12 @@ export class VRSpaceUI {
     /** reference to VRSpace singleton */
     this.VRSPACE = VRSPACE;
     /** reference to AssetLoader singleton */
-    this.assetLoader;
+    this.assetLoader = null;
   }
 
-  /** Preloads vrspace.org logo and portal for later use 
-  @param scene
+  /** 
+   * Creates asset loader, preloads vrspace.org logo and portal for later use. 
+  @param scene babylon.js scene to operate with.
   */
   async init(scene) {
     if ( ! this.initialized || this.scene !== scene ) {

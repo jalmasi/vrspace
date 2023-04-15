@@ -1,10 +1,12 @@
 /** experimental speech input, uses annyang library */
 export class SpeechInput {
+  static instances = [];
   constructor() {
     this.commands = {};
     this.noMatch = null;
     this.onlyLetters = true;
     this.lowercase = true;
+    this.constructor.instances.push(this);
   }
   addCommand(command, callback) {
     this.commands[command] = (text) => this.callback(text, callback);   
@@ -30,7 +32,6 @@ export class SpeechInput {
       if ( this.commands ) {
         annyang.addCommands(this.commands);
       }
-
       if ( this.noMatch ) {
         annyang.addCallback('resultNoMatch', this.noMatch);
       }
@@ -43,14 +44,26 @@ export class SpeechInput {
   }
   stop() {
     if ( annyang ) {
-      annyang.stop();
+      if ( this.constructor.instances.length > 0 ) {
+        console.log("speech recognition paused");
+        annyang.pause();
+      } else {
+        console.log("speech recognition stopped");
+        annyang.abort();
+      }
     }
   }
   dispose() {
+    let index = this.constructor.instances.indexOf(this);
+    if ( index >= 0 ) {
+      // index could be -1 if dispose is called more than once
+      this.constructor.instances.splice(index,1);
+      if ( this.constructor.instances.length > 0 ) {
+        this.constructor.instances[this.constructor.instances.length -1].start();
+      }
+    }
     if (annyang) {
-      // CHECKME what if we have multiple components using different voice inputs?
-      annyang.abort();
-      //annyang.pause();
+      this.stop();
       if ( this.commands ) {
         // this doesn't work, old commands remain:
         // apparently annyang expects array of phrases as argument
@@ -60,7 +73,6 @@ export class SpeechInput {
       if ( this.noMatch ) {
         annyang.removeCallback('resultNoMatch', this.noMatch);
       }
-      console.log("Speech recognition stopped");
     }
     this.commands = null;
   }
