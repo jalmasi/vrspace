@@ -26,6 +26,7 @@ export class HUD {
     // state variables
     this.vrHelper = null; // set by World.InitXR();
     this.speechInput = new SpeechInput();
+    this.speechInput.onlyLetters = false;
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.currentController = null;
     this.scale = 1;
@@ -215,6 +216,31 @@ export class HUD {
     panel.addControl(slider);
     this.elements.push(plane);
     this.controls.push(panel);
+    
+    if ( text ) {
+      this.speechInput.addCommand(text+" *value", (value) => {
+        console.log("setting "+text+" to "+value);
+        if ( "one" == value ) {
+          value = "1";
+        } else if ( "zero" == value ) {
+          value = "0";
+        }
+        if ( isNaN(value)) {
+          console.log('Unrecognized input value: '+value);
+        } else {
+          let num = parseFloat(value);
+          if ( num > slider.maximum ) {
+            slider.value = slider.maximum;
+          } else if ( num < slider.minimum ) {
+            slider.value = slider.minimum;
+          } else {
+            slider.value = num;
+          }
+          header.text = text+": "+value;
+        }
+      });
+    }
+    
     return slider;
   }
   /**
@@ -287,6 +313,7 @@ export class HUD {
     this.textures = [];
     this.speechInput.stop();
     this.speechInput = new SpeechInput();
+    this.speechInput.onlyLetters = false;
     this.rows.push({root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures, speechInput: this.speechInput});
   }
 

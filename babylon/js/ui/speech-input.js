@@ -6,6 +6,7 @@ export class SpeechInput {
     this.noMatch = null;
     this.onlyLetters = true;
     this.lowercase = true;
+    this.removePeriod = true;
     this.constructor.instances.push(this);
   }
   addCommand(command, callback) {
@@ -21,6 +22,9 @@ export class SpeechInput {
       }
       if (this.onlyLetters) {
         text = text.replace(/[^a-zA-Z ]/g, "");
+      }
+      if (this.removePeriod && text.endsWith(".")) {
+        text = text.substring(0,text.length-1);
       }
     }
     callback(text);
