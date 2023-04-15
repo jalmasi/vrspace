@@ -129,15 +129,16 @@ export class WorldEditor {
     });
     this.saveButton.onPointerDownObservable.add( () => {this.save()});
     this.loadButton.onPointerDownObservable.add( () => {this.load()});
+    VRSPACEUI.hud.enableSpeech(true);
   }
 
   searchForm() {
     if ( this.form ) {
       this.clearForm();
     } else {
+      VRSPACEUI.hud.newRow(); // stops speech recognition
       this.form = new SearchForm((text)=>this.doSearch(text));
-      this.form.init();
-      VRSPACEUI.hud.newRow();
+      this.form.init(); // starts speech recognition
       if ( VRSPACEUI.hud.inXR() ) {
         let texture = VRSPACEUI.hud.addPanel(this.form.panel,1536,512);
         this.form.keyboard(this.form.input,texture);
@@ -147,9 +148,9 @@ export class WorldEditor {
     }
   }
   clearForm() {
-    VRSPACEUI.hud.clearRow();
-    this.form.dispose();
+    this.form.dispose(); // stops speech recognition
     delete this.form;
+    VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
     this.displayButtons(true);
   }
   doSearch(text) {
@@ -174,8 +175,7 @@ export class WorldEditor {
         this.activeButton = null;
         this.displayButtons(true);
       } else {
-        this.displayButtons(false);
-        button.isVisible = true;
+        this.displayButtons(false, button);
         this.activeButton = button;
       }
     });
@@ -337,8 +337,8 @@ export class WorldEditor {
     this.createSharedObject(vrObject.mesh, {position:vrObject.position, rotation:vrObject.rotation, scale:vrObject.scale});
   }
   
-  displayButtons(show) {
-    VRSPACEUI.hud.showButtons(show);
+  displayButtons(show, except) {
+    VRSPACEUI.hud.showButtons(show, except);
     if ( show ) {
       this.activeButton = null;
     }
@@ -378,8 +378,7 @@ export class WorldEditor {
   
   takeObject(vrObject, position) {
     this.activeButton = this.moveButton;
-    this.displayButtons(false);
-    this.moveButton.isVisible = true;
+    this.displayButtons(false, this.moveButton);
     this.take(vrObject, position);
   }
   

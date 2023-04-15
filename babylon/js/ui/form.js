@@ -100,7 +100,6 @@ export class Form {
     if ( callback ) {
       if ( command ) {
         this.speechInput.addCommand(command, () => callback(this));
-        this.speechInput.addCommand(command+'.', () => callback(this));
       }
       button.onPointerDownObservable.add( () => callback(this));
     }

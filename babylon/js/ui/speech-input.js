@@ -9,7 +9,9 @@ export class SpeechInput {
     this.constructor.instances.push(this);
   }
   addCommand(command, callback) {
-    this.commands[command] = (text) => this.callback(text, callback);   
+    this.commands[command] = (text) => this.callback(text, callback);
+    // microsoft apparently attempts to add punctuation
+    this.commands[command+'.'] = (text) => this.callback(text, callback);
   }
   callback(text, callback) {
     //console.log("Executing "+text, callback);
@@ -28,6 +30,11 @@ export class SpeechInput {
   }
   start() {
     if (annyang) {
+      let index = this.constructor.instances.indexOf(this);
+      if ( index < 0 ) {
+        // this instance might have been disposed, kept elsewhere, and restarted
+        this.constructor.instances.push(this);
+      }
       // Add our commands to annyang
       if ( this.commands ) {
         annyang.addCommands(this.commands);
@@ -65,15 +72,13 @@ export class SpeechInput {
     if (annyang) {
       this.stop();
       if ( this.commands ) {
-        // this doesn't work, old commands remain:
-        // apparently annyang expects array of phrases as argument
-        //annyang.removeCommands(this.commands);
-        annyang.removeCommands();
+        // annyang expects array of phrases as argument
+        annyang.removeCommands(Object.keys(this.commands));
+        //console.log(' disabled commands:', Object.keys(this.commands));
       }
       if ( this.noMatch ) {
         annyang.removeCallback('resultNoMatch', this.noMatch);
       }
     }
-    this.commands = null;
   }
 }

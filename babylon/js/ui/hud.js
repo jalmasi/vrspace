@@ -1,3 +1,4 @@
+import {SpeechInput} from './speech-input.js';
 /**
 HUD stands for head-up display - a UI container mounted on users head.
 Typically we have some buttons around 50 cm front, 10-20 cm below line of sight.
@@ -24,6 +25,8 @@ export class HUD {
     this.rowOffset = new BABYLON.Vector3(0,this.verticalWeb,0);
     // state variables
     this.vrHelper = null; // set by World.InitXR();
+    this.speechInput = new SpeechInput();
+    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.currentController = null;
     this.scale = 1;
     scene.onActiveCameraChanged.add( () => this.trackCamera() );
@@ -35,7 +38,7 @@ export class HUD {
     this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distanceWeb);
     this.rowRoot = new BABYLON.TransformNode("HUD0");
     this.rowRoot.parent = this.root;
-    this.rows = [{root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures}];
+    this.rows = [{root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures, speechInput: this.speechInput}];
     window.addEventListener("resize", () => {
       this.rescaleHUD();
     });
@@ -136,6 +139,14 @@ export class HUD {
     this.rescaleHUD();
     if ( onPointerDown ) {
       button.onPointerDownObservable.add( (vector3WithInfo) => onPointerDown(button, vector3WithInfo) );
+    }
+    if ( text ) {
+      this.speechInput.addCommand(text, () => {
+        // execute click callback(s) on visible button
+        if ( button.isVisible ) {
+          button.onPointerDownObservable.observers.forEach(observer=>observer.callback(button))
+        }
+      });
     }
     return button;
   }
@@ -274,7 +285,9 @@ export class HUD {
     this.elements = [];
     this.controls = [];
     this.textures = [];
-    this.rows.push({root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures});
+    this.speechInput.stop();
+    this.speechInput = new SpeechInput();
+    this.rows.push({root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures, speechInput: this.speechInput});
   }
 
   clearRow() {
@@ -290,6 +303,7 @@ export class HUD {
     });
     this.textures.forEach(t=>t.dispose());
     this.rowRoot.dispose();
+    this.speechInput.dispose();
     
     this.rows.pop();
 
@@ -303,12 +317,23 @@ export class HUD {
     this.elements = row.elements;
     this.controls = row.controls;
     this.textures = row.textures;
+    this.speechInput = row.speechInput;
+    this.speechInput.start();
     this.rescaleHUD();
   }
- 
+  
+  enableSpeech(enable) {
+    if ( enable ) {
+      this.speechInput.start();
+    } else {
+      this.speechInput.stop();
+    }
+  }
+  
   isSelectableMesh(mesh) {
     return this.elements.includes(mesh);
   }
+  
   initXR(vrHelper) {
     this.vrHelper = vrHelper;
     this.vrHelper.trackSqueeze((value,side)=>{

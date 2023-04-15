@@ -54,8 +54,8 @@ export class WorldEditorExample extends World {
   async createTerrain() {
     this.terrain = new Terrain();
     this.terrain.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", this.scene);
-    this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(.3, .3, .3);
-    this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(0, .5, 0);
+    this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(.2, .2, .2);
+    this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(0, .2, 0);
     this.terrain.terrainMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
     this.terrain.init(this.scene);
     this.terrain.mesh().setEnabled(false);
@@ -67,6 +67,7 @@ export class WorldEditorExample extends World {
     var worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world-edit.png", (b,i)=>this.editWorld(b,i));
     var terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i));
     var skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i));
+    VRSPACEUI.hud.enableSpeech(true);
   }
     
   editWorld(button, vector3WithInfo) {
@@ -110,6 +111,7 @@ export class WorldEditorExample extends World {
         this.skyboxSelector = new SkyboxSelector(this);
       }
       this.skyboxSelector.show();
+      VRSPACEUI.hud.enableSpeech(true);
     } else {
       VRSPACEUI.hud.clearRow();
       this.skyboxSelector.hide();

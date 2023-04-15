@@ -162,6 +162,8 @@ export class TerrainEditor extends WorldListener {
       //this.terrain.terrainMaterial.emissiveColor.copyFrom(val);
       this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {emissiveColor:val});      
     });
+    
+    VRSPACEUI.hud.enableSpeech(true);
   }
   
   updatePicked( pickInfo ) {
