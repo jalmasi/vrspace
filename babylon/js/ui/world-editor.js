@@ -79,6 +79,7 @@ class SearchForm extends Form {
 
 export class WorldEditor {
   constructor( world, fileInput ) {
+    console.log(world);
     if ( ! world.worldManager ) {
       throw "World editor requires connection to the server - enter a world first";
     }

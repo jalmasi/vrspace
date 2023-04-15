@@ -55,6 +55,7 @@ import("./world.js").then( (module) =>{
   world.init(engine, 'world-editor-test').then((scene) => {
     myScene = scene;
     world.initXR();
+    world.connect();
   });
 
 })

@@ -609,8 +609,6 @@ export class AvatarSelection extends World {
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;
         
-        console.log(world);
-        
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
         this.worldManager.customOptons = this.customOptions;

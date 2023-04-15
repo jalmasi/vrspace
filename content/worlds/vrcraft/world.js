@@ -1,10 +1,14 @@
 import { World, VRSPACEUI, WorldManager, WorldEditor, Terrain, TerrainEditor, SkyboxSelector } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldEditorExample extends World {
-  async load() {
+  async load(callback) {
     // we're not loading any models
     // but we're displaying UI instead
-    this.connect();
+    this.makeUI();
+    if ( callback ) {
+      // make sure to notify avatar-selection
+      callback(this);
+    }
   }
   async createCamera() {
     this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
@@ -118,14 +122,14 @@ export class WorldEditorExample extends World {
       VRSPACEUI.hud.showButtons(!this.editing, button);
     }
   }
-  
+
+  // used in stand-alone mode (i.e. if world is not entered via avatar-selection, but from world.html)  
   connect() {
     new WorldManager(this);
     //this.worldManager.debug = true; // multi-user debug info
     //this.worldManager.VRSPACE.debug = true; // network debug info
     this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => {
-      this.makeUI(); 
-      //this.worldEditor = new WorldEditor(this, this.fileInputElement);
+      // we don't really need to do anything here
     });
   }
   

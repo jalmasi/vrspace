@@ -1,6 +1,7 @@
 /** experimental speech input, uses annyang library */
 export class SpeechInput {
   static instances = [];
+  static enabled = true;
   constructor() {
     this.commands = {};
     this.noMatch = null;
@@ -33,7 +34,7 @@ export class SpeechInput {
     this.noMatch = callback;
   }
   start() {
-    if (annyang) {
+    if (this.constructor.enabled && annyang) {
       let index = this.constructor.instances.indexOf(this);
       if ( index < 0 ) {
         // this instance might have been disposed, kept elsewhere, and restarted
