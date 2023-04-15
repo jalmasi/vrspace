@@ -53,6 +53,7 @@ export class SpeechInput {
       //annyang.pause();
       if ( this.commands ) {
         // this doesn't work, old commands remain:
+        // apparently annyang expects array of phrases as argument
         //annyang.removeCommands(this.commands);
         annyang.removeCommands();
       }

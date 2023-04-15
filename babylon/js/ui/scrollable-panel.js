@@ -7,7 +7,7 @@ export class ScrollablePanel {
     this.uiRoot = new BABYLON.TransformNode(name);
     this.writer = new TextWriter(this.scene);
 
-    this.uiRoot.position = new BABYLON.Vector3(0,2,0);
+    this.uiRoot.position = new BABYLON.Vector3(0,3,0);
     this.uiRoot.rotation = new BABYLON.Vector3(0,0,0);
     //this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene); // causes transparency issues
     this.guiManager = VRSPACEUI.guiManager;

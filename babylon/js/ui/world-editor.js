@@ -1,70 +1,6 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 import {ScrollablePanel} from "./scrollable-panel.js";
-import { SpeechInput } from './speech-input.js';
-
-// TODO turn this into stand-alone public helper class
-class Form {
-  constructor(params) {
-    this.fontSize = 48;
-    this.heightInPixels = 48;
-    this.resizeToFit = true;
-    this.color = "white";
-    this.background = "black";
-    this.inputWidth = 500;
-    this.keyboardRows = null;
-    if ( params ) {
-      for(var c of Object.keys(params)) {
-        this[c] = params[c];
-      }
-    }
-  }
-  textBlock(text, params) {
-    var block = new BABYLON.GUI.TextBlock();
-    block.text = text;
-    block.color = this.color;
-    block.fontSize = this.fontSize;
-    block.heightInPixels = this.heightInPixels;
-    block.resizeToFit = this.resizeToFit;
-    if ( params ) {
-      for(var c of Object.keys(params)) {
-        block[c] = params[c];
-      }
-    }
-    return block;
-  }
-  checkbox(params) {
-    var checkbox = new BABYLON.GUI.Checkbox();
-    checkbox.heightInPixels = this.heightInPixels;
-    checkbox.widthInPixels = this.heightInPixels;
-    checkbox.color = this.color;
-    checkbox.background = this.background;
-    if ( params ) {
-      for(var c of Object.keys(params)) {
-        checkbox[c] = params[c];
-      }
-    }
-    return checkbox;
-  }
-  inputText(params) {
-    let input = new BABYLON.GUI.InputText();
-    input.widthInPixels = this.inputWidth;
-    input.heightInPixels = this.heightInPixels;
-    input.fontSizeInPixels = this.fontSize;
-    //input.paddingLeft = "10px";
-    //input.paddingRight = "10px";
-    // fine:
-    //input.widthInPixels = canvas.getBoundingClientRect().width/2;
-    //input.widthInPixels = scene.getEngine().getRenderingCanvas().getBoundingClientRect().width/2;
-    input.color = this.color;
-    input.background = this.background;
-    if ( params ) {
-      for(let c of Object.keys(params)) {
-        input[c] = params[c];
-      }
-    }
-    return input;
-  }
-}
+import {Form} from './form.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -76,8 +12,6 @@ class SearchForm extends Form {
     this.background = "black";
     this.submitColor = "green";
     this.verticalPanel = false;
-    
-    this.speechInput = new SpeechInput();
   }
   init() {
     this.panel = new BABYLON.GUI.StackPanel();
@@ -89,66 +23,29 @@ class SearchForm extends Form {
 
     this.panel.addControl(this.textBlock("Search Sketchfab:"));    
 
-    this.input = this.inputText();
+    this.input = this.inputText('search');
     this.panel.addControl(this.input);
 
     var text2 = this.textBlock("Animated:");
     text2.paddingLeft = "10px";
     this.panel.addControl(text2);
 
-    this.animated = this.checkbox();
+    this.animated = this.checkbox("animated");
     this.panel.addControl(this.animated);
 
     var text3 = this.textBlock("Rigged:");
     text3.paddingLeft = "10px";
     this.panel.addControl(text3);
     
-    this.rigged = this.checkbox();
+    this.rigged = this.checkbox("rigged");
     this.panel.addControl(this.rigged);
 
-    var enter = new BABYLON.GUI.Button.CreateImageOnlyButton("enter", VRSPACEUI.contentBase+"/content/icons/play.png");
-    enter.widthInPixels = 58;
-    enter.heightInPixels = 48;
-    enter.paddingLeft = "10px";
-    enter.background = "green";
-    enter.onPointerDownObservable.add(()=>{ this.submit() });
+    var enter = this.submitButton("submit", () => this.callback(this.input.text));
     this.panel.addControl(enter);
     
     //input.focus(); // not available in babylon 4
-    var that = this;
-    this.speechInput.addCommand('search (sketchfab) (for) *text', (text) => that.voiceSearch(text));
-    this.speechInput.addCommand('animated *onoff', (text) => this.toggleAnimated(text));
-    this.speechInput.addCommand('rigged *onoff', (text) => this.toggleRigged(text));
-    this.speechInput.addCommand('submit.', () => this.submit());
-    this.speechInput.addCommand('submit', () => this.submit());
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.speechInput.start();
-  }
-  submit() {
-    if ( this.callback ) {
-      this.callback(this.input.text);
-    }
-  }
-  voiceSearch(text) {
-    this.input.text = text;
-  }
-  toggleAnimated(text){
-    if ( text == 'on' || text == 'true') {
-      this.animated.isChecked = true;
-    } else if ( text == 'off' || text == 'false') {
-      this.animated.isChecked = false;
-    } else {
-      console.log("Can't set animated to "+text);
-    }
-  }
-  toggleRigged(text){
-    if ( text == 'on' || text == 'true') {
-      this.rigged.isChecked = true;
-    } else if ( text == 'off' || text == 'false') {
-      this.rigged.isChecked = false;
-    } else {
-      console.log("Can't set rigged to "+text);
-    }
   }
   keyboard(input, advancedTexture) {
     var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('search-keyboard');
