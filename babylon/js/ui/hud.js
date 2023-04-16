@@ -174,7 +174,8 @@ export class HUD {
     this.controls.push(panel);
     this.textures.push(advancedTexture);
     
-  	return advancedTexture;
+    this.rescaleHUD();
+    return advancedTexture;
   }
   
   /**

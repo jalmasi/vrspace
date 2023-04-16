@@ -2,6 +2,15 @@
 export class SpeechInput {
   static instances = [];
   static enabled = true;
+  static active = false;
+  static android = (navigator.userAgent.toLowerCase().indexOf('android') > -1);
+  static {
+    document.addEventListener('touchstart', (e) => {
+      if ( this.active && this.android) {
+        annyang.start();
+      }
+    });
+  }
   constructor() {
     this.commands = {};
     this.noMatch = null;
@@ -48,21 +57,22 @@ export class SpeechInput {
         annyang.addCallback('resultNoMatch', this.noMatch);
       }
       // Start listening. You can call this here, or attach this call to an event, button, etc.
-      annyang.start();
-      console.log("Speech recognition started: "+annyang.isListening(), this.commands);
+      if ( this.constructor.android ) {
+        console.log("Speech recognition will start on touch, to prevent annoying beeping on android");
+      } else {
+        annyang.start();
+        console.log("Speech recognition started: "+annyang.isListening(), this.commands);
+      }
+      this.constructor.active = true;
     } else {
       console.log("Speech recognition unavailable");
     }
   }
   stop() {
     if ( annyang ) {
-      if ( this.constructor.instances.length > 0 ) {
-        console.log("speech recognition paused");
-        annyang.pause();
-      } else {
-        console.log("speech recognition stopped");
-        annyang.abort();
-      }
+      console.log("speech recognition stopped");
+      annyang.abort();
+      this.constructor.active = false;
     }
   }
   dispose() {
