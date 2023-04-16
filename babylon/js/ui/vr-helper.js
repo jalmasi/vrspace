@@ -25,6 +25,7 @@ export class VRHelper {
     this.buttons = { left: [], right: [] };
     this.squeezeListeners = [];
     this.triggerListeners = [];
+    this.gamepadObserver = null;
   }
   /**
   @param world attaches the control to the World
@@ -168,8 +169,117 @@ export class VRHelper {
       });
       
     }
+
+    // we want to support gamepad on mobiles in both cases
+    this.trackGamepad();
     
     console.log("VRHelper initialized", this.vrHelper);
+  }
+  
+  trackGamepad() {
+    // https://forum.babylonjs.com/t/no-gamepad-support-in-webxrcontroller/15147/2
+    window.addEventListener("gamepadconnected", (e) => {
+      console.log("Gamepad connected ",e.gamepad);
+      let gamepadState = {
+        index: e.gamepad.index,
+        id: e.gamepad.id,
+        buttons: [],
+        axes: [],
+        forward: false,
+        back: false,
+        left: false,
+        right: false
+      }
+      e.gamepad.buttons.forEach( b=> {
+        let state = b.value > 0 || b.pressed || b.touched;
+        //console.log('button state: '+state);
+        gamepadState.buttons.push(state);
+      });
+      e.gamepad.axes.forEach( a=> {
+        //console.log('axis state: '+a);
+        gamepadState.axes.push(a);
+      });
+      this.world.scene.registerBeforeRender( () => {
+        const gamepad = navigator.getGamepads()[0]
+        for ( let i = 0; i < gamepad.buttons.length; i++ ) {
+          let buttonState = gamepad.buttons[i].value > 0 || gamepad.buttons[i].pressed || gamepad.buttons[i].touched;
+          if ( gamepadState.buttons[i] != buttonState ) {
+            gamepadState.buttons[i] = buttonState;
+            this.gamepadButton(i, buttonState);
+          }
+        }
+        let treshold = 0.5;
+        for ( let i = 0; i < gamepad.axes.length; i++ ) {
+          if ( gamepadState.axes[i] != gamepad.axes[i] ) {
+            let val = gamepad.axes[i];
+            gamepadState.axes[i] = val;
+            //console.log(i+" "+gamepadState.axes[i]);
+            if ( i == 0 ) {
+              if ( val < -treshold ) {
+                if ( ! gamepadState.left ) {
+                  gamepadState.left = true;
+                  this.changeRotation(-Math.PI/8);
+                }
+              } else if ( val > treshold ) {
+                if ( ! gamepadState.right ) {
+                  gamepadState.right = true;
+                  this.changeRotation(Math.PI/8);
+                }
+              } else {
+                gamepadState.left = false;
+                gamepadState.right = false;
+              }
+            }
+            if ( i == 1 ) {
+              if ( val < -treshold ) {
+                if ( ! gamepadState.forward ) {
+                  gamepadState.forward = true;
+                  this.teleport(10);
+                }
+              } else if ( val > treshold ) {
+                if ( ! gamepadState.back ) {
+                  gamepadState.back = true;
+                  this.changePosition(-1);
+                }
+              } else {
+                gamepadState.forward = false;
+                gamepadState.back = false;
+              }
+            }
+          }
+        }
+      });
+      console.log("gamepad state initialized");
+    });
+  }
+  
+  changeRotation(angle) {
+    if ( this.camera() ) {
+      this.camera().rotationQuaternion.multiplyInPlace(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle));
+    }
+    //console.log( this.world.scene.activeCamera.rotation );
+  }
+  changePosition(distance) {
+    if ( this.camera() ) {
+      var forwardDirection = this.camera().getForwardRay(distance).direction;
+      //this.camera().position = forwardDirection;
+      this.camera().position.addInPlace( new BABYLON.Vector3(-forwardDirection.x, 0, -forwardDirection.z));
+    }
+  }
+  teleport(distance) {
+    if ( this.camera() ) {
+      var ray = this.camera().getForwardRay(distance);
+      var pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
+        return this.world.getFloorMeshes().includes(mesh);
+      });
+      if ( pickInfo.hit ) {
+        console.log(pickInfo.pickedPoint);
+        this.camera().position = new BABYLON.Vector3( pickInfo.pickedPoint.x, this.camera().position.y, pickInfo.pickedPoint.z);
+      }
+    }
+  }
+  gamepadButton(index, state) {
+    console.log(index+" "+state);
   }
   
   trackMotionController(controller, side) {
