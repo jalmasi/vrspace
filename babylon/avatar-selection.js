@@ -615,6 +615,7 @@ export class AvatarSelection extends World {
         this.worldManager.customAnimations = this.customAnimations;
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
+        //this.worldManager.remoteLogging = true;
         
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);

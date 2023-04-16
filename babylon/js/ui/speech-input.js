@@ -13,23 +13,28 @@ export class SpeechInput {
     this.onlyLetters = true;
     this.lowercase = true;
     this.removePeriod = true;
+    this.spoke = false;
     this.constructor.instances.push(this);
     // this should go to static block but then jsdoc fails:
     if ( ! this.constructor.touchListener ) {
       this.constructor.touchListener = (e) => {
-        if ( this.constructor.active && this.constructor.android) {
-          annyang.start();
-        }
+        this.continue();
       }
       document.addEventListener('touchstart', this.constructor.touchListener);
     }
   }
-  addCommand(command, callback) {
-    this.commands[command] = (text) => this.callback(text, callback);
-    // microsoft apparently attempts to add punctuation
-    this.commands[command+'.'] = (text) => this.callback(text, callback);
+  continue() {
+    if ( this.constructor.active && this.constructor.android) {
+      //console.log("Android speech recognition (re) starting");
+      annyang.start({autoRestart:false, continuous:true});
+    }
   }
-  callback(text, callback) {
+  addCommand(command, callback) {
+    this.commands[command] = (text) => this.callback(command, text, callback);
+    // microsoft apparently attempts to add punctuation
+    this.commands[command+'.'] = (text) => this.callback(command, text, callback);
+  }
+  callback(command, text, callback) {
     //console.log("Executing "+text, callback);
     if ( text ) {
       if (this.lowercase) {
@@ -42,10 +47,29 @@ export class SpeechInput {
         text = text.substring(0,text.length-1);
       }
     }
+    this.spoke=true;
+    //console.log("Spoke:"+ command+" "+text);
     callback(text);
+  }
+  callNoMatch(phrases) {
+    this.spoke=true;
+    //console.log("Spoke:"+ phrases);
+    if ( this.noMatch ) {
+      this.noMatch(phrases);
+    }
   }
   addNoMatch(callback) {
     this.noMatch = callback;
+  }
+  endCallback() {
+    //console.log("Speech recognition ended, spoke: "+this.spoke+" active:"+this.constructor.active);
+    if ( this.spoke ) {
+      this.spoke = false;
+      this.continue();
+    } else {
+      // silence/stop
+      //console.log("Speech recognition ended in silence");
+    }
   }
   start() {
     if (this.constructor.enabled && annyang) {
@@ -59,14 +83,18 @@ export class SpeechInput {
         annyang.addCommands(this.commands);
       }
       if ( this.noMatch ) {
-        annyang.addCallback('resultNoMatch', this.noMatch);
+        annyang.addCallback('resultNoMatch', (phrases)=>this.callNoMatch(phrases));
+      }
+      if ( this.constructor.android && ! this.end ) {
+        this.end = () => this.endCallback();
+        annyang.addCallback('end', this.end );
       }
       // Start listening. You can call this here, or attach this call to an event, button, etc.
       if ( this.constructor.android ) {
-        console.log("Speech recognition will start on touch, to prevent annoying beeping on android");
+        //console.log("Speech recognition will start on touch, to prevent annoying beeping on android");
       } else {
         annyang.start();
-        console.log("Speech recognition started: "+annyang.isListening(), this.commands);
+        //console.log("Speech recognition started: "+annyang.isListening(), this.commands);
       }
       this.constructor.active = true;
     } else {
@@ -75,7 +103,7 @@ export class SpeechInput {
   }
   stop() {
     if ( annyang ) {
-      console.log("speech recognition stopped");
+      //console.log("speech recognition stopped");
       annyang.abort();
       this.constructor.active = false;
     }
@@ -98,6 +126,10 @@ export class SpeechInput {
       }
       if ( this.noMatch ) {
         annyang.removeCallback('resultNoMatch', this.noMatch);
+      }
+      if ( this.end ) {
+        annyang.removeCallback('end', this.end);
+        delete this.end;
       }
     }
   }

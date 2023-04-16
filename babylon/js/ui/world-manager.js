@@ -792,6 +792,10 @@ export class WorldManager {
         oldConsole.log(this.concat(args));
         VRSPACE.sendCommand("Log", {message:this.concat(args)}); // default log level is debug
       },
+      debug: (...args) => {
+        oldConsole.log(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args)}); // default log level is debug
+      },
       info: (...args) => {
         oldConsole.info(this.concat(args));
         VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"info"});
