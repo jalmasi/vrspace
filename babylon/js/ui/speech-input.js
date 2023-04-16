@@ -1,16 +1,12 @@
-/** experimental speech input, uses annyang library */
+/** 
+ * experimental speech input, uses annyang library 
+ * */
 export class SpeechInput {
   static instances = [];
   static enabled = true;
   static active = false;
   static android = (navigator.userAgent.toLowerCase().indexOf('android') > -1);
-  static {
-    document.addEventListener('touchstart', (e) => {
-      if ( this.active && this.android) {
-        annyang.start();
-      }
-    });
-  }
+  static touchListener = null;
   constructor() {
     this.commands = {};
     this.noMatch = null;
@@ -18,6 +14,15 @@ export class SpeechInput {
     this.lowercase = true;
     this.removePeriod = true;
     this.constructor.instances.push(this);
+    // this should go to static block but then jsdoc fails:
+    if ( ! this.constructor.touchListener ) {
+      this.constructor.touchListener = (e) => {
+        if ( this.constructor.active && this.constructor.android) {
+          annyang.start();
+        }
+      }
+      document.addEventListener('touchstart', this.constructor.touchListener);
+    }
   }
   addCommand(command, callback) {
     this.commands[command] = (text) => this.callback(text, callback);
