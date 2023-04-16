@@ -201,6 +201,7 @@ public class WorldManager {
     return (Client) updateCache(ret);
   }
 
+  @SuppressWarnings("unchecked")
   public <T extends Client> T getClientByName(String name, Class<T> cls) {
     T ret = db.getClientByName(name, cls);
     return (T) updateCache(ret);
@@ -228,6 +229,7 @@ public class WorldManager {
     return ret;
   }
 
+  @SuppressWarnings("unchecked")
   private Entity updateCache(Entity o) {
     // CHECKME: should this be null safe?
     if (o != null) {

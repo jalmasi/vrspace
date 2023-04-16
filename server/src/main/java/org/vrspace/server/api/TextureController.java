@@ -23,38 +23,38 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequestMapping("/textures")
 public class TextureController {
-	private String contentDir = ClassUtil.projectHomeDirectory() + "/content";
+  private String contentDir = ClassUtil.projectHomeDirectory() + "/content";
 
-	/**
-	 * List all jpg and png files in content directory hierarchy
-	 */
-	@GetMapping("/list")
-	public List<String> list() {
-		try {
-			URI contentUri = new URI("file:" + contentDir);
-			log.debug("Listing " + contentUri);
-			List<String> ret = Files.find(Paths.get(contentUri), 10, (path, attr) -> attr.isRegularFile())
-			    .map(path -> path.toUri().toString()).map(fileName -> fileName.substring(fileName.indexOf("/content")))
-			    .filter(fileName -> fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".png"))
-			    .collect(Collectors.toList());
-			return ret;
-		} catch (Exception e) {
-			log.error("Error listing textures", e);
-			throw new ApiException("Error listing textures: " + e);
-		}
-	}
+  /**
+   * List all jpg and png files in content directory hierarchy
+   */
+  @GetMapping("/list")
+  public List<String> list() {
+    try {
+      URI contentUri = new URI("file:" + contentDir);
+      log.debug("Listing " + contentUri);
+      List<String> ret = Files.find(Paths.get(contentUri), 10, (path, attr) -> attr.isRegularFile())
+          .map(path -> path.toUri().toString()).map(fileName -> fileName.substring(fileName.indexOf("/content")))
+          .filter(fileName -> fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".png"))
+          .collect(Collectors.toList());
+      return ret;
+    } catch (Exception e) {
+      log.error("Error listing textures", e);
+      throw new ApiException("Error listing textures: " + e);
+    }
+  }
 
-	/**
-	 * Search textures that contain given substring
-	 */
-	@GetMapping("/search")
-	public List<String> search(String pattern) {
-		try {
-			log.debug("Searching textures for " + pattern);
-			return list().stream().filter(f -> f.toLowerCase().indexOf(pattern) >= 0).toList();
-		} catch (Exception e) {
-			log.error("Error listing textures", e);
-			throw new ApiException("Error listing textures: " + e);
-		}
-	}
+  /**
+   * Search textures that contain given substring
+   */
+  @GetMapping("/search")
+  public List<String> search(String pattern) {
+    try {
+      log.debug("Searching textures for " + pattern);
+      return list().stream().filter(f -> f.toLowerCase().indexOf(pattern) >= 0).collect(Collectors.toList());
+    } catch (Exception e) {
+      log.error("Error listing textures", e);
+      throw new ApiException("Error listing textures: " + e);
+    }
+  }
 }
