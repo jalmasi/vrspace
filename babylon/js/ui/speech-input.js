@@ -1,5 +1,7 @@
 /** 
- * experimental speech input, uses annyang library 
+ * Experimental speech input, uses annyang library.
+ * Seems to work well on chrome and edge on PC.
+ * Kind of works on android chrome, with limitations, but WebRTC disables it for good, thus, disabled if MediaStreams are enabled.  
  * */
 export class SpeechInput {
   static instances = [];
@@ -7,6 +9,7 @@ export class SpeechInput {
   static active = false;
   static android = (navigator.userAgent.toLowerCase().indexOf('android') > -1);
   static touchListener = null;
+  static mediaStreams = null;
   constructor() {
     this.commands = {};
     this.noMatch = null;
@@ -24,8 +27,11 @@ export class SpeechInput {
     }
   }
   continue() {
-    if ( this.constructor.active && this.constructor.android) {
-      //console.log("Android speech recognition (re) starting");
+    if ( this.constructor.active && this.constructor.android && !this.constructor.mediaStreams ) {
+      console.log("Android speech recognition (re) starting");
+      if ( this.constructor.mediaStreams ) {
+        this.constructor.mediaStreams.publishAudio(false);
+      }
       annyang.start({autoRestart:false, continuous:true});
     }
   }
@@ -69,6 +75,9 @@ export class SpeechInput {
     } else {
       // silence/stop
       //console.log("Speech recognition ended in silence");
+      if ( this.constructor.mediaStreams ) {
+        this.constructor.mediaStreams.publishAudio(true);
+      }
     }
   }
   start() {

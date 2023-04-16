@@ -101,6 +101,8 @@ export class WorldManager {
       }
       this.mediaStreams.connect(user.tokens.OpenVidu).then(() => this.mediaStreams.publish());
     }
+    // we may need to pause/unpause audio publishing during speech input
+    VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
   }
 
   /** Optionally log something */
