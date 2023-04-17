@@ -30,6 +30,7 @@ export class HUD {
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.currentController = null;
     this.scale = 1;
+    this.activeControl = null;
     scene.onActiveCameraChanged.add( () => this.trackCamera() );
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
     this.elements = [];
@@ -39,7 +40,7 @@ export class HUD {
     this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distanceWeb);
     this.rowRoot = new BABYLON.TransformNode("HUD0");
     this.rowRoot.parent = this.root;
-    this.rows = [{root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures, speechInput: this.speechInput}];
+    this.rows = [{root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures, speechInput: this.speechInput, activeControl: this.activeControl}];
     window.addEventListener("resize", () => {
       this.rescaleHUD();
     });
@@ -141,17 +142,82 @@ export class HUD {
     if ( onPointerDown ) {
       button.onPointerDownObservable.add( (vector3WithInfo) => onPointerDown(button, vector3WithInfo) );
     }
+    //button.onPointerEnterObservable.add( (control) => this.pointerEnter(button) );
+    //button.onPointerOutObservable.add( (control) => this.pointerOut(button) );
     if ( text ) {
       this.speechInput.addCommand(text, () => {
         // execute click callback(s) on visible button
-        if ( button.isVisible ) {
-          button.onPointerDownObservable.observers.forEach(observer=>observer.callback(button))
-        }
+        this.activateButton(button);
       });
     }
     return button;
   }
-  
+
+  activateButton(button) {
+    if ( button.isVisible ) {
+      button.onPointerDownObservable.observers.forEach(observer=>observer.callback(button))
+    }
+  }  
+  pointerEnter(button) {
+    //console.log('enter '+button.pointerEnterAnimation);
+    button.scaling = new BABYLON.Vector3( this.buttonSize*1.2, this.buttonSize*1.2, this.buttonSize*1.2 );
+  }
+  pointerOut(button) {
+    //console.log('out '+button.pointerOutAnimation);
+    button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
+  }
+  getControlIndex(control) {
+    for ( let i = 0; i < this.controls.length; i++ ) {
+      if ( this.controls[i] === control ) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  unselectCurrent() {
+    if ( this.activeControl && this.activeControl.getClassName() == "HolographicButton") {
+      this.activeControl.pointerOutAnimation();
+    }
+  }
+  selectCurrent() {
+    if ( this.activeControl && this.activeControl.getClassName() == "HolographicButton") {
+      this.activeControl.pointerEnterAnimation();
+    }
+  }
+  selectControl(index) {
+    if ( index < 0 ) {
+      index = this.controls.length + index;
+    }
+    index = index % this.controls.length;
+    //console.log("Current control: "+index+"/"+this.controls.length);
+    this.unselectCurrent();
+    this.activeControl = this.controls[index];
+    this.selectCurrent();
+  }
+  up() {
+    if ( this.activeControl ) {
+      if ( this.activeControl.getClassName() == "HolographicButton") {
+        //this.activeControl.pointerDownAnimation();
+        //this.activeControl.pointerUpAnimation();
+        //this.activeControl.pointerOutAnimation();
+        this.activateButton(this.activeControl);
+      }
+    }
+  }
+  down() {
+    if ( this.rows.length > 1 ) {
+      let previous = this.rows[this.rows.length-2];
+      if ( previous.activeControl && previous.activeControl.getClassName() == "HolographicButton") {
+        this.activateButton(previous.activeControl);
+      }
+    }
+  }
+  left() {
+    this.selectControl(this.getControlIndex(this.activeControl)-1);
+  }
+  right() {
+    this.selectControl(this.getControlIndex(this.activeControl)+1);
+  }
   /**
    * Adds a panel (typically babylon StackPanel) to the hud. Creates and returns AdvancedDynamicTexture to render the panel.
    * @param panel to add
@@ -299,23 +365,29 @@ export class HUD {
       }
     });
   }
+ 
+  currentRow() {
+    return this.rows[this.rows.length-1];
+  } 
   
   newRow() {
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(.5);
       row.root.position.addInPlace(this.rowOffset.scale(1/(this.rows.length*2)));
     });
- 
+    this.unselectCurrent();
+    this.currentRow().activeControl = this.activeControl;
     this.rowRoot = new BABYLON.TransformNode("HUD"+this.rows.length);
     this.rowRoot.parent = this.root;
     
     this.elements = [];
     this.controls = [];
     this.textures = [];
+    this.activeControl = null;
     this.speechInput.stop();
     this.speechInput = new SpeechInput();
     this.speechInput.onlyLetters = false;
-    this.rows.push({root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures, speechInput: this.speechInput});
+    this.rows.push({root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures, speechInput: this.speechInput, activeControl: this.activeControl});
   }
 
   clearRow() {
@@ -346,6 +418,8 @@ export class HUD {
     this.controls = row.controls;
     this.textures = row.textures;
     this.speechInput = row.speechInput;
+    this.activeControl = row.activeControl;
+    this.selectCurrent();
     this.speechInput.start();
     this.rescaleHUD();
   }

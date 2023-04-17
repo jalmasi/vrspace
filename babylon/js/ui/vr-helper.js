@@ -177,15 +177,72 @@ export class VRHelper {
   
   trackGamepad() {
     // https://forum.babylonjs.com/t/no-gamepad-support-in-webxrcontroller/15147/2
+    let gamepadTracker = () => {
+      const gamepad = navigator.getGamepads()[this.gamepadState.index];
+      for ( let i = 0; i < gamepad.buttons.length; i++ ) {
+        let buttonState = gamepad.buttons[i].value > 0 || gamepad.buttons[i].pressed || gamepad.buttons[i].touched;
+        if ( this.gamepadState.buttons[i] != buttonState ) {
+          this.gamepadState.buttons[i] = buttonState;
+          this.gamepadButton(i, buttonState);
+        }
+      }
+      let treshold = 0.5;
+      for ( let i = 0; i < gamepad.axes.length; i++ ) {
+        if ( this.gamepadState.axes[i] != gamepad.axes[i] ) {
+          let val = gamepad.axes[i];
+          this.gamepadState.axes[i] = val;
+          //console.log(i+" "+this.gamepadState.axes[i]);
+          if ( i == 0 || i == 2 ) {
+            // left-right
+            if ( val < -treshold ) {
+              if ( ! this.gamepadState.left ) {
+                this.gamepadState.left = true;
+                this.changeRotation(-Math.PI/8);
+              }
+            } else if ( val > treshold ) {
+              if ( ! this.gamepadState.right ) {
+                this.gamepadState.right = true;
+                this.changeRotation(Math.PI/8);
+              }
+            } else {
+              this.gamepadState.left = false;
+              this.gamepadState.right = false;
+            }
+          }
+          if ( i == 1 || i == 3 ) {
+            // forward-back
+            if ( val < -treshold ) {
+              if ( ! this.gamepadState.forward ) {
+                this.gamepadState.forward = true;
+                this.teleportStart();
+              }
+            } else if ( val > treshold ) {
+              if ( ! this.gamepadState.back ) {
+                this.gamepadState.back = true;
+                this.changePosition(-1);
+              }
+            } else {
+              this.gamepadState.forward = false;
+              this.gamepadState.back = false;
+              this.teleportEnd();
+            }
+          }
+        }
+      }
+    }
+    window.addEventListener("gamepaddisconnected", (e) => {
+      console.log("Gamepad disconnected ",e.gamepad.id);
+      this.world.scene.unregisterBeforeRender( gamepadTracker );
+    });
     window.addEventListener("gamepadconnected", (e) => {
-      console.log("Gamepad connected ",e.gamepad);
+      console.log("Gamepad "+e.gamepad.index+" connected "+e.gamepad.id);
       this.teleportMesh = BABYLON.MeshBuilder.CreatePlane("Teleport-target", {width: 1, height: 1}, this.world.scene);
       this.teleportMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
       this.teleportMesh.material = new BABYLON.StandardMaterial('teleportTargetMaterial', this.world.scene);
       this.teleportMesh.material.diffuseTexture = new BABYLON.Texture("/content/icons/download.png", this.world.scene);
-      this.teleportMesh.enabled = false;
+      this.teleportMesh.setEnabled(false);
 
-      let gamepadState = {
+      this.gamepadState = {
         index: e.gamepad.index,
         id: e.gamepad.id,
         buttons: [],
@@ -198,65 +255,13 @@ export class VRHelper {
       e.gamepad.buttons.forEach( b=> {
         let state = b.value > 0 || b.pressed || b.touched;
         //console.log('button state: '+state);
-        gamepadState.buttons.push(state);
+        this.gamepadState.buttons.push(state);
       });
       e.gamepad.axes.forEach( a=> {
         //console.log('axis state: '+a);
-        gamepadState.axes.push(a);
+        this.gamepadState.axes.push(a);
       });
-      this.world.scene.registerBeforeRender( () => {
-        const gamepad = navigator.getGamepads()[0]
-        for ( let i = 0; i < gamepad.buttons.length; i++ ) {
-          let buttonState = gamepad.buttons[i].value > 0 || gamepad.buttons[i].pressed || gamepad.buttons[i].touched;
-          if ( gamepadState.buttons[i] != buttonState ) {
-            gamepadState.buttons[i] = buttonState;
-            this.gamepadButton(i, buttonState);
-          }
-        }
-        let treshold = 0.5;
-        for ( let i = 0; i < gamepad.axes.length; i++ ) {
-          if ( gamepadState.axes[i] != gamepad.axes[i] ) {
-            let val = gamepad.axes[i];
-            gamepadState.axes[i] = val;
-            //console.log(i+" "+gamepadState.axes[i]);
-            if ( i == 0 ) {
-              // left-right
-              if ( val < -treshold ) {
-                if ( ! gamepadState.left ) {
-                  gamepadState.left = true;
-                  this.changeRotation(-Math.PI/8);
-                }
-              } else if ( val > treshold ) {
-                if ( ! gamepadState.right ) {
-                  gamepadState.right = true;
-                  this.changeRotation(Math.PI/8);
-                }
-              } else {
-                gamepadState.left = false;
-                gamepadState.right = false;
-              }
-            }
-            if ( i == 1 ) {
-              // forward-back
-              if ( val < -treshold ) {
-                if ( ! gamepadState.forward ) {
-                  gamepadState.forward = true;
-                  this.teleportStart();
-                }
-              } else if ( val > treshold ) {
-                if ( ! gamepadState.back ) {
-                  gamepadState.back = true;
-                  this.changePosition(-1);
-                }
-              } else {
-                gamepadState.forward = false;
-                gamepadState.back = false;
-                this.teleportEnd();
-              }
-            }
-          }
-        }
-      });
+      this.world.scene.registerBeforeRender( gamepadTracker );
       console.log("gamepad state initialized");
     });
   }
@@ -275,15 +280,18 @@ export class VRHelper {
     }
   }
   teleportStart() {
+    if ( this.teleporting ) {
+      return;
+    }
     this.teleporting = true;
-    this.teleportMesh.enabled = false;
+    this.teleportMesh.setEnabled(false);
     this.caster = () => {
       var ray = this.camera().getForwardRay(100);
       var pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
         return this.world.getFloorMeshes().includes(mesh);
       });
       if ( pickInfo.hit ) {
-        this.teleportMesh.enabled = true;
+        this.teleportMesh.setEnabled(this.teleporting);
         this.teleportMesh.position = pickInfo.pickedPoint;
       }
     }
@@ -291,7 +299,9 @@ export class VRHelper {
   }
   teleportEnd() {
     if ( this.camera() && this.teleporting ) {
+      this.world.scene.unregisterBeforeRender(this.caster);
       this.teleporting = false;
+      this.teleportMesh.setEnabled(false);
       var ray = this.camera().getForwardRay(100);
       var pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
         return this.world.getFloorMeshes().includes(mesh);
@@ -299,12 +309,29 @@ export class VRHelper {
       if ( pickInfo.hit ) {
         this.camera().position = new BABYLON.Vector3( pickInfo.pickedPoint.x, this.camera().position.y, pickInfo.pickedPoint.z);
       }
-      this.world.scene.unregisterBeforeRender(this.caster);
       this.caster = null;
     }
   }
   gamepadButton(index, state) {
-    console.log(index+" "+state);
+    // triggers: left 4, 6, right 5, 7
+    // select 8, start 9
+    // left right down up: right 2 1 0 3 (X B A Y) left 14 15 13 12
+    // stick: left 10 right 11 
+    //console.log(index+" "+state);
+    if ( state && VRSPACEUI.hud ) {
+      if (index == 2 || index == 14) {
+        // left
+        VRSPACEUI.hud.left();
+      } else if ( index == 1 || index == 15 ) {
+        // right
+        VRSPACEUI.hud.right();
+      } else if ( index == 0 || index == 13 ) {
+        // down
+        VRSPACEUI.hud.down();
+      } else if ( index == 3 || index == 12 ) {
+        VRSPACEUI.hud.up();
+      }
+    }
   }
   
   trackMotionController(controller, side) {
