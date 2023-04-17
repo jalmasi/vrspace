@@ -28,7 +28,7 @@ export class SpeechInput {
   }
   continue() {
     if ( this.constructor.active && this.constructor.android && !this.constructor.mediaStreams ) {
-      console.log("Android speech recognition (re) starting");
+      //console.log("Android speech recognition (re) starting");
       if ( this.constructor.mediaStreams ) {
         this.constructor.mediaStreams.publishAudio(false);
       }

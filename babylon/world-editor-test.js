@@ -12,6 +12,7 @@ export class WorldEditorExample extends World {
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;
     this.camera.applyGravity = false;
+    this.gravityEnabled = false;
     return this.camera;
   }
 

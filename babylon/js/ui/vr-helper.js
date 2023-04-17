@@ -26,6 +26,7 @@ export class VRHelper {
     this.squeezeListeners = [];
     this.triggerListeners = [];
     this.gamepadObserver = null;
+    this.teleporting = false;
   }
   /**
   @param world attaches the control to the World
@@ -93,8 +94,6 @@ export class VRHelper {
               this.stopTracking();
               this.world.camera.position = this.camera().position.clone();
               this.world.camera.rotation = this.camera().rotation.clone();
-              // doesn't do anything
-              //camera.position.y = xrHelper.baseExperience.camera.position.y + 3; //camera.ellipsoid.y*2;
               this.world.collisions(this.world.collisionsEnabled);
               this.world.inXR = false;
               break;
@@ -180,6 +179,12 @@ export class VRHelper {
     // https://forum.babylonjs.com/t/no-gamepad-support-in-webxrcontroller/15147/2
     window.addEventListener("gamepadconnected", (e) => {
       console.log("Gamepad connected ",e.gamepad);
+      this.teleportMesh = BABYLON.MeshBuilder.CreatePlane("Teleport-target", {width: 1, height: 1}, this.world.scene);
+      this.teleportMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
+      this.teleportMesh.material = new BABYLON.StandardMaterial('teleportTargetMaterial', this.world.scene);
+      this.teleportMesh.material.diffuseTexture = new BABYLON.Texture("/content/icons/download.png", this.world.scene);
+      this.teleportMesh.enabled = false;
+
       let gamepadState = {
         index: e.gamepad.index,
         id: e.gamepad.id,
@@ -215,6 +220,7 @@ export class VRHelper {
             gamepadState.axes[i] = val;
             //console.log(i+" "+gamepadState.axes[i]);
             if ( i == 0 ) {
+              // left-right
               if ( val < -treshold ) {
                 if ( ! gamepadState.left ) {
                   gamepadState.left = true;
@@ -231,10 +237,11 @@ export class VRHelper {
               }
             }
             if ( i == 1 ) {
+              // forward-back
               if ( val < -treshold ) {
                 if ( ! gamepadState.forward ) {
                   gamepadState.forward = true;
-                  this.teleport(10);
+                  this.teleportStart();
                 }
               } else if ( val > treshold ) {
                 if ( ! gamepadState.back ) {
@@ -244,6 +251,7 @@ export class VRHelper {
               } else {
                 gamepadState.forward = false;
                 gamepadState.back = false;
+                this.teleportEnd();
               }
             }
           }
@@ -266,16 +274,33 @@ export class VRHelper {
       this.camera().position.addInPlace( new BABYLON.Vector3(-forwardDirection.x, 0, -forwardDirection.z));
     }
   }
-  teleport(distance) {
-    if ( this.camera() ) {
-      var ray = this.camera().getForwardRay(distance);
+  teleportStart() {
+    this.teleporting = true;
+    this.teleportMesh.enabled = false;
+    this.caster = () => {
+      var ray = this.camera().getForwardRay(100);
       var pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
         return this.world.getFloorMeshes().includes(mesh);
       });
       if ( pickInfo.hit ) {
-        console.log(pickInfo.pickedPoint);
+        this.teleportMesh.enabled = true;
+        this.teleportMesh.position = pickInfo.pickedPoint;
+      }
+    }
+    this.world.scene.registerBeforeRender(this.caster);
+  }
+  teleportEnd() {
+    if ( this.camera() && this.teleporting ) {
+      this.teleporting = false;
+      var ray = this.camera().getForwardRay(100);
+      var pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
+        return this.world.getFloorMeshes().includes(mesh);
+      });
+      if ( pickInfo.hit ) {
         this.camera().position = new BABYLON.Vector3( pickInfo.pickedPoint.x, this.camera().position.y, pickInfo.pickedPoint.z);
       }
+      this.world.scene.unregisterBeforeRender(this.caster);
+      this.caster = null;
     }
   }
   gamepadButton(index, state) {
@@ -363,6 +388,9 @@ export class VRHelper {
   trackTrigger(callback) {
     this.triggerListeners.push(callback);
   }
+  /**
+   * Called after teleoportation to update non-VR world camera and dynamic terrain if needed
+   */
   afterTeleportation() {
     var targetPosition = this.vrHelper.baseExperience.camera.position;
     this.world.camera.globalPosition.x = targetPosition.x;
