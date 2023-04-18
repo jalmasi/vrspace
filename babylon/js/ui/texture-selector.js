@@ -96,10 +96,10 @@ export class TextureSelector {
     this.form = new SearchForm((text)=>this.doSearch(text));
     this.form.init(); // starts speech recognition
     if ( VRSPACEUI.hud.inXR() ) {
-      let texture = VRSPACEUI.hud.addPanel(this.form.panel,1024,512);
+      let texture = VRSPACEUI.hud.addForm(this.form,1024,512);
       this.form.keyboard(this.form.input,texture);
     } else {
-      VRSPACEUI.hud.addPanel(this.form.panel,1024,64);
+      VRSPACEUI.hud.addForm(this.form,1024,64);
     }
   }
   

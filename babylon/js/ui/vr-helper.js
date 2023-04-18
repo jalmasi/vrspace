@@ -319,17 +319,21 @@ export class VRHelper {
     // stick: left 10 right 11 
     //console.log(index+" "+state);
     if ( state && VRSPACEUI.hud ) {
-      if (index == 2 || index == 14) {
-        // left
-        VRSPACEUI.hud.left();
-      } else if ( index == 1 || index == 15 ) {
-        // right
-        VRSPACEUI.hud.right();
-      } else if ( index == 0 || index == 13 ) {
-        // down
-        VRSPACEUI.hud.down();
-      } else if ( index == 3 || index == 12 ) {
-        VRSPACEUI.hud.up();
+      try {
+        if (index == 2 || index == 14) {
+          // left
+          VRSPACEUI.hud.left();
+        } else if ( index == 1 || index == 15 ) {
+          // right
+          VRSPACEUI.hud.right();
+        } else if ( index == 0 || index == 13 ) {
+          // down
+          VRSPACEUI.hud.down();
+        } else if ( index == 3 || index == 12 ) {
+          VRSPACEUI.hud.up();
+        }
+      } catch ( error ) {
+        console.error("Error:",error.stack);
       }
     }
   }

@@ -166,46 +166,76 @@ export class HUD {
     //console.log('out '+button.pointerOutAnimation);
     button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
   }
+  getControls() {
+    if (this.activeControl && this.activeControl.getClassName() == "Form") {
+      return this.activeControl.getControls();
+    }
+    return this.controls;
+  }
+  getActiveControl() {
+    if (this.activeControl && this.activeControl.getClassName() == "Form") {
+      return this.activeControl.getActiveControl();
+    }
+    return this.activeControl;
+  }
+  setActiveControl(control) {
+    if (this.activeControl && this.activeControl.getClassName() == "Form") {
+      this.activeControl.setActiveControl(control);
+    } else {
+      this.activeControl = control;
+    }
+  }
   getControlIndex(control) {
-    for ( let i = 0; i < this.controls.length; i++ ) {
-      if ( this.controls[i] === control ) {
-        return i;
+    let ret = -1;
+    let controls = this.getControls();
+    for ( let i = 0; i < controls.length; i++ ) {
+      if ( controls[i] === control ) {
+        ret = i;
+        break;
       }
     }
-    return -1;
+    return ret;
   }
   unselectCurrent() {
     if ( this.activeControl && this.activeControl.getClassName() == "HolographicButton") {
       this.activeControl.pointerOutAnimation();
+    } else if (this.activeControl && this.activeControl.getClassName() == "Form") {
+      this.activeControl.unselectCurrent();
     }
   }
-  selectCurrent() {
+  selectCurrent(index) {
     if ( this.activeControl && this.activeControl.getClassName() == "HolographicButton") {
       this.activeControl.pointerEnterAnimation();
+    } else if (this.activeControl && this.activeControl.getClassName() == "Form") {
+      this.activeControl.selectCurrent(index);
     }
   }
   selectControl(index) {
+    let controls = this.getControls();
     if ( index < 0 ) {
-      index = this.controls.length + index;
+      index = controls.length + index;
     }
-    index = index % this.controls.length;
-    //console.log("Current control: "+index+"/"+this.controls.length);
+    index = index % controls.length;
+    //console.log("Current control: "+index+"/"+this.getControls().length);
     this.unselectCurrent();
-    this.activeControl = this.controls[index];
-    this.selectCurrent();
+    this.setActiveControl(controls[index]);
+    this.selectCurrent(index);
   }
   up() {
     if ( this.activeControl ) {
       if ( this.activeControl.getClassName() == "HolographicButton") {
-        //this.activeControl.pointerDownAnimation();
-        //this.activeControl.pointerUpAnimation();
-        //this.activeControl.pointerOutAnimation();
         this.activateButton(this.activeControl);
+      } else if ( this.activeControl.getClassName() == "Form") {
+        this.activeControl.activateCurrent();
       }
     }
   }
   down() {
-    if ( this.rows.length > 1 ) {
+    let clear = true;
+    if ( this.activeControl.getClassName() == "Form") { 
+      clear = this.activeControl.down();
+    }
+    if ( clear && this.rows.length > 1 ) {
       let previous = this.rows[this.rows.length-2];
       if ( previous.activeControl && previous.activeControl.getClassName() == "HolographicButton") {
         this.activateButton(previous.activeControl);
@@ -213,32 +243,34 @@ export class HUD {
     }
   }
   left() {
-    this.selectControl(this.getControlIndex(this.activeControl)-1);
+    this.selectControl(this.getControlIndex(this.getActiveControl())-1);
   }
   right() {
-    this.selectControl(this.getControlIndex(this.activeControl)+1);
+    this.selectControl(this.getControlIndex(this.getActiveControl())+1);
   }
   /**
-   * Adds a panel (typically babylon StackPanel) to the hud. Creates and returns AdvancedDynamicTexture to render the panel.
-   * @param panel to add
+   * Adds a Form to the hud. Creates and returns AdvancedDynamicTexture to render the form.
+   * @param form to add
    * @param textureWidth width in pixels
    * @param textureHeight height in pixels
    */
-  addPanel(panel,textureWidth,textureHeight) {
+  addForm(form,textureWidth,textureHeight) {
 	  let size = 0.03 * this.scale * textureHeight/64;
 
-    let plane = BABYLON.MeshBuilder.CreatePlane("Plane-TextInput", {width: size*textureWidth/textureHeight, height: size});
+    let plane = BABYLON.MeshBuilder.CreatePlane("HudFormPlane", {width: size*textureWidth/textureHeight, height: size});
     plane.parent = this.rowRoot;
     plane.position = new BABYLON.Vector3(0,size/2,0.02);
     let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,textureWidth,textureHeight);
     // advancedTexture creates material and attaches it to the plane
     plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
     
-    advancedTexture.addControl(panel);
+    advancedTexture.addControl(form.panel);
 
     this.elements.push(plane);
-    this.controls.push(panel);
+    this.controls.push(form.panel);
     this.textures.push(advancedTexture);
+    
+    this.activeControl = form;
     
     this.rescaleHUD();
     return advancedTexture;

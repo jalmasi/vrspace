@@ -13,15 +13,23 @@ export class Form {
     this.resizeToFit = true;
     this.color = "white";
     this.background = "black";
+    this.selected = "yellow";
     this.submitColor = "green";
     this.inputWidth = 500;
     this.keyboardRows = null;
     this.speechInput = new SpeechInput();
+    this.elements = [];
+    this.controls = [];
+    this.activeControl = null;
+    this.activeBackground = null;
     if ( params ) {
       for(var c of Object.keys(params)) {
         this[c] = params[c];
       }
     }
+  }
+  getClassName() {
+    return "Form";
   }
   textBlock(text, params) {
     var block = new BABYLON.GUI.TextBlock();
@@ -35,6 +43,7 @@ export class Form {
         block[c] = params[c];
       }
     }
+    this.elements.push(block);
     return block;
   }
   checkbox(name, params) {
@@ -60,6 +69,8 @@ export class Form {
         }
       });
     }
+    this.elements.push(checkbox);
+    this.controls.push(checkbox);
     return checkbox;
   }
   inputText(name, params) {
@@ -74,6 +85,8 @@ export class Form {
     //input.widthInPixels = scene.getEngine().getRenderingCanvas().getBoundingClientRect().width/2;
     input.color = this.color;
     input.background = this.background;
+    input.onFocusObservable.add(i=>this.inputFocused(i,true));
+    input.onBlurObservable.add(i=>this.inputFocused(i,false));
     if ( params ) {
       for(let c of Object.keys(params)) {
         input[c] = params[c];
@@ -83,6 +96,8 @@ export class Form {
     if ( command ) {
       this.speechInput.addCommand(command+' *text', (text) => this.input.text = text);
     }
+    this.elements.push(input);
+    this.controls.push(input);
     return input;
   }
   submitButton(name, callback, params) {
@@ -104,9 +119,45 @@ export class Form {
       button.onPointerDownObservable.add( () => callback(this));
     }
     
+    this.elements.push(button);
+    this.controls.push(button);
     return button;
   }
+
+  keyboard(advancedTexture) {
+    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('search-keyboard');
+    keyboard.fontSizeInPixels = 36;
+    keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    if (this.keyboardRows) {
+      this.keyboardRows.forEach(row=>keyboard.addKeysRow(row));
+    }
+    advancedTexture.addControl(keyboard);
+    keyboard.isVisible = false;
+    this.vKeyboard = keyboard;
+    return keyboard;
+  }
   
+  inputFocused(input, focused) {
+    if ( this.vKeyboard ) {
+      if ( focused ) {
+        this.vKeyboard.connect(input); // makes keyboard invisible if input has no focus
+      } else {
+        this.vKeyboard.disconnect(input);
+      }
+      this.vKeyboard.isVisible=focused;
+    }
+  }
+
+  dispose() {
+    if ( this.vKeyboard ) {
+      this.vKeyboard.dispose();
+      delete this.vKeyboard;
+    }
+    this.elements.forEach(e=>e.dispose());
+    this.speechInput.dispose();
+  }  
+  
+  /** converts a control (button,checkbox...) name (label) to voice command */
   nameToCommand(name) {
     let ret = null;
     if ( name ) {
@@ -125,6 +176,90 @@ export class Form {
       }
     }
     return ret;
+  }
+  
+  getControls() {
+    if ( this.activeControl && this.activeControl.getClassName() == "VirtualKeyboard") {
+      return this.vKeyboard.children[this.keyboardRow].children;
+    }
+    return this.controls;
+  }
+  getActiveControl() {
+    if ( this.activeControl && this.activeControl.getClassName() == "VirtualKeyboard") {
+      return this.vKeyboard.children[this.keyboardRow].children[this.keyboardCol];
+    }
+    return this.activeControl;
+  }
+  setActiveControl(control){
+    if ( this.activeControl && this.activeControl.getClassName() == "VirtualKeyboard") {
+      return;
+    }
+    this.activeControl = control;
+  }
+  activateCurrent() {
+    if ( this.activeControl ) {
+      //console.log('activate '+this.activeControl.getClassName());
+      if ( this.activeControl.getClassName() == "Checkbox") {
+        this.activeControl.isChecked = !this.activeControl.isChecked;
+      } else if ( this.activeControl.getClassName() == "Button") {
+        this.activeControl.onPointerDownObservable.observers.forEach(observer=>observer.callback(this));
+      } else if ( this.activeControl.getClassName() == "InputText") {
+        console.log("activating keyboard");
+        this.activeControl.disableMobilePrompt = true;
+        // keyboard has 5 children, each with own children;
+        this.getActiveControl().background = this.activeBackground;
+        this.activeControl = this.vKeyboard;
+        this.keyboardRow = 0;
+        this.keyboardCol = 0;
+        this.selectCurrent(0);
+      } else if ( this.activeControl.getClassName() == "VirtualKeyboard") {
+        let input = this.activeControl.connectedInputText;
+        let button = this.vKeyboard.children[this.keyboardRow].children[this.keyboardCol];
+        button.onPointerUpObservable.observers.forEach(o=>{
+          o.callback();
+        })
+        if(!this.vKeyboard.isVisible) {
+          // enter key pressed
+          this.activeControl = input;
+          this.getActiveControl().background = this.selected;
+        }
+      }
+    }
+  }
+  selectCurrent(index) {
+    if (this.activeControl) {
+      //console.log('select '+index+' '+this.getActiveControl().getClassName());
+      this.keyboardCol = index;
+      this.activeBackground = this.getActiveControl().background;
+      this.getActiveControl().background = this.selected;
+      if ( this.getActiveControl().getClassName() == "InputText") {
+        this.inputFocused(this.getActiveControl(),true);
+      }
+    }
+  }
+  unselectCurrent() {
+    if (this.activeControl) {
+      this.getActiveControl().background = this.activeBackground;
+      if ( this.getActiveControl().getClassName() == "InputText") {
+        this.inputFocused(this.activeControl,false);
+      }
+    }
+  }
+  down() {
+    if ( this.activeControl && this.activeControl.getClassName() == "VirtualKeyboard") {
+      this.unselectCurrent();
+      if ( this.keyboardRow + 1 < this.vKeyboard.children.length ) {
+        this.keyboardRow++;
+      } else {
+        this.keyboardRow = 0;
+      }
+      if (this.keyboardCol >= this.vKeyboard.children[this.keyboardRow].children.length-1) {
+        this.keyboardCol = this.vKeyboard.children[this.keyboardRow].children.length-1;
+      }
+      this.selectCurrent(this.keyboardCol);
+      return false;
+    }
+    return true;
   }
 }
 

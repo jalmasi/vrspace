@@ -6,11 +6,6 @@ class SearchForm extends Form {
   constructor(callback) {
     super();
     this.callback = callback;
-    this.fontSize = 48;
-    this.heightInPixels = 48;
-    this.color = "white";
-    this.background = "black";
-    this.submitColor = "green";
     this.verticalPanel = false;
   }
   init() {
@@ -47,32 +42,13 @@ class SearchForm extends Form {
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.speechInput.start();
   }
-  keyboard(input, advancedTexture) {
-    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('search-keyboard');
-    keyboard.fontSizeInPixels = 36;
-    keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-    if (this.keyboardRows) {
-      this.keyboardRows.forEach(row=>keyboard.addKeysRow(row));
-    }
-    advancedTexture.addControl(keyboard);
-    keyboard.connect(input);
-    this.vKeyboard = keyboard;
-    return keyboard;
-  }
   dispose() {
-    if ( this.vKeyboard ) {
-      this.vKeyboard.dispose();
-      delete this.vKeyboard;
-    }
-    this.input.dispose();
-    delete this.input;
-    this.animated.dispose();
-    delete this.animated;
-    this.rigged.dispose();
-    delete this.rigged;
+    super.dispose();
     this.panel.dispose();
+    delete this.input;
+    delete this.animated;
+    delete this.rigged;
     delete this.panel;
-    this.speechInput.dispose();
     delete this.speechInput;
   }
 }
@@ -141,10 +117,10 @@ export class WorldEditor {
       this.form = new SearchForm((text)=>this.doSearch(text));
       this.form.init(); // starts speech recognition
       if ( VRSPACEUI.hud.inXR() ) {
-        let texture = VRSPACEUI.hud.addPanel(this.form.panel,1536,512);
-        this.form.keyboard(this.form.input,texture);
+        let texture = VRSPACEUI.hud.addForm(this.form,1536,512);
+        this.form.keyboard(texture);
       } else {
-        VRSPACEUI.hud.addPanel(this.form.panel,1536,64);
+        VRSPACEUI.hud.addForm(this.form,1536,64);
       }
     }
   }
