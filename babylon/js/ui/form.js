@@ -205,7 +205,7 @@ export class Form {
         this.activeControl.onPointerDownObservable.observers.forEach(observer=>observer.callback(this));
       } else if ( this.activeControl.getClassName() == "InputText") {
         console.log("activating keyboard");
-        this.activeControl.disableMobilePrompt = true;
+        this.activeControl.disableMobilePrompt = VRSPACEUI.hud.inXR();
         // keyboard has 5 children, each with own children;
         this.getActiveControl().background = this.activeBackground;
         this.activeControl = this.vKeyboard;
