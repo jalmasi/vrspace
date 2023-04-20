@@ -232,7 +232,7 @@ export class HUD {
   }
   down() {
     let clear = true;
-    if ( this.activeControl.getClassName() == "Form") { 
+    if ( this.activeControl && this.activeControl.getClassName() == "Form") { 
       clear = this.activeControl.down();
     }
     if ( clear && this.rows.length > 1 ) {
@@ -240,6 +240,8 @@ export class HUD {
       if ( previous.activeControl && previous.activeControl.getClassName() == "HolographicButton") {
         this.activateButton(previous.activeControl);
       }
+    } else if ( ! clear ) {
+      this.activeControl = null;
     }
   }
   left() {

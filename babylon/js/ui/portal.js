@@ -56,6 +56,10 @@ export class Portal {
     for ( var i = 0; i < this.materials.length; i++ ) {
       this.materials[i].dispose();
     }
+    if ( this.pointerTracker ) {
+      this.scene.onPointerObservable.remove(this.pointerTracker);
+      delete this.pointerTracker;
+    }
   }
   /** Load and display portal at given coordinates. Copies existing portal mesh to new coordinates and angle.
   @param x
@@ -82,13 +86,12 @@ export class Portal {
     var plane = BABYLON.Mesh.CreatePlane("PortalEntrance:"+this.name, 1.60, this.scene);
     plane.parent = this.group;
     plane.position = new BABYLON.Vector3(0,1.32,0);
-    var observable = (e) => {
+    this.pointerTracker = (e) => {
       if(e.type == BABYLON.PointerEventTypes.POINTERDOWN){
         var p = e.pickInfo;
         if ( p.pickedMesh == plane ) {
           if ( this.isEnabled ) {
             console.log("Entering "+this.name);
-            this.scene.onPointerObservable.remove(observable);
             this.enter();
           } else {
             console.log("Not entering "+this.name+" - disabled");
@@ -96,7 +99,7 @@ export class Portal {
         }
       }
     };
-    this.scene.onPointerObservable.add(observable);
+    this.scene.onPointerObservable.add(this.pointerTracker);
 
     this.material = new BABYLON.StandardMaterial(this.name+"-noise", this.scene);
     plane.material = this.material;

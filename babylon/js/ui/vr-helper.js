@@ -7,11 +7,11 @@ export class VRHelper {
     /** Underlying babylon VR (obsolete) or XR helper (WebXRDefaultExperience) component */
     this.vrHelper = null;
     /** Function that currently tracks XR devices (headeset, controllers). Each world may install own one. */
-    this.tracker = null;
+    this.xrDeviceTracker = null;
     this.controller = { left:null, right: null };
     /** Function that tracks enter/exit VR */
     this.stateChangeObserver = null;
-    /** Function that tracks turning controllers on/off */
+    /** Function that tracks turning XR controllers on/off */
     this.controllerObserver = null;
     /** left and right trigger, if available */
     this.trigger = { left: null, right: null };
@@ -50,6 +50,7 @@ export class VRHelper {
       // WebXRDefaultExperience class
       console.log("Using XR helper");
       this.vrHelper = xrHelper;
+      this.world.inXR = true;
 
       // updating terrain after teleport
       if ( this.movementObserver ) {
@@ -67,10 +68,10 @@ export class VRHelper {
         xrHelper.baseExperience.onInitialXRPoseSetObservable.add( this.initialPoseObserver ); 
       }
 
-      if ( this.tracker ) {
+      if ( this.xrDeviceTracker ) {
         this.stopTracking();
       }
-      this.tracker = () => this.trackXrDevices();
+      this.xrDeviceTracker = () => this.trackXrDevices();
       
       if ( !this.stateChangeObserver ) {
         this.stateChangeObserver = (state) => {
@@ -94,6 +95,7 @@ export class VRHelper {
               this.world.collisions(false);
               break;
             case BABYLON.WebXRState.EXITING_XR:
+              // CHECKME: this doesn't seem to be emitted?
               console.log( "Exiting VR" );
               this.stopTracking();
               this.world.camera.position = this.camera().position.clone();
@@ -103,6 +105,13 @@ export class VRHelper {
               break;
             case BABYLON.WebXRState.NOT_IN_XR:
               console.log( "Not in VR" );
+              this.stopTracking();
+              this.world.camera.position = this.camera().position.clone();
+              // CHECKME: use rotation quaternion instead?
+              this.world.camera.rotation = this.camera().rotation.clone();
+              this.world.collisions(this.world.collisionsEnabled);
+              this.world.inXR = false;
+              // all the above copied from previous case
               this.world.attachControl();
               this.world.scene.activeCamera = this.world.camera;
               // self explanatory - either out or not yet in XR
@@ -289,7 +298,7 @@ export class VRHelper {
     }
   }
   teleportStart() {
-    if ( this.teleporting ) {
+    if ( this.teleporting || ! this.world.inXR) {
       return;
     }
     this.teleporting = true;
@@ -325,19 +334,24 @@ export class VRHelper {
     if ( state && VRSPACEUI.hud ) {
       try {
         if (index == 2 || index == 14) {
-          // left
           VRSPACEUI.hud.left();
         } else if ( index == 1 || index == 15 ) {
-          // right
           VRSPACEUI.hud.right();
         } else if ( index == 0 || index == 13 ) {
-          // down
           VRSPACEUI.hud.down();
         } else if ( index == 3 || index == 12 ) {
           VRSPACEUI.hud.up();
         }
       } catch ( error ) {
         console.error("Error:",error.stack);
+      }
+    }
+    if ( this.pickInfo && (index == 3 || index == 12 )) {
+      // up
+      if ( state ) {
+        this.world.scene.simulatePointerDown(this.pickInfo);
+      } else {
+        this.world.scene.simulatePointerUp(this.pickInfo);
       }
     }
   }
@@ -444,14 +458,68 @@ export class VRHelper {
         // are we absolutely sure that all mobiles deliver this value?
         this.userHeight = this.camera().realWorldHeight;
       }
+      if ( ! this.controller.left && ! this.controller.right ) {
+        // we don't have controllers (yet), use ray from camera for interaction
+        var ray = this.camera().getForwardRay(100);
+        this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
+          return this.world.isSelectableMesh(mesh);
+        });
+        if ( this.pickInfo.hit ) {
+          const points = [
+              new BABYLON.Vector3(this.camera().position.x,this.camera().position.y-.2,this.camera().position.z),
+              this.pickInfo.pickedPoint
+          ]
+          this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, instance: this.pointerLines});
+          this.pointerTarget.position = this.pickInfo.pickedPoint;
+          this.pointerTarget.setEnabled(true);
+        } else {
+          const points = [
+              new BABYLON.Vector3(this.camera().position.x,this.camera().position.y-.2,this.camera().position.z),
+              ray.direction.scale(ray.length)
+          ]
+          this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, instance: this.pointerLines});
+          this.pointerTarget.setEnabled(false);
+        }
+        this.pointerLines.alwaysSelectAsActiveMesh = true;
+      }
       this.world.trackXrDevices();
     }
   }
   startTracking() {
-    this.world.scene.registerBeforeRender(this.tracker);
+    console.log("startTracking");
+    this.pointerTarget = new BABYLON.TransformNode("Pointer-target", this.world.scene);
+    let pointerMesh = new BABYLON.MeshBuilder.CreateDisc("Pointer-mesh", {radius: .05}, this.world.scene);
+    pointerMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    pointerMesh.material = new BABYLON.StandardMaterial('pointerTargetMaterial', this.world.scene);
+    pointerMesh.material.diffuseTexture = new BABYLON.Texture("/content/icons/target-aim.png", this.world.scene);
+    pointerMesh.material.diffuseTexture.hasAlpha = true;
+    pointerMesh.material.useAlphaFromDiffuseTexture = true;
+    pointerMesh.material.emissiveColor = BABYLON.Color3.White();
+    pointerMesh.material.disableLightning = true;
+    pointerMesh.position = new BABYLON.Vector3(0,0,0);
+    pointerMesh.parent = this.pointerTarget;
+
+    const points = [
+        new BABYLON.Vector3(0, 0, 0),
+        new BABYLON.Vector3(0, -1, 0)
+    ]
+    const colors = [
+        new BABYLON.Color4(1, 0, 0, 1),
+        new BABYLON.Color4(1, 1, 0, 1),
+    ]
+    // returns LinesMesh
+    this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, colors: colors, updatable: true});
+    this.pointerLines.alwaysSelectAsActiveMesh = true;
+
+    this.world.scene.registerBeforeRender(this.xrDeviceTracker);
   }
   stopTracking() {
-    this.world.scene.unregisterBeforeRender(this.tracker);
+    console.log("stopTracking");
+    this.world.scene.unregisterBeforeRender(this.xrDeviceTracker);
+    if ( this.pointerTarget ) {
+      this.pointerTarget.dispose();
+      this.pointerTarget = null;
+    }
   }
   leftArmPos() {
     return this.controller.left.grip.absolutePosition;
