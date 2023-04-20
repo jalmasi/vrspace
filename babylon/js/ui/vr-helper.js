@@ -27,6 +27,7 @@ export class VRHelper {
     this.triggerListeners = [];
     this.gamepadObserver = null;
     this.teleporting = false;
+    this.userHeight = 1.8;
   }
   /**
   @param world attaches the control to the World
@@ -78,7 +79,10 @@ export class VRHelper {
             case BABYLON.WebXRState.IN_XR:
               // XR is initialized and already submitted one frame
               console.log( "Entered VR" );
-              this.userHeight = this.camera().realWorldHeight;
+              if ( this.camera().realWorldHeight ) {
+                // are we absolutely sure that all mobiles deliver this value?
+                this.userHeight = this.camera().realWorldHeight;
+              }
               this.startTracking();
               // Workaround for teleporation/selection bug
               xrHelper.teleportation.setSelectionFeature(null);
@@ -236,11 +240,16 @@ export class VRHelper {
     });
     window.addEventListener("gamepadconnected", (e) => {
       console.log("Gamepad "+e.gamepad.index+" connected "+e.gamepad.id);
-      this.teleportMesh = BABYLON.MeshBuilder.CreatePlane("Teleport-target", {width: 1, height: 1}, this.world.scene);
-      this.teleportMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
-      this.teleportMesh.material = new BABYLON.StandardMaterial('teleportTargetMaterial', this.world.scene);
-      this.teleportMesh.material.diffuseTexture = new BABYLON.Texture("/content/icons/download.png", this.world.scene);
-      this.teleportMesh.setEnabled(false);
+      this.teleportTarget = new BABYLON.TransformNode("Teleport-target", this.world.scene);
+      let teleportMesh = new BABYLON.MeshBuilder.CreatePlane("Teleport-mesh", {width: 1, height: 1}, this.world.scene);
+      teleportMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
+      teleportMesh.material = new BABYLON.StandardMaterial('teleportTargetMaterial', this.world.scene);
+      teleportMesh.material.emissiveColor = BABYLON.Color3.White();
+      teleportMesh.material.disableLightning = true;
+      teleportMesh.material.diffuseTexture = new BABYLON.Texture("/content/icons/download.png", this.world.scene);
+      teleportMesh.position = new BABYLON.Vector3(0,1,0);
+      teleportMesh.parent = this.teleportTarget;
+      this.teleportTarget.setEnabled(false);
 
       this.gamepadState = {
         index: e.gamepad.index,
@@ -284,15 +293,15 @@ export class VRHelper {
       return;
     }
     this.teleporting = true;
-    this.teleportMesh.setEnabled(false);
+    this.teleportTarget.setEnabled(false);
     this.caster = () => {
       var ray = this.camera().getForwardRay(100);
       var pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
         return this.world.getFloorMeshes().includes(mesh);
       });
       if ( pickInfo.hit ) {
-        this.teleportMesh.setEnabled(this.teleporting);
-        this.teleportMesh.position = pickInfo.pickedPoint;
+        this.teleportTarget.setEnabled(this.teleporting);
+        this.teleportTarget.position = pickInfo.pickedPoint;
       }
     }
     this.world.scene.registerBeforeRender(this.caster);
@@ -300,16 +309,11 @@ export class VRHelper {
   teleportEnd() {
     if ( this.camera() && this.teleporting ) {
       this.world.scene.unregisterBeforeRender(this.caster);
-      this.teleporting = false;
-      this.teleportMesh.setEnabled(false);
-      var ray = this.camera().getForwardRay(100);
-      var pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
-        return this.world.getFloorMeshes().includes(mesh);
-      });
-      if ( pickInfo.hit ) {
-        this.camera().position = new BABYLON.Vector3( pickInfo.pickedPoint.x, this.camera().position.y, pickInfo.pickedPoint.z);
-      }
       this.caster = null;
+      this.teleporting = false;
+      this.teleportTarget.setEnabled(false);
+      this.camera().position = this.teleportTarget.position.add(new BABYLON.Vector3(0,this.userHeight,0));
+      this.afterTeleportation();
     }
   }
   gamepadButton(index, state) {
@@ -436,7 +440,10 @@ export class VRHelper {
     if ( this.world && this.world.inXR ) {
       // user height has to be tracked here due to
       //XRFrame access outside the callback that produced it is invalid
-      this.userHeight = this.camera().realWorldHeight;
+      if ( this.camera().realWorldHeight ) {
+        // are we absolutely sure that all mobiles deliver this value?
+        this.userHeight = this.camera().realWorldHeight;
+      }
       this.world.trackXrDevices();
     }
   }
