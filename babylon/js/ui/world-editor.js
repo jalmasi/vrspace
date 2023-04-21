@@ -166,8 +166,7 @@ export class WorldEditor {
   }
   
   objectLoaded( vrObject, rootMesh ) {
-    console.log("Loaded:");
-    console.log(vrObject);
+    console.log("WorldEditor loaded: "+vrObject.className+" "+vrObject.id);
     if ( vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id ) {
       VRSPACEUI.indicator.remove("Download");
       console.log("Loaded my object "+vrObject.id)
@@ -653,6 +652,6 @@ export class WorldEditor {
   
   // XR selection support
   isSelectableMesh(mesh) {
-    return VRSPACEUI.hud.isSelectableMesh(mesh) || VRSPACEUI.findRootNode(mesh).VRObject 
+    return VRSPACEUI.hud.isSelectableMesh(mesh) || typeof(VRSPACEUI.findRootNode(mesh).VRObject) === 'object';
   }
 }

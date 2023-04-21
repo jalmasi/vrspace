@@ -157,6 +157,7 @@ export class HUD {
   activateButton(button) {
     if ( button.isVisible ) {
       button.onPointerDownObservable.observers.forEach(observer=>observer.callback(button))
+      button.onPointerUpObservable.observers.forEach(observer=>observer.callback(button))
     }
   }  
   pointerEnter(button) {
@@ -415,6 +416,10 @@ export class HUD {
         element.isVisible = show;
       }
     });
+    if ( !show && except && except != this.getActiveControl()) {
+      // if everything turned off, including currently selected button, select what you can
+      this.right();
+    }
   }
  
   currentRow() {

@@ -338,8 +338,8 @@ export class VRHelper {
     // left right down up: right 2 1 0 3 (X B A Y) left 14 15 13 12
     // stick: left 10 right 11 
     //console.log(index+" "+state);
-    if ( this.pickInfo && (index == 8)) {
-      // up
+    if ( this.pickInfo && (index == 8 || index == 6 || index == 7 || index == 4 || index == 5 )) {
+      // select, triggers
       if ( state ) {
         this.world.scene.simulatePointerDown(this.pickInfo);
       } else {
@@ -469,7 +469,8 @@ export class VRHelper {
         // we don't have controllers (yet), use ray from camera for interaction
         var ray = this.camera().getForwardRay(100);
         this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
-          return this.world.getFloorMeshes().includes(mesh) || this.world.isSelectableMesh(mesh);
+          return this.world.isSelectableMesh(mesh);
+          //return this.world.isSelectableMesh(mesh) || this.world.getFloorMeshes().includes(mesh);
         });
         if ( this.pickInfo.hit ) {
           const points = [

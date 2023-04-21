@@ -48,6 +48,7 @@ export class World {
     this.worldListeners = [];
     this.floorMeshes = [];
     this.ground = null;
+    // CHECKME: should floors be selectable?
     this.selectionPredicates = [(mesh)=>{return this.getFloorMeshes().includes(mesh)}];
             
     // now override defaults
@@ -236,7 +237,8 @@ export class World {
    */
   isSelectableMesh(mesh) {
     let ret = false;
-    this.selectionPredicates.forEach((p)=>{ret |= p(mesh)});
+    this.selectionPredicates.forEach((p)=>{ret ||= p(mesh)});
+    return ret;
   }
 
   /**
