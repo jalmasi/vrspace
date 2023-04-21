@@ -23,6 +23,7 @@ export class HUD {
     this.verticalWeb = -0.1;
     this.verticalXR = -0.1;
     this.rowOffset = new BABYLON.Vector3(0,this.verticalWeb,0);
+    this.allowSelection = true;
     // state variables
     this.vrHelper = null; // set by World.InitXR();
     this.speechInput = new SpeechInput();
@@ -189,7 +190,7 @@ export class HUD {
     let ret = -1;
     let controls = this.getControls();
     for ( let i = 0; i < controls.length; i++ ) {
-      if ( controls[i] === control ) {
+      if ( controls[i] === control) {
         ret = i;
         break;
       }
@@ -240,15 +241,31 @@ export class HUD {
       if ( previous.activeControl && previous.activeControl.getClassName() == "HolographicButton") {
         this.activateButton(previous.activeControl);
       }
-    } else if ( ! clear ) {
+    } else if ( clear ) {
+      this.unselectCurrent();
       this.activeControl = null;
     }
   }
+  next(increment) {
+    let index = this.getControlIndex(this.getActiveControl());
+    let controls = this.getControls();
+    for ( let i = index+increment; i >=0 && i < controls.length; i=i+increment ) {
+      if ( controls[i].isVisible ) {
+        return i;
+      }
+    }
+    if ( increment < 0 && controls[controls.length-1].isVisible) {
+      return controls.length-1;
+    } else if ( increment > 0 && controls[0].isVisible) {
+      return 0;
+    }
+    return index;
+  }
   left() {
-    this.selectControl(this.getControlIndex(this.getActiveControl())-1);
+    this.selectControl(this.next(-1));
   }
   right() {
-    this.selectControl(this.getControlIndex(this.getActiveControl())+1);
+    this.selectControl(this.next(1));
   }
   /**
    * Adds a Form to the hud. Creates and returns AdvancedDynamicTexture to render the form.
@@ -467,7 +484,7 @@ export class HUD {
   }
   
   isSelectableMesh(mesh) {
-    return this.elements.includes(mesh);
+    return this.allowSelection && this.elements.includes(mesh);
   }
   
   initXR(vrHelper) {

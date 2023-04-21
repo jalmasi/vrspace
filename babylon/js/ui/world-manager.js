@@ -823,18 +823,18 @@ export class WorldManager {
   concat(...args) {
     let ret = "";
 
-    try {
-      args.forEach(e=>{
-        if ( typeof(e) === 'object') {
+    args.forEach(e=>{
+      if ( typeof(e) === 'object') {
+        try {
           ret += JSON.stringify(e);
-        } else {
-          ret += e;
+        } catch ( error ) {
+          ret += error;
         }
-        ret += " ";
-      });
-    } catch ( error ) {
-      ret += error;
-    }
+      } else {
+        ret += e;
+      }
+      ret += " ";
+    });
     return ret;
   }
 }

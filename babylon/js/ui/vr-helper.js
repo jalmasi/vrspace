@@ -40,7 +40,9 @@ export class VRHelper {
       this.addFloors();
     } else {
       try {
-        xrHelper = await this.world.scene.createDefaultXRExperienceAsync({floorMeshes: this.world.getFloorMeshes()});        
+        xrHelper = await this.world.scene.createDefaultXRExperienceAsync({floorMeshes: this.world.getFloorMeshes()});
+        // selection disallowed until controllers are initialized
+        VRSPACEUI.hud.allowSelection = false;
       } catch ( err ) {
         console.log("Can't init XR:"+err);
       }
@@ -112,6 +114,10 @@ export class VRHelper {
               this.world.collisions(this.world.collisionsEnabled);
               this.world.inXR = false;
               // all the above copied from previous case
+              if ( this.pointerLines ) {
+                this.pointerLines.dispose();
+                this.pointerLines = null;
+              }
               this.world.attachControl();
               this.world.scene.activeCamera = this.world.camera;
               // self explanatory - either out or not yet in XR
@@ -138,6 +144,7 @@ export class VRHelper {
         // actual class is WebXRInputSource
         this.controllerObserver = (xrController) => {
           console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
+          VRSPACEUI.hud.allowSelection = true;
           if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
             this.controller.left = xrController;
             xrController.onMotionControllerInitObservable.add((motionController) => {
@@ -331,6 +338,14 @@ export class VRHelper {
     // left right down up: right 2 1 0 3 (X B A Y) left 14 15 13 12
     // stick: left 10 right 11 
     //console.log(index+" "+state);
+    if ( this.pickInfo && (index == 8)) {
+      // up
+      if ( state ) {
+        this.world.scene.simulatePointerDown(this.pickInfo);
+      } else {
+        this.world.scene.simulatePointerUp(this.pickInfo);
+      }
+    }
     if ( state && VRSPACEUI.hud ) {
       try {
         if (index == 2 || index == 14) {
@@ -344,14 +359,6 @@ export class VRHelper {
         }
       } catch ( error ) {
         console.error("Error:",error.stack);
-      }
-    }
-    if ( this.pickInfo && (index == 3 || index == 12 )) {
-      // up
-      if ( state ) {
-        this.world.scene.simulatePointerDown(this.pickInfo);
-      } else {
-        this.world.scene.simulatePointerUp(this.pickInfo);
       }
     }
   }
@@ -462,11 +469,11 @@ export class VRHelper {
         // we don't have controllers (yet), use ray from camera for interaction
         var ray = this.camera().getForwardRay(100);
         this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
-          return this.world.isSelectableMesh(mesh);
+          return this.world.getFloorMeshes().includes(mesh) || this.world.isSelectableMesh(mesh);
         });
         if ( this.pickInfo.hit ) {
           const points = [
-              new BABYLON.Vector3(this.camera().position.x,this.camera().position.y-.2,this.camera().position.z),
+              new BABYLON.Vector3(this.camera().position.x,this.camera().position.y-.5,this.camera().position.z),
               this.pickInfo.pickedPoint
           ]
           this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, instance: this.pointerLines});
@@ -474,12 +481,13 @@ export class VRHelper {
           this.pointerTarget.setEnabled(true);
         } else {
           const points = [
-              new BABYLON.Vector3(this.camera().position.x,this.camera().position.y-.2,this.camera().position.z),
+              new BABYLON.Vector3(this.camera().position.x,this.camera().position.y-.5,this.camera().position.z),
               ray.direction.scale(ray.length)
           ]
           this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, instance: this.pointerLines});
           this.pointerTarget.setEnabled(false);
         }
+        this.world.scene.simulatePointerMove(this.pickInfo);
         this.pointerLines.alwaysSelectAsActiveMesh = true;
       }
       this.world.trackXrDevices();

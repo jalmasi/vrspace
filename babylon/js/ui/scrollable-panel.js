@@ -41,7 +41,6 @@ export class ScrollablePanel {
     
     // same material used for all buttons in this UI:
     this.buttonNext.backMaterial.alpha = .5;
-
   }
 
   relocatePanel(distanceFromCamera = 6) {
@@ -102,7 +101,7 @@ export class ScrollablePanel {
         this.writer.clear(button.node);
     });
     button.onPointerDownObservable.add( ()=>callback(button) );
-    
+
   }
   
   dispose() {

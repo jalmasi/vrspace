@@ -46,7 +46,10 @@ export class World {
     Methods added(VRObject) and removed(VRObject) are executed whenever scene changes.
     */
     this.worldListeners = [];
-    
+    this.floorMeshes = [];
+    this.ground = null;
+    this.selectionPredicates = [(mesh)=>{return this.getFloorMeshes().includes(mesh)}];
+            
     // now override defaults
     if ( params ) {
       for ( var param in params ) {
@@ -232,7 +235,8 @@ export class World {
   Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.
    */
   isSelectableMesh(mesh) {
-    return this.floorMeshes && this.floorMeshes.includes(mesh);
+    let ret = false;
+    this.selectionPredicates.forEach((p)=>{ret |= p(mesh)});
   }
 
   /**
@@ -240,7 +244,7 @@ export class World {
   Used for movement in XR.
    */
   getFloorMeshes() {
-    if ( this.floorMeshes ) {
+    if ( this.floorMeshes && this.floorMeshes.length > 0 ) {
       return this.floorMeshes;      
     } else if ( this.ground ) {
       return [ this.ground ];

@@ -20,7 +20,6 @@ export class WorldEditorExample extends World {
     this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {radius:1000}, this.scene);
     this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
     this.ground.position = new BABYLON.Vector3( 0, -0.05, 0 );
-    this.ground.parent = this.floorGroup;
     //this.ground.isVisible = false;
     this.ground.checkCollisions = false;
     

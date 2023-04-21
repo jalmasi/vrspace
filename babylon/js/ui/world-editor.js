@@ -7,6 +7,7 @@ class SearchForm extends Form {
     super();
     this.callback = callback;
     this.verticalPanel = false;
+    this.searchPanel = null;
   }
   init() {
     this.panel = new BABYLON.GUI.StackPanel();
@@ -55,7 +56,6 @@ class SearchForm extends Form {
 
 export class WorldEditor {
   constructor( world, fileInput ) {
-    console.log(world);
     if ( ! world.worldManager ) {
       throw "World editor requires connection to the server - enter a world first";
     }
@@ -74,12 +74,16 @@ export class WorldEditor {
     this.createButtons();
     this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
     this.worldManager.loadErrorHandler= (object, exception) => this.loadingFailed(object, exception);
-    
-    this.worldPickPredicate = world.isSelectableMesh;
+
+    this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
+    world.selectionPredicates.push(this.selectionPredicate);
+    /*
+    world.worldPickPredicate = world.isSelectableMesh;
     // override world method to make every VRObject selectable
     world.isSelectableMesh = (mesh) => {
-      return this.worldPickPredicate(mesh) || this.isSelectableMesh(mesh);
+      return world.worldPickPredicate(mesh) || this.isSelectableMesh(mesh);
     }
+    */
     
   }
   
@@ -644,11 +648,11 @@ export class WorldEditor {
     this.dropObject(); // just in case
     this.searchPanel.dispose();
     this.buttons.forEach((b)=>b.dispose());
-    this.world.isSelectableMesh = this.worldPickPredicate;    
+    world.selectionPredicates.splice(world.selectionPredicates.indexOf(this.selectionPredicate),1);
   }
   
   // XR selection support
   isSelectableMesh(mesh) {
-    return VRSPACEUI.hud.isSelectableMesh(mesh) || VRSPACEUI.findRootNode(mesh).VRObject;
+    return VRSPACEUI.hud.isSelectableMesh(mesh) || VRSPACEUI.findRootNode(mesh).VRObject 
   }
 }
