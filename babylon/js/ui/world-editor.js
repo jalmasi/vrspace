@@ -78,6 +78,10 @@ export class WorldEditor {
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
     world.addSelectionPredicate(this.selectionPredicate);
+    
+    // add squeeze listener to take/drop an object
+    this.squeeze = (side, value) => this.handleSqueeze(side,value);
+    world.vrHelper.addSqueezeConsumer(this.squeeze);
   }
   
   makeUI() {
@@ -347,6 +351,7 @@ export class WorldEditor {
       this.drop(this.carrying);
       this.carrying = null;
     }
+    this.displayButtons(true);
   }
   
   takeObject(vrObject, position) {
@@ -441,7 +446,6 @@ export class WorldEditor {
     }
     this.worldManager.changeCallback = null;
     console.log("dropped "+obj.id);
-    this.displayButtons(true);
   }
   
   editObject(obj, editing) {
@@ -641,10 +645,23 @@ export class WorldEditor {
     this.searchPanel.dispose();
     this.buttons.forEach((b)=>b.dispose());
     this.world.removeSelectionPredicate(this.selectionPredicate);
+    this.world.vrHelper.removeSqueezeConsumer(this.squeeze);
   }
   
   // XR selection support
   isSelectableMesh(mesh) {
     return typeof(VRSPACEUI.findRootNode(mesh).VRObject) === 'object';
+  }
+  
+  handleSqueeze(value,side) {
+    if (value == 1 && this.activeButton == null ) {
+      this.displayButtons(false, this.moveButton);
+      this.activeButton = this.moveButton;
+      return false;
+    } else if ( value == 0 && this.activeButton == this.moveButton ) {
+      this.dropObject();
+      return false;
+    }
+    return true;
   }
 }

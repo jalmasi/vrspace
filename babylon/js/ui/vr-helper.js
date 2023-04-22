@@ -28,7 +28,7 @@ export class VRHelper {
     this.touchpad = { left: null, right: null };
     /** left and right buttons. */
     this.buttons = { left: [], right: [] };
-    this.squeezeListeners = [];
+    this.squeezeConsumers = [];
     this.triggerListeners = [];
     this.gamepadObserver = null;
     this.teleporting = false;
@@ -52,6 +52,7 @@ export class VRHelper {
         console.log("Can't init XR:"+err);
       }
     }
+    VRSPACEUI.hud.initXR(this);
 
     if (xrHelper && xrHelper.baseExperience) {
       // WebXRDefaultExperience class
@@ -473,13 +474,22 @@ export class VRHelper {
     } else if (component.value == 0) {
       this.vrHelper.teleportation.attach();
     }
-    this.squeezeListeners.forEach(callback=>{callback(component.value, side)});
+    this.squeezeConsumers.every(callback=>{
+      return callback(component.value, side);
+    });
   }
   /**
-   * Adds given callback to the list of squeeze listeners
+   * Adds given callback to the list of XR controller squeeze button consumer.
+   * Consumer is passed value(0-1) and side (left/right) of the event. 
+   * If it consumes the event, returns false.
+   * @param callback returns true if processing should continue
    */
-  trackSqueeze(callback) {
-    this.squeezeListeners.push(callback);
+  addSqueezeConsumer(callback) {
+    this.squeezeConsumers.push(callback);
+  }
+  /** Remove squeeze listener */
+  removeSqueezeConsumer(callback) {
+    this.squeezeConsumers.splice(this.squeexeListeners.indexOf(callback),1);
   }
   /**
    * Used internally to track triggers of VR controllers. Disables the teleporation if a trigger is pressed.
@@ -494,10 +504,15 @@ export class VRHelper {
     this.triggerListeners.forEach(callback=>{callback(component.value, side)});
   }
   /**
-   * Adds given callback to the list of trigger listeners
+   * Adds given callback to the list of XR controller trigger listeners
+   * CHECKME: include gamepad trigger?
    */
-  trackTrigger(callback) {
+  addTriggerListener(callback) {
     this.triggerListeners.push(callback);
+  }
+  /** Remove trigger listener */
+  removeTriggerListener(callback) {
+    this.triggerListeners.splice(this.triggerListeners.indexOf(callback),1);
   }
   /**
    * Called after teleoportation to update non-VR world camera and dynamic terrain if needed

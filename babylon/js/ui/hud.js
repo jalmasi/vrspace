@@ -31,7 +31,7 @@ export class HUD {
     this.buttonSpacing = 0.025;
     this.alpha=0.7; // button opacity
     this.distanceWeb = .5;
-    this.distanceXR = .4; // FIXME this is too close, visual issues
+    this.distanceXR = .5;
     this.verticalWeb = -0.1;
     this.verticalXR = -0.1;
     this.scaleWeb = 1;
@@ -588,20 +588,23 @@ export class HUD {
    */  
   initXR(vrHelper) {
     this.vrHelper = vrHelper;
-    this.vrHelper.trackSqueeze((value,side)=>{
+    this.vrHelper.addSqueezeConsumer((value,side)=>{
       let xrController = this.vrHelper.controller[side];
       let intersects = this.intersects(xrController.grip);
-      console.log(side+' squeeze: '+value+"Intersects: "+intersects);
+      //console.log(side+' squeeze: '+value+ " Intersects: "+intersects);
       if ( value == 1 && intersects ) {
         if ( side == 'left' ) {
           this.attachToLeftController();
         } else {
           this.attachToRightController();
         }
+        return false;
       } else if (this.vrHelper.squeeze.left.value == 1 && this.vrHelper.squeeze.right.value == 1) {
         this.attachToCamera();
         // TODO improve this to position/scale HUD
+        return false;
       }
+      return true;
     });
   }
   
