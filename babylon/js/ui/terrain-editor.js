@@ -13,11 +13,9 @@ export class TerrainEditor extends WorldListener {
     this.editing = false;
     world.worldListeners.push(this);
     this.textureSelector = new TextureSelector(this.scene, (img) => this.publishTexture(img));
-    // override world method to make every VRObject selectable
-    this.worldPickPredicate = world.isSelectableMesh;
-    world.isSelectableMesh = (mesh) => {
-      return this.worldPickPredicate(mesh) || this.isSelectableMesh(mesh);
-    }
+    // add own selection predicate to the world
+    this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
+    world.addSelectionPredicate(this.selectionPredicate);
   }
   /** Called by WorldManager when user enters the world */
   entered(welcome) {
@@ -203,9 +201,10 @@ export class TerrainEditor extends WorldListener {
     this.terrain.mesh().material.diffuseTexture = this.terrainTexture;
   }
   dispose() {
+    this.world.removeSelectionPredicate(this.selectionPredicate);
     // TODO
   }
   isSelectableMesh(mesh) {
-    return VRSPACEUI.hud.isSelectableMesh(mesh) || (this.terrain && mesh == this.terrain.mesh());
+    return this.terrain && mesh == this.terrain.mesh();
   }
 }

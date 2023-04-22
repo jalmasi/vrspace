@@ -75,16 +75,9 @@ export class WorldEditor {
     this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
     this.worldManager.loadErrorHandler= (object, exception) => this.loadingFailed(object, exception);
 
+    // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
-    world.selectionPredicates.push(this.selectionPredicate);
-    /*
-    world.worldPickPredicate = world.isSelectableMesh;
-    // override world method to make every VRObject selectable
-    world.isSelectableMesh = (mesh) => {
-      return world.worldPickPredicate(mesh) || this.isSelectableMesh(mesh);
-    }
-    */
-    
+    world.addSelectionPredicate(this.selectionPredicate);
   }
   
   makeUI() {
@@ -647,11 +640,11 @@ export class WorldEditor {
     this.dropObject(); // just in case
     this.searchPanel.dispose();
     this.buttons.forEach((b)=>b.dispose());
-    world.selectionPredicates.splice(world.selectionPredicates.indexOf(this.selectionPredicate),1);
+    this.world.removeSelectionPredicate(this.selectionPredicate);
   }
   
   // XR selection support
   isSelectableMesh(mesh) {
-    return VRSPACEUI.hud.isSelectableMesh(mesh) || typeof(VRSPACEUI.findRootNode(mesh).VRObject) === 'object';
+    return typeof(VRSPACEUI.findRootNode(mesh).VRObject) === 'object';
   }
 }

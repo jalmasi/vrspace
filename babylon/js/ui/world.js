@@ -236,7 +236,7 @@ export class World {
   Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.
    */
   isSelectableMesh(mesh) {
-    let ret = false;
+    let ret = VRSPACEUI.hud.isSelectableMesh(mesh);
     this.selectionPredicates.forEach((p)=>{ret ||= p(mesh)});
     return ret;
   }
@@ -489,6 +489,16 @@ export class World {
   isOnline() {
     return this.worldManager && this.worldManager.isOnline();
   }
-  
+
+  /**
+   * Add a selection predicate. It takes a mesh and returns true if it can be selected by the pointer.
+   */
+  addSelectionPredicate(p) {
+    this.selectionPredicates.push(p);
+  }
+  /** Remove a selection predicate function */
+  removeSelectionPredicate(p) {
+    this.selectionPredicates.splice(this.selectionPredicates.indexOf(p),1);
+  }
 }
 

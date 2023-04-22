@@ -1,6 +1,11 @@
 /** 
 Wrapper around BabylonJS XR/VR classes, whatever is available in current browser, if any.
 Attached to a World, uses World floor meshes and camera.
+Tracks available VR controllers and gamepad, and updates state variables.
+As Babylon.js in XR mode doesn't make use of the gamepad, this implements necessary methods to make it useful,
+ones that pass gamepad events to HUD and scene.
+While this is mandatory to use gamepad in XR, it is also useful outside of XR, and is quite handy on mobiles.
+CHECKME: SoC?
  */
 export class VRHelper {
   constructor() {
@@ -144,6 +149,7 @@ export class VRHelper {
         // actual class is WebXRInputSource
         this.controllerObserver = (xrController) => {
           console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
+          this.clearPointer();
           VRSPACEUI.hud.allowSelection = true;
           if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
             this.controller.left = xrController;
@@ -195,6 +201,11 @@ export class VRHelper {
     console.log("VRHelper initialized", this.vrHelper);
   }
   
+  /**
+   * Main point of gamepad support. Once the browser emits gamepadconnected event,
+   * installs tracker function into main rendering loop, to track states that
+   * rotate the camera, teleport, and fire gamepad button events.
+   */
   trackGamepad() {
     // https://forum.babylonjs.com/t/no-gamepad-support-in-webxrcontroller/15147/2
     let gamepadTracker = () => {
@@ -290,13 +301,17 @@ export class VRHelper {
       console.log("gamepad state initialized");
     });
   }
-  
+  /**
+   * Rotates the WebXRCamera by given angle
+   */
   changeRotation(angle) {
     if ( this.camera() ) {
       this.camera().rotationQuaternion.multiplyInPlace(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle));
     }
-    //console.log( this.world.scene.activeCamera.rotation );
   }
+  /**
+   * Change position of WebXRCamera by given distance, i.e. moves forward or back
+   */
   changePosition(distance) {
     if ( this.camera() ) {
       var forwardDirection = this.camera().getForwardRay(distance).direction;
@@ -304,6 +319,10 @@ export class VRHelper {
       this.camera().position.addInPlace( new BABYLON.Vector3(-forwardDirection.x, 0, -forwardDirection.z));
     }
   }
+  /**
+   * Start of teleportation, when gampad stick is pressed forward.
+   * Installs a ray caster into rendering loop, that moves teleportation destination marker around.
+   */
   teleportStart() {
     if ( this.teleporting || ! this.world.inXR) {
       return;
@@ -322,6 +341,9 @@ export class VRHelper {
     }
     this.world.scene.registerBeforeRender(this.caster);
   }
+  /**
+   * End of teleportation: moves the camera to the destination (this.teleportTarget) and cleans up.
+   */
   teleportEnd() {
     if ( this.camera() && this.teleporting ) {
       this.world.scene.unregisterBeforeRender(this.caster);
@@ -332,6 +354,12 @@ export class VRHelper {
       this.afterTeleportation();
     }
   }
+  /**
+   * Gamepad button event handler. Buttons left/right/up/down are forwarded to the HUD.
+   * Trigger button and select button events are forwarded either to HUD, or to the scene, as appropriate.
+   * @param index button index, see https://github.com/alvaromontoro/gamecontroller.js/blob/master/public/gamepad.svg
+   * @param state true/false for pressed/released
+   */
   gamepadButton(index, state) {
     // triggers: left 4, 6, right 5, 7
     // select 8, start 9
@@ -418,7 +446,11 @@ export class VRHelper {
       console.log('ERROR',error);
     }
   }
-  
+  /**
+   * Track thumbsticks on VR controllers. Thumbsticks are used for teleporatation by default,
+   * so this may be useful when teleporation is disabled.
+   * @param callback function to call when thumbsticks change, passed position (x,y) and side (left/right)
+   */
   trackThumbsticks(callback) {
     if ( this.thumbstick.left ) {
       this.thumbstick.left.onAxisValueChangedObservable.add((pos)=>{
@@ -431,6 +463,10 @@ export class VRHelper {
       });
     }
   }
+  /**
+   * Used internally to track squeeze buttons of VR controllers. Disables the teleporation if a button is pressed.
+   * Calls squeeze listeners, passing the them the value (0-1) and side (left/right);  
+   */
   squeezeTracker(component,side) {
     if ( component.value == 1 ) {
       this.vrHelper.teleportation.detach();
@@ -439,9 +475,16 @@ export class VRHelper {
     }
     this.squeezeListeners.forEach(callback=>{callback(component.value, side)});
   }
+  /**
+   * Adds given callback to the list of squeeze listeners
+   */
   trackSqueeze(callback) {
     this.squeezeListeners.push(callback);
   }
+  /**
+   * Used internally to track triggers of VR controllers. Disables the teleporation if a trigger is pressed.
+   * Calls trigger listeners, passing the them the value (0-1) and side (left/right);  
+   */
   triggerTracker(component,side) {
     if ( component.value == 1 ) {
       this.vrHelper.teleportation.detach();
@@ -450,6 +493,9 @@ export class VRHelper {
     }
     this.triggerListeners.forEach(callback=>{callback(component.value, side)});
   }
+  /**
+   * Adds given callback to the list of trigger listeners
+   */
   trackTrigger(callback) {
     this.triggerListeners.push(callback);
   }
@@ -466,6 +512,12 @@ export class VRHelper {
     }
     // TODO we can modify camera y here, adding terrain height on top of ground height
   }
+  /**
+   * Called from render loop to set internal state variables, and implements XR pointer for mobile devices.
+   * When XR controllers are unavailable, it renders a ray pointing forward, and moves pointer mesh to
+   * ray intersection with scene meshes.
+   * Calls World.trackXrDevices()
+   */
   trackXrDevices() {
     if ( this.world && this.world.inXR ) {
       // user height has to be tracked here due to
@@ -474,7 +526,7 @@ export class VRHelper {
         // are we absolutely sure that all mobiles deliver this value?
         this.userHeight = this.camera().realWorldHeight;
       }
-      if ( ! this.controller.left && ! this.controller.right ) {
+      if ( ! this.controller.left && ! this.controller.right && this.pointerTarget ) {
         // we don't have controllers (yet), use ray from camera for interaction
         var ray = this.camera().getForwardRay(100);
         this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
@@ -503,8 +555,10 @@ export class VRHelper {
       this.world.trackXrDevices();
     }
   }
-  startTracking() {
-    console.log("startTracking");
+  /**
+   * Creates pointer ray and intersection mesh.
+   */
+  createPointer() {
     this.pointerTarget = new BABYLON.TransformNode("Pointer-target", this.world.scene);
     let pointerMesh = new BABYLON.MeshBuilder.CreateDisc("Pointer-mesh", {radius: .05}, this.world.scene);
     pointerMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -528,35 +582,75 @@ export class VRHelper {
     // returns LinesMesh
     this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, colors: colors, updatable: true});
     this.pointerLines.alwaysSelectAsActiveMesh = true;
-
+  }
+  /**
+   * Start XR device tracking: prepare pointer ray and mesh, and register tracking function (trackXrDevices) to scene render loop.
+   */
+  startTracking() {
+    console.log("startTracking");
+    this.createPointer();
     this.world.scene.registerBeforeRender(this.xrDeviceTracker);
   }
-  stopTracking() {
-    console.log("stopTracking");
-    this.world.scene.unregisterBeforeRender(this.xrDeviceTracker);
+  /**
+   * Removes pointer ray and target
+   */
+  clearPointer() {
     if ( this.pointerTarget ) {
       this.pointerTarget.dispose();
       this.pointerTarget = null;
     }
+    if ( this.pointerLines ) {
+      this.pointerLines.dispose();
+      this.pointerLines = null;
+    }
   }
+  /**
+   * Stop XR device tracking: clean up
+   */
+  stopTracking() {
+    console.log("stopTracking");
+    this.world.scene.unregisterBeforeRender(this.xrDeviceTracker);
+    this.clearPointer();
+  }
+  /**
+   * Returns the absolute position of left controller grip
+   */
   leftArmPos() {
     return this.controller.left.grip.absolutePosition;
   }
+  /**
+   * Returns the absolute position of right controller grip
+   */
   rightArmPos() {
     return this.controller.right.grip.absolutePosition;
   }
+  /**
+   * Returns the rotation quaternion of left controller grip
+   */
   leftArmRot() {
     return this.controller.left.pointer.rotationQuaternion;
   }
+  /**
+   * Returns the rotation quaternion of right controller grip
+   */
   rightArmRot() {
     return this.controller.right.pointer.rotationQuaternion;
   }
+  /**
+   * Returns the height of the user, as defined by WebXRCamera
+   */
   realWorldHeight() {
     return this.userHeight;
   }
+  /**
+   * Returns the current WebXRCamera
+   */
   camera() {
     return this.vrHelper.input.xrCamera;
   }
+  /**
+   * Internally used to add teleportation mesh
+   */
   addFloorMesh(mesh) {
     if ( this.vrHelper && this.vrHelper.teleportation && mesh) {
       // do not add a floor twice
@@ -564,11 +658,17 @@ export class VRHelper {
       this.vrHelper.teleportation.addFloorMesh(mesh);
     }
   }
+  /**
+   * Internally used to remove teleportation mesh
+   */
   removeFloorMesh(mesh) {
     if ( this.vrHelper && this.vrHelper.teleportation) {
       this.vrHelper.teleportation.removeFloorMesh(mesh);
     }
   }
+  /**
+   * Returns the current ray selection predicate, and optionally installs a new one
+   */
   raySelectionPredicate(predicate) {
     var ret = this.vrHelper.pointerSelection.raySelectionPredicate;
     if ( predicate ) {
@@ -576,11 +676,17 @@ export class VRHelper {
     }
     return ret;
   }
+  /**
+   * Removes all current teleportation meshes
+   */
   clearFloors() {
     for ( var i = 0; i < this.world.getFloorMeshes().length; i++ ) {
       this.removeFloorMesh(this.world.getFloorMeshes()[i]);
     }
   }
+  /**
+   * Adds all world floor meshes to teleportation
+   */
   addFloors() {
     for ( var i = 0; i < this.world.getFloorMeshes().length; i++ ) {
       this.addFloorMesh(this.world.getFloorMeshes()[i]);

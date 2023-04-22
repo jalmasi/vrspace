@@ -2,10 +2,22 @@ import {SpeechInput} from './speech-input.js';
 /**
 HUD stands for head-up display - a UI container mounted on users head.
 Typically we have some buttons around 50 cm front, 10-20 cm below line of sight.
-This is common UI supposed to be usefull on VR devices, PC and mobiles, but likely to be suboptimal - UI specifically designed for a device should be more ergonomic.
+
+This is common UI supposed to be usefull on VR devices, PC and mobiles, but likely to be suboptimal - 
+UI specifically designed for a device should be more ergonomic.
+
 By default it tracks active camera, and binds to new camera whenever active camera changes,
-e.g. upon entering/exiting VR. Constructed with a camera parameter, it does not rebound to a new one,
+e.g. upon entering/exiting VR. Constructed with a camera parameter, it does not rebound to a new one.
+This allows to have multiple HUDs attached to different cameras, 
 e.g. switching from first-person view to god mode activates a different HUD.
+
+But in XR, it can be attached to left or right controller instead of camera.
+
+Typically HUD is just a collection of buttons, but it can also contain different UI elements, 
+e.g. sliders, and even forms. It takes input from mouse, touch screen, VR controllers and even gamepad,
+and delegates it to underlying UI elements as appropriate.
+
+It can contain multiple rows, each containing multiple buttons, but a row can contain only one Form.
  */
 export class HUD {
   /** @param scene babylonjs scene */
@@ -22,15 +34,19 @@ export class HUD {
     this.distanceXR = .4; // FIXME this is too close, visual issues
     this.verticalWeb = -0.1;
     this.verticalXR = -0.1;
+    this.scaleWeb = 1;
+    this.scaleXR = .5;
     this.rowOffset = new BABYLON.Vector3(0,this.verticalWeb,0);
-    this.allowSelection = true;
     // state variables
-    this.vrHelper = null; // set by World.InitXR();
+    /** set by World.InitXR() */
+    this.vrHelper = null;
+    /* Allow selection with Ray? True by default, but prevents ray picking object from the scene as it is just in front of the camera.*/
+    this.allowSelection = true;
     this.speechInput = new SpeechInput();
     this.speechInput.onlyLetters = false;
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.currentController = null;
-    this.scale = 1;
+    this.scale = this.scaleWeb;
     this.activeControl = null;
     scene.onActiveCameraChanged.add( () => this.trackCamera() );
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
@@ -64,9 +80,11 @@ export class HUD {
       } else {
         this.attachToCamera();
       }
-      
     }
   }
+  /**
+   * Attach HUD to camera it was created with.
+   */
   attachToCamera() {
     this.root.parent = this.camera;
     this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
@@ -94,28 +112,42 @@ export class HUD {
       return this.distanceWeb;
     }
   }
+  /** Returns scaling of the HUD */
+  scaling() {
+    if ( this.inXR() ) {
+      return this.scaleXR;
+    }
+    return this.scaleWeb;
+  }
   /**
   Window.resize event handler, rescales the HUD if aspect ratio is too small for all buttons to fit.
    */
   rescaleHUD() {
-    var aspectRatio = this.scene.getEngine().getAspectRatio(this.scene.activeCamera);
-    // TODO exactly calculate aspect ratio depending on number of buttons, size, spacing
-    // 0.75 (10 buttons) on this distance fits at aspect of 2
-    var requiredRatio = this.elements.length/10*2;
-    this.scale = Math.min(1, aspectRatio/requiredRatio);
+    let aspectRatio = this.scene.getEngine().getAspectRatio(this.scene.activeCamera);
+    if (this.activeControl && this.activeControl.getClassName() == "Form") {
+      // we have only one element - plane with advancedTexture
+      let width = this.elements[0].material.emissiveTexture.getSize().width;
+      let size = 0.03 / 64 * width;
+      let requiredRatio = size*3;
+      this.scale = Math.min(this.scaling(), aspectRatio/requiredRatio);
+    } else {
+      // 0.75 (10 buttons) on this distance fits at aspect of 2
+      let requiredRatio = this.elements.length/10*2;
+      this.scale = Math.min(this.scaling(), aspectRatio/requiredRatio);
+    }
     this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
-    //console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale);
+    //console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale+" controls "+this.getControls().length);
   }
   
+  /**
+   * Called before adding a new button to reposition existing ones
+   */
   makeRoomForMore() {
 	  // TODO take variable size of elements into account
     var width = this.buttonSize+this.buttonSpacing;
     this.elements.forEach(b=>{
       b.position.x = b.position.x - width/2;
     });
-    if ( this.input ) {
-		  width += .4;
-	  }
     return width;
   }
   
@@ -143,8 +175,6 @@ export class HUD {
     if ( onPointerDown ) {
       button.onPointerDownObservable.add( (vector3WithInfo) => onPointerDown(button, vector3WithInfo) );
     }
-    //button.onPointerEnterObservable.add( (control) => this.pointerEnter(button) );
-    //button.onPointerOutObservable.add( (control) => this.pointerOut(button) );
     if ( text ) {
       this.speechInput.addCommand(text, () => {
         // execute click callback(s) on visible button
@@ -154,32 +184,34 @@ export class HUD {
     return button;
   }
 
+  /** Activates given button, if it's visible */
   activateButton(button) {
     if ( button.isVisible ) {
       button.onPointerDownObservable.observers.forEach(observer=>observer.callback(button))
       button.onPointerUpObservable.observers.forEach(observer=>observer.callback(button))
     }
-  }  
-  pointerEnter(button) {
-    //console.log('enter '+button.pointerEnterAnimation);
-    button.scaling = new BABYLON.Vector3( this.buttonSize*1.2, this.buttonSize*1.2, this.buttonSize*1.2 );
   }
-  pointerOut(button) {
-    //console.log('out '+button.pointerOutAnimation);
-    button.scaling = new BABYLON.Vector3( this.buttonSize, this.buttonSize, this.buttonSize );
-  }
+  /**
+   * Input delegate method, returns controls available in the current row or form. 
+   */
   getControls() {
     if (this.activeControl && this.activeControl.getClassName() == "Form") {
       return this.activeControl.getControls();
     }
     return this.controls;
   }
+  /**
+   * Input delegate method, returns active control current in row or form. 
+   */
   getActiveControl() {
     if (this.activeControl && this.activeControl.getClassName() == "Form") {
       return this.activeControl.getActiveControl();
     }
     return this.activeControl;
   }
+  /**
+   * Input delegate method, sets active control current in row or form. 
+   */
   setActiveControl(control) {
     if (this.activeControl && this.activeControl.getClassName() == "Form") {
       this.activeControl.setActiveControl(control);
@@ -187,6 +219,9 @@ export class HUD {
       this.activeControl = control;
     }
   }
+  /**
+   * Input delegate method, returns index of control current in row or form. 
+   */
   getControlIndex(control) {
     let ret = -1;
     let controls = this.getControls();
@@ -198,6 +233,9 @@ export class HUD {
     }
     return ret;
   }
+  /**
+   * Input delegate method, deselects current control. 
+   */
   unselectCurrent() {
     if ( this.activeControl && this.activeControl.getClassName() == "HolographicButton") {
       this.activeControl.pointerOutAnimation();
@@ -205,6 +243,9 @@ export class HUD {
       this.activeControl.unselectCurrent();
     }
   }
+  /**
+   * Input delegate method, selects current control (button or Form element) at given index.
+   */
   selectCurrent(index) {
     if ( this.activeControl && this.activeControl.getClassName() == "HolographicButton") {
       this.activeControl.pointerEnterAnimation();
@@ -212,6 +253,9 @@ export class HUD {
       this.activeControl.selectCurrent(index);
     }
   }
+  /**
+   * Input delegate method, selects the control at given index, keeps track of bounds and wraps around.
+   */
   selectControl(index) {
     let controls = this.getControls();
     if ( index < 0 ) {
@@ -223,9 +267,13 @@ export class HUD {
     this.setActiveControl(controls[index]);
     this.selectCurrent(index);
   }
+  /** Returns true if HUD can process gamepad event, i.e. a button or form is currently active. FIXME ugly hack used by VRHelper. */
   canProcessGamepadEvent() {
     return this.activeControl && (this.activeControl.getClassName() == "HolographicButton"||this.activeControl.getClassName() == "Form");
   }
+  /**
+   * Input delegate method, activates the current control (as if clicked on)
+   */
   activate() {
     if ( this.activeControl ) {
       if ( this.activeControl.getClassName() == "HolographicButton") {
@@ -235,6 +283,9 @@ export class HUD {
       }
     }
   }
+  /**
+   * Input delegate method, process a gamepad up button event: activate a button or delegate it to the Form.
+   */
   up() {
     if ( this.activeControl ) {
       if ( this.activeControl.getClassName() == "HolographicButton") {
@@ -244,6 +295,9 @@ export class HUD {
       }
     }
   }
+  /**
+   * Input delegate method, process a gamepad up button event: go back to previous row, or forward to the Form.
+   */
   down() {
     let clear = true;
     if ( this.activeControl && this.activeControl.getClassName() == "Form") { 
@@ -259,6 +313,10 @@ export class HUD {
       this.activeControl = null;
     }
   }
+  /**
+   * Input delegate method, internal state management. Activates next or previous element, ignoring invisible ones.
+   * @param increment -1 or 1 for previous/next
+   */
   next(increment) {
     let index = this.getControlIndex(this.getActiveControl());
     let controls = this.getControls();
@@ -274,9 +332,15 @@ export class HUD {
     }
     return index;
   }
+  /**
+   * Activates previous element (gamepad left button)
+   */
   left() {
     this.selectControl(this.next(-1));
   }
+  /**
+   * Activates next element (gamepad right button)
+   */
   right() {
     this.selectControl(this.next(1));
   }
@@ -287,7 +351,7 @@ export class HUD {
    * @param textureHeight height in pixels
    */
   addForm(form,textureWidth,textureHeight) {
-	  let size = 0.03 * this.scale * textureHeight/64;
+    let size = 0.03 * textureHeight/64; // 3cm for 64px letter
 
     let plane = BABYLON.MeshBuilder.CreatePlane("HudFormPlane", {width: size*textureWidth/textureHeight, height: size});
     plane.parent = this.rowRoot;
@@ -434,10 +498,14 @@ export class HUD {
     }
   }
  
+  /** Returns the current row */
   currentRow() {
     return this.rows[this.rows.length-1];
   } 
   
+  /**
+   * Creates a new empty row. Current row is scaled down and moved a bit down.
+   */
   newRow() {
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(.5);
@@ -458,6 +526,9 @@ export class HUD {
     this.rows.push({root: this.rowRoot, elements: this.elements, controls: this.controls, textures: this.textures, speechInput: this.speechInput, activeControl: this.activeControl});
   }
 
+  /**
+   * Clears the current row. Previous row is scaled back to original size and brought back into position.
+   */
   clearRow() {
     // TODO check rows length
     // CHECKME: dispose of all elements/controls?
@@ -492,6 +563,10 @@ export class HUD {
     this.rescaleHUD();
   }
   
+  /**
+   * Enable/disable speech input.
+   * @param enable true/false to enable/disable
+   */
   enableSpeech(enable) {
     if ( enable ) {
       this.speechInput.start();
@@ -500,10 +575,17 @@ export class HUD {
     }
   }
   
+  /**
+   * Used XR pointer selection predicate, returns true if selection is allowed and given mesh is one of HUD elements.
+   */
   isSelectableMesh(mesh) {
     return this.allowSelection && this.elements.includes(mesh);
   }
-  
+
+  /**
+   * Initialize XR - allows to grab hud in left or right hand
+   * @param vrHelper VRHelper
+   */  
   initXR(vrHelper) {
     this.vrHelper = vrHelper;
     this.vrHelper.trackSqueeze((value,side)=>{
@@ -522,6 +604,10 @@ export class HUD {
       }
     });
   }
+  
+  /**
+   * Attach hud to left hand
+   */
   attachToLeftController() {
     this.root.parent = this.vrHelper.controller.left.grip;
     this.root.position = new BABYLON.Vector3(this.verticalWeb,0,.1);
@@ -530,6 +616,9 @@ export class HUD {
     this.rowOffset = new BABYLON.Vector3(0,this.verticalXR,0);
     this.currentController = 'left';
   }
+  /**
+   * Attach hud to right hand
+   */
   attachToRightController() {
     this.root.parent = this.vrHelper.controller.right.grip;
     this.root.position = new BABYLON.Vector3(-this.verticalWeb,0,.1);
@@ -538,12 +627,18 @@ export class HUD {
     this.rowOffset = new BABYLON.Vector3(0,this.verticalXR,0);
     this.currentController = 'right';
   }
+  /**
+   * Returns VR controller this HUD is attached to, or null
+   */
   attachedController() {
     if (this.currentController) {
       return this.vrHelper.controller[this.currentController];
     }
     return null;
   }
+  /**
+   * If attached to a hand, returns the other hand, or null otherwise
+   */
   otherController() {
     if ( this.currentController && this.vrHelper ) {
       if ( 'left' == this.currentController ) {
@@ -554,6 +649,9 @@ export class HUD {
     }
     return null;
   }
+  /**
+   * Returns true if mesh intersects any of hud elements. Allows to 'grab' the hud with a VR controller.
+   */
   intersects(mesh) {
     let ret = false;
     this.elements.forEach(e=>{
