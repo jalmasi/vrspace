@@ -338,16 +338,25 @@ export class VRHelper {
     // left right down up: right 2 1 0 3 (X B A Y) left 14 15 13 12
     // stick: left 10 right 11 
     //console.log(index+" "+state);
-    if ( this.pickInfo && (index == 8 || index == 6 || index == 7 || index == 4 || index == 5 )) {
-      // select, triggers
-      if ( state ) {
-        this.world.scene.simulatePointerDown(this.pickInfo);
-      } else {
-        this.world.scene.simulatePointerUp(this.pickInfo);
-      }
-    }
-    if ( state && VRSPACEUI.hud ) {
       try {
+      if ( index == 8 || index == 6 || index == 7 || index == 4 || index == 5 ) {
+        console.log('activate '+index+' scene: '+(this.pickInfo!= null));
+        // select, triggers
+        if (VRSPACEUI.hud && VRSPACEUI.hud.canProcessGamepadEvent()) {
+          // hud event takes precedence
+          if ( state ) {
+            // only process button down
+            VRSPACEUI.hud.activate();
+          }
+        } else if (this.pickInfo) {
+          // scene event
+          if ( state ) {
+            this.world.scene.simulatePointerDown(this.pickInfo);
+          } else {
+            this.world.scene.simulatePointerUp(this.pickInfo);
+          }
+        }
+      } else if ( state && VRSPACEUI.hud ) {
         if (index == 2 || index == 14) {
           VRSPACEUI.hud.left();
         } else if ( index == 1 || index == 15 ) {
@@ -357,9 +366,9 @@ export class VRHelper {
         } else if ( index == 3 || index == 12 ) {
           VRSPACEUI.hud.up();
         }
-      } catch ( error ) {
-        console.error("Error:",error.stack);
       }
+    } catch ( error ) {
+      console.error("Error:",error.stack);
     }
   }
   

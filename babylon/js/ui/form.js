@@ -190,7 +190,7 @@ export class Form {
     }
     return this.activeControl;
   }
-  setActiveControl(control){
+  setActiveControl(control) {
     if ( this.activeControl && this.activeControl.getClassName() == "VirtualKeyboard") {
       return;
     }
@@ -245,6 +245,25 @@ export class Form {
       }
     }
   }
+  adjustKeyboardColumn() {
+    if (this.keyboardCol >= this.vKeyboard.children[this.keyboardRow].children.length-1) {
+      this.keyboardCol = this.vKeyboard.children[this.keyboardRow].children.length-1;
+    }
+    this.selectCurrent(this.keyboardCol);
+  }
+  up() {
+    if ( this.activeControl && this.activeControl.getClassName() == "VirtualKeyboard") {
+      this.unselectCurrent();
+      if ( this.keyboardRow > 0 ) {
+        this.keyboardRow--;
+      } else {
+        this.keyboardRow = this.vKeyboard.children.length-1;
+      }
+      this.adjustKeyboardColumn();
+    } else {
+      this.activateCurrent();
+    }
+  }
   down() {
     if ( this.activeControl && this.activeControl.getClassName() == "VirtualKeyboard") {
       this.unselectCurrent();
@@ -253,10 +272,7 @@ export class Form {
       } else {
         this.keyboardRow = 0;
       }
-      if (this.keyboardCol >= this.vKeyboard.children[this.keyboardRow].children.length-1) {
-        this.keyboardCol = this.vKeyboard.children[this.keyboardRow].children.length-1;
-      }
-      this.selectCurrent(this.keyboardCol);
+      this.adjustKeyboardColumn();
       return false;
     }
     return true;

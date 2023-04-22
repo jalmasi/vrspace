@@ -223,12 +223,24 @@ export class HUD {
     this.setActiveControl(controls[index]);
     this.selectCurrent(index);
   }
-  up() {
+  canProcessGamepadEvent() {
+    return this.activeControl && (this.activeControl.getClassName() == "HolographicButton"||this.activeControl.getClassName() == "Form");
+  }
+  activate() {
     if ( this.activeControl ) {
       if ( this.activeControl.getClassName() == "HolographicButton") {
         this.activateButton(this.activeControl);
       } else if ( this.activeControl.getClassName() == "Form") {
         this.activeControl.activateCurrent();
+      }
+    }
+  }
+  up() {
+    if ( this.activeControl ) {
+      if ( this.activeControl.getClassName() == "HolographicButton") {
+        this.activateButton(this.activeControl);
+      } else if ( this.activeControl.getClassName() == "Form") {
+        this.activeControl.up();
       }
     }
   }
