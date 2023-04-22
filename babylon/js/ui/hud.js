@@ -600,8 +600,25 @@ export class HUD {
         }
         return false;
       } else if (this.vrHelper.squeeze.left.value == 1 && this.vrHelper.squeeze.right.value == 1) {
+        // rescaling/repositioning the hud using both squeeze buttons
+        try {
+          let leftPos = this.vrHelper.controller.left.grip.absolutePosition;
+          let rightPos = this.vrHelper.controller.right.grip.absolutePosition;
+          let handDistance = leftPos.subtract(rightPos).length();
+          let leftDistance = leftPos.subtract(this.camera.position).length();
+          let rightDistance = rightPos.subtract(this.camera.position).length();
+          let distance = Math.min(leftDistance,rightDistance);
+          let leftHeight = leftPos.y - this.camera.position.y;
+          let rightHeight = rightPos.y - this.camera.position.y;
+          let height = (leftHeight+rightHeight)/2;
+          this.distanceXR = distance;
+          this.scaleXR = handDistance;
+          this.verticalXR = height;
+        } catch ( err ) {
+          console.log(err.stack);
+        }
         this.attachToCamera();
-        // TODO improve this to position/scale HUD
+        this.rescaleHUD();
         return false;
       }
       return true;
