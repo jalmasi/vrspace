@@ -1,4 +1,38 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, ServerFolder } from './js/vrspace-min.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, Form } from './js/vrspace-min.js';
+
+class LoginForm extends Form {
+  constructor(changeCallback, blurCallback, buttonCallback) {
+    super();
+    this.changeCallback = changeCallback;
+    this.blurCallback = blurCallback;
+    this.buttonCallback = buttonCallback;
+    this.color = "black";
+    this.background = "white";
+    this.nameText = "                     Name:";
+  }
+  init() {
+    this.panel = new BABYLON.GUI.StackPanel();
+    this.panel.isVertical = false;
+    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER; // makes no difference
+    this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.panel.width = 1;
+    this.panel.height = 1;
+
+    this.label = this.textBlock(this.nameText);
+    this.panel.addControl(this.label);
+
+    this.input = this.inputText('name');
+    this.input.onTextChangedObservable.add(()=>this.changeCallback(this.input.text))
+    this.input.onBlurObservable.add(()=>this.blurCallback())
+    this.panel.addControl(this.input);
+
+    var login = this.submitButton("submit", () => this.buttonCallback());
+    this.panel.addControl(login);
+
+    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
+    this.speechInput.start();
+  }
+}
 
 export class AvatarSelection extends World {
   constructor() {
@@ -32,12 +66,17 @@ export class AvatarSelection extends World {
     this.customOptions=null;
     /** movement tracking/animation frames per second */
     this.fps = 50;
+    /** Enable Oauth2 login */
+    this.oauth2enabled = true;
     /** default user height, 1.8 m */
     this.userHeight = 1.8;
+    /** is anonymous entry (guest login) allowed */
+    this.anonymousAllowed = true;
     /** enable plenty of debug info */
     this.debug=false;
     // state variables
     this.mirror = true;
+    this.authenticated = false;
     this.customAnimations = [];
     this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
@@ -95,6 +134,65 @@ export class AvatarSelection extends World {
     // 1g makes nasty floor collisions
     this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
   }
+  async createUI () {
+    this.loginForm = new LoginForm(
+      (text)=>this.setMyName(text),
+      ()=>this.checkValidName(),
+      ()=>this.oauth2login()
+    );
+    this.loginForm.init(); // starts speech recognition
+    if ( VRSPACEUI.hud.inXR() ) {
+      let texture = VRSPACEUI.hud.addForm(this.form,1240,512);
+      this.form.keyboard(texture);
+    } else {
+      VRSPACEUI.hud.addForm(this.loginForm,1240,64);
+    }
+    // testing various REST calls here
+    this.getAuthenticated().then( isAuthenticated => {
+      if ( isAuthenticated ) {
+        this.authenticated = true;
+        this.getUserName().then( name => {
+          this.setMyName(name);
+          this.loginForm.input.text = name;
+        });
+        this.getUserObject().then( me => {
+          console.log("user mesh "+me.mesh, me);
+          if ( me.mesh ) {
+            this.loadCharacterUrl( me.mesh );
+            this.loginForm.dispose();
+          }
+        });
+      }
+    });
+    
+  }
+  
+  // TODO incorporate available username checking into the workflow
+  checkValidName() {
+    let ret = true;
+    if ( this.authenticated ) {
+      this.portalsEnabled(true);
+    } else {
+      console.log( 'checking name '+this.userName);
+      if ( this.userName ) {
+        this.verifyName(this.userName).then( validName => {
+          console.log("Valid name: "+validName);
+          if ( validName ) {
+            this.loginForm.label.text=this.loginForm.nameText;
+            canvas.focus();
+          } else {
+            this.loginForm.label.text="INVALID NAME, try another:"
+            ret = false;
+          }
+          this.portalsEnabled(validName);
+        });
+      } else {
+        this.portalsEnabled(this.anonymousAllowed);
+      }
+    }
+    return ret;
+  }
+
   
   backgroundDir() {
     if ( this.backgroundPath ) {
@@ -133,7 +231,6 @@ export class AvatarSelection extends World {
   }
   
   load( name, file ) {
-    //this.xrDeviceTracker = () => {this.trackXrDevices()}
     this.loaded(file, null);
   }
   
@@ -326,7 +423,7 @@ export class AvatarSelection extends World {
   loadCharacterUrl(url) {
     console.log('loading character from '+url);
     var file = new ServerFile( url );
-    this.loadCharacter( file, file.file);
+    this.loadCharacter( file, file.file );
   }
   
   loadCharacter(dir, file="scene.gltf") {
@@ -358,6 +455,7 @@ export class AvatarSelection extends World {
       if ( this.selectionCallback ) {
         this.selectionCallback(this.character);
       }
+      this.checkValidName(); // conditionally enables portals
     });
   }
 
@@ -395,17 +493,15 @@ export class AvatarSelection extends World {
     return data;
   }
 
-  async setLoginName(name) {
+  async verifyName(name) {
     var validName = await this.getText("/user/available?name="+name);
-    console.log("Valid name: "+validName);
-    if ( validName ) {
-      this.userName = name;
-    }
-    return validName;
+    return validName === "true";
   }
   
   oauth2login() {
-    window.open('/oauth2/login?name='+this.userName, '_top');
+    if ( this.oauth2enabled ) {
+      window.open('/oauth2/login?name='+this.userName, '_top');
+    }
   }
   
   async getUserName() {
@@ -417,8 +513,7 @@ export class AvatarSelection extends World {
   async getUserObject() {
     var userObject = await this.getJson("/user/object");
     console.log("User object ", userObject);
-    //return userObject.Client;
-    return userObject.User; //CHECKME
+    return userObject.User;
   }
   
   async getAuthenticated() {
@@ -591,7 +686,9 @@ export class AvatarSelection extends World {
   }
   
   async enterPortal( portal ) {
-    this.enterWorld(portal.worldUrl(), portal.name );
+    if ( this.checkValidName() ) {
+      this.enterWorld(portal.worldUrl(), portal.name );
+    }
   }
   
   async enterWorld( worldUrl, worldName, avatarUrl = this.avatarUrl(), worldScript  = 'world.js') {
@@ -605,6 +702,7 @@ export class AvatarSelection extends World {
     if ( this.beforeEnter ) {
       this.beforeEnter(this);
     }
+    this.loginForm.dispose();
     import(worldUrl+'/'+worldScript).then((world)=>{
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;

@@ -91,6 +91,7 @@ export class World {
     }
     this.registerRenderLoop();
     this.createTerrain();
+    this.createUI();
     this.load(callback);
     return this.scene;
   }
@@ -151,6 +152,8 @@ export class World {
   async createPhysics() {};
   /** Optional, empty implementation, called from createScene */
   async createTerrain() {}
+  /** Optional, empty implementation, called from createScene */
+  async createUI() {}
   /** Attach the control to the camera, called from createScene. */
   attachControl() {
     this.camera.attachControl(this.canvas, true);

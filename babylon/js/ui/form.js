@@ -92,6 +92,7 @@ export class Form {
 
     input.color = this.color;
     input.background = this.background;
+    input.focusedBackground = this.selected;
     input.onFocusObservable.add(i=>this.inputFocused(i,true));
     input.onBlurObservable.add(i=>this.inputFocused(i,false));
     input.disableMobilePrompt = VRSPACEUI.hud.inXR();

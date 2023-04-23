@@ -49,46 +49,11 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 canvas.focus();
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 var scene;
-var anonymousAllowed = true;
 
 import("./avatar-selection.js").then( (module) =>{
   
   var world = module.WORLD;
-  var nameInput = document.getElementById('nickname');
-  nameInput.addEventListener('input', (e)=>{
-    world.setMyName(e.target.value);
-  });
-  
-  var loginButton = document.getElementById('loginButton');
-  loginButton.addEventListener('click', (e)=>{
-    world.oauth2login();
-  });
 
-  var checkValidName = (name) => {
-    console.log( 'checking name ', name );
-    if ( name ) {
-      world.setLoginName(name).then( validName => {
-        var nameLabel = document.getElementById('namelabel');
-        console.log("Valid name: "+validName);
-        if ( validName ) {
-          nameLabel.innerHTML="Name:"
-          canvas.focus();
-        } else {
-          nameLabel.innerHTML="INVALID NAME, try another:"
-        }
-        world.portalsEnabled(validName);
-      });
-    } else {
-      world.portalsEnabled(anonymousAllowed);
-    }
-  }
-
-  nameInput.addEventListener('change', (e)=>{
-    checkValidName(e.target.value);
-    //loginButton.disabled=false;
-  });
-
-  document.getElementById('chatBox').style.display = 'none';
   document.getElementById('chatInput').addEventListener('change', (e)=>{
     world.write(e.target.value);
     e.target.value = '';
@@ -98,35 +63,16 @@ import("./avatar-selection.js").then( (module) =>{
   world.init(engine, 'avatar').then((s) => {
     scene = s;
     
-    // testing various REST calls here
-    world.getAuthenticated().then( isAuthenticated => {
-      if ( isAuthenticated ) {
-        document.getElementById('loginForm').style.display = 'none';
-        world.getUserName().then( name => world.setMyName(name));
-        world.getUserObject().then( me => {
-          console.log("user mesh "+me.mesh, me);
-          if ( me.mesh ) {
-            world.loadCharacterUrl( me.mesh );
-          }
-        });
-      }
-    });
-  
     world.createSelection((avatar)=>{
       console.log("Selected avatar: "+avatar.getUrl());
-      checkValidName(world.getMyName());
     });
     
     world.showPortals();
-    world.beforeEnter = () => {
-      document.getElementById('loginForm').style.display = 'none';
-    }
     world.afterEnter = () => {
       document.getElementById('chatBox').style.display = 'block';
     }
     world.afterExit = () => {
       console.log('Exit:'+world.worldManager.error);
-      document.getElementById('loginForm').style.display = 'block';
       document.getElementById('chatBox').style.display = 'none';
       //setTimeout(() => document.location.reload(), 5000);
     }
@@ -174,13 +120,7 @@ function debugOnOff() {
 
 </script>
 
-<div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
-  <label id="namelabel" for="nickname">Name:</label>
-  <input id="nickname" type="text">
-  <button id="loginButton">Login</button>
-</div>
-
-<div id="chatBox" style="position:absolute;bottom:50px;left:15%">
+<div id="chatBox" style="position:absolute;bottom:50px;left:15%;display:none;">
   <label for="chatInput">Chat:</label>
   <input id="chatInput" type="text" size=256 style="width:80%;">
 </div>

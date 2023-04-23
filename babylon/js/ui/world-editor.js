@@ -7,7 +7,6 @@ class SearchForm extends Form {
     super();
     this.callback = callback;
     this.verticalPanel = false;
-    this.searchPanel = null;
   }
   init() {
     this.panel = new BABYLON.GUI.StackPanel();
@@ -17,7 +16,7 @@ class SearchForm extends Form {
     this.panel.width = 1;
     this.panel.height = 1;
 
-    this.panel.addControl(this.textBlock("Search Sketchfab:"));    
+    this.panel.addControl(this.textBlock("Search Sketchfab:"));
 
     this.input = this.inputText('search');
     //this.input.text = 'test'; // skip typing in VR
@@ -86,6 +85,7 @@ export class WorldEditor {
     this.createButtons();
     this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
     this.worldManager.loadErrorHandler= (object, exception) => this.loadingFailed(object, exception);
+    this.searchPanel = null;
 
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
