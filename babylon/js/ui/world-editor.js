@@ -20,7 +20,7 @@ class SearchForm extends Form {
     this.panel.addControl(this.textBlock("Search Sketchfab:"));    
 
     this.input = this.inputText('search');
-    this.input.text = 'test'; // skip typing in VR
+    //this.input.text = 'test'; // skip typing in VR
     this.panel.addControl(this.input);
 
     var text2 = this.textBlock("Animated:");
@@ -55,7 +55,18 @@ class SearchForm extends Form {
   }
 }
 
+/**
+ * World editor can be constructed after the world has worldManager attached.
+ * Allows for searching through 300,000+ free objects on sketchfab, adding them to the scene,
+ * and manipulating own objects.
+ * Works on PC, VR devices and mobiles, including mobile VR+gamepad. Or at least it's supposed to;)
+ */
 export class WorldEditor {
+  /**
+   * @param world mandatory world to edit
+   * @param fileInput optional html file input component, required for load
+   * @throws when world doesn't have WorldManager associated
+   */
   constructor( world, fileInput ) {
     if ( ! world.worldManager ) {
       throw "World editor requires connection to the server - enter a world first";
@@ -84,11 +95,17 @@ export class WorldEditor {
     this.squeeze = (side, value) => this.handleSqueeze(side,value);
     world.vrHelper.addSqueezeConsumer(this.squeeze);
   }
-  
+
+  /**
+  Creates the search panel, called from constructor
+  */  
   makeUI() {
     this.searchPanel = new ScrollablePanel(this.scene, "SearchUI");
   }
-  
+
+  /**
+  Creates HUD buttons, called from constructor
+  */  
   createButtons() {
     this.moveButton = this.makeAButton( "Move", this.contentBase+"/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
     this.moveButton.onPointerUpObservable.add(()=>this.dropObject());
@@ -111,6 +128,10 @@ export class WorldEditor {
     VRSPACEUI.hud.enableSpeech(true);
   }
 
+  /**
+   * Creates the search form, or destroys if it exists.
+   * Search form has virtual keyboard attached if created in XR.
+   */
   searchForm() {
     if ( this.form ) {
       this.clearForm();
@@ -126,12 +147,18 @@ export class WorldEditor {
       }
     }
   }
+  /**
+   * Disposes of search form and displays HUD buttons
+   */
   clearForm() {
     this.form.dispose(); // stops speech recognition
     delete this.form;
     VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
     this.displayButtons(true);
   }
+  /**
+   * Search form callback, prepares parameters, calls this.search, and clears the form 
+   */
   doSearch(text) {
     if ( text ) {
       var args = {};
@@ -146,6 +173,12 @@ export class WorldEditor {
     this.clearForm();
   }
   
+  /**
+   * Creates a HUD button. Adds customAction field to the button, that is executed if a scene object is clicked on.
+   * @param text button text
+   * @param imageUrl image
+   * @param action callback executed upon clicking on an object in the scene
+   */
   makeAButton(text, imageUrl, action) {
     var button = VRSPACEUI.hud.addButton(text,imageUrl);
     button.onPointerDownObservable.add( () => {
@@ -163,6 +196,11 @@ export class WorldEditor {
     return button;
   }
   
+  /**
+   * WorldManager callback, installed by constructor. Executed every time a shared object has loaded into the scene.
+   * If it is own object, rescales it and calls this.takeObject().
+   * This is what happens when selecting a sketchfab object to load.
+   */
   objectLoaded( vrObject, rootMesh ) {
     console.log("WorldEditor loaded: "+vrObject.className+" "+vrObject.id);
     if ( vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id ) {
@@ -183,10 +221,18 @@ export class WorldEditor {
     }
   }
 
+  /**
+   * WorldManager error callback, installed by constructor.
+   */
   loadingFailed( obj, exception ) {
     VRSPACEUI.indicator.remove("Download");
   }
   
+  /**
+   * Called when an object is selected, calls the appropriate action e.g. take, resize etc
+   * @param obj root scene object
+   * @param action customAction of whatever button is currently active
+   */
   manipulateObject(obj, action) {
     if ( ! action ) {
       this.displayButtons(true);
@@ -194,7 +240,11 @@ export class WorldEditor {
     }
     action(obj);
   }
-  
+
+  /**
+   * Resize an object using pointer. Drag up or down to scale up or down, drag more to resize more.
+   * @param obj a scene object to resize
+   */  
   resizeObject(obj) {
     var point;
     var resizeHandler = this.scene.onPointerObservable.add((pointerInfo) => {
@@ -220,6 +270,10 @@ export class WorldEditor {
     });
   }
   
+  /**
+   * Rotate an object using pointer. Drag left-right or up-down to rotate, drag more to rotate more.
+   * @param obj scene object
+   */
   rotateObject(obj) {
     var point;
     var rotateHandler = this.scene.onPointerObservable.add((pointerInfo) => {
@@ -261,7 +315,10 @@ export class WorldEditor {
     });
   }
   
-  
+  /**
+   * Align an object using pointer. Casts a ray down, and puts the object on whatever is below it.
+   * @param obj selected scene object
+   */
   alignObject(obj) {
     var pickInfo = this.pick(obj, new BABYLON.Vector3(0,-1,0));
     var newPos = { x:obj.position.x, y:obj.position.y, z:obj.position.z };
@@ -278,12 +335,19 @@ export class WorldEditor {
     }
   }
 
-  pick( obj, direction ) {
+  /**
+   * Casts a ray from the center of an object into given direction to hit another VRObject in the scene.
+   * Used to stack (align) objects one on top of another.
+   * @param obj object to cast a ray from
+   * @param direction Vector3
+   * @param length vector length, default 100
+   * @returns PickingInfo
+   */
+  pick( obj, direction, length = 100 ) {
     // CHECKME: we may need to compute world matrix or something to make sure this works
     var bbox = obj.getHierarchyBoundingVectors();
     //var origin = obj.position;
     var origin = new BABYLON.Vector3((bbox.max.x-bbox.min.x)/2, bbox.min.y, (bbox.max.z-bbox.min.z)/2)
-    var length = 100;
     var ray = new BABYLON.Ray(origin, direction, length);
     var pickInfo = this.scene.pickWithRay(ray, (mesh) => {
       var pickedRoot = VRSPACEUI.findRootNode(mesh);
@@ -292,15 +356,27 @@ export class WorldEditor {
     //console.log(pickInfo);
     return pickInfo;
   }
-  
+
+  /**
+   * Puts an object into original up-down position.
+   * @param obj a scene object
+   */  
   upright(obj) {
     this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:0, y:obj.rotation.y, z:0 }} );
   }
 
+  /**
+   * Delete a shared object from the scene.
+   * @param obj scene object to delete
+   */
   removeObject(obj) {
     this.worldManager.VRSPACE.deleteSharedObject(obj.VRObject);
   }
 
+  /**
+   * Copy an object: sends a Add command to the server, actual copy (instance) is created when the server responds.
+   * @param obj scene object to copy.
+   */
   copyObject(obj) {
     var vrObject = obj.VRObject;
     console.log(vrObject);
@@ -309,6 +385,11 @@ export class WorldEditor {
     this.createSharedObject(vrObject.mesh, {position:vrObject.position, rotation:vrObject.rotation, scale:vrObject.scale});
   }
   
+  /**
+   * Display or hide all buttons, except.
+   * @param show true or false
+   * @param except buttons to skip
+   */
   displayButtons(show, ...except) {
     VRSPACEUI.hud.showButtons(show, ...except);
     if ( show ) {
@@ -316,6 +397,13 @@ export class WorldEditor {
     }
   }
   
+  /**
+   * Called by constructor, installs onPointerObservable event handler to the scene,
+   * executed when something is clicked on (BABYLON.PointerEventTypes.POINTERDOWN event).
+   * The handler first determines root object, and fetches the attached VRObject,
+   * then executes this.manipulateObject passing it this.activeButton.customAction.
+   * Thus, routes the event to appropriate handler method.
+   */
   installClickHandler() {
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       if ( pointerInfo.pickInfo.pickedMesh ) {
@@ -339,6 +427,9 @@ export class WorldEditor {
     });
   }
   
+  /**
+   * Drop the object currently being carried, if any, and display all buttons.
+   */
   dropObject() {
     //if ( ! this.activeButton && this.carrying ) {
     if ( this.carrying ) {
@@ -349,71 +440,99 @@ export class WorldEditor {
     this.displayButtons(true);
   }
   
+  /**
+   * Activate this.moveButton and call take()
+   * @param vrObject VRObject to take
+   * @param position current object position
+   */
   takeObject(vrObject, position) {
     this.activeButton = this.moveButton;
     this.displayButtons(false, this.moveButton);
     this.take(vrObject, position);
   }
   
+  /** 
+   * Take an object, if not already carrying one.
+   * Creates an invisible object, and binds it to current camera, or a VR controller.
+   * Invisible object is used to track the position, and actual object position is updated when the server responds.
+   * Position of the object is published only after camera position has been published, through WorldManager.addMyChangeListener().
+   * @param vrObject VRObject to take
+   * @param position optional, current object position, default is 2 meters front of the camera
+   */
   take(vrObject, position) {
     if ( vrObject.changeListener || this.carrying ) {
       // already tracking
       return;
     }
 
-    this.carrying = vrObject;
-    this.editObject( vrObject, true );
-        
-    // default position
-    if ( ! position ) {
-      var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(2).direction;
-      var forwardLower = forwardDirection.add(new BABYLON.Vector3(0,-.5,0));
-      position = VRSPACEUI.hud.camera.position.add(forwardLower);
-      vrObject.position.x = position.x;
-      vrObject.position.y = position.y;
-      vrObject.position.z = position.z;
-      this.sendPos(vrObject);
-    }
-
-    // create an object and bind it to camera to track the position
-    var targetDirection = position.subtract(VRSPACEUI.hud.camera.position);
-    var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(targetDirection.length()).direction;
-
-    var rotationMatrix = new BABYLON.Matrix();
-    BABYLON.Matrix.RotationAlignToRef(forwardDirection.normalizeToNew(), targetDirection.normalizeToNew(), rotationMatrix);
-    var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
-
-    var pos = new BABYLON.Vector3(0,0,targetDirection.length());
-    pos.rotateByQuaternionToRef(quat, pos);
-    
-    var target = BABYLON.MeshBuilder.CreateBox("Position of "+vrObject.id, {size: .5}, this.scene);
-    target.isPickable = false;
-    target.isVisible = false;
-    target.position = pos;
-    if ( vrObject.rotation ) {
-      var rot = new BABYLON.Vector3(vrObject.rotation.x, vrObject.rotation.y, vrObject.rotation.z);
-      var quat = BABYLON.Quaternion.FromEulerVector(rot);
-      quat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(quat);
-      target.rotation = quat.toEulerAngles()
-    }
-    if ( VRSPACEUI.hud.inXR() ) {
-      if (VRSPACEUI.hud.otherController()) {
-        target.parent = VRSPACEUI.hud.otherController().pointer;
-      } else if (VRSPACEUI.hud.attachedController()) {
-        target.parent = VRSPACEUI.hud.attachedController().pointer;
-      } else {
-        target.parent = VRSPACEUI.hud.camera;
+    try {
+      this.carrying = vrObject;
+      this.editObject( vrObject, true );
+          
+      // default position
+      if ( ! position ) {
+        var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(2).direction;
+        var forwardLower = forwardDirection.add(new BABYLON.Vector3(0,-.5,0));
+        position = VRSPACEUI.hud.camera.position.add(forwardLower);
+        vrObject.position.x = position.x;
+        vrObject.position.y = position.y;
+        vrObject.position.z = position.z;
+        this.sendPos(vrObject);
       }
-    } else {
-      target.parent = VRSPACEUI.hud.camera;
+  
+      let parent = VRSPACEUI.hud.camera;
+  
+      if ( VRSPACEUI.hud.inXR() ) {
+        // if HUD is attached to a controller, we carry object in the other hand
+        if (VRSPACEUI.hud.otherController()) {
+          parent = VRSPACEUI.hud.otherController().pointer;
+        } else if (VRSPACEUI.hud.attachedController()) {
+          parent = VRSPACEUI.hud.attachedController().pointer;
+        }
+      }
+  
+      // create an object and bind it to camera to track the position
+      var targetDirection = position.subtract(parent.position);
+      var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(targetDirection.length()).direction;
+  
+      var rotationMatrix = new BABYLON.Matrix();
+      BABYLON.Matrix.RotationAlignToRef(forwardDirection.normalizeToNew(), targetDirection.normalizeToNew(), rotationMatrix);
+      var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
+  
+      var pos = new BABYLON.Vector3(0,0,targetDirection.length());
+      pos.rotateByQuaternionToRef(quat, pos);
+      
+      var target = BABYLON.MeshBuilder.CreateBox("Position of "+vrObject.id, {size: .5}, this.scene);
+      target.parent = parent;
+      target.isPickable = false;
+      target.isVisible = false;
+      target.position = pos;
+      if ( vrObject.rotation ) {
+        var rot = new BABYLON.Vector3(vrObject.rotation.x, vrObject.rotation.y, vrObject.rotation.z);
+        var quat = BABYLON.Quaternion.FromEulerVector(rot);
+        //if ( parent == VRSPACEUI.hud.camera ) {
+          quat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(quat);
+        //} else {
+          //quat = BABYLON.Quaternion.Inverse(parent.absoluteRotationQuaternion).multiply(quat);
+        //}
+        target.rotation = quat.toEulerAngles()
+      }
+      vrObject.target = target;
+      
+      vrObject.changeListener = () => this.sendPos(vrObject);
+      this.worldManager.addMyChangeListener( vrObject.changeListener );
+      console.log("took "+vrObject.id);
+      
+    } catch ( err ) {
+      console.error(err.stack);
     }
-    vrObject.target = target;
     
-    vrObject.changeListener = () => this.sendPos(vrObject);
-    this.worldManager.addMyChangeListener( vrObject.changeListener );
-    console.log("took "+vrObject.id);
   }
 
+  /**
+   * Send position of the object to the server. Executed by WorldManager after own changes have been published.
+   * @param obj a VRObject to update
+   */
   sendPos(obj) {
     var rot = VRSPACEUI.hud.camera.rotation;
     var pos = obj.position;
@@ -424,6 +543,10 @@ export class WorldEditor {
     this.worldManager.VRSPACE.sendEvent(obj, {position: { x:pos.x, y:pos.y, z:pos.z }, rotation: {x:rot.x, y:rot.y, z:rot.z}} );
   }
   
+  /**
+   * Drop the object. Cleans change listener, invisible object used track the position, and sends one final position to the server.
+   * @param obj VRObject to drop
+   */
   drop(obj) {
     console.log("Dropping "+obj.target);
     this.editObject(obj, false);
@@ -439,10 +562,14 @@ export class WorldEditor {
       obj.target.dispose();
       obj.target = null;
     }
-    this.worldManager.changeCallback = null;
     console.log("dropped "+obj.id);
   }
   
+  /**
+   * Publishes beggining/end of object manipulation. Sets a transient property of the shared object, editing, to own id, or null.
+   * @param obj VRObject
+   * @param editing true/false
+   */
   editObject(obj, editing) {
     // FIXME: fails for objects not created with world editor with
     // Uncaught TypeError: Cannot set properties of null (setting 'editing')
@@ -454,6 +581,11 @@ export class WorldEditor {
     this.worldManager.VRSPACE.sendEvent(obj, {properties: obj.properties} );
   }
 
+  /**
+   * Sketchfab API search call.
+   * @param text search string
+   * @param args search paramters object
+   */
   search(text, args) {
       var url = new URL('https://api.sketchfab.com/v3/search');
       /*
@@ -479,6 +611,9 @@ export class WorldEditor {
       this.doFetch(url, true);
   }
 
+  /**
+   * Save current scene: dumps everything using AssetLoader.dump(), and calls VRSPACEUI.saveFile(). 
+   */
   save() {
     this.displayButtons(true);
     var dump = VRSPACEUI.assetLoader.dump();
@@ -487,6 +622,10 @@ export class WorldEditor {
     }
   }
 
+  /**
+   * Implements load by adding change listener to file input html element. Called from constructor.
+   * @param fileInput html file input element
+   */
   setFileInput(fileInput) {
     this.fileInput = fileInput;
     fileInput.addEventListener('change', ()=>{
@@ -504,6 +643,9 @@ export class WorldEditor {
     }, false );
   }  
   
+  /**
+   * Load saved scene, requires file input html element
+   */
   load() {
     this.displayButtons(true);
     if ( this.fileInput ) {
@@ -513,6 +655,10 @@ export class WorldEditor {
     }
   }
   
+  /**
+   * Publish all loaded object to the server
+   * @param objects VRObject array
+   */
   publish( objects ) {
     for ( var url in objects) {
       var instances = objects[url].instances;
@@ -535,6 +681,10 @@ export class WorldEditor {
     }
   }
   
+  /**
+   * Execute Sketchfab search call, and process response.
+   * Adds thumbnails of all search results as buttons to the search panel.
+   */
   doFetch(url, relocate) {
       fetch(url).then(response => {
           response.json().then( obj=> {
@@ -582,6 +732,13 @@ export class WorldEditor {
       }).catch( err => console.log(err));
   }
   
+  /**
+   * Search panel selection callback, download selected item.
+   * Performs REST API call to VRSpace sketchfab endpoint. Should this call fail with 401 Unauthorized, 
+   * executes this.sketchfabLogin(). Otherwise, VRSpace server downloads the model from sketchfab,
+   * and returns the url, it's added to the scene by calling this.createSharedObject().
+   * @param result search result object
+   */
   download(result) {
     if ( this.fetching || this.activeButton ) {
       return;
@@ -609,6 +766,12 @@ export class WorldEditor {
       });
   }
   
+  /**
+   * Create a shared object, i.e. publish a mesh to the server. The object is marked with a transient property
+   * editing set to current user id.
+   * @param mesh the object to publish
+   * @param properties optional properties
+   */
   createSharedObject( mesh, properties ) {
     var object = {
       mesh: mesh,
@@ -626,6 +789,9 @@ export class WorldEditor {
     });
   }
 
+  /**
+   * Rest API call to VRSpace sketchfab endpoint. If login is required, this opens the login page in the same browser window.
+   */
   sketchfabLogin() {
     fetch("/sketchfab/login").then(response => {
         console.log(response);
@@ -634,7 +800,10 @@ export class WorldEditor {
         });
     });
   }
-  
+
+  /**
+   * Dispose of everything
+   */  
   dispose() {
     this.dropObject(); // just in case
     this.searchPanel.dispose();
@@ -643,11 +812,20 @@ export class WorldEditor {
     this.world.vrHelper.removeSqueezeConsumer(this.squeeze);
   }
   
-  // XR selection support
+  /**
+   * XR selection support
+   * @param mesh
+   * @returns true if root node of the mesh has VRObject associated
+   */
   isSelectableMesh(mesh) {
     return typeof(VRSPACEUI.findRootNode(mesh).VRObject) === 'object';
   }
   
+  /**
+   * Start manipulation (scaling,rotating) of currently carried object using XR controllers.
+   * Marks current positions and rotations of controllers.
+   * @param side left or right
+   */
   startManipulation(side) {
     if ( this.carrying ) {
       this.startData = {
@@ -663,31 +841,39 @@ export class WorldEditor {
     }
   }
   
+  /**
+   * End object manipulation: currently carried object is scaled and rotated depending on position and rotation XR controllers.
+   * Sends scaling and rotation data to the server, actual change is performed once the server responds.
+   */
   endManipulation() {
     try {
-    if ( this.carrying && this.startData ) {
-      console.log('end manipulation '+this.carrying.id+" "+this.startData.left+' '+this.startData.right+' '+this.startData.scaling);
-      //scaling
-      let startDistance = this.startData.left.subtract(this.startData.right).length();
-      let distance = this.world.vrHelper.leftArmPos().subtract(this.world.vrHelper.rightArmPos()).length();
-      let scale = this.startData.scaling*distance/startDistance;
-      console.log("distance start "+startDistance+" end "+distance+" scale "+scale);
-      // rotation
-      let startQuat = this.startData.rotation[this.startData.side];
-      let endQuat = this.world.vrHelper.armRot(this.startData.side);
-      let diffQuat = endQuat.multiply(BABYLON.Quaternion.Inverse(startQuat));
-      let curQuat = BABYLON.Quaternion.FromEulerAngles(this.carrying.rotation.x,this.carrying.rotation.y,this.carrying.rotation.z);
-      let desiredQuat = curQuat.multiply(diffQuat);
-      let rotation = desiredQuat.toEulerAngles();
-      // send
-      this.worldManager.VRSPACE.sendEvent(this.carrying, 
-        {scale: {x:scale, y:scale, z:scale}, rotation: {x:rotation.x, y:rotation.y, z:rotation.z}} 
-      );
-      // carried object tracks hud, we have to update holder object rotation or next event just rotates it back
-      let targetQuat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(desiredQuat);
-      this.carrying.target.rotation = targetQuat.toEulerAngles();
-      delete this.startData;
-    }
+      if ( this.carrying && this.startData ) {
+        //console.log('end manipulation '+this.carrying.id+" "+this.startData.left+' '+this.startData.right+' '+this.startData.scaling);
+        //scaling
+        let startDistance = this.startData.left.subtract(this.startData.right).length();
+        let distance = this.world.vrHelper.leftArmPos().subtract(this.world.vrHelper.rightArmPos()).length();
+        let scale = this.startData.scaling*distance/startDistance;
+        //console.log("distance start "+startDistance+" end "+distance+" scale "+scale);
+        // rotation
+        let startQuat = this.startData.rotation[this.startData.side];
+        let endQuat = this.world.vrHelper.armRot(this.startData.side);
+        let diffQuat = endQuat.multiply(BABYLON.Quaternion.Inverse(startQuat));
+        let curQuat = BABYLON.Quaternion.FromEulerAngles(this.carrying.rotation.x,this.carrying.rotation.y,this.carrying.rotation.z);
+        let desiredQuat = curQuat.multiply(diffQuat);
+        let rotation = desiredQuat.toEulerAngles();
+        // send
+        this.worldManager.VRSPACE.sendEvent(this.carrying, 
+          {scale: {x:scale, y:scale, z:scale}, rotation: {x:rotation.x, y:rotation.y, z:rotation.z}} 
+        );
+        // carried object tracks hud, we have to update holder object rotation or next event just rotates it back
+        let parentQuat = VRSPACEUI.hud.camera.absoluteRotation;
+        if ( this.carrying.target && this.carrying.target.parent !== VRSPACEUI.hud.camera ) {
+          //parentQuat = this.carrying.target.parent.absoluteRotationQuaternion;
+        }
+        let targetQuat = BABYLON.Quaternion.Inverse(parentQuat).multiply(desiredQuat);
+        this.carrying.target.rotation = targetQuat.toEulerAngles();
+        delete this.startData;
+      }
     } catch (err) {
       console.error(err.stack)
     }
@@ -695,7 +881,7 @@ export class WorldEditor {
   /**
    * Triggered on squeeze button pres/release. 
    * One squeeze pressed activates move button, like grabbing the object under the pointer. Release drops it.
-   * Two squeeze also buttons activate scaling and rotation.
+   * Two squeeze buttons activate scaling and rotation. Spread more, scale more, closer is smaller.
    * @param value 0-1
    * @param side left or right
    */

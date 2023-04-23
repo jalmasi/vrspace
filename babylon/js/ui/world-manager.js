@@ -395,10 +395,12 @@ export class WorldManager {
     this.changeListeners.forEach( (l) => l(obj,field,node) );
   }
   
+  /** Add a listener to own events */
   addMyChangeListener( listener ) {
     VRSPACE.addListener( this.myChangeListeners, listener );
   }
   
+  /** Add a listener to camera events */
   removeMyChangeListener( listener ) {
     VRSPACE.removeListener( this.myChangeListeners, listener );
   }

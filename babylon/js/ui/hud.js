@@ -666,7 +666,7 @@ export class HUD {
     if ( this.currentController && this.vrHelper ) {
       if ( 'left' == this.currentController ) {
         return this.vrHelper.controller.right;
-      } else {
+      } else if ( 'right' == this.currentController ) {
         return this.vrHelper.controller.left;
       }
     }
