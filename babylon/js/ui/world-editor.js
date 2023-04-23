@@ -804,7 +804,9 @@ export class WorldEditor {
    */  
   dispose() {
     this.dropObject(); // just in case
-    this.searchPanel.dispose();
+    if ( this.searchPanel ) {
+      this.searchPanel.dispose();
+    }
     this.buttons.forEach((b)=>b.dispose());
     this.world.removeSelectionPredicate(this.selectionPredicate);
     this.world.vrHelper.removeSqueezeConsumer(this.squeeze);

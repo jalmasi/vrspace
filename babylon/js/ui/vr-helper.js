@@ -488,7 +488,7 @@ export class VRHelper {
   }
   /** Remove squeeze listener */
   removeSqueezeConsumer(callback) {
-    this.squeezeConsumers.splice(this.squeexeListeners.indexOf(callback),1);
+    this.squeezeConsumers.splice(this.squeezeConsumers.indexOf(callback),1);
   }
   /**
    * Used internally to track triggers of VR controllers. Disables the teleporation if a trigger is pressed.

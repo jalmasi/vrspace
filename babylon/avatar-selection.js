@@ -167,7 +167,7 @@ export class AvatarSelection extends World {
     
   }
   
-  // TODO incorporate available username checking into the workflow
+  // CHECKME this is confusing as it enables/disables portals
   checkValidName() {
     let ret = true;
     if ( this.authenticated ) {
