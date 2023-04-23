@@ -85,7 +85,6 @@ export class WorldEditor {
     this.createButtons();
     this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
     this.worldManager.loadErrorHandler= (object, exception) => this.loadingFailed(object, exception);
-    this.searchPanel = null;
 
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);

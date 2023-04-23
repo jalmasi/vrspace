@@ -187,6 +187,7 @@ export class AvatarSelection extends World {
           this.portalsEnabled(validName);
         });
       } else {
+        this.loginForm.label.text=this.loginForm.nameText;
         this.portalsEnabled(this.anonymousAllowed);
       }
     }

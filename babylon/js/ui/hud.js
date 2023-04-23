@@ -32,7 +32,7 @@ export class HUD {
     this.alpha=0.7; // button opacity
     this.distanceWeb = .5;
     this.distanceXR = .5;
-    this.verticalWeb = -0.1;
+    this.verticalWeb = -0.15;
     this.verticalXR = -0.1;
     this.scaleWeb = 1;
     this.scaleXR = .5;

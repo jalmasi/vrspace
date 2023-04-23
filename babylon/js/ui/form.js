@@ -10,7 +10,7 @@ import {SpeechInput} from './speech-input.js';
  */
 export class Form {
   constructor(params) {
-    this.fontSize = 48;
+    this.fontSize = 42;
     this.heightInPixels = 48;
     this.resizeToFit = true;
     this.color = "white";
@@ -92,7 +92,7 @@ export class Form {
 
     input.color = this.color;
     input.background = this.background;
-    input.focusedBackground = this.selected;
+    input.focusedBackground = this.background;
     input.onFocusObservable.add(i=>this.inputFocused(i,true));
     input.onBlurObservable.add(i=>this.inputFocused(i,false));
     input.disableMobilePrompt = VRSPACEUI.hud.inXR();

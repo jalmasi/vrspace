@@ -170,33 +170,6 @@ thanks folks!
     var world = module.WORLD;
     //world.VRSPACEUI.contentBase='https://www.vrspace.org/';
 
-    var nameInput = document.getElementById('nickname');
-    nameInput.addEventListener('input', (e)=>{
-      world.setMyName(e.target.value);
-    });
-    
-    var checkValidName = (name) => {
-      if ( name ) {
-        world.setLoginName(name).then((valid) => {
-          var nameLabel = document.getElementById('namelabel');
-          console.log("Valid name: "+valid);
-          if ( valid ) {
-            nameLabel.innerHTML="Name:"
-            canvas.focus();
-          } else {
-            nameLabel.innerHTML="INVALID NAME, try another:"
-          }
-          world.portalsEnabled(valid);
-        });
-      } else {
-        world.portalsEnabled(anonymousAllowed);
-      }
-    }
-  
-    nameInput.addEventListener('change', (e)=>{
-      checkValidName(e.target.value);
-    });
-
     var say = (text) => {
       world.write(text);
       chatLog("ME", text);
@@ -240,21 +213,16 @@ thanks folks!
       scene = s;
       world.createSelection((avatar)=>{
         console.log("Selected avatar: "+avatar.getUrl());
-        checkValidName(world.getMyName());
       });
       world.showPortals();
       engine.resize();
       canvas.focus();
-      world.beforeEnter = () => {
-        document.getElementById('loginForm').style.display = 'none';
-      }
       world.afterEnter = () => {
         document.getElementById('chatBox').style.display = 'block';
         world.worldManager.changeListeners.push((obj, field, node) => remoteEvent(obj,field,node));
       }
       world.afterExit = () => {
         console.log('Exit:'+world.worldManager.error);
-        document.getElementById('loginForm').style.display = 'block';
         document.getElementById('chatBox').style.display = 'none';
         document.getElementById('chatLog').style.display = 'block';
         chatLog('ERROR', world.worldManager.error);
@@ -367,13 +335,6 @@ thanks folks!
   
   </script>
 
-  <div id="loginForm" style="position:absolute;bottom:50px;width:100%;text-align:center;">
-    <div>
-      <label id="namelabel" for="nickname">Name:</label>
-      <input id="nickname" type="text" placeholder="Your nick name">
-    </div>
-  </div>
-  
   <div id="chatBox" style="position:absolute;bottom:50px;left:15%;">
     <input id="chatInput" type="text" size=256 style="width:80%;" placeholder="text chat">
   </div>
