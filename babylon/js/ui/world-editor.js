@@ -20,6 +20,7 @@ class SearchForm extends Form {
     this.panel.addControl(this.textBlock("Search Sketchfab:"));    
 
     this.input = this.inputText('search');
+    this.input.text = 'test'; // skip typing in VR
     this.panel.addControl(this.input);
 
     var text2 = this.textBlock("Animated:");
@@ -217,12 +218,6 @@ export class WorldEditor {
         }
       }
     });
-    // TODO: do this elsewhere
-    /*
-    this.world.vrHelper.trackThumbsticks((pos, side)=>{
-      console.log(side+' thumbstick  x='+pos.x+' y='+pos.y+' squeeze '+this.world.vrHelper.squeeze[side].pressed);
-    });
-    */
   }
   
   rotateObject(obj) {
@@ -314,8 +309,8 @@ export class WorldEditor {
     this.createSharedObject(vrObject.mesh, {position:vrObject.position, rotation:vrObject.rotation, scale:vrObject.scale});
   }
   
-  displayButtons(show, except) {
-    VRSPACEUI.hud.showButtons(show, except);
+  displayButtons(show, ...except) {
+    VRSPACEUI.hud.showButtons(show, ...except);
     if ( show ) {
       this.activeButton = null;
     }
@@ -653,14 +648,85 @@ export class WorldEditor {
     return typeof(VRSPACEUI.findRootNode(mesh).VRObject) === 'object';
   }
   
+  startManipulation(side) {
+    if ( this.carrying ) {
+      this.startData = {
+        left: this.world.vrHelper.leftArmPos().clone(),
+        right: this.world.vrHelper.rightArmPos().clone(),
+        scaling: this.carrying.scale.y,
+        side: side,
+        rotation: {
+          left: this.world.vrHelper.leftArmRot().clone(),
+          right: this.world.vrHelper.leftArmRot().clone()
+        }
+      }
+    }
+  }
+  
+  endManipulation() {
+    try {
+    if ( this.carrying && this.startData ) {
+      console.log('end manipulation '+this.carrying.id+" "+this.startData.left+' '+this.startData.right+' '+this.startData.scaling);
+      //scaling
+      let startDistance = this.startData.left.subtract(this.startData.right).length();
+      let distance = this.world.vrHelper.leftArmPos().subtract(this.world.vrHelper.rightArmPos()).length();
+      let scale = this.startData.scaling*distance/startDistance;
+      console.log("distance start "+startDistance+" end "+distance+" scale "+scale);
+      // rotation
+      let startQuat = this.startData.rotation[this.startData.side];
+      let endQuat = this.world.vrHelper.armRot(this.startData.side);
+      let diffQuat = endQuat.multiply(BABYLON.Quaternion.Inverse(startQuat));
+      let curQuat = BABYLON.Quaternion.FromEulerAngles(this.carrying.rotation.x,this.carrying.rotation.y,this.carrying.rotation.z);
+      let desiredQuat = curQuat.multiply(diffQuat);
+      let rotation = desiredQuat.toEulerAngles();
+      // send
+      this.worldManager.VRSPACE.sendEvent(this.carrying, 
+        {scale: {x:scale, y:scale, z:scale}, rotation: {x:rotation.x, y:rotation.y, z:rotation.z}} 
+      );
+      // carried object tracks hud, we have to update holder object rotation or next event just rotates it back
+      let targetQuat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(desiredQuat);
+      this.carrying.target.rotation = targetQuat.toEulerAngles();
+      delete this.startData;
+    }
+    } catch (err) {
+      console.error(err.stack)
+    }
+  }
+  /**
+   * Triggered on squeeze button pres/release. 
+   * One squeeze pressed activates move button, like grabbing the object under the pointer. Release drops it.
+   * Two squeeze also buttons activate scaling and rotation.
+   * @param value 0-1
+   * @param side left or right
+   */
   handleSqueeze(value,side) {
-    if (value == 1 && this.activeButton == null ) {
-      this.displayButtons(false, this.moveButton);
-      this.activeButton = this.moveButton;
-      return false;
-    } else if ( value == 0 && this.activeButton == this.moveButton ) {
-      this.dropObject();
-      return false;
+    try {
+      let bothOn = this.world.vrHelper.squeeze.left.value == 1 && this.world.vrHelper.squeeze.right.value == 1;
+      let bothOff = this.world.vrHelper.squeeze.left.value == 0 && this.world.vrHelper.squeeze.right.value == 0;
+      if (value == 1 ) {
+        //console.log('squeeze '+side+' '+value+' both on '+bothOn+' off '+bothOff);
+        if ( bothOn ) {
+          this.displayButtons(true); // resets activeControl
+          this.displayButtons(false, this.scaleButton, this.rotateButton);
+          this.startManipulation(side);
+        } else if (this.activeButton == null) {
+          this.displayButtons(false, this.moveButton);
+          this.activeButton = this.moveButton;
+        }
+        return false;
+      } else if ( value == 0 ) {
+        this.displayButtons(true);
+        if ( bothOff ) {
+          this.dropObject();
+        } else {
+          this.endManipulation();
+          this.displayButtons(false, this.moveButton);
+          this.activeButton = this.moveButton;
+        }
+        return false;
+      }
+    } catch ( error ) {
+      console.error(error.stack);
     }
     return true;
   }

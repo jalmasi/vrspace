@@ -628,6 +628,13 @@ export class VRHelper {
     this.clearPointer();
   }
   /**
+   * Returns the absolute position of left or right controller grip
+   * @param side left or right
+   */
+  armPos(side) {
+    return this.controller[side].grip.absolutePosition;
+  }
+  /**
    * Returns the absolute position of left controller grip
    */
   leftArmPos() {
@@ -638,6 +645,13 @@ export class VRHelper {
    */
   rightArmPos() {
     return this.controller.right.grip.absolutePosition;
+  }
+  /**
+   * Returns the rotation quaternion of left or right controller grip
+   * @param side left or right
+   */
+  armRot(side) {
+    return this.controller[side].pointer.rotationQuaternion;
   }
   /**
    * Returns the rotation quaternion of left controller grip

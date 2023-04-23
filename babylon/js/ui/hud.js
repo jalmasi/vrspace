@@ -599,7 +599,10 @@ export class HUD {
           this.attachToRightController();
         }
         return false;
-      } else if (this.vrHelper.squeeze.left.value == 1 && this.vrHelper.squeeze.right.value == 1) {
+      } else if ( 
+        this.vrHelper.squeeze.left.value == 1 && this.vrHelper.squeeze.right.value == 1 &&
+        this.vrHelper.trigger.left.value == 0 && this.vrHelper.trigger.right.value == 0 ) 
+      {
         // rescaling/repositioning the hud using both squeeze buttons
         try {
           let leftPos = this.vrHelper.controller.left.grip.absolutePosition;
@@ -619,7 +622,7 @@ export class HUD {
         }
         this.attachToCamera();
         this.rescaleHUD();
-        return false;
+        //return false; // let's not consume it
       }
       return true;
     });
