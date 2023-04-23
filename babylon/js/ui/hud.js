@@ -90,6 +90,7 @@ export class HUD {
     this.root.position = new BABYLON.Vector3(0,this.vertical(),this.distance());
     this.root.rotation = new BABYLON.Vector3(0,0,0);
     this.rowOffset = new BABYLON.Vector3(0,this.verticalWeb,0);
+    this.currentController = null;
   }
   /** Returns true if XR mode is active (current camera is WebXRCamera) */
   inXR() {
@@ -268,8 +269,10 @@ export class HUD {
     this.selectCurrent(index);
   }
   /** Returns true if HUD can process gamepad event, i.e. a button or form is currently active. FIXME ugly hack used by VRHelper. */
-  canProcessGamepadEvent() {
-    return this.activeControl && (this.activeControl.getClassName() == "HolographicButton"||this.activeControl.getClassName() == "Form");
+  canProcessGamepadEvent(index) {
+    return this.activeControl && 
+    (this.activeControl.getClassName() == "HolographicButton"||this.activeControl.getClassName() == "Form") &&
+    (index == 8 || index == 9);
   }
   /**
    * Input delegate method, activates the current control (as if clicked on)

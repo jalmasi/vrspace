@@ -431,13 +431,11 @@ export class WorldEditor {
    * Drop the object currently being carried, if any, and display all buttons.
    */
   dropObject() {
-    //if ( ! this.activeButton && this.carrying ) {
     if ( this.carrying ) {
       console.log("dropping");
       this.drop(this.carrying);
       this.carrying = null;
     }
-    this.displayButtons(true);
   }
   
   /**
@@ -904,6 +902,7 @@ export class WorldEditor {
         this.displayButtons(true);
         if ( bothOff ) {
           this.dropObject();
+          this.displayButtons(true);
         } else {
           this.endManipulation();
           this.displayButtons(false, this.moveButton);
