@@ -25,7 +25,7 @@
         <script src="./js/lib/babylon.js"></script>
         <script src="./js/lib/babylonjs.loaders.min.js"></script>
         <script src="./js/lib/babylon.gui.min.js"></script>
-        <script src="/babylon/js/lib/babylonjs.materials.min.js"></script>
+        <script src="./js/lib/babylonjs.materials.min.js"></script>
     </head>
   <body>
 
@@ -37,14 +37,29 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 //canvas.style.width = '90%';
 //canvas.style.height = '60%';
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
-import('./js/vrspace-min.js').then( (ui) => {
-  import("./text-test.js").then( (module) =>{
-    var world = module.WORLD;
-    world.init(engine);
-    scene = world.scene;
-  })
+import("./text-test.js").then( (module) =>{
+  var world = module.WORLD;
+  world.init(engine);
+  scene = world.scene;
+})
+
+//Watch for browser/canvas resize events
+var resizing = false;
+var tmp = window.devicePixelRatio;
+window.addEventListener("resize", () => {
+  if ( ! resizing ) {
+    // resize engine after browser has resized
+    setTimeout( () => {
+      resizing = true;
+      engine.resize();
+      // fire the event again to move Enter VR button to proper place
+      // (seems it calculates position immediately)
+      window.dispatchEvent(new Event('resize'));
+      resizing = false;
+    }, 200); // CHECKME 100ms enough?
+  }
 });
-  
+
 function debugOnOff() {
   console.log("Debug: "+scene.debugLayer.isVisible());
   if ( scene.debugLayer.isVisible() ) {
