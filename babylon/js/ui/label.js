@@ -34,6 +34,19 @@ export class Label {
     this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
   }
 
+  /** Set text after display() */
+  setText(text) {
+    this.text = text;
+    this.textBlock.text = this.text;
+  }
+  /** Change background color after display() */
+  setBackground(string) {
+    this.texture.background = string;
+  }
+  /** Change text color after display() */
+  setColor(string) {
+    this.textBlock.color = string;
+  }
   display() {
     this.textBlock = new BABYLON.GUI.TextBlock();
     this.textBlock.text = this.text;

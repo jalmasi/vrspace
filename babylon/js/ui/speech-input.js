@@ -81,7 +81,7 @@ export class SpeechInput {
     }
   }
   start() {
-    if (this.constructor.enabled && annyang) {
+    if (this.constructor.enabled && typeof(annyang) != 'undefined' && annyang ) {
       let index = this.constructor.instances.indexOf(this);
       if ( index < 0 ) {
         // this instance might have been disposed, kept elsewhere, and restarted

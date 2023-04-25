@@ -17,21 +17,37 @@ export class Form {
     this.background = "black";
     this.selected = "yellow";
     this.submitColor = "green";
+    this.verticalPanel = false;
     this.inputWidth = 500;
     this.keyboardRows = null;
     this.speechInput = new SpeechInput();
+    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.elements = [];
     this.controls = [];
     this.activeControl = null;
     this.activeBackground = null;
+    this.plane = null;
+    this.texture = null;
     if ( params ) {
       for(var c of Object.keys(params)) {
         this[c] = params[c];
       }
     }
   }
+  /** Returns Form, required by HUD*/
   getClassName() {
     return "Form";
+  }
+  /**
+   * Returns new StackPanel with 1 height and width and aligned to center both vertically and horizontally
+   */
+  panel() {
+    this.panel = new BABYLON.GUI.StackPanel();
+    this.panel.isVertical = this.verticalPanel;
+    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.panel.width = 1;
+    this.panel.height = 1;
   }
   /**
    * Creates and returns a textblock with given text 
@@ -141,7 +157,7 @@ export class Form {
    * A form can only have one keyboard, shared by all InputText elements. 
    * Currently selected InputText takes keyboard input.
    */
-  keyboard(advancedTexture) {
+  keyboard(advancedTexture = this.texture) {
     var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('search-keyboard');
     keyboard.fontSizeInPixels = 36;
     keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
@@ -153,7 +169,20 @@ export class Form {
     this.vKeyboard = keyboard;
     return keyboard;
   }
-  
+
+  /**
+   * Creates a plane and advanced dynamic texture to hold the panel and all controlls.
+   * At this point all UI elements should be created. 
+   * TODO Form should estimate required texture width/height from elements
+   */
+  createPlane(size, textureWidth, textureHeight) {
+    this.plane = BABYLON.MeshBuilder.CreatePlane("FormPlane", {width: size*textureWidth/textureHeight, height: size});
+    this.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.plane,textureWidth,textureHeight);
+    // advancedTexture creates material and attaches it to the plane
+    this.plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
+    this.texture.addControl(this.panel);
+    return this.plane;
+  }
   /** 
    * Connects the keyboard to given input, or hides it
    * @param input InputText to (dis)connect
@@ -171,7 +200,7 @@ export class Form {
   }
 
   /**
-   * Clean up
+   * Dispose of all created elements.
    */
   dispose() {
     if ( this.vKeyboard ) {
@@ -180,7 +209,16 @@ export class Form {
     }
     this.elements.forEach(e=>e.dispose());
     this.speechInput.dispose();
-  }  
+    if ( this.panel ) {
+      this.panel.dispose();
+    }
+    if ( this.plane) {
+      this.plane.dispose();
+    }
+    if ( this.texture ) {
+      this.texture.dispose();
+    }
+  }
   
   /** Internal voice input method: converts a control (button,checkbox...) name (label) to voice command */
   nameToCommand(name) {

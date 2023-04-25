@@ -1,4 +1,25 @@
-import { VRSPACEUI, World, TextArea } from './js/vrspace-min.js';
+import { VRSPACEUI, World, TextArea, Label, Form } from './js/vrspace-min.js';
+
+class ChatInput extends Form {
+  constructor(callback) {
+    super();
+    this.callback = callback;
+  }
+  init() {
+    this.panel();
+    this.panel.addControl(this.textBlock("Chat:"));
+
+    this.input = this.inputText('chat');
+    this.panel.addControl(this.input);
+
+    var send = this.submitButton("submit", () => this.callback(this.input.text));
+    this.panel.addControl(send);
+    
+    //input.focus(); // not available in babylon 4
+    this.speechInput.start();
+  }
+}
+
 export class TextWorld extends World {
   async load(callback) {
     // we're not loading any models
@@ -100,29 +121,51 @@ export class TextWorld extends World {
     hudText.position = new BABYLON.Vector3(-.1, 0, .2);
     hudText.show();
     hudText.writeln("\nclick to attach to HUD");
+    
+    let titleLabel = new Label( this.title, new BABYLON.Vector3(0,.06,0), hudText.group );
+    titleLabel.text = "A Label attached to TextArea"
+    titleLabel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    titleLabel.height = .01;
+    titleLabel.display();
+
     hudText.onClick(e=>{
       if ( hudText.handles ) {
         hudText.removeHandles();
         hudText.println("handles removed");
-      } else { 
-        hudText.createHandles(); 
+        titleLabel.setBackground("rgba(50,50,200,0.5)");
+        titleLabel.setColor("yellow");
+      } else {
+        hudText.createHandles();
         hudText.println("handles created");
+        titleLabel.setBackground("transparent");
+        titleLabel.setColor("white");
       }
+      let text;
       if ( state%3 == 0 ) {
         hudText.attachToHud();
-        hudText.writeln("state: "+state+" - attached to HUD, click to attach to camera");
+        text = "attached to HUD, click to attach to camera"
       } else if (state%3 == 1) {
         hudText.attachToCamera();
-        hudText.writeln("state: "+state+" - attached to camera, click to detach");
+        text = "attached to camera, click to detach";
       } else if (state%3 == 2) {
         hudText.detach();
-        hudText.writeln("state: "+state+" - detached, click to take");
+        text = "detached, click to take";
       }
+      hudText.writeln(text);
+      titleLabel.setText(text);
       state ++;
     });
+    
+    let form = new ChatInput((text)=>{
+      hudText.writeln("ME> "+text);
+    });
+    form.inputWidth = 800;
+    form.init();
+    let plane = form.createPlane(.05,1024,512);
+    form.keyboard();
+    plane.parent = hudText.group;
+    plane.position = new BABYLON.Vector3(0,-.06,0)
   }
-  
-
 }
 
 export { VRSPACEUI };

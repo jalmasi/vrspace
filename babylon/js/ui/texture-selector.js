@@ -5,22 +5,10 @@ class SearchForm extends Form {
   constructor(callback) {
     super();
     this.callback = callback;
-    this.fontSize = 48;
-    this.heightInPixels = 48;
-    this.color = "white";
-    this.background = "black";
-    this.submitColor = "green";
-    this.verticalPanel = false;
   }
   init() {
-    this.panel = new BABYLON.GUI.StackPanel();
-    this.panel.isVertical = this.verticalPanel;
-    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    this.panel.width = 1;
-    this.panel.height = 1;
-
-    this.panel.addControl(this.textBlock("Search textures:"));    
+    this.panel();
+    this.panel.addControl(this.textBlock("Search textures:"));
 
     this.input = this.inputText('search');
     this.panel.addControl(this.input);
@@ -29,32 +17,7 @@ class SearchForm extends Form {
     this.panel.addControl(enter);
     
     //input.focus(); // not available in babylon 4
-    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.speechInput.start();
-  }
-  keyboard(input, advancedTexture) {
-    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('search-keyboard');
-    keyboard.fontSizeInPixels = 36;
-    keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-    if (this.keyboardRows) {
-      this.keyboardRows.forEach(row=>keyboard.addKeysRow(row));
-    }
-    advancedTexture.addControl(keyboard);
-    keyboard.connect(input);
-    this.vKeyboard = keyboard;
-    return keyboard;
-  }
-  dispose() {
-    if ( this.vKeyboard ) {
-      this.vKeyboard.dispose();
-      delete this.vKeyboard;
-    }
-    this.input.dispose();
-    delete this.input;
-    this.panel.dispose();
-    delete this.panel;
-    this.speechInput.dispose();
-    delete this.speechInput;
   }
 }
 
@@ -97,7 +60,7 @@ export class TextureSelector {
     this.form.init(); // starts speech recognition
     if ( VRSPACEUI.hud.inXR() ) {
       let texture = VRSPACEUI.hud.addForm(this.form,1024,512);
-      this.form.keyboard(this.form.input,texture);
+      this.form.keyboard(texture);
     } else {
       VRSPACEUI.hud.addForm(this.form,1024,64);
     }

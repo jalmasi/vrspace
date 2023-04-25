@@ -356,23 +356,18 @@ export class HUD {
   addForm(form,textureWidth,textureHeight) {
     let size = 0.03 * textureHeight/64; // 3cm for 64px letter
 
-    let plane = BABYLON.MeshBuilder.CreatePlane("HudFormPlane", {width: size*textureWidth/textureHeight, height: size});
+    let plane = form.createPlane(size,textureWidth,textureHeight);
     plane.parent = this.rowRoot;
     plane.position = new BABYLON.Vector3(0,size/2,0.02);
-    let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,textureWidth,textureHeight);
-    // advancedTexture creates material and attaches it to the plane
-    plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
     
-    advancedTexture.addControl(form.panel);
-
     this.elements.push(plane);
     this.controls.push(form.panel);
-    this.textures.push(advancedTexture);
+    this.textures.push(form.texture);
     
     this.activeControl = form;
     
     this.rescaleHUD();
-    return advancedTexture;
+    return form.texture;
   }
   
   /**

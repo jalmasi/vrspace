@@ -6,16 +6,9 @@ class SearchForm extends Form {
   constructor(callback) {
     super();
     this.callback = callback;
-    this.verticalPanel = false;
   }
   init() {
-    this.panel = new BABYLON.GUI.StackPanel();
-    this.panel.isVertical = this.verticalPanel;
-    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    this.panel.width = 1;
-    this.panel.height = 1;
-
+    this.panel();
     this.panel.addControl(this.textBlock("Search Sketchfab:"));
 
     this.input = this.inputText('search');
@@ -42,15 +35,6 @@ class SearchForm extends Form {
     //input.focus(); // not available in babylon 4
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.speechInput.start();
-  }
-  dispose() {
-    super.dispose();
-    this.panel.dispose();
-    delete this.input;
-    delete this.animated;
-    delete this.rigged;
-    delete this.panel;
-    delete this.speechInput;
   }
 }
 
