@@ -8,7 +8,7 @@ class SearchForm extends Form {
     this.callback = callback;
   }
   init() {
-    this.panel();
+    this.createPanel();
     this.panel.addControl(this.textBlock("Search Sketchfab:"));
 
     this.input = this.inputText('search');

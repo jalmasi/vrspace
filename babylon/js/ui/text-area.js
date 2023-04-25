@@ -11,6 +11,7 @@ export class TextArea {
     this.fontSize = 16;
     this.width = 512;
     this.height = 512;
+    this.capacity = this.width*this.height/this.fontSize;
     this.textWrapping = true;
     this.addHandles = true;
     this.segments = 8;
@@ -174,16 +175,17 @@ export class TextArea {
   detach() {
     this.group.parent = null;
   }
-  print(string){
+  checkCapacity() {
+    if ( this.capacity < this.text.length ) {
+      this.text = this.text.substring(this.text.length-this.capacity);
+    }
+  }
+  print(string) {
     this.write(string);
   }
   write(string) {
     this.text += string;
-    this.textBlock.text = this.text;
-    //console.log(this.text.length);
-  }
-  clear() {
-    this.text = "";
+    this.checkCapacity();
     this.textBlock.text = this.text;
   }
   println(string){
@@ -191,6 +193,10 @@ export class TextArea {
   }
   writeln(string) {
     this.write("\n"+string);
+  }
+  clear() {
+    this.text = "";
+    this.textBlock.text = this.text;
   }
   getMaxRows() {
     return Math.floor(this.height/(this.textBlock.fontOffset.height));

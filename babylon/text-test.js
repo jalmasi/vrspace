@@ -6,14 +6,14 @@ class ChatInput extends Form {
     this.callback = callback;
   }
   init() {
-    this.panel();
+    this.createPanel();
     this.panel.addControl(this.textBlock("Chat:"));
 
     this.input = this.inputText('chat');
-    this.panel.addControl(this.input);
+    this.addControl(this.input);
 
     var send = this.submitButton("submit", () => this.callback(this.input.text));
-    this.panel.addControl(send);
+    this.addControl(send);
     
     //input.focus(); // not available in babylon 4
     this.speechInput.start();
@@ -88,6 +88,7 @@ export class TextWorld extends World {
       textArea.writeln(row);
     }
     textArea.writeln(textArea.getMaxRows()+" rows "+textArea.getMaxCols()+" cols fontSize "+textArea.fontSize+" offset "+textArea.textBlock.fontOffset.height);
+    return textArea;
   }
   
   createUI() {
@@ -96,6 +97,11 @@ export class TextWorld extends World {
     this.testFontSize(new BABYLON.Vector3(-3,2,3), 10);
     this.testFontSize(new BABYLON.Vector3(2,2,5), 8);
     this.testFontSize(new BABYLON.Vector3(6,2,5), 24, 1024);
+    let capacityTest = this.testFontSize(new BABYLON.Vector3(-6,2,5), 48, 1024);
+    for ( let i = 0; i < 512*1024/48; i++ ) {
+      capacityTest.print(i+" ");
+    }
+    capacityTest.println("Text length "+capacityTest.textBlock.text.length+" capacity "+capacityTest.capacity);
     
     let textWrap = new TextArea(this.scene);
     textWrap.size = 2;
@@ -132,8 +138,8 @@ export class TextWorld extends World {
       if ( hudText.handles ) {
         hudText.removeHandles();
         hudText.println("handles removed");
-        titleLabel.setBackground("rgba(50,50,200,0.5)");
-        titleLabel.setColor("yellow");
+        titleLabel.setBackground("rgba(200,200,50,0.5)");
+        titleLabel.setColor("black");
       } else {
         hudText.createHandles();
         hudText.println("handles created");
@@ -158,7 +164,14 @@ export class TextWorld extends World {
     
     let form = new ChatInput((text)=>{
       hudText.writeln("ME> "+text);
+      form.input.text = "";
     });
+    form.inputFocusListener = (input, focused) => {
+      if ( ! focused && input.text ) {
+        hudText.writeln("ME> "+input.text);
+        form.input.text = "";
+      }
+    }
     form.inputWidth = 800;
     form.init();
     let plane = form.createPlane(.05,1024,512);

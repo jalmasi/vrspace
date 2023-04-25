@@ -22,6 +22,7 @@ export class Form {
     this.keyboardRows = null;
     this.speechInput = new SpeechInput();
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
+    this.inputFocusListener = null;
     this.elements = [];
     this.controls = [];
     this.activeControl = null;
@@ -41,13 +42,18 @@ export class Form {
   /**
    * Returns new StackPanel with 1 height and width and aligned to center both vertically and horizontally
    */
-  panel() {
+  createPanel() {
     this.panel = new BABYLON.GUI.StackPanel();
     this.panel.isVertical = this.verticalPanel;
     this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     this.panel.width = 1;
     this.panel.height = 1;
+    return this.panel;
+  }
+  /** Add control to the panel */
+  addControl(control) {
+    this.panel.addControl(control);
   }
   /**
    * Creates and returns a textblock with given text 
@@ -196,6 +202,9 @@ export class Form {
         this.vKeyboard.disconnect(input);
       }
       this.vKeyboard.isVisible=focused;
+    }
+    if ( this.inputFocusListener ) {
+      this.inputFocusListener(input,focused);
     }
   }
 
