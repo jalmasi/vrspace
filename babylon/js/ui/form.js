@@ -21,7 +21,7 @@ export class Form {
     this.inputWidth = 500;
     this.keyboardRows = null;
     this.speechInput = new SpeechInput();
-    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
+    this.speechInput.addNoMatch((phrases)=>this.noMatch(phrases));
     this.inputFocusListener = null;
     this.elements = [];
     this.controls = [];
@@ -38,6 +38,10 @@ export class Form {
   /** Returns Form, required by HUD*/
   getClassName() {
     return "Form";
+  }
+  /** Called by default on speech recognition mismatch */
+  noMatch(phrases) {
+    console.log('no match:',phrases)
   }
   /**
    * Returns new StackPanel with 1 height and width and aligned to center both vertically and horizontally
@@ -104,7 +108,9 @@ export class Form {
     return checkbox;
   }
   /**
-   * Creates and returns a named InputText
+   * Creates and returns a named InputText, registers this.inputFocus() as focus/blur listener
+   * @param name identifier used for speech input
+   * @param params optional object to override InputText field values
    */
   inputText(name, params) {
     let input = new BABYLON.GUI.InputText(name);

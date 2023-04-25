@@ -1,25 +1,4 @@
-import { VRSPACEUI, World, TextArea, Label, Form } from './js/vrspace-min.js';
-
-// TODO make it stand-alone, reusable class
-class ChatInput extends Form {
-  constructor(callback) {
-    super();
-    this.callback = callback;
-  }
-  init() {
-    this.createPanel();
-    this.panel.addControl(this.textBlock("Chat:"));
-
-    this.input = this.inputText('chat');
-    this.addControl(this.input);
-
-    var send = this.submitButton("submit", () => this.callback(this.input.text));
-    this.addControl(send);
-    
-    //input.focus(); // not available in babylon 4
-    this.speechInput.start();
-  }
-}
+import { VRSPACEUI, World, TextArea, Label, TextAreaInput } from './js/vrspace-min.js';
 
 export class TextWorld extends World {
   async load(callback) {
@@ -128,24 +107,23 @@ export class TextWorld extends World {
     hudText.position = new BABYLON.Vector3(-.1, 0, .2);
     hudText.show();
     hudText.writeln("\nclick to attach to HUD");
-    
-    let titleLabel = new Label( this.title, new BABYLON.Vector3(0,.06,0), hudText.group );
-    titleLabel.text = "A Label attached to TextArea"
-    titleLabel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    titleLabel.height = .01;
-    titleLabel.display();
 
+    let form = new TextAreaInput(hudText, "Chat", "A Label attached to TextArea");
+    form.inputPrefix = "ME";
+    form.addListener(text=>console.log(text));
+    form.init();
+    
     hudText.onClick(e=>{
       if ( hudText.handles ) {
         hudText.removeHandles();
         hudText.println("handles removed");
-        titleLabel.setBackground("rgba(200,200,50,0.5)");
-        titleLabel.setColor("black");
+        form.title.setBackground("rgba(200,200,50,0.5)");
+        form.title.setColor("black");
       } else {
         hudText.createHandles();
         hudText.println("handles created");
-        titleLabel.setBackground("transparent");
-        titleLabel.setColor("white");
+        form.title.setBackground("transparent");
+        form.title.setColor("white");
       }
       let text;
       if ( state%3 == 0 ) {
@@ -159,26 +137,10 @@ export class TextWorld extends World {
         text = "detached, click to take";
       }
       hudText.writeln(text);
-      titleLabel.setText(text);
+      form.title.setText(text);
       state ++;
     });
     
-    let form = new ChatInput((text)=>{
-      hudText.writeln("ME> "+text);
-      form.input.text = "";
-    });
-    form.inputFocusListener = (input, focused) => {
-      if ( ! focused && input.text ) {
-        hudText.writeln("ME> "+input.text);
-        form.input.text = "";
-      }
-    }
-    form.inputWidth = 800;
-    form.init();
-    let plane = form.createPlane(.05,1024,512);
-    form.keyboard();
-    plane.parent = hudText.group;
-    plane.position = new BABYLON.Vector3(0,-.06,0)
   }
 }
 
