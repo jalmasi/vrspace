@@ -10,7 +10,7 @@ export class TextArea {
    * By default, it's sized and positioned to be attached to the camera, is nicely transparent, font size 16 on 512x512 texture,
    * and includes manipulation handles
    */
-  constructor(scene) {
+  constructor(scene, name = "TextArea") {
     this.scene = scene;
     this.size = .2;
     this.position = new BABYLON.Vector3(-.08, 0, .3);
@@ -25,7 +25,7 @@ export class TextArea {
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
-    this.group = new BABYLON.TransformNode("TextArea", this.scene);
+    this.group = new BABYLON.TransformNode(name, this.scene);
   }
   /**
    * As the name says. Optionally also creates manipulation handles.

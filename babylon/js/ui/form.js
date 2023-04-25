@@ -137,12 +137,8 @@ export class Form {
     this.controls.push(input);
     return input;
   }
-  /**
-   * Ceates and returns a named submit Button.
-   */
-  submitButton(name, callback, params) {
-    let button = new BABYLON.GUI.Button.CreateImageOnlyButton(name, VRSPACEUI.contentBase+"/content/icons/play.png");
-    button.widthInPixels = this.heightInPixels+10;
+  /** Common code for submitButton() and textButton() */
+  setupButton(button, callback, params) {
     button.heightInPixels = this.heightInPixels;
     button.paddingLeft = "10px";
     button.background = this.submitColor;
@@ -151,7 +147,7 @@ export class Form {
         button[c] = params[c];
       }
     }
-    let command = this.nameToCommand(name);
+    let command = this.nameToCommand(button.name);
     if ( callback ) {
       if ( command ) {
         this.speechInput.addCommand(command, () => callback(this));
@@ -161,9 +157,24 @@ export class Form {
     
     this.elements.push(button);
     this.controls.push(button);
+  }
+  /**
+   * Ceates and returns a named submit image-only Button.
+   */
+  submitButton(name, callback, params) {
+    let button = new BABYLON.GUI.Button.CreateImageOnlyButton(name, VRSPACEUI.contentBase+"/content/icons/play.png");
+    button.widthInPixels = this.heightInPixels+10;
+    this.setupButton(button, callback, params);
     return button;
   }
 
+  /** Creates and returns button showing both text and image */
+  textButton(name, callback, params) {
+    let button = new BABYLON.GUI.Button.CreateImageButton(name.toLowerCase(), name, VRSPACEUI.contentBase+"/content/icons/play.png");
+    button.widthInPixels = this.heightInPixels/2*name.length+10;
+    this.setupButton(button, callback, params);
+    return button;
+  }
   /**
    * Creates and returns a VirtualKeyboard, bound to given AdvancedDynamicTexture.
    * A form can only have one keyboard, shared by all InputText elements. 

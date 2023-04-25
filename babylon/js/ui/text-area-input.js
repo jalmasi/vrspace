@@ -17,6 +17,7 @@ export class TextAreaInput extends Form {
     super();
     this.textArea = textArea;
     this.inputName = inputName;
+    this.submitName = null;
     this.titleText = titleText;
     /** Input prefix used as argument to write(), default null */
     this.inputPrefix = null;
@@ -27,7 +28,7 @@ export class TextAreaInput extends Form {
     this.textChangeListeners = [];
   }
   init() {
-    this.inputWidth = this.textArea.width * 2 - 200;
+    this.inputWidth = this.textArea.width * 2;
 
     if (this.titleText) {
       this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.textArea.size / 2, 0), this.textArea.group);
@@ -37,9 +38,12 @@ export class TextAreaInput extends Form {
       this.title.display();
     }
     this.createPanel();
-    this.panel.addControl(this.textBlock(this.inputName + ":"));
+    
+    let textBlock = this.textBlock(this.inputName + ":")
+    this.inputWidth -= this.fontSize/2*this.inputName.length+20;
+    this.panel.addControl(textBlock);
 
-    this.input = this.inputText(this.inputName);
+    this.input = this.inputText(this.inputName.trim().toLowerCase());
     this.addControl(this.input);
     this.inputFocusListener = (input, focused) => {
       if (!focused && input.text) {
@@ -48,11 +52,23 @@ export class TextAreaInput extends Form {
       }
     }
 
-    let submit = this.submitButton("submit", () => {
-      this.notifyListeners(this.input.text);
-      this.write(this.input.text, this.inputPrefix);
-    });
-    this.addControl(submit);
+    let buttonCallback = () => {
+      // text may be empty string here
+      if ( this.input.text ) {
+        this.notifyListeners(this.input.text);
+        this.write(this.input.text, this.inputPrefix);
+      }
+    }
+    let button;
+    if ( this.submitName ) {
+      button = this.textButton(this.submitName, buttonCallback);
+    } else {
+      button = this.submitButton("submit", buttonCallback);
+    }
+    this.addControl(button);
+
+    this.inputWidth -= button.widthInPixels;
+    this.input.widthInPixels = this.inputWidth;
 
     this.createPlane(this.textArea.size / 2, this.textArea.width * 2, 512);
     this.keyboard();

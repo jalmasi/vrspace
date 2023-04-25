@@ -1,3 +1,4 @@
+import { ChatLog } from './js/ui/chat-log.js';
 import { VRSPACEUI, World, TextArea, Label, TextAreaInput } from './js/vrspace-min.js';
 
 export class TextWorld extends World {
@@ -103,8 +104,7 @@ export class TextWorld extends World {
     hudText.text = "An example of a TextArea\nattached to camera";
     hudText.attachToCamera();
     hudText.size = .1;
-    hudText.receivePointer = true;
-    hudText.position = new BABYLON.Vector3(-.1, 0, .2);
+    hudText.position = new BABYLON.Vector3(.1, 0, .2);
     hudText.show();
     hudText.writeln("\nclick to attach to HUD");
 
@@ -140,6 +140,9 @@ export class TextWorld extends World {
       form.title.setText(text);
       state ++;
     });
+    
+    let chatLog = new ChatLog(this.scene);
+    chatLog.show();
     
   }
 }

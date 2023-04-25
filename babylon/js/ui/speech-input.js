@@ -36,11 +36,17 @@ export class SpeechInput {
     }
   }
   addCommand(command, callback) {
-    this.commands[command] = (text) => this.callback(command, text, callback);
+    let callbacks = [ callback ];
+    if ( this.commands[command] ) {
+      // adding another callback to existing command
+      callbacks.push(callback);
+      console.log("Callback added to "+command, callbacks);
+    }
+    this.commands[command] = (text) => this.callback(command, text, callbacks);
     // microsoft apparently attempts to add punctuation
-    this.commands[command+'.'] = (text) => this.callback(command, text, callback);
+    this.commands[command+'.'] = (text) => this.callback(command, text, callbacks);
   }
-  callback(command, text, callback) {
+  callback(command, text, callbacks) {
     //console.log("Executing "+text, callback);
     if ( text ) {
       if (this.lowercase) {
@@ -55,7 +61,7 @@ export class SpeechInput {
     }
     this.spoke=true;
     //console.log("Spoke:"+ command+" "+text);
-    callback(text);
+    callbacks.forEach(callback=>callback(text));
   }
   callNoMatch(phrases) {
     this.spoke=true;
