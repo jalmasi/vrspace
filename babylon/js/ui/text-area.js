@@ -1,13 +1,20 @@
 import { VRSPACEUI } from "./vrspace-ui.js";
 
+/**
+ * Text area somewhere in space, like a screen.
+ * Provides methods for writing the text, movement, resizing.
+ */
 export class TextArea {
+  /**
+   * Creates the area with default values. 
+   * By default, it's sized and positioned to be attached to the camera, is nicely transparent, font size 16 on 512x512 texture,
+   * and includes manipulation handles
+   */
   constructor(scene) {
     this.scene = scene;
     this.size = .2;
     this.position = new BABYLON.Vector3(-.08, 0, .3);
     this.alpha = 0.7;
-    this.maxRows = 27;
-    this.maxCols = 58;
     this.fontSize = 16;
     this.width = 512;
     this.height = 512;
@@ -20,6 +27,9 @@ export class TextArea {
     this.text = "";
     this.group = new BABYLON.TransformNode("TextArea", this.scene);
   }
+  /**
+   * As the name says. Optionally also creates manipulation handles.
+   */
   show () {
     this.group.position = this.position;
     this.ratio = this.width/this.height;
@@ -70,6 +80,9 @@ export class TextArea {
     
     this.texture.addControl(this.textBlock);
   }
+  /**
+   * Creates manipulation handles. Left and right handle resize, and top and bottom move it.
+   */
   createHandles() {
     this.leftHandle = BABYLON.MeshBuilder.CreateSphere("leftHandle",{segments:this.segments},this.scene);
     this.leftHandle.scaling = new BABYLON.Vector3(this.size/50,this.size,this.size/50);
@@ -149,6 +162,9 @@ export class TextArea {
     });
     
   }
+  /**
+   * Removes manipulation handles.
+   */
   removeHandles() {
     if ( this.handles ) {
       this.scene.onPointerObservable.remove(this.resizeHandler);
@@ -156,6 +172,7 @@ export class TextArea {
       this.handles = null;
     }
   }
+  /** Clean up. */
   dispose() {
     this.removeHandles();
     this.textAreaPlane.dispose();
@@ -166,45 +183,71 @@ export class TextArea {
     this.selectedMaterial.dispose();
     this.alertMaterial.dispose();
   }
+  /**
+   * Attach it to the hud. It does not resize automatically, just sets the parent.
+   * @param hud optional, defaults to VRSPACEUI.hud
+   */
   attachToHud(hud = VRSPACEUI.hud) {
     this.group.parent = hud.root;
   }
+  /**
+   * Attach it to the camera. It does not resize automatically, just sets the parent.
+   * It does not automatically switch to another camera if active camera changes.
+   * @param camera currently active camera
+   */
   attachToCamera(camera = this.scene.activeCamera) {
     this.group.parent = camera;
   }
+  /**
+   * Detach from whatever attached to, i.e. drop it where you stand.
+   */
   detach() {
     this.group.parent = null;
   }
+  /**
+   * Check if current text length exceeds the capacity and truncate as required.
+   */
   checkCapacity() {
     if ( this.capacity < this.text.length ) {
       this.text = this.text.substring(this.text.length-this.capacity);
     }
   }
+  /** Same as write */
   print(string) {
     this.write(string);
   }
+  /** Write a string */
   write(string) {
     this.text += string;
     this.checkCapacity();
     this.textBlock.text = this.text;
   }
+  /** Same as writeln */
   println(string){
     this.writeln(string);
   }
+  /** Print a string into a new line */
   writeln(string) {
     this.write("\n"+string);
   }
+  /** Remove the text */
   clear() {
     this.text = "";
     this.textBlock.text = this.text;
   }
+  /** Calculates and returns maximum text rows available */
   getMaxRows() {
     return Math.floor(this.height/(this.textBlock.fontOffset.height));
   }
+  /** Calculates and returns maximum number text columns available */
   getMaxCols() {
     // font offset on android is not integer
     return Math.floor(this.height*this.ratio/(Math.ceil(this.textBlock.fontOffset.height)/2));
   }
+  /**
+   * Set click event handler here
+   * @param callback executed on pointer click, passed Control argument
+   */
   onClick(callback) {
     this.texture.onControlPickedObservable.add(callback);   
   }

@@ -1,5 +1,6 @@
 import { VRSPACEUI, World, TextArea, Label, Form } from './js/vrspace-min.js';
 
+// TODO make it stand-alone, reusable class
 class ChatInput extends Form {
   constructor(callback) {
     super();
