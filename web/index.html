@@ -170,28 +170,6 @@ thanks folks!
     var world = module.WORLD;
     //world.VRSPACEUI.contentBase='https://www.vrspace.org/';
 
-    var say = (text) => {
-      world.write(text);
-      chatLog("ME", text);
-    } 
-       
-    document.getElementById('chatBox').style.display = 'none';
-    document.getElementById('chatInput').addEventListener('change', (e)=>{
-      say(e.target.value);
-      e.target.value = '';
-      //canvas.focus();
-    });
-
-    document.getElementById('chatInput').addEventListener('focus', (e)=>{
-      document.getElementById('chatLog').style.display = 'block';
-      var div = document.getElementById('chatLog');
-      clearChatLog(div.children[div.children.length-1]);
-    });
-    
-    document.getElementById('chatInput').addEventListener('blur', (e)=>{
-      setTimeout(() => document.getElementById('chatLog').style.display = 'none', 200);
-    });
-
     // drag and drop support:    
     document.getElementById('renderCanvas').ondragover = (e) => {
       return false;
@@ -217,15 +195,8 @@ thanks folks!
       world.showPortals();
       engine.resize();
       canvas.focus();
-      world.afterEnter = () => {
-        document.getElementById('chatBox').style.display = 'block';
-        world.worldManager.changeListeners.push((obj, field, node) => remoteEvent(obj,field,node));
-      }
       world.afterExit = () => {
         console.log('Exit:'+world.worldManager.error);
-        document.getElementById('chatBox').style.display = 'none';
-        document.getElementById('chatLog').style.display = 'block';
-        chatLog('ERROR', world.worldManager.error);
       }
     });
     
@@ -267,55 +238,6 @@ thanks folks!
   });
   
   
-  function remoteEvent(obj, field, node) {
-    if ( 'wrote' === field ) {
-      console.log(obj.id+' wrote '+obj.wrote);
-      var name = obj.name;
-      if ( ! name ) {
-        name = 'u'+obj.id;
-      }
-      chatLog(name, obj.wrote);
-    }
-  }
-  
-  function chatLog( who, what ) {
-    var div = document.createElement("div");
-    if ( hasLink(what) ) {
-      // process hyperlinks
-      let string = '';
-      what.split(' ').forEach((word)=>{
-        if ( hasLink(word) ) {
-          word = makeLink(word);
-        }
-        string += word + ' ';
-      });
-      what = string;
-    }
-    var text = "["+who+"] "+what;
-    div.innerHTML = text;
-    div.style="color: white;";
-    document.getElementById('chatLog').appendChild(div);
-    clearChatLog(div);
-  }
-  
-  function hasLink(what) {
-    return what.indexOf("://") > -1 || what.indexOf('www.') > -1 ;
-  }
-  function makeLink(word) {
-    var link = word;
-    if ( link.indexOf("://") == -1) {
-      link = "https://"+link;
-    }
-    return '<a target="_blank" href="'+link+'">'+word+'</a> ';
-  }
-  
-  function clearChatLog( div ) {
-    var log = document.getElementById('chatLog');
-    while ( div.getBoundingClientRect().bottom > log.getBoundingClientRect().bottom) {
-      log.removeChild(log.children[1]);
-    }    
-  }
-  
   //prevent arrow keys and space from scroling the page
   //only if webgl canvas is focused
   window.addEventListener("keydown", function(e) {
@@ -334,14 +256,6 @@ thanks folks!
   }
   
   </script>
-
-  <div id="chatBox" style="position:absolute;bottom:50px;left:15%;">
-    <input id="chatInput" type="text" size=256 style="width:80%;" placeholder="text chat">
-  </div>
-
-  <div id="chatLog" style="position: absolute; margin-left: 10%; top: 80px; width:80%; height:70%; display: none; background-color: rgba(63, 63, 63, 0.5);" >
-     <div style="color: white;">Chat Log</div>
-  </div>
 
   <div id="iframe" style="position:absolute;top:0px;width:100%;">
     <iframe id="customAvatarFrame" allow="camera *; microphone *" width="100%" height="800" hidden="true"></iframe>
