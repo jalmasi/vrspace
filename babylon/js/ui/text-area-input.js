@@ -27,6 +27,9 @@ export class TextAreaInput extends Form {
     this.showNoMatch = true;
     this.textChangeListeners = [];
   }
+  /**
+   * Initialize and attach to the TextArea
+   */
   init() {
     this.inputWidth = this.textArea.width * 2;
 

@@ -112,6 +112,9 @@ export class TextWorld extends World {
     form.inputPrefix = "ME";
     form.addListener(text=>console.log(text));
     form.init();
+
+    let chatLog = new ChatLog(this.scene);
+    chatLog.show();
     
     hudText.onClick(e=>{
       if ( hudText.handles ) {
@@ -132,8 +135,10 @@ export class TextWorld extends World {
       } else if (state%3 == 1) {
         hudText.attachToCamera();
         text = "attached to camera, click to detach";
+        chatLog.leftSide();
       } else if (state%3 == 2) {
         hudText.detach();
+        chatLog.rightSide();
         text = "detached, click to take";
       }
       hudText.writeln(text);
@@ -141,9 +146,7 @@ export class TextWorld extends World {
       state ++;
     });
     
-    let chatLog = new ChatLog(this.scene);
-    chatLog.show();
-    
+    this.initXR();
   }
 }
 
