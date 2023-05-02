@@ -61,6 +61,7 @@ export class TextWorld extends World {
     textArea.fontSize = fontSize;
     textArea.position = pos;
     textArea.width = width;
+    textArea.canMinimize = false;
     textArea.show();
     for ( let col = 1; col <= textArea.getMaxCols(); col++ ) {
       textArea.write(col%10);

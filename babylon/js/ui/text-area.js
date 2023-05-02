@@ -21,10 +21,12 @@ export class TextArea {
     this.capacity = this.width*this.height/this.fontSize;
     this.textWrapping = true;
     this.addHandles = true;
+    this.canMinimize = true;
     this.segments = 8;
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
+    this.minimized = false;
     this.group = new BABYLON.TransformNode(name, this.scene);
     this.attachedToHud = false;
     this.attachedToCamera = false;
@@ -109,7 +111,15 @@ export class TextArea {
     this.bottomHandle.position = new BABYLON.Vector3(0, -this.size/2-this.size/20, 0);
     this.bottomHandle.parent = this.group;
     this.bottomHandle.material = this.material;
-  
+
+    if ( this.canMinimize ) {
+      this.box = BABYLON.MeshBuilder.CreateBox("MinMax",{size:1},this.scene);
+      this.box.scaling = new BABYLON.Vector3(this.size/25,this.size/25,this.size/25);
+      this.box.position = new BABYLON.Vector3(-this.size*this.ratio/2-this.size*this.ratio/20, -this.size/2-this.size/20, 0);
+      this.box.parent = this.group;
+      this.box.material = this.material;
+    }  
+
     this.bottomHandle.opposite = this.topHandle;
     this.topHandle.opposite = this.bottomHandle;
     this.leftHandle.opposite = this.rightHandle;
@@ -136,6 +146,11 @@ export class TextArea {
               this.point = pointerInfo.pickInfo.pickedPoint;
               pointerInfo.pickInfo.pickedMesh.material = this.selectedMaterial;
             }
+          } else if ( this.canMinimize && pointerInfo.pickInfo.pickedMesh == this.box ) {
+            this.handles.forEach( h => h.setEnabled(this.minimized));
+            this.textAreaPlane.setEnabled(this.minimized);
+            this.backgroundPlane.setEnabled(this.minimized);
+            this.minimized = ! this.minimized;
           }
         } else if ( this.selectedHandle) {
           this.selectedHandle.material = this.material;
