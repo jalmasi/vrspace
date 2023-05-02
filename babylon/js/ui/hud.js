@@ -7,11 +7,12 @@ This is common UI supposed to be usefull on VR devices, PC and mobiles, but like
 UI specifically designed for a device should be more ergonomic.
 
 By default it tracks active camera, and binds to new camera whenever active camera changes,
-e.g. upon entering/exiting VR. Constructed with a camera parameter, it does not rebound to a new one.
+e.g. upon entering/exiting VR. Constructed with a camera parameter, it does not rebind to a new one.
 This allows to have multiple HUDs attached to different cameras, 
 e.g. switching from first-person view to god mode activates a different HUD.
 
-But in XR, it can be attached to left or right controller instead of camera.
+But in XR, it can be attached to left or right controller instead of camera: just grab any hud element
+and squeeze, i.e. use squeeze button. Press both squeeze buttons to attach hud back to the camera.
 
 Typically HUD is just a collection of buttons, but it can also contain different UI elements, 
 e.g. sliders, and even forms. It takes input from mouse, touch screen, VR controllers and even gamepad,
@@ -50,6 +51,7 @@ export class HUD {
     this.activeControl = null;
     scene.onActiveCameraChanged.add( () => this.trackCamera() );
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
+    this.attachments = [];
     this.elements = [];
     this.controls = [];
     this.textures = [];
@@ -577,7 +579,7 @@ export class HUD {
    * Used XR pointer selection predicate, returns true if selection is allowed and given mesh is one of HUD elements.
    */
   isSelectableMesh(mesh) {
-    return this.allowSelection && this.elements.includes(mesh);
+    return this.allowSelection && (this.elements.includes(mesh) || this.attachments.includes(mesh));
   }
 
   /**
@@ -682,6 +684,21 @@ export class HUD {
         ret |= e.intersectsMesh(mesh);
       }
     });
+    this.attachments.forEach( e => ret |= e.intersectsMesh(mesh));
     return ret;
+  }
+  /**
+   * Add an attachment mesh. It will be used for XR controller manipulation as other hud elements.
+   * However, mesh pareent isn't changed, it has to be set by caller to hud root.
+   */
+  addAttachment(mesh) {
+    this.attachments.push(mesh);
+  }
+  /** Detach an attached mesh. Parent is not changed here. */
+  removeAttachment(mesh) {
+    let pos = this.attachments.indexOf(mesh);
+    if ( pos > -1 ) {
+      this.attachments.splice(pos,1);
+    }
   }
 }

@@ -36,6 +36,8 @@ export class World {
     this.indicator = null;
     /** Progress indicator functon */
     this.onProgress = null;
+    /** WebXR mode indicator, set by VRHelper */
+    this.inXR = false;
     
     /** Handy reference to VRSpaceUI */
     this.VRSPACEUI = VRSPACEUI;
@@ -50,7 +52,7 @@ export class World {
     this.ground = null;
     // CHECKME: should floors be selectable?
     this.selectionPredicates = [(mesh)=>{return this.getFloorMeshes().includes(mesh)}];
-            
+
     // now override defaults
     if ( params ) {
       for ( var param in params ) {
@@ -220,7 +222,7 @@ export class World {
   }
 
   /** Creates a VRHelper if needed, and initializes it with the current world.
-  Normally called after world is loaded.
+  Normally called after world is loaded, safe to call elsewhere, or call multiple times.
   @param vrHelper optional existing vrHelper
    */
   initXR(vrHelper) {
@@ -232,7 +234,14 @@ export class World {
     }
     this.vrHelper.initXR(this);
   }
+  /** Called by VRHelper once XR devices are initialized. Default implementation does nothing. */
   trackXrDevices() {
+  }
+  /** Called by VR helper after entering XR mode. */
+  enterXR() {
+  }
+  /** Called by VR helper after exiting XR.*/
+  exitXR() {
   }
   /**
   Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.

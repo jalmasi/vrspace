@@ -400,5 +400,11 @@ export class Form {
     }
     return true;
   }
+  /**
+   * XR selection support
+   */
+  isSelectableMesh(mesh) {
+    return this.plane && this.plane == mesh;
+  }
 }
 

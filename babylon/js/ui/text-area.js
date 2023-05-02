@@ -26,6 +26,8 @@ export class TextArea {
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
     this.group = new BABYLON.TransformNode(name, this.scene);
+    this.attachedToHud = false;
+    this.attachedToCamera = false;
   }
   /**
    * As the name says. Optionally also creates manipulation handles.
@@ -185,10 +187,13 @@ export class TextArea {
   }
   /**
    * Attach it to the hud. It does not resize automatically, just sets the parent.
-   * @param hud optional, defaults to VRSPACEUI.hud
    */
-  attachToHud(hud = VRSPACEUI.hud) {
-    this.group.parent = hud.root;
+  attachToHud() {
+    this.group.parent = VRSPACEUI.hud.root;
+    this.attachedToCamera = false;
+    this.attachedToHud = true;
+    VRSPACEUI.hud.addAttachment(this.textAreaPlane);
+    VRSPACEUI.hud.addAttachment(this.backgroundPlane);
   }
   /**
    * Attach it to the camera. It does not resize automatically, just sets the parent.
@@ -197,12 +202,20 @@ export class TextArea {
    */
   attachToCamera(camera = this.scene.activeCamera) {
     this.group.parent = camera;
+    this.attachedToCamera = true;
+    this.attachedToHud = false;
+    VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
+    VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
   }
   /**
    * Detach from whatever attached to, i.e. drop it where you stand.
    */
   detach() {
     this.group.parent = null;
+    this.attachedToCamera = false;
+    this.attachedToHud = false;
+    VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
+    VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
   }
   /**
    * Check if current text length exceeds the capacity and truncate as required.
@@ -250,5 +263,11 @@ export class TextArea {
    */
   onClick(callback) {
     this.texture.onControlPickedObservable.add(callback);   
+  }
+  /**
+   * XR pointer support
+   */
+  isSelectableMesh(mesh) {
+    return mesh == this.textAreaPlane || (this.handles && this.handles.includes(mesh)); 
   }
 }

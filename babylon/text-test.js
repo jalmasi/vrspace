@@ -69,10 +69,13 @@ export class TextWorld extends World {
       textArea.writeln(row);
     }
     textArea.writeln(textArea.getMaxRows()+" rows "+textArea.getMaxCols()+" cols fontSize "+textArea.fontSize+" offset "+textArea.textBlock.fontOffset.height);
+    this.selectables.push(textArea);
     return textArea;
   }
-  
+
   createUI() {
+    this.selectables = [];
+    
     this.testFontSize(new BABYLON.Vector3(0,2,3));
     this.testFontSize(new BABYLON.Vector3(3,2,3), 12);
     this.testFontSize(new BABYLON.Vector3(-3,2,3), 10);
@@ -98,6 +101,7 @@ export class TextWorld extends World {
     }
     textWrap.writeln("\nclick to clear");
     textWrap.onClick(e=>textWrap.clear());
+    this.selectables.push(textWrap);
     
     let state = 0;
     let hudText = new TextArea(this.scene);
@@ -107,14 +111,17 @@ export class TextWorld extends World {
     hudText.position = new BABYLON.Vector3(.1, 0, .2);
     hudText.show();
     hudText.writeln("\nclick to attach to HUD");
+    this.selectables.push(hudText);
 
     let form = new TextAreaInput(hudText, "Chat", "A Label attached to TextArea");
     form.inputPrefix = "ME";
     form.addListener(text=>console.log(text));
     form.init();
+    this.selectables.push(form);
 
     let chatLog = new ChatLog(this.scene);
     chatLog.show();
+    this.selectables.push(chatLog);
     
     hudText.onClick(e=>{
       if ( hudText.handles ) {
@@ -147,7 +154,24 @@ export class TextWorld extends World {
     });
     
     this.initXR();
+    this.hudText = hudText;
   }
+  
+  enterXR() {
+    if ( this.hudText.attachedToCamera ) {
+      this.hudText.attachToCamera();
+    }
+  }
+  exitXR() {
+    if ( this.hudText.attachedToCamera ) {
+      this.hudText.attachToCamera();
+    }
+  }
+  isSelectableMesh(mesh) {
+    let ret = super.isSelectableMesh(mesh);
+    this.selectables.forEach( o => ret |= o.isSelectableMesh(mesh));
+    return ret;
+  }  
 }
 
 export { VRSPACEUI };

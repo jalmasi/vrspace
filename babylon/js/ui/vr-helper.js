@@ -95,6 +95,7 @@ export class VRHelper {
               // Workaround for teleporation/selection bug
               xrHelper.teleportation.setSelectionFeature(null);
               this.world.inXR = true;
+              this.world.enterXR();
               break;
             case BABYLON.WebXRState.ENTERING_XR:
               // xr is being initialized, enter XR request was made
@@ -125,6 +126,7 @@ export class VRHelper {
               }
               this.world.attachControl();
               this.world.scene.activeCamera = this.world.camera;
+              this.world.exitXR();
               // self explanatory - either out or not yet in XR
               break;
           }
@@ -176,8 +178,14 @@ export class VRHelper {
       this.vrHelper = this.world.scene.createDefaultVRExperience({createDeviceOrientationCamera: false });
       //vrHelper.enableInteractions();
       this.vrHelper.webVRCamera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
-      this.vrHelper.onEnteringVRObservable.add(()=>{this.world.collisions(false)});
-      this.vrHelper.onExitingVRObservable.add(()=>{this.world.collisions(this.world.collisionsEnabled);});
+      this.vrHelper.onEnteringVRObservable.add(()=>{
+        this.world.collisions(false);
+        this.world.enterXR();
+      });
+      this.vrHelper.onExitingVRObservable.add(()=>{
+        this.world.collisions(this.world.collisionsEnabled);
+        this.world.exitXR();
+      });
 
       this.vrHelper.enableTeleportation({floorMeshes: this.world.getFloorMeshes(this.world.scene)});
       this.vrHelper.raySelectionPredicate = (mesh) => {
