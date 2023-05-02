@@ -35,16 +35,22 @@ export class SpeechInput {
       annyang.start({autoRestart:false, continuous:true});
     }
   }
-  addCommand(command, callback) {
+  addCommand(command, callback, text) {
+    if ( text ) {
+      text = " "+text;
+    } else {
+      text = "";
+    }
     let callbacks = [ callback ];
     if ( this.commands[command] ) {
       // adding another callback to existing command
       callbacks.push(callback);
       console.log("Callback added to "+command, callbacks);
     }
-    this.commands[command] = (text) => this.callback(command, text, callbacks);
+    this.commands[command+text] = (text) => this.callback(command, text, callbacks);
     // microsoft apparently attempts to add punctuation
-    this.commands[command+'.'] = (text) => this.callback(command, text, callbacks);
+    this.commands[command+'.'+text] = (text) => this.callback(command, text, callbacks);
+    this.commands[command+','+text] = (text) => this.callback(command, text, callbacks);
   }
   callback(command, text, callbacks) {
     //console.log("Executing "+text, callback);
@@ -96,6 +102,7 @@ export class SpeechInput {
       // Add our commands to annyang
       if ( this.commands ) {
         annyang.addCommands(this.commands);
+        console.log(this.commands);
       }
       if ( this.noMatch ) {
         annyang.addCallback('resultNoMatch', (phrases)=>this.callNoMatch(phrases));

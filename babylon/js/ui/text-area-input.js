@@ -103,7 +103,7 @@ export class TextAreaInput extends Form {
   /** Overridden to display speech mismatch in TextArea */
   noMatch(phrases) {
     if (this.showNoMatch) {
-      phrases.forEach(p => this.write(p, "speech"));
+      phrases.forEach(p => this.write(p, "speech", false));
     }
     super.noMatch(phrases);
   }
@@ -111,14 +111,17 @@ export class TextAreaInput extends Form {
    * Write something to this text area.
    * @param what to write
    * @param prefix enclosed in square brackets
+   * @param true clear text input, default true
    */
-  write(what, prefix) {
+  write(what, prefix, clear = true) {
     if (prefix) {
       this.textArea.writeln('[' + prefix + '] ' + what);
     } else {
       this.textArea.writeln(what);
     }
-    this.input.text = "";
+    if ( clear ) {
+      this.input.text = "";
+    }
   }
   dispose() {
     super.dispose();

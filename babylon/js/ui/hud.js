@@ -413,7 +413,7 @@ export class HUD {
     this.controls.push(panel);
     
     if ( text ) {
-      this.speechInput.addCommand(text+" *value", (value) => {
+      this.speechInput.addCommand(text, (value) => {
         console.log("setting "+text+" to "+value);
         if ( "one" == value ) {
           value = "1";
@@ -433,7 +433,7 @@ export class HUD {
           }
           header.text = text+": "+value;
         }
-      });
+      }, "*value");
     }
     
     return slider;

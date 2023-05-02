@@ -94,7 +94,7 @@ export class Form {
     }
     let command = this.nameToCommand(name);
     if ( command ) {
-      this.speechInput.addCommand(command+' *onoff', (text) => {
+      this.speechInput.addCommand(command, (text) => {
         if ( text == 'on' || text == 'true') {
           checkbox.isChecked = true;
         } else if ( text == 'off' || text == 'false') {
@@ -102,7 +102,7 @@ export class Form {
         } else {
           console.log("Can't set "+name+" to "+text);
         }
-      });
+      }, "*onoff");
     }
     this.elements.push(checkbox);
     this.controls.push(checkbox);
@@ -132,7 +132,7 @@ export class Form {
     }
     let command = this.nameToCommand(name);
     if ( command ) {
-      this.speechInput.addCommand(command+' *text', (text) => this.input.text = text);
+      this.speechInput.addCommand(command, (text) => this.input.text = text, "*text");
     }
     this.elements.push(input);
     this.controls.push(input);

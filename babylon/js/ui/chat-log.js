@@ -9,7 +9,7 @@ import { VRSPACEUI } from './vrspace-ui.js';
 export class ChatLog extends TextArea {
   constructor(scene) {
     super(scene, "ChatLog");
-    this.input = new TextAreaInput(this);
+    this.input = new TextAreaInput(this, "Say");
     this.input.submitName = "send";
     this.inputPrefix = "ME";
     this.size = .3;
