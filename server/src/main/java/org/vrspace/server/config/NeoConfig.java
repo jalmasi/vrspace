@@ -55,7 +55,7 @@ public class NeoConfig {
   private File dbDir;
 
   @Bean("database")
-  public GraphDatabaseService config() throws URISyntaxException, IOException {
+  GraphDatabaseService config() throws URISyntaxException, IOException {
     String path = dbPath;
     log.info("Configured database uri: " + path);
     path = path.replace('\\', '/');
