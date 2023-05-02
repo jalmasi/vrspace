@@ -1,5 +1,6 @@
 import { TextArea } from './text-area.js';
 import { TextAreaInput } from './text-area-input.js';
+import { VRSPACEUI } from './vrspace-ui.js';
 
 /**
  * Chat log with TextArea and TextAreaInput, attached by to HUD. 
@@ -21,11 +22,24 @@ export class ChatLog extends TextArea {
    */
   show() {
     super.show();
-    this.attachToHud();
     this.input.inputPrefix = this.inputPrefix;
     this.input.init();
+    this.attachToHud();
+    this.handleResize();
     this.resizeHandler = () => this.handleResize();
     window.addEventListener("resize", this.resizeHandler);
+  }
+  /**
+   * Log something written by someone.
+   * @param who who wrote that
+   * @param what what they wrote
+   */
+  log( who, what ) {
+    this.input.write(what,who);
+  }
+  attachToHud(){
+    super.attachToHud();
+    VRSPACEUI.hud.addAttachment(this.input.plane);
   }
   /**
    * Move to left side of the screen
@@ -53,13 +67,14 @@ export class ChatLog extends TextArea {
    */
   handleResize() {
     let aspectRatio = this.scene.getEngine().getAspectRatio(this.scene.activeCamera);
-    console.log("Aspect ratio: "+aspectRatio);
+    //console.log("Aspect ratio: "+aspectRatio+" "+Math.sign(this.anchor));
     let diff = aspectRatio/2; // 2 being HD
-    this.anchor = this.baseAnchor * diff * Math.sign(this.anchor);
+    this.anchor = -this.baseAnchor * diff * Math.sign(this.anchor);
     this.moveToAnchor();
   }
   /** Clean up */
   dispose() {
+    VRSPACEUI.hud.removeAttachment(this.input.plane);
     window.removeEventListener("resize", this.resizeHandler);
     this.input.dispose();
     super.dispose();

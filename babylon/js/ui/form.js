@@ -20,6 +20,7 @@ export class Form {
     this.verticalPanel = false;
     this.inputWidth = 500;
     this.keyboardRows = null;
+    this.virtualKeyboardEnabled = true;
     this.speechInput = new SpeechInput();
     this.speechInput.addNoMatch((phrases)=>this.noMatch(phrases));
     this.inputFocusListener = null;
@@ -181,7 +182,7 @@ export class Form {
    * Currently selected InputText takes keyboard input.
    */
   keyboard(advancedTexture = this.texture) {
-    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('search-keyboard');
+    var keyboard = BABYLON.GUI.VirtualKeyboard.CreateDefaultLayout('form-keyboard');
     keyboard.fontSizeInPixels = 36;
     keyboard.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     if (this.keyboardRows) {
@@ -199,6 +200,7 @@ export class Form {
    * TODO Form should estimate required texture width/height from elements
    */
   createPlane(size, textureWidth, textureHeight) {
+    this.planeSize = size;
     this.plane = BABYLON.MeshBuilder.CreatePlane("FormPlane", {width: size*textureWidth/textureHeight, height: size});
     this.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.plane,textureWidth,textureHeight);
     // advancedTexture creates material and attaches it to the plane
@@ -212,7 +214,7 @@ export class Form {
    * @param focused true = connect the keyboard, false = disconnect and hide 
    */
   inputFocused(input, focused) {
-    if ( this.vKeyboard ) {
+    if ( this.vKeyboard && this.virtualKeyboardEnabled ) {
       if ( focused ) {
         this.vKeyboard.connect(input); // makes keyboard invisible if input has no focus
       } else {

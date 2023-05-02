@@ -54,12 +54,6 @@ import("./avatar-selection.js").then( (module) =>{
   
   var world = module.WORLD;
 
-  document.getElementById('chatInput').addEventListener('change', (e)=>{
-    world.write(e.target.value);
-    e.target.value = '';
-    canvas.focus();
-  });
-
   world.init(engine, 'avatar').then((s) => {
     scene = s;
     
@@ -68,12 +62,8 @@ import("./avatar-selection.js").then( (module) =>{
     });
     
     world.showPortals();
-    world.afterEnter = () => {
-      document.getElementById('chatBox').style.display = 'block';
-    }
     world.afterExit = () => {
       console.log('Exit:'+world.worldManager.error);
-      document.getElementById('chatBox').style.display = 'none';
       //setTimeout(() => document.location.reload(), 5000);
     }
   });
@@ -119,11 +109,6 @@ function debugOnOff() {
 }
 
 </script>
-
-<div id="chatBox" style="position:absolute;bottom:50px;left:15%;display:none;">
-  <label for="chatInput">Chat:</label>
-  <input id="chatInput" type="text" size=256 style="width:80%;">
-</div>
 
 <div style="position:absolute;bottom:10px;right:50%;">
   <button onClick="debugOnOff()">Debug</button>

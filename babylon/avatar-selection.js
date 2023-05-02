@@ -32,6 +32,29 @@ class LoginForm extends Form {
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.speechInput.start();
   }
+
+  createKeyboardPlane() {
+    let size = this.planeSize * 5;
+    this.keyboardPlane = BABYLON.MeshBuilder.CreatePlane("KeyboardPlane", {width: size*2, height: size});
+    this.keyboardPlane.position = new BABYLON.Vector3(0,-size/2,0);
+    this.keyboardPlane.parent = this.plane;
+    this.keyboardTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.keyboardPlane,512,256);
+    // advancedTexture creates material and attaches it to the plane
+    this.keyboardPlane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
+    this.keyboard(this.keyboardTexture);
+    return this.plane;
+  }
+
+  inputFocused(input, focused) {
+    this.virtualKeyboardEnabled = VRSPACEUI.hud.inXR();
+    super.inputFocused(input,focused);
+  }
+  
+  dispose() {
+    this.keyboardPlane.dispose();
+    this.keyboardTexture.dispose();
+    super.dispose();
+  }
 }
 
 export class AvatarSelection extends World {
@@ -141,12 +164,8 @@ export class AvatarSelection extends World {
       ()=>this.oauth2login()
     );
     this.loginForm.init(); // starts speech recognition
-    if ( VRSPACEUI.hud.inXR() ) {
-      let texture = VRSPACEUI.hud.addForm(this.form,1240,512);
-      this.form.keyboard(texture);
-    } else {
-      VRSPACEUI.hud.addForm(this.loginForm,1240,64);
-    }
+    let texture = VRSPACEUI.hud.addForm(this.loginForm,1240,64);
+    this.loginForm.createKeyboardPlane();
     // testing various REST calls here
     this.getAuthenticated().then( isAuthenticated => {
       if ( isAuthenticated ) {
@@ -224,7 +243,11 @@ export class AvatarSelection extends World {
   }
   
   isSelectableMesh(mesh) {
-    return mesh == this.ground || mesh.name && (mesh.name.startsWith("Button") || mesh.name.startsWith("PortalEntrance"));
+    return mesh == this.ground 
+      || mesh == this.loginForm.plane
+      || mesh == this.loginForm.keyboardPlane 
+      || mesh.name && (mesh.name.startsWith("Button") 
+      || mesh.name.startsWith("PortalEntrance"));
   }
   
   getFloorMeshes() {
@@ -707,6 +730,7 @@ export class AvatarSelection extends World {
     import(worldUrl+'/'+worldScript).then((world)=>{
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;
+        world.inXR = this.inXR;
         
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);

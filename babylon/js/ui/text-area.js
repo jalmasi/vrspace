@@ -194,6 +194,9 @@ export class TextArea {
     this.attachedToHud = true;
     VRSPACEUI.hud.addAttachment(this.textAreaPlane);
     VRSPACEUI.hud.addAttachment(this.backgroundPlane);
+    if ( this.handles ) {
+      this.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+    }
   }
   /**
    * Attach it to the camera. It does not resize automatically, just sets the parent.
@@ -206,6 +209,9 @@ export class TextArea {
     this.attachedToHud = false;
     VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
+    if ( this.handles ) {
+      this.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+    }
   }
   /**
    * Detach from whatever attached to, i.e. drop it where you stand.
@@ -216,6 +222,9 @@ export class TextArea {
     this.attachedToHud = false;
     VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
+    if ( this.handles ) {
+      this.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+    }
   }
   /**
    * Check if current text length exceeds the capacity and truncate as required.

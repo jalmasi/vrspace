@@ -400,9 +400,19 @@ export class WorldManager {
     VRSPACE.addListener( this.myChangeListeners, listener );
   }
   
-  /** Add a listener to camera events */
+  /** Remove listener to own events */
   removeMyChangeListener( listener ) {
     VRSPACE.removeListener( this.myChangeListeners, listener );
+  }
+
+  /** Add a listener to remote events */
+  addChangeListener( listener ) {
+    VRSPACE.addListener( this.changeListeners, listener );
+  }
+  
+  /** Remove listener to remote events */
+  removeChangeListener( listener ) {
+    VRSPACE.removeListener( this.changeListeners, listener );
   }
   
   /**

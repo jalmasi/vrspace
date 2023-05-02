@@ -1,5 +1,6 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 import {VRHelper} from './vr-helper.js';
+import {ChatLog} from './chat-log.js';
 
 /**
 Basic world, intended to be overridden.
@@ -161,10 +162,18 @@ export class World {
     this.camera.attachControl(this.canvas, true);
   }
   /**
-  Optional, empty implementation, notification that the user has entered a multiuser world.
+  Called by WorldManager after the user has entered a multiuser world.
+  Default implementation creates a ChatLog and binds it to the HUD, then it registers remoteEvent() method
+  as a change listener with WorldManager to process remote events.
+  Note that at this point world geometry may not have been loaded.
   @param welcome message containing users Client object and array of permanent objects
    */
   async entered(welcome) {
+    this.chatLog = new ChatLog(this.scene);
+    this.chatLog.show();
+    this.worldManager.addChangeListener( (obj, field, node) => this.remoteEvent(obj, field, node));
+    this.chatLog.input.addListener( text=>this.write(text) );
+    this.chatLog.input.virtualKeyboardEnabled = this.inXR;
   }
   /**  */
   /**
@@ -237,11 +246,17 @@ export class World {
   /** Called by VRHelper once XR devices are initialized. Default implementation does nothing. */
   trackXrDevices() {
   }
-  /** Called by VR helper after entering XR mode. */
+  /** Called by VR helper after entering XR mode. Default implementation enables virtual keyboard in ChatLog. */
   enterXR() {
+    if ( this.chatLog ) {
+      this.chatLog.input.virtualKeyboardEnabled = true;
+    }
   }
-  /** Called by VR helper after exiting XR.*/
+  /** Called by VR helper after exiting XR. Default implementation turns off ChatLog virtual keyboard.*/
   exitXR() {
+    if ( this.chatLog ) {
+      this.chatLog.input.virtualKeyboardEnabled = false;
+    }
   }
   /**
   Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.
@@ -492,6 +507,22 @@ export class World {
   write(text) {
     if ( this.worldManager && text ) {
       this.worldManager.write(text);
+    }
+  }
+  /**
+   * Receives a remote event. Default implementation handles only 'wrote' event, and sends it to the ChatLog. 
+   * @param obj a VRObject that has changed
+   * @param field a field that has changed, obj[field] contains the actual value
+   * @param node root node in the scene that has received event, may be null
+   */
+  remoteEvent(obj, field, node) {
+    if ( 'wrote' === field && this.chatLog ) {
+      console.log(obj.id+' wrote '+obj.wrote);
+      var name = obj.name;
+      if ( ! name ) {
+        name = 'u'+obj.id;
+      }
+      this.chatLog.log(name,obj.wrote);
     }
   }
   /**
