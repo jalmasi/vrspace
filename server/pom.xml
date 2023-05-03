@@ -123,7 +123,6 @@
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
       <version>5.2.1</version>
-      <scope>test</scope>
     </dependency>
         
   </dependencies>

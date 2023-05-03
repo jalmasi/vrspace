@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.util.StringUtils;
@@ -25,6 +26,7 @@ import org.vrspace.server.obj.TerrainPoint;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
+@DependsOn({ "database" })
 /**
  * https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#neo4j.repositories
  */

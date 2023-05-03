@@ -25,7 +25,7 @@ public class SeleniumTest {
     // WebDriver driver = new ChromeDriver();
     WebDriverManager.firefoxdriver().setup();
     FirefoxOptions options = new FirefoxOptions();
-    // options.setHeadless(true);
+    //options.setHeadless(true);
     driver = new FirefoxDriver(options);
     // browser window is larger than the content by this many pixel rows
     int offset = 1024 - 939;
