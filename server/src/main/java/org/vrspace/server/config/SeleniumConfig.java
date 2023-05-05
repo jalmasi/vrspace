@@ -88,7 +88,7 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
    */
   @Override
   public void contextDestroyed(ServletContextEvent sce) {
-    log.debug("ServletContext destroyed, cleaning up " + sessions.size() + " sessions");
+    log.debug("ServletContext destroyed, cleaning up " + sessions.size() + " web sessions");
     sessions.keySet().forEach(e -> e.close());
   }
 

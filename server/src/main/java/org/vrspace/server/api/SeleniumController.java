@@ -13,7 +13,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.config.SeleniumConfig.WebSession;
 import org.vrspace.server.config.SeleniumConfig.WebSessionFactory;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -82,7 +86,10 @@ public class SeleniumController {
 
   @GetMapping(value = "/close", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
-  public byte[] close(HttpSession session) {
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Closed a window and switched to previous one, returns screenshot"),
+      @ApiResponse(responseCode = "204", description = "Closed last available window, no content") })
+  public ResponseEntity<byte[]> close(HttpSession session) {
     log.debug("Close window");
     WebSession webSession = session(session);
 
@@ -91,10 +98,12 @@ public class SeleniumController {
       switchTab(webSession);
     } else {
       webSession.close();
-      return new byte[0];
+      session.removeAttribute(WebSession.KEY);
+      ResponseEntity<byte[]> empty = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+      return empty;
     }
 
-    return screenshot(webSession.webDriver);
+    return new ResponseEntity<byte[]>(screenshot(webSession.webDriver), HttpStatus.OK);
   }
 
   private void switchTab(WebSession webSession) {
