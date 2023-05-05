@@ -1,5 +1,9 @@
 package org.vrspace.server.config;
 
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
@@ -18,34 +22,54 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @Slf4j
 @WebListener
-public class SeleniumConfig implements HttpSessionListener {
+public class SeleniumConfig implements HttpSessionListener, ServletContextListener {
 
-  public class WebBrowserFactory {
-    public WebDriver getInstance() {
+  private static ConcurrentHashMap<WebSession, WebSession> sessions = new ConcurrentHashMap<>();
+
+  public class WebSession {
+    public static final String KEY = "webDriver";
+    public WebDriver webDriver;
+    public String windowHandle;
+    public int mouseX = 0;
+    public int mouseY = 0;
+
+    public WebSession() {
       log.debug("Creating new firefox instance");
       FirefoxOptions options = new FirefoxOptions();
       options.setHeadless(true);
-      WebDriver driver = new FirefoxDriver(options);
+      webDriver = new FirefoxDriver(options);
       int offset = 1024 - 939;
-      driver.manage().window().setSize(new Dimension(2048, 1024 + offset));
-      return driver;
+      webDriver.manage().window().setSize(new Dimension(2048, 1024 + offset));
+      sessions.put(this, this);
+    }
+
+    public void close() {
+      log.debug("Destroying a web driver");
+      webDriver.quit();
+      sessions.remove(this);
+    }
+  }
+
+  public class WebSessionFactory {
+    public WebSession newSession() {
+      WebSession ret = new WebSession();
+      return ret;
     }
   }
 
   @Override
   public void sessionDestroyed(HttpSessionEvent se) {
     log.debug("Session destroyed");
-    WebDriver webDriver = (WebDriver) se.getSession().getAttribute("webDriver");
-    if (webDriver != null) {
-      log.debug("Destroying a web driver");
-      webDriver.quit();
+    WebSession session = (WebSession) se.getSession().getAttribute(WebSession.KEY);
+    if (session != null) {
+      session.close();
     }
   };
 
   @Bean
-  WebBrowserFactory factory() {
+  WebSessionFactory factory() {
     WebDriverManager.firefoxdriver().setup();
-    return new WebBrowserFactory();
+    return new WebSessionFactory();
   }
 
   /**
@@ -57,6 +81,15 @@ public class SeleniumConfig implements HttpSessionListener {
     // https://stackoverflow.com/questions/32739957/httpsessionlistener-doesnt-work
     log.info("Servlet context initialized, installing web garbage collector");
     return new ServletListenerRegistrationBean<HttpSessionListener>(this);
+  }
+
+  /**
+   * Clean up active browser processes on shutdown
+   */
+  @Override
+  public void contextDestroyed(ServletContextEvent sce) {
+    log.debug("ServletContext destroyed, cleaning up " + sessions.size() + " sessions");
+    sessions.keySet().forEach(e -> e.close());
   }
 
 }
