@@ -29,7 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Remote browser support. Receives basic commands, forwards them to the
- * headless browser, creates and returns the screenshot.
+ * headless browser, creates and returns the screenshot. Screenshots are
+ * rendered in 2048x1024 resolution, supposedly optimal to be used as textures.
  * 
  * @author joe
  *
@@ -41,6 +42,21 @@ public class SeleniumController {
   @Autowired
   WebSessionFactory factory;
 
+  /**
+   * @return true if remote browsing is available
+   */
+  @GetMapping("/available")
+  public boolean available(HttpSession session) {
+    return true;
+  }
+
+  /**
+   * Get a web page
+   * 
+   * @param url     web page to browse to
+   * @param session provided by spring
+   * @return screenshot of the rendered page
+   */
   @GetMapping(value = "/get", produces = MediaType.IMAGE_PNG_VALUE)
   public @ResponseBody byte[] get(String url, HttpSession session) {
     log.debug("Browser getting " + url);
@@ -50,6 +66,15 @@ public class SeleniumController {
     return screenshot(webSession.webDriver);
   }
 
+  /**
+   * Click on a pixel on the screen. This may do nothing or anything, including
+   * opening a new tab.
+   * 
+   * @param x       position from left
+   * @param y       position from top
+   * @param session provided by spring
+   * @return screenshot of the rendered page
+   */
   @GetMapping(value = "/click", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
   public byte[] click(int x, int y, HttpSession session) {
@@ -72,6 +97,13 @@ public class SeleniumController {
     return screenshot(webSession.webDriver);
   }
 
+  /**
+   * Scroll up or down by given number of pixels.
+   * 
+   * @param pixels  positive down, or negative up
+   * @param session provided by spring
+   * @return screenshot of the page
+   */
   @GetMapping(value = "/scroll", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
   public byte[] scroll(int pixels, HttpSession session) {
@@ -84,6 +116,13 @@ public class SeleniumController {
     return screenshot(webSession.webDriver);
   }
 
+  /**
+   * Close the browser window/tab. Returns to previous tab if any, or returns no
+   * content (http 204 status).
+   * 
+   * @param session provided by spring
+   * @return screenshot, may be empty if the browser was closed.
+   */
   @GetMapping(value = "/close", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
   @ApiResponses({
