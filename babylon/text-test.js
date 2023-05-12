@@ -1,5 +1,4 @@
-import { ChatLog } from './js/ui/chat-log.js';
-import { VRSPACEUI, World, TextArea, Label, TextAreaInput } from './js/vrspace-min.js';
+import { VRSPACEUI, World, TextArea, ChatLog, TextAreaInput } from './js/vrspace-min.js';
 
 export class TextWorld extends World {
   async load(callback) {
