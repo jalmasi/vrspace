@@ -23,6 +23,7 @@ export class TextArea {
     this.textWrapping = true;
     this.addHandles = true;
     this.canMinimize = true;
+    this.showLinks = true;
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";

@@ -102,7 +102,7 @@ export class SpeechInput {
       // Add our commands to annyang
       if ( this.commands ) {
         annyang.addCommands(this.commands);
-        console.log(this.commands);
+        //console.log(this.commands);
       }
       if ( this.noMatch ) {
         annyang.addCallback('resultNoMatch', (phrases)=>this.callNoMatch(phrases));
