@@ -1,3 +1,4 @@
+import { ManipulationHandles } from "./manipulation-handles.js";
 import { VRSPACEUI } from "./vrspace-ui.js";
 
 /**
@@ -22,11 +23,9 @@ export class TextArea {
     this.textWrapping = true;
     this.addHandles = true;
     this.canMinimize = true;
-    this.segments = 8;
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
-    this.minimized = false;
     this.group = new BABYLON.TransformNode(name, this.scene);
     this.attachedToHud = false;
     this.attachedToCamera = false;
@@ -41,14 +40,6 @@ export class TextArea {
     this.material = new BABYLON.StandardMaterial("TextAreaMaterial", this.scene);
     this.material.alpha = this.alpha;
     this.material.diffuseColor = new BABYLON.Color3(.2,.2,.3);
-  
-    this.selectedMaterial = new BABYLON.StandardMaterial("selectedMaterial", this.scene);
-    this.selectedMaterial.alpha = this.alpha;
-    this.selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
-  
-    this.alertMaterial = new BABYLON.StandardMaterial("alertMaterial", this.scene);
-    this.alertMaterial.alpha = this.alpha;
-    this.alertMaterial.diffuseColor = new BABYLON.Color3(.3, 0, 0);
   
     this.textAreaPlane = BABYLON.MeshBuilder.CreatePlane("TextAreaPlane", {width:this.size*this.ratio,height:this.size}, this.scene);
     this.textAreaPlane.parent = this.group;
@@ -88,104 +79,16 @@ export class TextArea {
    * Creates manipulation handles. Left and right handle resize, and top and bottom move it.
    */
   createHandles() {
-    this.leftHandle = BABYLON.MeshBuilder.CreateSphere("leftHandle",{segments:this.segments},this.scene);
-    this.leftHandle.scaling = new BABYLON.Vector3(this.size/50,this.size,this.size/50);
-    this.leftHandle.position = new BABYLON.Vector3(-this.size*this.ratio/2-this.size*this.ratio/20, 0, 0);
-    this.leftHandle.parent = this.group;
-    this.leftHandle.material = this.material;
-  
-    this.rightHandle = BABYLON.MeshBuilder.CreateSphere("rightHandle",{segments:this.segments},this.scene);
-    this.rightHandle.scaling = new BABYLON.Vector3(this.size/50,this.size,this.size/50);
-    this.rightHandle.position = new BABYLON.Vector3(this.size*this.ratio/2+this.size*this.ratio/20, 0, 0);
-    this.rightHandle.parent = this.group;
-    this.rightHandle.material = this.material;
-  
-    this.topHandle = BABYLON.MeshBuilder.CreateSphere("topHandle",{segments:this.segments},this.scene);
-    this.topHandle.scaling = new BABYLON.Vector3(this.size*this.ratio,this.size/50,this.size/50);
-    this.topHandle.position = new BABYLON.Vector3(0, this.size/2+this.size/20, 0);
-    this.topHandle.parent = this.group;
-    this.topHandle.material = this.material;
-  
-    this.bottomHandle = BABYLON.MeshBuilder.CreateSphere("bottomHandle",{segments:this.segments},this.scene);
-    this.bottomHandle.scaling = new BABYLON.Vector3(this.size*this.ratio,this.size/50,this.size/50);
-    this.bottomHandle.position = new BABYLON.Vector3(0, -this.size/2-this.size/20, 0);
-    this.bottomHandle.parent = this.group;
-    this.bottomHandle.material = this.material;
-
-    if ( this.canMinimize ) {
-      this.box = BABYLON.MeshBuilder.CreateBox("MinMax",{size:1},this.scene);
-      this.box.scaling = new BABYLON.Vector3(this.size/25,this.size/25,this.size/25);
-      this.box.position = new BABYLON.Vector3(-this.size*this.ratio/2-this.size*this.ratio/20, -this.size/2-this.size/20, 0);
-      this.box.parent = this.group;
-      this.box.material = this.material;
-    }  
-
-    this.bottomHandle.opposite = this.topHandle;
-    this.topHandle.opposite = this.bottomHandle;
-    this.leftHandle.opposite = this.rightHandle;
-    this.rightHandle.opposite = this.leftHandle;
-  
-    this.handles = [ this.leftHandle, this.topHandle, this.rightHandle, this.bottomHandle ];
-
-    this.resizeHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
-        //if ( pointerInfo.pickInfo.hit && this.handles.includes(pointerInfo.pickInfo.pickedMesh) ) {
-        if ( pointerInfo.pickInfo.hit ) {
-          // moving around
-          if (pointerInfo.pickInfo.pickedMesh == this.bottomHandle || pointerInfo.pickInfo.pickedMesh == this.topHandle) {
-            if ( ! this.behavior ) {
-              this.behavior = new BABYLON.SixDofDragBehavior()
-              this.group.addBehavior(this.behavior);
-              pointerInfo.pickInfo.pickedMesh.material = this.selectedMaterial;
-              this.selectedHandle = pointerInfo.pickInfo.pickedMesh;
-            }
-          } else if (pointerInfo.pickInfo.pickedMesh == this.leftHandle || pointerInfo.pickInfo.pickedMesh == this.rightHandle) {
-            // scaling
-            if ( ! this.selectedHandle ) {
-              this.selectedHandle = pointerInfo.pickInfo.pickedMesh;
-              this.point = pointerInfo.pickInfo.pickedPoint;
-              pointerInfo.pickInfo.pickedMesh.material = this.selectedMaterial;
-            }
-          } else if ( this.canMinimize && pointerInfo.pickInfo.pickedMesh == this.box ) {
-            this.handles.forEach( h => h.setEnabled(this.minimized));
-            this.textAreaPlane.setEnabled(this.minimized);
-            this.backgroundPlane.setEnabled(this.minimized);
-            this.minimized = ! this.minimized;
-          }
-        } else if ( this.selectedHandle) {
-          this.selectedHandle.material = this.material;
-          this.selectedHandle = null;
-          if ( this.behavior ) {
-            this.group.removeBehavior(this.behavior);
-            this.behavior = null;
-          }
-        }
-      }
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP && this.selectedHandle) {
-        if ( pointerInfo.pickInfo.hit && (pointerInfo.pickInfo.pickedMesh == this.leftHandle || pointerInfo.pickInfo.pickedMesh == this.rightHandle) ) {
-          let diff = pointerInfo.pickInfo.pickedPoint.y - this.point.y;
-          let scale = (this.size + diff)/this.size;
-          this.group.scaling = this.group.scaling.scale(scale);
-        }
-        if ( this.selectedHandle) {
-          this.selectedHandle.material = this.material;
-          this.selectedHandle = null;
-          if ( this.behavior ) {
-            this.group.removeBehavior(this.behavior);
-            this.behavior = null;
-          }
-        }
-      }
-    });
-    
+    this.handles = new ManipulationHandles(this.backgroundPlane, this.size*this.ratio, this.size, this.scene);
+    this.handles.canMinimize = this.canMinimize;
+    this.handles.show();
   }
   /**
    * Removes manipulation handles.
    */
   removeHandles() {
     if ( this.handles ) {
-      this.scene.onPointerObservable.remove(this.resizeHandler);
-      this.handles.forEach(h=>h.dispose());
+      this.handles.dispose();
       this.handles = null;
     }
   }
@@ -197,8 +100,6 @@ export class TextArea {
     this.textBlock.dispose();
     this.texture.dispose();
     this.material.dispose();
-    this.selectedMaterial.dispose();
-    this.alertMaterial.dispose();
   }
   /**
    * Attach it to the hud. It does not resize automatically, just sets the parent.
@@ -210,7 +111,7 @@ export class TextArea {
     VRSPACEUI.hud.addAttachment(this.textAreaPlane);
     VRSPACEUI.hud.addAttachment(this.backgroundPlane);
     if ( this.handles ) {
-      this.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+      this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
     }
   }
   /**
@@ -225,7 +126,7 @@ export class TextArea {
     VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
     if ( this.handles ) {
-      this.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+      this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
     }
   }
   /**
@@ -238,7 +139,7 @@ export class TextArea {
     VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
     if ( this.handles ) {
-      this.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+      this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
     }
   }
   /**
@@ -292,6 +193,6 @@ export class TextArea {
    * XR pointer support
    */
   isSelectableMesh(mesh) {
-    return mesh == this.textAreaPlane || (this.handles && this.handles.includes(mesh)); 
+    return mesh == this.textAreaPlane || (this.handles && this.handles.handles.includes(mesh)); 
   }
 }

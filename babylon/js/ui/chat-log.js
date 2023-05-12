@@ -24,6 +24,7 @@ export class ChatLog extends TextArea {
     super.show();
     this.input.inputPrefix = this.inputPrefix;
     this.input.init();
+    this.handles.dontMinimize.push(this.input.plane);
     this.attachToHud();
     this.handleResize();
     this.resizeHandler = () => this.handleResize();

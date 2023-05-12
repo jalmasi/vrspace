@@ -76,17 +76,20 @@ export class TextWorld extends World {
   createUI() {
     this.selectables = [];
     
+    // testing different font sizes
     this.testFontSize(new BABYLON.Vector3(0,2,3));
     this.testFontSize(new BABYLON.Vector3(3,2,3), 12);
     this.testFontSize(new BABYLON.Vector3(-3,2,3), 10);
     this.testFontSize(new BABYLON.Vector3(2,2,5), 8);
     this.testFontSize(new BABYLON.Vector3(6,2,5), 24, 1024);
     let capacityTest = this.testFontSize(new BABYLON.Vector3(-6,2,5), 48, 1024);
+    // text auto-trimming test
     for ( let i = 0; i < 512*1024/48; i++ ) {
       capacityTest.print(i+" ");
     }
     capacityTest.println("Text length "+capacityTest.textBlock.text.length+" capacity "+capacityTest.capacity);
     
+    // text wrapping test
     let textWrap = new TextArea(this.scene);
     textWrap.size = 2;
     textWrap.addHandles = false;
@@ -103,6 +106,12 @@ export class TextWorld extends World {
     textWrap.onClick(e=>textWrap.clear());
     this.selectables.push(textWrap);
     
+    // chatlog test
+    let chatLog = new ChatLog(this.scene);
+    chatLog.show();
+    this.selectables.push(chatLog);
+    
+    // detach/attach to hud/camera test
     let state = 0;
     let hudText = new TextArea(this.scene);
     hudText.text = "An example of a TextArea\nattached to camera";
@@ -119,10 +128,6 @@ export class TextWorld extends World {
     form.init();
     this.selectables.push(form);
 
-    let chatLog = new ChatLog(this.scene);
-    chatLog.show();
-    this.selectables.push(chatLog);
-    
     hudText.onClick(e=>{
       if ( hudText.handles ) {
         hudText.removeHandles();
