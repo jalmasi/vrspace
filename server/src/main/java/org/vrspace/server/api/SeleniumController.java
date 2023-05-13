@@ -12,11 +12,13 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.PointerInput;
 import org.openqa.selenium.interactions.Sequence;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.config.SeleniumConfig.WebSession;
 import org.vrspace.server.config.SeleniumConfig.WebSessionFactory;
 
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
@@ -80,8 +83,10 @@ public class SeleniumController {
    * @return screenshot of the rendered page
    */
   @GetMapping(value = "/click", produces = MediaType.IMAGE_PNG_VALUE)
+  @ApiResponses({ @ApiResponse(responseCode = "200", description = "Clicked, returns screenshot", headers = {
+      @Header(name = "active-element", description = "Tag of the active element (clicked on)") }) })
   @ResponseBody
-  public byte[] click(int x, int y, HttpSession session) {
+  public ResponseEntity<byte[]> click(int x, int y, HttpSession session) {
     WebSession webSession = session(session);
     int numTabs = webSession.webDriver.getWindowHandles().size();
 
@@ -92,6 +97,10 @@ public class SeleniumController {
         .addAction(mouse.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
 
     ((RemoteWebDriver) webSession.webDriver).perform(Collections.singletonList(actions));
+    WebElement activeElement = webSession.webDriver.switchTo().activeElement();
+    log.debug("Currently active: " + activeElement.getTagName() + " " + activeElement.getAccessibleName());
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("active-element", activeElement.getTagName());
 
     wait(webSession.webDriver);
     if (numTabs < webSession.webDriver.getWindowHandles().size()) {
@@ -99,7 +108,8 @@ public class SeleniumController {
       log.debug("new window");
       switchTab(webSession);
     }
-    return screenshot(webSession.webDriver);
+    ResponseEntity<byte[]> ret = new ResponseEntity<>(screenshot(webSession.webDriver), headers, HttpStatus.OK);
+    return ret;
   }
 
   /**

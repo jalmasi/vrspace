@@ -15,6 +15,10 @@ export class RemoteBrowser extends ImageArea {
   async click(x,y) {
     let response = await fetch("/webbrowser/click?x="+x+"&y="+y);
     let bytes = await response.blob();
+    let activeElement = response.headers.get('active-element');
+    if ( "input" === activeElement || "textarea" === activeElement) {
+      console.log("TODO input required: "+activeElement);
+    }
     this.loadData(bytes);
   }
   async scroll(pixels) {
