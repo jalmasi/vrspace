@@ -2,7 +2,7 @@ import { TextArea } from './text-area.js';
 import { TextAreaInput } from './text-area-input.js';
 import { VRSPACEUI } from './vrspace-ui.js';
 import { Label } from './label.js';
-import { ImageArea } from './image-area.js';
+import { RemoteBrowser } from './remote-browser.js';
 
 class Link {
   constructor( text ) {
@@ -62,14 +62,16 @@ class LinkStack {
   }
   clicked(url) {
     console.log("Clicked "+url);
-    if ( this.imageArea ) {
-      this.imageArea.dispose();
+    if ( this.browser ) {
+      this.browser.dispose();
     }
-    this.imageArea = new ImageArea(this.scene);
-    this.imageArea.show();
-    this.imageArea.attachToCamera();
+    this.browser = new RemoteBrowser(this.scene);
+    this.browser.show();
+    this.browser.attachToCamera();
     if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".jpg") ) {
-      this.imageArea.loadUrl(url);
+      this.browser.loadUrl(url);
+    } else {
+      this.browser.get(url);
     }
   }
   scroll() {
@@ -86,8 +88,8 @@ class LinkStack {
   dispose() {
     this.scene.onPointerObservable.remove(this.clickHandler);
     this.links.forEach(l=>l.dispose());
-    if ( this.imageArea ) {
-      this.imageArea.dispose();
+    if ( this.browser ) {
+      this.browser.dispose();
     }
   }
 }

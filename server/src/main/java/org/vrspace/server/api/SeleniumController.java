@@ -2,6 +2,8 @@ package org.vrspace.server.api;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
+import java.util.Collections;
 
 import javax.servlet.http.HttpSession;
 
@@ -10,7 +12,9 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.PointerInput;
+import org.openqa.selenium.interactions.Sequence;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -78,22 +82,23 @@ public class SeleniumController {
   @GetMapping(value = "/click", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
   public byte[] click(int x, int y, HttpSession session) {
-    log.debug("Click on " + x + "," + y);
     WebSession webSession = session(session);
-    Actions builder = new Actions(webSession.webDriver);
+    int numTabs = webSession.webDriver.getWindowHandles().size();
 
-    // due to lack of moveTo(x,y) method,
-    int xOffset = x - webSession.mouseX;
-    int yOffset = y - webSession.mouseY;
+    PointerInput mouse = new PointerInput(PointerInput.Kind.MOUSE, "default mouse");
+    Sequence actions = new Sequence(mouse, 0)
+        .addAction(mouse.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), x, y))
+        .addAction(mouse.createPointerDown(PointerInput.MouseButton.LEFT.asArg()))
+        .addAction(mouse.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
 
-    builder.moveByOffset(xOffset, yOffset);
+    ((RemoteWebDriver) webSession.webDriver).perform(Collections.singletonList(actions));
 
-    webSession.mouseX = x;
-    webSession.mouseY = y;
-
-    builder.click().build().perform();
     wait(webSession.webDriver);
-    switchTab(webSession);
+    if (numTabs < webSession.webDriver.getWindowHandles().size()) {
+      // new tab has opened
+      log.debug("new window");
+      switchTab(webSession);
+    }
     return screenshot(webSession.webDriver);
   }
 
@@ -156,7 +161,6 @@ public class SeleniumController {
     byte[] ret;
     try {
       File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-      // FileUtils.copyToDirectory(scrFile, new File("c:\\tmp\\"));
       ret = FileUtils.readFileToByteArray(scrFile);
     } catch (IOException e) {
       throw new ApiException("Can't read screenshot file: " + e);
@@ -165,8 +169,12 @@ public class SeleniumController {
   }
 
   private void wait(WebDriver webDriver) {
-    WebDriverWait wait = new WebDriverWait(webDriver, 10);
+    WebDriverWait wait = new WebDriverWait(webDriver, Duration.ofSeconds(10));
     wait.until(driver -> ((JavascriptExecutor) driver).executeScript("return document.readyState").equals("complete"));
+    try {
+      Thread.sleep(300);
+    } catch (InterruptedException e) {
+    }
   }
 
   private WebSession session(HttpSession session) {

@@ -48,7 +48,7 @@ export class ImageArea {
     this.plane = BABYLON.MeshBuilder.CreatePlane("ImageAreaPlane", {width:this.size*this.ratio,height:this.size}, this.scene);
     this.plane.parent = this.group;
     this.plane.material = this.material;
-    this.plane.visibility = 0.5;
+    this.plane.visibility = 0.1;
 
     if (this.addHandles) {
       this.createHandles();
@@ -70,15 +70,16 @@ export class ImageArea {
   }
   loadUrl(url) {
     let texture = new BABYLON.Texture(url, this.scene);
-    this.material.diffuseTexture = texture;
     this.texturesDispose();
+    this.material.diffuseTexture = texture;
     this.texture = texture;
     this.fullyVisible();
   }
   loadData(data, name="bufferedTexture") {
+    console.log("Loading texture, size "+data.size);
+    this.texturesDispose();
     let texture = BABYLON.Texture.LoadFromDataString(name,data,this.scene);
     this.material.diffuseTexture = texture;
-    this.texturesDispose();
     this.texture = texture;
     this.fullyVisible();
   }

@@ -30,13 +30,12 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
     public static final String KEY = "webDriver";
     public WebDriver webDriver;
     public String windowHandle;
-    public int mouseX = 0;
-    public int mouseY = 0;
 
     public WebSession() {
       log.debug("Creating new firefox instance");
       FirefoxOptions options = new FirefoxOptions();
-      options.setHeadless(true);
+      // options.setHeadless(true);
+      options.addArguments("-headless");
       webDriver = new FirefoxDriver(options);
       int offset = 1024 - 939;
       webDriver.manage().window().setSize(new Dimension(2048, 1024 + offset));

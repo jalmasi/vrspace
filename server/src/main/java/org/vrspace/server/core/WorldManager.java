@@ -110,7 +110,7 @@ public class WorldManager {
           @SuppressWarnings("rawtypes")
           PersistenceManager p = (PersistenceManager) c.getConstructor(VRObjectRepository.class).newInstance(db);
           persistors.put((Class<?>) t, p);
-          log.debug("Instantiated " + p + " for " + t);
+          // log.debug("Instantiated " + p + " for " + t);
         } catch (Exception e) {
           log.error("Failed to instantiate " + c, e);
         }
@@ -121,7 +121,7 @@ public class WorldManager {
     for (Class<?> c : ClassUtil.findSubclasses(Entity.class)) {
       if (persistors.get(c) == null) {
         persistors.put(c, pm);
-        log.debug("Instantiated " + pm + " for " + c);
+        // log.debug("Instantiated " + pm + " for " + c);
       }
     }
     // persistors.put(VRObject.class, pm);
