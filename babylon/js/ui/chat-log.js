@@ -2,39 +2,92 @@ import { TextArea } from './text-area.js';
 import { TextAreaInput } from './text-area-input.js';
 import { VRSPACEUI } from './vrspace-ui.js';
 import { Label } from './label.js';
+import { ImageArea } from './image-area.js';
 
+class Link {
+  constructor( text ) {
+    this.url = text;
+    let pos = text.indexOf("://");
+    if ( pos > 0 ) {
+      text = text.substring(pos+3);
+    } else {
+      this.url = "https://"+this.url;
+    }
+    pos = text.indexOf("/");
+    if ( pos > 0 ) {
+      this.site = text.substring(0,pos);
+    } else {
+      this.site = text;
+    }
+    console.log('new link: '+this.url+" "+this.site);
+    this.label = null;
+  }
+  dispose() {
+    this.label.dispose();
+  }
+}
 class LinkStack {
-  constructor(parent, position, scaling = new BABYLON.Vector3(.02,.02,.02)) {
+  constructor(scene, parent, position, scaling = new BABYLON.Vector3(.02,.02,.02)) {
+    this.scene = scene;
     this.parent = parent;
     this.scaling = scaling;
     this.position = position;
     this.capacity = 5;
-    this.buttons = [];
+    this.links = [];
+    this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
+      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
+        && pointerInfo.pickInfo.hit
+      ) {
+        for ( let i = 0; i < this.links.length; i++ ) {
+          if ( this.links[i].label.textPlane == pointerInfo.pickInfo.pickedMesh ) {
+            this.clicked(this.links[i].url);
+            break;
+          }
+        }
+      }
+    });
   }
-  addButton(link){
+  addLink(word){
+    let link = new Link(word);
     this.scroll();
     
-    let pos = new BABYLON.Vector3(this.position.x+link.length/(Label.fontRatio*2)*this.scaling.x,this.position.y,this.position.z);
-    let label = new Label("> "+link,pos,this.parent);
-    //let label = new Label("> "+link,this.position,this.parent);
-    label.background = "black";
+    let pos = new BABYLON.Vector3(this.position.x+link.site.length/(Label.fontRatio*2)*this.scaling.x,this.position.y,this.position.z);
+    let label = new Label("> "+link.site,pos,this.parent);
+    //label.background = "black";
     label.display();
     label.textPlane.scaling = this.scaling;
+    link.label = label;
     
-    this.buttons.push(label);
+    this.links.push(link);
   }
-  clicked(link) {
-    console.log("Clicked "+link);
+  clicked(url) {
+    console.log("Clicked "+url);
+    if ( this.imageArea ) {
+      this.imageArea.dispose();
+    }
+    this.imageArea = new ImageArea(this.scene);
+    this.imageArea.show();
+    this.imageArea.attachToCamera();
+    if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".jpg") ) {
+      this.imageArea.loadUrl(url);
+    }
   }
   scroll() {
-    if ( this.buttons.length == this.capacity ) {
-      this.buttons[0].dispose();
-      this.buttons.splice(0,1);
+    if ( this.links.length == this.capacity ) {
+      this.links[0].dispose();
+      this.links.splice(0,1);
     }
-    for ( let i = 0; i < this.buttons.length; i++ ) {
-      let label = this.buttons[i];
+    for ( let i = 0; i < this.links.length; i++ ) {
+      let label = this.links[i].label;
       let y = label.textPlane.position.y + label.textPlane.scaling.y*1.5;
       label.textPlane.position = new BABYLON.Vector3( label.textPlane.position.x, y, label.textPlane.position.z );
+    }
+  }
+  dispose() {
+    this.scene.onPointerObservable.remove(this.clickHandler);
+    this.links.forEach(l=>l.dispose());
+    if ( this.imageArea ) {
+      this.imageArea.dispose();
     }
   }
 }
@@ -48,11 +101,12 @@ export class ChatLog extends TextArea {
     this.input = new TextAreaInput(this, "Say");
     this.input.submitName = "send";
     this.inputPrefix = "ME";
+    this.showLinks = true;
     this.size = .3;
     this.baseAnchor = -.2;
     this.anchor = this.baseAnchor;
     this.leftSide();
-    this.linkStack = new LinkStack(this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
+    this.linkStack = new LinkStack(this.scene, this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
   }
   /**
    * Show both TextArea and TextAreaInput, and attach to HUD.
@@ -122,9 +176,9 @@ export class ChatLog extends TextArea {
       });
     }
   }
-  showLink(link) {
-    console.log("Link found: "+link);
-    this.linkStack.addButton(link);
+  showLink(word) {
+    console.log("Link found: "+word);
+    this.linkStack.addLink(word);
   }
   write(string) {
     this.processLinks(string);
@@ -136,6 +190,7 @@ export class ChatLog extends TextArea {
     window.removeEventListener("resize", this.resizeHandler);
     this.input.dispose();
     super.dispose();
+    this.linkStack.dispose();
   }
   /** XR pointer selection support */
   isSelectableMesh(mesh) {
