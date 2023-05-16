@@ -35,9 +35,38 @@ export class RemoteBrowser extends ImageArea {
       this.loadData(bytes);
     }
   }
+  async forward() {
+    let response = await fetch("/webbrowser/forward");
+    let bytes = await response.blob();
+    this.loadData(bytes);
+  }
+  async back() {
+    let response = await fetch("/webbrowser/back");
+    let bytes = await response.blob();
+    this.loadData(bytes);
+  }
   
   show() {
     super.show();
+
+    this.buttonBack = new BABYLON.GUI.HolographicButton("back");
+    this.buttonBack.imageUrl = VRSPACEUI.contentBase+"/content/icons/back.png";
+    VRSPACEUI.guiManager.addControl(this.buttonBack);
+    this.buttonBack.linkToTransformNode(this.handles.box);
+    this.buttonBack.position = new BABYLON.Vector3(5,0,0);
+    this.buttonBack.scaling = new BABYLON.Vector3(2,2,2);
+    this.buttonBack.text = "Back";
+    this.buttonBack.onPointerDownObservable.add( ()=>this.back() );
+    
+    this.buttonForward = new BABYLON.GUI.HolographicButton("forward");
+    this.buttonForward.imageUrl = VRSPACEUI.contentBase+"/content/icons/forward.png";
+    VRSPACEUI.guiManager.addControl(this.buttonForward);
+    this.buttonForward.linkToTransformNode(this.handles.box);
+    this.buttonForward.position = new BABYLON.Vector3(49,0,0);
+    this.buttonForward.scaling = new BABYLON.Vector3(2,2,2);
+    this.buttonForward.text = "Forward";
+    this.buttonForward.onPointerDownObservable.add( ()=>this.forward() );
+    
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
         && pointerInfo.pickInfo.hit
@@ -56,5 +85,7 @@ export class RemoteBrowser extends ImageArea {
     if ( this.clickHandler) {
       this.scene.onPointerObservable.remove(this.clickHandler);
     }
+    this.buttonBack.dispose();
+    this.buttonForward.dispose();
   }
 }

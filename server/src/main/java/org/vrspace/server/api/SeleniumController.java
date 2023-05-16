@@ -69,7 +69,6 @@ public class SeleniumController {
     log.debug("Browser getting " + url);
     WebSession webSession = session(session);
     webSession.webDriver.get(url);
-    webSession.windowHandle = webSession.webDriver.getWindowHandle();
     return screenshot(webSession.webDriver);
   }
 
@@ -87,8 +86,9 @@ public class SeleniumController {
       @Header(name = "active-element", description = "Tag of the active element (clicked on)") }) })
   @ResponseBody
   public ResponseEntity<byte[]> click(int x, int y, HttpSession session) {
+    log.debug("click:" + x + "," + y);
     WebSession webSession = session(session);
-    int numTabs = webSession.webDriver.getWindowHandles().size();
+    int numTabs = webSession.activeTabs();
 
     PointerInput mouse = new PointerInput(PointerInput.Kind.MOUSE, "default mouse");
     Sequence actions = new Sequence(mouse, 0)
@@ -97,18 +97,25 @@ public class SeleniumController {
         .addAction(mouse.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
 
     ((RemoteWebDriver) webSession.webDriver).perform(Collections.singletonList(actions));
-    WebElement activeElement = webSession.webDriver.switchTo().activeElement();
-    log.debug("Currently active: " + activeElement.getTagName() + " " + activeElement.getAccessibleName());
+
     HttpHeaders headers = new HttpHeaders();
-    headers.add("active-element", activeElement.getTagName());
 
     wait(webSession.webDriver);
-    if (numTabs < webSession.webDriver.getWindowHandles().size()) {
+    if (numTabs < webSession.activeTabs()) {
       // new tab has opened
       log.debug("new window");
-      switchTab(webSession);
+      webSession.switchTab();
+    } else {
+      // another action in this tab
+      webSession.action();
     }
+
     ResponseEntity<byte[]> ret = new ResponseEntity<>(screenshot(webSession.webDriver), headers, HttpStatus.OK);
+
+    WebElement activeElement = webSession.webDriver.switchTo().activeElement();
+    log.debug("Currently active: " + activeElement.getTagName() + " " + activeElement.getAccessibleName());
+    headers.add("active-element", activeElement.getTagName());
+
     return ret;
   }
 
@@ -147,11 +154,7 @@ public class SeleniumController {
     log.debug("Close window");
     WebSession webSession = session(session);
 
-    if (webSession.webDriver.getWindowHandles().size() > 1) {
-      webSession.webDriver.close();
-      switchTab(webSession);
-    } else {
-      webSession.close();
+    if (webSession.close() == 0) {
       session.removeAttribute(WebSession.KEY);
       ResponseEntity<byte[]> empty = new ResponseEntity<>(HttpStatus.NO_CONTENT);
       return empty;
@@ -178,8 +181,19 @@ public class SeleniumController {
   @GetMapping(value = "/back", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
   public byte[] back(HttpSession session) {
+    log.debug("back");
     WebSession webSession = session(session);
-    webSession.webDriver.navigate().back();
+    if (webSession.back() > 0) {
+      log.debug("navigating back");
+      // webSession.webDriver.navigate().back(); // apparently this hangs
+      ((JavascriptExecutor) webSession.webDriver).executeScript("history.back()");
+    } else if (webSession.activeTabs() > 1) {
+      // can't go back, close the tab
+      log.debug("Last action, closing window");
+      webSession.close();
+    } else {
+      log.debug("last window, last action");
+    }
     return screenshot(webSession.webDriver);
   }
 
@@ -189,14 +203,12 @@ public class SeleniumController {
   @GetMapping(value = "/forward", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
   public byte[] forward(HttpSession session) {
+    log.debug("forward");
     WebSession webSession = session(session);
-    webSession.webDriver.navigate().forward();
+    webSession.action();
+    // webSession.webDriver.navigate().forward(); // may hang
+    ((JavascriptExecutor) webSession.webDriver).executeScript("history.forward()");
     return screenshot(webSession.webDriver);
-  }
-
-  private void switchTab(WebSession webSession) {
-    String[] handles = webSession.webDriver.getWindowHandles().toArray(new String[0]);
-    webSession.webDriver.switchTo().window(handles[handles.length - 1]);
   }
 
   private byte[] screenshot(WebDriver driver) {

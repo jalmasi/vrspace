@@ -67,7 +67,7 @@ export class ManipulationHandles {
     this.bottomHandle.material = this.material;
 
     if ( this.canMinimize ) {
-      this.box = BABYLON.MeshBuilder.CreateBox("MinMax",{size:1},this.scene);
+      this.box = BABYLON.MeshBuilder.CreateBox("MinMaxBox",{size:1},this.scene);
       this.box.scaling = new BABYLON.Vector3(this.height/25,this.height/25,this.height/25);
       this.box.position = new BABYLON.Vector3(-this.width/2-this.width/20, -this.height/2-this.height/20, 0);
       this.box.parent = this.group;

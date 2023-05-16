@@ -19,7 +19,7 @@ export class ImageArea {
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
-    this.group = new BABYLON.TransformNode(name, this.scene);
+    this.group = new BABYLON.TransformNode("ImageArea-root", this.scene);
     this.attachedToHud = false;
     this.attachedToCamera = false;
     this.visible = false;

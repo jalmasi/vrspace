@@ -47,15 +47,20 @@ public class SeleniumControllerIT {
         .andExpect(status().isOk()).andReturn();
     assertScreenshot(scrollResult);
 
-    // back
+    // back, also closes the tab
     MvcResult backResult = mockMvc.perform(get("/webbrowser/back").session(session)).andExpect(status().isOk())
         .andReturn();
     assertScreenshot(backResult);
 
-    // forward
-    MvcResult forwardResult = mockMvc.perform(get("/webbrowser/back").session(session)).andExpect(status().isOk())
+    // forward, does nothing
+    MvcResult forwardResult = mockMvc.perform(get("/webbrowser/forward").session(session)).andExpect(status().isOk())
         .andReturn();
     assertScreenshot(forwardResult);
+
+    // open another tab again
+    clickResult = mockMvc.perform(get("/webbrowser/click?x=1800&y=12").session(session)).andExpect(status().isOk())
+        .andReturn();
+    assertScreenshot(clickResult);
 
     // close a tab
     MvcResult closeResult = mockMvc.perform(get("/webbrowser/close").session(session)).andExpect(status().isOk())

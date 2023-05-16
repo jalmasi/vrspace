@@ -1,5 +1,6 @@
 package org.vrspace.server.config;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContextEvent;
@@ -26,10 +27,12 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
 
   private static ConcurrentHashMap<WebSession, WebSession> sessions = new ConcurrentHashMap<>();
 
+  // TODO this needs to be some service
   public class WebSession {
     public static final String KEY = "webDriver";
     public WebDriver webDriver;
-    public String windowHandle;
+    public String currentTab;
+    public Map<String, Integer> tabs = new ConcurrentHashMap<>();
 
     public WebSession() {
       log.debug("Creating new firefox instance");
@@ -39,13 +42,58 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
       webDriver = new FirefoxDriver(options);
       int offset = 1024 - 939;
       webDriver.manage().window().setSize(new Dimension(2048, 1024 + offset));
+      currentTab = webDriver.getWindowHandle();
+      select(currentTab);
       sessions.put(this, this);
     }
 
-    public void close() {
+    public int close() {
+      tabs.remove(currentTab);
+      webDriver.close();
+      if (tabs.size() > 0) {
+        switchTab();
+      }
+      return tabs.size();
+    }
+
+    public void quit() {
       log.debug("Destroying a web driver");
       webDriver.quit();
       sessions.remove(this);
+    }
+
+    public void switchTab() {
+      String[] handles = webDriver.getWindowHandles().toArray(new String[0]);
+      String tabHandle = handles[handles.length - 1];
+      select(tabHandle);
+      webDriver.switchTo().window(tabHandle);
+    }
+
+    public void select(String windowHandle) {
+      Integer actions = tabs.get(windowHandle);
+      if (actions == null) {
+        tabs.put(windowHandle, 1);
+      }
+      currentTab = windowHandle;
+    }
+
+    public int action() {
+      Integer actions = tabs.get(currentTab);
+      int ret = ++actions;
+      tabs.put(currentTab, ret);
+      return ret;
+    }
+
+    public int back() {
+      Integer actions = tabs.get(currentTab);
+      if (actions > 0) {
+        tabs.put(currentTab, --actions);
+      }
+      return actions;
+    }
+
+    public int activeTabs() {
+      return webDriver.getWindowHandles().size();
     }
   }
 
@@ -88,7 +136,7 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
   @Override
   public void contextDestroyed(ServletContextEvent sce) {
     log.debug("ServletContext destroyed, cleaning up " + sessions.size() + " web sessions");
-    sessions.keySet().forEach(e -> e.close());
+    sessions.keySet().forEach(e -> e.quit());
   }
 
 }
