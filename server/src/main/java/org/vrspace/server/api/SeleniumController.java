@@ -160,6 +160,40 @@ public class SeleniumController {
     return new ResponseEntity<byte[]>(screenshot(webSession.webDriver), HttpStatus.OK);
   }
 
+  /**
+   * Quit current browser
+   */
+  @GetMapping(value = "/quit")
+  public void quit(HttpSession session) {
+    WebSession ret = (WebSession) session.getAttribute(WebSession.KEY);
+    if (ret != null) {
+      ret.webDriver.quit();
+      session.removeAttribute(WebSession.KEY);
+    }
+  }
+
+  /**
+   * Navigate back
+   */
+  @GetMapping(value = "/back", produces = MediaType.IMAGE_PNG_VALUE)
+  @ResponseBody
+  public byte[] back(HttpSession session) {
+    WebSession webSession = session(session);
+    webSession.webDriver.navigate().back();
+    return screenshot(webSession.webDriver);
+  }
+
+  /**
+   * Navigate forward
+   */
+  @GetMapping(value = "/forward", produces = MediaType.IMAGE_PNG_VALUE)
+  @ResponseBody
+  public byte[] forward(HttpSession session) {
+    WebSession webSession = session(session);
+    webSession.webDriver.navigate().forward();
+    return screenshot(webSession.webDriver);
+  }
+
   private void switchTab(WebSession webSession) {
     String[] handles = webSession.webDriver.getWindowHandles().toArray(new String[0]);
     webSession.webDriver.switchTo().window(handles[handles.length - 1]);

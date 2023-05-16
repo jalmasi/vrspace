@@ -17,7 +17,7 @@ import org.vrspace.server.config.SeleniumConfig;
 
 @WebMvcTest(SeleniumController.class)
 @Import({ SeleniumConfig.class, SecurityAutoConfiguration.class })
-public class SeleniumControllerTest {
+public class SeleniumControllerIT {
   @Autowired
   private MockMvc mockMvc;
 
@@ -25,8 +25,7 @@ public class SeleniumControllerTest {
 
   @Test
   public void testAvailable() throws Exception {
-    MvcResult result = mockMvc.perform(get("/webbrowser/available")).andExpect(status().isOk()).andReturn();
-    System.err.println(result.getResponse().getCookies().length);
+    mockMvc.perform(get("/webbrowser/available")).andExpect(status().isOk());
   }
 
   @Test
@@ -48,6 +47,16 @@ public class SeleniumControllerTest {
         .andExpect(status().isOk()).andReturn();
     assertScreenshot(scrollResult);
 
+    // back
+    MvcResult backResult = mockMvc.perform(get("/webbrowser/back").session(session)).andExpect(status().isOk())
+        .andReturn();
+    assertScreenshot(backResult);
+
+    // forward
+    MvcResult forwardResult = mockMvc.perform(get("/webbrowser/back").session(session)).andExpect(status().isOk())
+        .andReturn();
+    assertScreenshot(forwardResult);
+
     // close a tab
     MvcResult closeResult = mockMvc.perform(get("/webbrowser/close").session(session)).andExpect(status().isOk())
         .andReturn();
@@ -55,6 +64,10 @@ public class SeleniumControllerTest {
 
     // close the browser
     mockMvc.perform(get("/webbrowser/close").session(session)).andExpect(status().isNoContent());
+
+    // quit the browser
+    mockMvc.perform(get("/webbrowser/quit").session(session)).andExpect(status().isOk());
+
   }
 
   private void assertScreenshot(MvcResult result) {
