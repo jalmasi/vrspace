@@ -87,6 +87,7 @@ public class SeleniumController {
    */
   @GetMapping(value = "/click", produces = MediaType.IMAGE_PNG_VALUE)
   @ApiResponses({ @ApiResponse(responseCode = "200", description = "Clicked, returns screenshot", headers = {
+      @Header(name = "browser-windows", description = "Number of open browser windows/tabs"),
       @Header(name = "clicked-element", description = "Tag of the element clicked on"),
       @Header(name = "active-element", description = "Tag of the active element after performing the click"),
       @Header(name = "history-position", description = "Current position in browser window history"),
@@ -147,6 +148,7 @@ public class SeleniumController {
     HttpHeaders headers = new HttpHeaders();
     headers.add("history-position", webSession.status().depth.toString());
     headers.add("history-length", webSession.status().maxDepth.toString());
+    headers.add("browser-windows", webSession.size().toString());
     return headers;
   }
 
@@ -179,7 +181,8 @@ public class SeleniumController {
   @GetMapping(value = "/close", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Closed a window and switched to previous one, returns screenshot"),
+      @ApiResponse(responseCode = "200", description = "Closed a window and switched to previous one, returns screenshot", headers = {
+          @Header(name = "browser-windows", description = "Number of open browser windows/tabs") }),
       @ApiResponse(responseCode = "204", description = "Closed last available window, no content") })
   public ResponseEntity<byte[]> close(HttpSession session) {
     log.debug("Close window");
@@ -191,7 +194,7 @@ public class SeleniumController {
       return empty;
     }
 
-    return new ResponseEntity<byte[]>(screenshot(webSession.webDriver), HttpStatus.OK);
+    return new ResponseEntity<byte[]>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
   }
 
   /**
@@ -212,6 +215,7 @@ public class SeleniumController {
   @GetMapping(value = "/back", produces = MediaType.IMAGE_PNG_VALUE)
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Went back, returns screenshot", headers = {
+          @Header(name = "browser-windows", description = "Number of open browser windows/tabs"),
           @Header(name = "history-position", description = "Current position in browser window history"),
           @Header(name = "history-length", description = "Total length of browser window history") }),
       @ApiResponse(responseCode = "204", description = "Closed last window") })
@@ -243,6 +247,7 @@ public class SeleniumController {
    */
   @GetMapping(value = "/forward", produces = MediaType.IMAGE_PNG_VALUE)
   @ApiResponses({ @ApiResponse(responseCode = "200", description = "Went forward, returns screenshot", headers = {
+      @Header(name = "browser-windows", description = "Number of open browser windows/tabs"),
       @Header(name = "history-position", description = "Current position in browser window history"),
       @Header(name = "history-length", description = "Total length of browser window history") }) })
   @ResponseBody

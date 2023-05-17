@@ -112,6 +112,10 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
     public int activeTabs() {
       return webDriver.getWindowHandles().size();
     }
+
+    public Integer size() {
+      return tabs.size();
+    }
   }
 
   public class WebSessionFactory {

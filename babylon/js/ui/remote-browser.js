@@ -40,6 +40,7 @@ export class RemoteBrowser extends ImageArea {
     } else {
       let bytes = await response.blob();
       this.loadData(bytes);
+      this.processHeaders(response.headers);
     }
   }
   async forward() {
@@ -65,29 +66,34 @@ export class RemoteBrowser extends ImageArea {
   processHeaders(headers) {
     let depth = headers.get("history-position");
     let maxDepth = headers.get("history-length");
+    let windows = headers.get("browser-windows");
     if ( depth && maxDepth ) {
-      console.log("Depth: "+depth+" max "+maxDepth+" clicked "+headers.get("clicked-element")+" active "+headers.get("active-element"));
+      console.log("Depth: "+depth+" max "+maxDepth+" clicked "+headers.get("clicked-element")+" active "+headers.get("active-element")+" windows "+windows);
       this.depth = depth;
       this.maxDepth = maxDepth;
       this.buttonForward.isVisible = depth < maxDepth;
-      this.buttonBack.isVisible = true;
     }
-    if ( depth == 0 ) {
-      this.buttonBack.text = "Close";
-      this.buttonBack.imageUrl = VRSPACEUI.contentBase+"/content/icons/close.png";
-    } else {
-      this.buttonBack.text = "Back";
-      this.buttonBack.imageUrl = VRSPACEUI.contentBase+"/content/icons/back.png";
-    }
+    this.buttonBack.isVisible = (depth != 0);
+    this.buttonClose.text = "Close:"+windows;
   }
   show() {
     super.show();
 
+    this.buttonClose = new BABYLON.GUI.HolographicButton("close");
+    this.buttonClose.imageUrl = VRSPACEUI.contentBase+"/content/icons/close.png";
+    VRSPACEUI.guiManager.addControl(this.buttonClose);
+    this.buttonClose.linkToTransformNode(this.handles.box);
+    this.buttonClose.position = new BABYLON.Vector3(5,0,0);
+    this.buttonClose.scaling = new BABYLON.Vector3(2,2,2);
+    this.buttonClose.text = "Close";
+    this.buttonClose.onPointerDownObservable.add( ()=>this.close() );
+    this.buttonClose.isVisible = true;
+    
     this.buttonBack = new BABYLON.GUI.HolographicButton("back");
     this.buttonBack.imageUrl = VRSPACEUI.contentBase+"/content/icons/back.png";
     VRSPACEUI.guiManager.addControl(this.buttonBack);
     this.buttonBack.linkToTransformNode(this.handles.box);
-    this.buttonBack.position = new BABYLON.Vector3(5,0,0);
+    this.buttonBack.position = new BABYLON.Vector3(8,0,0);
     this.buttonBack.scaling = new BABYLON.Vector3(2,2,2);
     this.buttonBack.text = "Back";
     this.buttonBack.onPointerDownObservable.add( ()=>this.back() );
@@ -97,7 +103,7 @@ export class RemoteBrowser extends ImageArea {
     this.buttonForward.imageUrl = VRSPACEUI.contentBase+"/content/icons/forward.png";
     VRSPACEUI.guiManager.addControl(this.buttonForward);
     this.buttonForward.linkToTransformNode(this.handles.box);
-    this.buttonForward.position = new BABYLON.Vector3(49,0,0);
+    this.buttonForward.position = new BABYLON.Vector3(46,0,0);
     this.buttonForward.scaling = new BABYLON.Vector3(2,2,2);
     this.buttonForward.text = "Forward";
     this.buttonForward.onPointerDownObservable.add( ()=>this.forward() );
