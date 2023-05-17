@@ -3,6 +3,7 @@ package org.vrspace.server.api;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,8 @@ public class SeleniumControllerIT {
 
     // click; this opens a new tab
     MvcResult clickResult = mockMvc.perform(get("/webbrowser/click?x=1800&y=12").session(session))
-        .andExpect(status().isOk()).andReturn();
+        .andExpect(status().isOk()).andExpect(header().longValue("history-position", 1))
+        .andExpect(header().longValue("history-length", 1)).andReturn();
     assertScreenshot(clickResult);
 
     // scroll down

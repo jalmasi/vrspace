@@ -27,12 +27,30 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
 
   private static ConcurrentHashMap<WebSession, WebSession> sessions = new ConcurrentHashMap<>();
 
+  public class WindowStatus {
+    public Integer depth = 0;
+    public Integer maxDepth = 0;
+
+    public void increaseDepth() {
+      depth++;
+      if (depth > maxDepth) {
+        maxDepth = depth;
+      }
+    }
+
+    public void decreaseDepth() {
+      if (depth > 0) {
+        depth--;
+      }
+    }
+  }
+
   // TODO this needs to be some service
   public class WebSession {
     public static final String KEY = "webDriver";
     public WebDriver webDriver;
     public String currentTab;
-    public Map<String, Integer> tabs = new ConcurrentHashMap<>();
+    public Map<String, WindowStatus> tabs = new ConcurrentHashMap<>();
 
     public WebSession() {
       log.debug("Creating new firefox instance");
@@ -58,8 +76,12 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
 
     public void quit() {
       log.debug("Destroying a web driver");
-      webDriver.quit();
       sessions.remove(this);
+      webDriver.quit();
+    }
+
+    public WindowStatus status() {
+      return tabs.get(currentTab);
     }
 
     public void switchTab() {
@@ -70,26 +92,21 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
     }
 
     public void select(String windowHandle) {
-      Integer actions = tabs.get(windowHandle);
-      if (actions == null) {
-        tabs.put(windowHandle, 1);
+      WindowStatus status = tabs.get(windowHandle);
+      if (status == null) {
+        tabs.put(windowHandle, new WindowStatus());
       }
       currentTab = windowHandle;
     }
 
-    public int action() {
-      Integer actions = tabs.get(currentTab);
-      int ret = ++actions;
-      tabs.put(currentTab, ret);
-      return ret;
+    public void action() {
+      WindowStatus status = tabs.get(currentTab);
+      status.increaseDepth();
     }
 
-    public int back() {
-      Integer actions = tabs.get(currentTab);
-      if (actions > 0) {
-        tabs.put(currentTab, --actions);
-      }
-      return actions;
+    public void back() {
+      WindowStatus status = tabs.get(currentTab);
+      status.decreaseDepth();
     }
 
     public int activeTabs() {
@@ -109,7 +126,7 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
     log.debug("Session destroyed");
     WebSession session = (WebSession) se.getSession().getAttribute(WebSession.KEY);
     if (session != null) {
-      session.close();
+      session.quit();
     }
   };
 

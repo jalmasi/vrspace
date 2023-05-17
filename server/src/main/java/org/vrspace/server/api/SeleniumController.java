@@ -65,11 +65,15 @@ public class SeleniumController {
    * @return screenshot of the rendered page
    */
   @GetMapping(value = "/get", produces = MediaType.IMAGE_PNG_VALUE)
-  public @ResponseBody byte[] get(String url, HttpSession session) {
+  @ResponseBody
+  @ApiResponses({ @ApiResponse(responseCode = "200", headers = {
+      @Header(name = "history-position", description = "Current position in browser window history: 1"),
+      @Header(name = "history-length", description = "Total length of browser window history: 1") }) })
+  public ResponseEntity<byte[]> get(String url, HttpSession session) {
     log.debug("Browser getting " + url);
     WebSession webSession = session(session);
     webSession.webDriver.get(url);
-    return screenshot(webSession.webDriver);
+    return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
   }
 
   /**
@@ -83,12 +87,24 @@ public class SeleniumController {
    */
   @GetMapping(value = "/click", produces = MediaType.IMAGE_PNG_VALUE)
   @ApiResponses({ @ApiResponse(responseCode = "200", description = "Clicked, returns screenshot", headers = {
-      @Header(name = "active-element", description = "Tag of the active element (clicked on)") }) })
+      @Header(name = "clicked-element", description = "Tag of the element clicked on"),
+      @Header(name = "active-element", description = "Tag of the active element after performing the click"),
+      @Header(name = "history-position", description = "Current position in browser window history"),
+      @Header(name = "history-length", description = "Total length of browser window history") }) })
   @ResponseBody
   public ResponseEntity<byte[]> click(int x, int y, HttpSession session) {
     log.debug("click:" + x + "," + y);
     WebSession webSession = session(session);
     int numTabs = webSession.activeTabs();
+
+    JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
+    String clickedTag = null;
+    String location = (String) jse.executeScript("return window.location.href");
+    WebElement clickedElement = (WebElement) jse
+        .executeScript("return document.elementFromPoint(arguments[0], arguments[1])", x, y);
+    if (clickedElement != null) {
+      clickedTag = clickedElement.getTagName();
+    }
 
     PointerInput mouse = new PointerInput(PointerInput.Kind.MOUSE, "default mouse");
     Sequence actions = new Sequence(mouse, 0)
@@ -98,25 +114,40 @@ public class SeleniumController {
 
     ((RemoteWebDriver) webSession.webDriver).perform(Collections.singletonList(actions));
 
-    HttpHeaders headers = new HttpHeaders();
-
     wait(webSession.webDriver);
     if (numTabs < webSession.activeTabs()) {
       // new tab has opened
       log.debug("new window");
       webSession.switchTab();
-    } else {
-      // another action in this tab
+    } else if ("a".equals(clickedTag) || "iframe".equals(clickedTag)) {
+      // link clicked, assume location changed
       webSession.action();
+    } else {
+      String newLoc = (String) jse.executeScript("return window.location.href");
+      log.debug("Action, location: " + location + " -> " + newLoc + " changed " + !location.equals(newLoc));
+      // another action in this tab
+      if (!location.equals(newLoc)) {
+        webSession.action();
+      }
     }
 
+    HttpHeaders headers = makeHeaders(webSession);
     ResponseEntity<byte[]> ret = new ResponseEntity<>(screenshot(webSession.webDriver), headers, HttpStatus.OK);
 
     WebElement activeElement = webSession.webDriver.switchTo().activeElement();
-    log.debug("Currently active: " + activeElement.getTagName() + " " + activeElement.getAccessibleName());
+    log.debug("Clicked element: " + clickedTag);
+    log.debug("Active element: " + activeElement.getTagName());
+    headers.add("clicked-element", clickedTag);
     headers.add("active-element", activeElement.getTagName());
 
     return ret;
+  }
+
+  private HttpHeaders makeHeaders(WebSession webSession) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("history-position", webSession.status().depth.toString());
+    headers.add("history-length", webSession.status().maxDepth.toString());
+    return headers;
   }
 
   /**
@@ -179,36 +210,51 @@ public class SeleniumController {
    * Navigate back
    */
   @GetMapping(value = "/back", produces = MediaType.IMAGE_PNG_VALUE)
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Went back, returns screenshot", headers = {
+          @Header(name = "history-position", description = "Current position in browser window history"),
+          @Header(name = "history-length", description = "Total length of browser window history") }),
+      @ApiResponse(responseCode = "204", description = "Closed last window") })
   @ResponseBody
-  public byte[] back(HttpSession session) {
+  public ResponseEntity<byte[]> back(HttpSession session) {
     log.debug("back");
     WebSession webSession = session(session);
-    if (webSession.back() > 0) {
+    if (webSession.status().depth > 0) {
       log.debug("navigating back");
       // webSession.webDriver.navigate().back(); // apparently this hangs
       ((JavascriptExecutor) webSession.webDriver).executeScript("history.back()");
+      webSession.back();
     } else if (webSession.activeTabs() > 1) {
       // can't go back, close the tab
       log.debug("Last action, closing window");
       webSession.close();
     } else {
       log.debug("last window, last action");
+      webSession.close();
+      session.removeAttribute(WebSession.KEY);
+      ResponseEntity<byte[]> empty = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+      return empty;
     }
-    return screenshot(webSession.webDriver);
+    return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
   }
 
   /**
    * Navigate forward
    */
   @GetMapping(value = "/forward", produces = MediaType.IMAGE_PNG_VALUE)
+  @ApiResponses({ @ApiResponse(responseCode = "200", description = "Went forward, returns screenshot", headers = {
+      @Header(name = "history-position", description = "Current position in browser window history"),
+      @Header(name = "history-length", description = "Total length of browser window history") }) })
   @ResponseBody
-  public byte[] forward(HttpSession session) {
+  public ResponseEntity<byte[]> forward(HttpSession session) {
     log.debug("forward");
     WebSession webSession = session(session);
-    webSession.action();
+    if (webSession.status().depth < webSession.status().maxDepth) {
+      webSession.action();
+    }
     // webSession.webDriver.navigate().forward(); // may hang
     ((JavascriptExecutor) webSession.webDriver).executeScript("history.forward()");
-    return screenshot(webSession.webDriver);
+    return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
   }
 
   private byte[] screenshot(WebDriver driver) {
