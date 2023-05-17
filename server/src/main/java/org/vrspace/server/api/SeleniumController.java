@@ -3,7 +3,6 @@ package org.vrspace.server.api;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collections;
 
 import javax.servlet.http.HttpSession;
 
@@ -13,9 +12,6 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.PointerInput;
-import org.openqa.selenium.interactions.Sequence;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -101,19 +97,11 @@ public class SeleniumController {
     JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
     String clickedTag = null;
     String location = (String) jse.executeScript("return window.location.href");
-    WebElement clickedElement = (WebElement) jse
-        .executeScript("return document.elementFromPoint(arguments[0], arguments[1])", x, y);
-    if (clickedElement != null) {
+
+    WebElement clickedElement = webSession.click(x, y);
+    if (clickedElement != null && clickedElement.isEnabled()) {
       clickedTag = clickedElement.getTagName();
     }
-
-    PointerInput mouse = new PointerInput(PointerInput.Kind.MOUSE, "default mouse");
-    Sequence actions = new Sequence(mouse, 0)
-        .addAction(mouse.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), x, y))
-        .addAction(mouse.createPointerDown(PointerInput.MouseButton.LEFT.asArg()))
-        .addAction(mouse.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
-
-    ((RemoteWebDriver) webSession.webDriver).perform(Collections.singletonList(actions));
 
     wait(webSession.webDriver);
     if (numTabs < webSession.activeTabs()) {
@@ -259,6 +247,19 @@ public class SeleniumController {
     }
     // webSession.webDriver.navigate().forward(); // may hang
     ((JavascriptExecutor) webSession.webDriver).executeScript("history.forward()");
+    return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
+  }
+
+  @GetMapping(value = "/enter", produces = MediaType.IMAGE_PNG_VALUE)
+  @ResponseBody
+  public ResponseEntity<byte[]> enter(String text, HttpSession session) {
+    WebSession webSession = session(session);
+    JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
+
+    WebElement inputElement = (WebElement) jse.executeScript(
+        "return document.elementFromPoint(arguments[0], arguments[1])", webSession.status().x, webSession.status().y);
+    inputElement.sendKeys(text);
+    inputElement.submit();
     return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
   }
 

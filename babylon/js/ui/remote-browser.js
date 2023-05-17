@@ -1,10 +1,12 @@
 import { ImageArea } from './image-area.js';
+import { InputForm } from './input-form.js';
 
 export class RemoteBrowser extends ImageArea {
   constructor(scene) {
     super(scene);
     this.depth = 0;
     this.maxDepth = 0;
+    this.inputForm = new InputForm("Enter");
   }
   async available() {
     let response = await fetch("/webbrowser/available")
@@ -24,9 +26,16 @@ export class RemoteBrowser extends ImageArea {
     let activeElement = response.headers.get('active-element');
     if ( "input" === activeElement || "textarea" === activeElement) {
       console.log("TODO input required: "+activeElement);
+      this.inputForm.setEnabled(true);
     }
     this.loadData(bytes);
     this.processHeaders(response.headers);
+  }
+  async enter(text) {
+    this.inputForm.setEnabled(false);
+    let response = await fetch("/webbrowser/enter?text="+text);
+    let bytes = await response.blob();
+    this.loadData(bytes);
   }
   async scroll(pixels) {
     let response = await fetch("/webbrowser/scroll?pixels="+pixels);
@@ -117,6 +126,13 @@ export class RemoteBrowser extends ImageArea {
     //this.buttonQuit.scaling = new BABYLON.Vector3(2,2,2);
     this.buttonQuit.text = "Quit";
     this.buttonQuit.onPointerDownObservable.add( ()=>this.quit() );
+    
+    this.inputForm.size = .1;
+    let formPlane = this.inputForm.init();
+    formPlane.parent = this.group;
+    formPlane.position = new BABYLON.Vector3(0,-0.12,0);
+    formPlane.setEnabled(false);
+    this.inputForm.addListener(text=>this.enter(text));
     
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN

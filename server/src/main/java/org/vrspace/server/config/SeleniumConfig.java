@@ -1,5 +1,7 @@
 package org.vrspace.server.config;
 
+import java.time.Duration;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -10,9 +12,14 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.interactions.PointerInput;
+import org.openqa.selenium.interactions.Sequence;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +37,8 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
   public class WindowStatus {
     public Integer depth = 0;
     public Integer maxDepth = 0;
+    public Integer x = 0;
+    public Integer y = 0;
 
     public void increaseDepth() {
       depth++;
@@ -115,6 +124,25 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
 
     public Integer size() {
       return tabs.size();
+    }
+
+    public WebElement click(int x, int y) {
+      JavascriptExecutor jse = (JavascriptExecutor) webDriver;
+      WebElement clickedElement = (WebElement) jse
+          .executeScript("return document.elementFromPoint(arguments[0], arguments[1])", x, y);
+
+      WindowStatus status = tabs.get(currentTab);
+      status.x = x;
+      status.y = y;
+      PointerInput mouse = new PointerInput(PointerInput.Kind.MOUSE, "default mouse");
+      Sequence actions = new Sequence(mouse, 0)
+          .addAction(mouse.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), x, y))
+          .addAction(mouse.createPointerDown(PointerInput.MouseButton.LEFT.asArg()))
+          .addAction(mouse.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
+
+      ((RemoteWebDriver) webDriver).perform(Collections.singletonList(actions));
+
+      return clickedElement;
     }
   }
 
