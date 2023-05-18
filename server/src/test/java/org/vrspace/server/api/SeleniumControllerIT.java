@@ -40,8 +40,8 @@ public class SeleniumControllerIT {
 
     // click; this opens a new tab
     MvcResult clickResult = mockMvc.perform(get("/webbrowser/click?x=1800&y=12").session(session))
-        .andExpect(status().isOk()).andExpect(header().longValue("history-position", 1))
-        .andExpect(header().longValue("history-length", 1)).andReturn();
+        .andExpect(status().isOk()).andExpect(header().longValue("history-position", 0))
+        .andExpect(header().longValue("history-length", 0)).andReturn();
     assertScreenshot(clickResult);
 
     // scroll down

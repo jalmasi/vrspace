@@ -68,8 +68,10 @@ public class SeleniumController {
   public ResponseEntity<byte[]> get(String url, HttpSession session) {
     log.debug("Browser getting " + url);
     WebSession webSession = session(session);
-    webSession.webDriver.get(url);
-    return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
+    synchronized (webSession) {
+      webSession.webDriver.get(url);
+      return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
+    }
   }
 
   /**
@@ -92,44 +94,46 @@ public class SeleniumController {
   public ResponseEntity<byte[]> click(int x, int y, HttpSession session) {
     log.debug("click:" + x + "," + y);
     WebSession webSession = session(session);
-    int numTabs = webSession.activeTabs();
+    synchronized (webSession) {
+      int numTabs = webSession.activeTabs();
 
-    JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
-    String clickedTag = null;
-    String location = (String) jse.executeScript("return window.location.href");
+      JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
+      String clickedTag = null;
+      String location = (String) jse.executeScript("return window.location.href");
 
-    WebElement clickedElement = webSession.click(x, y);
-    if (clickedElement != null && clickedElement.isEnabled()) {
-      clickedTag = clickedElement.getTagName();
-    }
-
-    wait(webSession.webDriver);
-    if (numTabs < webSession.activeTabs()) {
-      // new tab has opened
-      log.debug("new window");
-      webSession.switchTab();
-    } else if ("a".equals(clickedTag) || "iframe".equals(clickedTag)) {
-      // link clicked, assume location changed
-      webSession.action();
-    } else {
-      String newLoc = (String) jse.executeScript("return window.location.href");
-      log.debug("Action, location: " + location + " -> " + newLoc + " changed " + !location.equals(newLoc));
-      // another action in this tab
-      if (!location.equals(newLoc)) {
-        webSession.action();
+      WebElement clickedElement = webSession.click(x, y);
+      if (clickedElement != null && clickedElement.isEnabled()) {
+        clickedTag = clickedElement.getTagName();
       }
+
+      wait(webSession.webDriver);
+      if (numTabs < webSession.activeTabs()) {
+        // new tab has opened
+        log.debug("new window");
+        webSession.switchTab();
+      } else if ("a".equals(clickedTag) || "iframe".equals(clickedTag)) {
+        // link clicked, assume location changed
+        webSession.action();
+      } else {
+        String newLoc = (String) jse.executeScript("return window.location.href");
+        log.debug("Action, location: " + location + " -> " + newLoc + " changed " + !location.equals(newLoc));
+        // another action in this tab
+        if (!location.equals(newLoc)) {
+          webSession.action();
+        }
+      }
+
+      HttpHeaders headers = makeHeaders(webSession);
+      ResponseEntity<byte[]> ret = new ResponseEntity<>(screenshot(webSession.webDriver), headers, HttpStatus.OK);
+
+      WebElement activeElement = webSession.webDriver.switchTo().activeElement();
+      log.debug("Clicked element: " + clickedTag);
+      log.debug("Active element: " + activeElement.getTagName());
+      headers.add("clicked-element", clickedTag);
+      headers.add("active-element", activeElement.getTagName());
+
+      return ret;
     }
-
-    HttpHeaders headers = makeHeaders(webSession);
-    ResponseEntity<byte[]> ret = new ResponseEntity<>(screenshot(webSession.webDriver), headers, HttpStatus.OK);
-
-    WebElement activeElement = webSession.webDriver.switchTo().activeElement();
-    log.debug("Clicked element: " + clickedTag);
-    log.debug("Active element: " + activeElement.getTagName());
-    headers.add("clicked-element", clickedTag);
-    headers.add("active-element", activeElement.getTagName());
-
-    return ret;
   }
 
   private HttpHeaders makeHeaders(WebSession webSession) {
@@ -152,11 +156,12 @@ public class SeleniumController {
   public byte[] scroll(int pixels, HttpSession session) {
     log.debug("Scroll " + pixels);
     WebSession webSession = session(session);
+    synchronized (webSession) {
+      JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
+      jse.executeScript("window.scrollBy(0," + pixels + ")");
 
-    JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
-    jse.executeScript("window.scrollBy(0," + pixels + ")");
-
-    return screenshot(webSession.webDriver);
+      return screenshot(webSession.webDriver);
+    }
   }
 
   /**
@@ -176,13 +181,15 @@ public class SeleniumController {
     log.debug("Close window");
     WebSession webSession = session(session);
 
-    if (webSession.close() == 0) {
-      session.removeAttribute(WebSession.KEY);
-      ResponseEntity<byte[]> empty = new ResponseEntity<>(HttpStatus.NO_CONTENT);
-      return empty;
-    }
+    synchronized (webSession) {
+      if (webSession.close() == 0) {
+        session.removeAttribute(WebSession.KEY);
+        ResponseEntity<byte[]> empty = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return empty;
+      }
 
-    return new ResponseEntity<byte[]>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
+      return new ResponseEntity<byte[]>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
+    }
   }
 
   /**
@@ -211,23 +218,25 @@ public class SeleniumController {
   public ResponseEntity<byte[]> back(HttpSession session) {
     log.debug("back");
     WebSession webSession = session(session);
-    if (webSession.status().depth > 0) {
-      log.debug("navigating back");
-      // webSession.webDriver.navigate().back(); // apparently this hangs
-      ((JavascriptExecutor) webSession.webDriver).executeScript("history.back()");
-      webSession.back();
-    } else if (webSession.activeTabs() > 1) {
-      // can't go back, close the tab
-      log.debug("Last action, closing window");
-      webSession.close();
-    } else {
-      log.debug("last window, last action");
-      webSession.close();
-      session.removeAttribute(WebSession.KEY);
-      ResponseEntity<byte[]> empty = new ResponseEntity<>(HttpStatus.NO_CONTENT);
-      return empty;
+    synchronized (webSession) {
+      if (webSession.status().depth > 0) {
+        log.debug("navigating back");
+        // webSession.webDriver.navigate().back(); // apparently this hangs
+        ((JavascriptExecutor) webSession.webDriver).executeScript("history.back()");
+        webSession.back();
+      } else if (webSession.activeTabs() > 1) {
+        // can't go back, close the tab
+        log.debug("Last action, closing window");
+        webSession.close();
+      } else {
+        log.debug("last window, last action");
+        webSession.close();
+        session.removeAttribute(WebSession.KEY);
+        ResponseEntity<byte[]> empty = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return empty;
+      }
+      return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
     }
-    return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
   }
 
   /**
@@ -242,25 +251,29 @@ public class SeleniumController {
   public ResponseEntity<byte[]> forward(HttpSession session) {
     log.debug("forward");
     WebSession webSession = session(session);
-    if (webSession.status().depth < webSession.status().maxDepth) {
-      webSession.action();
+    synchronized (webSession) {
+      if (webSession.status().depth < webSession.status().maxDepth) {
+        webSession.action();
+      }
+      // webSession.webDriver.navigate().forward(); // may hang
+      ((JavascriptExecutor) webSession.webDriver).executeScript("history.forward()");
+      return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
     }
-    // webSession.webDriver.navigate().forward(); // may hang
-    ((JavascriptExecutor) webSession.webDriver).executeScript("history.forward()");
-    return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
   }
 
   @GetMapping(value = "/enter", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
   public ResponseEntity<byte[]> enter(String text, HttpSession session) {
     WebSession webSession = session(session);
-    JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
+    synchronized (webSession) {
+      JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
 
-    WebElement inputElement = (WebElement) jse.executeScript(
-        "return document.elementFromPoint(arguments[0], arguments[1])", webSession.status().x, webSession.status().y);
-    inputElement.sendKeys(text);
-    inputElement.submit();
-    return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
+      WebElement inputElement = (WebElement) jse.executeScript(
+          "return document.elementFromPoint(arguments[0], arguments[1])", webSession.status().x, webSession.status().y);
+      inputElement.sendKeys(text);
+      inputElement.submit();
+      return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
+    }
   }
 
   private byte[] screenshot(WebDriver driver) {
