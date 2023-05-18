@@ -14,6 +14,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.config.SeleniumConfig.WebSession;
 import org.vrspace.server.config.SeleniumConfig.WebSessionFactory;
+import org.vrspace.server.config.ServerConfig;
 
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,16 +43,21 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @Slf4j
 @RequestMapping("/webbrowser")
+@ConditionalOnBean(WebSessionFactory.class)
 public class SeleniumController {
   @Autowired
   WebSessionFactory factory;
+  @Autowired
+  ServerConfig config;
 
   /**
+   * TODO this needs to be moved in general capabilities controller
+   * 
    * @return true if remote browsing is available
    */
   @GetMapping("/available")
   public boolean available(HttpSession session) {
-    return true;
+    return config.isSeleniumEnabled();
   }
 
   /**

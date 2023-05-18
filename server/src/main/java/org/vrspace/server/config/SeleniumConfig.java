@@ -20,6 +20,7 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.interactions.PointerInput;
 import org.openqa.selenium.interactions.Sequence;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -163,6 +164,7 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
   };
 
   @Bean
+  @ConditionalOnProperty(value = "org.vrspace.server.seleniumEnabled", havingValue = "true")
   WebSessionFactory factory() {
     WebDriverManager.firefoxdriver().setup();
     return new WebSessionFactory();
