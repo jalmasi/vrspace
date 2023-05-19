@@ -164,7 +164,7 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
   };
 
   @Bean
-  @ConditionalOnProperty(value = "org.vrspace.server.seleniumEnabled", havingValue = "true")
+  @ConditionalOnProperty(prefix = "org.vrspace.server", name = "selenium-enabled", havingValue = "true")
   WebSessionFactory factory() {
     WebDriverManager.firefoxdriver().setup();
     return new WebSessionFactory();

@@ -7,12 +7,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.junit.jupiter.EnabledIf;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.vrspace.server.config.SeleniumConfig;
@@ -20,7 +20,7 @@ import org.vrspace.server.config.ServerConfig;
 
 @WebMvcTest(SeleniumController.class)
 @Import({ SeleniumConfig.class, SecurityAutoConfiguration.class, ServerConfig.class })
-@EnabledIfSystemProperty(named = "org.vrspace.server.seleniumEnabled", matches = "true")
+@EnabledIf(expression = "#{environment['org.vrspace.server.selenium-enabled']=='true'}", loadContext = true)
 public class SeleniumControllerIT {
   @Autowired
   private MockMvc mockMvc;
