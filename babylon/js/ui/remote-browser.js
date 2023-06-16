@@ -154,6 +154,7 @@ export class RemoteBrowser extends ImageArea {
     if ( this.clickHandler) {
       this.scene.onPointerObservable.remove(this.clickHandler);
     }
+    this.inputForm.dispose();
     this.buttonBack.dispose();
     this.buttonForward.dispose();
     this.buttonQuit.dispose();
