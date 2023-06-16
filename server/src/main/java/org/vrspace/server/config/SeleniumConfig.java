@@ -166,6 +166,7 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
   @Bean
   @ConditionalOnProperty(prefix = "org.vrspace.server", name = "selenium-enabled", havingValue = "true")
   WebSessionFactory factory() {
+    log.warn("Enabling remote browsing - security risk");
     WebDriverManager.firefoxdriver().setup();
     return new WebSessionFactory();
   }

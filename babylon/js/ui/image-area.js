@@ -106,6 +106,9 @@ export class ImageArea {
   }
   /** Clean up. */
   dispose() {
+    if (this.attachedToHud) {
+      VRSPACEUI.hud.removeAttachment(this.plane);
+    }
     this.removeHandles();
     this.plane.dispose();
     this.texturesDispose();

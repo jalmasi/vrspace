@@ -23,6 +23,7 @@ class Link {
     this.label = null;
   }
   dispose() {
+    VRSPACEUI.hud.removeAttachment(this.label.textPlane);
     this.label.dispose();
   }
 }
@@ -58,7 +59,10 @@ class LinkStack {
     label.textPlane.scaling = this.scaling;
     link.label = label;
     
+    VRSPACEUI.hud.addAttachment(label.textPlane);
+    
     this.links.push(link);
+    
   }
   clicked(url) {
     console.log("Clicked "+url);
@@ -67,7 +71,8 @@ class LinkStack {
     }
     this.browser = new RemoteBrowser(this.scene);
     this.browser.show();
-    this.browser.attachToCamera();
+    //this.browser.attachToCamera();
+    this.browser.attachToHud();
     if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".jpg") ) {
       this.browser.loadUrl(url);
     } else {
@@ -77,7 +82,8 @@ class LinkStack {
   scroll() {
     if ( this.links.length == this.capacity ) {
       this.links[0].dispose();
-      this.links.splice(0,1);
+      let link = this.links.splice(0,1)[0];
+      link.dispose();
     }
     for ( let i = 0; i < this.links.length; i++ ) {
       let label = this.links[i].label;
@@ -167,6 +173,7 @@ export class ChatLog extends TextArea {
     this.moveToAnchor();
   }
   hasLink(line) {
+    // TODO improve link detection
     return line.indexOf("://") > -1 || line.indexOf('www.') > -1 ;
   }
   processLinks(line) {

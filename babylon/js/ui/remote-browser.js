@@ -4,6 +4,8 @@ import { InputForm } from './input-form.js';
 export class RemoteBrowser extends ImageArea {
   constructor(scene) {
     super(scene);
+    this.size = .3;
+    this.position = new BABYLON.Vector3(0, .15, -0.05);
     this.depth = 0;
     this.maxDepth = 0;
     this.inputForm = new InputForm("Enter");

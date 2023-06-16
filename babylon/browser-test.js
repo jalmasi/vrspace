@@ -55,6 +55,7 @@ export class TextWorld extends World {
   }
   
   createUI() {
+    this.initXR();
     // chatlog test
     let chatLog = new ChatLog(this.scene);
     chatLog.show();
