@@ -132,7 +132,7 @@ export class RemoteBrowser extends ImageArea {
     this.inputForm.size = .1;
     let formPlane = this.inputForm.init();
     formPlane.parent = this.group;
-    formPlane.position = new BABYLON.Vector3(0,-0.12,0);
+    formPlane.position = new BABYLON.Vector3(0,-0.12,-.05);
     formPlane.setEnabled(false);
     this.inputForm.addListener(text=>this.enter(text));
     
