@@ -67,11 +67,15 @@ export class ManipulationHandles {
     this.bottomHandle.material = this.material;
 
     if ( this.canMinimize ) {
-      this.box = BABYLON.MeshBuilder.CreateBox("MinMaxBox",{size:1},this.scene);
-      this.box.scaling = new BABYLON.Vector3(this.height/25,this.height/25,this.height/25);
+      //this.box = BABYLON.MeshBuilder.CreateBox("MinMaxBox",{size:1},this.scene);
+      this.box = BABYLON.MeshBuilder.CreatePlane("MinMaxButon", {width:1,height:1}, this.scene);
+      this.box.scaling = new BABYLON.Vector3(this.height/25,this.height/25,this.height/100);
       this.box.position = new BABYLON.Vector3(-this.width/2-this.width/20, -this.height/2-this.height/20, 0);
       this.box.parent = this.group;
-      this.box.material = this.material;
+      this.box.material = this.material.clone();
+      this.box.material.diffuseTexture = new BABYLON.Texture("/content/icons/minimize.png", this.scene);
+      this.box.material.diffuseTexture.hasAlpha = true;
+      this.box.material.emissiveColor = BABYLON.Color3.White();
     }  
 
     this.bottomHandle.opposite = this.topHandle;
@@ -100,14 +104,9 @@ export class ManipulationHandles {
               this.point = pointerInfo.pickInfo.pickedPoint;
               pointerInfo.pickInfo.pickedMesh.material = this.selectedMaterial;
             }
-          } else if ( this.canMinimize && pointerInfo.pickInfo.pickedMesh == this.box ) {
+          } else if ( pointerInfo.pickInfo.pickedMesh == this.box ) {
             // minimizing/maximizing (hiding/showing)
-            this.group.getChildMeshes().forEach( h => {
-              if ( h !== this.box && !this.dontMinimize.includes(h)) {
-                h.setEnabled(this.minimized);
-              }
-            });
-            this.minimized = ! this.minimized;
+            this.hide(!this.minimized);
           }
         } else if ( this.selectedHandle) {
           this.selectedHandle.material = this.material;
@@ -135,6 +134,25 @@ export class ManipulationHandles {
       }
     });
     
+  }
+  /**
+   * Minimize or maximize (hide or show all children of this.group)
+   * @param flag boolean indicating whether to hide or show children
+   */
+  hide(flag) {
+    if ( this.canMinimize ) {
+      this.group.getChildMeshes().forEach( h => {
+        if ( h !== this.box && !this.dontMinimize.includes(h)) {
+          h.setEnabled(!flag);
+        }
+      });
+      this.minimized = flag;
+      if ( this.minimized ) {
+        this.box.material.diffuseTexture = new BABYLON.Texture("/content/icons/maximize.png", this.scene);
+      } else {
+        this.box.material.diffuseTexture = new BABYLON.Texture("/content/icons/minimize.png", this.scene);
+      }
+    }
   }
   /**
    * Clean up
