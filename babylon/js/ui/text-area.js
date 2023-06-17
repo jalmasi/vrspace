@@ -92,6 +92,15 @@ export class TextArea {
       this.handles = null;
     }
   }
+  /**
+   * Hide/show (requires manipulation handles)
+   * @param flag boolean, hide/show
+   */
+  hide(flag) {
+    if ( this.handles ) {
+      this.handles.hide(flag);
+    }
+  }
   /** Clean up. */
   dispose() {
     this.removeHandles();

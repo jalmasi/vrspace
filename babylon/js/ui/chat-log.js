@@ -121,6 +121,7 @@ export class ChatLog extends TextArea {
    */
   show() {
     super.show();
+    this.hide(true);
     this.input.inputPrefix = this.inputPrefix;
     this.input.init();
     this.handles.dontMinimize.push(this.input.plane);
@@ -192,6 +193,7 @@ export class ChatLog extends TextArea {
   write(string) {
     this.processLinks(string);
     super.write(string);
+    this.hide(false);
   }
   /** Clean up */
   dispose() {
