@@ -689,7 +689,7 @@ export class HUD {
   }
   /**
    * Add an attachment mesh. It will be used for XR controller manipulation as other hud elements.
-   * However, mesh pareent isn't changed, it has to be set by caller to hud root.
+   * However, mesh parent isn't changed, it has to be set by caller to hud root.
    */
   addAttachment(mesh) {
     this.attachments.push(mesh);

@@ -121,6 +121,7 @@ export class TextArea {
     VRSPACEUI.hud.addAttachment(this.backgroundPlane);
     if ( this.handles ) {
       this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+      VRSPACEUI.hud.addAttachment(this.handles.box);
     }
   }
   /**
@@ -136,6 +137,7 @@ export class TextArea {
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
     if ( this.handles ) {
       this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+      VRSPACEUI.hud.addAttachment(this.handles.box);
     }
   }
   /**
@@ -148,7 +150,8 @@ export class TextArea {
     VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
     if ( this.handles ) {
-      this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
+      this.handles.handles.forEach( h => VRSPACEUI.hud.removeAttachment(h));
+      VRSPACEUI.hud.removeAttachment(this.handles.box);
     }
   }
   /**
