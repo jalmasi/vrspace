@@ -108,6 +108,7 @@ export class ChatLog extends TextArea {
     super(scene, "ChatLog");
     this.input = new TextAreaInput(this, "Say");
     this.input.submitName = "send";
+    this.input.showNoMatch = false;
     this.inputPrefix = "ME";
     this.showLinks = true;
     this.size = .3;
