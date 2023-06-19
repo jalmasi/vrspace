@@ -42,26 +42,27 @@ export class ManipulationHandles {
    * Left and right handle resize, and top and bottom move it, optional box disables/reenables everything.
    */
   show() {
+    let handleWidth = this.height/25;
     this.leftHandle = BABYLON.MeshBuilder.CreateSphere("leftHandle",{segments:this.segments},this.scene);
-    this.leftHandle.scaling = new BABYLON.Vector3(this.height/50,this.height,this.height/50);
+    this.leftHandle.scaling = new BABYLON.Vector3(handleWidth,this.height,handleWidth);
     this.leftHandle.position = new BABYLON.Vector3(-this.width/2-this.width/20, 0, 0);
     this.leftHandle.parent = this.group;
     this.leftHandle.material = this.material;
   
     this.rightHandle = BABYLON.MeshBuilder.CreateSphere("rightHandle",{segments:this.segments},this.scene);
-    this.rightHandle.scaling = new BABYLON.Vector3(this.height/50,this.height,this.height/50);
+    this.rightHandle.scaling = new BABYLON.Vector3(handleWidth,this.height,handleWidth);
     this.rightHandle.position = new BABYLON.Vector3(this.width/2+this.width/20, 0, 0);
     this.rightHandle.parent = this.group;
     this.rightHandle.material = this.material;
   
     this.topHandle = BABYLON.MeshBuilder.CreateSphere("topHandle",{segments:this.segments},this.scene);
-    this.topHandle.scaling = new BABYLON.Vector3(this.height,this.height/50,this.height/50);
+    this.topHandle.scaling = new BABYLON.Vector3(this.height,handleWidth,handleWidth);
     this.topHandle.position = new BABYLON.Vector3(0, this.height/2+this.height/20, 0);
     this.topHandle.parent = this.group;
     this.topHandle.material = this.material;
   
     this.bottomHandle = BABYLON.MeshBuilder.CreateSphere("bottomHandle",{segments:this.segments},this.scene);
-    this.bottomHandle.scaling = new BABYLON.Vector3(this.height,this.height/50,this.height/50);
+    this.bottomHandle.scaling = new BABYLON.Vector3(this.height,handleWidth,handleWidth);
     this.bottomHandle.position = new BABYLON.Vector3(0, -this.height/2-this.height/20, 0);
     this.bottomHandle.parent = this.group;
     this.bottomHandle.material = this.material;
@@ -69,14 +70,14 @@ export class ManipulationHandles {
     if ( this.canMinimize ) {
       //this.box = BABYLON.MeshBuilder.CreateBox("MinMaxBox",{size:1},this.scene);
       this.box = BABYLON.MeshBuilder.CreatePlane("MinMaxButon", {width:1,height:1}, this.scene);
-      this.box.scaling = new BABYLON.Vector3(this.height/25,this.height/25,this.height/100);
+      this.box.scaling = new BABYLON.Vector3(handleWidth,handleWidth,this.height/100);
       this.box.position = new BABYLON.Vector3(-this.width/2-this.width/20, -this.height/2-this.height/20, 0);
       this.box.parent = this.group;
       this.box.material = this.material.clone();
       this.box.material.diffuseTexture = new BABYLON.Texture("/content/icons/minimize.png", this.scene);
       this.box.material.diffuseTexture.hasAlpha = true;
       this.box.material.emissiveColor = BABYLON.Color3.White();
-    }  
+    }
 
     this.bottomHandle.opposite = this.topHandle;
     this.topHandle.opposite = this.bottomHandle;
