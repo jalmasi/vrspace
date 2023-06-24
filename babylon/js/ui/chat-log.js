@@ -125,7 +125,9 @@ export class ChatLog extends TextArea {
     this.hide(true);
     this.input.inputPrefix = this.inputPrefix;
     this.input.init();
-    this.handles.dontMinimize.push(this.input.plane);
+    if ( this.handles ) {
+      this.handles.dontMinimize.push(this.input.plane);
+    }
     this.attachToHud();
     this.handleResize();
     this.resizeHandler = () => this.handleResize();
@@ -161,7 +163,7 @@ export class ChatLog extends TextArea {
    * Move either left or right, whatever is the current anchor
    */
   moveToAnchor() {
-    this.position = new BABYLON.Vector3(this.anchor, this.size/2, 0);
+    this.position = new BABYLON.Vector3(this.anchor, this.size/2-.025, 0);
     this.group.position = this.position;
   }
   /**
