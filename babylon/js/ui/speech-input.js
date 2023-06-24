@@ -13,7 +13,7 @@ export class SpeechInput {
   constructor() {
     this.commands = {};
     this.noMatch = null;
-    this.onlyLetters = true;
+    this.onlyLetters = false;
     this.lowercase = true;
     this.removePeriod = true;
     this.spoke = false;
