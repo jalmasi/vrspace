@@ -1,4 +1,5 @@
 import { Form } from './form.js';
+import { VRSPACEUI } from './vrspace-ui.js';
 /**
  * Basic input form, contains a TextBlock, InputText and a submit button.
  */
@@ -45,6 +46,8 @@ export class InputForm extends Form {
     
     this.createPlane(this.size, this.width, this.height);
     this.keyboard();
+    
+    VRSPACEUI.hud.addAttachment(this.plane);
     return this.plane;
   }
   setEnabled(enable) {
@@ -68,6 +71,7 @@ export class InputForm extends Form {
     this.textChangeListeners.forEach(l=>l(this.input.text));
   }
   dispose() {
+    VRSPACEUI.removeAttachment(this.plane);
     super.dispose();
     this.textChangeListeners = null;
   }
