@@ -71,7 +71,7 @@ export class InputForm extends Form {
     this.textChangeListeners.forEach(l=>l(this.input.text));
   }
   dispose() {
-    VRSPACEUI.removeAttachment(this.plane);
+    VRSPACEUI.hud.removeAttachment(this.plane);
     super.dispose();
     this.textChangeListeners = null;
   }
