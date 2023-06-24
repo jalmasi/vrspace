@@ -47,6 +47,8 @@ export class InputForm extends Form {
     this.createPlane(this.size, this.width, this.height);
     this.keyboard();
     
+    this.speechInput.start();
+    
     VRSPACEUI.hud.addAttachment(this.plane);
     return this.plane;
   }
