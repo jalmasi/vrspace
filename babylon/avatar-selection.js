@@ -263,8 +263,8 @@ export class AvatarSelection extends World {
           console.log("user mesh "+me.mesh, me);
           if ( me.mesh ) {
             this.loadCharacterUrl( me.mesh );
-            this.loginForm.dispose();
           }
+          this.loginForm.dispose();
         });
       }
     });
@@ -610,7 +610,7 @@ export class AvatarSelection extends World {
   async oauth2login(providerId,providerName) {
     if ( this.oauth2enabled ) {
       console.log(providerId,providerName);
-      window.open('/oauth2/login?name='+this.userName+'&provider='+providerId, '_top');
+      window.open('/oauth2/login?name='+this.userName+'&provider='+providerId+'&avatar='+this.avatarUrl(), '_top');
     }
   }
   

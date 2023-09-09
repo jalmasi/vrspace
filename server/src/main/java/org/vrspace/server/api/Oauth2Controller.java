@@ -96,12 +96,11 @@ public class Oauth2Controller {
    * @param name     Login name of the user, local
    * @param provider Oauth2 authentication provider id , as registered in
    *                 properties file (e.g. github, facebook, google)
-   * @param session
-   * @param request
-   * @return
+   * @param avatar   Optional avatar URI, used only when creating a new user
    */
   @GetMapping("/login")
-  public ResponseEntity<String> login(String name, String provider, HttpSession session, HttpServletRequest request) {
+  public ResponseEntity<String> login(String name, String provider, String avatar, HttpSession session,
+      HttpServletRequest request) {
     String referrer = request.getHeader(HttpHeaders.REFERER);
     log.info("Referer: " + referrer);
 
@@ -123,6 +122,7 @@ public class Oauth2Controller {
     } else {
       log.debug("Welcome new user: " + name);
       client = new User(name);
+      client.setMesh(avatar);
       client.setIdentity(identity);
       client = db.save(client);
     }
