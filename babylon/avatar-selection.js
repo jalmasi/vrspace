@@ -63,6 +63,11 @@ class ProviderForm extends Form {
     this.createPanel();
     this.label = this.textBlock(this.spacer);
     this.panel.addControl(this.label);
+
+    var login = this.submitButton("submit", () => this.buttonCallback(this.selectedKey, this.selectedValue));
+    //var login = this.textButton("login", () => this.buttonCallback(this.selectedKey, this.selectedValue));
+    login.isVisible = false;
+
     for ( let key in this.radios ) {
       this.panel.addControl(this.textBlock(this.radios[key]));
       let radio = this.radio(key);
@@ -71,11 +76,11 @@ class ProviderForm extends Form {
           if (state) {
               this.selectedKey = key;
               this.selectedValue = this.radios[key];
+              login.isVisible = true;
           }
       }); 
     }
-    var login = this.submitButton("submit", () => this.buttonCallback(this.selectedKey, this.selectedValue));
-    //var login = this.textButton("login", () => this.buttonCallback(this.selectedKey, this.selectedValue));
+
     this.panel.addControl(login);
 
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
@@ -87,8 +92,18 @@ class LoginForm extends Form {
   constructor(changeCallback, blurCallback, buttonCallback, providers) {
     super();
     this.providers = providers;
-    this.nameForm = new NameForm(changeCallback, blurCallback);
+    this.changeCallback = changeCallback;
+    this.blurCallback = blurCallback;
+    this.nameForm = new NameForm((text)=>this.nameChanged(text), ()=>this.inputFocusLost());
     this.providerForm = new ProviderForm(buttonCallback, providers);
+  }
+  nameChanged(text) {
+    //this.providerForm.panel.isVisible = true;
+    this.changeCallback(text);
+  }
+  inputFocusLost() {
+    this.providerForm.panel.isVisible = true;
+    this.blurCallback();
   }
   init() {
     this.verticalPanel = true;
@@ -105,6 +120,7 @@ class LoginForm extends Form {
       this.providerForm.init();
       this.providerForm.panel.height = "64px";
       this.addControl(this.providerForm.panel);
+      this.providerForm.panel.isVisible = false;
     }
 
     VRSPACEUI.hud.addForm(this,1240,128);
@@ -260,7 +276,7 @@ export class AvatarSelection extends World {
             this.loginForm.defaultLabel();
             canvas.focus();
           } else {
-            this.loginForm.setLabel("INVALID NAME, try another:");
+            //this.loginForm.setLabel("INVALID NAME, try another:");
             this.loginForm.setLabel("Existing name, log in:");
             ret = false;
           }
