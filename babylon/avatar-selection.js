@@ -1,5 +1,8 @@
 import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, Form } from './js/vrspace-min.js';
 
+/**
+ * Login name input form
+ */
 class NameForm extends Form {
   constructor(changeCallback, blurCallback) {
     super();
@@ -48,6 +51,10 @@ class NameForm extends Form {
     super.dispose();
   }
 }
+
+/**
+ * Authentication provider selection form
+ */
 class ProviderForm extends Form {
   constructor(buttonCallback, radios) {
     super();
@@ -88,6 +95,9 @@ class ProviderForm extends Form {
   }
 }
 
+/**
+ * Complete login form hosts login name form and authentication provider selection form.
+ */
 class LoginForm extends Form {
   constructor(changeCallback, blurCallback, buttonCallback, providers) {
     super();
