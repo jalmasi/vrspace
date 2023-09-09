@@ -1,16 +1,23 @@
 package org.vrspace.server.api;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,18 +44,64 @@ public class Oauth2Controller {
   VRObjectRepository db;
   @Autowired
   ClientFactory clientFactory;
+  @Autowired
+  private ClientRegistrationRepository clientRegistrationRepository;
 
   /**
-   * After successful Oauth2 login with external provider (fb, github, google...),
-   * fetch/create the Client object, and redirect back to the referring page.
+   * List of OAuth2 registered authentication providers.
    * 
-   * @param name
+   * @return key-value pair of id and name, as declared in application.properties
+   */
+  @SuppressWarnings("unchecked")
+  @GetMapping("/providers")
+  public Map<String, String> providers() {
+    Iterable<ClientRegistration> clientRegistrations = null;
+    ResolvableType type = ResolvableType.forInstance(clientRegistrationRepository).as(Iterable.class);
+    if (type != ResolvableType.NONE && ClientRegistration.class.isAssignableFrom(type.resolveGenerics()[0])) {
+      clientRegistrations = (Iterable<ClientRegistration>) clientRegistrationRepository;
+    }
+    Map<String, String> oauth2AuthenticationUrls = new HashMap<>();
+
+    clientRegistrations.forEach(
+        registration -> oauth2AuthenticationUrls.put(registration.getRegistrationId(), registration.getClientName()));
+    return oauth2AuthenticationUrls;
+
+  }
+
+  /**
+   * First step in Oauth2 Authentication is to obtain valid authentication
+   * provider id. This is never called directly though, the browser is redirected
+   * here from the login page. Obtains the provider id from the original request
+   * and sends browser redirect.
+   */
+  @GetMapping("/provider")
+  public ResponseEntity<String> setProvider(HttpSession session, HttpServletRequest request) {
+    String location = "/login"; // default spring boot login page - disabled in web security config TODO
+    DefaultSavedRequest original = (DefaultSavedRequest) session.getAttribute("SPRING_SECURITY_SAVED_REQUEST");
+    String[] providers = original.getParameterMap().get("provider");
+    if (providers != null && providers.length > 0) {
+      location = "/oauth2/authorization/" + providers[0];
+    }
+    return ResponseEntity.status(HttpStatus.FOUND).header("Location", location).body("Redirecting to " + location);
+  }
+
+  /**
+   * This endpoint requires both user name and authentication provider id (fb,
+   * github, google... as defined in app properties file). The framework then
+   * performs authentication through a series of on-site and off-site redirects.
+   * Only after successful Oauth2 authentication with external provider, this
+   * method fetches or creates the Client object, and redirect back to the
+   * referring page.
+   * 
+   * @param name     Login name of the user, local
+   * @param provider Oauth2 authentication provider id , as registered in
+   *                 properties file (e.g. github, facebook, google)
    * @param session
    * @param request
    * @return
    */
   @GetMapping("/login")
-  public ResponseEntity<String> login(String name, HttpSession session, HttpServletRequest request) {
+  public ResponseEntity<String> login(String name, String provider, HttpSession session, HttpServletRequest request) {
     String referrer = request.getHeader(HttpHeaders.REFERER);
     log.info("Referer: " + referrer);
 
@@ -95,4 +148,5 @@ public class Oauth2Controller {
     OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
     log.debug("oauth callback: code=" + code + " " + oauthToken);
   }
+
 }

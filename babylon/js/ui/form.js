@@ -78,35 +78,46 @@ export class Form {
     this.elements.push(block);
     return block;
   }
-  /**
-   * Creates and returns a named Checkbox
-   */
-  checkbox(name, params) {
-    var checkbox = new BABYLON.GUI.Checkbox();
-    checkbox.heightInPixels = this.heightInPixels;
-    checkbox.widthInPixels = this.heightInPixels;
-    checkbox.color = this.color;
-    checkbox.background = this.background;
+  // common code for checkbox and radio button
+  _common(obj, name, params) {
+    obj.heightInPixels = this.heightInPixels;
+    obj.widthInPixels = this.heightInPixels;
+    obj.color = this.color;
+    obj.background = this.background;
     if ( params ) {
       for(var c of Object.keys(params)) {
-        checkbox[c] = params[c];
+        obj[c] = params[c];
       }
     }
     let command = this.nameToCommand(name);
     if ( command ) {
       this.speechInput.addCommand(command, (text) => {
         if ( text == 'on' || text == 'true') {
-          checkbox.isChecked = true;
+          obj.isChecked = true;
         } else if ( text == 'off' || text == 'false') {
-          checkbox.isChecked = false;
+          obj.isChecked = false;
         } else {
           console.log("Can't set "+name+" to "+text);
         }
       }, "*onoff");
     }
-    this.elements.push(checkbox);
-    this.controls.push(checkbox);
-    return checkbox;
+    this.elements.push(obj);
+    this.controls.push(obj);
+    return obj;
+  }
+  /**
+   * Creates and returns a named Checkbox
+   */
+  checkbox(name, params) {
+    var checkbox = new BABYLON.GUI.Checkbox();
+    return this._common(checkbox, name, params);
+  }
+  /**
+   * Creates and returns a named RadioButton
+   */
+  radio(name, params) {
+    var radioButton= new BABYLON.GUI.RadioButton();
+    return this._common(radioButton, name, params);
   }
   /**
    * Creates and returns a named InputText, registers this.inputFocus() as focus/blur listener

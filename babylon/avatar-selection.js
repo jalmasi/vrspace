@@ -1,23 +1,18 @@
 import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, Form } from './js/vrspace-min.js';
 
-class LoginForm extends Form {
-  constructor(changeCallback, blurCallback, buttonCallback) {
+class NameForm extends Form {
+  constructor(changeCallback, blurCallback) {
     super();
     this.changeCallback = changeCallback;
     this.blurCallback = blurCallback;
-    this.buttonCallback = buttonCallback;
     this.color = "black";
     this.background = "white";
     this.nameText = "                     Name:";
+    this.radios = {};
   }
   init() {
-    this.panel = new BABYLON.GUI.StackPanel();
-    this.panel.isVertical = false;
-    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER; // makes no difference
-    this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    this.panel.width = 1;
-    this.panel.height = 1;
-
+    this.createPanel();
+    
     this.label = this.textBlock(this.nameText);
     this.panel.addControl(this.label);
 
@@ -26,13 +21,10 @@ class LoginForm extends Form {
     this.input.onBlurObservable.add(()=>this.blurCallback())
     this.panel.addControl(this.input);
 
-    var login = this.submitButton("submit", () => this.buttonCallback());
-    this.panel.addControl(login);
-
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
     this.speechInput.start();
   }
-
+  
   createKeyboardPlane() {
     let size = this.planeSize * 5;
     this.keyboardPlane = BABYLON.MeshBuilder.CreatePlane("KeyboardPlane", {width: size*2, height: size});
@@ -54,6 +46,74 @@ class LoginForm extends Form {
     this.keyboardPlane.dispose();
     this.keyboardTexture.dispose();
     super.dispose();
+  }
+}
+class ProviderForm extends Form {
+  constructor(buttonCallback, radios) {
+    super();
+    this.buttonCallback = buttonCallback;
+    this.radios = radios;
+    this.color = "black";
+    this.background = "white";
+    this.spacer = "                     ";
+    this.selectedKey = null;
+    this.selectedValue = null;
+  }
+  init() {
+    this.createPanel();
+    this.label = this.textBlock(this.spacer);
+    this.panel.addControl(this.label);
+    for ( let key in this.radios ) {
+      this.panel.addControl(this.textBlock(this.radios[key]));
+      let radio = this.radio(key);
+      this.panel.addControl(radio);
+      radio.onIsCheckedChangedObservable.add((state) => {
+          if (state) {
+              this.selectedKey = key;
+              this.selectedValue = this.radios[key];
+          }
+      }); 
+    }
+    var login = this.submitButton("submit", () => this.buttonCallback(this.selectedKey, this.selectedValue));
+    //var login = this.textButton("login", () => this.buttonCallback(this.selectedKey, this.selectedValue));
+    this.panel.addControl(login);
+
+    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
+    this.speechInput.start();
+  }
+}
+
+class LoginForm extends Form {
+  constructor(changeCallback, blurCallback, buttonCallback, providers) {
+    super();
+    this.providers = providers;
+    this.nameForm = new NameForm(changeCallback, blurCallback);
+    this.providerForm = new ProviderForm(buttonCallback, providers);
+  }
+  init() {
+    this.verticalPanel = true;
+    this.createPanel();
+    this.panel.height = "128px";
+    this.panel.width = "1280px";
+
+    this.nameForm.init();
+    this.nameForm.createKeyboardPlane();
+    this.nameForm.panel.height = "64px";
+    this.addControl(this.nameForm.panel);
+
+    if ( this.providers && Object.keys(this.providers).length > 0 ) {
+      this.providerForm.init();
+      this.providerForm.panel.height = "64px";
+      this.addControl(this.providerForm.panel);
+    }
+
+    VRSPACEUI.hud.addForm(this,1240,128);
+  }
+  defaultLabel() {
+    this.nameForm.label.text=this.nameForm.nameText;
+  }
+  setLabel(text) {
+    this.nameForm.label.text="   "+text;
   }
 }
 
@@ -158,14 +218,14 @@ export class AvatarSelection extends World {
     this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
   }
   async createUI () {
+    let providers = await this.getJson('/oauth2/providers');
     this.loginForm = new LoginForm(
       (text)=>this.setMyName(text),
       ()=>this.checkValidName(),
-      ()=>this.oauth2login()
+      (providerId,providerName)=>this.oauth2login(providerId,providerName),
+      providers
     );
     this.loginForm.init(); // starts speech recognition
-    let texture = VRSPACEUI.hud.addForm(this.loginForm,1240,64);
-    this.loginForm.createKeyboardPlane();
     // testing various REST calls here
     this.getAuthenticated().then( isAuthenticated => {
       if ( isAuthenticated ) {
@@ -197,16 +257,17 @@ export class AvatarSelection extends World {
         this.verifyName(this.userName).then( validName => {
           console.log("Valid name: "+validName);
           if ( validName ) {
-            this.loginForm.label.text=this.loginForm.nameText;
+            this.loginForm.defaultLabel();
             canvas.focus();
           } else {
-            this.loginForm.label.text="INVALID NAME, try another:"
+            this.loginForm.setLabel("INVALID NAME, try another:");
+            this.loginForm.setLabel("Existing name, log in:");
             ret = false;
           }
           this.portalsEnabled(validName);
         });
       } else {
-        this.loginForm.label.text=this.loginForm.nameText;
+        this.loginForm.defaultLabel();
         this.portalsEnabled(this.anonymousAllowed);
       }
     }
@@ -243,9 +304,8 @@ export class AvatarSelection extends World {
   }
   
   isSelectableMesh(mesh) {
-    return mesh == this.ground 
-      || mesh == this.loginForm.plane
-      || mesh == this.loginForm.keyboardPlane 
+    return mesh == this.ground
+      || this.loginForm && (mesh == this.loginForm.plane || mesh == this.loginForm.keyboardPlane) 
       || mesh.name && (mesh.name.startsWith("Button") 
       || mesh.name.startsWith("PortalEntrance"));
   }
@@ -522,9 +582,10 @@ export class AvatarSelection extends World {
     return validName === "true";
   }
   
-  oauth2login() {
+  async oauth2login(providerId,providerName) {
     if ( this.oauth2enabled ) {
-      window.open('/oauth2/login?name='+this.userName, '_top');
+      console.log(providerId,providerName);
+      window.open('/oauth2/login?name='+this.userName+'&provider='+providerId, '_top');
     }
   }
   
