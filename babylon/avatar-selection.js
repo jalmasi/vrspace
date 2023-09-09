@@ -258,7 +258,6 @@ export class AvatarSelection extends World {
         this.authenticated = true;
         this.getUserName().then( name => {
           this.setMyName(name);
-          this.loginForm.input.text = name;
         });
         this.getUserObject().then( me => {
           console.log("user mesh "+me.mesh, me);
