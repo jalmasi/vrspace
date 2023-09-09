@@ -143,7 +143,13 @@ export class Form {
     }
     let command = this.nameToCommand(name);
     if ( command ) {
-      this.speechInput.addCommand(command, (text) => this.input.text = text, "*text");
+      this.speechInput.addCommand(command, 
+      (text) => { 
+        this.input.text = text;
+        this.input.onTextChangedObservable.notifyObservers(text); 
+        this.input.onBlurObservable.notifyObservers();
+      }, 
+      "*text");
     }
     this.elements.push(input);
     this.controls.push(input);
