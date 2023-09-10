@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.vrspace</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.5.1</version>
+		<version>0.5.2</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>web</artifactId>
