@@ -141,6 +141,13 @@ class LoginForm extends Form {
   setLabel(text) {
     this.nameForm.label.text="   "+text;
   }
+  dispose() {
+    this.nameForm.dispose();
+    if ( this.providerForm ) {
+      this.providerForm.dispose();
+    }
+    VRSPACEUI.hud.clearControls();
+  }
 }
 
 export class AvatarSelection extends World {

@@ -501,7 +501,7 @@ export class HUD {
   /** Returns the current row */
   currentRow() {
     return this.rows[this.rows.length-1];
-  } 
+  }
   
   /**
    * Creates a new empty row. Current row is scaled down and moved a bit down.
@@ -527,11 +527,9 @@ export class HUD {
   }
 
   /**
-   * Clears the current row. Previous row is scaled back to original size and brought back into position.
+   * Clears and disposes of all controls in the current row
    */
-  clearRow() {
-    // TODO check rows length
-    // CHECKME: dispose of all elements/controls?
+  clearControls() {
     this.controls.forEach(c=>c.dispose());
     this.elements.forEach(e=>{
       if ( e.material ) {
@@ -541,9 +539,23 @@ export class HUD {
       e.dispose();
     });
     this.textures.forEach(t=>t.dispose());
+
+    this.attachments = [];
+    this.elements = [];
+    this.controls = [];
+    this.textures = [];
+    this.activeControl = null;
+  }
+  /**
+   * Clears the current row. Previous row is scaled back to original size and brought back into position.
+   */
+  clearRow() {
+    // TODO check rows length
+    this.clearControls();
+
     this.rowRoot.dispose();
     this.speechInput.dispose();
-    
+
     this.rows.pop();
 
     this.rows.forEach(row=>{
