@@ -33,7 +33,9 @@ export class TextureSelector {
     this.index = 0;
     this.textures = null;
   }
-  
+  endpoint() {
+    return "/vrspace/api/textures";
+  }
   doFetch(url) {
       fetch(url).then(response => {
           response.json().then( obj => {
@@ -75,9 +77,9 @@ export class TextureSelector {
   
   doSearch(text) {
     if ( text ) {
-      this.doFetch("/textures/search?pattern="+text);
+      this.doFetch(this.endpoint()+"/search?pattern="+text);
     } else {
-      this.doFetch("/textures/list");
+      this.doFetch(this.endpoint()+"/list");
     }
   }
   

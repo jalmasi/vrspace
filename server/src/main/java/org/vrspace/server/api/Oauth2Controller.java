@@ -38,8 +38,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @Slf4j
-@RequestMapping("/oauth2")
-public class Oauth2Controller {
+@RequestMapping(Oauth2Controller.PATH)
+public class Oauth2Controller extends ApiBase {
+  public static final String PATH = API_ROOT + "/oauth2";
   @Autowired
   VRObjectRepository db;
   @Autowired

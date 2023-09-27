@@ -22,8 +22,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @Slf4j
-@RequestMapping("/worlds")
-public class WorldController {
+@RequestMapping(WorldController.PATH)
+public class WorldController extends ApiBase {
+  public static final String PATH = API_ROOT + "/worlds";
+
   @Autowired
   private VRObjectRepository db;
 

@@ -1,5 +1,14 @@
 import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, Form } from './js/vrspace-min.js';
 
+class VRSpaceAPI {
+  base = "/vrspace/api";
+  endpoint = {
+    worlds : this.base+"/worlds",
+    user : this.base+"/user",
+    oauth2: this.base+"/oauth2"
+  }
+}
+
 /**
  * Login name input form
  */
@@ -197,6 +206,7 @@ export class AvatarSelection extends World {
     this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000/this.fps;
+    this.api = new VRSpaceAPI();
   }
   async createSkyBox() {
     if ( this.backgroundPanorama ) {
@@ -251,7 +261,7 @@ export class AvatarSelection extends World {
     this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
   }
   async createUI () {
-    let providers = await this.getJson('/oauth2/providers');
+    let providers = await this.getJson(this.api.endpoint.oauth2+'/providers'); // TODO API call lib
     this.loginForm = new LoginForm(
       (text)=>this.setMyName(text),
       ()=>this.checkValidName(),
@@ -610,31 +620,31 @@ export class AvatarSelection extends World {
   }
 
   async verifyName(name) {
-    var validName = await this.getText("/user/available?name="+name);
+    var validName = await this.getText(this.api.endpoint.user+"/available?name="+name);
     return validName === "true";
   }
   
   async oauth2login(providerId,providerName) {
     if ( this.oauth2enabled ) {
       console.log(providerId,providerName);
-      window.open('/oauth2/login?name='+this.userName+'&provider='+providerId+'&avatar='+this.avatarUrl(), '_top');
+      window.open(this.api.endpoint.oauth2+'/login?name='+this.userName+'&provider='+providerId+'&avatar='+this.avatarUrl(), '_top');
     }
   }
   
   async getUserName() {
-    var loginName = await this.getText("/user/name");
+    var loginName = await this.getText(this.api.endpoint.user+"/name");
     console.log("User name: "+loginName);
     return loginName;
   }
   
   async getUserObject() {
-    var userObject = await this.getJson("/user/object");
+    var userObject = await this.getJson(this.api.endpoint.user+"/object");
     console.log("User object ", userObject);
     return userObject.User;
   }
   
   async getAuthenticated() {
-    var isAuthenticated = await this.getText("/user/authenticated");
+    var isAuthenticated = await this.getText(this.api.endpoint.user+"/authenticated");
     console.log("User is authenticated: "+isAuthenticated);
     return 'true' === isAuthenticated;
   }
@@ -756,8 +766,9 @@ export class AvatarSelection extends World {
     this.showActiveUsers();
   }
 
+  // TODO: API client class/library
   showActiveUsers() {
-    fetch('/worlds/users').then(response=>response.json().then(worldStats=>{
+    fetch(this.api.endpoint.worlds+'/users').then(response=>response.json().then(worldStats=>{
       if ( worldStats ) {
         worldStats.forEach(stat=>{
           //console.log(stat);

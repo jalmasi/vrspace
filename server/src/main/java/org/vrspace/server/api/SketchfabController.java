@@ -53,9 +53,10 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @RestController
-@RequestMapping("/sketchfab")
+@RequestMapping(SketchfabController.PATH)
 @Slf4j
-public class SketchfabController {
+public class SketchfabController extends ApiBase {
+  public static final String PATH = API_ROOT + "/sketchfab";
   @Autowired
   ObjectMapper objectMapper;
   @Autowired

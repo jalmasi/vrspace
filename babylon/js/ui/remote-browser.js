@@ -10,20 +10,23 @@ export class RemoteBrowser extends ImageArea {
     this.maxDepth = 0;
     this.inputForm = new InputForm("Enter");
   }
+  endpoint() {
+    return "/vrspace/api/webbrowser"
+  }
   async available() {
-    let response = await fetch("/webbrowser/available")
+    let response = await fetch(this.endpoint()+"/available")
     let result = await response.json();
     return "true" === result;
   }
   async get(url) {
     this.url = url;
-    let response = await fetch("/webbrowser/get?url="+url);
+    let response = await fetch(this.endpoint()+"/get?url="+url);
     let bytes = await response.blob();
     this.loadData(bytes,url);
     this.processHeaders(response.headers);
   }
   async click(x,y) {
-    let response = await fetch("/webbrowser/click?x="+x+"&y="+y);
+    let response = await fetch(this.endpoint()+"/click?x="+x+"&y="+y);
     let bytes = await response.blob();
     let activeElement = response.headers.get('active-element');
     if ( "input" === activeElement || "textarea" === activeElement) {
@@ -35,17 +38,17 @@ export class RemoteBrowser extends ImageArea {
   }
   async enter(text) {
     this.inputForm.setEnabled(false);
-    let response = await fetch("/webbrowser/enter?text="+text);
+    let response = await fetch(this.endpoint()+"/enter?text="+text);
     let bytes = await response.blob();
     this.loadData(bytes);
   }
   async scroll(pixels) {
-    let response = await fetch("/webbrowser/scroll?pixels="+pixels);
+    let response = await fetch(this.endpoint()+"/scroll?pixels="+pixels);
     let bytes = await response.blob();
     this.loadData(bytes);
   }
   async close() {
-    let response = await fetch("/webbrowser/close");
+    let response = await fetch(this.endpoint()+"/close");
     if ( response.status == 204 ) {
       this.dispose();
     } else {
@@ -55,13 +58,13 @@ export class RemoteBrowser extends ImageArea {
     }
   }
   async forward() {
-    let response = await fetch("/webbrowser/forward");
+    let response = await fetch(this.endpoint()+"/forward");
     let bytes = await response.blob();
     this.loadData(bytes);
     this.processHeaders(response.headers);
   }
   async back() {
-    let response = await fetch("/webbrowser/back");
+    let response = await fetch(this.endpoint()+"/back");
     if ( response.status == 204 ) {
       this.dispose();
     } else {
@@ -71,7 +74,7 @@ export class RemoteBrowser extends ImageArea {
     }
   }
   async quit() {
-    await fetch("/webbrowser/quit");
+    await fetch(this.endpoint()+"/quit");
     this.dispose();
   }
   processHeaders(headers) {

@@ -22,6 +22,7 @@ import org.vrspace.server.config.ServerConfig;
 @Import({ SeleniumConfig.class, SecurityAutoConfiguration.class, ServerConfig.class })
 @EnabledIf(expression = "#{environment['org.vrspace.server.selenium-enabled']=='true'}", loadContext = true)
 public class SeleniumControllerIT {
+  private static String ENDPOINT = SeleniumController.PATH;
   @Autowired
   private MockMvc mockMvc;
 
@@ -29,7 +30,7 @@ public class SeleniumControllerIT {
 
   @Test
   public void testAvailable() throws Exception {
-    mockMvc.perform(get("/webbrowser/available")).andExpect(status().isOk());
+    mockMvc.perform(get(ENDPOINT + "/available")).andExpect(status().isOk());
   }
 
   @Test
@@ -37,46 +38,46 @@ public class SeleniumControllerIT {
     assumeTrue(isAvailable());
 
     // browse to a well-known page;)
-    MvcResult getResult = mockMvc.perform(get("/webbrowser/get?url=https://www.vrspace.org").session(session))
+    MvcResult getResult = mockMvc.perform(get(ENDPOINT + "/get?url=https://www.vrspace.org").session(session))
         .andExpect(status().isOk()).andReturn();
     assertScreenshot(getResult);
 
     // click; this opens a new tab
-    MvcResult clickResult = mockMvc.perform(get("/webbrowser/click?x=1800&y=12").session(session))
+    MvcResult clickResult = mockMvc.perform(get(ENDPOINT + "/click?x=1800&y=12").session(session))
         .andExpect(status().isOk()).andExpect(header().longValue("history-position", 0))
         .andExpect(header().longValue("history-length", 0)).andReturn();
     assertScreenshot(clickResult);
 
     // scroll down
-    MvcResult scrollResult = mockMvc.perform(get("/webbrowser/scroll?pixels=512").session(session))
+    MvcResult scrollResult = mockMvc.perform(get(ENDPOINT + "/scroll?pixels=512").session(session))
         .andExpect(status().isOk()).andReturn();
     assertScreenshot(scrollResult);
 
     // back, also closes the tab
-    MvcResult backResult = mockMvc.perform(get("/webbrowser/back").session(session)).andExpect(status().isOk())
+    MvcResult backResult = mockMvc.perform(get(ENDPOINT + "/back").session(session)).andExpect(status().isOk())
         .andReturn();
     assertScreenshot(backResult);
 
     // forward, does nothing
-    MvcResult forwardResult = mockMvc.perform(get("/webbrowser/forward").session(session)).andExpect(status().isOk())
+    MvcResult forwardResult = mockMvc.perform(get(ENDPOINT + "/forward").session(session)).andExpect(status().isOk())
         .andReturn();
     assertScreenshot(forwardResult);
 
     // open another tab again
-    clickResult = mockMvc.perform(get("/webbrowser/click?x=1800&y=12").session(session)).andExpect(status().isOk())
+    clickResult = mockMvc.perform(get(ENDPOINT + "/click?x=1800&y=12").session(session)).andExpect(status().isOk())
         .andReturn();
     assertScreenshot(clickResult);
 
     // close a tab
-    MvcResult closeResult = mockMvc.perform(get("/webbrowser/close").session(session)).andExpect(status().isOk())
+    MvcResult closeResult = mockMvc.perform(get(ENDPOINT + "/close").session(session)).andExpect(status().isOk())
         .andReturn();
     assertScreenshot(closeResult);
 
     // close the browser
-    mockMvc.perform(get("/webbrowser/close").session(session)).andExpect(status().isNoContent());
+    mockMvc.perform(get(ENDPOINT + "/close").session(session)).andExpect(status().isNoContent());
 
     // quit the browser
-    mockMvc.perform(get("/webbrowser/quit").session(session)).andExpect(status().isOk());
+    mockMvc.perform(get(ENDPOINT + "/quit").session(session)).andExpect(status().isOk());
 
   }
 
@@ -86,7 +87,7 @@ public class SeleniumControllerIT {
   }
 
   private boolean isAvailable() throws Exception {
-    MvcResult result = mockMvc.perform(get("/webbrowser/available")).andExpect(status().isOk()).andReturn();
+    MvcResult result = mockMvc.perform(get(ENDPOINT + "/available")).andExpect(status().isOk()).andReturn();
     System.err.println("Browser available: " + result.getResponse().getContentAsString());
     return "true".equals(result.getResponse().getContentAsString());
   }
