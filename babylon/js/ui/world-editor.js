@@ -78,7 +78,9 @@ export class WorldEditor {
     this.squeeze = (side, value) => this.handleSqueeze(side,value);
     world.vrHelper.addSqueezeConsumer(this.squeeze);
   }
-
+  endpoint() {
+    return "/vrspace/api/sketchfab";
+  }
   /**
   Creates the search panel, called from constructor
   */  
@@ -727,7 +729,7 @@ export class WorldEditor {
     this.fetching = result;
     VRSPACEUI.indicator.animate();
     VRSPACEUI.indicator.add("Download");
-    fetch("/sketchfab/download?uid="+result.uid)
+    fetch(this.endpoint()+"/download?uid="+result.uid)
       .then(response => {
           this.fetching = null;
           console.log(response);
@@ -774,7 +776,7 @@ export class WorldEditor {
    * Rest API call to VRSpace sketchfab endpoint. If login is required, this opens the login page in the same browser window.
    */
   sketchfabLogin() {
-    fetch("/sketchfab/login").then(response => {
+    fetch(this.endpoint()+"/login").then(response => {
         console.log(response);
         response.json().then(login => {
           window.open( login.url, "_self" );
