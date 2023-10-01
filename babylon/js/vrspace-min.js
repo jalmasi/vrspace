@@ -11,6 +11,7 @@ export { RecorderUI } from "./ui/recorder-ui.js";
 export { FloorRibbon } from "./ui/floor-ribbon.js";
 export { Buttons } from "./ui/buttons.js";
 export { Form } from "./ui/form.js";
+export { LoginForm } from "./ui/login-form.js";
 export { Label } from "./ui/label.js";
 export { ChatLog } from './ui/chat-log.js';
 export { TextArea } from './ui/text-area.js';
