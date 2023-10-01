@@ -27,20 +27,20 @@ class NameForm extends Form {
     this.speechInput.start();
   }
   
-  createKeyboardPlane() {
-    let size = this.planeSize * 5;
+  createKeyboardPlane(parentForm) {
+    let size = parentForm.planeSize * 2;
     this.keyboardPlane = BABYLON.MeshBuilder.CreatePlane("KeyboardPlane", {width: size*2, height: size});
-    this.keyboardPlane.position = new BABYLON.Vector3(0,-size/2,0);
-    this.keyboardPlane.parent = this.plane;
+    this.keyboardPlane.position = new BABYLON.Vector3(0,-size/2,0.1);
+    this.keyboardPlane.parent = parentForm.plane;
     this.keyboardTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.keyboardPlane,512,256);
     // advancedTexture creates material and attaches it to the plane
     this.keyboardPlane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
     this.keyboard(this.keyboardTexture);
-    return this.plane;
   }
 
   inputFocused(input, focused) {
     this.virtualKeyboardEnabled = VRSPACEUI.hud.inXR();
+    //this.virtualKeyboardEnabled = true;
     super.inputFocused(input,focused);
   }
   
@@ -96,10 +96,14 @@ class ProviderForm extends Form {
 
 /**
  * Complete login form hosts login name form and authentication provider selection form.
+ * By default, the form is bound to HUD. If position property is set, form is placed at the position instead,
+ * and scaled to planeSize, default 0.5.
  */
 export class LoginForm extends Form {
   constructor(changeCallback, blurCallback, buttonCallback, providers) {
     super();
+    this.position = null;
+    this.planeSize = .5;
     this.providers = providers;
     this.changeCallback = changeCallback;
     this.blurCallback = blurCallback;
@@ -111,7 +115,11 @@ export class LoginForm extends Form {
     this.changeCallback(text);
   }
   inputFocusLost() {
-    this.providerForm.panel.isVisible = true;
+    if ( this.nameForm.input.text ) {
+      this.providerForm.panel.isVisible = true;
+    } else {
+      this.providerForm.panel.isVisible = false;
+    }
     this.blurCallback();
   }
   init() {
@@ -120,8 +128,15 @@ export class LoginForm extends Form {
     this.panel.height = "128px";
     this.panel.width = "1280px";
 
+    if ( this.position ) {
+      this.createPlane(this.planeSize, 1240, 128);
+      this.plane.position = this.position;
+    } else {
+      VRSPACEUI.hud.addForm(this,1240,128);
+    }
+    
     this.nameForm.init();
-    this.nameForm.createKeyboardPlane();
+    this.nameForm.createKeyboardPlane(this); // CHECKME when on HUD
     this.nameForm.panel.height = "64px";
     this.addControl(this.nameForm.panel);
 
@@ -132,7 +147,6 @@ export class LoginForm extends Form {
       this.providerForm.panel.isVisible = false;
     }
 
-    VRSPACEUI.hud.addForm(this,1240,128);
   }
   defaultLabel() {
     this.nameForm.label.text=this.nameForm.nameText;
@@ -145,7 +159,14 @@ export class LoginForm extends Form {
     if ( this.providerForm ) {
       this.providerForm.dispose();
     }
-    VRSPACEUI.hud.clearControls();
+    if ( ! this.position ) {
+      VRSPACEUI.hud.clearControls();
+    }
+    super.dispose();
+  }
+
+  isSelectableMesh(mesh) {
+    return (this.plane && mesh == this.plane) || mesh == this.nameForm.keyboardPlane; 
   }
 }
 

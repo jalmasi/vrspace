@@ -119,6 +119,9 @@ export class AvatarSelection extends World {
       (providerId,providerName)=>this.oauth2login(providerId,providerName),
       providers
     );
+    // position the form just in front of avatar
+    // make room for virtual keyboard, and resize/mirror buttons
+    this.loginForm.position = new BABYLON.Vector3(0,1,-0.5);
     this.loginForm.init(); // starts speech recognition
     // testing various REST calls here
     this.getAuthenticated().then( isAuthenticated => {
@@ -198,7 +201,7 @@ export class AvatarSelection extends World {
   
   isSelectableMesh(mesh) {
     return mesh == this.ground
-      || this.loginForm && (mesh == this.loginForm.plane || mesh == this.loginForm.keyboardPlane) 
+      || this.loginForm && this.loginForm.isSelectableMesh(mesh) 
       || mesh.name && (mesh.name.startsWith("Button") 
       || mesh.name.startsWith("PortalEntrance"));
   }
