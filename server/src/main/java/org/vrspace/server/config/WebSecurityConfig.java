@@ -22,7 +22,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity httpSecurity) throws Exception {
     httpSecurity.csrf().disable().authorizeRequests().antMatchers(ENDPOINT + "/login**").authenticated().and()
-        .oauth2Login().loginPage(ENDPOINT + "/provider");
+        .oauth2Login().loginPage(ENDPOINT + "/provider").authorizationEndpoint().baseUri(ENDPOINT + "/authorization");
   }
 
 }

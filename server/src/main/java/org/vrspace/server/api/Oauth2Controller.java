@@ -81,7 +81,7 @@ public class Oauth2Controller extends ApiBase {
     DefaultSavedRequest original = (DefaultSavedRequest) session.getAttribute("SPRING_SECURITY_SAVED_REQUEST");
     String[] providers = original.getParameterMap().get("provider");
     if (providers != null && providers.length > 0) {
-      location = "/oauth2/authorization/" + providers[0];
+      location = PATH + "/authorization/" + providers[0];
     }
     return ResponseEntity.status(HttpStatus.FOUND).header("Location", location).body("Redirecting to " + location);
   }
