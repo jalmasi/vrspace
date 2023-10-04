@@ -1,3 +1,4 @@
+import { Label } from './label.js';
 import { ManipulationHandles } from "./manipulation-handles.js";
 import { VRSPACEUI } from "./vrspace-ui.js";
 
@@ -9,9 +10,13 @@ export class TextArea {
   /**
    * Creates the area with default values. 
    * By default, it's sized and positioned to be attached to the camera, is nicely transparent, font size 16 on 512x512 texture,
-   * and includes manipulation handles
+   * and includes manipulation handles.
+   * @param scene babylon scene, mandatory
+   * @param name optional, defaults to TextArea
+   * @param titleText optional title to display above the area 
    */
-  constructor(scene, name = "TextArea") {
+  constructor(scene, name = "TextArea", titleText = null) {
+    this.titleText = titleText;
     this.scene = scene;
     this.size = .2;
     this.position = new BABYLON.Vector3(-.08, 0, .3);
@@ -29,6 +34,7 @@ export class TextArea {
     this.group = new BABYLON.TransformNode(name, this.scene);
     this.attachedToHud = false;
     this.attachedToCamera = false;
+    this.title = null;
   }
   /**
    * As the name says. Optionally also creates manipulation handles.
@@ -74,6 +80,34 @@ export class TextArea {
     this.textBlock.text = this.text;
     
     this.texture.addControl(this.textBlock);
+    
+    this.showTitle();
+  }
+  /**
+   * Show title text on top of the area. Title can be changed and displayed any time after show().
+   */
+  showTitle() {
+    if (this.titleText) {
+      if ( ! this.title ) {
+        this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.size / 2, 0), this.group);
+      }
+      this.title.text = this.titleText;
+      this.title.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      this.title.height = this.size / 10;
+      this.title.display();
+    } else if ( this.title ) {
+      this.title.dispose();
+      this.title = null;
+    }
+  }
+  /**
+   * Remove the title, if any.
+   */
+  removeTitle() {
+    if ( this.title ) {
+      this.title.dispose();
+      this.title = null;
+    }
   }
   /**
    * Creates manipulation handles. Left and right handle resize, and top and bottom move it.
@@ -103,6 +137,7 @@ export class TextArea {
   }
   /** Clean up. */
   dispose() {
+    this.removeTitle();
     this.removeHandles();
     this.textAreaPlane.dispose();
     this.backgroundPlane.dispose();

@@ -1,4 +1,3 @@
-import { Label } from './label.js';
 import { InputForm } from './input-form.js';
 
 /**
@@ -11,14 +10,14 @@ export class TextAreaInput extends InputForm {
   /**
    * @param textArea TextArea to attach to
    * @param inputName optional InputText name, displayed TextBlock before the InputText, defaults to "Write"
-   * @param titleText optional text to display on label
+   * @param titleText optional text to display on label above the area
    */
-  constructor(textArea, inputName = "Write", titleText) {
+  constructor(textArea, inputName = "Write", titleText = null) {
     super(inputName);
     this.textArea = textArea;
+    this.textArea.titleText = titleText;
     this.inputName = inputName;
     this.submitName = null;
-    this.titleText = titleText;
     /** Input prefix used as argument to write(), default null */
     this.inputPrefix = null;
     /** Allow speech recognition, default true */
@@ -44,13 +43,7 @@ export class TextAreaInput extends InputForm {
     
     super.init();
 
-    if (this.titleText) {
-      this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.size, 0), this.textArea.group);
-      this.title.text = this.titleText;
-      this.title.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-      this.title.height = this.textArea.size / 10;
-      this.title.display();
-    }
+    this.textArea.showTitle();
     
     this.inputFocusListener = (input, focused) => {
       if (!focused && input.text) {
@@ -92,8 +85,5 @@ export class TextAreaInput extends InputForm {
   }
   dispose() {
     super.dispose();
-    if (this.title) {
-      this.title.dispose();
-    }
   }
 }

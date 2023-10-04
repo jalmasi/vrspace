@@ -132,13 +132,13 @@ export class TextWorld extends World {
       if ( hudText.handles ) {
         hudText.removeHandles();
         hudText.println("handles removed");
-        form.title.setBackground("rgba(200,200,50,0.5)");
-        form.title.setColor("black");
+        hudText.title.setBackground("rgba(200,200,50,0.5)");
+        hudText.title.setColor("black");
       } else {
         hudText.createHandles();
         hudText.println("handles created");
-        form.title.setBackground("transparent");
-        form.title.setColor("white");
+        hudText.title.setBackground("transparent");
+        hudText.title.setColor("white");
       }
       let text;
       if ( state%3 == 0 ) {
@@ -154,7 +154,7 @@ export class TextWorld extends World {
         text = "detached, click to take";
       }
       hudText.writeln(text);
-      form.title.setText(text);
+      hudText.title.setText(text);
       state ++;
     });
     
