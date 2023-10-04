@@ -28,6 +28,7 @@ export class TextArea {
     this.textWrapping = true;
     this.addHandles = true;
     this.canMinimize = true;
+    this.autoScale = false;
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
@@ -41,6 +42,30 @@ export class TextArea {
    */
   show () {
     this.group.position = this.position;
+    
+    this.textBlock = new BABYLON.GUI.TextBlock();
+    this.textBlock.widthInPixels = this.width;
+    this.textBlock.textWrapping = this.textWrapping;
+    this.textBlock.color = "white";
+    this.textBlock.fontSize = this.fontSize;
+    this.textBlock.fontFamily = "monospace";
+    this.textBlock.textHorizontalAlignment = this.textHorizontalAlignment;
+    this.textBlock.textVerticalAlignment = this.textVerticalAlignment;
+
+    this.textBlock.text = "text is required to compute fontOffset used for font rendering";
+    this.textBlock.computeExpectedHeight(); // and now we have textBlock.fontOffset
+    this.textBlock.text = this.text;
+
+    if ( this.autoScale ) {
+      if ( ! this.text ) {
+        throw new Error( "Text has to be set before autoscaling");
+      }
+      // so we scale height depending on text size and width
+      // i.e. add as many rows as we need
+      let rowsNeeded = Math.ceil(this.text.length * this.textBlock.fontOffset.height / this.width);
+      this.height = rowsNeeded * this.textBlock.fontOffset.height;
+      this.size = rowsNeeded * this.size;
+    }
     this.ratio = this.width/this.height;
     
     this.material = new BABYLON.StandardMaterial("TextAreaMaterial", this.scene);
@@ -66,18 +91,6 @@ export class TextArea {
       false // do not handle pointer events
     );
   
-    this.textBlock = new BABYLON.GUI.TextBlock();
-    this.textBlock.widthInPixels = this.width;
-    this.textBlock.textWrapping = this.textWrapping;
-    this.textBlock.color = "white";
-    this.textBlock.fontSize = this.fontSize;
-    this.textBlock.fontFamily = "monospace";
-    this.textBlock.textHorizontalAlignment = this.textHorizontalAlignment;
-    this.textBlock.textVerticalAlignment = this.textVerticalAlignment;
-
-    this.textBlock.text = "text is required to compute fontOffset used for font rendering";
-    this.textBlock.computeExpectedHeight(); // and now we have textBlock.fontOffset
-    this.textBlock.text = this.text;
     
     this.texture.addControl(this.textBlock);
     
@@ -88,12 +101,13 @@ export class TextArea {
    */
   showTitle() {
     if (this.titleText) {
+      let titleHeight = this.size / this.getMaxRows() * 2; // twice as high as a text row
       if ( ! this.title ) {
-        this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.size / 2, 0), this.group);
+        this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.size/2 + titleHeight/2, 0), this.group);
       }
       this.title.text = this.titleText;
       this.title.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-      this.title.height = this.size / 10;
+      this.title.height = titleHeight;
       this.title.display();
     } else if ( this.title ) {
       this.title.dispose();

@@ -73,6 +73,22 @@ export class TextWorld extends World {
     return textArea;
   }
 
+  testAutoscale(pos, text, width = 512, fontSize = 16) {
+    let scaling = new TextArea(this.scene);
+    scaling.text = text;
+    scaling.titleText = "Title";
+    scaling.fontSize = fontSize;
+    scaling.width = width;
+    scaling.size = .1;
+    scaling.autoScale = true;
+    scaling.addHandles = false;
+    scaling.position = pos;
+    scaling.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    scaling.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    scaling.show();
+    this.selectables.push(scaling);
+  }
+  
   createUI() {
     this.selectables = [];
     
@@ -105,6 +121,11 @@ export class TextWorld extends World {
     textWrap.writeln("\nclick to clear");
     textWrap.onClick(e=>textWrap.clear());
     this.selectables.push(textWrap);
+
+    // window scaling test
+    this.testAutoscale(new BABYLON.Vector3(-10,1,5), "This is autoscaling test");
+    this.testAutoscale(new BABYLON.Vector3(-10,2,5), "This is autoscaling test", 256);
+    this.testAutoscale(new BABYLON.Vector3(-10,3,5), "This is autoscaling test", 128);
     
     // chatlog test
     let chatLog = new ChatLog(this.scene);
