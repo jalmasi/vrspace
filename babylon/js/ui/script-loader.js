@@ -26,6 +26,8 @@ export class ScriptLoader {
     for ( var script in this.scripts ) {
       if ( ! this.scripts[script] ) {
         await this.loadScript(script, parallel);
+        // debug to confirm scripts load only once
+        //console.log("Loaded script "+script);
       }
     }
   }

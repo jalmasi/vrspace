@@ -33,6 +33,8 @@ export class VRSpaceUI {
     this.debug = false;
     /** frames per second */ 
     this.fps = 5; // CHECKME: reasonable default fps
+    /** prefer 3d text over texture with text, see TextWriter */
+    this.text3d = true;
     /** Pointer to function, defaults to this.loadProgressIndiciatorFactory */
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
     /** Head-up display */
@@ -439,7 +441,6 @@ export class VRSpaceUI {
   @param parallel optionally load in parallel
   */
   async loadScriptsToDocument(urls, parallel) {
-    // TODO remember loaded scripts, do not load twice
     if ( Array.isArray(urls) ) {
       urls.forEach((url) => this.scriptLoader.add(url));
     } else {

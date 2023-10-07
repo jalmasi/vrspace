@@ -58,8 +58,12 @@ export class Avatar {
     this.bonesDepth = 0;
     this.character = null;
     this.activeAnimation = null;
-    this.writer = new TextWriter(this.scene);
-    this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    if ( VRSPACEUI.text3d ) {
+      this.writer = new TextWriter(this.scene);
+      this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    } else {
+      // TODO text window
+    }
     /** fetch API cache control - use no-cache in development */
     this.cache = 'default';
     //this.cache = 'no-cache';
@@ -1738,9 +1742,13 @@ export class Avatar {
   @param name 
   */
   async setName(name) {
-    this.writer.clear(this.parentMesh);
-    this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
-    this.writer.write(this.parentMesh, name);
+    if ( this.writer ) {
+      this.writer.clear(this.parentMesh);
+      this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
+      this.writer.write(this.parentMesh, name);
+    } else {
+      // TODO text window
+    }
     this.name = name;
   }
 
@@ -1754,21 +1762,25 @@ export class Avatar {
   }
   
   async wrote(client) {
-    var limit = 20;
-    var text = [this.name];
-    var line = '';
-    client.wrote.split(' ').forEach((word) => {
-      if ( line.length + word.length > limit ) {
-        text.push(line);
-        line = '';
-      }
-      line += word + ' ';
-    });
-    text.push(line);
-    
-    this.writer.clear(this.parentMesh);
-    this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
-    this.writer.writeArray(this.parentMesh, text);
+    if ( this.writer ) {
+      var limit = 20;
+      var text = [this.name];
+      var line = '';
+      client.wrote.split(' ').forEach((word) => {
+        if ( line.length + word.length > limit ) {
+          text.push(line);
+          line = '';
+        }
+        line += word + ' ';
+      });
+      text.push(line);
+
+      this.writer.clear(this.parentMesh);
+      this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
+      this.writer.writeArray(this.parentMesh, text);
+    } else {
+      // TODO text window
+    }
   }
   
 }

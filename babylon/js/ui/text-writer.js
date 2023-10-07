@@ -1,7 +1,9 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 
 /**
-https://doc.babylonjs.com/extensions/meshWriter
+ * 3D Text writer, based on https://doc.babylonjs.com/extensions/meshWriter
+ * Binds to a node, e.g. above avatar head.
+ * Performance penalty in write(). Once rendered, performance is fine.
  */
 export class TextWriter {
   constructor(scene) {
@@ -29,7 +31,6 @@ export class TextWriter {
         "/babylon/js/lib/meshwriter.min.js"
       ]);
       this.Writer = BABYLON.MeshWriter(this.scene, this.writerProperties);
-      console.log("TextWriter loaded");
     }
   }
 
