@@ -27,8 +27,9 @@ export class TextArea {
     this.capacity = this.width*this.height/this.fontSize;
     this.textWrapping = true;
     this.addHandles = true;
+    this.addBackground = true;
     this.canMinimize = true;
-    this.autoScale = false;
+    this.autoScale = false; // experimental, unstable
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
@@ -58,7 +59,8 @@ export class TextArea {
 
     if ( this.autoScale ) {
       if ( ! this.text ) {
-        throw new Error( "Text has to be set before autoscaling");
+        //throw new Error( "Text has to be set before autoscaling");
+        return;
       }
       // so we scale height depending on text size and width
       // i.e. add as many rows as we need
@@ -67,18 +69,20 @@ export class TextArea {
       this.size = rowsNeeded * this.size;
     }
     this.ratio = this.width/this.height;
-    
-    this.material = new BABYLON.StandardMaterial("TextAreaMaterial", this.scene);
-    this.material.alpha = this.alpha;
-    this.material.diffuseColor = new BABYLON.Color3(.2,.2,.3);
-  
+
     this.textAreaPlane = BABYLON.MeshBuilder.CreatePlane("TextAreaPlane", {width:this.size*this.ratio,height:this.size}, this.scene);
     this.textAreaPlane.parent = this.group;
-  
-    this.backgroundPlane = BABYLON.MeshBuilder.CreatePlane("BackgroundPlane", {width:this.size*this.ratio*1.05,height:this.size*1.05}, this.scene);
-    this.backgroundPlane.position = new BABYLON.Vector3(0, 0, this.size/100);
-    this.backgroundPlane.parent = this.group;
-    this.backgroundPlane.material = this.material;
+
+    if ( this.addBackground ) {
+      this.material = new BABYLON.StandardMaterial("TextAreaMaterial", this.scene);
+      this.material.alpha = this.alpha;
+      this.material.diffuseColor = new BABYLON.Color3(.2,.2,.3);
+    
+      this.backgroundPlane = BABYLON.MeshBuilder.CreatePlane("BackgroundPlane", {width:this.size*this.ratio*1.05,height:this.size*1.05}, this.scene);
+      this.backgroundPlane.position = new BABYLON.Vector3(0, 0, this.size/100);
+      this.backgroundPlane.parent = this.group;
+      this.backgroundPlane.material = this.material;
+    }    
   
     if (this.addHandles) {
       this.createHandles();
@@ -90,8 +94,8 @@ export class TextArea {
       this.height,
       false // do not handle pointer events
     );
+    this.textAreaPlane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
   
-    
     this.texture.addControl(this.textBlock);
     
     this.showTitle();
@@ -153,11 +157,15 @@ export class TextArea {
   dispose() {
     this.removeTitle();
     this.removeHandles();
-    this.textAreaPlane.dispose();
-    this.backgroundPlane.dispose();
-    this.textBlock.dispose();
-    this.texture.dispose();
-    this.material.dispose();
+    if ( this.backgroundPlane ) {
+      this.backgroundPlane.dispose();
+      this.material.dispose();
+    }
+    if ( this.texture ) {
+      this.textAreaPlane.dispose();
+      this.textBlock.dispose();
+      this.texture.dispose();
+    }
   }
   /**
    * Attach it to the hud. It does not resize automatically, just sets the parent.
@@ -228,6 +236,10 @@ export class TextArea {
   /** Print a string into a new line */
   writeln(string) {
     this.write("\n"+string);
+  }
+  /** Print a number of lines */
+  writeArray(text) {
+    text.forEach( line => this.writeln(line));
   }
   /** Remove the text */
   clear() {

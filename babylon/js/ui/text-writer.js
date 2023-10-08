@@ -73,8 +73,9 @@ export class TextWriter {
     }
   }
   
+  // TODO this doesn't do anything
   dispose() {
-    this.clear();
-    this.Writer.dispose();
+    //this.clear();
+    //this.Writer.dispose();
   }
 }
