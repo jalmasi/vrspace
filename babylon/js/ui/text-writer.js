@@ -23,7 +23,6 @@ export class TextWriter {
     this.relativeRotation = new BABYLON.Vector3( -Math.PI/2, 0, 0 );
     /** Billboard mode for the text, default none */
     this.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
-
   }
   async _initWriter() {
     if ( ! this.Writer ) {

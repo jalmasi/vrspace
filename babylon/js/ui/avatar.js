@@ -1,5 +1,5 @@
 import { TextWriter } from './text-writer.js';
-import {VRSPACEUI} from './vrspace-ui.js';
+import { VRSPACEUI } from './vrspace-ui.js';
 
 /**
 GLTF 3D Avatar.
@@ -8,6 +8,10 @@ Animation groups are also inspected and optionally modified.
 Optional fixes can be applied to an avatar, typically position of an avatar, or changing the animation.
  */
 export class Avatar {
+  /** Whether to display the name above the head, default true */
+  static displayName = true;
+  /** Should written/spoken text be displayed above the head, default true */
+  static displayText = true;
   /**
   @param scene
   @param folder ServerFolder with the content
@@ -58,11 +62,13 @@ export class Avatar {
     this.bonesDepth = 0;
     this.character = null;
     this.activeAnimation = null;
-    if ( VRSPACEUI.text3d ) {
+    /** Whether to display the name above the head, defaults to value of static displayName */
+    this.displayName = this.constructor.displayName;
+    /** Should written/spoken text be displayed above the head, defaults to value of static displayText */
+    this.displayText = this.constructor.displayText;
+    if ( this.displayName || this.displayText ) {
       this.writer = new TextWriter(this.scene);
       this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-    } else {
-      // TODO text window
     }
     /** fetch API cache control - use no-cache in development */
     this.cache = 'default';
@@ -1742,12 +1748,10 @@ export class Avatar {
   @param name 
   */
   async setName(name) {
-    if ( this.writer ) {
+    if ( this.writer && this.displayName ) {
       this.writer.clear(this.parentMesh);
       this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
       this.writer.write(this.parentMesh, name);
-    } else {
-      // TODO text window
     }
     this.name = name;
   }
@@ -1762,7 +1766,7 @@ export class Avatar {
   }
   
   async wrote(client) {
-    if ( this.writer ) {
+    if ( this.writer && this.displayText ) {
       var limit = 20;
       var text = [this.name];
       var line = '';
@@ -1778,8 +1782,6 @@ export class Avatar {
       this.writer.clear(this.parentMesh);
       this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
       this.writer.writeArray(this.parentMesh, text);
-    } else {
-      // TODO text window
     }
   }
   
