@@ -1,3 +1,5 @@
+import { VRSPACEUI } from "./vrspace-ui.js";
+
 /**
 Text label somewhere in space.
 CHECKME position of the label is actually center of the text plane
@@ -49,6 +51,9 @@ export class Label {
   setColor(string) {
     this.textBlock.color = string;
   }
+  /**
+   * Display the text - call this only once.
+   */
   display() {
     this.textBlock = new BABYLON.GUI.TextBlock();
     this.textBlock.text = this.text;
@@ -56,7 +61,11 @@ export class Label {
     this.textBlock.textVerticalAlignment = this.verticalAlignment;
     this.textBlock.color = this.color;
   
-    this.textPlane = BABYLON.MeshBuilder.CreatePlane("Text-"+this.text, {height:this.height,width:this.text.length/this.fontRatio*this.height});
+    this.textPlane = BABYLON.MeshBuilder.CreatePlane(
+      "Text-"+this.text, 
+      {height:this.height,width:this.text.length/this.fontRatio*this.height}, 
+      VRSPACEUI.scene // makes no difference
+    );
     this.textPlane.parent = this.parent;
     //this.textPlane.position = new BABYLON.Vector3(this.text.length/2,this.spacing*2,0);
     this.textPlane.position = this.position;
@@ -71,6 +80,7 @@ export class Label {
       height,
       false // mouse events disabled
     );
+    //this.textPlane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST; // makes no difference
     this.texture.addControl(this.textBlock);
 
     if ( this.background ) {

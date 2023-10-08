@@ -33,8 +33,8 @@ export class VRSpaceUI {
     this.debug = false;
     /** frames per second */ 
     this.fps = 5; // CHECKME: reasonable default fps
-    /** prefer 3d text over texture with text, see TextWriter */
-    this.text3d = true;
+    /** prefer 3d text over texture with text, see TextWriter, Avatar */
+    this.text3d = false;
     /** Pointer to function, defaults to this.loadProgressIndiciatorFactory */
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
     /** Head-up display */

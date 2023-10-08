@@ -70,8 +70,34 @@ class AssetSync {
     // instantiate
     // make sure to enable before instantiating, or we may get invisible copy
     var isEnabled = this.container.meshes[0].isEnabled();
-    this.container.meshes.forEach(mesh=>mesh.setEnabled(true));
-    var instances = this.container.instantiateModelsToScene();
+    this.container.meshes.forEach(mesh=>{
+      mesh.setEnabled(true); 
+      if ( mesh.getChildren().length > 1 && mesh.getChildren()[1].VRObject) {
+        console.log("VRObject found on "+mesh);
+        let obj = mesh.getChildren()[1];
+        obj.parent = null;
+        obj.VRObject.dispose();
+      }
+    });
+    var instances = this.container.instantiateModelsToScene(
+      name=>"Clone "+this.numberOfInstances+" of "+name,
+      true,
+      // options object introduced in babylon 5
+      {
+        doNotInstantiate:
+        node => {
+          console.log("Cloning "+node);
+          return true;
+        },
+        predicate:
+        mesh=>{
+          if ( mesh.getChildren().length > 1 && mesh.getChildren()[1].VRObject) console.log("VRObject found on "+mesh);
+          if ( mesh.VRObject ) console.log("VRObject found on "+mesh);
+          console.log("Cloning "+mesh);
+          return true;
+        }
+      }
+    );
     this.container.meshes[0].setEnabled(isEnabled);
     console.log("Instantiated "+this.numberOfInstances+" of "+this.url);
     try {

@@ -1,5 +1,6 @@
 import { TextWriter } from './text-writer.js';
-import {VRSPACEUI} from './vrspace-ui.js';
+import { VRSPACEUI } from './vrspace-ui.js';
+import { TextArea } from './text-area.js';
 
 /**
 GLTF 3D Avatar.
@@ -62,7 +63,13 @@ export class Avatar {
       this.writer = new TextWriter(this.scene);
       this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
     } else {
-      // TODO text window
+      this.textArea = new TextArea(this.scene, 'avatar-text');
+      this.textArea.size = .2;
+      this.textArea.addHandles = false;
+      this.textArea.autoScale = true;
+      this.textArea.position = new BABYLON.Vector3(0,2,0);
+      this.textArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      this.textArea.show();
     }
     /** fetch API cache control - use no-cache in development */
     this.cache = 'default';
@@ -176,6 +183,8 @@ export class Avatar {
     if ( this.debugViewer2 ) {
       this.debugViewer2.dispose();
     }
+    /**
+    // CHECKME these seem obsolete
     if ( this.nameTag ) {
       this.nameTag.dispose();
     }
@@ -187,13 +196,23 @@ export class Avatar {
       this.textParent.dispose();
       this.textParent = null;
     }
+     */
+    if ( this.textArea ) {
+      this.textArea.dispose();
+    }
+    if ( this.writer ) {
+      this.writer.dispose();
+    }
     // TODO also dispose of materials and textures (asset container)
   }
   hide() {
+    /*
+    // CHECKME obsolete?
     if ( this.nameMesh ) {
       this.nameMesh.dispose();
       this.nameParent.dispose();
     }
+    */
     if ( this.character && this.parentMesh ) {
       this.parentMesh.setEnabled(false);
       // CHECKME: turnAround for cloned character
@@ -513,9 +532,16 @@ export class Avatar {
             this.parentMesh = instantiatedEntries.rootNodes[0];
             this.rootMesh = this.parentMesh.getChildren()[0];
             if ( this.parentMesh.getChildren().length > 1 ) {
+              let c = this.parentMesh.getChildren()[1];
               // clean up any existing text cloned along with container
-              console.log("Disposing of text ", this.parentMesh.getChildren()[1])
-              this.parentMesh.getChildren()[1].dispose();
+              console.log("Disposing of cloned child "+c.getClassName()+" "+c.name, c);
+              // c = TextArea group
+              // c.getChildren()[1] = Label Plane
+              if ( c.VRObject ) {
+                console.log("Disposing of VRObject "+c.VRObject);
+              }
+              // FIXME this does dispose of mesh, but leaks material and/or texture of the AdvancedTexture
+              c.dispose();
             }
             this.getAnimationGroups(instantiatedEntries.animationGroups);
             this.skeleton = instantiatedEntries.skeletons[0];
@@ -1747,7 +1773,11 @@ export class Avatar {
       this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
       this.writer.write(this.parentMesh, name);
     } else {
-      // TODO text window
+      this.textArea.titleText = name;
+      this.textArea.group.parent = this.parentMesh;
+      this.textArea.group.VRObject = this.textArea;
+      //this.textArea.group.position = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0))
+      this.textArea.showTitle();
     }
     this.name = name;
   }

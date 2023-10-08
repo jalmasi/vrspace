@@ -58,7 +58,8 @@ export class TextArea {
 
     if ( this.autoScale ) {
       if ( ! this.text ) {
-        throw new Error( "Text has to be set before autoscaling");
+        //throw new Error( "Text has to be set before autoscaling");
+        return;
       }
       // so we scale height depending on text size and width
       // i.e. add as many rows as we need
@@ -91,7 +92,6 @@ export class TextArea {
       false // do not handle pointer events
     );
   
-    
     this.texture.addControl(this.textBlock);
     
     this.showTitle();
@@ -101,14 +101,26 @@ export class TextArea {
    */
   showTitle() {
     if (this.titleText) {
-      let titleHeight = this.size / this.getMaxRows() * 2; // twice as high as a text row
-      if ( ! this.title ) {
-        this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.size/2 + titleHeight/2, 0), this.group);
+      // defaults if we're displaying the title before any text was displayed
+      let titleHeight = this.size;
+      if ( this.texture ) {
+        // texture exists, so reposition title above the text
+        titleHeight = this.size / this.getMaxRows() * 2; // twice as high as a text row
       }
-      this.title.text = this.titleText;
-      this.title.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-      this.title.height = titleHeight;
-      this.title.display();
+      let verticalOffset = 1.2 * this.size/2 + titleHeight/2;
+      if ( ! this.title ) {
+        this.title = new Label("avatar-title", new BABYLON.Vector3(0, verticalOffset, 0), this.group);
+        if ( this.titleText.length < 32 ) {
+          // ensure some minimal capacity for successive calls
+          // TODO take a text argument to this method instead?
+          this.title.text = ' '.repeat(32);
+        }
+        this.title.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+        this.title.height = titleHeight;
+        this.title.display();
+      } else {
+        this.title.setText(this.titleText);
+      }
     } else if ( this.title ) {
       this.title.dispose();
       this.title = null;
@@ -153,11 +165,14 @@ export class TextArea {
   dispose() {
     this.removeTitle();
     this.removeHandles();
-    this.textAreaPlane.dispose();
-    this.backgroundPlane.dispose();
     this.textBlock.dispose();
-    this.texture.dispose();
-    this.material.dispose();
+    if ( this.texture ) {
+      this.textAreaPlane.dispose();
+      this.backgroundPlane.dispose();
+      this.texture.dispose();
+      this.material.dispose();
+    }
+    this.group.dispose();
   }
   /**
    * Attach it to the hud. It does not resize automatically, just sets the parent.
