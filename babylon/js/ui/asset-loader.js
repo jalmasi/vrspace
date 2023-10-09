@@ -68,7 +68,11 @@ class AssetSync {
   instantiate(callback) {
     console.log('instantiating '+this.numberOfInstances+" of "+this.url);
     // instantiate
+    // make sure to enable before instantiating, or we may get invisible copy
+    var isEnabled = this.container.meshes[0].isEnabled();
+    this.container.meshes.forEach(mesh=>mesh.setEnabled(true));
     var instances = this.container.instantiateModelsToScene();
+    this.container.meshes[0].setEnabled(isEnabled);
     console.log("Instantiated "+this.numberOfInstances+" of "+this.url);
     try {
       callback(this.url, this.container, this.info, instances);

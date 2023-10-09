@@ -37,7 +37,7 @@ public class StreamManager {
   @Value("#{systemProperties['openvidu.secret'] ?: '${openvidu.secret:none}' }")
   private String openViduSecret;
 
-  private Map<String, Session> sessions = new ConcurrentHashMap<String, Session>();
+  private Map<String, Session> sessions = new ConcurrentHashMap<>();
 
   private Session startStreamingSession(String name) throws OpenViduException {
     Session ret = null;
@@ -83,11 +83,10 @@ public class StreamManager {
     return token;
   }
 
-  public void disconnect(Client client) throws OpenViduException {
+  public void disconnect(Client client, String worldName) throws OpenViduException {
     // client is only connected if it has session token
-    if (client.getToken(serviceId) != null && client.getWorld() != null) {
-      String name = client.getWorld().getName();
-      Session session = sessions.get(name);
+    if (client.getToken(serviceId) != null && worldName != null) {
+      Session session = sessions.get(worldName);
       if (session != null) {
         session.fetch();
         List<Connection> activeConnections = session.getActiveConnections();
@@ -97,10 +96,10 @@ public class StreamManager {
           if (client.getId().toString().equals(connection.getServerData())) {
             session.forceDisconnect(connection);
             client.clearToken(serviceId);
-            log.debug("Disconnected client " + client.getId() + " from world " + name);
+            log.debug("Disconnected client " + client.getId() + " from world " + worldName);
             if (activeConnections.size() <= 1) {
-              sessions.remove(name);
-              log.info("Removed streaming session " + name);
+              sessions.remove(worldName);
+              log.info("Removed streaming session " + worldName);
             }
             break;
           }
@@ -119,7 +118,7 @@ public class StreamManager {
   public void join(Client client, World world) {
     if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
       try {
-        disconnect(client);
+        disconnect(client, world.getName());
       } catch (OpenViduException e) {
         log.error("Failed to disconnect client " + client, e);
       }

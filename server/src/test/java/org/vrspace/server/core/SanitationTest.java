@@ -14,12 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
+import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@SpringBootTest
+@SpringBootTest(classes = JacksonConfig.class)
 public class SanitationTest {
 
   @Autowired

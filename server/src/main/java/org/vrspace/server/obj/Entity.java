@@ -8,16 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
- * This is whatever we need to store to the database. Should be abstract class
- * but Neo4J doesn't allow it.
- *
+ * This is whatever we need to store to the database.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Node
+@ToString
 public abstract class Entity {
   @Id
   @GeneratedValue

@@ -34,10 +34,19 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @ConditionalOnProperty("org.vrspace.db")
 public class NeoConfig {
+  /** Directory containing embedded database, property org.vrspace.db */
   @Value("${org.vrspace.db}")
   private String dbPath;
+  /**
+   * Recursive removal database directory on startup and shutdown, used in tests.
+   * Property org.vrspace.db.cleanup, default false
+   */
   @Value("${org.vrspace.db.cleanup:false}")
   private boolean cleanup;
+  /**
+   * Neo4j database URI, defaults to embedded/local database, bolt://localhost.
+   * Property spring.neo4j.uri
+   */
   @Value("${spring.neo4j.uri:bolt://localhost}")
   private String neoUri;
 
@@ -45,8 +54,8 @@ public class NeoConfig {
   private DatabaseManagementService managementService;
   private File dbDir;
 
-  @Bean
-  public GraphDatabaseService config() throws URISyntaxException, IOException {
+  @Bean("database")
+  GraphDatabaseService config() throws URISyntaxException, IOException {
     String path = dbPath;
     log.info("Configured database uri: " + path);
     path = path.replace('\\', '/');
@@ -57,7 +66,8 @@ public class NeoConfig {
     return graphDb;
   }
 
-  public void neoStart(Path dbDir) {
+  private void neoStart(Path dbDir) {
+    cleanup();
     int port = BoltConnector.DEFAULT_PORT;
     int pos = neoUri.indexOf(":", neoUri.indexOf("://") + 1);
     if (pos > 0) {
@@ -78,9 +88,12 @@ public class NeoConfig {
     // and now indexes
     graphDb.executeTransactionally("CREATE CONSTRAINT worldName IF NOT EXISTS ON (w:World) ASSERT w.name IS UNIQUE");
     graphDb.executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS ON (c:Client) ASSERT c.name IS UNIQUE");
-    graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.world)");
+    graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.worldId)");
     graphDb.executeTransactionally("CREATE INDEX pointCoord IF NOT EXISTS FOR (p:Point) ON (p.x, p.y, p.z)");
-
+    // only single property uniqueness constraints are supported
+    // "CREATE CONSTRAINT ownership IF NOT EXISTS on (o:Ownership) ASSERT
+    // (o.owner,o.owned) IS UNIQUE");
+    graphDb.executeTransactionally("CREATE INDEX ownership IF NOT EXISTS FOR (o:Ownership) ON (o.owner,o.owned)");
   }
 
   @PreDestroy
@@ -88,6 +101,10 @@ public class NeoConfig {
     log.info("Database shutting down...");
     managementService.shutdown();
     log.info("Database shutting down complete");
+    cleanup();
+  }
+
+  private void cleanup() {
     if (cleanup && dbDir != null) {
       log.info("Deleting database directory " + dbDir);
       FileSystemUtils.deleteRecursively(dbDir);

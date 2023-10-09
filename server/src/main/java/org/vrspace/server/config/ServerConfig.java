@@ -31,6 +31,9 @@ public class ServerConfig {
   @Value("${org.vrspace.server.sessionStartTimeout:0}")
   private int sessionStartTimeout;
 
+  @Value("${org.vrspace.server.selenium-enabled:false}")
+  private boolean seleniumEnabled;
+
   // CHECKME: somewhere else?
   @Value("${org.vrspace.writeback.enabled:true}")
   private volatile boolean writeBackActive = true;
@@ -38,5 +41,13 @@ public class ServerConfig {
   @Value("${org.vrspace.writeback.delay:1000}")
   private long writeBackDelay = 1000;
 
+  @Value("${org.vrspace.server.description:developer}")
+  private String serverDescripton;
+  @Value("${org.vrspace.server.url:localhost}")
+  private String serverUrl;
+  @Value("${org.vrspace.server.thumbnail:/content/worlds/galaxy.jpg}")
+  private String serverThumbnail;
+  @Value("${org.vrspace.server.available:false}")
+  private boolean available;
   // TODO introduce getters for server directories, e.g. content dir
 }

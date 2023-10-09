@@ -1,4 +1,14 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, OpenViduStreams, ServerFolder, ServerFile } from './js/vrspace-min.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm } from './js/vrspace-min.js';
+
+// this is supposed to evolve into stand-alone REST client class
+class VRSpaceAPI {
+  base = "/vrspace/api";
+  endpoint = {
+    worlds : this.base+"/worlds",
+    user : this.base+"/user",
+    oauth2: this.base+"/oauth2"
+  }
+}
 
 export class AvatarSelection extends World {
   constructor() {
@@ -7,10 +17,15 @@ export class AvatarSelection extends World {
     this.serverUrl = null;
     /** content base, defaults to VRSPACEUI.contentBase */
     this.contentBase = VRSPACEUI.contentBase;
-    /** background base dir, null defaults to contentBase+"/content/skybox/mp_drakeq/drakeq" */
+    /** background base dir, null defaults to contentBase+"/content/skybox/mp_drakeq/drakeq" (box) 
+    or "/content/skybox/eso_milkyway/eso0932a.jpg" (panoramic)*/
     this.backgroundPath = null;
+    /** Is backgroundPath a panoramic image? Default false (directory containing 6 images) */
+    this.backgroundPanorama = false;
     /** character base dir, null defaults to contentBase+'/content/char/' */
     this.characterPath = null;
+    /** character animation folder, null defaults to contentBase+'/content/rpm-anim/' */
+    this.animationPath = null;
     /** world base dir, null defaults to contentBase+'/content/worlds' */
     this.worldPath = null;
     /** function to call just before entering a world */
@@ -27,26 +42,44 @@ export class AvatarSelection extends World {
     this.customOptions=null;
     /** movement tracking/animation frames per second */
     this.fps = 50;
+    /** Enable Oauth2 login */
+    this.oauth2enabled = true;
     /** default user height, 1.8 m */
     this.userHeight = 1.8;
+    /** is anonymous entry (guest login) allowed */
+    this.anonymousAllowed = true;
     /** enable plenty of debug info */
     this.debug=false;
     // state variables
     this.mirror = true;
+    this.authenticated = false;
+    this.customAnimations = [];
     this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000/this.fps;
+    this.api = new VRSpaceAPI();
   }
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
-    skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    if ( this.backgroundPanorama ) {
+      var skybox= new BABYLON.PhotoDome("skyDome", 
+        this.backgroundDir(),
+        {
+          resolution: 32,
+          size: 1000
+        },
+        this.scene
+      );
+    } else {
+      var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
+      skybox.rotation = new BABYLON.Vector3( 0, Math.PI, 0 );
+      var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+      skyboxMaterial.backFaceCulling = false;
+      skyboxMaterial.disableLighting = true;
+      skybox.material = skyboxMaterial;
+      skybox.infiniteDistance = true;
+      skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
+      skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    }
     return skybox;
   }
   async createCamera() {
@@ -78,10 +111,72 @@ export class AvatarSelection extends World {
     // 1g makes nasty floor collisions
     this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
   }
+  async createUI () {
+    let providers = await this.getJson(this.api.endpoint.oauth2+'/providers'); // TODO API call lib
+    this.loginForm = new LoginForm(
+      (text)=>this.setMyName(text),
+      ()=>this.checkValidName(),
+      (providerId,providerName)=>this.oauth2login(providerId,providerName),
+      providers
+    );
+    // position the form just in front of avatar
+    // make room for virtual keyboard, and resize/mirror buttons
+    this.loginForm.position = new BABYLON.Vector3(0,1,-0.5);
+    this.loginForm.init(); // starts speech recognition
+    // testing various REST calls here
+    this.getAuthenticated().then( isAuthenticated => {
+      if ( isAuthenticated ) {
+        this.authenticated = true;
+        this.getUserName().then( name => {
+          this.setMyName(name);
+        });
+        this.getUserObject().then( me => {
+          console.log("user mesh "+me.mesh, me);
+          if ( me.mesh ) {
+            this.loadCharacterUrl( me.mesh );
+          }
+          this.loginForm.dispose();
+        });
+      }
+    });
+    
+  }
+  
+  // CHECKME this is confusing as it enables/disables portals
+  checkValidName() {
+    let ret = true;
+    if ( this.authenticated ) {
+      this.portalsEnabled(true);
+    } else {
+      console.log( 'checking name '+this.userName);
+      if ( this.userName ) {
+        this.verifyName(this.userName).then( validName => {
+          console.log("Valid name: "+validName);
+          if ( validName ) {
+            this.loginForm.defaultLabel();
+            canvas.focus();
+          } else {
+            //this.loginForm.setLabel("INVALID NAME, try another:");
+            this.loginForm.setLabel("Existing name, log in:");
+            ret = false;
+          }
+          this.portalsEnabled(validName);
+        });
+      } else {
+        this.loginForm.defaultLabel();
+        this.portalsEnabled(this.anonymousAllowed);
+      }
+    }
+    return ret;
+  }
+
   
   backgroundDir() {
     if ( this.backgroundPath ) {
       return this.backgroundPath;
+    }
+    if ( this.backgroundPanorama ) {
+      return this.contentBase+"/content/skybox/eso_milkyway/eso0932a.jpg";
     }
     return this.contentBase+"/content/skybox/mp_drakeq/drakeq";
   }
@@ -91,6 +186,12 @@ export class AvatarSelection extends World {
     }
     return this.contentBase+'/content/char/';
   }
+  animationDir() {
+    if ( this.animationPath ) {
+      return this.animationPath;
+    }
+    return this.contentBase+'/content/rpm-anim/';
+  }
   worldDir() {
     if ( this.worldPath ) {
       return this.worldPath;
@@ -99,7 +200,10 @@ export class AvatarSelection extends World {
   }
   
   isSelectableMesh(mesh) {
-    return mesh == this.ground || mesh.name && (mesh.name.startsWith("Button") || mesh.name.startsWith("PortalEntrance"));
+    return mesh == this.ground
+      || this.loginForm && this.loginForm.isSelectableMesh(mesh) 
+      || mesh.name && (mesh.name.startsWith("Button") 
+      || mesh.name.startsWith("PortalEntrance"));
   }
   
   getFloorMeshes() {
@@ -107,7 +211,6 @@ export class AvatarSelection extends World {
   }
   
   load( name, file ) {
-    //this.xrDeviceTracker = () => {this.trackXrDevices()}
     this.loaded(file, null);
   }
   
@@ -121,21 +224,21 @@ export class AvatarSelection extends World {
       ) {
       this.trackTime = Date.now();
       // CHECKME: mirror left-right
-      if ( this.vrHelper.leftController ) {
+      if ( this.vrHelper.controller.left ) {
         if ( this.mirror ) {
-          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.leftController);
+          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.left);
           this.character.reachFor( this.character.body.leftArm, leftPos );
         } else {
-          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.leftController);
+          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.left);
           this.character.reachFor( this.character.body.rightArm, leftPos );
         }
       }
-      if ( this.vrHelper.rightController ) {
+      if ( this.vrHelper.controller.right ) {
         if ( this.mirror ) {
-          var rightPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.rightController );
+          var rightPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.right );
           this.character.reachFor( this.character.body.rightArm, rightPos );
         } else {
-          var rightPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.rightController );
+          var rightPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.right );
           this.character.reachFor( this.character.body.leftArm, rightPos );
         }
       }
@@ -165,7 +268,20 @@ export class AvatarSelection extends World {
     return target;
   }
 
+  listAnimations() {
+    VRSPACEUI.listDirectory( this.animationDir(), animations => {
+      this.customAnimations = animations;
+    });
+  }
+  
   createSelection(selectionCallback) {
+    if ( window.location.search ) {
+      var avatarUrl = new URLSearchParams(window.location.search).get("avatarUrl");
+      if ( avatarUrl ) {
+        this.loadCharacterUrl(avatarUrl);
+      }
+    }
+    
     this.selectionCallback = selectionCallback;
     VRSPACEUI.listMatchingFiles( this.characterDir(), (folders) => {
       folders.push({name:"video"});
@@ -178,6 +294,7 @@ export class AvatarSelection extends World {
       buttons.select(0);
       this.mainButtons = buttons;
     });
+    this.listAnimations();
   }
   
   async createAvatarSelection(folder) {
@@ -268,11 +385,7 @@ export class AvatarSelection extends World {
         // https://d1a370nemizbjq.cloudfront.net/a13ab5dc-358d-45e4-a602-446b9c840155.glb
         console.log("Avatar URL: "+avatarUrl);
         this.customAvatarFrame.hidden = true;
-        var pos = avatarUrl.lastIndexOf('/');
-        var path = avatarUrl.substring(0,pos);
-        var file = avatarUrl.substring(pos+1);
-        var folder = new ServerFolder( path, "");
-        this.loadCharacter(folder, file);
+        this.loadCharacterUrl(avatarUrl);
       }
 
       // Get user id
@@ -287,10 +400,10 @@ export class AvatarSelection extends World {
     
   }
 
-  loadCharacterUrl( url ) {
+  loadCharacterUrl(url) {
     console.log('loading character from '+url);
     var file = new ServerFile( url );
-    this.loadCharacter( file, file.file);
+    this.loadCharacter( file, file.file );
   }
   
   loadCharacter(dir, file="scene.gltf") {
@@ -300,6 +413,7 @@ export class AvatarSelection extends World {
     console.log("Loading character from "+dir.name);
     var loaded = new Avatar(this.scene, dir, this.shadowGenerator);
     loaded.file = file;
+    loaded.animations = this.customAnimations;
     // resize the character to real-world height
     if ( this.inXR ) {
       this.userHeight = this.vrHelper.camera().realWorldHeight;
@@ -321,6 +435,7 @@ export class AvatarSelection extends World {
       if ( this.selectionCallback ) {
         this.selectionCallback(this.character);
       }
+      this.checkValidName(); // conditionally enables portals
     });
   }
 
@@ -358,33 +473,32 @@ export class AvatarSelection extends World {
     return data;
   }
 
-  async setLoginName(name) {
-    var validName = await this.getText("/user/available?name="+name);
-    console.log("Valid name: "+validName);
-    if ( validName ) {
-      this.userName = name;
-    }
-    return validName;
+  async verifyName(name) {
+    var validName = await this.getText(this.api.endpoint.user+"/available?name="+name);
+    return validName === "true";
   }
   
-  oauth2login() {
-    window.open('/oauth2/login?name='+this.userName, '_top');
+  async oauth2login(providerId,providerName) {
+    if ( this.oauth2enabled ) {
+      console.log(providerId,providerName);
+      window.open(this.api.endpoint.oauth2+'/login?name='+this.userName+'&provider='+providerId+'&avatar='+this.avatarUrl(), '_top');
+    }
   }
   
   async getUserName() {
-    var loginName = await this.getText("/user/name");
+    var loginName = await this.getText(this.api.endpoint.user+"/name");
     console.log("User name: "+loginName);
     return loginName;
   }
   
   async getUserObject() {
-    var userObject = await this.getJson("/user/object");
+    var userObject = await this.getJson(this.api.endpoint.user+"/object");
     console.log("User object ", userObject);
-    return userObject.Client;
+    return userObject.User;
   }
   
   async getAuthenticated() {
-    var isAuthenticated = await this.getText("/user/authenticated");
+    var isAuthenticated = await this.getText(this.api.endpoint.user+"/authenticated");
     console.log("User is authenticated: "+isAuthenticated);
     return 'true' === isAuthenticated;
   }
@@ -402,7 +516,7 @@ export class AvatarSelection extends World {
       if ( group.isPlaying ) {
         playing = i;
       }
-      avatar.processAnimations(group.targetedAnimations);
+      avatar.processAnimations(group);
     }
     console.log("Animations: "+names);
     if ( this.animationSelection ) {
@@ -465,26 +579,50 @@ export class AvatarSelection extends World {
   
   showPortals() {
     this.portals = {};
-    VRSPACEUI.listThumbnails(this.worldDir(), (worlds) => {
-      var radius = this.room.diameter/2;
+    var radius = this.room.diameter/2;
+    var angle = 0;
+
+    /* looks like failed experiment
+    if ( window.location.search ) {
+      // use specified worlds
+      // at the moment, world folder still has to exist on the server
+      var worldList = new URLSearchParams(window.location.search).get("worlds");
+      // use specified worlds to bring up portals
+      var worlds = worldList.split(',');
       var angleIncrement = 2*Math.PI/worlds.length;
-      var angle = 0;
       for ( var i=0; i < worlds.length; i++ ) {
         var x = Math.sin(angle)*radius;
         var z = Math.cos(angle)*radius;
-        // heavy performance impact
-        //new Portal( scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
-        var portal = new Portal( scene, worlds[i], (p)=>this.enterPortal(p));
+        // CHECKME: this ignores baseUrl
+        var serverFolder = new ServerFolder(this.worldDir()+"/", worlds[i]);
+        var portal = new Portal( scene, serverFolder, (p)=>this.enterPortal(p));
         this.portals[portal.name] = portal;
         portal.loadAt( x,0,z, angle);
         angle += angleIncrement;
       }
-      this.showActiveUsers();
-    });
+    } else {
+    */
+      // by default, list worlds from /content/worlds directory
+      VRSPACEUI.listThumbnails(this.worldDir(), (worlds) => {
+        var angleIncrement = 2*Math.PI/worlds.length;
+        for ( var i=0; i < worlds.length; i++ ) {
+          var x = Math.sin(angle)*radius;
+          var z = Math.cos(angle)*radius;
+          // heavy performance impact
+          //new Portal( scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
+          var portal = new Portal( scene, worlds[i], (p)=>this.enterPortal(p));
+          this.portals[portal.name] = portal;
+          portal.loadAt( x,0,z, angle);
+          angle += angleIncrement;
+        }
+      });
+    //}
+    this.showActiveUsers();
   }
 
+  // TODO: API client class/library
   showActiveUsers() {
-    fetch('/worlds/users').then(response=>response.json().then(worldStats=>{
+    fetch(this.api.endpoint.worlds+'/users').then(response=>response.json().then(worldStats=>{
       if ( worldStats ) {
         worldStats.forEach(stat=>{
           //console.log(stat);
@@ -514,6 +652,7 @@ export class AvatarSelection extends World {
   removePortals() {
     if (this.portals) {
       for ( var worldName in this.portals) {
+        console.log("Disposing of portal "+worldName);
         this.portals[worldName].dispose();
       }
       delete this.portals;
@@ -529,7 +668,9 @@ export class AvatarSelection extends World {
   }
   
   async enterPortal( portal ) {
-    this.enterWorld(portal.worldUrl(), portal.name );
+    if ( this.checkValidName() ) {
+      this.enterWorld(portal.worldUrl(), portal.name );
+    }
   }
   
   async enterWorld( worldUrl, worldName, avatarUrl = this.avatarUrl(), worldScript  = 'world.js') {
@@ -543,17 +684,19 @@ export class AvatarSelection extends World {
     if ( this.beforeEnter ) {
       this.beforeEnter(this);
     }
+    this.loginForm.dispose();
     import(worldUrl+'/'+worldScript).then((world)=>{
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;
-        
-        console.log(world);
+        world.inXR = this.inXR;
         
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
         this.worldManager.customOptons = this.customOptions;
+        this.worldManager.customAnimations = this.customAnimations;
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
+        //this.worldManager.remoteLogging = true;
         
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
@@ -566,7 +709,7 @@ export class AvatarSelection extends World {
           mesh:avatarUrl, 
           userHeight:this.userHeight, 
           // send custom shared transient properties like this:
-          properties:{string:'string', number:123.456}
+          //properties:{string:'string', number:123.456}
         };
         if ( this.userName ) {
           myProperties.name = this.userName;
@@ -575,7 +718,12 @@ export class AvatarSelection extends World {
           myProperties
         ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
-          this.worldManager.pubSub(welcome.client, 'video' === avatarUrl);
+          this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
+          if ( this.character ) {
+            // character is null for e.g. video avatar
+            var controller = new AvatarController(this.worldManager, this.character);
+            this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
+          }
           if ( this.afterEnter ) {
             this.afterEnter(this, world);
           }
@@ -615,8 +763,6 @@ export class AvatarSelection extends World {
           // scene.gamepadManager does not emit event to the new camera
           if ( gamepad ) {
             world.WORLD.camera.inputs.attached.gamepad.gamepad = gamepad;
-            // TODO: this is to simulate mouse click/screen tap
-            gamepad.onButtonUpObservable.add( (number) => console.log(number) );          
           }
           // CHECKME: why?
           this.scene.activeCamera = world.WORLD.camera;
@@ -633,10 +779,12 @@ export class AvatarSelection extends World {
     this.removePortals();
     this.room.dispose(); // AKA ground
     // CHECKME properly dispose of avatar
+    // disposing of own character effectively disables 3rd person view etc
     if ( this.character ) {
-      this.character.dispose();
+      //this.character.dispose();
       //VRSPACEUI.assetLoader.unloadAsset(this.character.getUrl());
-      this.character = null;
+      //this.character = null;
+      this.character.hide();
     }
     
     if ( this.mainButtons ) {

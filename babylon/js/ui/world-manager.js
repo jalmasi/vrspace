@@ -26,6 +26,8 @@ export class WorldManager {
     this.createAnimations = true;
     /** Custom avatar options, applied to avatars after loading. Currently video avatars only */
     this.customOptions = null;
+    /** Custom avatar animations */
+    this.customAnimations = null;
     /** Whether to track user rotation, default true. */
     this.trackRotation = true;
     /** Used in 3rd person view */
@@ -85,19 +87,22 @@ export class WorldManager {
     this.debug = false;
     this.world.worldManager = this;
     this.notFound = []; // 404 cache used for avatar fix files
+    VRSPACEUI.init(this.scene); // to ensure assetLoader is available
   }
-
   /** Publish and subscribe */
-  pubSub( client, autoPublishVideo ) {
-    this.log("Subscribing as client "+client.id+" with token "+client.token);
-    if ( client.token && this.mediaStreams ) {
+  pubSub( user, autoPublishVideo ) {
+    // CHECKME: should it be OpenVidu or general streaming service name?
+    if ( this.mediaStreams && user.tokens && user.tokens.OpenVidu ) {
+      this.log("Subscribing as User "+user.id+" with token "+user.tokens.OpenVidu);
       // obtain token and start pub/sub voices
       if ( autoPublishVideo ) {
         this.mediaStreams.startVideo = true;
         this.mediaStreams.videoSource = undefined;
       }
-      this.mediaStreams.connect(client.token).then(() => this.mediaStreams.publish());
+      this.mediaStreams.connect(user.tokens.OpenVidu).then(() => this.mediaStreams.publish());
     }
+    // we may need to pause/unpause audio publishing during speech input
+    VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
   }
 
   /** Optionally log something */
@@ -146,9 +151,10 @@ export class WorldManager {
     return this.interval != null;
   }
 
-  /** Callend when scene has changed (scene listener). 
+  /** Called when scene has changed (scene listener). 
   If an object was added, calls either loadAvatar, loadStream or loadMesh, as appropriate.
   If an object was removed, calls removeMesh.
+  Any WorldListeners on the world are notified after changes are performed, by calling added and removed methods.
   @param e SceneEvent containing the change
   */
   sceneChanged(e) {
@@ -162,14 +168,38 @@ export class WorldManager {
         this.loadStream( e.added );
       } else if (e.added.mesh) {
         this.loadMesh(e.added);
+      } else if (e.added.script) {
+        this.loadScript(e.added);
       } else {
         // TODO server needs to ensure that mesh exists
         // in the meantime we define default behavior here
         console.log("WARNING: can't load "+e.objectId+" - no mesh");
       }
+      this.world.worldListeners.forEach(listener => {
+        try {
+          if ( listener.added ) {
+            listener.added(e.added);
+          }
+        } catch ( error ) {
+          console.log("Error in world listener", error);
+        }
+      });
     } else if (e.removed != null) {
       this.log("REMOVED " + e.objectId + " new size " + e.scene.size)
       this.removeMesh( e.removed );
+      try {
+        this.world.worldListeners.forEach(listener => {
+          try {
+            if ( listener.removed ) {
+              listener.removed(e.removed);
+            }
+          } catch ( error ) {
+            console.log("Error in world listener", error);
+          }
+        });
+      } catch ( error ) {
+        console.log("Error in scene listener",error);
+      }
     } else {
       this.log("ERROR: invalid scene event");
     }
@@ -274,11 +304,14 @@ export class WorldManager {
     }
     var folder = new ServerFolder( baseUrl, dir, fix );
     var avatar = new Avatar(this.scene, folder);
+    avatar.animations = this.customAnimations;
     avatar.file = file;
     avatar.fps = this.fps;
     avatar.userHeight = obj.userHeight;
     avatar.animateArms = this.createAnimations;
-    avatar.turnAround = true; // GLTF characters are facing the user when loaded, turn it around
+    // GLTF characters are facing the user when loaded, turn it around
+    // FIXME this doesn't work for cloned characters, see Avatar.hide()
+    avatar.turnAround = true;
     avatar.debug = false;
     avatar.load( (avatar) => {
       // FIXME: this is not container but avatar
@@ -302,7 +335,12 @@ export class WorldManager {
         this.mediaStreams.streamToMesh(obj, obj.container.parentMesh);        
       }
       this.notifyLoadListeners(obj, avatar);
-    });
+    }, (error) => {
+      console.log("Failed to load avatar, loading as mesh");
+      obj.hasAvatar = false;
+      this.loadMesh(obj);
+    }
+    );
   }
   
   notifyLoadListeners(obj, avatar) {
@@ -330,7 +368,7 @@ export class WorldManager {
         }
         VRSPACEUI.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
       } else if ( 'animation' === field ) {
-        avatar.startAnimation(obj.animation);
+        avatar.startAnimation(obj.animation.name, obj.animation.loop);
       } else if ( 'leftArmPos' === field ) {
         var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
         avatar.reachFor(avatar.body.rightArm, pos);
@@ -352,16 +390,29 @@ export class WorldManager {
     }
   }
 
+  /** Notify listeners of remote changes */
   notifyListeners(obj, field, node) {
     this.changeListeners.forEach( (l) => l(obj,field,node) );
   }
   
+  /** Add a listener to own events */
   addMyChangeListener( listener ) {
     VRSPACE.addListener( this.myChangeListeners, listener );
   }
   
+  /** Remove listener to own events */
   removeMyChangeListener( listener ) {
     VRSPACE.removeListener( this.myChangeListeners, listener );
+  }
+
+  /** Add a listener to remote events */
+  addChangeListener( listener ) {
+    VRSPACE.addListener( this.changeListeners, listener );
+  }
+  
+  /** Remove listener to remote events */
+  removeChangeListener( listener ) {
+    VRSPACE.removeListener( this.changeListeners, listener );
   }
   
   /**
@@ -385,16 +436,32 @@ export class WorldManager {
         this.changeObject( obj, {rotation: {x:obj.rotation.x, y:obj.rotation.y, z:obj.rotation.z}});
       }
 
-      // add listener to process changes
-      obj.addListener((obj, changes) => this.changeObject(obj, changes));
-      // subscribe to media stream here if available
-      if ( this.mediaStreams ) {
-        this.mediaStreams.streamToMesh(obj, mesh);        
+      // add listener to process changes - active objects only
+      if ( obj.active ) {
+        obj.addListener((obj, changes) => this.changeObject(obj, changes));
+        // subscribe to media stream here if available
+        if ( this.mediaStreams ) {
+          this.mediaStreams.streamToMesh(obj, mesh);        
+        }
       }
       this.notifyLoadListeners(obj, mesh);
     }, this.loadErrorHandler);
   }
 
+  loadScript(obj) {
+    import(obj.script).then(module=>{
+      console.log(module);
+      let className = Object.keys(module)[0];
+      console.log("TODO: loading script "+className);
+      let cls = module[className];
+      var instance = new cls(this.world, obj);
+      console.log("instance", instance);
+      var node = instance.init();
+      if ( node && obj.active ) {
+        obj.addListener((obj, changes) => this.changeObject(obj, changes, node));
+      }      
+    });
+  }
   /**
   Utility method, calculates bounding box for an AssetContainer.
   @returns Vector3 bounding box
@@ -511,7 +578,7 @@ export class WorldManager {
     } else if ( obj.instantiatedEntries ) {
       object = obj.instantiatedEntries;
     } else {
-      this.log("Ignoring unknown event "+field+" to object "+obj.id);
+      //this.log("Ignoring unknown event "+field+" to object "+obj.id);
       return;      
     }
     if (typeof object[field] === 'function') {
@@ -520,7 +587,7 @@ export class WorldManager {
       obj[field+'Changed'](obj);
     //} else if (object.hasOwnProperty(field)) {
     } else {
-      console.log("Ignoring unknown event to "+obj+": "+field);
+      //console.log("Ignoring unknown event to "+obj+": "+field);
     }
   }
 
@@ -554,6 +621,13 @@ export class WorldManager {
     // TODO also remove object (avatar) from internal arrays
   }
 
+  /** Local user wrote something - send it over and notify local listener(s) */
+  write( text ) {
+    var changes = [{field:'wrote',value:text}];
+    VRSPACE.sendMyChanges(changes);
+    this.myChangeListeners.forEach( (listener) => listener(changes));
+  }
+  
   /**
   Periodically executed, as specified by fps. 
   Tracks changes to camera and XR controllers. 
@@ -576,8 +650,15 @@ export class WorldManager {
       if ( ! this.camera ) {
         return;
       }
-      // track camera movements
-      if ( this.camera.ellipsoid ) {
+      
+      var vrHelper = this.world.vrHelper;
+
+      // track camera movements, find out where feet are
+      if ( this.camera.getClassName() == 'WebXRCamera' ) {
+        // ellipsoid needs to be ignored, we have to use real world height instead
+        var height = this.camera.globalPosition.y - vrHelper.realWorldHeight();
+        this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
+      } else if ( this.camera.ellipsoid ) {
         var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
         if ( this.camera.ellipsoidOffset ) {
           height += this.camera.ellipsoidOffset.y;
@@ -596,13 +677,12 @@ export class WorldManager {
       }
       
       // and now track controllers
-      var vrHelper = this.world.vrHelper;
       if ( vrHelper ) {
-        if ( vrHelper.leftController ) {
+        if ( vrHelper.controller.left) {
           this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftArmPos(), changes );
           this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftArmRot(), changes );
         }
-        if ( vrHelper.rightController ) {
+        if ( vrHelper.controller.right ) {
           this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightArmPos(), changes );
           this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightArmRot(), changes );
         }
@@ -612,6 +692,7 @@ export class WorldManager {
           changes.push({field: 'userHeight', value: this.userHeight});
         }
       }
+      
     }
     if ( changes.length > 0 ) {
       VRSPACE.sendMyChanges(changes);
@@ -643,7 +724,8 @@ export class WorldManager {
   
   /**
   Enter the world specified by world.name. If not already connected, 
-  first connect to world.serverUrl and set own properties, then start the session. 
+  first connect to world.serverUrl and set own properties, then start the session.
+  World and WorldListeners are notified by calling entered methods. 
   @param properties own properties to set before starting the session
   @return Welcome promise
    */
@@ -655,7 +737,17 @@ export class WorldManager {
     return new Promise( (resolve, reject) => {
       var afterEnter = (welcome) => {
         VRSPACE.removeWelcomeListener(afterEnter);
-        this.world.entered(welcome)
+        this.world.entered(welcome);
+        // CHECKME formalize this as WorldListener interface?
+        this.world.worldListeners.forEach(listener => {
+          try {
+            if ( listener.entered ) {
+              listener.entered(welcome);
+            }
+          } catch ( error ) {
+            console.log("Error in world listener", error);
+          }
+        });
         if ( this.remoteLogging ) {
           this.enableRemoteLogging();
         }
@@ -665,7 +757,10 @@ export class WorldManager {
         VRSPACE.removeWelcomeListener(afterConnect);
         if ( properties ) {
           for ( var prop in properties ) {
+            // publish own properties
             VRSPACE.sendMy(prop, properties[prop]);
+            // and also set their values locally
+            VRSPACE.me[prop] = properties[prop];
           }
         }
         // FIXME for the time being, Enter first, then Session
@@ -704,24 +799,55 @@ export class WorldManager {
   }
   
   enableRemoteLogging() {
-    var console=
+    let oldConsole = window.console;
+    let console=
     { 
-      log: (arg) => {
-        VRSPACE.sendCommand("Log", {message:arg}); // default log level is debug
+      log: (...args) => {
+        oldConsole.log(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args)}); // default log level is debug
       },
-      info: (arg) => {
-        VRSPACE.sendCommand("Log", {message:arg, severity:"info"});
+      debug: (...args) => {
+        oldConsole.log(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args)}); // default log level is debug
       },
-      warn: (arg) => {
-        VRSPACE.sendCommand("Log", {message:arg, severity:"warn"});
+      info: (...args) => {
+        oldConsole.info(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"info"});
       },
-      error: (arg) => {
-        VRSPACE.sendCommand("Log", {message:arg, severity:"error"});
+      warn: (...args) => {
+        oldConsole.warn(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"warn"});
+      },
+      error: (...args) => {
+        oldConsole.error(this.concat(args));
+        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"error"});
       }
     };
     
-    window.console = console;    
+    window.console = console;
+    /*
+    console.log('log test');
+    console.info('info test');
+    console.warn('warn test');
+    console.error('error test');
+    */
   }
-  
+  concat(...args) {
+    let ret = "";
+
+    args.forEach(e=>{
+      if ( typeof(e) === 'object') {
+        try {
+          ret += JSON.stringify(e);
+        } catch ( error ) {
+          ret += error;
+        }
+      } else {
+        ret += e;
+      }
+      ret += " ";
+    });
+    return ret;
+  }
 }
 

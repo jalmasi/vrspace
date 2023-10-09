@@ -38,6 +38,25 @@ export class Point {
 }
 
 /**
+Currently active animation of an object.
+ */
+export class Animation {
+  constructor() {
+    this.name=null;
+    this.loop=false;
+  }
+}
+
+/**
+Welcome message received from the server when entering a world.
+ */
+export class Welcome {
+  constructor() {
+    this.client = null;
+    this.permanents = [];
+  }
+}
+/**
 Basic VRObject, has the same properties as server counterpart.
  */
 export class VRObject {
@@ -58,6 +77,8 @@ export class VRObject {
     this.mesh = null;
     /** Active i.e. online users */
     this.active = false;
+    /** Active animation */
+    this.animation = null;
     /** Used for video/audio streaming */
     this.streamId = null;
     /** URL of dynamically loaded script TODO */
@@ -134,7 +155,7 @@ export class SceneProperties{
 }
 
 /**
-Representation of a client (user).
+Representation of a client (user, bot, remote server...).
 @extends VRObject
  */
 export class Client extends VRObject {
@@ -144,6 +165,22 @@ export class Client extends VRObject {
     this.name = null;
     /** Scene properties */
     this.sceneProperties = null; // CHECKME private - should be declared?
+    /** Private tokens */
+    this.tokens = null;
+    /** Server-side class name */
+    this.className = 'Client';
+  }
+}
+
+/**
+Representation of a user.
+@extends Client
+ */
+export class User extends Client {
+  constructor() {
+    super();
+    /** Does this client have humanoid avatar, default true */
+    this.humanoid = true;
     /** Left arm position */
     this.leftArmPos = { x: null, y: null, z: null };
     /** Right arm position */
@@ -154,14 +191,23 @@ export class Client extends VRObject {
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     /** User height, default 1.8 */
     this.userHeight = 1.8;
-    /** Streaming token */
-    this.token = null; // CHECKME: string, should be object?
     /** Server-side class name */
-    this.className = 'Client';
+    this.className = 'User';
+    /** true if the client has avatar */
   }
-  /** true if the client has avatar */
   hasAvatar() {
-    return this.mesh && this.mesh.toLowerCase().endsWith('.gltf');
+    // FIXME as ugly as it gets, get rid of this video thing
+    return this.humanoid && this.mesh && this.mesh !== 'video';
+  }
+}
+
+export class RemoteServer extends Client {
+  constructor() {
+    super();
+    this.url = null;
+    this.thumbnail = null;
+    this.humanoid = false;
+    this.className = 'RemoteServer';
   }
 }
 
@@ -179,9 +225,9 @@ export class EventRecorder extends Client {
 
 /**
 Robot base class, useful for chatbots.
-@extends Client
+@extends User
  */
-export class Bot extends Client {
+export class Bot extends User {
   constructor() {
     super();
     /** Server-side class name */
@@ -190,11 +236,19 @@ export class Bot extends Client {
   /** FIXME always returns true */
   hasAvatar() {
     return true;
+    //return this.humanoid && this.mesh;
   }
 }
 export class ArthurBot extends Bot {
 }
 export class BotLibre extends Bot {
+}
+
+export class Terrain extends VRObject {
+  constructor() {
+    super();
+    this.className = 'Terrain';
+  }
 }
 
 /**
@@ -258,7 +312,8 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
+    //this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {
       this[c] = this.sharedClasses[c];
@@ -358,7 +413,7 @@ export class VRSpace {
   
   /**
   Connect to the server, attach listeners.
-  @param url optional websocket url, defaults to /vrspace on the same server
+  @param url optional websocket url, defaults to /vrspace/client on the same server
    */
   connect(url) {
     if ( ! url ) {
@@ -370,17 +425,22 @@ export class VRSpace {
       if ( protocol == 'https:' ) {
         webSocketProtocol = 'wss';
       }
-      //var end = url.lastIndexOf('/'); // localhost:8080/babylon/vrspace
-      let end = url.indexOf('/', start+2); // localhost:8080/vrspace      
-      url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace'; // ws://localhost:8080/vrspace
+      let end = url.indexOf('/', start+2);
+      url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace/client'; // ws://localhost:8080/vrspace
     }
     this.log("Connecting to "+url);
     this.ws = new WebSocket(url);
     this.ws.onopen = () => {
       this.connectionListeners.forEach((listener)=>listener(true));
+      /*
+      this.pingTimerId = setInterval(() => {
+        this.sendCommand("Ping");
+      }, 20000);
+      */
     }
     this.ws.onclose = () => {
       this.connectionListeners.forEach((listener)=>listener(false));
+      //clearInterval(this.pingTimerId);
     }
     this.ws.onmessage = (data) => {
       this.receive(data.data);
@@ -412,7 +472,10 @@ export class VRSpace {
     return '{"x":'+quat.x+',"y":'+quat.y+',"z":'+quat.z+',"w":'+quat.w+'}';
   }
 
-  /** Convert a key/value pair to json string
+  /** Convert a key/value pair to json string.
+  FIXME improperly stringifies objects having properties x, _x, or w. Properties other than x,y,z,w will be ignored.
+  See stringifyVector and stringifyQuaternion. 
+  This is essentially workaround for bablyon types, e.g. Vector3, that have _x, _y, _z properties.  
   @param field name of the field
   @param value string, object or number to convert
    */
@@ -512,7 +575,7 @@ export class VRSpace {
    */
   sendMy(field,value) {
     if ( this.me != null) {
-      this.send('{"object":{"Client":'+this.me.id+'},"changes":{'+this.stringifyPair(field,value)+'}}');
+      this.send('{"object":{"'+this.me.className+'":'+this.me.id+'},"changes":{'+this.stringifyPair(field,value)+'}}');
     } else {
       this.log("No my ID yet, ignored user event "+field+"="+value);
     }
@@ -710,13 +773,15 @@ export class VRSpace {
       this.errorListeners.forEach((listener)=>listener(obj.ERROR));
     } else if ( "Welcome" in obj) {
       var welcome = obj.Welcome;
-      this.log("welcome "+welcome.client.id);
       if ( ! this.me ) {
         // FIXME: Uncaught TypeError: Cannot assign to read only property of function class
-        let client = new Client();
-        this.me = Object.assign(client,welcome.client);        
+        let client = new User();
+        this.me = Object.assign(client,welcome.client.User);
       }
       this.welcomeListeners.forEach((listener)=>listener(welcome));
+      if ( welcome.permanents ) {
+        welcome.permanents.forEach( o => this.addObject(o));
+      }
     } else if ( "response" in obj) {
       this.log("Response to command");
       if ( typeof this.responseListener === 'function') {

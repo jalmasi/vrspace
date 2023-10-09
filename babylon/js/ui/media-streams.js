@@ -235,6 +235,7 @@ export class MediaStreams {
    */
   attachVideoStream(client, subscriber) {
     var mediaStream = subscriber.stream.getMediaStream();
+    // CHECKME: this doesn't always trigger
     if ( client.video ) {
       // optional: also stream video as diffuseTexture
       if ( subscriber.stream.hasVideo && subscriber.stream.videoActive) {

@@ -41,6 +41,7 @@ public class VRSpaceDBImpl implements VRSpaceDB {
     return null;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Client getClientByName(String name) {
     return getClientByName(name, Client.class);

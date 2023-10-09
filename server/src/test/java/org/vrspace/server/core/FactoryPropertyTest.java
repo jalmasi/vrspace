@@ -33,8 +33,8 @@ public class FactoryPropertyTest {
   public static class TestClientFactory implements ClientFactory {
 
     @Override
-    public Client findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
-        Map<String, Object> attributes) {
+    public <T extends Client> T findClient(Class<T> clientClass, Principal principal, VRObjectRepository db,
+        HttpHeaders headers, Map<String, Object> attributes) {
       return null;
     }
   }

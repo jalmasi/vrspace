@@ -16,12 +16,20 @@ import org.vrspace.server.obj.Client;
  *
  */
 public class DefaultClientFactory implements ClientFactory {
+
   /**
    * Returns new client.
    */
   @Override
-  public Client createGuestClient(HttpHeaders headers, Map<String, Object> attributes) {
-    return new Client();
+  public <T extends Client> T createGuestClient(Class<T> clientClass, HttpHeaders headers,
+      Map<String, Object> attributes) {
+    try {
+      T ret = clientClass.getDeclaredConstructor().newInstance();
+      ret.setGuest(true);
+      return ret;
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to create client of class " + clientClass);
+    }
   }
 
   /**
@@ -29,11 +37,11 @@ public class DefaultClientFactory implements ClientFactory {
    * attribute value.
    */
   @Override
-  public Client findClient(Principal principal, VRObjectRepository db, HttpHeaders headers,
-      Map<String, Object> attributes) {
+  public <T extends Client> T findClient(Class<T> clientClass, Principal principal, VRObjectRepository db,
+      HttpHeaders headers, Map<String, Object> attributes) {
     Object name = attributes.get(clientAttribute());
     if (name != null && name instanceof String) {
-      return db.getClientByName((String) name);
+      return db.getClientByName((String) name, clientClass);
     }
     throw new SecurityException("Unknown client name: " + name);
   }

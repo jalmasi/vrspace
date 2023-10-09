@@ -26,6 +26,7 @@ export class PersianCity extends World {
   async createCamera() {
     this.camera = this.universalCamera(new BABYLON.Vector3(60, 23, -54));
     this.camera.setTarget(new BABYLON.Vector3(-50,-10,-50));
+    this.camera.speed = 1;
   }
   async createLights() {
     // Add lights to the scene
@@ -90,7 +91,7 @@ export class PersianCity extends World {
 
     this.terrain = new Desert( this, this.terrainMaterial );
     this.terrain.checkCollisions = true;
-    this.terrain.createTerrain();
+    this.terrain.createTerrain(this.scene);
   }
   
   

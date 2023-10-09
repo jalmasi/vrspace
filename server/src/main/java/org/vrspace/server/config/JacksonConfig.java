@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.vrspace.server.core.ClassUtil;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.types.Private;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -21,6 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -44,6 +47,17 @@ public class JacksonConfig {
     ObjectMapper ret = objectMapperBuilder().build();
     // process and add all subclasses of VRObject
     ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
+
+    // by default, nothing annotated as Private will be serialized
+    ret.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      public boolean hasIgnoreMarker(final AnnotatedMember m) {
+        return super.hasIgnoreMarker(m) || m.hasAnnotation(Private.class);
+      }
+    });
+
     return ret;
   }
 

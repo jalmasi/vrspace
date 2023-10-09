@@ -50,20 +50,23 @@ export class VRSpaceUI {
     /** reference to VRSpace singleton */
     this.VRSPACE = VRSPACE;
     /** reference to AssetLoader singleton */
-    this.assetLoader;
+    this.assetLoader = null;
   }
 
-  /** Preloads vrspace.org logo and portal for later use 
-  @param scene
+  /** 
+   * Creates asset loader, preloads vrspace.org logo and portal for later use. 
+  @param scene babylon.js scene to operate with.
   */
   async init(scene) {
     if ( ! this.initialized || this.scene !== scene ) {
       this.scene = scene;
       try {
-        this.hud = new HUD(scene);
-        this.guiManager = this.hud.guiManager;
+        if ( ! this.hud ) {
+          this.hud = new HUD(scene);
+          this.guiManager = this.hud.guiManager;
+        }
       } catch ( exception ) {
-        console.log( "WARNING: Can't create HUD - make sure to load babylon.gui.min.js");
+        console.log( "WARNING: Can't create HUD - make sure to load babylon.gui.min.js", exception);
       }
       this.assetLoader = new AssetLoader(this.scene);
       // TODO figure out location of script
@@ -166,12 +169,52 @@ export class VRSpaceUI {
   listCharacters(dir, callback) {
     this.listMatchingFiles( dir, callback, '-fixes.json' )
   }
+
+  /**
+  List files in a server folder
+  @param dir directory to list
+  @param callback receives string array with urls
+  @param suffix optional suffix of listed files
+   */
+  listDirectory(dir, callback, suffix) {
+    if ( !dir.endsWith('/') ) {
+      dir += '/';
+    }
+    var ui = this;
+    return this.listFiles(dir, (xmlHttp) => {
+      var links = xmlHttp.responseXML.links;
+      var files = [];
+      
+      // first pass:
+      // iterate all links, collect avatar directories and fixes
+      for ( var i = 0; i < links.length; i++ ) {
+        var link = links[i];
+        var href = link.href;
+        if ( href.indexOf('?') > 0 ) {
+          continue;
+        }
+        if ( link.baseURI.length > link.href.length ) {
+          continue;
+        }
+        if ( link.href.endsWith('/') ) {
+          continue;
+        }
+        if ( ! suffix || href.endsWith(suffix)) {
+          ui.log(link.baseURI+' '+href);
+          files.push(href);
+        }
+      }
+
+      callback(files);
+    });
+  }
+  
   
   /**
   list server folders along with their matching files
   i.e. files with the same name, plus given suffix
   @param dir directory to list
-  @param callback to call
+  @param callback to call, receives ServerFolder list as argument
   @param suffix of related file
    */
   listMatchingFiles(dir, callback, suffix) {
@@ -396,7 +439,6 @@ export class VRSpaceUI {
   @param parallel optionally load in parallel
   */
   async loadScriptsToDocument(urls, parallel) {
-    // TODO remember loaded scripts, do not load twice
     if ( Array.isArray(urls) ) {
       urls.forEach((url) => this.scriptLoader.add(url));
     } else {
@@ -428,7 +470,7 @@ export class VRSpaceUI {
     a.download = filename;
     a.click();
   }
-
+  
 }
 
 // this does not ensure singleton in the browser

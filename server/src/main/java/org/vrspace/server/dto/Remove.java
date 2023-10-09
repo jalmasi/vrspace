@@ -18,11 +18,21 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Remove object from the scene or world. This message is sent by the server
+ * when objects are removed from the scene, i.e. no longer visible. But when
+ * client sends the message, objects are removed from the world. JSON message
+ * structure is the same in both cases.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 public class Remove implements Command {
+  /** List of objects identifiers (class name + id pairs) to remove */
   @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
   private List<Map<String, Long>> objects = new ArrayList<Map<String, Long>>();
 

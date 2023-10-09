@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <title>Error page</title>
+  
+  <body>
+    <h1>Welcome!</h1>
+    
+    <div>
+    <span th:text="|Invalid path: ${path} Error: ${status} ${error}|"/>
+    <p>
+    <h2>You can try one of:</h2>
+    </p>
+    <p>
+      <a href="/babylon/">/babylon</a>
+      Entire web client html and javascript code and libraries are there. 
+      The main entry point into 3D worlds is <a href="/babylon/avatar-selection.html">avatar-selection.html</a>.
+    </p>
+    <p>
+      <a href="/content/">/content</a> This is where all 3D models, images, and other content resides.
+    </p>
+    <p>
+      <a href="/web/">/web</a> Copy of <a href="https://www.vrspace.org">vrspace.org</a> home page.
+    </p>
+    <p>
+      <a href="/actuator/">/actuator</a> Health and status check endpoint.
+    </p>
+    <p>
+      <a href="/swagger-ui/index.html">/swagger-ui/index.html</a> OpenAPI user interface.
+    </p>
+    </div>
+  </body>
+</html>

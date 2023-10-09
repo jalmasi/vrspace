@@ -1,23 +1,31 @@
 package org.vrspace.server.core;
 
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.config.ServerConfig;
+import org.vrspace.server.config.WorldConfig;
+import org.vrspace.server.config.WorldConfig.WorldProperties;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.SceneProperties;
@@ -25,13 +33,16 @@ import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Entity;
+import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.RemoteServer;
+import org.vrspace.server.obj.User;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
-import org.vrspace.server.types.Filter;
 import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import io.openvidu.java.client.OpenViduException;
@@ -45,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component("world")
 @Slf4j
+@DependsOn({ "database" })
 public class WorldManager {
   @Autowired
   protected ServerConfig config; // used in tests
@@ -56,7 +68,11 @@ public class WorldManager {
   protected SceneProperties sceneProperties; // used in tests
 
   @Autowired
-  private ObjectMapper jackson;
+  protected ObjectMapper jackson;
+  // private mapper also serializes fields annotated with Private annotation, i.e.
+  // ignores custom annotations
+  // this allows Client to read own properties that aren't exposed to others
+  private ObjectMapper privateJackson;
 
   @Autowired
   private StreamManager streamManager;
@@ -67,23 +83,91 @@ public class WorldManager {
   @Autowired
   private Neo4jMappingContext mappingContext;
 
+  @Autowired
+  private WorldConfig worldConfig;
+
   private Dispatcher dispatcher;
 
   protected SessionTracker sessionTracker;
 
   // used in tests
-  protected ConcurrentHashMap<ID, VRObject> cache = new ConcurrentHashMap<ID, VRObject>();
-
-  protected VRObject get(ID id) {
-    return cache.get(id);
-  }
+  protected ConcurrentHashMap<ID, Entity> cache = new ConcurrentHashMap<>();
 
   private World defaultWorld;
 
+  @SuppressWarnings("rawtypes")
+  private Map<Class, PersistenceManager> persistors = new HashMap<>();
+
   @PostConstruct
   public void init() {
-    this.dispatcher = new Dispatcher(jackson);
-    this.sessionTracker = new SessionTracker(config);
+    this.privateJackson = this.jackson.copy();
+    this.privateJackson.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
+    this.dispatcher = new Dispatcher(this.privateJackson);
+    this.sessionTracker = new SessionTracker(this.config);
+    for (Class<?> c : ClassUtil.findSubclasses(PersistenceManager.class)) {
+      for (Type t : ((ParameterizedType) c.getGenericSuperclass()).getActualTypeArguments()) {
+        try {
+          @SuppressWarnings("rawtypes")
+          PersistenceManager p = (PersistenceManager) c.getConstructor(VRObjectRepository.class).newInstance(db);
+          persistors.put((Class<?>) t, p);
+          // log.debug("Instantiated " + p + " for " + t);
+        } catch (Exception e) {
+          log.error("Failed to instantiate " + c, e);
+        }
+      }
+    }
+    @SuppressWarnings("rawtypes")
+    PersistenceManager pm = new PersistenceManager();
+    for (Class<?> c : ClassUtil.findSubclasses(Entity.class)) {
+      if (persistors.get(c) == null) {
+        persistors.put(c, pm);
+        // log.debug("Instantiated " + pm + " for " + c);
+      }
+    }
+    // persistors.put(VRObject.class, pm);
+    createWorlds();
+  }
+
+  private void createWorlds() {
+    defaultWorld();
+    for (String worldName : worldConfig.getWorld().keySet()) {
+      WorldProperties wp = worldConfig.getWorld().get(worldName);
+      log.info("Configuring world: " + worldName);
+      World world = getWorld(worldName);
+      if (world == null) {
+        log.info("World " + worldName + " to be created as " + wp);
+        try {
+          String className = wp.getType();
+          if (!className.contains(".")) {
+            // using default package
+            className = "org.vrspace.server.obj." + className;
+          }
+          Class<?> c = Class.forName(className);
+          world = (World) c.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+          log.error("Error configuring world " + worldName, e);
+        }
+      } else {
+        log.info("World " + worldName + " already exists : " + world);
+      }
+      BeanUtils.copyProperties(wp, world);
+      db.save(world);
+    }
+    log.info("WorldManager ready");
+  }
+
+  protected VRObject get(ID id) {
+    return (VRObject) cache.get(id);
+  }
+
+  /**
+   * Find some objects, in-memory operation on cache.
+   * 
+   * @param filter Predicate to select objects, e.g. o->o.isActive()
+   * @return
+   */
+  public List<Entity> find(Predicate<? super Entity> filter) {
+    return cache.values().stream().filter(filter).collect(Collectors.toList());
   }
 
   // CHECKME: should this be here?
@@ -94,12 +178,9 @@ public class WorldManager {
         .map(i -> i.getType()).collect(Collectors.toList());
   }
 
-  public Set<VRObject> getPermanents(Client client) {
-    return db.getPermanents(client.getWorld().getId());
-  }
-
   public World getWorld(String name) {
-    return db.getWorldByName(name);
+    World ret = db.getWorldByName(name);
+    return (World) updateCache(ret);
   }
 
   public World getOrCreateWorld(String name) {
@@ -107,6 +188,7 @@ public class WorldManager {
     if (world == null) {
       if (config.isCreateWorlds()) {
         world = db.save(new World(name));
+        cache.put(new ID(world), world);
       } else {
         throw new IllegalArgumentException("Unknown world: " + name);
       }
@@ -119,37 +201,46 @@ public class WorldManager {
     return (Client) updateCache(ret);
   }
 
+  @SuppressWarnings("unchecked")
   public <T extends Client> T getClientByName(String name, Class<T> cls) {
     T ret = db.getClientByName(name, cls);
     return (T) updateCache(ret);
   }
 
   public <T extends VRObject> T save(T obj) {
-    T ret = db.save(obj);
+    T ret = db.save(obj); // CHECKME: writeback save/write ?
     cache.put(new ID(obj), ret);
     return ret;
   }
 
   public Set<VRObject> getRange(Client client, Point from, Point to) {
-    // CHECKME: what to do with client here?
-    HashSet<VRObject> ret = new HashSet<VRObject>();
-    // takes typically 10 ms
-    Set<VRObject> inRange = db.getRange(client.getWorld().getId(), from, to);
-    for (VRObject o : inRange) {
-      ret.add(updateCache(o));
+    return updateCache(db.getRange(client.getWorldId(), from, to));
+  }
+
+  public Set<VRObject> getPermanents(Client client) {
+    return updateCache(db.getPermanents(client.getWorldId()));
+  }
+
+  private Set<VRObject> updateCache(Set<VRObject> objects) {
+    HashSet<VRObject> ret = new HashSet<>();
+    for (Entity o : objects) {
+      ret.add((VRObject) updateCache(o));
     }
     return ret;
   }
 
-  private VRObject updateCache(VRObject o) {
+  @SuppressWarnings("unchecked")
+  private Entity updateCache(Entity o) {
     // CHECKME: should this be null safe?
     if (o != null) {
       ID id = new ID(o);
-      VRObject cached = cache.get(id);
+      Entity cached = cache.get(id);
       if (cached != null) {
         return cached;
       } else {
         o = db.get(o.getClass(), o.getId());
+        // TODO: post-load operations
+        persistors.get(o.getClass()).postLoad(o);
         cache.put(id, o);
         return o;
       }
@@ -174,7 +265,8 @@ public class WorldManager {
         o.setTemporary(true);
       }
       o = db.save(o);
-      client.addOwned(o);
+      Ownership ownership = new Ownership(client, o);
+      db.save(ownership);
       cache.put(o.getObjectId(), o);
       return o;
     }).collect(Collectors.toList());
@@ -183,11 +275,12 @@ public class WorldManager {
   }
 
   public void remove(Client client, VRObject obj) {
+    Ownership own = db.getOwnership(client.getId(), obj.getId());
     // CHECKME: remove invisible objects?
-    if (!client.isOwner(obj)) {
+    if (own == null) {
       throw new SecurityException("Not yours to remove: " + obj.getClass().getSimpleName() + " " + obj.getId());
     }
-    client.removeOwned(obj);
+    db.delete(own);
     db.save(client);
     delete(client, obj);
   }
@@ -198,7 +291,7 @@ public class WorldManager {
   }
 
   /**
-   * Remote user login over websocket. Called SessionManager, after websocket
+   * Remote user login over websocket. Called from SessionManager, after websocket
    * session has been established. Uses session security context (principal) to
    * identify user and fetch/create the appropriate Client object from the
    * ClientFactory. May create a new guest client, if guest (anonymous)
@@ -209,6 +302,31 @@ public class WorldManager {
    */
   @Transactional
   public Welcome login(ConcurrentWebSocketSessionDecorator session) {
+    return login(session, User.class);
+  }
+
+  /**
+   * Login for remote servers
+   * 
+   * @see #login(ConcurrentWebSocketSessionDecorator)
+   */
+  @Transactional
+  public Welcome serverLogin(ConcurrentWebSocketSessionDecorator session) {
+    return login(session, RemoteServer.class);
+  }
+
+  /**
+   * Common login procedure for both users and remote servers. This may change,
+   * same for the time being.
+   * 
+   * @see #login(ConcurrentWebSocketSessionDecorator)
+   * @param session       web socket session
+   * @param clientClass   either User or RemoteServer
+   * @param clientFactory either userFactory or serverFactory
+   * @return
+   */
+  @Transactional
+  public Welcome login(ConcurrentWebSocketSessionDecorator session, Class<? extends Client> clientClass) {
     Principal principal = session.getPrincipal();
     HttpHeaders headers = session.getHandshakeHeaders();
     Map<String, Object> attributes = session.getAttributes();
@@ -218,20 +336,19 @@ public class WorldManager {
     // (github, facebook...)
     Client client = null;
     if (session.getPrincipal() != null) {
-      client = clientFactory.findClient(principal, db, headers, attributes);
+      client = clientFactory.findClient(clientClass, principal, db, headers, attributes);
       if (client == null) {
         throw new SecurityException("Unauthorized client " + session.getPrincipal().getName());
       }
     } else if (config.isGuestAllowed()) {
-      client = clientFactory.createGuestClient(headers, attributes);
+      client = clientFactory.createGuestClient(clientClass, headers, attributes);
       if (client == null) {
         throw new SecurityException("Guest disallowed");
       }
       client.setPosition(new Point());
-      client.setGuest(true);
       client = db.save(client);
     } else {
-      client = clientFactory.handleUnknownClient(headers, attributes);
+      client = clientFactory.handleUnknownClient(clientClass, headers, attributes);
       if (client == null) {
         throw new SecurityException("Unauthorized");
       }
@@ -249,6 +366,7 @@ public class WorldManager {
    */
   public void login(Client client) {
     client.setMapper(jackson);
+    client.setPrivateMapper(privateJackson);
     client.setSceneProperties(sceneProperties.newInstance());
     WriteBack writeBack = new WriteBack(db);
     writeBack.setActive(config.isWriteBackActive());
@@ -259,12 +377,11 @@ public class WorldManager {
 
   public World defaultWorld() {
     if (defaultWorld == null) {
-      synchronized (this) {
-        defaultWorld = db.getWorldByName("default");
-        if (defaultWorld == null) {
-          defaultWorld = db.save(new World("default", true));
-          log.info("Created default world: " + defaultWorld);
-        }
+      defaultWorld = getWorld("default");
+      if (defaultWorld == null) {
+        defaultWorld = db.save(new World("default", true));
+        cache.put(new ID(defaultWorld), defaultWorld);
+        log.info("Created default world: " + defaultWorld);
       }
     }
     return defaultWorld;
@@ -276,13 +393,17 @@ public class WorldManager {
   }
 
   public Welcome enter(Client client, World world) {
-    if (client.getWorld() != null) {
-      if (client.getWorld().equals(world)) {
+    if (client.getWorldId() != null) {
+      if (client.getWorldId().equals(world.getId())) {
         throw new IllegalArgumentException("Already in world " + world);
       }
       // exit current world first
       exit(client);
     }
+    if (!world.enter(client, this)) {
+      throw new SecurityException("Client forbidden to enter the world");
+    }
+
     // create audio stream
     streamManager.join(client, world);
 
@@ -315,12 +436,7 @@ public class WorldManager {
     client.setActive(true);
     client = save(client);
 
-    // create scene, TODO: scene filters
-    Scene scene = new Scene(this, client);
-    scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
-    client.setScene(scene);
-    scene.update();
-    scene.publish(client);
+    client.createScene(this);
   }
 
   @Transactional
@@ -329,12 +445,15 @@ public class WorldManager {
     exit(client);
     // delete guest client
     if (client.isGuest()) {
-      if (client.getOwned() != null) {
-        for (VRObject owned : client.getOwned()) {
-          if (owned.isTemporary()) {
-            delete(client, owned);
-            log.debug("Deleted owned temporary " + owned.getObjectId());
-          }
+      List<Ownership> owned = db.getOwned(client.getId());
+      for (Ownership ownership : owned) {
+        // CHECKME getOwned seems to return shallow copy!?
+        VRObject ownedObject = get(ownership.getOwned().getObjectId());
+        if (ownedObject.isTemporary()) {
+          // remove() doesn't free up cache
+          delete(client, ownedObject);
+          db.delete(ownership);
+          log.debug("Deleted owned temporary " + ownership.getOwned().getObjectId());
         }
       }
       delete(client, client);
@@ -357,15 +476,18 @@ public class WorldManager {
       client.getScene().removeAll();
     }
     client.setListeners(null);
+    World world = client.getWorld();
     // also remove the client from streaming session
     try {
-      streamManager.disconnect(client);
+      streamManager.disconnect(client, world.getName());
     } catch (OpenViduException e) {
       log.error("Error disconnecting client " + client + " from streaming session", e);
     }
     // remove client from the world
     client.setWorld(null);
     client = save(client);
+    // and notify the world
+    world.exit(client, this);
   }
 
   @Transactional
@@ -389,19 +511,37 @@ public class WorldManager {
         if (scene == null) {
           throw new UnsupportedOperationException("Client has no scene " + client);
         }
+        // find object source, either in scene or cache - it has to be seen by anyone
         VRObject obj = scene.get(event.getSourceID());
         if (obj == null) {
-          // TODO: scene could not find object - this should be allowed for admin
-          throw new UnsupportedOperationException("Object not found in the scene: " + event.getSourceID());
-        } else {
-          event.setSource(obj);
+          obj = get(event.getSourceID());
         }
+        if (obj == null) {
+          throw new UnsupportedOperationException("Unknown object: " + event.getSourceID());
+          // } else if (!obj.isPermanent()) {
+          // CKECKME: permanents only?
+          // TODO test
+          // throw new UnsupportedOperationException("Object not found in the scene: " +
+          // event.getSourceID());
+        }
+        event.setSource(obj);
       }
+      // CHECKME: cache ownership?
+      Ownership ownership = db.getOwnership(client.getId(), event.getSource().getId());
+      event.setOwnership(ownership);
+      // dispatch
       dispatcher.dispatch(event);
-      client.getWriteBack().write(event.getSource());
-    }
-    if (scene != null) {
-      scene.update();
+
+      // write to the database after successful dispatch
+      try {
+        persistors.get(event.getSource().getClass()).persist(event);
+      } catch (Exception e) {
+        log.error("Error persisting " + event, e);
+      }
+
+      if (scene != null) {
+        scene.update();
+      }
     }
   }
 

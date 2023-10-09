@@ -16,6 +16,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Describe Command used without argument lists all available classes. With
+ * className argument, it lists all properties of a class.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @NoArgsConstructor
 public class Describe implements Command {

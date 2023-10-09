@@ -39,10 +39,24 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * You want to download free content from sketchfab, you have to be OAuth2
+ * authorised with them. Once done, the server uses the same credentials for all
+ * further communication with sketchfab, until restart. This is completely
+ * different than Oauth2 used to authenticate with vrspace server, i.e. this is
+ * how vrspace server authenticates with sketchfab. Credentials are kept in
+ * memory only, but the content is cached locally, under content directory
+ * hierarchy, where sketchfab content categories are used for subdirectory name.
+ * Content metadata is stored in the database, as GltfModel entities.
+ * 
+ * @author joe
+ *
+ */
 @RestController
-@RequestMapping("/sketchfab")
+@RequestMapping(SketchfabController.PATH)
 @Slf4j
-public class SketchfabController {
+public class SketchfabController extends ApiBase {
+  public static final String PATH = API_ROOT + "/sketchfab";
   @Autowired
   ObjectMapper objectMapper;
   @Autowired

@@ -1,5 +1,6 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 import {VRHelper} from './vr-helper.js';
+import {ChatLog} from './chat-log.js';
 
 /**
 Basic world, intended to be overridden.
@@ -36,12 +37,23 @@ export class World {
     this.indicator = null;
     /** Progress indicator functon */
     this.onProgress = null;
+    /** WebXR mode indicator, set by VRHelper */
+    this.inXR = false;
     
     /** Handy reference to VRSpaceUI */
     this.VRSPACEUI = VRSPACEUI;
     /** Reference to worldManager, set by WorldManager once that user goes online */
     this.worldManager = null;
-    
+    /** List of world listeners. 
+    WorldManager executes enter(Welcome) method once user enters the world, after World.enter() method. 
+    Methods added(VRObject) and removed(VRObject) are executed whenever scene changes.
+    */
+    this.worldListeners = [];
+    this.floorMeshes = [];
+    this.ground = null;
+    // CHECKME: should floors be selectable?
+    this.selectionPredicates = [(mesh)=>{return this.getFloorMeshes().includes(mesh)}];
+
     // now override defaults
     if ( params ) {
       for ( var param in params ) {
@@ -82,6 +94,7 @@ export class World {
     }
     this.registerRenderLoop();
     this.createTerrain();
+    this.createUI();
     this.load(callback);
     return this.scene;
   }
@@ -142,14 +155,25 @@ export class World {
   async createPhysics() {};
   /** Optional, empty implementation, called from createScene */
   async createTerrain() {}
+  /** Optional, empty implementation, called from createScene */
+  async createUI() {}
   /** Attach the control to the camera, called from createScene. */
   attachControl() {
     this.camera.attachControl(this.canvas, true);
   }
   /**
-  Optional, empty implementation, notification that the user has entered a multiuser world.
+  Called by WorldManager after the user has entered a multiuser world.
+  Default implementation creates a ChatLog and binds it to the HUD, then it registers remoteEvent() method
+  as a change listener with WorldManager to process remote events.
+  Note that at this point world geometry may not have been loaded.
+  @param welcome message containing users Client object and array of permanent objects
    */
   async entered(welcome) {
+    this.chatLog = new ChatLog(this.scene);
+    this.chatLog.show();
+    this.worldManager.addChangeListener( (obj, field, node) => this.remoteEvent(obj, field, node));
+    this.chatLog.input.addListener( text=>this.write(text) );
+    this.chatLog.input.virtualKeyboardEnabled = this.inXR;
   }
   /**  */
   /**
@@ -207,7 +231,7 @@ export class World {
   }
 
   /** Creates a VRHelper if needed, and initializes it with the current world.
-  Normally called after world is loaded.
+  Normally called after world is loaded, safe to call elsewhere, or call multiple times.
   @param vrHelper optional existing vrHelper
    */
   initXR(vrHelper) {
@@ -219,21 +243,36 @@ export class World {
     }
     this.vrHelper.initXR(this);
   }
+  /** Called by VRHelper once XR devices are initialized. Default implementation does nothing. */
   trackXrDevices() {
   }
-  
+  /** Called by VR helper after entering XR mode. Default implementation enables virtual keyboard in ChatLog. */
+  enterXR() {
+    if ( this.chatLog ) {
+      this.chatLog.input.virtualKeyboardEnabled = true;
+    }
+  }
+  /** Called by VR helper after exiting XR. Default implementation turns off ChatLog virtual keyboard.*/
+  exitXR() {
+    if ( this.chatLog ) {
+      this.chatLog.input.virtualKeyboardEnabled = false;
+    }
+  }
   /**
-  Used in mesh selection predicate. Default implementation returns true for members of this.floorMeshes.
+  Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.
    */
   isSelectableMesh(mesh) {
-    return this.floorMeshes && this.floorMeshes.includes(mesh);
+    let ret = VRSPACEUI.hud.isSelectableMesh(mesh);
+    this.selectionPredicates.forEach((p)=>{ret ||= p(mesh)});
+    return ret;
   }
 
   /**
   Returns this.floorMeshes or this.ground if exist, or empty array.
+  Used for movement in XR.
    */
   getFloorMeshes() {
-    if ( this.floorMeshes ) {
+    if ( this.floorMeshes && this.floorMeshes.length > 0 ) {
       return this.floorMeshes;      
     } else if ( this.ground ) {
       return [ this.ground ];
@@ -467,9 +506,41 @@ export class World {
    */
   write(text) {
     if ( this.worldManager && text ) {
-      this.worldManager.sendMy({wrote:text});
+      this.worldManager.write(text);
     }
   }
-  
+  /**
+   * Receives a remote event. Default implementation handles only 'wrote' event, and sends it to the ChatLog. 
+   * @param obj a VRObject that has changed
+   * @param field a field that has changed, obj[field] contains the actual value
+   * @param node root node in the scene that has received event, may be null
+   */
+  remoteEvent(obj, field, node) {
+    if ( 'wrote' === field && this.chatLog ) {
+      console.log(obj.id+' wrote '+obj.wrote);
+      var name = obj.name;
+      if ( ! name ) {
+        name = 'u'+obj.id;
+      }
+      this.chatLog.log(name,obj.wrote);
+    }
+  }
+  /**
+  Utility method, returns true if the world is online, i.e. the client is connected to the server.
+   */
+  isOnline() {
+    return this.worldManager && this.worldManager.isOnline();
+  }
+
+  /**
+   * Add a selection predicate. It takes a mesh and returns true if it can be selected by the pointer.
+   */
+  addSelectionPredicate(p) {
+    this.selectionPredicates.push(p);
+  }
+  /** Remove a selection predicate function */
+  removeSelectionPredicate(p) {
+    this.selectionPredicates.splice(this.selectionPredicates.indexOf(p),1);
+  }
 }
 

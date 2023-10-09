@@ -25,11 +25,14 @@
     }
     </style>﻿
     
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    
+    <script src="/babylon/js/lib/babylon.js"></script>
+    <script src="/babylon/js/lib/babylonjs.loaders.min.js"></script>
+    <script src="/babylon/js/lib/babylon.gui.min.js"></script>
+    <script src="/babylon/js/lib/babylonjs.materials.min.js"></script>
+    <script src="/babylon/js/lib/babylonjs.proceduralTextures.min.js"></script>
+    <script src="/babylon/js/lib/babylon.dynamicTerrain.min.js"></script>
+    <script src="/babylon/js/lib/annyang-2.6.1.min.js"></script>
     <script src="/babylon/js/lib/pep.min.js"></script>
   </head>
 
@@ -46,7 +49,15 @@ import("./world.js").then( (module) =>{
   
   var world = module.WORLD;
 
-  world.init(engine, 'search');
+  var fileInput = document.getElementById('fileInput');
+  world.fileInputElement = fileInput;
+
+  world.init(engine, 'world-editor-test').then((scene) => {
+    myScene = scene;
+    world.initXR();
+    world.connect();
+  });
+
 })
 
 window.addEventListener("resize", function () {
@@ -67,7 +78,7 @@ function debugOnOff() {
     <div style="position:absolute;bottom:10px;right:50%;">
       <button onClick="debugOnOff()">Debug</button>
     </div>
-      
+
   </body>
 
 </html>

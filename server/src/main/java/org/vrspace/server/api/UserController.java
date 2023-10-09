@@ -15,10 +15,19 @@ import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Basic user information. User's can't be created here yet, it's all automated
+ * in Oauth2Controller for authenticated users, and WorldManager for guest
+ * users.
+ * 
+ * @author joe
+ *
+ */
 @RestController
 @Slf4j
-@RequestMapping("/user")
-public class UserController {
+@RequestMapping(UserController.PATH)
+public class UserController extends ApiBase {
+  public static final String PATH = API_ROOT + "/user";
   @Autowired
   private VRObjectRepository db;
   @Autowired

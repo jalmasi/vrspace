@@ -65,7 +65,7 @@ public class EventRecorder extends Client {
 
   public EventRecorder(WorldManager worldManager, Client client, String name) {
     this.setName(name);
-    this.setWorld(client.getWorld());
+    this.setWorldId(client.getWorldId());
     this.setPosition(new Point(client.getPosition()));
     this.setSceneProperties(client.getSceneProperties());
     this.setMesh(client.getMesh());

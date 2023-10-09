@@ -58,7 +58,7 @@ public class Dispatcher {
     VRObject source = event.getSource();
 
     // ownership check
-    if (!event.getClient().isOwner(source)) {
+    if (!event.isOwner()) {
       if (source.getClass().isAnnotationPresent(Owned.class)) {
         throw new SecurityException("Cannot change owned object'");
       } else {
@@ -89,7 +89,8 @@ public class Dispatcher {
       } catch (Exception e) {
         throw new IllegalArgumentException("Invalid event payload: " + payload, e);
       }
-      log.debug("Processing changes " + changes);
+      log.debug("Processing changes from " + event.getClient().getObjectId() + " on " + event.getSource().getObjectId()
+          + ":" + changes);
     }
 
     // merge changes

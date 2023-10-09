@@ -15,29 +15,56 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonMerge;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Basic VR Object encapsulates minimal spatial and other properties.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @NoArgsConstructor
 @JsonInclude(Include.NON_EMPTY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
-@ToString(callSuper = true)
+@ToString(callSuper = true, onlyExplicitlyIncluded = true)
+@Slf4j
 public class VRObject extends Entity {
 
   private List<VRObject> children;
 
+  /* World this object is in, only id is persisted */
   @JsonIgnore
-  @Relationship(type = "IN_WORLD", direction = Relationship.Direction.OUTGOING)
-  // @Index - NeoConfig creates it
-  private World world;
+  private Long worldId;
+  @Transient
+  @Setter(AccessLevel.NONE)
+  @JsonIgnore
+  /* World this object is in, not persisted to avoid deadlocks */
+  private transient World world;
 
+  public void setWorld(World world) {
+    if (world == null) {
+      this.setWorldId(null);
+    } else {
+      this.setWorldId(world.getId());
+    }
+    this.world = world;
+  }
+
+  /**
+   * Position in 3D space, used for spatial operations.
+   */
   @JsonMerge
   @Relationship(type = "HAS_POSITION", direction = Relationship.Direction.OUTGOING)
   private Point position;
@@ -69,16 +96,23 @@ public class VRObject extends Entity {
    */
   private String mesh;
 
+  /**
+   * Script that client runs. To prevent cross-site scripting, this is a read-only
+   * property.
+   */
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private String script;
 
   /** Currently active animation */
-  private String animation;
+  @JsonMerge
+  @Relationship(type = "CURRENT_ANIMATION", direction = Relationship.Direction.OUTGOING)
+  private Animation animation;
 
   /** Custom object properties */
   @Transient
   private transient Map<String, Object> properties;
 
-  // video/audio stream attached to this object
+  // video/audio stream attached to this object CHECKME not used yet?
   private transient String streamId;
 
   @JsonIgnore
@@ -86,12 +120,11 @@ public class VRObject extends Entity {
   private ConcurrentHashMap<ID, VRObject> listeners;
 
   public VRObject(World world) {
-    setWorld(world);
+    setWorldId(world.getId());
   }
 
   public VRObject(Long id, VRObject... vrObjects) {
     super(id);
-    setWorld(world);
     addChildren(vrObjects);
   }
 
@@ -142,7 +175,11 @@ public class VRObject extends Entity {
   public void notifyListeners(VREvent event) {
     if (listeners != null) {
       for (VRObject listener : listeners.values()) {
-        listener.processEvent(event);
+        try {
+          listener.processEvent(event);
+        } catch (Exception e) {
+          log.error("Error processing event " + event, e);
+        }
       }
     }
   }
@@ -177,4 +214,5 @@ public class VRObject extends Entity {
   public boolean isTemporary() {
     return temporary != null && temporary;
   }
+
 }

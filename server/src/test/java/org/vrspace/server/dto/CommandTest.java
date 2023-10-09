@@ -2,6 +2,7 @@ package org.vrspace.server.dto;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,7 @@ import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.core.WriteBack;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.ID;
 
@@ -45,13 +47,7 @@ public class CommandTest {
 
   private ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-  private boolean isOwner = true;
-
-  private Client client = new Client() {
-    public boolean isOwner(VRObject o) {
-      return isOwner;
-    }
-  };
+  private Client client = new Client(1L);
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -78,7 +74,7 @@ public class CommandTest {
   @Test
   public void testRemoveFail() throws Exception {
     when(scene.get(any(ID.class))).thenReturn(new VRObject(1L));
-    isOwner = false;
+    when(repo.getOwnership(anyLong(), anyLong())).thenReturn(null);
     Remove remove = new Remove(new VRObject(2L)).removeObject(new VRObject(1L));
     ClientRequest request = new ClientRequest(client, remove);
     assertThrows(SecurityException.class, () -> world.dispatch(request));
@@ -86,7 +82,9 @@ public class CommandTest {
 
   @Test
   public void testRemove() throws Exception {
-    when(scene.get(any(ID.class))).thenReturn(new VRObject(1L));
+    VRObject obj = new VRObject(2L);
+    when(scene.get(any(ID.class))).thenReturn(obj);
+    when(repo.getOwnership(anyLong(), anyLong())).thenReturn(new Ownership(client, obj));
 
     Remove remove = new Remove(new VRObject(2L)).removeObject(new VRObject(1L));
     ClientRequest request = new ClientRequest(client, remove);

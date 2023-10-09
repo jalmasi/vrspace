@@ -82,7 +82,8 @@ import('./js/vrspace-min.js').then( (ui) => {
   world.name = 'my very own unique world name';
   
   // connect, set own avatar and start the session
-  net.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
+  // dolphins aren't humanoid avatars - we have to specify that, or else
+  net.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb',humanoid:false});
 
   // TODO: method to retrieve nodes as appropriate 
   var getAnimationGroup = (vrObject) => {
@@ -129,7 +130,8 @@ import('./js/vrspace-min.js').then( (ui) => {
         // use a known class to create an object
         var o = new net.VRSPACE.Client();
         o.mesh = '//www.vrspace.org/babylon/dolphin.glb';
-        o.active = true;
+        o.humanoid = false; // dolphin is not hunanoid
+        o.active = true; // i.e. online client, offline clients are filtered out
         o.name = 'My test client '+Date.now(); // must be unique
         o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
         net.VRSPACE.createSharedObject(o, (obj)=>{

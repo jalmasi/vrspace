@@ -20,11 +20,22 @@ thanks folks!
   <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="main.css">
   
+  <!--
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
   <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
   <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+  -->
+  <script src="/babylon/js/lib/babylon.js"></script>
+  <script src="/babylon/js/lib/babylonjs.loaders.min.js"></script>
+  <script src="/babylon/js/lib/babylon.gui.min.js"></script>
+  <script src="/babylon/js/lib/babylonjs.materials.min.js"></script>
+  <script src="/babylon/js/lib/babylonjs.proceduralTextures.min.js"></script>
+  <script src="/babylon/js/lib/babylon.dynamicTerrain.min.js"></script>
+  <script src="/babylon/js/lib/annyang-2.6.1.min.js"></script>
+
   <script src="/babylon/js/vrspace-min.js" type="module"></script>
+  <script src="/babylon/js/lib/perlin.js"></script>
     
 </head>
 <body>
@@ -42,6 +53,7 @@ thanks folks!
           <nav>
               <ul>
                   <li><a href="#about">About</a></li>
+                  <li><a href="https://github.com/jalmasi/vrspace" target="_blank">GitHub</a></li>
                   <li><a href="https://redmine.vrspace.org/projects/vrspace-org/wiki" target="_blank">Wiki</a></li>
                   <li><a href="https://redmine.vrspace.org/projects/vrspace-org/boards" target="_blank">Forums</a></li>
                   <li><a href="docs/jsdoc/index.html" target="_blank">jsdoc</a></li>
@@ -158,55 +170,6 @@ thanks folks!
     var world = module.WORLD;
     //world.VRSPACEUI.contentBase='https://www.vrspace.org/';
 
-    var nameInput = document.getElementById('nickname');
-    nameInput.addEventListener('input', (e)=>{
-      world.setMyName(e.target.value);
-    });
-    
-    var checkValidName = (name) => {
-      if ( name ) {
-        world.setLoginName(name).then((valid) => {
-          var nameLabel = document.getElementById('namelabel');
-          console.log("Valid name: "+valid);
-          if ( valid ) {
-            nameLabel.innerHTML="Name:"
-            canvas.focus();
-          } else {
-            nameLabel.innerHTML="INVALID NAME, try another:"
-          }
-          world.portalsEnabled(valid);
-        });
-      } else {
-        world.portalsEnabled(anonymousAllowed);
-      }
-    }
-  
-    nameInput.addEventListener('change', (e)=>{
-      checkValidName(e.target.value);
-    });
-
-    var say = (text) => {
-      world.write(text);
-      chatLog("ME", text);
-    } 
-       
-    document.getElementById('chatBox').style.display = 'none';
-    document.getElementById('chatInput').addEventListener('change', (e)=>{
-      say(e.target.value);
-      e.target.value = '';
-      //canvas.focus();
-    });
-
-    document.getElementById('chatInput').addEventListener('focus', (e)=>{
-      document.getElementById('chatLog').style.display = 'block';
-      var div = document.getElementById('chatLog');
-      clearChatLog(div.children[div.children.length-1]);
-    });
-    
-    document.getElementById('chatInput').addEventListener('blur', (e)=>{
-      setTimeout(() => document.getElementById('chatLog').style.display = 'none', 200);
-    });
-
     // drag and drop support:    
     document.getElementById('renderCanvas').ondragover = (e) => {
       return false;
@@ -228,24 +191,12 @@ thanks folks!
       scene = s;
       world.createSelection((avatar)=>{
         console.log("Selected avatar: "+avatar.getUrl());
-        checkValidName(world.getMyName());
       });
       world.showPortals();
       engine.resize();
       canvas.focus();
-      world.beforeEnter = () => {
-        document.getElementById('loginForm').style.display = 'none';
-      }
-      world.afterEnter = () => {
-        document.getElementById('chatBox').style.display = 'block';
-        world.worldManager.changeListeners.push((obj, field, node) => remoteEvent(obj,field,node));
-      }
       world.afterExit = () => {
         console.log('Exit:'+world.worldManager.error);
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('chatBox').style.display = 'none';
-        document.getElementById('chatLog').style.display = 'block';
-        chatLog('ERROR', world.worldManager.error);
       }
     });
     
@@ -287,55 +238,6 @@ thanks folks!
   });
   
   
-  function remoteEvent(obj, field, node) {
-    if ( 'wrote' === field ) {
-      console.log(obj.id+' wrote '+obj.wrote);
-      var name = obj.name;
-      if ( ! name ) {
-        name = 'u'+obj.id;
-      }
-      chatLog(name, obj.wrote);
-    }
-  }
-  
-  function chatLog( who, what ) {
-    var div = document.createElement("div");
-    if ( hasLink(what) ) {
-      // process hyperlinks
-      let string = '';
-      what.split(' ').forEach((word)=>{
-        if ( hasLink(word) ) {
-          word = makeLink(word);
-        }
-        string += word + ' ';
-      });
-      what = string;
-    }
-    var text = "["+who+"] "+what;
-    div.innerHTML = text;
-    div.style="color: white;";
-    document.getElementById('chatLog').appendChild(div);
-    clearChatLog(div);
-  }
-  
-  function hasLink(what) {
-    return what.indexOf("://") > -1 || what.indexOf('www.') > -1 ;
-  }
-  function makeLink(word) {
-    var link = word;
-    if ( link.indexOf("://") == -1) {
-      link = "https://"+link;
-    }
-    return '<a target="_blank" href="'+link+'">'+word+'</a> ';
-  }
-  
-  function clearChatLog( div ) {
-    var log = document.getElementById('chatLog');
-    while ( div.getBoundingClientRect().bottom > log.getBoundingClientRect().bottom) {
-      log.removeChild(log.children[1]);
-    }    
-  }
-  
   //prevent arrow keys and space from scroling the page
   //only if webgl canvas is focused
   window.addEventListener("keydown", function(e) {
@@ -355,22 +257,7 @@ thanks folks!
   
   </script>
 
-  <div id="loginForm" style="position:absolute;bottom:50px;width:100%;text-align:center;">
-    <div>
-      <label id="namelabel" for="nickname">Name:</label>
-      <input id="nickname" type="text" placeholder="Your nick name">
-    </div>
-  </div>
-  
-  <div id="chatBox" style="position:absolute;bottom:50px;left:15%;">
-    <input id="chatInput" type="text" size=256 style="width:80%;" placeholder="text chat">
-  </div>
-
-  <div id="chatLog" style="position: absolute; margin-left: 10%; top: 80px; width:80%; height:70%; display: none; background-color: rgba(63, 63, 63, 0.5);" >
-     <div style="color: white;">Chat Log</div>
-  </div>
-
-  <div id="iframe" style="position:absolute;bottom:50px;width:100%;">
+  <div id="iframe" style="position:absolute;top:0px;width:100%;">
     <iframe id="customAvatarFrame" allow="camera *; microphone *" width="100%" height="800" hidden="true"></iframe>
   </div>
 

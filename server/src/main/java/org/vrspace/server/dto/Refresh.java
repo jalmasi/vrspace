@@ -6,7 +6,7 @@ import org.vrspace.server.obj.Client;
 import lombok.Data;
 
 /**
- * FIXME: clear causes ConcurrentModificationException during scene removal
+ * Command to enforce Scene update.
  * 
  * @author joe
  *
@@ -19,10 +19,12 @@ public class Refresh implements Command {
   public ClientResponse execute(WorldManager world, Client client) {
     if (clear) {
       client.getScene().removeAll();
+      client.getScene().loadPermanents();
     } else {
       client.getScene().setDirty();
     }
-    // WorldManager executes scene.update() after each command
+    // WorldManager does NOT execute scene.update() after each command
+    client.getScene().update();
     return null;
   }
 

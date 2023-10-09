@@ -60,12 +60,18 @@ public class WriteBack {
       return;
     }
     writing = true;
-    Long time = System.currentTimeMillis();
+    long time = System.currentTimeMillis();
     totalWritten += objects.size();
     lastFlush = System.currentTimeMillis();
     try {
+      // this still blocks the client thread
       db.saveAll(objects);
-      log.debug("Wrote " + objects.size() + " in " + (System.currentTimeMillis() - time) + " ms");
+      long saveTime = System.currentTimeMillis() - time;
+      log.debug("Wrote " + objects.size() + " in " + (saveTime) + " ms");
+      if (saveTime > delay) {
+        log.warn("Save time " + saveTime + " longer than delay " + delay + ", increasing");
+        delay = saveTime + 1000;
+      }
     } catch (Exception e) {
       active = false;
       log.error("Write error, writeback disabled", e);

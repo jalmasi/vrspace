@@ -1,7 +1,9 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 
 /**
-https://doc.babylonjs.com/extensions/meshWriter
+ * 3D Text writer, based on https://doc.babylonjs.com/extensions/meshWriter
+ * Binds to a node, e.g. above avatar head.
+ * Performance penalty in write(). Once rendered, performance is fine.
  */
 export class TextWriter {
   constructor(scene) {
@@ -21,15 +23,13 @@ export class TextWriter {
     this.relativeRotation = new BABYLON.Vector3( -Math.PI/2, 0, 0 );
     /** Billboard mode for the text, default none */
     this.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
-
   }
   async _initWriter() {
     if ( ! this.Writer ) {
       await VRSPACEUI.loadScriptsToDocument([ 
-        "https://cdn.rawgit.com/BabylonJS/Extensions/master/MeshWriter/meshwriter.min.js"
+        "/babylon/js/lib/meshwriter.min.js"
       ]);
       this.Writer = BABYLON.MeshWriter(this.scene, this.writerProperties);
-      console.log("TextWriter loaded");
     }
   }
 
@@ -73,8 +73,9 @@ export class TextWriter {
     }
   }
   
+  // TODO this doesn't do anything
   dispose() {
-    this.clear();
-    this.Writer.dispose();
+    //this.clear();
+    //this.Writer.dispose();
   }
 }

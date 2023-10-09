@@ -7,6 +7,14 @@ import org.vrspace.server.obj.Client;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Session flow control. Currently only starts the session, and is very first
+ * command issued, just after connection is established and client properties
+ * are set.
+ * 
+ * @author joe
+ *
+ */
 @Data
 @NoArgsConstructor
 public class Session implements Command {

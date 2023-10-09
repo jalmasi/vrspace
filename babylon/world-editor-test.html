@@ -24,13 +24,27 @@
       display: block;
     }
     </style>﻿
-    
+
+    <!--     
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
     <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
     <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+     -->
+     
+    <script src="./js/lib/babylon.js"></script>
+    <script src="./js/lib/babylonjs.loaders.min.js"></script>
+    <script src="./js/lib/babylon.gui.min.js"></script>
+    <script src="./js/lib/babylonjs.materials.min.js"></script>
+    <script src="./js/lib/babylonjs.proceduralTextures.min.js"></script>
+    <script src="./js/lib/babylon.dynamicTerrain.min.js"></script>
+
+    <script src="./js/vrspace-min.js" type="module"></script>
+    <script src="./js/lib/perlin.js"></script>
+    
     <script src="/babylon/js/lib/pep.min.js"></script>
+    <script src="./js/lib/annyang-2.6.1.min.js"></script>
   </head>
 
   <body>
@@ -51,24 +65,7 @@ import("./world-editor-test.js").then( (module) =>{
 
   world.init(engine, 'world-editor-test').then((scene) => {
 	  myScene = scene;
-
-	  var search = () => {
-      canvas.focus();
-	    var text = document.getElementById('searchText').value;
-      console.log('search: '+text);
-      var args = {};
-      if (document.getElementById('animated').checked) {
-        args.animated = true;
-      }
-      if (document.getElementById('rigged').checked) {
-          args.rigged = true;
-        }
-      world.search(text, args);
-	  }
-	  document.getElementById('searchText').addEventListener('change', () => search() );
-	  document.getElementById('animated').addEventListener('change', () => search() );
-    document.getElementById('rigged').addEventListener('change', () => search() );
-    
+	  world.initXR();
   });
 
 })
@@ -90,33 +87,9 @@ function debugOnOff() {
 
     <div style="position:absolute;bottom:10px;right:50%;">
       <button onClick="debugOnOff()">Debug</button>
+      <input type="file" id="fileInput" accept=".json" style="display:none;"> 
     </div>
     
-    <div id="searchForm" style="position:absolute;bottom:50px;right:40%;">
-      <label for="searchText">Search:</label>
-      <input id="searchText" type="text">
-      <label for="animated">Animated:</label>
-      <input id="animated" type="checkbox">
-      <label for="rigged">Rigged:</label>
-      <input id="rigged" type="checkbox">
-      <input type="file" id="fileInput" accept=".json" style="display:none;">
-      <!-- do we really care? 
-      <label for="license">License:</label>
-      <select id="license">
-        <option value=""></option>
-        <option value="by">by</option>
-        <option value="by-sa">by-sa</option>
-        <option value="by-nd">by-nd</option>
-        <option value="by-nc">by-nc</option>
-        <option value="by-nc-sa">by-nc-sa</option>
-        <option value="by-nc-sa-nd">by-nc-sa-nd</option>
-        <option value="cc0">cc0</option>
-        <option value="ed">ed</option>
-        <option value="st">st</option>
-      </select>
-       -->
-    </div>
-  
   </body>
 
 </html>

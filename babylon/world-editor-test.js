@@ -12,6 +12,7 @@ export class WorldEditorExample extends World {
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;
     this.camera.applyGravity = false;
+    this.gravityEnabled = false;
     return this.camera;
   }
 
@@ -19,7 +20,6 @@ export class WorldEditorExample extends World {
     this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {radius:1000}, this.scene);
     this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
     this.ground.position = new BABYLON.Vector3( 0, -0.05, 0 );
-    this.ground.parent = this.floorGroup;
     //this.ground.isVisible = false;
     this.ground.checkCollisions = false;
     
@@ -55,6 +55,7 @@ export class WorldEditorExample extends World {
     new WorldManager(this);
     //this.worldManager.debug = true; // multi-user debug info
     //this.worldManager.VRSPACE.debug = true; // network debug info
+    //this.worldManager.remoteLogging = true;
     this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => this.worldEditor = new WorldEditor(this, this.fileInputElement));
   }
   

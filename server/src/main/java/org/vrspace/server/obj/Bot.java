@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-public abstract class Bot extends Client {
+public abstract class Bot extends User {
   @JsonIgnore
   private String url;
   @JsonIgnore

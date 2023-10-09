@@ -70,7 +70,7 @@ export class Buttons {
     this.materials.push(this.unselectedMaterial);
 
     if ( this.title && this.title.length > 0 ) {
-      var titleLabel = new Label( this.title, new BABYLON.Vector3(this.title.length,this.spacing*2,0), this.group );
+      var titleLabel = new Label( this.title, new BABYLON.Vector3(this.title.length/Label.fontRatio,this.spacing*2,0), this.group );
       titleLabel.height = 2;
       titleLabel.horizontalAlignment = this.horizontalAlignment;
       titleLabel.verticalAlignment = this.verticalAlignment;
@@ -86,7 +86,7 @@ export class Buttons {
       }
       this.groupWidth = Math.max( this.groupWidth, option.length);
       
-      var buttonLabel = new Label( option, new BABYLON.Vector3(option.length/2+this.buttonHeight,-i*this.spacing,0), this.group );
+      var buttonLabel = new Label( option, new BABYLON.Vector3(option.length/(Label.fontRatio*2)+this.buttonHeight,-i*this.spacing,0), this.group );
       buttonLabel.horizontalAlignment = this.horizontalAlignment;
       buttonLabel.verticalAlignment = this.verticalAlignment;
       buttonLabel.display();

@@ -16,6 +16,7 @@ export class Portal {
     this.callback = callback;
     this.name = serverFolder.name;
     this.subTitle = null;
+    this.alwaysShowTitle = false;
     if ( serverFolder.relatedUrl() ) {
       this.thumbnail = new BABYLON.Texture(serverFolder.relatedUrl());
     }
@@ -25,6 +26,10 @@ export class Portal {
     this.controls = [];
     this.textures = [];
     this.materials = [];
+    this.soundUrl = "/babylon/portal/couchhero_portal-idle.mp3";
+    this.soundDistance = 5;
+    this.soundVolume = .5;
+    
   }
   /** handy, returns base url and folder name */
   worldUrl() {
@@ -32,6 +37,10 @@ export class Portal {
   }
   /** dispose of everything */
   dispose() {
+    this.playSound(false);
+    if (this.sound) {
+      this.sound.dispose();
+    }
     this.group.dispose();
     if (this.thumbnail) {
       this.thumbnail.dispose();
@@ -46,6 +55,10 @@ export class Portal {
     }
     for ( var i = 0; i < this.materials.length; i++ ) {
       this.materials[i].dispose();
+    }
+    if ( this.pointerTracker ) {
+      this.scene.onPointerObservable.remove(this.pointerTracker);
+      delete this.pointerTracker;
     }
   }
   /** Load and display portal at given coordinates. Copies existing portal mesh to new coordinates and angle.
@@ -73,13 +86,12 @@ export class Portal {
     var plane = BABYLON.Mesh.CreatePlane("PortalEntrance:"+this.name, 1.60, this.scene);
     plane.parent = this.group;
     plane.position = new BABYLON.Vector3(0,1.32,0);
-    var observable = (e) => {
+    this.pointerTracker = (e) => {
       if(e.type == BABYLON.PointerEventTypes.POINTERDOWN){
         var p = e.pickInfo;
         if ( p.pickedMesh == plane ) {
           if ( this.isEnabled ) {
             console.log("Entering "+this.name);
-            this.scene.onPointerObservable.clear();
             this.enter();
           } else {
             console.log("Not entering "+this.name+" - disabled");
@@ -87,7 +99,7 @@ export class Portal {
         }
       }
     };
-    this.scene.onPointerObservable.add(observable);
+    this.scene.onPointerObservable.add(this.pointerTracker);
 
     this.material = new BABYLON.StandardMaterial(this.name+"-noise", this.scene);
     plane.material = this.material;
@@ -102,12 +114,12 @@ export class Portal {
     plane.visibility = 0.85;
     this.textures.push( noiseTexture );
 
-    this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:1,width:2}, this.scene);
+    this.title = BABYLON.MeshBuilder.CreatePlane("Text:"+this.name, {height:2,width:4}, this.scene);
     this.title.parent = this.group;
     this.title.position = new BABYLON.Vector3(0,2.5,0);
-    this.title.isVisible = false;
+    this.title.isVisible = this.alwaysShowTitle;
 
-    var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 128,128);
+    var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 256,256);
     this.materials.push(this.title.material);
     
     this.titleText = new BABYLON.GUI.TextBlock();
@@ -118,7 +130,39 @@ export class Portal {
     //this.controls.push(titleText); // CHECKME doesn's seem required
     this.textures.push(titleTexture);
     
+    this.attachSound();
+    
     return this;
+  }
+  attachSound() {
+    if ( this.soundUrl ) {
+      this.sound = new BABYLON.Sound(
+        "portalSound",
+        this.soundUrl,
+        this.scene, null, {
+          loop: true,
+          autoplay: false,
+          spatialSound: true,
+          streaming: false,
+          distanceModel: "linear",
+          maxDistance: this.soundDistance, // default 100, used only when linear
+          panningModel: "equalpower" // or "HRTF"
+        });
+      this.sound.attachToMesh(this.group);
+      this.sound.setVolume(this.soundVolume);
+    }
+  }
+  playSound(enable) {
+    if ( this.sound ) {
+      if ( enable ) {
+        this.sound.play();
+        // chrome hacks
+        BABYLON.Engine.audioEngine.audioContext?.resume();
+        BABYLON.Engine.audioEngine.setGlobalVolume(1);        
+      } else if ( this.sound ) {
+        this.sound.stop();
+      }
+    }
   }
   showTitle() {
     if ( this.titleText ) {
@@ -145,8 +189,9 @@ export class Portal {
     } else {
       this.material.emissiveTexture = null;
     }
-    this.title.isVisible = enable;
+    this.title.isVisible = enable || this.alwaysShowTitle;
     this.isEnabled = enable;
+    this.playSound(enable);
   }
   /** Executes callback on entry */
   enter() {

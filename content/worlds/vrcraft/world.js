@@ -1,18 +1,18 @@
-import { World, VRSPACEUI, WorldEditor } from '../../../babylon/js/vrspace-min.js';
+import { World, VRSPACEUI, WorldManager, WorldEditor, Terrain, TerrainEditor, SkyboxSelector } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldEditorExample extends World {
   async load(callback) {
-    // we're not loading any models, only ones sent by the server
-    // but we do need to init SEARCH UI
+    // we're not loading any models
+    // but we're displaying UI instead
     this.makeUI();
-    // now proceed with normal loading sequence
     if ( callback ) {
+      // make sure to notify avatar-selection
       callback(this);
     }
   }
-  
   async createCamera() {
     this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
+    this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;
     this.camera.applyGravity = false;
@@ -54,54 +54,89 @@ export class WorldEditorExample extends World {
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     return skybox;
   }
+
+  async createTerrain() {
+    this.terrain = new Terrain();
+    this.terrain.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", this.scene);
+    this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(.2, .2, .2);
+    this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(0, .2, 0);
+    this.terrain.terrainMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
+    this.terrain.init(this.scene);
+    this.terrain.mesh().setEnabled(false);
+    this.terrainEditor = new TerrainEditor(this);
+  }
   
-  entered(welcome) {
-    console.log("Entered the world, starting world manager", welcome);
-    this.worldEditor = new WorldEditor(this, this.fileInputElement);
+  makeUI() {
+    this.contentBase=VRSPACEUI.contentBase;
+    var worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world-edit.png", (b,i)=>this.editWorld(b,i));
+    var terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i));
+    var skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i));
+    VRSPACEUI.hud.enableSpeech(true);
+  }
+    
+  editWorld(button, vector3WithInfo) {
+    this.editing = !this.editing;
+    console.log("World editor active:"+this.editing);
+    if ( this.editing ) {
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+      VRSPACEUI.hud.newRow();
+      this.worldEditor = new WorldEditor(this, this.fileInputElement);
+    } else {
+      while ( VRSPACEUI.hud.rows.length > 1 ) {
+        VRSPACEUI.hud.clearRow();
+      }
+      this.worldEditor.dispose();
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+    }
+  }
+  
+  editTerrain(button, vector3WithInfo) {
+    this.editing = !this.editing;
+    console.log("Terrain editor active:"+this.editing);
+    if ( this.editing ) {
+      this.terrain.mesh().setEnabled(true);
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+      VRSPACEUI.hud.newRow();
+      this.terrainEditor.edit();
+    } else {
+      VRSPACEUI.hud.clearRow();
+      //this.terrainEditor.dispose();
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+    }
+  }
+  
+  editSkybox(button, vector3WithInfo) {
+    this.editing = !this.editing;
+    console.log("Skybox editor active:"+this.editing);
+    if ( this.editing ) {
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+      VRSPACEUI.hud.newRow();
+      if ( ! this.skyboxSelector ) {
+        this.skyboxSelector = new SkyboxSelector(this);
+      }
+      this.skyboxSelector.show();
+      VRSPACEUI.hud.enableSpeech(true);
+    } else {
+      VRSPACEUI.hud.clearRow();
+      this.skyboxSelector.hide();
+      VRSPACEUI.hud.showButtons(!this.editing, button);
+    }
   }
 
-  // this shouldn't be here, but in HTML file
-  makeUI() {
-    var div = document.createElement("div");
-    div.id = "searchForm";
-    div.style = "position:absolute;bottom:80px;right:40%;color:white;";
-    // CHECKME: sketchfab link?
-    var html =
-      `<label for="searchText">Search Sketchfab:</label>
-      <input id="searchText" type="text">
-      <label for="animated">Animated:</label>
-      <input id="animated" type="checkbox">
-      <label for="rigged">Rigged:</label>
-      <input id="rigged" type="checkbox">
-      <input type="file" id="fileInput" accept=".json" style="display:none;">`;
-    
-    div.innerHTML = html;
-    document.body.appendChild(div);
-    
-    this.fileInputElement = document.getElementById('fileInput');
-
-    var search = () => {
-      canvas.focus();
-      var text = document.getElementById('searchText').value;
-      console.log('search: '+text);
-      var args = {};
-      if (document.getElementById('animated').checked) {
-        args.animated = true;
-      }
-      if (document.getElementById('rigged').checked) {
-        args.rigged = true;
-      }
-      this.search(text, args);
-    }
-    document.getElementById('searchText').addEventListener('change', () => search() );
-    document.getElementById('animated').addEventListener('change', () => search() );
-    document.getElementById('rigged').addEventListener('change', () => search() );
+  // used in stand-alone mode (i.e. if world is not entered via avatar-selection, but from world.html)  
+  connect() {
+    new WorldManager(this);
+    //this.worldManager.debug = true; // multi-user debug info
+    //this.worldManager.VRSPACE.debug = true; // network debug info
+    //this.worldManager.remoteLogging = true;
+    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => {
+      // we don't really need to do anything here
+    });
   }
   
   search( what, flags ) {
     this.worldEditor.search( what, flags );
   }
-  
 }
 
 export const WORLD = new WorldEditorExample();
