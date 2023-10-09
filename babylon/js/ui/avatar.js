@@ -263,6 +263,8 @@ export class Avatar {
       if ( container.skeletons && container.skeletons.length > 0 ) {
         // CHECKME: should we process multiple skeletons?
         this.skeleton = container.skeletons[0];
+        // hacking to get avatars working in babylon 5
+        // https://doc.babylonjs.com/features/featuresDeepDive/mesh/bonesSkeletons#sharing-skeletons-between-skinned-meshes
         this.skinnedMesh = null;
         meshes.forEach(m=>{
           if ( m.skeleton = this.skeleton ) {
@@ -283,8 +285,14 @@ export class Avatar {
         //this.scene.render();
         this.skeleton.name = this.folder.name;
 
+        let bone0quat = this.skeleton.bones[0].getRotationQuaternion();
+        let bone1quat = this.skeleton.bones[0].getChildren()[0].getRotationQuaternion();
+        this.baseRotation = bone0quat.multiply(bone1quat);
+        //this.baseRotation = BABYLON.Quaternion.Inverse(this.skeleton.bones[0].getRotationQuaternion()).multiply(BABYLON.Quaternion.Inverse(this.skeleton.bones[0].getChildren()[0].getRotationQuaternion()));
+        console.log( "Base rotation: "+bone0quat.toEulerAngles()+" "+bone1quat.toEulerAngles()+" "+this.baseRotation.toEulerAngles());
+
         this.processBones(this.skeleton.bones);
-        this.log( "Head position: "+this.headPos());
+        this.log( "Base head position: "+this.headPos() );
         this.initialHeadPos = this.headPos();
         this.resize();
 
@@ -576,10 +584,11 @@ export class Avatar {
   /** Returns position of the the head 'bone' */
   headPos() {
     // FIXME this is way suboptimal as it forces computation
-    //this.head().getTransformNode().computeWorldMatrix(true);
-    //var headPos = this.head().getTransformNode().getAbsolutePosition();
-    var headPos = this.head().getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
-    return headPos.clone();
+    this.head().getTransformNode().computeWorldMatrix(true);
+    var headPos = this.head().getTransformNode().getAbsolutePosition();
+    // this returns complete nonsense in some cases (lisa etc), no matter what:
+    //var headPos = this.head().getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
+    return headPos;
   }
 
   /** Returns current height - distance head to feet */
@@ -626,11 +635,11 @@ export class Avatar {
     // CHECKME: exact calculus?
     var targetVector = target.subtract(this.headPos()).add(totalPos);
     //var targetVector = target.subtract(this.headPos());
-    if ( this.headAxisFix == -1 ) {
+    //if ( this.headAxisFix == -1 ) {
       // FIX: neck and head opposite orientation
       // businessman, robot, adventurer, unreal male
       targetVector.y = -targetVector.y;
-    }
+    //}
     targetVector.rotateByQuaternionToRef(this.headQuatInv,targetVector);
     // this results in weird head positions, more natural-looking fix applied after
     //targetVector.rotateByQuaternionToRef(this.headQuat.multiply(this.neckQuatInv),targetVector);
@@ -1037,10 +1046,11 @@ export class Avatar {
     leg.length = length;
 
     if ( ! leg.upperQuat ) {
-      leg.upperQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getWorldMatrix().getRotationMatrix());
+      // CHECKME getTransformNode() ?
+      leg.upperQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
       leg.upperQuatInv = BABYLON.Quaternion.Inverse(leg.upperQuat);
 
-      leg.lowerQuat = BABYLON.Quaternion.FromRotationMatrix(lower.getWorldMatrix().getRotationMatrix());
+      leg.lowerQuat = BABYLON.Quaternion.FromRotationMatrix(lower.getTransformNode().getWorldMatrix().getRotationMatrix());
       leg.lowerQuatInv = BABYLON.Quaternion.Inverse(leg.lowerQuat);
 
       leg.upperRot = upper.getTransformNode().rotationQuaternion.clone();
@@ -1472,12 +1482,15 @@ export class Avatar {
     var head = bone;
 
     var refHead = new BABYLON.Vector3();
-    head.getDirectionToRef(BABYLON.Axis.Z,this.rootMesh,refHead);
+    // all the same, completelly useles
+    //head.getDirectionToRef(BABYLON.Axis.Z,this.rootMesh,refHead);
+    head.getDirectionToRef(BABYLON.Axis.Z,this.skinnedMesh,refHead);
     this.roundVector(refHead);
     this.log("RefZ head: "+refHead);
 
     var refNeck = new BABYLON.Vector3();
-    neck.getDirectionToRef(BABYLON.Axis.Z,this.rootMesh,refNeck);
+    //neck.getDirectionToRef(BABYLON.Axis.Z,this.rootMesh,refNeck);
+    neck.getDirectionToRef(BABYLON.Axis.Z,this.skinnedMesh,refNeck);
     this.roundVector(refNeck);
     this.log("RefZ neck: "+refNeck);
 
@@ -1486,10 +1499,10 @@ export class Avatar {
     // they need different calculation
     this.headAxisFix = refHead.z * refNeck.z;
 
-    this.headQuat = BABYLON.Quaternion.FromRotationMatrix(head.getWorldMatrix().getRotationMatrix());
+    this.headQuat = BABYLON.Quaternion.FromRotationMatrix(head.getTransformNode().getWorldMatrix().getRotationMatrix());
     this.headQuatInv = BABYLON.Quaternion.Inverse(this.headQuat);
 
-    this.neckQuat = BABYLON.Quaternion.FromRotationMatrix(neck.getWorldMatrix().getRotationMatrix());
+    this.neckQuat = BABYLON.Quaternion.FromRotationMatrix(neck.getTransformNode().getWorldMatrix().getRotationMatrix());
     this.neckQuatInv = BABYLON.Quaternion.Inverse(this.neckQuat);
 
     var target = new BABYLON.Vector3(0,0,1);
