@@ -288,7 +288,6 @@ export class Avatar {
         let bone0quat = this.skeleton.bones[0].getRotationQuaternion();
         let bone1quat = this.skeleton.bones[0].getChildren()[0].getRotationQuaternion();
         this.baseRotation = bone0quat.multiply(bone1quat);
-        //this.baseRotation = BABYLON.Quaternion.Inverse(this.skeleton.bones[0].getRotationQuaternion()).multiply(BABYLON.Quaternion.Inverse(this.skeleton.bones[0].getChildren()[0].getRotationQuaternion()));
         console.log( "Base rotation: "+bone0quat.toEulerAngles()+" "+bone1quat.toEulerAngles()+" "+this.baseRotation.toEulerAngles());
 
         this.processBones(this.skeleton.bones);
@@ -678,8 +677,6 @@ export class Avatar {
     var upperArm = this.skeleton.bones[arm.upper];
     var lowerArm = this.skeleton.bones[arm.lower];
 
-    var scaling = this.rootMesh.scaling.x;
-
     console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
     var totalRot = this.parentMesh.rotationQuaternion.multiply(this.rootMesh.rotationQuaternion);
@@ -693,7 +690,6 @@ export class Avatar {
     // {X: -0.1751229166984558 Y: 1.6363260294578168 Z: 0.03606260195374489}
     //var armPos = upperArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
     armPos.rotateByQuaternionToRef(rootQuatInv,armPos);
-    console.log("Arm pos: "+armPos+" "+this.getAbsolutePosition(upperArm).scale(scaling).subtract(totalPos));
     //var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
     var elbowPos = this.getAbsolutePosition(lowerArm).subtract(totalPos);
     //var elbowPos = lowerArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
@@ -1090,7 +1086,6 @@ export class Avatar {
   calcLength(limb) {
     var upper = this.skeleton.bones[limb.upper];
     var lower = this.skeleton.bones[limb.lower];
-    var scaling = this.rootMesh.scaling.x;
     limb.upperLength = this.getAbsolutePosition(upper).subtract(this.getAbsolutePosition(lower)).length();
     if ( lower.children && lower.children[0] ) {
       limb.lowerLength = this.getAbsolutePosition(lower).subtract(this.getAbsolutePosition(lower.children[0])).length();
@@ -1163,8 +1158,10 @@ export class Avatar {
     //this.debugViewer1 = new BABYLON.Debug.BoneAxesViewer(scene, leftUpperLeg, this.rootMesh);
     //this.debugViewer2 = new BABYLON.Debug.BoneAxesViewer(scene, leftLowerLeg, this.rootMesh);
 
-    this.body.leftLeg.frontAxis = this.guessRotation(leftUpperLeg, BABYLON.Axis.Z);
-    this.body.rightLeg.frontAxis = this.guessRotation(rightUpperLeg, BABYLON.Axis.Z, this.body.leftLeg.frontAxis.axis);
+    //this.body.leftLeg.frontAxis = this.guessRotation(leftUpperLeg, BABYLON.Axis.Z);
+    //this.body.rightLeg.frontAxis = this.guessRotation(rightUpperLeg, BABYLON.Axis.Z, this.body.leftLeg.frontAxis.axis);
+    this.body.leftLeg.frontAxis = this.improviseRotation(leftUpperLeg);
+    this.body.rightLeg.frontAxis = this.improviseRotation(rightUpperLeg);
 
     //this.log("Left leg axis, front: "+this.body.leftLeg.frontAxis.sign + this.body.leftLeg.frontAxis.axis);
 
@@ -1173,6 +1170,27 @@ export class Avatar {
 
     this.body.rightLeg.upperRot = BABYLON.Quaternion.FromRotationMatrix(rightUpperLeg.getRotationMatrix());
     this.body.rightLeg.lowerRot = BABYLON.Quaternion.FromRotationMatrix(rightLowerLeg.getRotationMatrix());
+  }
+  
+  improviseRotation( bone ) {
+    let axis = bone.getDirection(BABYLON.Axis.X,this.skinnedMesh);
+    this.roundVector(axis);
+    console.log(bone.name+" axis:"+axis);
+    if ( axis.x == 1 || axis.x == -1) {
+      return {axis: BABYLON.Axis.X, sign:-axis.x };
+    }
+    if ( axis.y == -1 || axis.y == 1) {
+      let axis2 = bone.getDirection(BABYLON.Axis.Z,this.skinnedMesh);
+      this.roundVector(axis2);
+      console.log("Y axis, 2nd pass: "+axis2);
+      return {axis: BABYLON.Axis.Z, sign:-axis2.x }; // solus, robot, business man, lord infandum, zombie2
+      // TODO crazy woman
+    }
+    if ( axis.z == -1 || axis.z == 1) {
+      return {axis: BABYLON.Axis.Y, sign:-axis.z };
+    }
+    console.log("FIXME axis "+axis);
+    return {axis: BABYLON.Axis.X, sign:-1 };
   }
 
   guessRotation(bone, maxAxis, rotationAxis) {
@@ -1195,29 +1213,27 @@ export class Avatar {
         }
       }
     }
-    //this.log("Got it: "+axis+" "+angle+" - "+max);
+    this.log("Got it for "+bone.name+": "+axis+" "+angle+" - "+max);
     return {axis:axis,sign:Math.sign(angle)};
   }
 
   getAbsolutePosition(bone) {
-    return bone.getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
+    //return bone.getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
+    bone.getTransformNode().computeWorldMatrix(true);
+    return bone.getTransformNode().getAbsolutePosition();
   }
   
   tryRotation(bone, axis, angle) {
     var target = bone.children[0];
-    var original = bone.getRotationQuaternion();
     var oldPos = this.getAbsolutePosition(target);
+    var original = bone.rotationQuaternion.clone();
     var rotationMatrix = BABYLON.Matrix.RotationAxis(axis,angle);
-    var quat = bone.rotationQuaternion;
     var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
-    bone.setRotationQuaternion(quat.multiply(rotated));
-    bone.computeWorldMatrix(true); // not required
-    bone.computeAbsoluteTransforms();
+    bone.getTransformNode().rotationQuaternion = original.multiply(rotated);
     var newPos = this.getAbsolutePosition(target);
-    bone.setRotationQuaternion(original);
-    bone.computeAbsoluteTransforms();
+    bone.getTransformNode().rotationQuaternion = original;
     var ret = newPos.subtract(oldPos);
-    this.log("Tried "+axis+" "+angle+" - "+ret.z+" "+bone.name);
+    this.log("Tried "+axis+" "+angle+" - "+ret+" "+bone.name+" "+oldPos+"->"+newPos);
     return ret;
   }
 
@@ -1291,6 +1307,7 @@ export class Avatar {
   }
 
   processHips( bones ) {
+    // FIXME cyberconnect: tail_02 recognised as left leg due to l_
     // hips have two legs and spine attached, possibly something else
     // TODO rewrite this to find most probable candidates for legs
     for ( var i = 0; i < bones.length; i++ ) {
@@ -1318,12 +1335,19 @@ export class Avatar {
   }
 
   isLegName(boneName, lr, children ) {
+    console.log("Legname: "+boneName);
     return boneName.includes( lr+'leg' ) ||
-           boneName.includes( lr+'_' ) ||
+           // also catches tail_01:
+           //boneName.includes( lr+'_' ) || 
            boneName.includes( ' '+lr+' ' ) ||
            boneName.includes(lr+'thigh') ||
-           boneName.includes(lr+'hip') ||
-           ( children.length > 0 && children[0].children.length > 0  && children[0].name.toLowerCase().includes(lr+"_") )
+           // lisa fails, warning leg already exists:
+           //boneName.includes('thigh') ||
+           boneName.includes(lr+'hip') 
+           // also includes tail_02:
+           || ( children.length > 0 && children[0].children.length > 0  && children[0].name.toLowerCase().includes(lr+"_") )
+           // lisa fails, warning leg already exists:
+           //|| ( children && children.length > 0 && children[0].children.length > 0  && this.isLegName(children[0].name.toLowerCase(),lr) )
   }
 
   tryLeg( leg, bone ) {
