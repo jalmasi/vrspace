@@ -263,6 +263,15 @@ export class Avatar {
       if ( container.skeletons && container.skeletons.length > 0 ) {
         // CHECKME: should we process multiple skeletons?
         this.skeleton = container.skeletons[0];
+        this.skinnedMesh = null;
+        meshes.forEach(m=>{
+          if ( m.skeleton = this.skeleton ) {
+            console.log("Skinned mesh: "+m.name, m);
+            if ( ! this.skinnedMesh ) {
+              this.skinnedMesh = m;
+            }
+          }
+        });
 
         this.createBody();
         //this.log("bones: "+bonesTotal+" "+bonesProcessed);
@@ -567,8 +576,9 @@ export class Avatar {
   /** Returns position of the the head 'bone' */
   headPos() {
     // FIXME this is way suboptimal as it forces computation
-    this.head().getTransformNode().computeWorldMatrix(true);
-    var headPos = this.head().getTransformNode().getAbsolutePosition();
+    //this.head().getTransformNode().computeWorldMatrix(true);
+    //var headPos = this.head().getTransformNode().getAbsolutePosition();
+    var headPos = this.head().getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
     return headPos.clone();
   }
 
@@ -656,9 +666,6 @@ export class Avatar {
   @param t target position
    */
   reachFor( arm, t ) {
-    // this can be used as argument for bone getAbsolutePosition() with unknown purpose
-    var rootBoneTransform = this.skeleton.bones[0].getTransformNode();
-
     var upperArm = this.skeleton.bones[arm.upper];
     var lowerArm = this.skeleton.bones[arm.lower];
 
@@ -673,13 +680,13 @@ export class Avatar {
     // {X: 0.1751229093843536 Y: 1.6291742177001083 Z: -0.03606258881607194}
     //var armPos = upperArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
     // {X: -0.1751229166984558 Y: 1.6363257910392377 Z: 0.036062587052583694}
-    var armPos = upperArm.getAbsolutePosition(rootBoneTransform).subtract(totalPos);
+    var armPos = this.getAbsolutePosition(upperArm).subtract(totalPos);
     // {X: -0.1751229166984558 Y: 1.6363260294578168 Z: 0.03606260195374489}
     //var armPos = upperArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
     armPos.rotateByQuaternionToRef(rootQuatInv,armPos);
-    console.log("Arm pos: "+armPos+" "+upperArm.getAbsolutePosition().scale(scaling).subtract(totalPos));
+    console.log("Arm pos: "+armPos+" "+this.getAbsolutePosition(upperArm).scale(scaling).subtract(totalPos));
     //var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
-    var elbowPos = lowerArm.getAbsolutePosition(rootBoneTransform).subtract(totalPos);
+    var elbowPos = this.getAbsolutePosition(lowerArm).subtract(totalPos);
     //var elbowPos = lowerArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
     elbowPos.rotateByQuaternionToRef(rootQuatInv,elbowPos);
 
@@ -783,7 +790,7 @@ export class Avatar {
 
     // then bend arm
     var length = targetVector.length();
-    //var bent = this.bendArm(arm, length);
+    var bent = this.bendArm(arm, length);
 
     this.renderArmRotation(arm);
     return quat;
@@ -1074,9 +1081,9 @@ export class Avatar {
     var upper = this.skeleton.bones[limb.upper];
     var lower = this.skeleton.bones[limb.lower];
     var scaling = this.rootMesh.scaling.x;
-    limb.upperLength = upper.getAbsolutePosition().subtract(lower.getAbsolutePosition()).length()*scaling;
+    limb.upperLength = this.getAbsolutePosition(upper).subtract(this.getAbsolutePosition(lower)).length()*scaling;
     if ( lower.children && lower.children[0] ) {
-      limb.lowerLength = lower.getAbsolutePosition().subtract(lower.children[0].getAbsolutePosition()).length()*scaling;
+      limb.lowerLength = this.getAbsolutePosition(lower).subtract(this.getAbsolutePosition(lower.children[0])).length()*scaling;
     } else {
       limb.lowerLength = 0;
     }
@@ -1182,20 +1189,21 @@ export class Avatar {
     return {axis:axis,sign:Math.sign(angle)};
   }
 
+  getAbsolutePosition(bone) {
+    return bone.getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
+  }
+  
   tryRotation(bone, axis, angle) {
     var target = bone.children[0];
     var original = bone.getRotationQuaternion();
-    var oldPos = target.getAbsolutePosition();
-    //var oldPos = target.getTransformNode().getAbsolutePosition();
+    var oldPos = this.getAbsolutePosition(target);
     var rotationMatrix = BABYLON.Matrix.RotationAxis(axis,angle);
     var quat = bone.rotationQuaternion;
     var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
     bone.setRotationQuaternion(quat.multiply(rotated));
-    //this.scene.render(); // doesn't work in XR
     bone.computeWorldMatrix(true); // not required
     bone.computeAbsoluteTransforms();
-    var newPos = target.getAbsolutePosition();
-    //var newPos = target.getTransformNode().getAbsolutePosition();
+    var newPos = this.getAbsolutePosition(target);
     bone.setRotationQuaternion(original);
     bone.computeAbsoluteTransforms();
     var ret = newPos.subtract(oldPos);
