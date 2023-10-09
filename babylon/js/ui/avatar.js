@@ -868,7 +868,7 @@ export class Avatar {
     var boneLength = (arm.lowerLength + arm.upperLength)/2;
     var innerAngle = Math.asin(length/2/boneLength);
     //this.log("Bone length: "+boneLength+" distance to target "+length);
-    var shoulderAngle = Math.PI/2-innerAngle;
+    var shoulderAngle = -Math.PI/2+innerAngle;
     var elbowAngle = shoulderAngle*2;
 
     var fix = BABYLON.Quaternion.RotationAxis(arm.frontAxis.axis,-shoulderAngle*arm.frontAxis.sign);
@@ -1062,7 +1062,7 @@ export class Avatar {
     var boneLength = (leg.lowerLength + leg.upperLength)/2;
     var innerAngle = Math.asin(length/2/boneLength);
     //this.log("Bone length: "+boneLength+" distance to target "+length);
-    var upperAngle = Math.PI/2-innerAngle;
+    var upperAngle = -Math.PI/2+innerAngle;
     var lowerAngle = upperAngle*2;
 
     var axis = leg.frontAxis.axis;
@@ -1091,9 +1091,9 @@ export class Avatar {
     var upper = this.skeleton.bones[limb.upper];
     var lower = this.skeleton.bones[limb.lower];
     var scaling = this.rootMesh.scaling.x;
-    limb.upperLength = this.getAbsolutePosition(upper).subtract(this.getAbsolutePosition(lower)).length()*scaling;
+    limb.upperLength = this.getAbsolutePosition(upper).subtract(this.getAbsolutePosition(lower)).length();
     if ( lower.children && lower.children[0] ) {
-      limb.lowerLength = this.getAbsolutePosition(lower).subtract(this.getAbsolutePosition(lower.children[0])).length()*scaling;
+      limb.lowerLength = this.getAbsolutePosition(lower).subtract(this.getAbsolutePosition(lower.children[0])).length();
     } else {
       limb.lowerLength = 0;
     }
