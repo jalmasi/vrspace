@@ -689,11 +689,11 @@ export class Avatar {
     var armPos = this.getAbsolutePosition(upperArm).subtract(totalPos);
     // {X: -0.1751229166984558 Y: 1.6363260294578168 Z: 0.03606260195374489}
     //var armPos = upperArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
-    armPos.rotateByQuaternionToRef(rootQuatInv,armPos);
+    //armPos.rotateByQuaternionToRef(rootQuatInv,armPos);
     //var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
     var elbowPos = this.getAbsolutePosition(lowerArm).subtract(totalPos);
     //var elbowPos = lowerArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
-    elbowPos.rotateByQuaternionToRef(rootQuatInv,elbowPos);
+    //elbowPos.rotateByQuaternionToRef(rootQuatInv,elbowPos);
 
     // set or get initial values
     if ( arm.upperQuat ) {
@@ -704,13 +704,13 @@ export class Avatar {
     } else {
       //var matrix = upperArm.getRotationMatrix(BABYLON.Space.WORLD);
       //var matrix = upperArm.getWorldMatrix().getRotationMatrix();
-      //var matrix = upperArm.getTransformNode().getWorldMatrix().getRotationMatrix();
-      //var worldQuat = BABYLON.Quaternion.FromRotationMatrix(matrix);
+      var matrix = upperArm.getTransformNode().getWorldMatrix().getRotationMatrix();
+      var worldQuat = BABYLON.Quaternion.FromRotationMatrix(matrix);
       //var worldQuat = upperArm.getRotationQuaternion(BABYLON.Space.WORLD, this.skinnedMesh);
-      var worldQuat = upperArm.getRotationQuaternion(BABYLON.Space.WORLD);
+      //var worldQuat = upperArm.getRotationQuaternion(BABYLON.Space.WORLD);
       //var worldQuat = upperArm.getTransformNode().rotationQuaternion;
       //var worldQuat = upperArm.rotationQuaternion.clone();
-      arm.worldQuat = worldQuat.clone();
+      //arm.worldQuat = worldQuat.clone();
       this.log("Arm angles: "+worldQuat.toEulerAngles());
       var worldQuatInv = BABYLON.Quaternion.Inverse(worldQuat);
       arm.worldQuatInv = worldQuatInv;
@@ -730,7 +730,7 @@ export class Avatar {
     // calc target pos in coordinate system of character
     var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
     // CHECKME: probable bug, possibly related to worldQuat
-    target.rotateByQuaternionToRef(rootQuatInv,target);
+    //target.rotateByQuaternionToRef(rootQuatInv,target);
 
     // calc target vectors in local coordinate system of the arm
     var targetVector = target.subtract(armPos);
