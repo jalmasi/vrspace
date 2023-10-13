@@ -679,7 +679,8 @@ export class Avatar {
 
     console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
-    var totalRot = this.parentMesh.rotationQuaternion.multiply(this.rootMesh.rotationQuaternion);
+    //var totalRot = this.parentMesh.rotationQuaternion.multiply(this.rootMesh.rotationQuaternion);
+    var totalRot = this.parentMesh.rotationQuaternion;
     var rootQuatInv = BABYLON.Quaternion.Inverse(totalRot);
     
     // current values
@@ -731,10 +732,12 @@ export class Avatar {
     var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
     // CHECKME: probable bug, possibly related to worldQuat
     //target.rotateByQuaternionToRef(rootQuatInv,target);
+    target.rotateByQuaternionToRef(rootQuatInv,target);
 
     // calc target vectors in local coordinate system of the arm
     var targetVector = target.subtract(armPos);
     targetVector.rotateByQuaternionToRef(worldQuatInv,targetVector);
+    //targetVector.rotateByQuaternionToRef(rootQuatInv,targetVector);
 
     console.log("arm vector: "+armVector);
     console.log("target vector: "+targetVector);
