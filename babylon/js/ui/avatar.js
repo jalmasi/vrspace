@@ -268,8 +268,8 @@ export class Avatar {
         this.skinnedMesh = null;
         meshes.forEach(m=>{
           if ( m.skeleton = this.skeleton ) {
-            console.log("Skinned mesh: "+m.name, m);
             if ( ! this.skinnedMesh ) {
+              console.log("Skinned mesh: "+m.name, m);
               this.skinnedMesh = m;
             }
           }
@@ -706,6 +706,7 @@ export class Avatar {
       //var matrix = upperArm.getWorldMatrix().getRotationMatrix();
       //var matrix = upperArm.getTransformNode().getWorldMatrix().getRotationMatrix();
       //var worldQuat = BABYLON.Quaternion.FromRotationMatrix(matrix);
+      //var worldQuat = upperArm.getRotationQuaternion(BABYLON.Space.WORLD, this.skinnedMesh);
       var worldQuat = upperArm.getRotationQuaternion(BABYLON.Space.WORLD);
       //var worldQuat = upperArm.getTransformNode().rotationQuaternion;
       //var worldQuat = upperArm.rotationQuaternion.clone();
@@ -714,8 +715,8 @@ export class Avatar {
       var worldQuatInv = BABYLON.Quaternion.Inverse(worldQuat);
       arm.worldQuatInv = worldQuatInv;
       //var upperQuat = upperArm.getRotationQuaternion(BABYLON.Space.BONE);
-      //var upperQuat = upperArm.getTransformNode().rotationQuaternion;
-      var upperQuat = upperArm.rotationQuaternion;
+      var upperQuat = upperArm.getTransformNode().rotationQuaternion;
+      //var upperQuat = upperArm.rotationQuaternion;
       arm.upperQuat = upperQuat.clone();
       var armVector = elbowPos.subtract(armPos);
       console.log("Arm vector: "+armVector);
@@ -849,9 +850,6 @@ export class Avatar {
    */
   bendArm( arm, length ) {
     var ret = true;
-    var upperArm = this.skeleton.bones[arm.upper];
-    var lowerArm = this.skeleton.bones[arm.lower];
-    var scaling = this.rootMesh.scaling.x;
 
     if ( length > arm.lowerLength + arm.upperLength ) {
       length = arm.lowerLength + arm.upperLength
@@ -1113,7 +1111,7 @@ export class Avatar {
 
   rotateBoneFor(bone, axis, increment) {
     var rotationMatrix = BABYLON.Matrix.RotationAxis(axis,increment);
-    var quat = bone.rotationQuaternion;
+    var quat = bone.rotationQuaternion; // FIXME: upperArm.getTransformNode()?
     var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
     bone.setRotationQuaternion(quat.multiply(rotated));
   }
@@ -1126,19 +1124,19 @@ export class Avatar {
     var rightLowerArm = this.skeleton.bones[this.body.rightArm.lower];
 
     // heuristics, assume both arm rotate around same rotation axis
-    this.body.leftArm.sideAxis = this.guessRotation(leftUpperArm, BABYLON.Axis.Y);
-    //this.body.rightArm.sideAxis = this.guessRotation(rightUpperArm, BABYLON.Axis.Y);
-    this.body.rightArm.sideAxis = this.guessRotation(rightUpperArm, BABYLON.Axis.Y, this.body.leftArm.sideAxis.axis);
+    //this.body.leftArm.sideAxis = this.guessRotation(leftUpperArm, BABYLON.Axis.Y);
+    //this.body.rightArm.sideAxis = this.guessRotation(rightUpperArm, BABYLON.Axis.Y, this.body.leftArm.sideAxis.axis);
 
-    this.body.leftArm.frontAxis = this.guessRotation(leftUpperArm, BABYLON.Axis.Z);
-    //this.body.rightArm.frontAxis = this.guessRotation(rightUpperArm, BABYLON.Axis.Z);
-    this.body.rightArm.frontAxis = this.guessRotation(rightUpperArm, BABYLON.Axis.Z, this.body.leftArm.frontAxis.axis);
+    //this.body.leftArm.frontAxis = this.guessRotation(leftUpperArm, BABYLON.Axis.Z);
+    //this.body.rightArm.frontAxis = this.guessRotation(rightUpperArm, BABYLON.Axis.Z, this.body.leftArm.frontAxis.axis);
+    this.body.leftArm.frontAxis = this.improviseArmRotation(leftUpperArm);
+    this.body.rightArm.frontAxis = this.improviseArmRotation(rightUpperArm);
 
     //this.debugViewer1 = new BABYLON.Debug.BoneAxesViewer(scene, leftUpperArm, this.rootMesh);
 
-    this.log("Left arm axis, side: "+this.body.leftArm.sideAxis.sign + this.body.leftArm.sideAxis.axis);
+    //this.log("Left arm axis, side: "+this.body.leftArm.sideAxis.sign + this.body.leftArm.sideAxis.axis);
     this.log("Left arm axis, front: "+this.body.leftArm.frontAxis.sign + this.body.leftArm.frontAxis.axis);
-    this.log("Right arm axis, side: "+this.body.rightArm.sideAxis.sign + this.body.rightArm.sideAxis.axis);
+    //this.log("Right arm axis, side: "+this.body.rightArm.sideAxis.sign + this.body.rightArm.sideAxis.axis);
     this.log("Right arm axis, front: "+this.body.rightArm.frontAxis.sign + this.body.rightArm.frontAxis.axis);
 
     this.body.leftArm.upperRot = BABYLON.Quaternion.FromRotationMatrix(leftUpperArm.getRotationMatrix());
@@ -1146,6 +1144,37 @@ export class Avatar {
 
     this.body.rightArm.upperRot = BABYLON.Quaternion.FromRotationMatrix(rightUpperArm.getRotationMatrix());
     this.body.rightArm.lowerRot = BABYLON.Quaternion.FromRotationMatrix(rightLowerArm.getRotationMatrix());
+  }
+
+  improviseArmRotation( bone ) {
+    let axis = bone.getDirection(BABYLON.Axis.X,this.skinnedMesh);
+    this.roundVector(axis);
+    console.log(bone.name+" axis:"+axis);
+    if ( axis.x == 1 || axis.x == -1) {
+      return {axis: BABYLON.Axis.X, sign:axis.x };
+    }
+    if ( axis.y == -1 || axis.y == 1) {
+      let axis2 = bone.getDirection(BABYLON.Axis.Z,this.skinnedMesh);
+      this.roundVector(axis2);
+      console.log("Y axis, 2nd pass: "+axis2);
+      return {axis: BABYLON.Axis.Z, sign:-axis2.x };
+    }
+    if ( axis.z == -1 || axis.z == 1) {
+      let axis2 = bone.getDirection(BABYLON.Axis.Y,this.skinnedMesh);
+      // boris, x, wrong -1 1
+      // clone, x, right
+      this.roundVector(axis2);
+      let axis3 = bone.getDirection(BABYLON.Axis.Z,this.skinnedMesh);
+      // boris y 1 wrong
+      // clone y -1 right
+      // bruce lee x, z right
+      // lisa y -1 wrong
+      this.roundVector(axis3);
+      console.log("Z axis, 2nd pass: Y="+axis2+" Z="+axis3);
+      return {axis: BABYLON.Axis.Z, sign:-axis.z };
+    }
+    console.log("FIXME axis "+axis);
+    return {axis: BABYLON.Axis.X, sign:-1 };
   }
 
   guessLegsRotations() {
@@ -1158,10 +1187,8 @@ export class Avatar {
     //this.debugViewer1 = new BABYLON.Debug.BoneAxesViewer(scene, leftUpperLeg, this.rootMesh);
     //this.debugViewer2 = new BABYLON.Debug.BoneAxesViewer(scene, leftLowerLeg, this.rootMesh);
 
-    //this.body.leftLeg.frontAxis = this.guessRotation(leftUpperLeg, BABYLON.Axis.Z);
-    //this.body.rightLeg.frontAxis = this.guessRotation(rightUpperLeg, BABYLON.Axis.Z, this.body.leftLeg.frontAxis.axis);
-    this.body.leftLeg.frontAxis = this.improviseRotation(leftUpperLeg);
-    this.body.rightLeg.frontAxis = this.improviseRotation(rightUpperLeg);
+    this.body.leftLeg.frontAxis = this.improviseLegRotation(leftUpperLeg);
+    this.body.rightLeg.frontAxis = this.improviseLegRotation(rightUpperLeg);
 
     //this.log("Left leg axis, front: "+this.body.leftLeg.frontAxis.sign + this.body.leftLeg.frontAxis.axis);
 
@@ -1172,17 +1199,17 @@ export class Avatar {
     this.body.rightLeg.lowerRot = BABYLON.Quaternion.FromRotationMatrix(rightLowerLeg.getRotationMatrix());
   }
   
-  improviseRotation( bone ) {
+  improviseLegRotation( bone ) {
     let axis = bone.getDirection(BABYLON.Axis.X,this.skinnedMesh);
     this.roundVector(axis);
-    console.log(bone.name+" axis:"+axis);
+    //console.log(bone.name+" axis:"+axis);
     if ( axis.x == 1 || axis.x == -1) {
       return {axis: BABYLON.Axis.X, sign:-axis.x };
     }
     if ( axis.y == -1 || axis.y == 1) {
       let axis2 = bone.getDirection(BABYLON.Axis.Z,this.skinnedMesh);
       this.roundVector(axis2);
-      console.log("Y axis, 2nd pass: "+axis2);
+      //console.log("Y axis, 2nd pass: "+axis2);
       return {axis: BABYLON.Axis.Z, sign:-axis2.x }; // solus, robot, business man, lord infandum, zombie2
       // TODO crazy woman
     }
