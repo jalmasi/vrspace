@@ -266,10 +266,10 @@ export class Avatar {
         // hacking to get avatars working in babylon 5
         // https://doc.babylonjs.com/features/featuresDeepDive/mesh/bonesSkeletons#sharing-skeletons-between-skinned-meshes
         this.skinnedMesh = null;
-        meshes.forEach(m=>{
+        meshes.find(m=>{
           if ( m.skeleton = this.skeleton ) {
             if ( ! this.skinnedMesh ) {
-              console.log("Skinned mesh: "+m.name, m);
+              //console.log("Skinned mesh: "+m.name, m);
               this.skinnedMesh = m;
             }
           }
@@ -674,22 +674,11 @@ export class Avatar {
 
     console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
-    //var totalRot = this.parentMesh.rotationQuaternion.multiply(this.rootMesh.rotationQuaternion);
     var totalRot = this.parentMesh.rotationQuaternion;
     var rootQuatInv = BABYLON.Quaternion.Inverse(totalRot);
     
-    // current values
-    // {X: 0.1751229093843536 Y: 1.6291742177001083 Z: -0.03606258881607194}
-    //var armPos = upperArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
-    // {X: -0.1751229166984558 Y: 1.6363257910392377 Z: 0.036062587052583694}
     var armPos = this.getAbsolutePosition(upperArm).subtract(totalPos);
-    // {X: -0.1751229166984558 Y: 1.6363260294578168 Z: 0.03606260195374489}
-    //var armPos = upperArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
-    //armPos.rotateByQuaternionToRef(rootQuatInv,armPos);
-    //var elbowPos = lowerArm.getAbsolutePosition().scale(scaling).subtract(totalPos);
     var elbowPos = this.getAbsolutePosition(lowerArm).subtract(totalPos);
-    //var elbowPos = lowerArm.getTransformNode().getAbsolutePosition().subtract(totalPos);
-    //elbowPos.rotateByQuaternionToRef(rootQuatInv,elbowPos);
 
     // set or get initial values
     if ( arm.upperQuat ) {
@@ -698,39 +687,28 @@ export class Avatar {
       var worldQuat = arm.worldQuat;
       var worldQuatInv = arm.worldQuatInv;
     } else {
-      //var matrix = upperArm.getRotationMatrix(BABYLON.Space.WORLD);
-      //var matrix = upperArm.getWorldMatrix().getRotationMatrix();
       var matrix = upperArm.getTransformNode().getWorldMatrix().getRotationMatrix();
       var worldQuat = BABYLON.Quaternion.FromRotationMatrix(matrix);
-      //var worldQuat = upperArm.getRotationQuaternion(BABYLON.Space.WORLD, this.skinnedMesh);
-      //var worldQuat = upperArm.getRotationQuaternion(BABYLON.Space.WORLD);
-      //var worldQuat = upperArm.getTransformNode().rotationQuaternion;
-      //var worldQuat = upperArm.rotationQuaternion.clone();
-      //arm.worldQuat = worldQuat.clone();
       this.log("Arm angles: "+worldQuat.toEulerAngles());
       var worldQuatInv = BABYLON.Quaternion.Inverse(worldQuat);
       arm.worldQuatInv = worldQuatInv;
-      //var upperQuat = upperArm.getRotationQuaternion(BABYLON.Space.BONE);
       var upperQuat = upperArm.getTransformNode().rotationQuaternion;
-      //var upperQuat = upperArm.rotationQuaternion;
       arm.upperQuat = upperQuat.clone();
       var armVector = elbowPos.subtract(armPos);
-      console.log("Arm vector: "+armVector);
+      //console.log("Arm vector: "+armVector);
       armVector.rotateByQuaternionToRef(worldQuatInv,armVector);
-      console.log("Arm vector rotated: "+armVector);
+      //console.log("Arm vector rotated: "+armVector);
       arm.armVector = armVector;
     }
     
     // calc target pos in coordinate system of character
     var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
     // CHECKME: probable bug, possibly related to worldQuat
-    //target.rotateByQuaternionToRef(rootQuatInv,target);
     target.rotateByQuaternionToRef(rootQuatInv,target);
 
     // calc target vectors in local coordinate system of the arm
     var targetVector = target.subtract(armPos);
     targetVector.rotateByQuaternionToRef(worldQuatInv,targetVector);
-    //targetVector.rotateByQuaternionToRef(rootQuatInv,targetVector);
 
     console.log("arm vector: "+armVector);
     console.log("target vector: "+targetVector);
@@ -1060,7 +1038,6 @@ export class Avatar {
 
     var upperQuat = BABYLON.Quaternion.RotationAxis(axis,upperAngle*sign);
 
-    //var upperRot = upper.getTransformNode().rotationQuaternion;
     upper.getTransformNode().rotationQuaternion = leg.upperRot.multiply(upperQuat);
 
     var fix = leg.upperQuat.multiply(leg.lowerQuatInv);
@@ -1321,13 +1298,10 @@ export class Avatar {
           this.boneProcessed(bones[i]);
           var boneName = bones[i].name.toLowerCase();
           if ( ! this.body.root && boneName.includes('rootjoint') ) {
-            //this.body.root = bones[i].name;
             this.body.root = i;
             this.log("found root "+boneName+" at depth "+this.bonesDepth);
             this.processBones(bones[i].children);
           } else if ( ! this.body.hips && this.isHipsName(boneName) && bones[i].children.length >= 3) {
-          //} else if ( ! this.body.hips && bones[i].children.length >= 3) {
-            //this.body.hips = bones[i].name;
             this.body.hips = i;
             this.log("found hips "+boneName);
             this.processHips(bones[i].children);
@@ -1373,17 +1347,16 @@ export class Avatar {
   }
 
   isLegName(boneName, lr, children ) {
-    console.log("Legname: "+boneName);
     return boneName.includes( lr+'leg' ) ||
            boneName.includes( lr+'_leg' ) ||
            boneName.includes( 'leg_'+lr ) ||
+           
            boneName.includes(lr+' thigh') ||
            boneName.includes(lr+'_thigh') ||
            boneName.includes(lr+'thigh') ||
            boneName.includes('thigh_'+lr) ||
            boneName.includes('thigh.'+lr) ||
-           // TODO replace the above
-           //boneName.includes('thigh') ||
+
            boneName.includes(lr+'hip') 
            // this attempts to catch legs with buttocks, e.g. spiderman
            || ( children && children.length > 0 && children[0].children.length > 0  && this.isLegName(children[0].name.toLowerCase(),lr) )
