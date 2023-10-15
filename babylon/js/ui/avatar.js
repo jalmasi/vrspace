@@ -1375,17 +1375,18 @@ export class Avatar {
   isLegName(boneName, lr, children ) {
     console.log("Legname: "+boneName);
     return boneName.includes( lr+'leg' ) ||
-           // also catches tail_01:
-           //boneName.includes( lr+'_' ) || 
-           boneName.includes( ' '+lr+' ' ) ||
+           boneName.includes( lr+'_leg' ) ||
+           boneName.includes( 'leg_'+lr ) ||
+           boneName.includes(lr+' thigh') ||
+           boneName.includes(lr+'_thigh') ||
            boneName.includes(lr+'thigh') ||
-           // lisa fails, warning leg already exists:
+           boneName.includes('thigh_'+lr) ||
+           boneName.includes('thigh.'+lr) ||
+           // TODO replace the above
            //boneName.includes('thigh') ||
            boneName.includes(lr+'hip') 
-           // also includes tail_02:
-           || ( children.length > 0 && children[0].children.length > 0  && children[0].name.toLowerCase().includes(lr+"_") )
-           // lisa fails, warning leg already exists:
-           //|| ( children && children.length > 0 && children[0].children.length > 0  && this.isLegName(children[0].name.toLowerCase(),lr) )
+           // this attempts to catch legs with buttocks, e.g. spiderman
+           || ( children && children.length > 0 && children[0].children.length > 0  && this.isLegName(children[0].name.toLowerCase(),lr) )
   }
 
   tryLeg( leg, bone ) {
