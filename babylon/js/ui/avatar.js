@@ -634,11 +634,11 @@ export class Avatar {
     // CHECKME: exact calculus?
     var targetVector = target.subtract(this.headPos()).add(totalPos);
     //var targetVector = target.subtract(this.headPos());
-    //if ( this.headAxisFix == -1 ) {
-      // FIX: neck and head opposite orientation
-      // businessman, robot, adventurer, unreal male
+    if ( this.headXAxisFix != -1 ) {
+      // FIX: neck and head opposite vertical orientation
+      // businessman, robot, adventurer, unreal male, solus
       targetVector.y = -targetVector.y;
-    //}
+    }
     targetVector.rotateByQuaternionToRef(this.headQuatInv,targetVector);
     // this results in weird head positions, more natural-looking fix applied after
     //targetVector.rotateByQuaternionToRef(this.headQuat.multiply(this.neckQuatInv),targetVector);
@@ -648,7 +648,7 @@ export class Avatar {
     BABYLON.Matrix.RotationAlignToRef(this.headTarget, targetVector.normalizeToNew(), rotationMatrix);
     var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
 
-    if ( this.headAxisFix != 1 ) {
+    if ( this.headYAxisFix != 1 ) {
       // FIX: neck and head opposite or under angle
       // boris, businessman, robot, adventurer, unreal male
       var fix = this.headQuat.multiply(this.neckQuatInv);
@@ -1545,21 +1545,33 @@ export class Avatar {
 
     var refHead = new BABYLON.Vector3();
     // all the same, completelly useles
-    //head.getDirectionToRef(BABYLON.Axis.Z,this.rootMesh,refHead);
     head.getDirectionToRef(BABYLON.Axis.Z,this.skinnedMesh,refHead);
     this.roundVector(refHead);
-    this.log("RefZ head: "+refHead);
+    //this.log("RefZ head: "+refHead);
 
     var refNeck = new BABYLON.Vector3();
-    //neck.getDirectionToRef(BABYLON.Axis.Z,this.rootMesh,refNeck);
     neck.getDirectionToRef(BABYLON.Axis.Z,this.skinnedMesh,refNeck);
     this.roundVector(refNeck);
-    this.log("RefZ neck: "+refNeck);
+    //this.log("RefZ neck: "+refNeck);
 
     // some characters have Z axis of neck and head pointing in opposite direction
     // (rotated around Y) causing rotation to point backwards,
     // they need different calculation
-    this.headAxisFix = refHead.z * refNeck.z;
+    this.headYAxisFix = refHead.z * refNeck.z;
+
+    var refHead = new BABYLON.Vector3();
+    head.getDirectionToRef(BABYLON.Axis.X,this.skinnedMesh,refHead);
+    this.roundVector(refHead);
+    //this.log("RefX head: "+refHead);
+
+    var refNeck = new BABYLON.Vector3();
+    neck.getDirectionToRef(BABYLON.Axis.X,this.skinnedMesh,refNeck);
+    this.roundVector(refNeck);
+    //this.log("RefX neck: "+refNeck);
+
+    // and some characters have X axis of neck and head pointing in opposite direction
+    // so they have up and down switched
+    this.headXAxisFix = refHead.x * refNeck.x;
 
     this.headQuat = BABYLON.Quaternion.FromRotationMatrix(head.getTransformNode().getWorldMatrix().getRotationMatrix());
     this.headQuatInv = BABYLON.Quaternion.Inverse(this.headQuat);
@@ -1573,7 +1585,7 @@ export class Avatar {
 
     this.headTarget = target.negate().normalizeToNew();
 
-    this.log("Head target: "+this.headTarget+" axisFix "+this.headAxisFix);
+    this.log("Head target: "+this.headTarget+" axisYFix "+this.headYAxisFix+" axisXFix "+this.headXAxisFix);
 
     this.boneProcessed(bone);
     //this.processBones(bone.children);
