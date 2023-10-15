@@ -5,6 +5,10 @@ var selectButtons = [];
 var avatars = [];
 
 export class AvatarLoader extends AvatarSelection {
+  constructor() {
+    super();
+    this.enableLogin = false;
+  }
   createSelection() {
     this.manager = new BABYLON.GUI.GUI3DManager(scene);
     VRSPACEUI.debug = true;

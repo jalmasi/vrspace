@@ -36,6 +36,8 @@ export class AvatarSelection extends World {
     this.afterExit = null;
     /** whether to list animations after character loads, default true */
     this.showAnimationButtons=true;
+    /** enable oauth2 login form, default true */
+    this.enableLogin = true;
     /** wheter to display own video avatar, default true */
     this.displayOwnVideo=true;
     /** custom video avatar options, default null */
@@ -121,8 +123,10 @@ export class AvatarSelection extends World {
     );
     // position the form just in front of avatar
     // make room for virtual keyboard, and resize/mirror buttons
-    this.loginForm.position = new BABYLON.Vector3(0,1,-0.5);
-    this.loginForm.init(); // starts speech recognition
+    if ( this.enableLogin ) {
+      this.loginForm.position = new BABYLON.Vector3(0,1,-0.5);
+      this.loginForm.init(); // starts speech recognition
+    }
     // testing various REST calls here
     this.getAuthenticated().then( isAuthenticated => {
       if ( isAuthenticated ) {
