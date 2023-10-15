@@ -721,8 +721,6 @@ export class Avatar {
       arm.armVector = armVector;
     }
     
-    console.log("World quat:"+worldQuat);
-
     // calc target pos in coordinate system of character
     var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
     // CHECKME: probable bug, possibly related to worldQuat
@@ -1137,6 +1135,9 @@ export class Avatar {
     this.body.rightArm.lowerRot = BABYLON.Quaternion.FromRotationMatrix(rightLowerArm.getRotationMatrix());
   }
 
+  /**
+   * Try to figure rotation of an arm so it can be bent later
+   */
   improviseArmRotation( bone ) {
     let axis = bone.getDirection(BABYLON.Axis.X,this.skinnedMesh);
     this.roundVector(axis);
@@ -1144,7 +1145,7 @@ export class Avatar {
     if ( axis.z == -1 || axis.z == 1) {
       let axis2 = bone.getDirection(BABYLON.Axis.Z,this.skinnedMesh);
       this.roundVector(axis2);
-      console.log("Z axis, 2nd pass: Z="+axis2);
+      //console.log("Z axis, 2nd pass: Z="+axis2);
       // ORDER MATTERS, Y catches ones in A pose with both X and Y
       if ( axis2.y == 1 ) {
         // I-Pose - knight
@@ -1173,7 +1174,7 @@ export class Avatar {
       this.roundVector(axis2);
       let axis3 = bone.getDirection(BABYLON.Axis.Z,this.skinnedMesh);
       this.roundVector(axis3);
-      console.log("X axis, 2nd pass: Y="+axis2+" Z="+axis3);
+      //console.log("X axis, 2nd pass: Y="+axis2+" Z="+axis3);
       if ( axis.y == 1 || axis.y == -1) {
         // A-Pose: himeko, jason, miku
         return {axis: BABYLON.Axis.Y, sign:axis.y };
@@ -1187,14 +1188,20 @@ export class Avatar {
           // A-Pose: woman in red
           return {axis: BABYLON.Axis.Z, sign:-axis2.y };
         }
-        // T-Pose lola TODO one arm turns wrong
-        return {axis: BABYLON.Axis.Y, sign:-axis2.y };
+        // T-Pose lola, crazy woman
+        // one arm turns wrong, these coordinates don't provide enough information to decide
+        let sign = axis2.y;
+        if ( bone.name.toLowerCase().indexOf('right') >= 0 ) {
+          // fix as ugly as it gets :)
+          sign = -sign;
+        }
+        return {axis: BABYLON.Axis.Y, sign:sign };
       }
     }
     if ( axis.y == -1 || axis.y == 1) {
       let axis2 = bone.getDirection(BABYLON.Axis.Z,this.skinnedMesh);
       this.roundVector(axis2);
-      console.log("Y axis, 2nd pass: "+axis2);
+      //console.log("Y axis, 2nd pass: "+axis2);
       if ( axis2.x == 1 || axis2.x == -1 ) {
         // ORDER MATTERS, this also catches ones that have both X and Z - RPM avatars in A pose
         // I-Pose - gracy lee
@@ -1232,6 +1239,9 @@ export class Avatar {
     this.body.rightLeg.lowerRot = BABYLON.Quaternion.FromRotationMatrix(rightLowerLeg.getRotationMatrix());
   }
   
+  /**
+   * Try to find out rotation of a leg so it can be properly bent later
+   */
   improviseLegRotation( bone ) {
     let axis = bone.getDirection(BABYLON.Axis.X,this.skinnedMesh);
     this.roundVector(axis);
@@ -1243,8 +1253,14 @@ export class Avatar {
       let axis2 = bone.getDirection(BABYLON.Axis.Z,this.skinnedMesh);
       this.roundVector(axis2);
       //console.log("Y axis, 2nd pass: "+axis2);
-      return {axis: BABYLON.Axis.Z, sign:-axis2.x }; // solus, robot, business man, lord infandum, zombie2
-      // TODO crazy woman
+      if ( axis2.x == -1 || axis2.x == 1) {
+        // solus, robot, business man, lord infandum, zombie2
+        return {axis: BABYLON.Axis.Z, sign:-axis2.x };
+      }
+      if ( axis2.z == -1 || axis2.z == 1) {
+        // crazy woman, note the hardcoded sign
+        return {axis: BABYLON.Axis.Y, sign:-1 };
+      }
     }
     if ( axis.z == -1 || axis.z == 1) {
       return {axis: BABYLON.Axis.Y, sign:-axis.z };
