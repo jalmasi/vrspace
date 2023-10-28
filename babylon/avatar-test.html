@@ -226,6 +226,11 @@ function toggleRest() {
   rest = !rest;
 }
 
+function setPose(pose) {
+	console.log("Setting pose "+pose);
+	character.setPose(pose);
+}
+
 // Watch for browser/canvas resize events
 window.addEventListener("resize", function () {
     engine.resize();
@@ -252,6 +257,13 @@ function debugOnOff() {
   <button title="Clone the character" onClick="instantiate()">More</button>
   <button title="Remove last clone" onClick="remove()">Less</button>
   <input title="Enforce rest pose on the clone" type="checkbox" onClick="toggleRest()"/>Rest Pose
+</div>
+
+<div style="position: absolute;top:40px;left: 40%;">
+  Pose:
+  <button onClick="setPose('T')">T</button>
+  <button onClick="setPose('A')">A</button>
+  <button onClick="setPose('I')">I</button>
 </div>
 
 <div style="position: absolute;top:10px;text-align: left;right:20%;width: 15%; float:right;">
