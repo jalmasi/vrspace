@@ -699,7 +699,7 @@ export class Avatar {
     
     // vector pointing down in local space:
     var downVector = new BABYLON.Vector3(0,-1,0);
-    var downQuat = this.armToLocalVector(arm, downVector);
+    var downQuat = this.armDirectionLocal(arm, downVector);
     armVector.rotateByQuaternionToRef(downQuat,downVector);
     //this.drawVector(armPos, armPos.add(downVector));
 
@@ -1047,20 +1047,6 @@ export class Avatar {
     return vector.x+vector.y+vector.z;
   }
 
-  // FIXME
-  rotateBoneTo(bone, axis, angle) {
-    var rotationMatrix = BABYLON.Matrix.RotationAxis(axis,angle);
-    var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
-    bone.setRotationQuaternion(rotated);
-  }
-
-  rotateBoneFor(bone, axis, increment) {
-    var rotationMatrix = BABYLON.Matrix.RotationAxis(axis,increment);
-    var quat = bone.rotationQuaternion; // FIXME: upperArm.getTransformNode()?
-    var rotated = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
-    bone.setRotationQuaternion(quat.multiply(rotated));
-  }
-
   guessArmsRotations() {
 
     var leftUpperArm = this.skeleton.bones[this.body.leftArm.upper];
@@ -1108,15 +1094,19 @@ export class Avatar {
     arm.armVector = armVector;
   }
 
-  // FIXME misnomer
-  armToWorldVector(arm, targetVector) {
+  /**
+   * Point arm to given direction, in character space
+   */
+  armDirectionCharacter(arm, targetVector) {
     let rotated = new BABYLON.Vector3();
     targetVector.rotateByQuaternionToRef(arm.worldQuatInv,rotated);
-    return this.armToLocalVector(arm,rotated);
+    return this.armDirectionLocal(arm,rotated);
   }
   
-  // FIXME misnomer
-  armToLocalVector(arm, targetVector) {
+  /**
+   * Point arm to given direction, in arm space
+   */
+  armDirectionLocal(arm, targetVector) {
     var armVector = arm.armVector;
     var targetRotation = new BABYLON.Matrix();
     BABYLON.Matrix.RotationAlignToRef(armVector.normalizeToNew(), targetVector.normalizeToNew(), targetRotation);
@@ -1134,28 +1124,28 @@ export class Avatar {
   setPose(pose) {
     if ( 'I' == pose ) {
       let downVector = new BABYLON.Vector3(0,-1,0);
-      var leftQuat = this.armToWorldVector(this.body.leftArm, downVector);
+      var leftQuat = this.armDirectionCharacter(this.body.leftArm, downVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
       this.renderArmRotation(this.body.leftArm);
-      var rightQuat = this.armToWorldVector(this.body.rightArm, downVector);
+      var rightQuat = this.armDirectionCharacter(this.body.rightArm, downVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
       this.renderArmRotation(this.body.rightArm);
     } else if ( 'T' == pose ) {
       let leftVector = new BABYLON.Vector3(-1,0,0);
-      var leftQuat = this.armToWorldVector(this.body.leftArm, leftVector);
+      var leftQuat = this.armDirectionCharacter(this.body.leftArm, leftVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
       this.renderArmRotation(this.body.leftArm);
       let rightVector = new BABYLON.Vector3(1,0,0);
-      var rightQuat = this.armToWorldVector(this.body.rightArm, rightVector);
+      var rightQuat = this.armDirectionCharacter(this.body.rightArm, rightVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
       this.renderArmRotation(this.body.rightArm);
     } else if ( 'A' == pose ) {
       let leftVector = new BABYLON.Vector3(-1,-1,0);
-      var leftQuat = this.armToWorldVector(this.body.leftArm, leftVector);
+      var leftQuat = this.armDirectionCharacter(this.body.leftArm, leftVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
       this.renderArmRotation(this.body.leftArm);
       let rightVector = new BABYLON.Vector3(1,-1,0);
-      var rightQuat = this.armToWorldVector(this.body.rightArm, rightVector);
+      var rightQuat = this.armDirectionCharacter(this.body.rightArm, rightVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
       this.renderArmRotation(this.body.rightArm);
     }

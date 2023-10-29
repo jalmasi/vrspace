@@ -252,12 +252,13 @@ export class AvatarSelection extends World {
   }
   
   calcControllerPos( arm, xrController ) {
-    arm.pointerQuat = xrController.pointer.rotationQuaternion;
+    //arm.pointerQuat = xrController.pointer.rotationQuaternion;
     var cameraPos = this.vrHelper.camera().position;
     // this calc swaps front-back, like mirror image
     var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
-    if ( this.mirror ) {
-      pos.z = - pos.z;
+    pos.z = - pos.z;
+    if ( !this.mirror ) {
+      pos.x = -pos.x;
     }
     return pos;
   }
