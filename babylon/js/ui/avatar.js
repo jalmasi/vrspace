@@ -676,22 +676,28 @@ export class Avatar {
 
     console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
+    // TODO: should we be taking this into account?
+    //var totalRot = this.rootMesh.rotationQuaternion.multiply(this.parentMesh.rotationQuaternion);
     var totalRot = this.parentMesh.rotationQuaternion;
     var rootQuatInv = BABYLON.Quaternion.Inverse(totalRot);
     
-    var armPos = this.getAbsolutePosition(upperArm).subtract(totalPos);
-
+    var armPos = this.getAbsolutePosition(upperArm);
+    console.log("Arm "+arm.side+" pos "+armPos);
+    
     var upperQuat = arm.upperQuat;
     var armVector = arm.armVector;
     var worldQuatInv = arm.worldQuatInv;
     
     // calc target pos in coordinate system of character
-    var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
+    var target = new BABYLON.Vector3(t.x, t.y, t.z);
+    //var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
     // CHECKME: probable bug, possibly related to worldQuat
-    target.rotateByQuaternionToRef(rootQuatInv,target);
+    //target.rotateByQuaternionToRef(rootQuatInv,target);
 
     // calc target vectors in local coordinate system of the arm
     var targetVector = target.subtract(armPos);
+    // TODO: multiply these quaternions some time earlier and only once
+    targetVector.rotateByQuaternionToRef(rootQuatInv,targetVector);
     targetVector.rotateByQuaternionToRef(worldQuatInv,targetVector);
 
     console.log("arm vector: "+armVector);
