@@ -234,6 +234,7 @@ export class AvatarSelection extends World {
           this.character.reachFor( this.character.body.leftArm, leftPos );
         } else {
           var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.left);
+          leftPos.x = -leftPos.x;
           this.character.reachFor( this.character.body.rightArm, leftPos );
         }
       }
@@ -243,6 +244,7 @@ export class AvatarSelection extends World {
           this.character.reachFor( this.character.body.rightArm, rightPos );
         } else {
           var rightPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.right );
+          rightPos.x = -rightPos.x;
           this.character.reachFor( this.character.body.leftArm, rightPos );
         }
       }
@@ -257,9 +259,6 @@ export class AvatarSelection extends World {
     // this calc swaps front-back, like mirror image
     var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
     pos.z = - pos.z;
-    if ( !this.mirror ) {
-      pos.x = -pos.x;
-    }
     return pos;
   }
   
