@@ -28,8 +28,6 @@ export class Avatar {
     this.shadowGenerator = shadowGenerator;
     /** Optional custom animations */
     this.animations = null;
-    /** Mirror mode, default true. (Switch left/right side) */
-    this.mirror = true;
     /** Animation frames per second, default 10 */
     this.fps = 10;
     /** Name of the avatar/user */
@@ -714,17 +712,6 @@ export class Avatar {
     // 0 by default
     // pointer vector in mesh space:
     var pointerQuat = arm.pointerQuat.multiply(rootQuatInv);
-    if ( this.mirror ) {
-      // heuristics 1, mirrored arm rotation, works well below shoulder
-      pointerQuat.y = - pointerQuat.y;
-      // heuristics 2, never point backwards
-      //pointerQuat.z = - pointerQuat.z;
-      if ( pointerQuat.z < 0 ) {
-        pointerQuat.z = 0;
-      }
-    } else {
-      // funny though this seems to just work
-    }
 
     var pointerVector = new BABYLON.Vector3();
     downVector.rotateByQuaternionToRef(pointerQuat,pointerVector);

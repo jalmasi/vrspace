@@ -254,10 +254,24 @@ export class AvatarSelection extends World {
   }
   
   calcControllerPos( arm, xrController ) {
-    //arm.pointerQuat = xrController.pointer.rotationQuaternion;
+    this.calcControllerRot(arm, xrController);
     var cameraPos = this.vrHelper.camera().position;
     var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
     return pos;
+  }
+  
+  calcControllerRot( arm, xrController ) {
+    arm.pointerQuat = xrController.pointer.rotationQuaternion.clone();
+    if ( !this.mirror ) {
+      // heuristics 1, mirrored arm rotation, works well below shoulder
+      //arm.pointerQuat.y = - arm.pointerQuat.y;
+      // heuristics 2, never point backwards
+      //arm.pointerQuat.z = - arm.pointerQuat.z;
+      arm.pointerQuat = BABYLON.Quaternion.Inverse(arm.pointerQuat);
+      //if ( arm.pointerQuat.z < 0 ) {
+        //arm.pointerQuat.z = 0;
+      //}
+    }
   }
   
   calcCameraTarget() {
