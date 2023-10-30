@@ -676,7 +676,7 @@ export class Avatar {
 
     console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
-    // TODO: should we be taking this into account?
+    // FIXME: take rootMesh.rotationQuaternion into account
     //var totalRot = this.rootMesh.rotationQuaternion.multiply(this.parentMesh.rotationQuaternion);
     var totalRot = this.parentMesh.rotationQuaternion;
     var rootQuatInv = BABYLON.Quaternion.Inverse(totalRot);

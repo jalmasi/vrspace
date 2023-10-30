@@ -231,20 +231,20 @@ export class AvatarSelection extends World {
       if ( this.vrHelper.controller.left ) {
         if ( this.mirror ) {
           var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.left);
+          leftPos.z = -leftPos.z;
           this.character.reachFor( this.character.body.leftArm, leftPos );
         } else {
           var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.left);
-          leftPos.x = -leftPos.x;
           this.character.reachFor( this.character.body.rightArm, leftPos );
         }
       }
       if ( this.vrHelper.controller.right ) {
         if ( this.mirror ) {
           var rightPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.right );
+          rightPos.z = -rightPos.z;
           this.character.reachFor( this.character.body.rightArm, rightPos );
         } else {
           var rightPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.right );
-          rightPos.x = -rightPos.x;
           this.character.reachFor( this.character.body.leftArm, rightPos );
         }
       }
@@ -256,9 +256,7 @@ export class AvatarSelection extends World {
   calcControllerPos( arm, xrController ) {
     //arm.pointerQuat = xrController.pointer.rotationQuaternion;
     var cameraPos = this.vrHelper.camera().position;
-    // this calc swaps front-back, like mirror image
     var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
-    pos.z = - pos.z;
     return pos;
   }
   
@@ -572,11 +570,13 @@ export class AvatarSelection extends World {
         if ( mirrorButton.text == "Mirroring" ) {
           mirrorButton.text = "Copying";
           this.mirror = false;
-          this.character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, 0);
+          //this.character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, 0);
+          this.character.parentMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI);
         } else {
           mirrorButton.text = "Mirroring";
           this.mirror = true;
-          this.character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI);
+          //this.character.rootMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI);
+          this.character.parentMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, 0);
         }
     });
   }
