@@ -733,8 +733,7 @@ export class Avatar {
     arm.upperRot = upperQuat.multiply(quat);
 
     // then bend arm
-    var length = targetVector.length();
-    var bent = this.bendArm(arm, length, armVector.normalizeToNew(), targetVector.normalizeToNew());
+    var bent = this.bendArm(arm, targetVector);
 
     this.renderArmRotation(arm);
     return quat;
@@ -742,11 +741,11 @@ export class Avatar {
 
   /**
   Bend/stretch arm to a length
-  @param arm
-  @param length
    */
-  bendArm( arm, length, from, to ) {
+  bendArm( arm, targetVector ) {
     var ret = true;
+
+    var length = targetVector.length();
 
     if ( length > arm.lowerLength + arm.upperLength ) {
       length = arm.lowerLength + arm.upperLength
@@ -758,19 +757,14 @@ export class Avatar {
     // length/2 is sinus of half of elbow angle
     var boneLength = (arm.lowerLength + arm.upperLength)/2;
     var innerAngle = Math.asin(length/2/boneLength);
-    //this.log("Bone length: "+boneLength+" distance to target "+length);
     var shoulderAngle = -Math.PI/2+innerAngle;
     var elbowAngle = shoulderAngle*2;
 
-    var normal = from.cross(to);
-    console.log("Normal: "+normal);
-    //var fix = BABYLON.Quaternion.RotationAxis(arm.frontAxis.axis,-shoulderAngle*arm.frontAxis.sign);
+    var normal = arm.armVector.normalizeToNew().cross(targetVector.normalizeToNew());
     var fix = BABYLON.Quaternion.RotationAxis(normal,shoulderAngle);
     arm.upperRot = arm.upperRot.multiply(fix);
 
-    //arm.lowerRot = BABYLON.Quaternion.RotationAxis(arm.frontAxis.axis,elbowAngle*arm.frontAxis.sign);
     arm.lowerRot = BABYLON.Quaternion.RotationAxis(normal,-elbowAngle);
-    //this.log("Angle shoulder: "+shoulderAngle+" elbow: "+elbowAngle+" length: "+length);
     return ret;
   }
 
