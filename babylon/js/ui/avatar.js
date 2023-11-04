@@ -734,10 +734,44 @@ export class Avatar {
 
     // then bend arm
     var length = targetVector.length();
-    var bent = this.bendArm(arm, length);
+    var bent = this.bendArm(arm, length, armVector.normalizeToNew(), targetVector.normalizeToNew());
 
     this.renderArmRotation(arm);
     return quat;
+  }
+
+  /**
+  Bend/stretch arm to a length
+  @param arm
+  @param length
+   */
+  bendArm( arm, length, from, to ) {
+    var ret = true;
+
+    if ( length > arm.lowerLength + arm.upperLength ) {
+      length = arm.lowerLength + arm.upperLength
+      ret = false;
+    }
+
+    // simplified math by using same length for both bones
+    // it's right angle, hypotenuse is bone
+    // length/2 is sinus of half of elbow angle
+    var boneLength = (arm.lowerLength + arm.upperLength)/2;
+    var innerAngle = Math.asin(length/2/boneLength);
+    //this.log("Bone length: "+boneLength+" distance to target "+length);
+    var shoulderAngle = -Math.PI/2+innerAngle;
+    var elbowAngle = shoulderAngle*2;
+
+    var normal = from.cross(to);
+    console.log("Normal: "+normal);
+    //var fix = BABYLON.Quaternion.RotationAxis(arm.frontAxis.axis,-shoulderAngle*arm.frontAxis.sign);
+    var fix = BABYLON.Quaternion.RotationAxis(normal,shoulderAngle);
+    arm.upperRot = arm.upperRot.multiply(fix);
+
+    //arm.lowerRot = BABYLON.Quaternion.RotationAxis(arm.frontAxis.axis,elbowAngle*arm.frontAxis.sign);
+    arm.lowerRot = BABYLON.Quaternion.RotationAxis(normal,-elbowAngle);
+    //this.log("Angle shoulder: "+shoulderAngle+" elbow: "+elbowAngle+" length: "+length);
+    return ret;
   }
 
   // move an arms, optionally creates/updates arm animation
@@ -779,36 +813,6 @@ export class Avatar {
   _updateArmAnimation(arm, anim, dest) {
     anim.animation.getKeys()[0].value = arm.getTransformNode().rotationQuaternion;
     anim.animation.getKeys()[1].value = dest;
-  }
-
-  /**
-  Bend/stretch arm to a length
-  @param arm
-  @param length
-   */
-  bendArm( arm, length ) {
-    var ret = true;
-
-    if ( length > arm.lowerLength + arm.upperLength ) {
-      length = arm.lowerLength + arm.upperLength
-      ret = false;
-    }
-
-    // simplified math by using same length for both bones
-    // it's right angle, hypotenuse is bone
-    // length/2 is sinus of half of elbow angle
-    var boneLength = (arm.lowerLength + arm.upperLength)/2;
-    var innerAngle = Math.asin(length/2/boneLength);
-    //this.log("Bone length: "+boneLength+" distance to target "+length);
-    var shoulderAngle = -Math.PI/2+innerAngle;
-    var elbowAngle = shoulderAngle*2;
-
-    var fix = BABYLON.Quaternion.RotationAxis(arm.frontAxis.axis,-shoulderAngle*arm.frontAxis.sign);
-    arm.upperRot = arm.upperRot.multiply(fix);
-
-    arm.lowerRot = BABYLON.Quaternion.RotationAxis(arm.frontAxis.axis,elbowAngle*arm.frontAxis.sign);
-    //this.log("Angle shoulder: "+shoulderAngle+" elbow: "+elbowAngle+" length: "+length);
-    return ret;
   }
 
   legLength() {
