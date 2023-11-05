@@ -9,13 +9,15 @@ class NameForm extends Form {
     this.blurCallback = blurCallback;
     this.color = "black";
     this.background = "white";
-    this.nameText = "                     Name:";
+    //this.nameText = "                     Name:"; // babylon 4
+    this.nameText = "      Name:"; // babylon 5,6
     this.radios = {};
   }
   init() {
     this.createPanel();
     
     this.label = this.textBlock(this.nameText);
+    this.label.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     this.panel.addControl(this.label);
 
     this.input = this.inputText('name');
@@ -61,7 +63,8 @@ class ProviderForm extends Form {
     this.radios = radios;
     this.color = "black";
     this.background = "white";
-    this.spacer = "                     ";
+    //this.spacer = "                     "; // babylon 4
+    this.spacer = "      "; // babylon 5,6
     this.selectedKey = null;
     this.selectedValue = null;
   }
