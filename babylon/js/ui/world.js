@@ -174,6 +174,7 @@ export class World {
     this.worldManager.addChangeListener( (obj, field, node) => this.remoteEvent(obj, field, node));
     this.chatLog.input.addListener( text=>this.write(text) );
     this.chatLog.input.virtualKeyboardEnabled = this.inXR;
+    this.addSelectionPredicate((mesh) => this.chatLog.isSelectableMesh(mesh));
   }
   /**  */
   /**
