@@ -177,7 +177,7 @@ export class VRHelper {
       // obsolete and unsupported TODO REMOVEME
       this.vrHelper = this.world.scene.createDefaultVRExperience({createDeviceOrientationCamera: false });
       //vrHelper.enableInteractions();
-      this.vrHelper.webVRCamera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
+      //this.vrHelper.webVRCamera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5); // removed in babylon6
       this.vrHelper.onEnteringVRObservable.add(()=>{
         this.world.collisions(false);
         this.world.enterXR();

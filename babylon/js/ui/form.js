@@ -180,7 +180,7 @@ export class Form {
    * Ceates and returns a named submit image-only Button.
    */
   submitButton(name, callback, params) {
-    let button = new BABYLON.GUI.Button.CreateImageOnlyButton(name, VRSPACEUI.contentBase+"/content/icons/play.png");
+    let button = BABYLON.GUI.Button.CreateImageOnlyButton(name, VRSPACEUI.contentBase+"/content/icons/play.png");
     button.widthInPixels = this.heightInPixels+10;
     this.setupButton(button, callback, params);
     return button;
@@ -188,7 +188,7 @@ export class Form {
 
   /** Creates and returns button showing both text and image */
   textButton(name, callback, params) {
-    let button = new BABYLON.GUI.Button.CreateImageButton(name.toLowerCase(), name, VRSPACEUI.contentBase+"/content/icons/play.png");
+    let button = BABYLON.GUI.Button.CreateImageButton(name.toLowerCase(), name, VRSPACEUI.contentBase+"/content/icons/play.png");
     button.widthInPixels = this.heightInPixels/2*name.length+10;
     this.setupButton(button, callback, params);
     return button;
