@@ -30,8 +30,8 @@ export class WorldManager {
     this.customAnimations = null;
     /** Whether to track user rotation, default true. */
     this.trackRotation = true;
-    /** Used in 3rd person view */
-    this.mesh = null;
+    /** In 3rd person view, we're not tracking and publishing position and orientation camera, but of this mesh*/
+    this.trackedMesh = null;
     /** This is set once we connect to streaming server */
     this.mediaStreams = null;
     /** Listeners notified after own avatar property (e.g. position) has changed and published */
@@ -116,10 +116,10 @@ export class WorldManager {
   trackMesh(mesh) {
     if ( mesh ) {
       this.log("Tracking mesh "+mesh.id);
-    } else if ( this.mesh ) {
-      this.log("Stopped tracking mesh "+this.mesh.id);
+    } else if ( this.trackedMesh ) {
+      this.log("Stopped tracking mesh "+this.trackedMesh.id);
     }
-    this.mesh = mesh;
+    this.trackedMesh = mesh;
   }
   
   /** Tracks active camera */
@@ -636,15 +636,15 @@ export class WorldManager {
    */
   trackChanges() {
     var changes = [];
-    if ( this.mesh ) {
+    if ( this.trackedMesh ) {
       // tracking mesh (3rd person view)
-      var pos = this.mesh.position;
-      if ( this.mesh.ellipsoid ) {
-        var height = this.mesh.position.y - this.mesh.ellipsoid.y;
-        pos = new BABYLON.Vector3(this.mesh.position.x, height, this.mesh.position.z);
+      var pos = this.trackedMesh.position;
+      if ( this.trackedMesh.ellipsoid ) {
+        var height = this.trackedMesh.position.y - this.trackedMesh.ellipsoid.y;
+        pos = new BABYLON.Vector3(this.trackedMesh.position.x, height, this.trackedMesh.position.z);
       }
       this.checkChange("position", this.pos, pos, changes);
-      this.checkChange("rotation", this.rot, this.mesh.rotation, changes);
+      this.checkChange("rotation", this.rot, this.trackedMesh.rotation, changes);
     } else {
       // tracking camera (1st person view)
       if ( ! this.camera ) {
