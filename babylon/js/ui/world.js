@@ -213,6 +213,7 @@ export class World {
    * @returns created 3rd person ArcRotateCamera this.camera3p
    */
   thirdPersonCamera(camera1p = this.camera) {
+    // CHECKME: use camera1p.rotation.y for alpha?
     this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI/2, 1.5*Math.PI-camera1p.rotation.y, 2, camera1p.position, this.scene);
     this.camera3p.maxZ = 1000;
     this.camera3p.minZ = 0;
