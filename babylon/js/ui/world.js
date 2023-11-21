@@ -213,25 +213,25 @@ export class World {
    * @returns created 3rd person ArcRotateCamera this.camera3p
    */
   thirdPersonCamera(camera1p = this.camera) {
-    this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", 0, 1.5*Math.PI-camera1p.rotation.y, 1, camera1p.position, this.scene);
+    this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI/2, 1.5*Math.PI-camera1p.rotation.y, 2, camera1p.position, this.scene);
     this.camera3p.maxZ = 1000;
     this.camera3p.minZ = 0;
     this.camera3p.wheelPrecision = 100;
     this.camera3p.checkCollisions = true;
     
-    camera3p.keysDown = [40]; // down
-    camera3p.keysLeft = [37]; // left
-    camera3p.keysRight = [39]; // right
-    camera3p.keysUp = [38]; // up
-    camera3p.keysUpward = [36, 33, 32]; // home, pgup, space
+    this.camera3p.keysDown = [40]; // down
+    this.camera3p.keysLeft = [37]; // left
+    this.camera3p.keysRight = [39]; // right
+    this.camera3p.keysUp = [38]; // up
+    this.camera3p.keysUpward = [36, 33, 32]; // home, pgup, space
     
-    camera3p.lowerRadiusLimit = 0.5; // at least 0.5 m behind avatar
-    camera3p.upperRadiusLimit = 5; // a maximum of 5 m behind avatar
-    camera3p.speed = 0.3;
+    this.camera3p.lowerRadiusLimit = 0.5; // at least 0.5 m behind avatar
+    this.camera3p.upperRadiusLimit = 5; // a maximum of 5 m behind avatar
+    this.camera3p.speed = 0.3;
 
     // disable panning, as it moves avatar/camera1:
-    camera3.panningSensibility = 0;
-    camera3.inputs.attached.pointers.buttons = [1,2]; // disable LMB(0)
+    this.camera3p.panningSensibility = 0;
+    this.camera3p.inputs.attached.pointers.buttons = [1,2]; // disable LMB(0)
 
     return this.camera3p;
   }

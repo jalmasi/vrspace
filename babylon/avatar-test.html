@@ -52,9 +52,11 @@ var instances = [];
 var crouch = false;
 var userName;
 var rest = false;
+var world;
+
 import('./js/vrspace-min.js').then( (ui) => {
   import("./avatar-test.js").then( (module) =>{
-    var world = module.WORLD;
+    world = module.WORLD;
 
     document.getElementById('nickname').addEventListener('input', (e)=>{
   	  userName = e.target.value;
@@ -126,7 +128,7 @@ import('./js/vrspace-min.js').then( (ui) => {
     });
   })
 })
-  
+
 var animationButtons = function(avatar) {
   var animations = document.getElementById("animations");
   var html = ""
@@ -226,6 +228,18 @@ function toggleRest() {
   rest = !rest;
 }
 
+function selectCamera(radio) {
+	console.log(radio.value);
+	if ( "main" === radio.value ) {
+		scene.activeCamera = world.camera;
+	} else if ( "1p" === radio.value ) {
+    scene.activeCamera = world.camera1p;
+  } else if ( "3p" === radio.value ) {
+    scene.activeCamera = world.camera3p;
+	}
+	scene.activeCamera.attachControl();
+}
+
 function setPose(pose) {
 	console.log("Setting pose "+pose);
 	character.setPose(pose);
@@ -264,6 +278,13 @@ function debugOnOff() {
   <button onClick="setPose('T')">T</button>
   <button onClick="setPose('A')">A</button>
   <button onClick="setPose('I')">I</button>
+  Camera:
+  <input type="radio" onclick="selectCamera(this)" id="camera_main" name="camera" value="main" checked>
+  <label for="camera_main">main</label>
+  <input type="radio" onclick="selectCamera(this)" id="camera_1p" name="camera" value="1p">
+  <label for="camera_1p">1st person</label>
+  <input type="radio" onclick="selectCamera(this)" id="camera_3p" name="camera" value="3p">
+  <label for="camera_3p">3rd person</label>
 </div>
 
 <div style="position: absolute;top:10px;text-align: left;right:20%;width: 15%; float:right;">

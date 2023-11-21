@@ -21,6 +21,11 @@ export class Avatars extends World {
     this.scene.collisionsEnabled = true;
     this.camera.checkCollisions = true;
 
+    let pos = new BABYLON.Vector3(0,1.8,-.2);
+    this.camera1p = this.universalCamera(pos, "1st Person Camera");
+    this.camera1p.setTarget(new BABYLON.Vector3(0,1.8,-10));
+    this.thirdPersonCamera(this.camera1p);
+    
     // Add lights to the scene
     var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
     var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(1, 3, -3), this.scene);
