@@ -623,9 +623,7 @@ export class WorldManager {
 
   /** Local user wrote something - send it over and notify local listener(s) */
   write( text ) {
-    var changes = [{field:'wrote',value:text}];
-    VRSPACE.sendMyChanges(changes);
-    this.myChangeListeners.forEach( (listener) => listener(changes));
+    this.publishChanges( [{field:'wrote',value:text}] );
   }
   
   /**
@@ -694,11 +692,23 @@ export class WorldManager {
       }
       
     }
+    this.publishChanges(changes);
+
+  }
+  
+  /**
+   *  Publish changes to the server (if online) and local change listeners 
+   *  @param changes array of objects with field-value pairs
+   */
+  publishChanges(changes) {
     if ( changes.length > 0 ) {
-      VRSPACE.sendMyChanges(changes);
+      // CHEKME: do we want this strict or safe?
+      if ( this.isOnline() ) {
+        VRSPACE.sendMyChanges(changes);
+      }
+      // TODO: try/catch
       this.myChangeListeners.forEach( (listener) => listener(changes));
     }
-
   }
   
   /**

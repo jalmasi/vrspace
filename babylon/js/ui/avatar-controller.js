@@ -62,7 +62,7 @@ export class AvatarController {
    * @param loop default false
    */
   sendAnimation(name, loop=false) {
-    if ( this.animations.includes(name) && name != this.lastAnimation ) {
+    if ( this.animations.includes(name) && name != this.lastAnimation && this.worldManager.isOnline() ) {
       this.worldManager.sendMy({animation:{name:name,loop:loop}});
       this.lastAnimation = name;
     }

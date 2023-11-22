@@ -739,6 +739,7 @@ export class AvatarSelection extends World {
           this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
           if ( this.character ) {
             // character is null for e.g. video avatar
+            // CHECKME this should be safe to do even earlier, before enter
             var controller = new AvatarController(this.worldManager, this.character);
             this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
           }
