@@ -1,6 +1,9 @@
 /**
 This is remote control for user's avatar. Installed as change listener to WorldManager, tracks position of all events that user 
 sends - typically movement - and optinally adds some more - typically avatar animations.
+E.g. when position changes, it sends 'walk' animation, if current avatar has animation named 'walk'.
+User stops, it sends 'idle' animation, if current avatar has animation named 'idle'.
+So all other users see this avatar moving and idling. 
  */
 export class AvatarController {
   constructor( worldManager, avatar ) {
@@ -10,7 +13,7 @@ export class AvatarController {
     this.walk = null;
     /** Timestamp of last change */
     this.lastChange = Date.now();
-    /** Idle timeout, default 10s */
+    /** After not receiving any events for this many millis, idle animation starts */
     this.idleTimeout = 200;
     this.lastAnimation = null;
     this.worldManager = worldManager;
@@ -22,6 +25,9 @@ export class AvatarController {
     this.setupIdleTimer();
   }
   
+  /**
+   * Called from constructor to find walk and idle animations.
+   */
   processAnimations() {
     this.animations.forEach( a => {
       console.log(a);
@@ -35,6 +41,9 @@ export class AvatarController {
       }
     });
   }
+  /**
+   * Create timer for idle animation, if it doesn't exist.
+   */
   setupIdleTimer() {
     if ( this.idleTimerId ) {
       return;
@@ -47,6 +56,11 @@ export class AvatarController {
       }
     }, this.idleTimeout);
   }
+  /**
+   * Send an animation to the server, if the avatar has it.
+   * @param name animation name
+   * @param loop default false
+   */
   sendAnimation(name, loop=false) {
     if ( this.animations.includes(name) && name != this.lastAnimation ) {
       this.worldManager.sendMy({animation:{name:name,loop:loop}});
@@ -55,6 +69,7 @@ export class AvatarController {
   }
   /**
   Process locally generated changes to avatar. Called from WorldManager.trackChanges().
+  Position changes also change idle animation timer, and wrote event may trigger appropriate animation.
   @param changes array of field,value object pairs
    */
   processChanges(changes) {
