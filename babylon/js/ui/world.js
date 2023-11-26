@@ -35,6 +35,10 @@ export class World {
     this.collisionsEnabled = true;
     /** Progress indicator */
     this.indicator = null;
+    /** Main world camera (1st person) */
+    this.camera = null;
+    /** Main 3rd person world camera */
+    this.camera3p = null;
     /** Progress indicator functon */
     this.onProgress = null;
     /** WebXR mode indicator, set by VRHelper */

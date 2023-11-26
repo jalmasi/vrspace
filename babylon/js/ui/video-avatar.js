@@ -1,5 +1,5 @@
 /**
-A cylinder that shows video stream. Until streaming starts, altText is displayed on the cylinder.
+A disc that shows video stream. Until streaming starts, altText is displayed on the cylinder.
 It can be extended, and new class provided to WorldManager factory.
 */
 export class VideoAvatar {
@@ -15,7 +15,9 @@ export class VideoAvatar {
     this.backColor = "white";
     this.maxWidth = 640;
     this.maxHeight = 640;
+    /** Should show() start video? */
     this.autoStart = true;
+    /** Should own video avatar be attached to hud? */
     this.autoAttach = true;
     this.attached = false;
     if ( customOptions ) {

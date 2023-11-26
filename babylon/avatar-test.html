@@ -53,8 +53,12 @@ var crouch = false;
 var userName;
 var rest = false;
 var world;
+var vrspaceUI;
+var worldManager;
+var avatarController = null;
 
 import('./js/vrspace-min.js').then( (ui) => {
+  vrspaceUI = ui;
   import("./avatar-test.js").then( (module) =>{
     world = module.WORLD;
 
@@ -67,6 +71,8 @@ import('./js/vrspace-min.js').then( (ui) => {
 
     world.init(engine, 'avatar').then((s) => {
       scene = s;
+      worldManager = new ui.WorldManager(world);
+      
       ui.VRSPACEUI.listMatchingFiles( '../content/char/', (folders) => {
         for ( var f = 0; f < folders.length; f++ ) {
           ui.VRSPACEUI.listCharacters( folders[f].url()+'/', (avatars) => {
@@ -197,6 +203,11 @@ var replaceAvatar = () => {
       animationButtons(character);
       crouch = false;
       loaded.setName(userName);
+      if ( avatarController ) {
+        avatarController.dispose();
+      }
+      avatarController = new vrspaceUI.AvatarController(worldManager, character);
+      //world.camera3p.parent = character.parentMesh;
     } );
   });
 };
