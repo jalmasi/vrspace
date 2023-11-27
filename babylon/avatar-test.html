@@ -186,6 +186,7 @@ var loadAvatar = () => {
       animationButtons(character);
       crouch = false;
       loaded.setName(userName);
+      createController();
     } );
   });
 };
@@ -203,14 +204,17 @@ var replaceAvatar = () => {
       animationButtons(character);
       crouch = false;
       loaded.setName(userName);
-      if ( avatarController ) {
-        avatarController.dispose();
-      }
-      avatarController = new vrspaceUI.AvatarController(worldManager, character);
+      createController();
     } );
   });
 };
 
+var createController = () => {
+  if ( avatarController ) {
+    avatarController.dispose();
+  }
+  avatarController = new vrspaceUI.AvatarController(worldManager, character);
+}
 var instantiate = () => {
   import('./js/ui/avatar.js').then( (module) => {
     var index = document.getElementById("avatarName").value;

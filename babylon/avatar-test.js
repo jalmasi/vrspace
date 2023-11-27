@@ -62,6 +62,7 @@ export class Avatars extends World {
     ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
     ground.checkCollisions = true;
     ground.receiveShadows = true;
+    this.ground = ground;
 
     return this.scene;
   }

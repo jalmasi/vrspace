@@ -227,21 +227,14 @@ export class World {
    */
   thirdPersonCamera(camera1p = this.camera) {
     // CHECKME: use camera1p.rotation.y for alpha?
-    this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI/2, 1.5*Math.PI-camera1p.rotation.y, 3, camera1p.position, this.scene);
+    this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI/2, 1.3*Math.PI-camera1p.rotation.y, 3, camera1p.position, this.scene);
     this.camera3p.maxZ = 1000;
     this.camera3p.minZ = 0;
     this.camera3p.wheelPrecision = 100;
     this.camera3p.checkCollisions = true;
     
-    this.camera3p.keysDown = [40]; // down
-    this.camera3p.keysLeft = [37]; // left
-    this.camera3p.keysRight = [39]; // right
-    this.camera3p.keysUp = [38]; // up
-    this.camera3p.keysUpward = [36, 33, 32]; // home, pgup, space
-    
     this.camera3p.lowerRadiusLimit = 0.5;
     this.camera3p.upperRadiusLimit = 10;
-    this.camera3p.speed = 0.1;
 
     // disable panning, as it moves avatar/camera1:
     this.camera3p.panningSensibility = 0;

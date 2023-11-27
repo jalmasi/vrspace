@@ -593,7 +593,7 @@ export class Avatar {
     var headPos = this.head().getTransformNode().getAbsolutePosition();
     // this returns complete nonsense in some cases (lisa etc), no matter what:
     //var headPos = this.head().getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
-    this.headPosition.position = headPos;
+    this.headPosition.position = new BABYLON.Vector3(0,headPos.y,0);
     return headPos;
   }
 

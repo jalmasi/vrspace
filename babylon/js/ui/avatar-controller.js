@@ -1,7 +1,60 @@
+class AvatarAnimation {
+  constructor(animations) {
+    this.animations = animations;
+    this.walk = null;
+    this.idle = null;
+    this.otherAnimations = [];
+    this.processAnimations()
+  }
+  /**
+   * Called from constructor to find walk and idle animations.
+   */
+  processAnimations() {
+    this.animations.forEach( a => {
+      console.log(a);
+      var name = a.toLowerCase();
+      if ( name.indexOf('walk') >= 0 ) {
+        if ( this.walk ) {
+          // already exists, we're not going to replace it just like that
+          if ( name.indexOf('place') >= 0) {
+            this.walk = a;
+            console.log("Walk: "+name);
+          } else if ( this.walk.length > name.length ) {
+            this.walk = a;
+            console.log("Walk: "+name);
+          } else {
+            this.otherAnimations.push(a);
+          }
+        } else {
+          this.walk = a;
+          console.log("Walk: "+name);
+        }
+      } else if ( name.indexOf('idle') >= 0 ) {
+        // idle animation with shortest name
+        if ( this.idle ) {
+          if ( this.idle.length > name.length ) {
+            this.idle = a;
+            console.log("Idle: "+name);
+          } else {
+            this.otherAnimations.push(a);
+          }
+        } else {
+          this.idle = a;
+          console.log("Idle: "+name);
+        }
+      } else {
+        this.otherAnimations.push(a);
+      }
+    });
+  }
+
+}
+
 class AvatarMovement {
-  constructor(world, avatar) {
+  constructor(world, avatar, animation) {
     this.world = world;
     this.avatar = avatar;
+    this.animation = animation;
     this.movementTracker = null; // world manager mesh
     this.vector = {
       left: new BABYLON.Vector3(1, 0, 0),
@@ -32,8 +85,17 @@ class AvatarMovement {
     }
   }
 
+  startAnimation(name) {
+    if ( name != null ) {
+      this.avatar.startAnimation(name);
+    }
+  }
+  
   addVector(direction) {
     if ( !this.state[direction] ) {
+      if ( this.movingDirections == 0 ) {
+        // movement just starting
+      }
       this.direction.addInPlace( this.vector[direction] );
       this.state[direction] = true;
       this.movingDirections++;
@@ -47,11 +109,16 @@ class AvatarMovement {
       this.movingDirections--;
     }
     if ( this.movingDirections === 0 ) {
-      this.stop();
-      console.log("movement stopped");
+      this.stopMovement();
     }
   }
 
+  stopMovement() {
+    this.stop();
+    console.log("movement stopped");
+    this.startAnimation(this.animation.idle);
+  }
+  
   stopTrackingRotation() {
     if ( this.applyRotationToMesh ) {
       this.world.scene.unregisterBeforeRender( this.applyRotationToMesh );
@@ -93,6 +160,7 @@ class AvatarMovement {
       console.log('movement started');
       this.timestamp = Date.now();
       this.movementStart = Date.now();
+      this.startAnimation(this.animation.walk);
       return;
     } else if ( this.movingToTarget && this.movementStart + this.movementTimeout < this.timestamp ) {
       // could not reach the destination, stop
@@ -122,11 +190,11 @@ class AvatarMovement {
       var zDist = Math.abs(avatarMesh.position.z - this.movementTarget.z);
       if ( xDist < 0.2 && zDist < 0.2) {
         console.log("Arrived to destination: "+avatarMesh.position);
-        this.stop();
+        this.stopMovement();
         //this.startTrackingRotation();
       } else if ( this.xDist && this.zDist && xDist > this.xDist && zDist > this.zDist ) {
         console.log("Missed destination: "+avatarMesh.position+" by "+xDist+","+zDist);
-        this.stop();
+        this.stopMovement();
         //this.startTrackingRotation();
       } else {
         avatarMesh.moveWithCollisions(direction);
@@ -150,10 +218,6 @@ So all other users see this avatar moving and idling.
  */
 export class AvatarController {
   constructor( worldManager, avatar ) {
-    /** Name of idle animation */
-    this.idle = null;
-    /** Name of walk animation */
-    this.walk = null;
     /** Timestamp of last change */
     this.lastChange = Date.now();
     /** After not receiving any events for this many millis, idle animation starts */
@@ -170,35 +234,21 @@ export class AvatarController {
     this.animations = [];
     var groups = avatar.getAnimationGroups();
     groups.forEach( group => this.animations.push(group.name));
-    this.otherAnimations = [];
-    this.processAnimations();
+    this.animation = new AvatarAnimation(this.animations);
+    
     this.setupIdleTimer();
     // event handlers
     this.keyboardHandler = (kbInfo) => this.handleKeyboard(kbInfo);
     this.cameraHandler = () => this.cameraChanged();
     this.scene.onActiveCameraChanged.add(this.cameraHandler);
     // movement state variables and constants
-    this.movement = new AvatarMovement(this.world, avatar);
+    this.movement = new AvatarMovement(this.world, avatar, this.animation);
     this.movementHandler = () => this.movement.moveAvatar();
     this.clickHandler = (pointerInfo) => this.handleClick(pointerInfo);
+
+    this.cameraChanged();
   }
   
-  /**
-   * Called from constructor to find walk and idle animations.
-   */
-  processAnimations() {
-    this.animations.forEach( a => {
-      console.log(a);
-      var name = a.toLowerCase();
-      if ( name.indexOf('walk') >= 0 ) {
-        this.walk = a;
-      } else if ( name.indexOf('idle') >= 0 ) {
-        this.idle = a;
-      } else {
-        this.otherAnimations.push(a);
-      }
-    });
-  }
   /**
    * Create timer for idle animation, if it doesn't exist.
    */
@@ -210,7 +260,7 @@ export class AvatarController {
       if ( this.worldManager.isOnline() && Date.now() - this.lastChange > this.idleTimeout ) {
         clearInterval(this.idleTimerId);
         this.idleTimerId = null;
-        this.sendAnimation(this.idle);
+        this.sendAnimation(this.animation.idle);
       }
     }, this.idleTimeout);
   }
@@ -239,7 +289,7 @@ export class AvatarController {
       this.lastChange = Date.now();
       if ( change.field == "position" ) {
         this.setupIdleTimer();
-        this.sendAnimation(this.walk,true);
+        this.sendAnimation(this.animation.walk,true);
         break;
       } else if ( change.field == "rotation") {
         // CHECKME anything?
@@ -345,7 +395,7 @@ export class AvatarController {
     if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
       //console.log(pointerInfo);
       // LMB: 0, RMB: 2
-      if ( pointerInfo.event.button == 0 ) {
+      if (pointerInfo.event.button == 0 && this.world.getFloorMeshes().includes(pointerInfo.pickInfo.pickedMesh)) {
         this.movement.moveToTarget(pointerInfo.pickInfo.pickedPoint);
       }
     }
@@ -353,5 +403,9 @@ export class AvatarController {
 
   // TODO
   dispose() {
+    this.scene.onKeyboardObservable.remove(this.keyboardHandler);
+    this.scene.onPointerObservable.remove( this.clickHandler );
+    this.scene.unregisterBeforeRender(this.movementHandler);
+    this.movement.stopTrackingRotation();
   }
 }
