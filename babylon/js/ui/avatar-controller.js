@@ -46,6 +46,10 @@ class AvatarMovement {
       this.state[direction] = false;
       this.movingDirections--;
     }
+    if ( this.movingDirections === 0 ) {
+      this.stop();
+      console.log("movement stopped");
+    }
   }
 
   stopTrackingRotation() {
@@ -77,7 +81,8 @@ class AvatarMovement {
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
     this.direction = this.movementTarget.subtract(this.avatar.parentMesh.position);
     this.movingToTarget = true;
-    this.stopTrackingRotation();
+    console.log("moving to target ", point, " direction "+this.direction);
+    //this.stopTrackingRotation();
   }
 
   moveAvatar() {
@@ -98,8 +103,9 @@ class AvatarMovement {
     }
     var old = this.timestamp;
     this.timestamp = Date.now();
-    var delta = (this.timestamp - old)/100; // CHECKME this was supposed to be 1000!
-    var distance = this.world.camera3p.speed * delta;
+    var delta = (this.timestamp - old)/10; // FIXME depends on FPS?
+    //var distance = this.world.camera3p.speed * delta;
+    var distance = this.world.camera1p.speed * delta;
     var gravity = new BABYLON.Vector3(0,this.world.scene.gravity.y,0);
     
     var avatarMesh = this.avatar.parentMesh;
@@ -117,11 +123,11 @@ class AvatarMovement {
       if ( xDist < 0.2 && zDist < 0.2) {
         console.log("Arrived to destination: "+avatarMesh.position);
         this.stop();
-        this.startTrackingRotation();
+        //this.startTrackingRotation();
       } else if ( this.xDist && this.zDist && xDist > this.xDist && zDist > this.zDist ) {
         console.log("Missed destination: "+avatarMesh.position+" by "+xDist+","+zDist);
         this.stop();
-        this.startTrackingRotation();
+        //this.startTrackingRotation();
       } else {
         avatarMesh.moveWithCollisions(direction);
         this.xDist = xDist;
@@ -156,6 +162,11 @@ export class AvatarController {
     this.worldManager = worldManager;
     this.world = worldManager.world;
     this.scene = worldManager.scene;
+
+    this.world.camera3p.setTarget(avatar.headPosition);
+    this.world.camera1p.parent = avatar.parentMesh;
+    avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0,1,0);
+    
     this.animations = [];
     var groups = avatar.getAnimationGroups();
     groups.forEach( group => this.animations.push(group.name));

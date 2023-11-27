@@ -262,6 +262,11 @@ export class Avatar {
       
       this.parentMesh = container.createRootMesh();
       this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
+      
+      this.headPosition = BABYLON.MeshBuilder.CreateSphere("head position", {diameter:0.1}, this.scene);
+      this.headPosition.position = new BABYLON.Vector3(0,this.userHeight,0);
+      this.headPosition.parent = this.parentMesh;
+      this.headPosition.isVisible = false;
 
       if ( container.skeletons && container.skeletons.length > 0 ) {
         // CHECKME: should we process multiple skeletons?
@@ -588,6 +593,7 @@ export class Avatar {
     var headPos = this.head().getTransformNode().getAbsolutePosition();
     // this returns complete nonsense in some cases (lisa etc), no matter what:
     //var headPos = this.head().getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
+    this.headPosition.position = headPos;
     return headPos;
   }
 

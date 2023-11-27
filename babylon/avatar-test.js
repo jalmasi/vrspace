@@ -8,13 +8,12 @@ export class Avatars extends World {
 
     // Add a camera to the scene and attach it to the canvas
     //var camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 2, -10), this.scene);
-    this.camera = new BABYLON.ArcRotateCamera("Camera", 0, 2, -3, new BABYLON.Vector3(0, 1, 0), this.scene);
-    this.camera.setPosition(new BABYLON.Vector3(0, 2, -3));
+    this.camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI/2, Math.PI/3, 4, new BABYLON.Vector3(0, 1, 0), this.scene);
     //var camera = new BABYLON.FlyCamera("FlyCamera", new BABYLON.Vector3(0, 5, -10), this.scene);
     this.camera.maxZ = 100000;
-    this.camera.setTarget(BABYLON.Vector3.Zero());
     this.camera.attachControl(canvas, true);
-    this.camera.applyGravity = true;
+    this.camera.upperRadiusLimit = 30;
+    //this.camera.applyGravity = true;
     //Set the ellipsoid around the camera (e.g. your player's size)
     //camera.ellipsoid = new BABYLON.Vector3(.5, 1.8, .5);
     //camera.ellipsoidOffset = -0.2

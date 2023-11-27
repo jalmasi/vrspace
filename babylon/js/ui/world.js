@@ -35,8 +35,10 @@ export class World {
     this.collisionsEnabled = true;
     /** Progress indicator */
     this.indicator = null;
-    /** Main world camera (1st person) */
+    /** Main world camera */
     this.camera = null;
+    /** First person camera, defaults to main camera */
+    this.camera1p = null;
     /** Main 3rd person world camera */
     this.camera3p = null;
     /** Progress indicator functon */
@@ -117,6 +119,9 @@ export class World {
     if ( camera ) {
       this.camera = camera;
     }
+    if ( ! this.camera1p ) {
+      this.camera1p = this.camera;
+    }
     this.attachControl();
     // TODO dispose of old lights
     var light = await this.createLights();
@@ -141,7 +146,11 @@ export class World {
     await this.createEffects();
     await this.createPhysics();
   }
-  /** An implementation must override this method and define at least one camera */
+  /**
+   * An implementation must override this method and define at least one camera.
+   * Returned camera, if any, is set as main camera (this.camera), and also as 1st person
+   * camera (this.camera1p) if one is not set.
+   */
   async createCamera() {
     alert( 'Please override createCamera() method')
   }
@@ -208,7 +217,7 @@ export class World {
     
     camera.touchAngularSensitivity = 5000;
     
-    return camera;    
+    return camera;
   }
 
   /** Utility method, creates 3rd person camera.
@@ -218,7 +227,7 @@ export class World {
    */
   thirdPersonCamera(camera1p = this.camera) {
     // CHECKME: use camera1p.rotation.y for alpha?
-    this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI/2, 1.5*Math.PI-camera1p.rotation.y, 2, camera1p.position, this.scene);
+    this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI/2, 1.5*Math.PI-camera1p.rotation.y, 3, camera1p.position, this.scene);
     this.camera3p.maxZ = 1000;
     this.camera3p.minZ = 0;
     this.camera3p.wheelPrecision = 100;
@@ -230,9 +239,9 @@ export class World {
     this.camera3p.keysUp = [38]; // up
     this.camera3p.keysUpward = [36, 33, 32]; // home, pgup, space
     
-    this.camera3p.lowerRadiusLimit = 0.5; // at least 0.5 m behind avatar
-    this.camera3p.upperRadiusLimit = 5; // a maximum of 5 m behind avatar
-    this.camera3p.speed = 0.3;
+    this.camera3p.lowerRadiusLimit = 0.5;
+    this.camera3p.upperRadiusLimit = 10;
+    this.camera3p.speed = 0.1;
 
     // disable panning, as it moves avatar/camera1:
     this.camera3p.panningSensibility = 0;
