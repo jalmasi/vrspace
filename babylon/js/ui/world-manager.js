@@ -269,13 +269,15 @@ export class WorldManager {
     }
     this.notifyLoadListeners(obj,video);
   }
-  
-  /** Load a 3D avatar, attach a listener to it */
-  async loadAvatar(obj) {
-    this.log("loading avatar "+obj.mesh);
-    var pos = obj.mesh.lastIndexOf('/');
-    var path = obj.mesh.substring(0,pos);
-    var file = obj.mesh.substring(pos+1);
+
+  /**
+   * Creates new Avatar instance from the URL
+   * @param url URL to load avatar from 
+   */  
+  async createAvatarFromUrl(url) {
+    var pos = url.lastIndexOf('/');
+    var path = url.substring(0,pos);
+    var file = url.substring(pos+1);
     // FIXME really bad way to parse path and create ServerFolder
     pos = path.lastIndexOf('/');
     var baseUrl = path.substring(0,pos+1);
@@ -285,7 +287,7 @@ export class WorldManager {
     var fix = baseUrl+dir+"-fixes.json"; // gltf fix - expected in top-level directory
     if ( file.toLowerCase().endsWith('.glb')) {
       // glb fixes - expected in the same directory
-      fix = obj.mesh.substring(0,obj.mesh.lastIndexOf('.'))+'-fixes.json';
+      fix = url.substring(0,url.lastIndexOf('.'))+'-fixes.json';
     }
     if ( ! this.notFound.includes(fix)) {
       await fetch(fix, {cache: 'no-cache'}).then(response => {
@@ -307,8 +309,18 @@ export class WorldManager {
     avatar.animations = this.customAnimations;
     avatar.file = file;
     avatar.fps = this.fps;
-    avatar.userHeight = obj.userHeight;
     avatar.animateArms = this.createAnimations;
+    return avatar;
+  }
+  
+  /** 
+   * Load a 3D avatar, attach a listener to it
+   * @param obj VRObject that represents the user 
+   */
+  async loadAvatar(obj) {
+    this.log("loading avatar "+obj.mesh);
+    var avatar = await this.createAvatarFromUrl(obj.mesh);
+    avatar.userHeight = obj.userHeight;
     // GLTF characters are facing the user when loaded, turn it around
     // FIXME this doesn't work for cloned characters, see Avatar.hide()
     avatar.turnAround = true;

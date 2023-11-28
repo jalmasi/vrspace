@@ -11,36 +11,36 @@ class AvatarAnimation {
    */
   processAnimations() {
     this.animations.forEach( a => {
-      console.log(a);
+      //console.log(a);
       var name = a.toLowerCase();
       if ( name.indexOf('walk') >= 0 ) {
         if ( this.walk ) {
           // already exists, we're not going to replace it just like that
           if ( name.indexOf('place') >= 0) {
             this.walk = a;
-            console.log("Walk: "+name);
+            //console.log("Walk: "+name);
           } else if ( this.walk.length > name.length ) {
             this.walk = a;
-            console.log("Walk: "+name);
+            //console.log("Walk: "+name);
           } else {
             this.otherAnimations.push(a);
           }
         } else {
           this.walk = a;
-          console.log("Walk: "+name);
+          //console.log("Walk: "+name);
         }
       } else if ( name.indexOf('idle') >= 0 ) {
         // idle animation with shortest name
         if ( this.idle ) {
           if ( this.idle.length > name.length ) {
             this.idle = a;
-            console.log("Idle: "+name);
+            //console.log("Idle: "+name);
           } else {
             this.otherAnimations.push(a);
           }
         } else {
           this.idle = a;
-          console.log("Idle: "+name);
+          //console.log("Idle: "+name);
         }
       } else {
         this.otherAnimations.push(a);
@@ -116,7 +116,7 @@ class AvatarMovement {
 
   stopMovement() {
     this.stop();
-    console.log("movement stopped");
+    //console.log("movement stopped");
     this.startAnimation(this.animation.idle);
   }
   
@@ -136,10 +136,6 @@ class AvatarMovement {
         //this.avatar.parentMesh.rotation.y = rotY;
         this.avatar.parentMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
         //movementTracker.rotation.y = rotY;
-        // and now also apply rotation to 1st person camera
-        //this.world.camera.rotation.z = 0;
-        //this.world.camera.rotation.y = 1.5*Math.PI-this.world.camera3p.alpha;
-        //this.world.camera.rotation.x = 0;
       }
       this.world.scene.registerBeforeRender( this.applyRotationToMesh );
       this.trackingCameraRotation = true;
@@ -153,6 +149,7 @@ class AvatarMovement {
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
     this.direction = this.movementTarget.subtract(this.avatar.parentMesh.position);
     this.movingToTarget = true;
+    //this.stopTrackingCameraRotation();
     console.log("moving to target ", point, " direction "+this.direction);
     
     let currentDirection = new BABYLON.Vector3(0,0,-1);
@@ -193,7 +190,7 @@ class AvatarMovement {
       return;
     }
     if ( this.timestamp == 0 ) {
-      console.log('movement started');
+      //console.log('movement started');
       this.timestamp = Date.now();
       this.movementStart = Date.now();
       this.startAnimation(this.animation.walk);
@@ -201,13 +198,13 @@ class AvatarMovement {
     } else if ( this.movingToTarget && this.movementStart + this.movementTimeout < this.timestamp ) {
       // could not reach the destination, stop
       console.log("Stopping movement due to timeout");
-      this.stop();
+      this.stopMovement();
       this.startTrackingCameraRotation();
       return;
     }
     var old = this.timestamp;
     this.timestamp = Date.now();
-    var delta = (this.timestamp - old)/10; // FIXME depends on FPS?
+    var delta = (this.timestamp - old)/100; // FIXME depends on FPS?
     //var distance = this.world.camera3p.speed * delta;
     var distance = this.world.camera1p.speed * delta;
     var gravity = new BABYLON.Vector3(0,this.world.scene.gravity.y,0);
@@ -269,13 +266,11 @@ export class AvatarController {
     this.worldManager = worldManager;
     this.world = worldManager.world;
     this.scene = worldManager.scene;
+    this.avatar = avatar;
 
-    if ( this.world.camera3p ) {
-      this.world.camera3p.setTarget(avatar.headPosition);
-    }
-    if ( this.world.camera1p ) {
-      this.world.camera1p.parent = avatar.parentMesh;
-    }
+    //if ( this.world.camera3p ) {
+      //this.world.camera3p.setTarget(avatar.headPosition);
+    //}
     
     avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0,1,0);
     
@@ -359,8 +354,15 @@ export class AvatarController {
   
   cameraChanged() {
     if ( this.scene.activeCamera === this.world.camera3p ) {
-      this.scene.onKeyboardObservable.add( this.keyboardHandler );
-      this.scene.onPointerObservable.add( this.clickHandler );
+      
+      this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
+      this.world.camera3p.computeWorldMatrix();
+      
+      this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, this.world.camera1p.position.y - this.avatar.height(), this.world.camera1p.position.z);
+      this.avatar.parentMesh.setEnabled(true);
+      this.world.camera3p.setTarget(this.avatar.headPosition);
+      this.scene.onKeyboardObservable.add(this.keyboardHandler);
+      this.scene.onPointerObservable.add(this.clickHandler);
       this.scene.registerBeforeRender(this.movementHandler);
       this.movement.startTrackingCameraRotation();
     } else {
@@ -368,6 +370,13 @@ export class AvatarController {
       this.scene.onPointerObservable.remove( this.clickHandler );
       this.scene.unregisterBeforeRender(this.movementHandler);
       this.movement.stopTrackingCameraRotation();
+    }
+    if ( this.scene.activeCamera === this.world.camera1p ) {
+      this.avatar.parentMesh.setEnabled(false);
+      // apply rotation to 1st person camera
+      //this.world.camera1p.rotation.z = 0;
+      this.world.camera1p.rotation.y = 1.5*Math.PI-this.world.camera3p.alpha;
+      //this.world.camera1p.rotation.x = 0;
     }
   }
   
@@ -443,8 +452,10 @@ export class AvatarController {
     if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
       //console.log(pointerInfo);
       // LMB: 0, RMB: 2
-      if (pointerInfo.event.button == 0 && this.world.getFloorMeshes().includes(pointerInfo.pickInfo.pickedMesh)) {
-        this.movement.moveToTarget(pointerInfo.pickInfo.pickedPoint);
+      if (pointerInfo.pickInfo.pickedMesh) {
+        if (pointerInfo.event.button == 0 && this.world.getFloorMeshes().includes(pointerInfo.pickInfo.pickedMesh)) {
+          this.movement.moveToTarget(pointerInfo.pickInfo.pickedPoint);
+        }
       }
     }
   }

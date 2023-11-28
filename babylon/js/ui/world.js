@@ -45,6 +45,8 @@ export class World {
     this.onProgress = null;
     /** WebXR mode indicator, set by VRHelper */
     this.inXR = false;
+    /** Scene meshes, available once the world loads (in loaded, loadingStop, collisions methods) */
+    this.sceneMeshes = null;
     
     /** Handy reference to VRSpaceUI */
     this.VRSPACEUI = VRSPACEUI;

@@ -4,6 +4,7 @@ export class Cave extends World {
   async createCamera() {
     this.camera = this.universalCamera(new BABYLON.Vector3(-44.5, 18, 24.5));
     this.camera.setTarget(new BABYLON.Vector3(-54.5,4,-33));
+    this.thirdPersonCamera();
   }
   async createLights() {
     // Add lights to the scene
@@ -76,9 +77,13 @@ export class Cave extends World {
 
     var floorGroup = new BABYLON.TransformNode("FloorGroup");
 
+    var floorMaterial = new BABYLON.StandardMaterial("InvisibleFloor", this.scene);
+    floorMaterial.alpha = 0;
+    
     for ( var i = 0; i < this.floorMeshes.length; i++ ) {
       this.floorMeshes[i].checkCollisions = true;
-      this.floorMeshes[i].isVisible = false;
+      this.floorMeshes[i].material = floorMaterial;
+      //this.floorMeshes[i].isVisible = false; // makes mesh non-pickable
       this.floorMeshes[i].parent = floorGroup;
     }
 
@@ -101,6 +106,13 @@ export class Cave extends World {
     // floor editor example (used to create floors in createGround method)
     //this.floor = new FloorRibbon(this.scene);
     //this.floor.showUI();
+    
+    // make all meshes non-pickable, we react only on floor mesh selection
+    if ( this.sceneMeshes ) {
+      for ( var i=0; i<this.sceneMeshes.length; i++ ) {
+        this.sceneMeshes[i].isPickable = false;
+      }
+    }
   }
   
 }
