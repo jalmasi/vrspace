@@ -160,14 +160,31 @@ class AvatarMovement {
     let rotationMatrix = new BABYLON.Matrix();
     BABYLON.Matrix.RotationAlignToRef(currentDirection.normalizeToNew(), this.direction.normalizeToNew(), rotationMatrix);
     let quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
-    // TODO animate rotation
+
+    //this.stopTrackingCameraRotation(); // to test avatar rotation animation
     if ( this.trackingCameraRotation ) {
       // rotate 3p camera
       let angle = quat.toEulerAngles().y;
-      this.world.camera3p.alpha -= angle;
+      if ( ! this.cameraAnimation ) {
+        this.cameraAnimation = new BABYLON.Animation("camera-rotation-alpha", "alpha", 5, BABYLON.Animation.ANIMATIONTYPE_FLOAT);
+        this.world.camera3p.animations.push(this.cameraAnimation);        
+      }
+  
+      let keys = [ 
+        {frame: 0, value: this.world.camera3p.alpha},
+        {frame: 1,value: this.world.camera3p.alpha-angle}
+      ];
+  
+      this.cameraAnimation.setKeys(keys);
+      this.world.scene.beginAnimation(this.world.camera3p, 0, 10, false, 1);
+      
     } else {
       // rotate avatar
-      this.avatar.parentMesh.rotationQuaternion.multiplyInPlace(quat);
+      //this.avatar.parentMesh.rotationQuaternion.multiplyInPlace(quat);
+      if ( ! this.avatarRotationAnimation ) {
+        this.avatarRotationAnimation = VRSPACEUI.createQuaternionAnimation(this.avatar.parentMesh, "rotationQuaternion", 5);
+      }
+      VRSPACEUI.updateQuaternionAnimation(this.avatarRotationAnimation, this.avatar.parentMesh.rotationQuaternion.clone(), this.avatar.parentMesh.rotationQuaternion.multiply(quat));
     }
   }
 
@@ -226,6 +243,12 @@ class AvatarMovement {
     }
   }
 
+  dispose() {
+    this.stopTrackingCameraRotation();
+    if ( this.cameraAnimation ) {
+      this.cameraAnimation.dispose();
+    }
+  }
 }
 
 /**
@@ -425,6 +448,6 @@ export class AvatarController {
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
     this.scene.onPointerObservable.remove( this.clickHandler );
     this.scene.unregisterBeforeRender(this.movementHandler);
-    this.movement.stopTrackingCameraRotation();
+    this.movement.dispose();
   }
 }

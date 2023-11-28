@@ -402,16 +402,26 @@ export class VRSpaceUI {
   @param from Vector3
   @param to Vector3
    */
+  updateQuaternionAnimationFromVec(group, from, to) {
+    // 'to' is a Vector3, 'from' is current rotationQuaternion
+    // we have to rotate around to.y axis
+    let dest = new BABYLON.Quaternion.FromEulerAngles(0,to.y,0);
+    return this.updateQuaternionAnimation(group, from, dest);
+  }
+
+  /**
+  Utility method - update quaternion animation of a mesh field around Y axis.  
+  @param group AnimationGroup to update
+  @param from Quaternion
+  @param to Quaternion
+   */
   updateQuaternionAnimation(group, from, to) {
     if ( group.isPlaying ) {
       group.stop();
     }
-    // 'to' is a Vector3, 'from' is current rotationQuaternion
-    // we have to rotate around to.y axis
-    var dest = new BABYLON.Quaternion.FromEulerAngles(0,to.y,0);
     var anim = group.targetedAnimations[0].animation;
     anim.getKeys()[0].value = from;
-    anim.getKeys()[1].value = dest;
+    anim.getKeys()[1].value = to;
     group.play(false);
   }
   

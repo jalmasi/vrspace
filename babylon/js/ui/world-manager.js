@@ -366,7 +366,7 @@ export class WorldManager {
         if ( ! obj.rotate ) {
           obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
         }
-        VRSPACEUI.updateQuaternionAnimation(obj.rotate, node.rotationQuaternion, obj.rotation);
+        VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);
       } else if ( 'animation' === field ) {
         avatar.startAnimation(obj.animation.name, obj.animation.loop);
       } else if ( 'leftArmPos' === field ) {
