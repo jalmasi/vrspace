@@ -56,6 +56,7 @@ class AvatarMovement {
     this.avatar = avatar;
     this.animation = animation;
     this.movementTracker = null; // world manager mesh
+    this.trackingCameraRotation = false;
     this.vector = {
       left: new BABYLON.Vector3(1, 0, 0),
       right: new BABYLON.Vector3(-1, 0, 0),
@@ -119,26 +120,30 @@ class AvatarMovement {
     this.startAnimation(this.animation.idle);
   }
   
-  stopTrackingRotation() {
+  stopTrackingCameraRotation() {
     if ( this.applyRotationToMesh ) {
       this.world.scene.unregisterBeforeRender( this.applyRotationToMesh );
       this.applyRotationToMesh = null;
+      this.trackingCameraRotation = false;
     }
   }
 
-  startTrackingRotation() {
-    this.applyRotationToMesh = () => {
-      var rotY = .5*Math.PI-this.world.camera3p.alpha;
-      // convert alpha and beta to mesh rotation.y and rotation.x
-      //this.avatar.parentMesh.rotation.y = rotY;
-      this.avatar.parentMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
-      //movementTracker.rotation.y = rotY;
-      // and now also apply rotation to 1st person camera
-      //this.world.camera.rotation.z = 0;
-      //this.world.camera.rotation.y = 1.5*Math.PI-this.world.camera3p.alpha;
-      //this.world.camera.rotation.x = 0;
+  startTrackingCameraRotation() {
+    if ( ! this.applyRotationToMesh ) {
+      this.applyRotationToMesh = () => {
+        var rotY = .5*Math.PI-this.world.camera3p.alpha;
+        // convert alpha and beta to mesh rotation.y and rotation.x
+        //this.avatar.parentMesh.rotation.y = rotY;
+        this.avatar.parentMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
+        //movementTracker.rotation.y = rotY;
+        // and now also apply rotation to 1st person camera
+        //this.world.camera.rotation.z = 0;
+        //this.world.camera.rotation.y = 1.5*Math.PI-this.world.camera3p.alpha;
+        //this.world.camera.rotation.x = 0;
+      }
+      this.world.scene.registerBeforeRender( this.applyRotationToMesh );
+      this.trackingCameraRotation = true;
     }
-    this.world.scene.registerBeforeRender( this.applyRotationToMesh );
   }
   
   moveToTarget(point) {
@@ -149,7 +154,21 @@ class AvatarMovement {
     this.direction = this.movementTarget.subtract(this.avatar.parentMesh.position);
     this.movingToTarget = true;
     console.log("moving to target ", point, " direction "+this.direction);
-    //this.stopTrackingRotation();
+    
+    let currentDirection = new BABYLON.Vector3(0,0,-1);
+    currentDirection.rotateByQuaternionToRef(this.avatar.parentMesh.rotationQuaternion,currentDirection);
+    let rotationMatrix = new BABYLON.Matrix();
+    BABYLON.Matrix.RotationAlignToRef(currentDirection.normalizeToNew(), this.direction.normalizeToNew(), rotationMatrix);
+    let quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
+    // TODO animate rotation
+    if ( this.trackingCameraRotation ) {
+      // rotate 3p camera
+      let angle = quat.toEulerAngles().y;
+      this.world.camera3p.alpha -= angle;
+    } else {
+      // rotate avatar
+      this.avatar.parentMesh.rotationQuaternion.multiplyInPlace(quat);
+    }
   }
 
   moveAvatar() {
@@ -166,7 +185,7 @@ class AvatarMovement {
       // could not reach the destination, stop
       console.log("Stopping movement due to timeout");
       this.stop();
-      this.startTrackingRotation();
+      this.startTrackingCameraRotation();
       return;
     }
     var old = this.timestamp;
@@ -191,11 +210,11 @@ class AvatarMovement {
       if ( xDist < 0.2 && zDist < 0.2) {
         console.log("Arrived to destination: "+avatarMesh.position);
         this.stopMovement();
-        //this.startTrackingRotation();
+        //this.startTrackingCameraRotation();
       } else if ( this.xDist && this.zDist && xDist > this.xDist && zDist > this.zDist ) {
         console.log("Missed destination: "+avatarMesh.position+" by "+xDist+","+zDist);
         this.stopMovement();
-        //this.startTrackingRotation();
+        //this.startTrackingCameraRotation();
       } else {
         avatarMesh.moveWithCollisions(direction);
         this.xDist = xDist;
@@ -314,12 +333,12 @@ export class AvatarController {
       this.scene.onKeyboardObservable.add( this.keyboardHandler );
       this.scene.onPointerObservable.add( this.clickHandler );
       this.scene.registerBeforeRender(this.movementHandler);
-      this.movement.startTrackingRotation();
+      this.movement.startTrackingCameraRotation();
     } else {
       this.scene.onKeyboardObservable.remove(this.keyboardHandler);
       this.scene.onPointerObservable.remove( this.clickHandler );
       this.scene.unregisterBeforeRender(this.movementHandler);
-      this.movement.stopTrackingRotation();
+      this.movement.stopTrackingCameraRotation();
     }
   }
   
@@ -406,6 +425,6 @@ export class AvatarController {
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
     this.scene.onPointerObservable.remove( this.clickHandler );
     this.scene.unregisterBeforeRender(this.movementHandler);
-    this.movement.stopTrackingRotation();
+    this.movement.stopTrackingCameraRotation();
   }
 }
