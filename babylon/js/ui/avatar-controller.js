@@ -52,8 +52,6 @@ class AvatarAnimation {
 
 class AvatarMovement {
   constructor(world, avatar, animation) {
-    this.trackCameraRotation = true;
-    
     this.world = world;
     this.avatar = avatar;
     this.animation = animation;
@@ -131,7 +129,7 @@ class AvatarMovement {
   }
 
   startTrackingCameraRotation() {
-    if ( this.trackCameraRotation && ! this.applyRotationToMesh ) {
+    if ( ! this.applyRotationToMesh ) {
       this.applyRotationToMesh = () => {
         var rotY = .5*Math.PI-this.world.camera3p.alpha;
         // convert alpha and beta to mesh rotation.y and rotation.x
@@ -229,11 +227,9 @@ class AvatarMovement {
       if ( xDist < 0.2 && zDist < 0.2) {
         console.log("Arrived to destination: "+avatarMesh.position);
         this.stopMovement();
-        //this.startTrackingCameraRotation();
       } else if ( this.xDist && this.zDist && xDist > this.xDist && zDist > this.zDist ) {
         console.log("Missed destination: "+avatarMesh.position+" by "+xDist+","+zDist);
         this.stopMovement();
-        //this.startTrackingCameraRotation();
       } else {
         avatarMesh.moveWithCollisions(direction);
         this.xDist = xDist;
