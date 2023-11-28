@@ -52,7 +52,10 @@ import("./world.js").then( (module) =>{
       cave.name = 'cave';
       var characterUrl = '/content/char/male/male_adventurer/scene.gltf';
       net.createAvatarFromUrl( characterUrl ).then( avatar => {
-    	  avatar.load( () => new ui.AvatarController(net, avatar));
+    	  avatar.load( () => {
+    		  let controller = new ui.AvatarController(net, avatar);
+          net.addMyChangeListener( changes => controller.processChanges(changes) );
+    	  });
       });
       
       // connect, set own avatar and start the session

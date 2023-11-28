@@ -4,7 +4,7 @@ class AvatarAnimation {
     this.walk = null;
     this.idle = null;
     this.otherAnimations = [];
-    this.processAnimations()
+    this.processAnimations();
   }
   /**
    * Called from constructor to find walk and idle animations.
