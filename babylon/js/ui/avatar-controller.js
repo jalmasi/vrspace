@@ -52,6 +52,8 @@ class AvatarAnimation {
 
 class AvatarMovement {
   constructor(world, avatar, animation) {
+    this.trackCameraRotation = true;
+    
     this.world = world;
     this.avatar = avatar;
     this.animation = animation;
@@ -129,7 +131,7 @@ class AvatarMovement {
   }
 
   startTrackingCameraRotation() {
-    if ( ! this.applyRotationToMesh ) {
+    if ( this.trackCameraRotation && ! this.applyRotationToMesh ) {
       this.applyRotationToMesh = () => {
         var rotY = .5*Math.PI-this.world.camera3p.alpha;
         // convert alpha and beta to mesh rotation.y and rotation.x
@@ -269,8 +271,13 @@ export class AvatarController {
     this.world = worldManager.world;
     this.scene = worldManager.scene;
 
-    this.world.camera3p.setTarget(avatar.headPosition);
-    this.world.camera1p.parent = avatar.parentMesh;
+    if ( this.world.camera3p ) {
+      this.world.camera3p.setTarget(avatar.headPosition);
+    }
+    if ( this.world.camera1p ) {
+      this.world.camera1p.parent = avatar.parentMesh;
+    }
+    
     avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0,1,0);
     
     this.animations = [];
