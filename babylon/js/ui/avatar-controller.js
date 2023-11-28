@@ -169,7 +169,7 @@ class AvatarMovement {
       let angle = quat.toEulerAngles().y;
       if ( ! this.cameraAnimation ) {
         this.cameraAnimation = new BABYLON.Animation("camera-rotation-alpha", "alpha", 5, BABYLON.Animation.ANIMATIONTYPE_FLOAT);
-        this.world.camera3p.animations.push(this.cameraAnimation);        
+        this.world.camera3p.animations.push(this.cameraAnimation);
       }
   
       let keys = [ 
@@ -248,7 +248,10 @@ class AvatarMovement {
   dispose() {
     this.stopTrackingCameraRotation();
     if ( this.cameraAnimation ) {
-      this.cameraAnimation.dispose();
+      let pos = this.world.camera3p.animations.indexOf(this.cameraAnimation);
+      if ( pos > -1 ) {
+        this.world.camera3p.animations.splice(pos,1);
+      }
     }
   }
 }
