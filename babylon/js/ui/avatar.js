@@ -1642,7 +1642,7 @@ export class Avatar {
     var started = false; // to ensure we start only one animation
     for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
       var group = this.getAnimationGroups()[i];
-      if ( group.name == animationName && !started ) {
+      if ( (group.name == animationName || group.name == "Clone of "+animationName) && !started ) {
         started = true;
         //this.log("Animation group: "+animationName);
         if ( group.isPlaying ) {
