@@ -94,8 +94,12 @@ class AvatarMovement {
   
   addVector(direction) {
     if ( !this.state[direction] ) {
+      if ( this.movingToTarget ) {
+        this.stopMovement();
+      }
       if ( this.movingDirections == 0 ) {
         // movement just starting
+        this.startMovement();
       }
       this.direction.addInPlace( this.vector[direction] );
       this.state[direction] = true;
@@ -142,10 +146,17 @@ class AvatarMovement {
     }
   }
   
+  startMovement() {
+    this.timestamp = Date.now();
+    this.movementStart = Date.now();
+    this.startAnimation(this.animation.walk);
+  }
+  
   moveToTarget(point) {
     if ( this.movingDirections > 0 ) {
       return;
     }
+    this.startMovement();
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
     this.direction = this.movementTarget.subtract(this.avatar.parentMesh.position);
     this.movingToTarget = true;
@@ -186,16 +197,14 @@ class AvatarMovement {
   }
 
   moveAvatar() {
-    if ( this.world.scene.activeCamera !== this.world.camera3p || (this.movingDirections == 0 && !this.movingToTarget)) {
+    if ( this.world.scene.activeCamera !== this.world.camera3p 
+       //|| (this.movingDirections == 0 && !this.movingToTarget) // disables free fall
+      )
+    {
       return;
     }
-    if ( this.timestamp == 0 ) {
-      //console.log('movement started');
-      this.timestamp = Date.now();
-      this.movementStart = Date.now();
-      this.startAnimation(this.animation.walk);
-      return;
-    } else if ( this.movingToTarget && this.movementStart + this.movementTimeout < this.timestamp ) {
+
+    if ( this.movingToTarget && this.movementStart + this.movementTimeout < this.timestamp ) {
       // could not reach the destination, stop
       console.log("Stopping movement due to timeout");
       this.stopMovement();
@@ -204,21 +213,22 @@ class AvatarMovement {
     }
     var old = this.timestamp;
     this.timestamp = Date.now();
-    var delta = (this.timestamp - old)/100; // FIXME depends on FPS?
+    var delta = (this.timestamp - old)/100;
     //var distance = this.world.camera3p.speed * delta;
-    var distance = this.world.camera1p.speed * delta;
-    var gravity = new BABYLON.Vector3(0,this.world.scene.gravity.y,0);
+    var distance = this.world.camera1p.speed * delta; // v=s/t, s=v*t
+    var gravity = new BABYLON.Vector3(0,this.world.scene.gravity.y,0); //.scale(delta);
+
+    // FIXME:
+    var direction = this.direction.normalize().scale(distance).add(gravity);
     
     var avatarMesh = this.avatar.parentMesh;
     
-    var direction = this.direction.add(gravity).normalize().scale(distance);
     if ( this.movingDirections > 0 ) {
       var angle = -1.5*Math.PI-this.world.camera3p.alpha;
       var rotation = BABYLON.Quaternion.RotationAxis( BABYLON.Axis.Y, angle);
       direction.rotateByQuaternionToRef( rotation, direction );
       avatarMesh.moveWithCollisions(direction);
     } else if ( this.movingToTarget ) {
-      // on click, moving without gravity
       var xDist = Math.abs(avatarMesh.position.x - this.movementTarget.x);
       var zDist = Math.abs(avatarMesh.position.z - this.movementTarget.z);
       if ( xDist < 0.2 && zDist < 0.2) {
@@ -232,6 +242,9 @@ class AvatarMovement {
         this.xDist = xDist;
         this.zDist = zDist;
       }
+    } else {
+      // only apply gravity
+      avatarMesh.moveWithCollisions(direction);
     }
     if ( this.movementTracker ) {
       this.movementTracker.position = avatarMesh.position;
@@ -365,6 +378,8 @@ export class AvatarController {
       this.scene.onPointerObservable.add(this.clickHandler);
       this.scene.registerBeforeRender(this.movementHandler);
       this.movement.startTrackingCameraRotation();
+      this.movement.stopMovement();
+      
     } else {
       this.scene.onKeyboardObservable.remove(this.keyboardHandler);
       this.scene.onPointerObservable.remove( this.clickHandler );
