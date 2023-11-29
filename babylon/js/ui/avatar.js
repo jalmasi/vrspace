@@ -268,6 +268,7 @@ export class Avatar {
       this.parentMesh.name = "AvatarRoot:"+this.name;
       this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
       
+      // target of 3rd person camera
       this.headPosition = BABYLON.MeshBuilder.CreateSphere("head position", {diameter:0.1}, this.scene);
       this.headPosition.position = new BABYLON.Vector3(0,this.userHeight,0);
       this.headPosition.parent = this.parentMesh;
@@ -545,12 +546,14 @@ export class Avatar {
             // use skeleton and animationGroups from the instance
             this.parentMesh = instantiatedEntries.rootNodes[0];
             this.rootMesh = this.parentMesh.getChildren()[0];
-            // FIXME this removes headPosition node instead
-            if ( this.parentMesh.getChildren().length > 1 ) {
-              // clean up any existing text cloned along with container
-              console.log("Disposing of text ", this.parentMesh.getChildren()[1])
+
+            // remove all children nodes cloned along
+            // CHECKME this better be done while instantiating, can we pass a function?
+            while ( this.parentMesh.getChildren().length > 1 ) {
+              console.log("Disposing of cloned child "+this.parentMesh.getChildren()[1].name)
               this.parentMesh.getChildren()[1].dispose();
             }
+
             this.getAnimationGroups(instantiatedEntries.animationGroups);
             this.skeleton = instantiatedEntries.skeletons[0];
             if ( this.returnToRest ) {
