@@ -135,7 +135,12 @@ class AvatarMovement {
   startTrackingCameraRotation() {
     if ( ! this.applyRotationToMesh ) {
       this.applyRotationToMesh = () => {
-        var rotY = .5*Math.PI-this.world.camera3p.alpha;
+        //console.log("avatar turnaround: "+this.avatar.turnAround);
+        let ref = .5;
+        if ( this.avatar.turnAround ) {
+          ref = 1.5;
+        }
+        let rotY = ref*Math.PI-this.world.camera3p.alpha;
         // convert alpha and beta to mesh rotation.y and rotation.x
         //this.avatar.parentMesh.rotation.y = rotY;
         this.avatar.parentMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
@@ -167,6 +172,9 @@ class AvatarMovement {
     console.log("moving to target ", point, " direction "+this.direction);
     
     let currentDirection = new BABYLON.Vector3(0,0,-1);
+    if ( this.avatar.turnAround ) {
+      currentDirection = new BABYLON.Vector3(0,0,1);
+    }
     currentDirection.rotateByQuaternionToRef(this.avatar.parentMesh.rotationQuaternion,currentDirection);
     let rotationMatrix = new BABYLON.Matrix();
     BABYLON.Matrix.RotationAlignToRef(currentDirection.normalizeToNew(), this.direction.normalizeToNew(), rotationMatrix);

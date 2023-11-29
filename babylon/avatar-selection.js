@@ -545,7 +545,8 @@ export class AvatarSelection extends World {
   }
 
   startAnimation(name) {
-    this.character.startAnimation(name);
+    this.character.stopAnimation(name);
+    this.character.startAnimation(name, true);
   }
 
   addCharacterButtons() {
