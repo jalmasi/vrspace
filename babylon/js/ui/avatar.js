@@ -31,7 +31,7 @@ export class Avatar {
     /** Animation frames per second, default 10 */
     this.fps = 10;
     /** Name of the avatar/user */
-    this.name = 'test';
+    this.name = null;
     /** Height of the user, default 1.8 */
     this.userHeight = 1.8;
     /** Height of the ground, default 0 */
@@ -261,7 +261,11 @@ export class Avatar {
       this.groundLevel(-bbox.min.y);
       // CHECKME we may want to store the value in case we want to apply it again
       
+      if ( ! this.name ) {
+        this.name = this.folder.name;
+      }
       this.parentMesh = container.createRootMesh();
+      this.parentMesh.name = "AvatarRoot:"+this.name;
       this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
       
       this.headPosition = BABYLON.MeshBuilder.CreateSphere("head position", {diameter:0.1}, this.scene);

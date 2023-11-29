@@ -92,10 +92,19 @@ export class AssetLoader {
     this.containers={};
     this.debug=true;
   }
+  /**
+   * Load or instantiate an AssetContainer from given URL. Used to load avatars, all heavy lifting is done elsewhere.
+   * @param url URL to load from
+   * @param callback optional callback to be executed after successfull load; takes url, AssetContainer and GLTF metadata parameters
+   * @param failure optional callback to be called with exception
+   * @param progress optional ProgressIndicator instance
+   * @returns promise 
+   */
   async loadAsset( url, callback, failure, progress ) {
     await this.createAsset(url);
     return this.containers[url].load(callback, failure, progress);
   }
+  /** Internal */
   async createAsset(url) {
     if ( !this.containers[url] ) {
       console.log("Creating asset "+url);
@@ -103,7 +112,10 @@ export class AssetLoader {
     }
   }
   /**
-  Load or instantiate mesh of a VRObject.
+  Load or instantiate mesh of a VRObject: if loaded, create a container root and add all objects to scene;
+  if already loaded, instantiate.
+  Utility method that calls this.loadAsset() and post-processes the result to match VRObject and Mesh.
+  Called from WorldManager for pretty everything except avatars.
   @param obj VRObject to load
   @param callback function executed on success
   @param failure function executed on failure
