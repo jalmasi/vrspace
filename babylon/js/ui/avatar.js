@@ -195,6 +195,7 @@ export class Avatar {
     }
     // TODO also dispose of materials and textures (asset container)
   }
+  // CHECKME this is called only from avatar-selection dispose()
   hide() {
     if ( this.nameMesh ) {
       this.nameMesh.dispose();
@@ -540,6 +541,7 @@ export class Avatar {
             // use skeleton and animationGroups from the instance
             this.parentMesh = instantiatedEntries.rootNodes[0];
             this.rootMesh = this.parentMesh.getChildren()[0];
+            // FIXME this removes headPosition node instead
             if ( this.parentMesh.getChildren().length > 1 ) {
               // clean up any existing text cloned along with container
               console.log("Disposing of text ", this.parentMesh.getChildren()[1])

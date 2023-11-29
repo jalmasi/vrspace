@@ -310,6 +310,11 @@ export class WorldManager {
     avatar.file = file;
     avatar.fps = this.fps;
     avatar.animateArms = this.createAnimations;
+    // GLTF characters are facing the user when loaded, turn it around
+    // this doesn't do anything for cloned characters, affects only first one that loads
+    avatar.turnAround = true;
+
+    avatar.debug = false; // or this.debug?
     return avatar;
   }
   
@@ -321,10 +326,6 @@ export class WorldManager {
     this.log("loading avatar "+obj.mesh);
     var avatar = await this.createAvatarFromUrl(obj.mesh);
     avatar.userHeight = obj.userHeight;
-    // GLTF characters are facing the user when loaded, turn it around
-    // FIXME this doesn't work for cloned characters, see Avatar.hide()
-    avatar.turnAround = true;
-    avatar.debug = false;
     avatar.load( (avatar) => {
       // FIXME: this is not container but avatar
       obj.container = avatar;
