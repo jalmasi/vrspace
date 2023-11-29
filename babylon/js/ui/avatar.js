@@ -243,6 +243,7 @@ export class Avatar {
 
       if (container.animationGroups && container.animationGroups.length > 0) {
         container.animationGroups[0].stop();
+        this.animationBlending();
       }
 
       var bbox = this.rootMesh.getHierarchyBoundingVectors();
@@ -1527,6 +1528,22 @@ export class Avatar {
   }
   
   /**
+   * Enable or disable animation blending for all animation of all groups
+   */
+  animationBlending( enable = true, speed = 0.02) {
+    this.character.animationGroups.forEach(animationGroup => {
+      animationGroup.enableBlending = enable;
+      animationGroup.blendingSpeed = speed;
+      
+      animationGroup.targetedAnimations.forEach( ta => {
+        ta.animation.enableBlending = enable;
+        ta.animation.blendingSpeed = speed;
+      });
+      
+    });
+  }
+  
+  /**
   Create an animation group from given object and attach it to the character.
    */
   attachAnimations( group ) {
@@ -1644,6 +1661,23 @@ export class Avatar {
   }
 
   /**
+   * Stop an animation. To allow for blending, just turns off looping rather than stopping it right away, unless forced.
+   */
+  stopAnimation(animationName, force=false) {
+    for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
+      var group = this.getAnimationGroups()[i];
+      if ( (group.name == animationName || group.name == "Clone of "+animationName) && group.isPlaying ) {
+        group.loopAnimation = false;
+        if ( force ) {
+          group.pause();
+        }
+        this.activeAnimation = null;
+        break;
+      }
+    }
+  }
+  
+  /**
   Start a given animation
   @param animationName animation to start
    */
@@ -1654,10 +1688,7 @@ export class Avatar {
       if ( (group.name == animationName || group.name == "Clone of "+animationName) && !started ) {
         started = true;
         //this.log("Animation group: "+animationName);
-        if ( group.isPlaying ) {
-          group.pause();
-          this.log("paused "+animationName);
-        } else {
+        if ( !group.isPlaying ) {
           if ( this.fixes ) {
             if (typeof this.fixes.beforeAnimation !== 'undefined' ) {
               this.log( "Applying fixes for: "+this.folder.name+" beforeAnimation: "+this.fixes.beforeAnimation);
@@ -1676,17 +1707,19 @@ export class Avatar {
           this.jump(0);
           if ( typeof loop != 'undefined') {
             group.play(loop);
-          } else {
-            group.play(group.loopAnimation);
+            group.loopAnimation = loop;
           }
+          group.play(group.loopAnimation);
           this.log("playing "+animationName);
           this.log(group);
-          this.activeAnimation = animationName;
         }
+        this.activeAnimation = animationName;
       } else if ( group.isPlaying ) {
         // stop all other animations
-        group.pause();
+        //this.log("paused other "+group.name);
         //group.reset(); // this disables blending
+        //group.pause(); // this disables blending, but not always
+        group.loopAnimation = false;
       }
     }
   }

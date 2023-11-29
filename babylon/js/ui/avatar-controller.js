@@ -88,7 +88,7 @@ class AvatarMovement {
 
   startAnimation(name) {
     if ( name != null ) {
-      this.avatar.startAnimation(name);
+      this.avatar.startAnimation(name, true);
     }
   }
   
@@ -156,6 +156,9 @@ class AvatarMovement {
     if ( this.movingDirections > 0 ) {
       return;
     }
+    if ( this.movingToTarget ) {
+      this.stopMovement();
+    }
     this.startMovement();
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
     this.direction = this.movementTarget.subtract(this.avatar.parentMesh.position);
@@ -208,7 +211,6 @@ class AvatarMovement {
       // could not reach the destination, stop
       console.log("Stopping movement due to timeout");
       this.stopMovement();
-      this.startTrackingCameraRotation();
       return;
     }
     var old = this.timestamp;

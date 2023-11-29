@@ -144,9 +144,9 @@ var animationButtons = function(avatar) {
   console.log("Animation groups", groups);
   for ( var i = 0; i < groups.length; i++ ) {
     var group = groups[i];
-    console.log("Animation group: "+group.name+" "+group.isPlaying);
+    //console.log("Animation group: "+group.name+" "+group.isPlaying);
     var checked = "";
-    if ( group.isPlaying ) {
+    if ( group.isPlaying && group.loopAnimation ) {
       checked="checked";
       playing = group.name;
     }
@@ -163,7 +163,8 @@ var save = (groupName) => {
   character.saveAnimations(groupName);
 }
 var startAnimation = function(animationName) {
-  character.startAnimation(animationName);
+  character.stopAnimation(animationName, true);
+  character.startAnimation(animationName, true);
   // TODO don't draw buttons every time?
   animationButtons(character);
 }
