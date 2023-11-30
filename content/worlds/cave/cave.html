@@ -51,22 +51,13 @@ import("./world.js").then( (module) =>{
       // all users in the same world share same events
       cave.name = 'cave';
       var characterUrl = '/content/char/male/male_adventurer/scene.gltf';
-      net.createAvatarFromUrl( characterUrl ).then( avatar => {
-    	  avatar.load( () => {
-    		  let controller = new ui.AvatarController(net, avatar);
-          net.addMyChangeListener( changes => controller.processChanges(changes) );
-    	  });
+      var name = 'player'+Math.random();
+      net.enterWith(characterUrl,name).then( avatar => {
+        avatar.load( () => {
+            let controller = new ui.AvatarController(net, avatar);
+            net.addMyChangeListener( changes => controller.processChanges(changes) );
+          });
       });
-      
-      // connect, set own avatar and start the session
-      net.enter({
-        // RECOMMENDED set your avatar url, or be invisible
-        mesh:characterUrl, 
-        // OPTIONAL set your name, MUST be unique
-        name:'player'+Math.random()
-      });
-      
-      
     });
   });
   

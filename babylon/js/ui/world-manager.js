@@ -269,6 +269,35 @@ export class WorldManager {
     }
     this.notifyLoadListeners(obj,video);
   }
+  
+  /**
+   * Quick enter, with avatar url and optionally user name.
+   * @param avatarUrl URL to load avatar from
+   * @param userName login name of the user
+   * @returns own Avatar instance
+   */
+  async enterWith(avatarUrl, userName) {
+    let avatar = await this.createAvatarFromUrl(avatarUrl);
+    avatar.name = userName;
+    await this.enterAs(avatar);
+    return avatar;
+  }
+  
+  /**
+   * Enter the world as avatar.
+   * Creates propererties by taking user name, height and avatar url from given Avatar,
+   * then calls enter( properties ).
+   */
+  async enterAs( avatar ) {
+    let myProperties = {
+      mesh:avatar.getUrl(), 
+      userHeight:this.userHeight
+    };
+    if ( avatar.name ) {
+      myProperties.name = this.userName;
+    }
+    return this.enter( myProperties );
+  }
 
   /**
    * Creates new Avatar instance from the URL

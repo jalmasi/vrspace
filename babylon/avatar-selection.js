@@ -724,6 +724,7 @@ export class AvatarSelection extends World {
           this.vrHelper.addFloors();
         }
         this.worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
+        // CHECKME how can we use enterAs()?
         var myProperties = {
           mesh:avatarUrl, 
           userHeight:this.userHeight, 
