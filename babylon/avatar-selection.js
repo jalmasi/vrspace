@@ -742,6 +742,7 @@ export class AvatarSelection extends World {
           if ( this.character ) {
             // character is null for e.g. video avatar
             // CHECKME this should be safe to do even earlier, before enter
+            this.character.turnAround = true;
             var controller = new AvatarController(this.worldManager, this.character);
             this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
           }
