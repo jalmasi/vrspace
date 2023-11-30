@@ -55,7 +55,11 @@ class AvatarMovement {
     this.world = world;
     this.avatar = avatar;
     this.animation = animation;
-    this.movementTracker = null; // world manager mesh
+     // world manager mesh
+    this.movementTracker = BABYLON.MeshBuilder.CreateSphere("avatar movement tracker", {diameter:0.1}, this.world.scene);
+    this.movementTracker.isVisible = false;
+    //this.movementTracker.ellipsoid = null;
+    
     this.trackingCameraRotation = false;
     this.vector = {
       left: new BABYLON.Vector3(1, 0, 0),
@@ -142,9 +146,8 @@ class AvatarMovement {
         }
         let rotY = ref*Math.PI-this.world.camera3p.alpha;
         // convert alpha and beta to mesh rotation.y and rotation.x
-        //this.avatar.parentMesh.rotation.y = rotY;
         this.avatar.parentMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
-        //movementTracker.rotation.y = rotY;
+        this.movementTracker.rotation.y = rotY;
       }
       this.world.scene.registerBeforeRender( this.applyRotationToMesh );
       this.trackingCameraRotation = true;
@@ -260,9 +263,7 @@ class AvatarMovement {
       // only apply gravity
       avatarMesh.moveWithCollisions(direction);
     }
-    if ( this.movementTracker ) {
-      this.movementTracker.position = avatarMesh.position;
-    }
+    this.movementTracker.position = avatarMesh.position;
   }
 
   dispose() {
@@ -396,6 +397,8 @@ export class AvatarController {
       this.movement.startTrackingCameraRotation();
       this.movement.stopMovement();
       
+      this.worldManager.trackMesh(this.movement.movementTracker);
+      
     } else {
       this.scene.onKeyboardObservable.remove(this.keyboardHandler);
       this.scene.onPointerObservable.remove( this.clickHandler );
@@ -403,6 +406,7 @@ export class AvatarController {
       this.movement.stopTrackingCameraRotation();
     }
     if ( this.scene.activeCamera === this.world.camera1p ) {
+      this.worldManager.trackMesh(null);
       this.avatar.parentMesh.setEnabled(false);
       // apply rotation to 1st person camera
       this.world.camera1p.rotation.z = 0;

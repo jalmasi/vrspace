@@ -679,10 +679,13 @@ export class WorldManager {
     if ( this.trackedMesh ) {
       // tracking mesh (3rd person view)
       var pos = this.trackedMesh.position;
+      // CHECKME/FIXME: meshes seem to have ellipsoids by default
+      /*
       if ( this.trackedMesh.ellipsoid ) {
         var height = this.trackedMesh.position.y - this.trackedMesh.ellipsoid.y;
         pos = new BABYLON.Vector3(this.trackedMesh.position.x, height, this.trackedMesh.position.z);
       }
+      */
       this.checkChange("position", this.pos, pos, changes);
       this.checkChange("rotation", this.rot, this.trackedMesh.rotation, changes);
     } else {
