@@ -294,7 +294,7 @@ export class WorldManager {
       userHeight:this.userHeight
     };
     if ( avatar.name ) {
-      myProperties.name = this.userName;
+      myProperties.name = avatar.name;
     }
     return this.enter( myProperties );
   }
