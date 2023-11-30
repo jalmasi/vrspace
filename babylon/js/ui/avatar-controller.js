@@ -162,14 +162,19 @@ class AvatarMovement {
       return;
     }
     if ( this.movingToTarget ) {
-      this.stopMovement();
+      //this.stopMovement();
+      this.timestamp = Date.now();
+      this.movementStart = Date.now();
+      this.xDist = null;
+      this.zDist = null;
+    } else {
+      this.startMovement();
+      this.movingToTarget = true;
     }
-    this.startMovement();
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
     this.direction = this.movementTarget.subtract(this.avatar.parentMesh.position);
-    this.movingToTarget = true;
     //this.stopTrackingCameraRotation();
-    console.log("moving to target ", point, " direction "+this.direction);
+    //console.log("moving to target ", point, " direction "+this.direction);
     
     let currentDirection = new BABYLON.Vector3(0,0,-1);
     if ( this.avatar.turnAround ) {
@@ -228,8 +233,7 @@ class AvatarMovement {
     var distance = this.world.camera1p.speed * delta; // v=s/t, s=v*t
     var gravity = new BABYLON.Vector3(0,this.world.scene.gravity.y,0); //.scale(delta);
 
-    // FIXME:
-    var direction = this.direction.normalize().scale(distance).add(gravity);
+    var direction = this.direction.clone().normalize().scale(distance).add(gravity);
     
     var avatarMesh = this.avatar.parentMesh;
     
@@ -378,11 +382,12 @@ export class AvatarController {
   
   cameraChanged() {
     if ( this.scene.activeCamera === this.world.camera3p ) {
-      
+
       this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
-      this.world.camera3p.computeWorldMatrix();
       
-      this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, this.world.camera1p.position.y - this.avatar.height(), this.world.camera1p.position.z);
+      // TODO: use camera ellipsoid
+      let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y - this.world.camera1p.ellipsoidOffset.y;
+      this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
       this.avatar.parentMesh.setEnabled(true);
       this.world.camera3p.setTarget(this.avatar.headPosition);
       this.scene.onKeyboardObservable.add(this.keyboardHandler);
@@ -400,9 +405,9 @@ export class AvatarController {
     if ( this.scene.activeCamera === this.world.camera1p ) {
       this.avatar.parentMesh.setEnabled(false);
       // apply rotation to 1st person camera
-      //this.world.camera1p.rotation.z = 0;
+      this.world.camera1p.rotation.z = 0;
       this.world.camera1p.rotation.y = 1.5*Math.PI-this.world.camera3p.alpha;
-      //this.world.camera1p.rotation.x = 0;
+      this.world.camera1p.rotation.x = 0;
     }
   }
   

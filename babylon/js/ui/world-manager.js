@@ -343,7 +343,7 @@ export class WorldManager {
     // this doesn't do anything for cloned characters, affects only first one that loads
     avatar.turnAround = true;
 
-    avatar.debug = false; // or this.debug?
+    //avatar.debug = false; // or this.debug?
     return avatar;
   }
   

@@ -1706,11 +1706,10 @@ export class Avatar {
           }
           this.jump(0);
           if ( typeof loop != 'undefined') {
-            group.play(loop);
             group.loopAnimation = loop;
           }
-          group.play(group.loopAnimation);
-          this.log("playing "+animationName);
+          group.play(loop);
+          this.log("playing "+animationName+" loop:"+group.loopAnimation+" "+loop);
           this.log(group);
         }
         this.activeAnimation = animationName;
