@@ -44,13 +44,6 @@ export class TextWriter {
     }
   }
   
-  length(node) {
-    if ( node._text ) {
-      return node._text.text.length;
-    }
-    return 0;    
-  }
-  
   async write(node, text, offset = new BABYLON.Vector3(0,0,0)) {
     await this._initWriter();
     if ( text && text.length > 0 ) {

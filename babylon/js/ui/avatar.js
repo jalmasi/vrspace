@@ -1694,9 +1694,6 @@ export class Avatar {
             if (typeof this.fixes.beforeAnimation !== 'undefined' ) {
               this.log( "Applying fixes for: "+this.folder.name+" beforeAnimation: "+this.fixes.beforeAnimation);
               this.groundLevel( this.fixes.beforeAnimation );
-              if ( this.writer ) {
-                this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(this.writer.length(this.parentMesh)-1),0));
-              }
             }
             this.disableNodes();
             if (typeof this.fixes.before !== 'undefined' ) {
@@ -1779,7 +1776,8 @@ export class Avatar {
   async setName(name) {
     if ( this.writer && this.displayName ) {
       this.writer.clear(this.parentMesh);
-      this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
+      //this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height(),0));
+      this.writer.relativePosition = new BABYLON.Vector3(0,.4+this.userHeight,0);
       this.writer.write(this.parentMesh, name);
     }
     this.name = name;
@@ -1809,7 +1807,10 @@ export class Avatar {
       text.push(line);
 
       this.writer.clear(this.parentMesh);
-      this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
+      // height() uses headPos that isn't safe to use at all times
+      // rootMesh position changes with animation fixes etc
+      //this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
+      this.writer.relativePosition = new BABYLON.Vector3(0,.4+this.userHeight+.2*(text.length-1),0);
       this.writer.writeArray(this.parentMesh, text);
     }
   }
