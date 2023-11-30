@@ -1,6 +1,7 @@
 class AvatarAnimation {
   constructor(animations) {
     this.animations = animations;
+    this.improvise = false;
     this.walk = null;
     this.idle = null;
     this.otherAnimations = [];
@@ -47,7 +48,23 @@ class AvatarAnimation {
       }
     });
   }
-
+  
+  processText(text) {
+    if ( this.improvise ) {
+      // process text and try to find some meaninful animation
+      var words = text.split(' ');
+      for ( var word of words ) {
+        if ( word.length > 1 ) {
+          var match = this.otherAnimations.find( e => e.includes(word.toLowerCase()));
+          if ( match ) {
+            return match;
+          }
+        }
+      }
+    }
+    return null;
+  }
+    
 }
 
 class AvatarMovement {
@@ -365,17 +382,10 @@ export class AvatarController {
         break;
       } else if ( change.field == "rotation") {
         // CHECKME anything?
-      } else if ( change.field == "wrote") {
-        // process text and try to find some meaninful animation
-        var words = change.value.split(' ');
-        for ( var word of words ) {
-          if ( word.length > 1 ) {
-            var match = this.otherAnimations.find( e => e.includes(word.toLowerCase()));
-            if ( match ) {
-              this.sendAnimation(match);
-              break;
-            }
-          }
+      } else if ( change.field == "wrote" ) {
+        let animation = this.animation.processText(change.value);
+        if ( animation ) {
+          this.sendAnimation(this.animation.walk,false);
         }
       }
     }

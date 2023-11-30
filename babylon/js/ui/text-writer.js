@@ -44,13 +44,21 @@ export class TextWriter {
     }
   }
   
+  length(node) {
+    if ( node._text ) {
+      return node._text.text.length;
+    }
+    return 0;    
+  }
+  
   async write(node, text, offset = new BABYLON.Vector3(0,0,0)) {
     await this._initWriter();
     if ( text && text.length > 0 ) {
       if ( ! node._text ) {
         node._text = {
           root: new BABYLON.TransformNode('textParent'),
-          rows:[]
+          rows:[],
+          text:[]
         };
         node._text.root.parent = node;
         node._text.root.position = this.relativePosition;
@@ -62,6 +70,7 @@ export class TextWriter {
       textMesh.getMesh().parent = node._text.root;
       
       node._text.rows.push( textMesh );
+      node._text.text.push( text );
     }
   }
   

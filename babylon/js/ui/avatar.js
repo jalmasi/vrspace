@@ -369,6 +369,7 @@ export class Avatar {
         // might be required in some special cases
         this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
         this.groundLevel(this.fixes.standing);
+        // CHECKME we may need to change textwriter position
       }
       this.disableNodes();
       if ( typeof this.fixes.autoPlay !== 'undefined' ) {
@@ -1693,6 +1694,9 @@ export class Avatar {
             if (typeof this.fixes.beforeAnimation !== 'undefined' ) {
               this.log( "Applying fixes for: "+this.folder.name+" beforeAnimation: "+this.fixes.beforeAnimation);
               this.groundLevel( this.fixes.beforeAnimation );
+              if ( this.writer ) {
+                this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(this.writer.length(this.parentMesh)-1),0));
+              }
             }
             this.disableNodes();
             if (typeof this.fixes.before !== 'undefined' ) {
