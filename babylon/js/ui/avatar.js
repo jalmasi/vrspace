@@ -1531,7 +1531,7 @@ export class Avatar {
   /**
    * Enable or disable animation blending for all animation of all groups
    */
-  animationBlending( enable = true, speed = 0.02) {
+  animationBlending( enable = true, speed = 0.05) {
     this.character.animationGroups.forEach(animationGroup => {
       animationGroup.enableBlending = enable;
       animationGroup.blendingSpeed = speed;

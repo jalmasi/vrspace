@@ -1,6 +1,9 @@
 class AvatarAnimation {
-  constructor(animations) {
-    this.animations = animations;
+  constructor(avatar) {
+    this.animations = [];
+    this.avatar = avatar;
+    avatar.getAnimationGroups().forEach( group => this.animations.push(group.name));
+
     this.improvise = false;
     this.walk = null;
     this.idle = null;
@@ -11,16 +14,16 @@ class AvatarAnimation {
    * Called from constructor to find walk and idle animations.
    */
   processAnimations() {
-    this.animations.forEach( a => {
+    this.avatar.getAnimationGroups().forEach( a => {
       //console.log(a);
-      var name = a.toLowerCase();
+      var name = a.name.toLowerCase();
       if ( name.indexOf('walk') >= 0 ) {
         if ( this.walk ) {
           // already exists, we're not going to replace it just like that
           if ( name.indexOf('place') >= 0) {
             this.walk = a;
             //console.log("Walk: "+name);
-          } else if ( this.walk.length > name.length ) {
+          } else if ( this.walk.name.length > name.length ) {
             this.walk = a;
             //console.log("Walk: "+name);
           } else {
@@ -33,7 +36,7 @@ class AvatarAnimation {
       } else if ( name.indexOf('idle') >= 0 ) {
         // idle animation with shortest name
         if ( this.idle ) {
-          if ( this.idle.length > name.length ) {
+          if ( this.idle.name.length > name.length ) {
             this.idle = a;
             //console.log("Idle: "+name);
           } else {
@@ -55,7 +58,7 @@ class AvatarAnimation {
       var words = text.split(' ');
       for ( var word of words ) {
         if ( word.length > 1 ) {
-          var match = this.otherAnimations.find( e => e.includes(word.toLowerCase()));
+          var match = this.otherAnimations.find( e => e.name.includes(word.toLowerCase()));
           if ( match ) {
             return match;
           }
@@ -87,6 +90,18 @@ class AvatarMovement {
       down: new BABYLON.Vector3(0, -1, 0)
     };
     this.stop();
+    this.trackWalk = true;
+    this.findFeet();
+    this.stepLength = 0;
+  }
+  
+  findFeet() {
+    // we need both feet to determine step length
+    this.trackWalk &= (this.avatar.body.leftLeg.foot.length > 0) && (this.avatar.body.rightLeg.length > 0);
+    if (this.trackWalk) {
+      this.leftFoot = this.avatar.skeleton.bones[this.avatar.body.leftLeg.foot[0]].getTransformNode();
+      this.rightFoot = this.avatar.skeleton.bones[this.avatar.body.rightLeg.foot[0]].getTransformNode();
+    }
   }
 
   stop() {
@@ -107,9 +122,23 @@ class AvatarMovement {
     }
   }
 
-  startAnimation(name) {
-    if ( name != null ) {
-      this.avatar.startAnimation(name, true);
+  startAnimation(animation) {
+    if ( animation != null ) {
+      this.avatar.startAnimation(animation.name, true);
+      this.activeAnimation = animation;
+    }
+  }
+
+  setSpeed(speed) {
+    if ( this.animation.walk && this.stepLength > 0 ) {
+      // assuming full animation cycle is one step with each leg
+      let cycles = 1/(2*this.stepLength); // that many animation cycles to walk 1m
+      this.animation.walk.speedRatio = 1; // need to get right duration
+      let cycleDuration = this.animation.walk.getLength();
+      // so to cross 1m in 1s,
+      let animationSpeed = cycles/cycleDuration;
+      // but in babylon, camera speed 1 means 10m/s
+      this.animation.walk.speedRatio = animationSpeed*speed*10;
     }
   }
   
@@ -141,7 +170,7 @@ class AvatarMovement {
 
   stopMovement() {
     this.stop();
-    //console.log("movement stopped");
+    //console.log("movement stopped, step length "+this.stepLength);
     this.startAnimation(this.animation.idle);
   }
   
@@ -174,6 +203,7 @@ class AvatarMovement {
   startMovement() {
     this.timestamp = Date.now();
     this.movementStart = Date.now();
+    this.setSpeed(this.world.camera1p.speed);
     this.startAnimation(this.animation.walk);
   }
   
@@ -281,6 +311,13 @@ class AvatarMovement {
       avatarMesh.moveWithCollisions(direction);
     }
     this.movementTracker.position = avatarMesh.position;
+    if ( this.trackWalk ) {
+      let length = this.leftFoot.getAbsolutePosition().subtract(this.rightFoot.getAbsolutePosition()).length();
+      if ( length > this.stepLength ) {
+        this.stepLength = length;
+        this.setSpeed(this.world.camera1p.speed);
+      }
+    }
   }
 
   dispose() {
@@ -319,10 +356,7 @@ export class AvatarController {
     
     avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0,1,0);
     
-    this.animations = [];
-    var groups = avatar.getAnimationGroups();
-    groups.forEach( group => this.animations.push(group.name));
-    this.animation = new AvatarAnimation(this.animations);
+    this.animation = new AvatarAnimation(avatar);
     
     this.setupIdleTimer();
     // event handlers
@@ -354,14 +388,14 @@ export class AvatarController {
   }
   /**
    * Send an animation to the server, if the avatar has it.
-   * @param name animation name
+   * @param animation AnimationGroup to activate remotely
    * @param loop default false
    */
-  sendAnimation(name, loop=false) {
-    if ( this.animations.includes(name) && name != this.lastAnimation && this.worldManager.isOnline() ) {
+  sendAnimation(animation, loop=false) {
+    if ( this.animation.animations.includes(animation.name) && animation.name != this.lastAnimation && this.worldManager.isOnline() ) {
       //console.log("Sending animation "+name+" loop: "+loop);
-      this.worldManager.sendMy({animation:{name:name,loop:loop}});
-      this.lastAnimation = name;
+      this.worldManager.sendMy({animation:{name:animation.name,loop:loop}});
+      this.lastAnimation = animation.name;
     }
   }
   /**
@@ -404,6 +438,7 @@ export class AvatarController {
       this.scene.onKeyboardObservable.add(this.keyboardHandler);
       this.scene.onPointerObservable.add(this.clickHandler);
       this.scene.registerBeforeRender(this.movementHandler);
+      
       this.movement.startTrackingCameraRotation();
       this.movement.stopMovement();
       
