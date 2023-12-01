@@ -1,9 +1,21 @@
 class AvatarAnimation {
   constructor(avatar) {
-    this.animations = [];
     this.avatar = avatar;
+
+    this.animations = [];
     avatar.getAnimationGroups().forEach( group => this.animations.push(group.name));
 
+    this.rules = {
+      walk: {
+        substring: 'walk',
+        preferredSubstring: 'place', // like 'walk_in_place'
+        avoid: ['left', 'right', 'back']
+      },
+      idle: {
+        substring: 'idle',
+        useShortest: true
+      }
+    }
     this.improvise = false;
     this.walk = null;
     this.idle = null;
@@ -15,39 +27,30 @@ class AvatarAnimation {
    */
   processAnimations() {
     this.avatar.getAnimationGroups().forEach( a => {
-      //console.log(a);
+      console.log(a);
       var name = a.name.toLowerCase();
-      if ( name.indexOf('walk') >= 0 ) {
-        if ( this.walk ) {
-          // already exists, we're not going to replace it just like that
-          if ( name.indexOf('place') >= 0) {
-            this.walk = a;
-            //console.log("Walk: "+name);
-          } else if ( this.walk.name.length > name.length ) {
-            this.walk = a;
-            //console.log("Walk: "+name);
+      for ( const ruleName in this.rules ) {
+        let rule = this.rules[ruleName];
+        let matches = false;
+        if ( name.indexOf( rule.substring ) >= 0 ) {
+          // animation matches
+          if ( this[ruleName] ) {
+            // animation already exists, replacement rules follow
+            matches |= rule.preferredSubstring && name.indexOf(rule.preferredSubstring) >= 0;
+            matches |= rule.useShortest && this[ruleName].name.length > name.length;
           } else {
-            this.otherAnimations.push(a);
+            // first match
+            matches = true;
           }
-        } else {
-          this.walk = a;
-          //console.log("Walk: "+name);
-        }
-      } else if ( name.indexOf('idle') >= 0 ) {
-        // idle animation with shortest name
-        if ( this.idle ) {
-          if ( this.idle.name.length > name.length ) {
-            this.idle = a;
-            //console.log("Idle: "+name);
-          } else {
-            this.otherAnimations.push(a);
+          if (rule.avoid) {
+            rule.avoid.forEach( word => matches &= name.indexOf(word) == -1 )
           }
-        } else {
-          this.idle = a;
-          //console.log("Idle: "+name);
         }
-      } else {
-        this.otherAnimations.push(a);
+        if ( matches ) {
+          this[ruleName] = a;
+        } else {
+          this.otherAnimations.push(a);
+        }
       }
     });
   }
