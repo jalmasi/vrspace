@@ -146,7 +146,7 @@ class AvatarMovement {
   }
 
   startAnimation(animation) {
-    if ( animation != null && animation !== this.activeAnimation ) {
+    if ( animation.group && animation !== this.activeAnimation ) {
       //console.log("Starting animation "+animation.group.name);
       this.avatar.startAnimation(animation.group.name, true);
       this.activeAnimation = animation;
@@ -155,7 +155,7 @@ class AvatarMovement {
   }
 
   setSpeed(speed) {
-    if ( this.activeAnimation != this.animation.idle() && this.stepLength > 0 ) {
+    if ( this.activeAnimation && this.activeAnimation != this.animation.idle() && this.stepLength > 0 ) {
       // assuming full animation cycle is one step with each leg
       let cycles = 1/(2*this.stepLength); // that many animation cycles to walk 1m
       // so to cross 1m in 1s,
@@ -434,8 +434,8 @@ export class AvatarController {
    * @param loop default false
    */
   sendAnimation(animation, loop=false) {
-    if ( this.animation.contains(animation.name) && animation.name != this.lastAnimation && this.worldManager.isOnline() ) {
-      //console.log("Sending animation "+animation.name+" loop: "+loop+" speed "+animation.speedRatio);
+    if ( animation && this.animation.contains(animation.name) && animation.name != this.lastAnimation && this.worldManager.isOnline() ) {
+      console.log("Sending animation "+animation.name+" loop: "+loop+" speed "+animation.speedRatio);
       this.worldManager.sendMy({animation:{name:animation.name,loop:loop, speed: animation.speedRatio}});
       this.lastAnimation = animation.name;
     }
