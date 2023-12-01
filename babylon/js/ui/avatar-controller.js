@@ -53,6 +53,7 @@ class AvatarAnimation {
         }
         if ( matches ) {
           this.animations[ruleName].group = a;
+          this.animations[ruleName].cycleDuration = a.getLength();
         } else {
           this.otherAnimations.push(a);
         }
@@ -151,15 +152,14 @@ class AvatarMovement {
   }
 
   setSpeed(speed) {
-    if ( this.animation.animations.walk && this.stepLength > 0 ) {
+    if ( this.animation.walk() && this.stepLength > 0 ) {
       // assuming full animation cycle is one step with each leg
       let cycles = 1/(2*this.stepLength); // that many animation cycles to walk 1m
-      this.animation.walk().speedRatio = 1; // need to get right duration
-      let cycleDuration = this.animation.walk().getLength();
       // so to cross 1m in 1s,
-      let animationSpeed = cycles/cycleDuration;
+      let animationSpeed = cycles/this.animation.animations.walk.cycleDuration;
       // but in babylon, camera speed 1 means 10m/s
       this.animation.walk().speedRatio = animationSpeed*speed*10;
+      //console.log("Walk speed "+this.animation.walk().speedRatio+" step length "+this.stepLength);
     }
   }
   
@@ -403,7 +403,7 @@ export class AvatarController {
       if ( this.worldManager.isOnline() && Date.now() - this.lastChange > this.idleTimeout ) {
         clearInterval(this.idleTimerId);
         this.idleTimerId = null;
-        this.sendAnimation(this.animation.animations.idle.group, true);
+        this.sendAnimation(this.animation.idle(), true);
       }
     }, this.idleTimeout);
   }
@@ -414,8 +414,8 @@ export class AvatarController {
    */
   sendAnimation(animation, loop=false) {
     if ( this.animation.contains(animation.name) && animation.name != this.lastAnimation && this.worldManager.isOnline() ) {
-      //console.log("Sending animation "+name+" loop: "+loop);
-      this.worldManager.sendMy({animation:{name:animation.name,loop:loop}});
+      //console.log("Sending animation "+animation.name+" loop: "+loop+" speed "+animation.speedRatio);
+      this.worldManager.sendMy({animation:{name:animation.name,loop:loop, speed: animation.speedRatio}});
       this.lastAnimation = animation.name;
     }
   }
@@ -440,7 +440,7 @@ export class AvatarController {
       } else if ( change.field == "wrote" ) {
         let animation = this.animation.processText(change.value);
         if ( animation ) {
-          this.sendAnimation(this.animation.walk(),false);
+          this.sendAnimation(animation,false);
         }
       }
     }

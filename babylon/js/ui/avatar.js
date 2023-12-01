@@ -1681,8 +1681,10 @@ export class Avatar {
   /**
   Start a given animation
   @param animationName animation to start
+  @param loop if set, changes AnimationGroup.loopAnimation property
+  @param speedRatio if set, changes AnimationGroup.speedRatio
    */
-  startAnimation(animationName, loop) {
+  startAnimation(animationName, loop, speedRatio) {
     var started = false; // to ensure we start only one animation
     for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
       var group = this.getAnimationGroups()[i];
@@ -1709,8 +1711,11 @@ export class Avatar {
           if ( typeof loop != 'undefined') {
             group.loopAnimation = loop;
           }
+          if ( typeof speedRatio != 'undefined') {
+            group.speedRatio=speedRatio;
+          }
           group.play(loop);
-          this.log("playing "+animationName+" loop:"+group.loopAnimation+" "+loop);
+          this.log("playing "+animationName+" loop:"+group.loopAnimation+" "+loop+" speed "+speedRatio);
           this.log(group);
         }
         this.activeAnimation = animationName;

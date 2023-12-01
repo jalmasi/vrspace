@@ -24,4 +24,5 @@ import lombok.ToString;
 public class Animation extends Embedded {
   private String name;
   private boolean loop;
+  private double speedRatio;
 }
