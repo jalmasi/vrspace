@@ -2,23 +2,27 @@ class AvatarAnimation {
   constructor(avatar) {
     this.avatar = avatar;
 
-    this.animations = [];
-    avatar.getAnimationGroups().forEach( group => this.animations.push(group.name));
+    this.animationNames = [];
 
-    this.rules = {
+    this.animations = {
       walk: {
         substring: 'walk',
         preferredSubstring: 'place', // like 'walk_in_place'
         avoid: ['left', 'right', 'back']
       },
+      walkLeft: { substring: 'walk', preferredSubstring: 'left' },
+      walkRight: { substring: 'walk', preferredSubstring: 'right' },
+      walkBack: { substring: 'walk', preferredSubstring: 'back' },
       idle: {
         substring: 'idle',
+        useShortest: true
+      },
+      run: {
+        substring: 'run',
         useShortest: true
       }
     }
     this.improvise = false;
-    this.walk = null;
-    this.idle = null;
     this.otherAnimations = [];
     this.processAnimations();
   }
@@ -27,17 +31,18 @@ class AvatarAnimation {
    */
   processAnimations() {
     this.avatar.getAnimationGroups().forEach( a => {
-      console.log(a);
+      this.animationNames.push(a.name)
+      //console.log(a);
       var name = a.name.toLowerCase();
-      for ( const ruleName in this.rules ) {
-        let rule = this.rules[ruleName];
+      for ( const ruleName in this.animations ) {
+        let rule = this.animations[ruleName];
         let matches = false;
         if ( name.indexOf( rule.substring ) >= 0 ) {
           // animation matches
-          if ( this[ruleName] ) {
+          if ( this.animations[ruleName].group ) {
             // animation already exists, replacement rules follow
             matches |= rule.preferredSubstring && name.indexOf(rule.preferredSubstring) >= 0;
-            matches |= rule.useShortest && this[ruleName].name.length > name.length;
+            matches |= rule.useShortest && this.animations[ruleName].group.name.length > name.length;
           } else {
             // first match
             matches = true;
@@ -47,12 +52,25 @@ class AvatarAnimation {
           }
         }
         if ( matches ) {
-          this[ruleName] = a;
+          this.animations[ruleName].group = a;
         } else {
           this.otherAnimations.push(a);
         }
       }
     });
+    console.log("Animations recognized: ", this.animations);
+  }
+  
+  contains(name) {
+    return this.animationNames.includes(name);
+  }
+  
+  walk() {
+    return this.animations.walk.group;
+  }
+
+  idle() {
+    return this.animations.idle.group;
   }
   
   processText(text) {
@@ -133,15 +151,15 @@ class AvatarMovement {
   }
 
   setSpeed(speed) {
-    if ( this.animation.walk && this.stepLength > 0 ) {
+    if ( this.animation.animations.walk && this.stepLength > 0 ) {
       // assuming full animation cycle is one step with each leg
       let cycles = 1/(2*this.stepLength); // that many animation cycles to walk 1m
-      this.animation.walk.speedRatio = 1; // need to get right duration
-      let cycleDuration = this.animation.walk.getLength();
+      this.animation.walk().speedRatio = 1; // need to get right duration
+      let cycleDuration = this.animation.walk().getLength();
       // so to cross 1m in 1s,
       let animationSpeed = cycles/cycleDuration;
       // but in babylon, camera speed 1 means 10m/s
-      this.animation.walk.speedRatio = animationSpeed*speed*10;
+      this.animation.walk().speedRatio = animationSpeed*speed*10;
     }
   }
   
@@ -174,7 +192,7 @@ class AvatarMovement {
   stopMovement() {
     this.stop();
     //console.log("movement stopped, step length "+this.stepLength);
-    this.startAnimation(this.animation.idle);
+    this.startAnimation(this.animation.idle());
   }
   
   stopTrackingCameraRotation() {
@@ -207,7 +225,7 @@ class AvatarMovement {
     this.timestamp = Date.now();
     this.movementStart = Date.now();
     this.setSpeed(this.world.camera1p.speed);
-    this.startAnimation(this.animation.walk);
+    this.startAnimation(this.animation.walk());
   }
   
   moveToTarget(point) {
@@ -385,7 +403,7 @@ export class AvatarController {
       if ( this.worldManager.isOnline() && Date.now() - this.lastChange > this.idleTimeout ) {
         clearInterval(this.idleTimerId);
         this.idleTimerId = null;
-        this.sendAnimation(this.animation.idle);
+        this.sendAnimation(this.animation.animations.idle.group, true);
       }
     }, this.idleTimeout);
   }
@@ -395,7 +413,7 @@ export class AvatarController {
    * @param loop default false
    */
   sendAnimation(animation, loop=false) {
-    if ( this.animation.animations.includes(animation.name) && animation.name != this.lastAnimation && this.worldManager.isOnline() ) {
+    if ( this.animation.contains(animation.name) && animation.name != this.lastAnimation && this.worldManager.isOnline() ) {
       //console.log("Sending animation "+name+" loop: "+loop);
       this.worldManager.sendMy({animation:{name:animation.name,loop:loop}});
       this.lastAnimation = animation.name;
@@ -415,14 +433,14 @@ export class AvatarController {
       this.lastChange = Date.now();
       if ( change.field == "position" ) {
         this.setupIdleTimer();
-        this.sendAnimation(this.animation.walk,true);
+        this.sendAnimation(this.animation.walk(),true);
         break;
       } else if ( change.field == "rotation") {
         // CHECKME anything?
       } else if ( change.field == "wrote" ) {
         let animation = this.animation.processText(change.value);
         if ( animation ) {
-          this.sendAnimation(this.animation.walk,false);
+          this.sendAnimation(this.animation.walk(),false);
         }
       }
     }
