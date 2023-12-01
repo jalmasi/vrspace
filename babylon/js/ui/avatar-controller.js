@@ -10,8 +10,8 @@ class AvatarAnimation {
         preferredSubstring: 'place', // like 'walk_in_place'
         avoid: ['left', 'right', 'back']
       },
-      walkLeft: { substring: 'walk', preferredSubstring: 'left' },
-      walkRight: { substring: 'walk', preferredSubstring: 'right' },
+      walkLeft: { substring: 'walk', preferredSubstring: 'right' },
+      walkRight: { substring: 'walk', preferredSubstring: 'left' },
       walkBack: { substring: 'walk', preferredSubstring: 'back' },
       idle: {
         substring: 'idle',
@@ -67,11 +67,11 @@ class AvatarAnimation {
   }
   
   walk() {
-    return this.animations.walk.group;
+    return this.animations.walk;
   }
 
   idle() {
-    return this.animations.idle.group;
+    return this.animations.idle;
   }
   
   processText(text) {
@@ -93,8 +93,9 @@ class AvatarAnimation {
 }
 
 class AvatarMovement {
-  constructor(world, avatar, animation) {
-    this.world = world;
+  constructor(avatarController, avatar, animation) {
+    this.controller = avatarController;
+    this.world = avatarController.world;
     this.avatar = avatar;
     this.animation = animation;
      // world manager mesh
@@ -145,21 +146,25 @@ class AvatarMovement {
   }
 
   startAnimation(animation) {
-    if ( animation != null ) {
-      this.avatar.startAnimation(animation.name, true);
+    if ( animation != null && animation !== this.activeAnimation ) {
+      //console.log("Starting animation "+animation.group.name);
+      this.avatar.startAnimation(animation.group.name, true);
       this.activeAnimation = animation;
+      this.controller.sendAnimation(animation.group, true);
     }
   }
 
   setSpeed(speed) {
-    if ( this.animation.walk() && this.stepLength > 0 ) {
+    if ( this.activeAnimation != this.animation.idle() && this.stepLength > 0 ) {
       // assuming full animation cycle is one step with each leg
       let cycles = 1/(2*this.stepLength); // that many animation cycles to walk 1m
       // so to cross 1m in 1s,
-      let animationSpeed = cycles/this.animation.animations.walk.cycleDuration;
+      //let animationSpeed = cycles/this.animation.animations.walk.cycleDuration;
+      let animationSpeed = cycles/this.activeAnimation.cycleDuration;
       // but in babylon, camera speed 1 means 10m/s
-      this.animation.walk().speedRatio = animationSpeed*speed*10;
-      //console.log("Walk speed "+this.animation.walk().speedRatio+" step length "+this.stepLength);
+      //this.animation.walk().speedRatio = animationSpeed*speed*10;
+      this.activeAnimation.speedRatio = animationSpeed*speed*10;
+      //console.log("Walk speed "+this.activeAnimation.speedRatio+" step length "+this.stepLength);
     }
   }
   
@@ -168,12 +173,23 @@ class AvatarMovement {
       if ( this.movingToTarget ) {
         this.stopMovement();
       }
+      this.state[direction] = true;
+      let capitalized = direction[0].toUpperCase() + direction.slice(1);
       if ( this.movingDirections == 0 ) {
         // movement just starting
-        this.startMovement();
+        if ( direction == 'forward') {
+          this.startMovement(this.animation.animations.walk);
+        } else {
+          this.startAnimation(this.animation.animations['walk'+capitalized]);
+        }
+      } else if ( ! this.state.back ) {
+        if ( direction == 'left') {
+          this.startAnimation(this.animation.animations.walkLeft);
+        } else if ( direction == 'right') {
+          this.startAnimation(this.animation.animations.walkRight);
+        }
       }
       this.direction.addInPlace( this.vector[direction] );
-      this.state[direction] = true;
       this.movingDirections++;
     }
   }
@@ -183,9 +199,13 @@ class AvatarMovement {
       this.direction.subtractInPlace( this.vector[direction] );
       this.state[direction] = false;
       this.movingDirections--;
-    }
-    if ( this.movingDirections === 0 ) {
-      this.stopMovement();
+      if ( this.movingDirections === 0 ) {
+        this.stopMovement();
+      } else if ( this.state.back ) {
+        this.startAnimation(this.animation.animations.walkBack);
+      } else {
+        this.startAnimation(this.animation.walk());
+      }
     }
   }
 
@@ -193,6 +213,7 @@ class AvatarMovement {
     this.stop();
     //console.log("movement stopped, step length "+this.stepLength);
     this.startAnimation(this.animation.idle());
+    this.controller.sendAnimation(this.animation.idle().group, true);
   }
   
   stopTrackingCameraRotation() {
@@ -221,11 +242,11 @@ class AvatarMovement {
     }
   }
   
-  startMovement() {
+  startMovement(animation) {
     this.timestamp = Date.now();
     this.movementStart = Date.now();
-    this.setSpeed(this.world.camera1p.speed);
-    this.startAnimation(this.animation.walk());
+    this.startAnimation(animation);
+    this.setSpeed(this.world.camera1p.speed); // requires activeAnimation
   }
   
   moveToTarget(point) {
@@ -239,7 +260,7 @@ class AvatarMovement {
       this.xDist = null;
       this.zDist = null;
     } else {
-      this.startMovement();
+      this.startMovement(this.animation.walk());
       this.movingToTarget = true;
     }
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
@@ -317,7 +338,7 @@ class AvatarMovement {
       var xDist = Math.abs(avatarMesh.position.x - this.movementTarget.x);
       var zDist = Math.abs(avatarMesh.position.z - this.movementTarget.z);
       if ( xDist < 0.2 && zDist < 0.2) {
-        console.log("Arrived to destination: "+avatarMesh.position);
+        //console.log("Arrived to destination: "+avatarMesh.position);
         this.stopMovement();
       } else if ( this.xDist && this.zDist && xDist > this.xDist && zDist > this.zDist ) {
         console.log("Missed destination: "+avatarMesh.position+" by "+xDist+","+zDist);
@@ -385,7 +406,7 @@ export class AvatarController {
     this.cameraHandler = () => this.cameraChanged();
     this.scene.onActiveCameraChanged.add(this.cameraHandler);
     // movement state variables and constants
-    this.movement = new AvatarMovement(this.world, avatar, this.animation);
+    this.movement = new AvatarMovement(this, avatar, this.animation);
     this.movementHandler = () => this.movement.moveAvatar();
     this.clickHandler = (pointerInfo) => this.handleClick(pointerInfo);
 
@@ -403,7 +424,7 @@ export class AvatarController {
       if ( this.worldManager.isOnline() && Date.now() - this.lastChange > this.idleTimeout ) {
         clearInterval(this.idleTimerId);
         this.idleTimerId = null;
-        this.sendAnimation(this.animation.idle(), true);
+        this.sendAnimation(this.animation.idle().group, true);
       }
     }, this.idleTimeout);
   }
@@ -432,9 +453,11 @@ export class AvatarController {
     for ( var change of changes ) {
       this.lastChange = Date.now();
       if ( change.field == "position" ) {
-        this.setupIdleTimer();
-        this.sendAnimation(this.animation.walk(),true);
-        break;
+        if ( this.scene.activeCamera != this.world.camera3p ) {
+          this.setupIdleTimer();
+          this.sendAnimation(this.animation.walk().group,true);
+          break;
+        }
       } else if ( change.field == "rotation") {
         // CHECKME anything?
       } else if ( change.field == "wrote" ) {
@@ -481,6 +504,10 @@ export class AvatarController {
     }
   }
   
+  addDirection( direction ) {
+    this.movement.addVector(direction);
+  }
+  
   handleKeyboard(kbInfo) {
     if (this.scene.activeCamera !== this.world.camera3p) {
       return;
@@ -491,26 +518,26 @@ export class AvatarController {
           case "a":
           case "A":
           case "ArrowLeft":
-            this.movement.addVector('left');
+            this.addDirection('left');
             break;
           case "d":
           case "D":
           case "ArrowRight":
-            this.movement.addVector('right');
+            this.addDirection('right');
             break;
           case "w":
           case "W":
           case "ArrowUp":
-            this.movement.addVector('forward');
+            this.addDirection('forward');
             break;
           case "s":
           case "S":
           case "ArrowDown":
-            this.movement.addVector('back');
+            this.addDirection('back');
             break;
           case "PageUp":
           case " ":
-            this.movement.addVector('up');
+            this.addDirection('up');
             break;
           default:
             break;
@@ -556,7 +583,7 @@ export class AvatarController {
       if (pointerInfo.pickInfo.pickedMesh) {
         if (pointerInfo.event.button == 0 && this.world.getFloorMeshes().includes(pointerInfo.pickInfo.pickedMesh)) {
           this.movement.moveToTarget(pointerInfo.pickInfo.pickedPoint);
-        }
+       }
       }
     }
   }
