@@ -237,8 +237,12 @@ export class World {
     
     this.camera3p.lowerRadiusLimit = 0.5;
     this.camera3p.radius = 2;
-    this.camera3p.upperRadiusLimit = 10;
+    this.camera3p.upperRadiusLimit = 5;
 
+    this.camera3p.checkCollisions = true;
+    this.camera3p.collisionRadius = new BABYLON.Vector3(0.1,0.1,0.1);
+    this.camera3p.beta = Math.PI/2;
+    
     // disable panning, as it moves avatar/camera1:
     this.camera3p.panningSensibility = 0;
     this.camera3p.inputs.attached.pointers.buttons = [1,2]; // disable LMB(0)

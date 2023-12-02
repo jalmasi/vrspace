@@ -109,6 +109,7 @@ class AvatarMovement {
      // world manager mesh
     this.movementTracker = BABYLON.MeshBuilder.CreateSphere("avatar movement tracker", {diameter:0.1}, this.world.scene);
     this.movementTracker.isVisible = false;
+    this.movementTracker.position = this.world.camera1p.position.clone();
     //this.movementTracker.ellipsoid = null;
     
     this.trackingCameraRotation = false;
@@ -506,17 +507,18 @@ export class AvatarController {
   cameraChanged() {
     // trying to debug camera speed differences:
     // console.log("Scene animation ratio: "+this.scene.getAnimationRatio()+" time scale: "+this.scene.animationTimeScale+" engine delta "+this.scene.getEngine().getDeltaTime() +" fps "+ this.scene.getEngine().getFps()+ " camera speed "+this.world.camera1p._computeLocalCameraSpeed());
+    // seems to break stuff:
     //this.world.camera1p.computeWorldMatrix();
     //this.world.camera3p.computeWorldMatrix();
     if ( this.scene.activeCamera === this.world.camera3p ) {
 
-      // TODO: use camera ellipsoid
-      let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y - this.world.camera1p.ellipsoidOffset.y;
+      let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y*2 + this.world.camera1p.ellipsoidOffset.y;
       if ( this.avatar.parentMesh ) {
         // video avatar has no parentMesh
         this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
         this.avatar.parentMesh.setEnabled(true);
         this.world.camera3p.setTarget(this.avatar.headPosition);
+        this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
         this.movement.startTrackingCameraRotation();
       } else {
         // TODO
@@ -544,9 +546,7 @@ export class AvatarController {
         this.avatar.parentMesh.setEnabled(false);
       }
       // apply rotation to 1st person camera
-      this.world.camera1p.rotation.z = 0;
-      this.world.camera1p.rotation.y = 1.5*Math.PI-this.world.camera3p.alpha;
-      this.world.camera1p.rotation.x = 0;
+      this.world.camera1p.rotation = new BABYLON.Vector3(0,1.5*Math.PI-this.world.camera3p.alpha,0);
     }
   }
   
