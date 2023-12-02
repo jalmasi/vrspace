@@ -187,7 +187,7 @@ export class VideoAvatar {
   /** Rescale own avatar and detach from camera */
   detachFromCamera() {
     if ( this.attached ) {
-      this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
       this.mesh.position = this.camera.position; // CHECKME: must be the same
       console.log("Mesh position: "+this.mesh.position);
       this.mesh.scaling = new BABYLON.Vector3(1, 1, 1);
@@ -199,11 +199,13 @@ export class VideoAvatar {
  
   /** Called when active camera changes/avatar attaches to camera */ 
   cameraChanged() {
-    if ( this.autoAttach ) {
+    if ( this.autoAttach && this.attached ) {
       console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
-      this.camera = this.scene.activeCamera;
-      this.attached = true;
-      this.mesh.parent = this.camera;
+      if ( this.scene.activeCamera.getClassName() == 'UniversalCamera' ) {
+        this.camera = this.scene.activeCamera;
+        this.attached = true;
+        this.mesh.parent = this.camera;
+      }
     }
   }
     

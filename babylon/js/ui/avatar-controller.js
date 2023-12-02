@@ -30,6 +30,10 @@ class AvatarAnimation {
    * Called from constructor to find walk and idle animations.
    */
   processAnimations() {
+    if ( ! this.avatar.getAnimationGroups ) {
+      // video avatar or mesh
+      return;
+    }
     this.avatar.getAnimationGroups().forEach( a => {
       this.animationNames.push(a.name)
       //console.log(a);
@@ -124,6 +128,10 @@ class AvatarMovement {
   }
   
   findFeet() {
+    if ( ! this.avatar.body ) {
+      // video avatar or mesh
+      return;
+    }
     // we need both feet to determine step length
     this.trackWalk &= (this.avatar.body.leftLeg.foot.length > 0) && (this.avatar.body.rightLeg.length > 0);
     if (this.trackWalk) {
@@ -238,8 +246,13 @@ class AvatarMovement {
           ref = 1.5;
         }
         let rotY = ref*Math.PI-this.world.camera3p.alpha;
+        var avatarMesh = this.avatar.parentMesh;
+        if ( ! avatarMesh ) {
+          // video avatar has no parentMesh
+          avatarMesh = this.avatar.mesh;
+        }
         // convert alpha and beta to mesh rotation.y and rotation.x
-        this.avatar.parentMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
+        avatarMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
         this.movementTracker.rotation.y = rotY;
       }
       this.world.scene.registerBeforeRender( this.applyRotationToMesh );
@@ -268,16 +281,28 @@ class AvatarMovement {
       this.startMovement(this.animation.walk());
       this.movingToTarget = true;
     }
+    var avatarMesh = this.avatar.parentMesh;
+    if ( ! avatarMesh ) {
+      // video avatar has no parentMesh
+      avatarMesh = this.avatar.mesh;
+    }
+    
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
-    this.direction = this.movementTarget.subtract(this.avatar.parentMesh.position);
+    this.direction = this.movementTarget.subtract(avatarMesh.position);
     //this.stopTrackingCameraRotation();
     //console.log("moving to target ", point, " direction "+this.direction);
+    
+    // all of below is about avatar rotation
+    // none of it needed for video avatar in billboard mode
+    if ( avatarMesh.billboardMode != BABYLON.Mesh.BILLBOARDMODE_NONE ) {
+      return;
+    }
     
     let currentDirection = new BABYLON.Vector3(0,0,-1);
     if ( this.avatar.turnAround ) {
       currentDirection = new BABYLON.Vector3(0,0,1);
     }
-    currentDirection.rotateByQuaternionToRef(this.avatar.parentMesh.rotationQuaternion,currentDirection);
+    currentDirection.rotateByQuaternionToRef(avatarMesh.rotationQuaternion,currentDirection);
     let rotationMatrix = new BABYLON.Matrix();
     BABYLON.Matrix.RotationAlignToRef(currentDirection.normalizeToNew(), this.direction.normalizeToNew(), rotationMatrix);
     let quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
@@ -301,11 +326,10 @@ class AvatarMovement {
       
     } else {
       // rotate avatar
-      //this.avatar.parentMesh.rotationQuaternion.multiplyInPlace(quat);
       if ( ! this.avatarRotationAnimation ) {
-        this.avatarRotationAnimation = VRSPACEUI.createQuaternionAnimation(this.avatar.parentMesh, "rotationQuaternion", 5);
+        this.avatarRotationAnimation = VRSPACEUI.createQuaternionAnimation(avatarMesh, "rotationQuaternion", 5);
       }
-      VRSPACEUI.updateQuaternionAnimation(this.avatarRotationAnimation, this.avatar.parentMesh.rotationQuaternion.clone(), this.avatar.parentMesh.rotationQuaternion.multiply(quat));
+      VRSPACEUI.updateQuaternionAnimation(this.avatarRotationAnimation, avatarMesh.rotationQuaternion.clone(), avatarMesh.rotationQuaternion.multiply(quat));
     }
   }
 
@@ -333,6 +357,10 @@ class AvatarMovement {
     var direction = this.direction.clone().normalize().scale(distance).add(gravity);
     
     var avatarMesh = this.avatar.parentMesh;
+    if ( ! avatarMesh ) {
+      // video avatar has no parentMesh
+      avatarMesh = this.avatar.mesh;
+    }
     
     if ( this.movingDirections > 0 ) {
       var angle = -1.5*Math.PI-this.world.camera3p.alpha;
@@ -397,7 +425,10 @@ export class AvatarController {
     this.scene = worldManager.scene;
     this.avatar = avatar;
 
-    avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0,1,0);
+    if ( avatar.parentMesh ) {
+      // video avatar has no parent mesh
+      avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0,1,0);
+    }
     
     this.animation = new AvatarAnimation(avatar);
     
@@ -477,14 +508,21 @@ export class AvatarController {
       
       // TODO: use camera ellipsoid
       let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y - this.world.camera1p.ellipsoidOffset.y;
-      this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
-      this.avatar.parentMesh.setEnabled(true);
-      this.world.camera3p.setTarget(this.avatar.headPosition);
+      if ( this.avatar.parentMesh ) {
+        // video avatar has no parentMesh
+        this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
+        this.avatar.parentMesh.setEnabled(true);
+        this.world.camera3p.setTarget(this.avatar.headPosition);
+        this.movement.startTrackingCameraRotation();
+      } else {
+        // TODO
+        this.avatar.detachFromCamera();
+        this.world.camera3p.setTarget(this.avatar.mesh);
+      }
       this.scene.onKeyboardObservable.add(this.keyboardHandler);
       this.scene.onPointerObservable.add(this.clickHandler);
       this.scene.registerBeforeRender(this.movementHandler);
       
-      this.movement.startTrackingCameraRotation();
       this.movement.stopMovement();
       
       this.worldManager.trackMesh(this.movement.movementTracker);
@@ -497,7 +535,10 @@ export class AvatarController {
     }
     if ( this.scene.activeCamera === this.world.camera1p ) {
       this.worldManager.trackMesh(null);
-      this.avatar.parentMesh.setEnabled(false);
+      if ( this.avatar.parentMesh ) {
+        // video avatar has no parentMesh
+        this.avatar.parentMesh.setEnabled(false);
+      }
       // apply rotation to 1st person camera
       this.world.camera1p.rotation.z = 0;
       this.world.camera1p.rotation.y = 1.5*Math.PI-this.world.camera3p.alpha;

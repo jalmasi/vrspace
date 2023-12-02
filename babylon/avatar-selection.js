@@ -744,8 +744,11 @@ export class AvatarSelection extends World {
             // CHECKME this should be safe to do even earlier, before enter
             this.character.turnAround = true;
             var controller = new AvatarController(this.worldManager, this.character);
-            this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
+          } else { 
+            // else video avatar 
+            var controller = new AvatarController(this.worldManager, this.video);
           }
+          this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
           if ( this.afterEnter ) {
             this.afterEnter(this, world);
           }
