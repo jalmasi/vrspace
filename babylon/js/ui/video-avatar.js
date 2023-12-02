@@ -166,7 +166,8 @@ export class VideoAvatar {
   }
   
   /**
-  Rescale own avatar and attach to current camera, 35cm ahead, 5cm below.
+  Rescale own avatar and attach to current camera at given position
+  @param position default 50cm ahead, 15cm right, 15cm below.
    */
   attachToCamera( position ) {
     this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
@@ -174,8 +175,7 @@ export class VideoAvatar {
     if ( position ) {
       this.mesh.position = position;
     } else {
-      // 5cm below, 30 cm ahead of eyes
-      this.mesh.position = new BABYLON.Vector3( 0, -.05, .35 );
+      this.mesh.position = new BABYLON.Vector3( .15, -.15, .5 );
       var scale = (this.radius/2)/20; // 5cm size
       this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
     }
