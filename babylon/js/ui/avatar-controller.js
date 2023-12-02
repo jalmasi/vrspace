@@ -65,6 +65,10 @@ class AvatarAnimation {
   contains(name) {
     return this.animationNames.includes(name);
   }
+
+  canWalk() {
+    return typeof this.walk().group != 'undefined';
+  }  
   
   walk() {
     return this.animations.walk;
@@ -113,7 +117,8 @@ class AvatarMovement {
       down: new BABYLON.Vector3(0, -1, 0)
     };
     this.stop();
-    this.trackWalk = true;
+    // we only track walk if the avatar can walk
+    this.trackWalk = this.animation.canWalk();;
     this.findFeet();
     this.stepLength = 0;
   }
@@ -392,10 +397,6 @@ export class AvatarController {
     this.scene = worldManager.scene;
     this.avatar = avatar;
 
-    //if ( this.world.camera3p ) {
-      //this.world.camera3p.setTarget(avatar.headPosition);
-    //}
-    
     avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0,1,0);
     
     this.animation = new AvatarAnimation(avatar);
@@ -404,12 +405,12 @@ export class AvatarController {
     // event handlers
     this.keyboardHandler = (kbInfo) => this.handleKeyboard(kbInfo);
     this.cameraHandler = () => this.cameraChanged();
-    this.scene.onActiveCameraChanged.add(this.cameraHandler);
     // movement state variables and constants
     this.movement = new AvatarMovement(this, avatar, this.animation);
     this.movementHandler = () => this.movement.moveAvatar();
     this.clickHandler = (pointerInfo) => this.handleClick(pointerInfo);
 
+    this.scene.onActiveCameraChanged.add(this.cameraHandler);
     this.cameraChanged();
   }
   
