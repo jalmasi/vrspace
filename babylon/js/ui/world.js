@@ -194,11 +194,11 @@ export class World {
   /**
   Utility method, creates a UniversalCamera and sets defaults: gravity, collisions, ellipsoid, keys.
   @param pos Vector3 to position camera at
-  @param name optional camera name, default UniversalCamera
+  @param name optional camera name, default 1st Person Camera
    */
   universalCamera(pos, name) {
     if ( !name ) {
-      name = "UniversalCamera";
+      name = "1st Person Camera";
     } 
     var camera = new BABYLON.UniversalCamera(name, pos, this.scene);
     camera.maxZ = 100000;
@@ -236,6 +236,7 @@ export class World {
     this.camera3p.checkCollisions = true;
     
     this.camera3p.lowerRadiusLimit = 0.5;
+    this.camera3p.radius = 2;
     this.camera3p.upperRadiusLimit = 10;
 
     // disable panning, as it moves avatar/camera1:

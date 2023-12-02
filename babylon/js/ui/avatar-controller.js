@@ -124,7 +124,6 @@ class AvatarMovement {
     // we only track walk if the avatar can walk
     this.trackWalk = this.animation.canWalk();;
     this.findFeet();
-    this.stepLength = 0;
   }
   
   findFeet() {
@@ -161,6 +160,9 @@ class AvatarMovement {
   startAnimation(animation) {
     if ( animation.group && animation !== this.activeAnimation ) {
       //console.log("Starting animation "+animation.group.name);
+      if ( ! animation.stepLength ) {
+        animation.stepLength = 0;
+      }
       this.avatar.startAnimation(animation.group.name, true);
       this.activeAnimation = animation;
       this.controller.sendAnimation(animation.group, true);
@@ -168,16 +170,16 @@ class AvatarMovement {
   }
 
   setSpeed(speed) {
-    if ( this.activeAnimation && this.activeAnimation != this.animation.idle() && this.stepLength > 0 ) {
+    if ( this.activeAnimation && this.activeAnimation != this.animation.idle() && this.activeAnimation.stepLength > 0 ) {
       // assuming full animation cycle is one step with each leg
-      let cycles = 1/(2*this.stepLength); // that many animation cycles to walk 1m
+      let cycles = 1/(2*this.activeAnimation.stepLength); // that many animation cycles to walk 1m
       // so to cross 1m in 1s,
       //let animationSpeed = cycles/this.animation.animations.walk.cycleDuration;
       let animationSpeed = cycles/this.activeAnimation.cycleDuration;
       // but in babylon, camera speed 1 means 10m/s
       //this.animation.walk().speedRatio = animationSpeed*speed*10;
-      this.activeAnimation.speedRatio = animationSpeed*speed*10;
-      //console.log("Walk speed "+this.activeAnimation.speedRatio+" step length "+this.stepLength);
+      this.activeAnimation.group.speedRatio = animationSpeed*speed*10;
+      //console.log(this.activeAnimation.group.name+" speed "+this.activeAnimation.group.speedRatio+" step length "+this.activeAnimation.stepLength);
     }
   }
   
@@ -223,8 +225,8 @@ class AvatarMovement {
   }
 
   stopMovement() {
+    //console.log("Movement stopped");
     this.stop();
-    //console.log("movement stopped, step length "+this.stepLength);
     this.startAnimation(this.animation.idle());
     this.controller.sendAnimation(this.animation.idle().group, true);
   }
@@ -386,10 +388,10 @@ class AvatarMovement {
       avatarMesh.moveWithCollisions(direction);
     }
     this.movementTracker.position = avatarMesh.position;
-    if ( this.trackWalk ) {
+    if ( this.trackWalk && this.activeAnimation ) {
       let length = this.leftFoot.getAbsolutePosition().subtract(this.rightFoot.getAbsolutePosition()).length();
-      if ( length > this.stepLength ) {
-        this.stepLength = length;
+      if (  length > this.activeAnimation.stepLength ) {
+        this.activeAnimation.stepLength = length;
         this.setSpeed(this.world.camera1p.speed);
       }
     }
@@ -467,7 +469,7 @@ export class AvatarController {
    */
   sendAnimation(animation, loop=false) {
     if ( animation && this.animation.contains(animation.name) && animation.name != this.lastAnimation && this.worldManager.isOnline() ) {
-      console.log("Sending animation "+animation.name+" loop: "+loop+" speed "+animation.speedRatio);
+      //console.log("Sending animation "+animation.name+" loop: "+loop+" speed "+animation.speedRatio);
       this.worldManager.sendMy({animation:{name:animation.name,loop:loop, speed: animation.speedRatio}});
       this.lastAnimation = animation.name;
     }
@@ -502,10 +504,12 @@ export class AvatarController {
   }
   
   cameraChanged() {
+    // trying to debug camera speed differences:
+    // console.log("Scene animation ratio: "+this.scene.getAnimationRatio()+" time scale: "+this.scene.animationTimeScale+" engine delta "+this.scene.getEngine().getDeltaTime() +" fps "+ this.scene.getEngine().getFps()+ " camera speed "+this.world.camera1p._computeLocalCameraSpeed());
+    //this.world.camera1p.computeWorldMatrix();
+    //this.world.camera3p.computeWorldMatrix();
     if ( this.scene.activeCamera === this.world.camera3p ) {
 
-      this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
-      
       // TODO: use camera ellipsoid
       let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y - this.world.camera1p.ellipsoidOffset.y;
       if ( this.avatar.parentMesh ) {

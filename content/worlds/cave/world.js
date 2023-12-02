@@ -2,7 +2,8 @@ import { World, FloorRibbon } from '../../../babylon/js/vrspace-min.js';
 
 export class Cave extends World {
   async createCamera() {
-    this.camera = this.universalCamera(new BABYLON.Vector3(-44.5, 18, 24.5));
+    //this.camera = this.universalCamera(new BABYLON.Vector3(-44.5, 18, 24.5));
+    this.camera = this.universalCamera(new BABYLON.Vector3(-44.5, 6, 24.5));
     this.camera.setTarget(new BABYLON.Vector3(-54.5,4,-33));
     this.camera.speed = 0.3;
     this.thirdPersonCamera();
