@@ -41,27 +41,13 @@ import("./world.js").then( (module) =>{
   var cave = module.WORLD;
   cave.init(engine, 'cave').then((s) => {
     scene = s;
-
-    // Step3: now that the scene is created, connect to the server
-    // note that you can load all scripts from demo server
-    import('/babylon/js/vrspace-min.js').then(ui => {
-      var net = new ui.WorldManager(cave);
-      
-      // RECOMMENDED: set world name
-      // all users in the same world share same events
-      cave.name = 'cave';
-      var characterUrl = '/content/char/male/male_adventurer/scene.gltf';
-      var name = 'player'+Math.random();
-      net.enterWith(characterUrl,name).then( avatar => {
-        avatar.load( () => {
-            let controller = new ui.AvatarController(net, avatar);
-            net.addMyChangeListener( changes => controller.processChanges(changes) );
-          });
-      });
-    });
+    cave.name = 'cave';
+    var characterUrl = '/content/char/male/male_adventurer/scene.gltf';
+    var name = 'player'+Math.random();
+    cave.enterWith(characterUrl,name);
   });
   
-})
+});
 
 // Watch for browser/canvas resize events
 window.addEventListener("resize", function () {

@@ -1,6 +1,8 @@
 import {VRSPACEUI} from './vrspace-ui.js';
 import {VRHelper} from './vr-helper.js';
 import {ChatLog} from './chat-log.js';
+import {WorldManager} from './world-manager.js';
+import {AvatarController} from './avatar-controller.js';
 
 /**
 Basic world, intended to be overridden.
@@ -54,6 +56,8 @@ export class World {
     this.worldManager = null;
     /** Reference to AvatarController, set by AvatarController during initialization */
     this.avatarController = null;
+    /**  Reference to own Avatar or VideoAvatar, set by AvatarController during initialization */
+    this.avatar = null;
     
     /** List of world listeners. 
     WorldManager executes enter(Welcome) method once user enters the world, after World.enter() method. 
@@ -274,6 +278,7 @@ export class World {
       this.shadowGenerator.dispose();
       this.shadowGenerator = null;    
     }
+    // TODO dispose of WorldManager, AvatarController, Avatar?
   }
 
   /** Creates a VRHelper if needed, and initializes it with the current world.
@@ -607,6 +612,22 @@ export class World {
     if ( this.avatarController ) {
       this.avatarController.thirdPerson();
     }
+  }
+
+  /**
+   * Quick enter, with avatar url and optionally user name.
+   * @param avatarUrl URL to load avatar from
+   * @param userName login name of the user
+   */
+  async enterWith(avatarUrl, userName) {
+    this.worldManager = new WorldManager(this);
+    //this.worldManager.debug = true;
+    this.worldManager.enterWith(avatarUrl,userName).then( avatar => {
+      avatar.load( () => {
+          this.avatarController = new AvatarController(this.worldManager, avatar);
+          this.worldManager.addMyChangeListener( changes => this.avatarController.processChanges(changes) );
+        });
+    });
   }
   
 }

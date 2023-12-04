@@ -410,7 +410,7 @@ export class WorldManager {
         }
         VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);
       } else if ( 'animation' === field ) {
-        avatar.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speedRatio);
+        avatar.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speed);
       } else if ( 'leftArmPos' === field ) {
         var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
         avatar.reachFor(avatar.body.rightArm, pos);
