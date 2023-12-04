@@ -509,13 +509,15 @@ export class AvatarController {
       this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
       this.avatar.parentMesh.setEnabled(true);
       this.world.camera3p.setTarget(this.avatar.headPosition);
-      this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
       this.movement.startTrackingCameraRotation();
     } else {
       // TODO
       this.avatar.detachFromCamera();
       this.world.camera3p.setTarget(this.avatar.mesh);
     }
+  
+    this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
+  
     this.scene.onKeyboardObservable.add(this.keyboardHandler);
     this.scene.onPointerObservable.add(this.clickHandler);
     this.scene.registerBeforeRender(this.movementHandler);
@@ -539,6 +541,8 @@ export class AvatarController {
     if ( this.avatar.parentMesh ) {
       // video avatar has no parentMesh
       this.avatar.parentMesh.setEnabled(false);
+    } else {
+      this.avatar.attachToCamera();
     }
     // apply rotation to 1st person camera
     this.world.camera1p.rotation = new BABYLON.Vector3(0,1.5*Math.PI-this.world.camera3p.alpha,0);
