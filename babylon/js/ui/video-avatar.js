@@ -20,6 +20,10 @@ export class VideoAvatar {
     /** Should own video avatar be attached to hud? */
     this.autoAttach = true;
     this.attached = false;
+    /** Compatbility with Avatar class */
+    this.userHeight = 1.8;
+    /** Compatbility with Avatar class */
+    this.name = null;
     if ( customOptions ) {
       for(var c of Object.keys(customOptions)) {
         this[c] = customOptions[c];
@@ -32,7 +36,7 @@ export class VideoAvatar {
   async show() {
     if ( ! this.mesh ) {
       if ( this.autoAttach ) {
-        this.cameraTracker = () => this.cameraChanged();        
+        this.cameraTracker = () => this.cameraChanged();
       }
       this.mesh = BABYLON.MeshBuilder.CreateDisc("VideoAvatar", {radius:this.radius}, this.scene);
       //mesh.visibility = 0.95;
@@ -208,5 +212,18 @@ export class VideoAvatar {
       }
     }
   }
-    
+ 
+  /** Compatbility with Avatar class */
+  getUrl() {
+    return "video";
+  }
+  
+  basePosition() {
+    return new BABYLON.Vector3(this.mesh.position.x, this.mesh.position.y-this.radius, this.mesh.position.z);
+  }
+
+  baseMesh() {
+    return this.mesh;
+  }
+
 }

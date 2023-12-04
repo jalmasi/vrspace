@@ -249,11 +249,7 @@ class AvatarMovement {
           ref = 1.5;
         }
         let rotY = ref*Math.PI-this.world.camera3p.alpha;
-        var avatarMesh = this.avatar.parentMesh;
-        if ( ! avatarMesh ) {
-          // video avatar has no parentMesh
-          avatarMesh = this.avatar.mesh;
-        }
+        let avatarMesh = this.avatar.baseMesh();
         // convert alpha and beta to mesh rotation.y and rotation.x
         avatarMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
         this.movementTracker.rotation.y = rotY;
@@ -284,11 +280,7 @@ class AvatarMovement {
       this.startMovement(this.animation.walk());
       this.movingToTarget = true;
     }
-    var avatarMesh = this.avatar.parentMesh;
-    if ( ! avatarMesh ) {
-      // video avatar has no parentMesh
-      avatarMesh = this.avatar.mesh;
-    }
+    let avatarMesh = this.avatar.baseMesh();
     
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
     this.direction = this.movementTarget.subtract(avatarMesh.position);
@@ -296,7 +288,7 @@ class AvatarMovement {
     //console.log("moving to target ", point, " direction "+this.direction);
     
     // all of below is about avatar rotation
-    // none of it needed for video avatar in billboard mode
+    // none of it needed for avatar in billboard mode (e.g. video avatar)
     if ( avatarMesh.billboardMode != BABYLON.Mesh.BILLBOARDMODE_NONE ) {
       return;
     }
@@ -359,11 +351,7 @@ class AvatarMovement {
 
     var direction = this.direction.clone().normalize().scale(distance).add(gravity);
     
-    var avatarMesh = this.avatar.parentMesh;
-    if ( ! avatarMesh ) {
-      // video avatar has no parentMesh
-      avatarMesh = this.avatar.mesh;
-    }
+    var avatarMesh = this.avatar.baseMesh();
     
     if ( this.movingDirections > 0 ) {
       var angle = -1.5*Math.PI-this.world.camera3p.alpha;
@@ -388,7 +376,8 @@ class AvatarMovement {
       // only apply gravity
       avatarMesh.moveWithCollisions(direction);
     }
-    this.movementTracker.position = avatarMesh.position;
+    this.movementTracker.position = this.avatar.basePosition();
+    
     if ( this.trackWalk && this.activeAnimation ) {
       let length = this.leftFoot.getAbsolutePosition().subtract(this.rightFoot.getAbsolutePosition()).length();
       if (  length > this.activeAnimation.stepLength ) {
@@ -432,8 +421,8 @@ export class AvatarController {
     this.scene = worldManager.scene;
     this.avatar = avatar;
 
+    // video avatar has no parent mesh
     if ( avatar.parentMesh ) {
-      // video avatar has no parent mesh
       avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0,1,0);
     }
     

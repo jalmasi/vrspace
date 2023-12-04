@@ -724,31 +724,20 @@ export class AvatarSelection extends World {
           this.vrHelper.addFloors();
         }
         this.worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
-        // CHECKME how can we use enterAs()?
-        var myProperties = {
-          mesh:avatarUrl, 
-          userHeight:this.userHeight, 
-          // send custom shared transient properties like this:
-          //properties:{string:'string', number:123.456}
-        };
-        if ( this.userName ) {
-          myProperties.name = this.userName;
+        let avatar = this.video;
+        if ( this.character ) {
+          // character is null for e.g. video avatar
+          // CHECKME this should be safe to do even earlier, before enter
+          this.character.turnAround = true;
+          avatar = this.character;
         }
-        this.worldManager.enter( 
-          myProperties
+        let controller = new AvatarController(this.worldManager, avatar);
+        this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
+        this.worldManager.enterAs( 
+          avatar
         ).then( (welcome) => {
           // CHECKME better way to flag publishing video?
           this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
-          if ( this.character ) {
-            // character is null for e.g. video avatar
-            // CHECKME this should be safe to do even earlier, before enter
-            this.character.turnAround = true;
-            var controller = new AvatarController(this.worldManager, this.character);
-          } else { 
-            // else video avatar 
-            var controller = new AvatarController(this.worldManager, this.video);
-          }
-          this.worldManager.addMyChangeListener( changes => controller.processChanges(changes) );
           if ( this.afterEnter ) {
             this.afterEnter(this, world);
           }

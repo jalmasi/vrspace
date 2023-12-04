@@ -1820,4 +1820,11 @@ export class Avatar {
     }
   }
   
+  basePosition() {
+    return this.parentMesh.position;
+  }
+  
+  baseMesh() {
+    return this.parentMesh;
+  }
 }
