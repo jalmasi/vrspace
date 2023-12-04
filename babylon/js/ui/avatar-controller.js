@@ -425,6 +425,7 @@ export class AvatarController {
     this.lastAnimation = null;
     this.worldManager = worldManager;
     this.world = worldManager.world;
+    this.world.avatarController = this;
     this.scene = worldManager.scene;
     this.avatar = avatar;
 
@@ -438,14 +439,10 @@ export class AvatarController {
     this.setupIdleTimer();
     // event handlers
     this.keyboardHandler = (kbInfo) => this.handleKeyboard(kbInfo);
-    this.cameraHandler = () => this.cameraChanged();
     // movement state variables and constants
     this.movement = new AvatarMovement(this, avatar, this.animation);
     this.movementHandler = () => this.movement.moveAvatar();
     this.clickHandler = (pointerInfo) => this.handleClick(pointerInfo);
-
-    this.scene.onActiveCameraChanged.add(this.cameraHandler);
-    this.cameraChanged();
   }
   
   /**
@@ -504,50 +501,50 @@ export class AvatarController {
     }
   }
   
-  cameraChanged() {
-    // trying to debug camera speed differences:
-    // console.log("Scene animation ratio: "+this.scene.getAnimationRatio()+" time scale: "+this.scene.animationTimeScale+" engine delta "+this.scene.getEngine().getDeltaTime() +" fps "+ this.scene.getEngine().getFps()+ " camera speed "+this.world.camera1p._computeLocalCameraSpeed());
-    // seems to break stuff:
-    //this.world.camera1p.computeWorldMatrix();
-    //this.world.camera3p.computeWorldMatrix();
-    if ( this.scene.activeCamera === this.world.camera3p ) {
-
-      let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y*2 + this.world.camera1p.ellipsoidOffset.y;
-      if ( this.avatar.parentMesh ) {
-        // video avatar has no parentMesh
-        this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
-        this.avatar.parentMesh.setEnabled(true);
-        this.world.camera3p.setTarget(this.avatar.headPosition);
-        this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
-        this.movement.startTrackingCameraRotation();
-      } else {
-        // TODO
-        this.avatar.detachFromCamera();
-        this.world.camera3p.setTarget(this.avatar.mesh);
-      }
-      this.scene.onKeyboardObservable.add(this.keyboardHandler);
-      this.scene.onPointerObservable.add(this.clickHandler);
-      this.scene.registerBeforeRender(this.movementHandler);
-      
-      this.movement.stopMovement();
-      
-      this.worldManager.trackMesh(this.movement.movementTracker);
-      
+  thirdPerson() {
+    this.scene.activeCamera.detachControl();
+    let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y*2 + this.world.camera1p.ellipsoidOffset.y;
+    if ( this.avatar.parentMesh ) {
+      // video avatar has no parentMesh
+      this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
+      this.avatar.parentMesh.setEnabled(true);
+      this.world.camera3p.setTarget(this.avatar.headPosition);
+      this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
+      this.movement.startTrackingCameraRotation();
     } else {
-      this.scene.onKeyboardObservable.remove(this.keyboardHandler);
-      this.scene.onPointerObservable.remove( this.clickHandler );
-      this.scene.unregisterBeforeRender(this.movementHandler);
-      this.movement.stopTrackingCameraRotation();
+      // TODO
+      this.avatar.detachFromCamera();
+      this.world.camera3p.setTarget(this.avatar.mesh);
     }
-    if ( this.scene.activeCamera === this.world.camera1p ) {
-      this.worldManager.trackMesh(null);
-      if ( this.avatar.parentMesh ) {
-        // video avatar has no parentMesh
-        this.avatar.parentMesh.setEnabled(false);
-      }
-      // apply rotation to 1st person camera
-      this.world.camera1p.rotation = new BABYLON.Vector3(0,1.5*Math.PI-this.world.camera3p.alpha,0);
+    this.scene.onKeyboardObservable.add(this.keyboardHandler);
+    this.scene.onPointerObservable.add(this.clickHandler);
+    this.scene.registerBeforeRender(this.movementHandler);
+    
+    this.movement.stopMovement();
+    
+    this.worldManager.trackMesh(this.movement.movementTracker);
+    
+    this.scene.activeCamera = this.world.camera3p;
+    this.scene.activeCamera.attachControl();
+  }
+  
+  firstPerson() {
+    this.scene.activeCamera.detachControl();
+    this.scene.onKeyboardObservable.remove(this.keyboardHandler);
+    this.scene.onPointerObservable.remove( this.clickHandler );
+    this.scene.unregisterBeforeRender(this.movementHandler);
+    this.movement.stopTrackingCameraRotation();
+
+    this.worldManager.trackMesh(null);
+    if ( this.avatar.parentMesh ) {
+      // video avatar has no parentMesh
+      this.avatar.parentMesh.setEnabled(false);
     }
+    // apply rotation to 1st person camera
+    this.world.camera1p.rotation = new BABYLON.Vector3(0,1.5*Math.PI-this.world.camera3p.alpha,0);
+
+    this.scene.activeCamera = this.world.camera1p;
+    this.scene.activeCamera.attachControl();
   }
   
   addDirection( direction ) {
