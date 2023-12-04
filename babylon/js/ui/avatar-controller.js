@@ -437,8 +437,10 @@ export class AvatarController {
     this.clickHandler = (pointerInfo) => this.handleClick(pointerInfo);
     
     // required for proper view initialization CHECKME
-    this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
-    this.firstPerson();
+    if (this.world.camera3p) {
+      this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
+      this.firstPerson();
+    }
   }
   
   /**

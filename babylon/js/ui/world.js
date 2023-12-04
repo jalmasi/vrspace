@@ -225,7 +225,17 @@ export class World {
     camera.keysUpward = [36, 33, 32]; // home, pgup, space
     
     camera.touchAngularSensitivity = 5000;
+
+    /*
+    // this actually makes camera speed real
+    console.log(camera._computeLocalCameraSpeed);
+    camera._computeLocalCameraSpeed = () => { return camera.speed * this.engine.getDeltaTime()/1000 };
     
+    setInterval(() => {
+      console.log("engine delta: "+this.engine.getDeltaTime()+" fps "+this.engine.getFps());
+    }, 5000);
+    */
+   
     return camera;
   }
 
@@ -277,6 +287,10 @@ export class World {
     if ( this.shadowGenerator ) {
       this.shadowGenerator.dispose();
       this.shadowGenerator = null;    
+    }
+    if ( this.renderLoop ) {
+      this.engine.stopRenderLoop(this.renderLoop);
+      this.renderLoop = null;
     }
     // TODO dispose of WorldManager, AvatarController, Avatar?
   }
@@ -523,14 +537,14 @@ export class World {
   /** Register render loop. */
   registerRenderLoop() {
     // Register a render loop to repeatedly render the scene
-    var loop = () => {
+    this.renderLoop = () => {
       if ( this.scene ) {
         this.scene.render();
       } else {
-        this.engine.stopRenderLoop(loop);
+        this.engine.stopRenderLoop(this.renderLoop);
       }
     }
-    this.engine.runRenderLoop(loop);
+    this.engine.runRenderLoop(this.renderLoop);
   }
 
   /**
