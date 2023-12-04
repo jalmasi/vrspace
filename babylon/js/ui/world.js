@@ -52,6 +52,9 @@ export class World {
     this.VRSPACEUI = VRSPACEUI;
     /** Reference to worldManager, set by WorldManager once that user goes online */
     this.worldManager = null;
+    /** Reference to AvatarController, set by AvatarController during initialization */
+    this.avatarController = null;
+    
     /** List of world listeners. 
     WorldManager executes enter(Welcome) method once user enters the world, after World.enter() method. 
     Methods added(VRObject) and removed(VRObject) are executed whenever scene changes.
@@ -585,5 +588,26 @@ export class World {
   removeSelectionPredicate(p) {
     this.selectionPredicates.splice(this.selectionPredicates.indexOf(p),1);
   }
+
+  /**
+   * Activate first person camera (this.camera1p), if available.
+   * Makes a call to AvatarController method that applies camera rotation and takes care of everything else.
+   */  
+  firstPerson() {
+    if ( this.avatarController ) {
+      this.avatarController.firstPerson();
+    }
+  }
+
+  /**
+   * Activate third person camera  (this.camera3p), if available.
+   * Makes a call to AvatarController method that applies camera rotation and takes care of everything else.
+   */  
+  thirdPerson() {
+    if ( this.avatarController ) {
+      this.avatarController.thirdPerson();
+    }
+  }
+  
 }
 

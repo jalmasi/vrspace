@@ -99,17 +99,6 @@ export class Cave extends World {
     }
   }
   
-  firstPerson() {
-    if ( this.avatarController ) {
-      this.avatarController.firstPerson();
-    }
-  }
-  thirdPerson() {
-    if ( this.avatarController ) {
-      this.avatarController.thirdPerson();
-    }
-  }
-
   collisions(state) {
     super.collisions(state);
     if ( this.sceneMeshes ) {

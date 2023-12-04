@@ -410,11 +410,13 @@ class AvatarMovement {
 }
 
 /**
-This is remote control for user's avatar. Installed as change listener to WorldManager, tracks position of all events that user 
+This is control for user's avatar, both local and remote.
+Installed as change listener to WorldManager, tracks position of all events that user 
 sends - typically movement - and optinally adds some more - typically avatar animations.
 E.g. when position changes, it sends 'walk' animation, if current avatar has animation named 'walk'.
-User stops, it sends 'idle' animation, if current avatar has animation named 'idle'.
-So all other users see this avatar moving and idling. 
+User stops, it sends 'idle' animation, if current avatar has animation named 'idle', 
+so all other users see this avatar moving and idling.
+Provides methods to switch between 1st and 3rd person view, and manages movement of own avatar.
  */
 export class AvatarController {
   constructor( worldManager, avatar ) {
@@ -460,6 +462,7 @@ export class AvatarController {
       }
     }, this.idleTimeout);
   }
+
   /**
    * Send an animation to the server, if the avatar has it.
    * @param animation AnimationGroup to activate remotely
@@ -472,6 +475,7 @@ export class AvatarController {
       this.lastAnimation = animation.name;
     }
   }
+
   /**
   Process locally generated changes to avatar. Called from WorldManager.trackChanges().
   Position changes also change idle animation timer, and wrote event may trigger appropriate animation.
@@ -500,7 +504,8 @@ export class AvatarController {
       }
     }
   }
-  
+
+  /** Performs coordinate transformation and other bookkeeping required to switch from 1st to 3rd person camera. */
   thirdPerson() {
     this.scene.activeCamera.detachControl();
     let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y*2 + this.world.camera1p.ellipsoidOffset.y;
@@ -511,7 +516,6 @@ export class AvatarController {
       this.world.camera3p.setTarget(this.avatar.headPosition);
       this.movement.startTrackingCameraRotation();
     } else {
-      // TODO
       this.avatar.detachFromCamera();
       this.world.camera3p.setTarget(this.avatar.mesh);
     }
@@ -530,6 +534,7 @@ export class AvatarController {
     this.scene.activeCamera.attachControl();
   }
   
+  /** Performs coordinate transformation and other bookkeeping required to switch from 3rd to 1st person camera. */
   firstPerson() {
     this.scene.activeCamera.detachControl();
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
@@ -550,11 +555,13 @@ export class AvatarController {
     this.scene.activeCamera = this.world.camera1p;
     this.scene.activeCamera.attachControl();
   }
-  
+
+  /** Internal: add movement direction */  
   addDirection( direction ) {
     this.movement.addVector(direction);
   }
   
+  /** Default keyboard handler, WASD keys for movement */  
   handleKeyboard(kbInfo) {
     if (this.scene.activeCamera !== this.world.camera3p) {
       return;
@@ -623,6 +630,7 @@ export class AvatarController {
     }
   }
 
+  /** Default pointer handler, calls moveToTarget on LMB click */
   handleClick(pointerInfo) {
     if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
       //console.log(pointerInfo);
@@ -635,7 +643,7 @@ export class AvatarController {
     }
   }
 
-  // TODO
+  /** Cleanup, CHECKME */
   dispose() {
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
     this.scene.onPointerObservable.remove( this.clickHandler );
