@@ -57,7 +57,13 @@ class AvatarAnimation {
         }
         if ( matches ) {
           this.animations[ruleName].group = a;
-          this.animations[ruleName].cycleDuration = a.getLength();
+          if ( a.getLength ) {
+            // babylon 6
+            this.animations[ruleName].cycleDuration = a.getLength();
+          } else {
+            // babylon 5 or older
+            this.animations[ruleName].cycleDuration = 1;
+          }
         } else {
           this.otherAnimations.push(a);
         }

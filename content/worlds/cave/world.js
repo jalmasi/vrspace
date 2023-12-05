@@ -122,7 +122,7 @@ export class Cave extends World {
       console.log("XR capable browser, remote logging enabled");
     } else {
       console.log("Looks like PC browser");
-      this.worldManager.remoteLogging = true;
+      //this.worldManager.remoteLogging = true;
     }
   }
   
