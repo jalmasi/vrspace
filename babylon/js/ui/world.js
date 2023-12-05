@@ -262,11 +262,18 @@ export class World {
     
     // disable panning, as it moves avatar/camera1:
     this.camera3p.panningSensibility = 0;
-    this.camera3p.inputs.attached.pointers.buttons = [1,2]; // disable LMB(0)
-
+    if ( this.hasTouchScreen() ) {
+      // assuming mobile
+    } else {
+      // assuming PC, and we're moving using LMB
+      this.camera3p.inputs.attached.pointers.buttons = [1,2]; // disable LMB(0)
+    }
     return this.camera3p;
   }
   
+  hasTouchScreen() {
+    return ('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+  }
   /**
   Disposes of all objects returned by createLights, createCamera, createShadows, createSkybox
    */
@@ -636,6 +643,7 @@ export class World {
   async enterWith(avatarUrl, userName) {
     this.worldManager = new WorldManager(this);
     //this.worldManager.debug = true;
+    this.worldManager.remoteLogging = true;
     this.worldManager.enterWith(avatarUrl,userName).then( avatar => {
       avatar.load( () => {
           this.avatarController = new AvatarController(this.worldManager, avatar);

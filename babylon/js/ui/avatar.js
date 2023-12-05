@@ -536,7 +536,7 @@ export class Avatar {
           // https://doc.babylonjs.com/typedoc/classes/babylon.assetcontainer
           // https://doc.babylonjs.com/typedoc/classes/babylon.instantiatedentries
           if ( instantiatedEntries ) {
-            console.log("CHECKME: avatar "+this.name+" already loaded", container.avatar);
+            //console.log("CHECKME: avatar "+this.name+" already loaded", container.avatar);
             // copy body bones from processed avatar
             this.character = container;
             this.neckQuat = container.avatar.neckQuat;
@@ -1701,7 +1701,7 @@ export class Avatar {
             if (typeof this.fixes.before !== 'undefined' ) {
               this.fixes.before.forEach( obj => {
                 if ( animationName == obj.animation && obj.enableNodes ) {
-                  console.log(obj);
+                  //console.log(obj);
                   this.enableNodes(obj.enableNodes, true);
                 }
               });

@@ -509,9 +509,11 @@ export class AvatarController {
     if ( !this.world.inXR ) {
       this.scene.activeCamera = camera;
       this.scene.activeCamera.attachControl();
+    } else {
+      // TODO XR:
+      // disable teleportation
+      this.scene.activeCamera.setTransformationFromNonVRCamera();
     }
-    // TODO XR:
-    // disable teleportation
   }
   
   showAvatar() {

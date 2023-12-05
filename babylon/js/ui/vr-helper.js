@@ -206,7 +206,7 @@ export class VRHelper {
     // we want to support gamepad on mobiles in both cases
     this.trackGamepad();
     
-    console.log("VRHelper initialized", this.vrHelper);
+    //console.log("VRHelper initialized", this.vrHelper);
   }
   
   /**

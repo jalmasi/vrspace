@@ -123,6 +123,7 @@ export class Cave extends World {
         this.sceneMeshes[i].isPickable = false;
       }
     }
+    this.initXR();
   }
   
 }

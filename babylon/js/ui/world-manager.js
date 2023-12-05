@@ -858,24 +858,19 @@ export class WorldManager {
     let console=
     { 
       log: (...args) => {
-        oldConsole.log(this.concat(args));
-        VRSPACE.sendCommand("Log", {message:this.concat(args)}); // default log level is debug
+        this.concatAndSend(oldConsole.log, "debug", args);
       },
       debug: (...args) => {
-        oldConsole.log(this.concat(args));
-        VRSPACE.sendCommand("Log", {message:this.concat(args)}); // default log level is debug
+        this.concatAndSend(oldConsole.debug, "debug", args);
       },
       info: (...args) => {
-        oldConsole.info(this.concat(args));
-        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"info"});
+        this.concatAndSend(oldConsole.info, "info", args);
       },
       warn: (...args) => {
-        oldConsole.warn(this.concat(args));
-        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"warn"});
+        this.concatAndSend(oldConsole.warn, "warn", args);
       },
       error: (...args) => {
-        oldConsole.error(this.concat(args));
-        VRSPACE.sendCommand("Log", {message:this.concat(args), severity:"error"});
+        this.concatAndSend(oldConsole.error, "error", args);
       }
     };
     
@@ -887,22 +882,54 @@ export class WorldManager {
     console.error('error test');
     */
   }
+  concatAndSend(output, severity, ...args) {
+    let str = this.concat(args)
+    if ( str ) {
+      output(str);
+      VRSPACE.sendCommand("Log", {message:str, severity:severity});
+    }
+  }
+  // based on
+  // https://codedamn.com/news/javascript/how-to-fix-typeerror-converting-circular-structure-to-json-in-js
+  // thanks!
+  stringify(obj) {
+    let cache = [];
+    let str = JSON.stringify(obj, (key, value) => {
+      if (typeof value === "object" && value !== null) {
+        if (cache.indexOf(value) !== -1) {
+          // Circular reference found, discard key
+          return;
+        } else if ( cache.length > 2 ) {
+          // everything below top-level object
+          return "[obj]";
+        }
+        // Store value in our collection
+        cache.push(value);
+      }
+      return value;
+    });
+    cache = null; // reset the cache
+    return str;
+  }
+  
   concat(...args) {
     let ret = "";
-
-    args.forEach(e=>{
-      if ( typeof(e) === 'object') {
-        try {
-          ret += JSON.stringify(e);
-        } catch ( error ) {
-          ret += error;
+      args.forEach(e=>{
+        if ( typeof(e) === 'object') {
+          try {
+            ret += this.stringify(e);
+          } catch ( error ) {
+            window.console.error(error);
+            ret += error;
+            //return "";
+          }
+        } else {
+          ret += e;
         }
-      } else {
-        ret += e;
-      }
-      ret += " ";
-    });
-    return ret;
+        ret += " ";
+      });
+      return ret;
+      
   }
 }
 
