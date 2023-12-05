@@ -436,11 +436,10 @@ export class AvatarController {
     this.movementHandler = () => this.movement.moveAvatar();
     this.clickHandler = (pointerInfo) => this.handleClick(pointerInfo);
     
-    // required for proper view initialization CHECKME
-    if (this.world.camera3p) {
-      this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
-      this.firstPerson();
-    }
+    // CHECKME: unless we call firstPerson here, first call to thirdPerson turns camera wildly
+    let tmp = this.scene.activeCamera;
+    this.firstPerson();
+    this.activateCamera(tmp);
   }
   
   /**
@@ -478,7 +477,7 @@ export class AvatarController {
   @param changes array of field,value object pairs
    */
   processChanges(changes) {
-    if ( this.worldManager.world.inXR ) {
+    if ( this.world.inXR ) {
       // do NOT send anything while in XR
       return;
     }
@@ -501,18 +500,48 @@ export class AvatarController {
     }
   }
 
+  deactivateCamera(camera = this.scene.activeCamera) {
+    if ( !this.world.inXR ) {
+      camera.detachControl();
+    }
+  }
+  activateCamera(camera) {
+    if ( !this.world.inXR ) {
+      this.scene.activeCamera = camera;
+      this.scene.activeCamera.attachControl();
+    }
+    // TODO XR:
+    // disable teleportation
+  }
+  
+  showAvatar() {
+    if ( this.avatar.parentMesh ) {
+      this.avatar.parentMesh.setEnabled(true);
+    } else {
+      this.avatar.detachFromCamera();
+    }
+  }
+  
+  hideAvatar() {
+    if ( this.avatar.parentMesh ) {
+      // video avatar has no parentMesh
+      this.avatar.parentMesh.setEnabled(false);
+    } else {
+      this.avatar.attachToCamera();
+    }
+  }
+  
   /** Performs coordinate transformation and other bookkeeping required to switch from 1st to 3rd person camera. */
   thirdPerson() {
-    this.scene.activeCamera.detachControl();
+    this.deactivateCamera();
     let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y*2 + this.world.camera1p.ellipsoidOffset.y;
+    this.showAvatar();
     if ( this.avatar.parentMesh ) {
       // video avatar has no parentMesh
       this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
-      this.avatar.parentMesh.setEnabled(true);
       this.world.camera3p.setTarget(this.avatar.headPosition);
       this.movement.startTrackingCameraRotation();
     } else {
-      this.avatar.detachFromCamera();
       this.world.camera3p.setTarget(this.avatar.mesh);
     }
   
@@ -526,30 +555,24 @@ export class AvatarController {
     
     this.worldManager.trackMesh(this.movement.movementTracker);
     
-    this.scene.activeCamera = this.world.camera3p;
-    this.scene.activeCamera.attachControl();
+    this.activateCamera(this.world.camera3p);
   }
   
   /** Performs coordinate transformation and other bookkeeping required to switch from 3rd to 1st person camera. */
   firstPerson() {
-    this.scene.activeCamera.detachControl();
+    this.deactivateCamera();
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
     this.scene.onPointerObservable.remove( this.clickHandler );
     this.scene.unregisterBeforeRender(this.movementHandler);
     this.movement.stopTrackingCameraRotation();
 
     this.worldManager.trackMesh(null);
-    if ( this.avatar.parentMesh ) {
-      // video avatar has no parentMesh
-      this.avatar.parentMesh.setEnabled(false);
-    } else {
-      this.avatar.attachToCamera();
-    }
+    this.hideAvatar();
+
     // apply rotation to 1st person camera
     this.world.camera1p.rotation = new BABYLON.Vector3(0,1.5*Math.PI-this.world.camera3p.alpha,0);
 
-    this.scene.activeCamera = this.world.camera1p;
-    this.scene.activeCamera.attachControl();
+    this.activateCamera(this.world.camera1p);
   }
 
   /** Internal: add movement direction */  

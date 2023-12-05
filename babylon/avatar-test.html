@@ -246,14 +246,15 @@ function toggleRest() {
 function selectCamera(radio) {
 	console.log(radio.value);
 	if ( "main" === radio.value ) {
+    world.avatarController.showAvatar();
 		scene.activeCamera = world.camera;
 	} else if ( "1p" === radio.value ) {
-    scene.activeCamera = world.camera1p;
+    world.avatarController.firstPerson();
   } else if ( "3p" === radio.value ) {
-    scene.activeCamera = world.camera3p;
+    world.avatarController.thirdPerson();
     avatarController.movement.startTrackingCameraRotation();
   } else if ( "3p-rot" === radio.value ) {
-    scene.activeCamera = world.camera3p;
+    world.avatarController.thirdPerson();
     avatarController.movement.stopTrackingCameraRotation();
 	}
 	scene.activeCamera.attachControl();
