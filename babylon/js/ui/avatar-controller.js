@@ -653,13 +653,19 @@ export class AvatarController {
 
   /** Default pointer handler, calls moveToTarget on LMB click */
   handleClick(pointerInfo) {
-    if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
-      //console.log(pointerInfo);
+    this.clickTarget = pointerInfo.pickInfo.pickedMesh;
+    if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
+    } else if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
       // LMB: 0, RMB: 2
-      if (pointerInfo.pickInfo.pickedMesh) {
-        if (pointerInfo.event.button == 0 && this.world.getFloorMeshes().includes(pointerInfo.pickInfo.pickedMesh)) {
-          this.movement.moveToTarget(pointerInfo.pickInfo.pickedPoint);
-       }
+      try {
+        if (pointerInfo.pickInfo.pickedMesh && pointerInfo.pickInfo.pickedMesh == this.clickTarget ) {
+          this.clickTarget = null;
+          if (pointerInfo.event.button == 0 && this.world.getFloorMeshes().includes(pointerInfo.pickInfo.pickedMesh)) {
+            this.movement.moveToTarget(pointerInfo.pickInfo.pickedPoint);
+         }
+        }
+      } catch (error) {
+        console.error(error);
       }
     }
   }

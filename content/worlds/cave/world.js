@@ -112,6 +112,20 @@ export class Cave extends World {
     }
   }
   
+  entered(welcome) {
+    super.entered(welcome);
+    if ( this.hasTouchScreen() ) {
+      this.worldManager.remoteLogging = true;
+      console.log("Touchscreen detected, assuming mobile device, remote logging enabled");
+    } else if (this.hasXR) {
+      this.worldManager.remoteLogging = true;
+      console.log("XR capable browser, remote logging enabled");
+    } else {
+      console.log("Looks like PC browser");
+      this.worldManager.remoteLogging = true;
+    }
+  }
+  
   loaded( file, mesh ) {
     // floor editor example (used to create floors in createGround method)
     //this.floor = new FloorRibbon(this.scene);

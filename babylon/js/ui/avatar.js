@@ -689,7 +689,7 @@ export class Avatar {
   reachFor( arm, t ) {
     var upperArm = this.skeleton.bones[arm.upper];
 
-    console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
+    //console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
     // FIXME: take rootMesh.rotationQuaternion into account
     //var totalRot = this.rootMesh.rotationQuaternion.multiply(this.parentMesh.rotationQuaternion);
@@ -715,8 +715,8 @@ export class Avatar {
     targetVector.rotateByQuaternionToRef(rootQuatInv,targetVector);
     targetVector.rotateByQuaternionToRef(worldQuatInv,targetVector);
 
-    console.log("arm vector: "+armVector);
-    console.log("target vector: "+targetVector);
+    //console.log("arm vector: "+armVector);
+    //console.log("target vector: "+targetVector);
     
     // vector pointing down in local space:
     var downVector = new BABYLON.Vector3(0,-1,0);

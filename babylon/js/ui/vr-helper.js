@@ -58,6 +58,7 @@ export class VRHelper {
       // WebXRDefaultExperience class
       console.log("Using XR helper");
       this.vrHelper = xrHelper;
+      world.hasXR = true;
 
       // updating terrain after teleport
       if ( this.movementObserver ) {

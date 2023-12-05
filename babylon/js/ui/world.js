@@ -47,6 +47,8 @@ export class World {
     this.onProgress = null;
     /** WebXR mode indicator, set by VRHelper */
     this.inXR = false;
+    /** WebXR capability indicator, set by VRHelper */
+    this.hasXR = false;
     /** Scene meshes, available once the world loads (in loaded, loadingStop, collisions methods) */
     this.sceneMeshes = null;
     
@@ -262,8 +264,12 @@ export class World {
     
     // disable panning, as it moves avatar/camera1:
     this.camera3p.panningSensibility = 0;
+    // we can also check for
+    // this.camera3p.inputs.attached.pointers.mousewheel
+    // this.camera3p.inputs.attached.pointers.keyboard
     if ( this.hasTouchScreen() ) {
       // assuming mobile
+      this.camera3p.inputs.attached.pointers.pinchPrecision = 100;
     } else {
       // assuming PC, and we're moving using LMB
       this.camera3p.inputs.attached.pointers.buttons = [1,2]; // disable LMB(0)
@@ -643,7 +649,6 @@ export class World {
   async enterWith(avatarUrl, userName) {
     this.worldManager = new WorldManager(this);
     //this.worldManager.debug = true;
-    this.worldManager.remoteLogging = true;
     this.worldManager.enterWith(avatarUrl,userName).then( avatar => {
       avatar.load( () => {
           this.avatarController = new AvatarController(this.worldManager, avatar);
