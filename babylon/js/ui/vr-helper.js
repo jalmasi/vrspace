@@ -101,7 +101,7 @@ export class VRHelper {
             case BABYLON.WebXRState.ENTERING_XR:
               // xr is being initialized, enter XR request was made
               console.log( "Entering VR" );
-              this.world.collisions(false);
+              this.world.collisions(this.world.collisionsEnabledInXR);
               break;
             case BABYLON.WebXRState.EXITING_XR:
               // CHECKME: this doesn't seem to be emitted?

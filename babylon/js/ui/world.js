@@ -35,6 +35,8 @@ export class World {
     this.gravityEnabled = true;
     /** Wheter collisions are enabled, default true */
     this.collisionsEnabled = true;
+    /** Wheter collisions are enabled in XR, default true */
+    this.collisionsEnabledInXR = true; // CHECKME I don't even remember why
     /** Progress indicator */
     this.indicator = null;
     /** Main world camera */

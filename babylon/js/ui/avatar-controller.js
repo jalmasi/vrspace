@@ -232,7 +232,7 @@ class AvatarMovement {
   }
 
   stopMovement() {
-    //console.log("Movement stopped");
+    console.log("Movement stopped");
     this.stop();
     this.startAnimation(this.animation.idle());
     this.controller.sendAnimation(this.animation.idle().group, true);
@@ -291,7 +291,7 @@ class AvatarMovement {
     this.movementTarget = new BABYLON.Vector3(point.x, point.y, point.z);
     this.direction = this.movementTarget.subtract(avatarMesh.position);
     //this.stopTrackingCameraRotation();
-    //console.log("moving to target ", point, " direction "+this.direction);
+    console.log("moving to target ", point, " direction "+this.direction);
     
     // all of below is about avatar rotation
     // none of it needed for avatar in billboard mode (e.g. video avatar)
@@ -335,7 +335,8 @@ class AvatarMovement {
   }
 
   moveAvatar() {
-    if ( this.world.scene.activeCamera !== this.world.camera3p 
+    if ( this.world.scene.activeCamera === this.world.camera1p
+      // this.world.scene.activeCamera !== this.world.camera3p // disables movement in XR 
        //|| (this.movingDirections == 0 && !this.movingToTarget) // disables free fall
       )
     {
@@ -442,6 +443,7 @@ export class AvatarController {
     this.movementHandler = () => this.movement.moveAvatar();
     this.clickHandler = (pointerInfo) => this.handleClick(pointerInfo);
     
+    this.activeCamera = null;
     // CHECKME: unless we call firstPerson here, first call to thirdPerson turns camera wildly
     let tmp = this.scene.activeCamera;
     this.firstPerson();
@@ -516,10 +518,16 @@ export class AvatarController {
       this.scene.activeCamera = camera;
       this.scene.activeCamera.attachControl();
     } else {
-      // TODO XR:
-      // disable teleportation
-      this.scene.activeCamera.setTransformationFromNonVRCamera();
+      let pos = camera.position;
+      console.log("Applying coordinates: "+pos);
+      //this.world.vrHelper.camera().setTransformationFromNonVRCamera(camera);
+      this.world.vrHelper.camera().position.x = pos.x;
+      this.world.vrHelper.camera().position.y = pos.y;
+      this.world.vrHelper.camera().position.z = pos.z;
+      // TODO 
+      //this.world.vrHelper.camera().rotationQuaternion = this.world.camera1p.rotationQuaternion.clone();
     }
+    this.activeCamera = camera;
   }
   
   showAvatar() {
@@ -541,11 +549,23 @@ export class AvatarController {
   
   /** Performs coordinate transformation and other bookkeeping required to switch from 1st to 3rd person camera. */
   thirdPerson() {
+    if ( this.activeCamera == this.world.camera3p ) {
+      return;
+    }
     this.deactivateCamera();
-    let y = this.world.camera1p.position.y - this.world.camera1p.ellipsoid.y*2 + this.world.camera1p.ellipsoidOffset.y;
     this.showAvatar();
+    // video avatar has no parentMesh
     if ( this.avatar.parentMesh ) {
-      // video avatar has no parentMesh
+      // TODO XR camera position
+      let camera = this.world.camera1p;
+      if ( this.world.inXR ) {
+        camera = this.world.vrHelper.camera();
+        let pos = this.world.vrHelper.camera().position;
+        this.world.camera1p.position.x = pos.x;
+        this.world.camera1p.position.y = pos.y + this.world.vrHelper.camera().ellipsoid.y*2-this.world.vrHelper.camera().ellipsoidOffset.y;
+        this.world.camera1p.position.z = pos.z;
+      } 
+      let y = camera.position.y - camera.ellipsoid.y*2 + camera.ellipsoidOffset.y;
       this.avatar.parentMesh.position = new BABYLON.Vector3(this.world.camera1p.position.x, y, this.world.camera1p.position.z);
       this.world.camera3p.setTarget(this.avatar.headPosition);
       this.movement.startTrackingCameraRotation();
@@ -554,7 +574,8 @@ export class AvatarController {
     }
   
     this.world.camera3p.alpha = 1.5*Math.PI-this.world.camera1p.rotation.y;
-  
+    this.world.camera3p.computeWorldMatrix();
+
     this.scene.onKeyboardObservable.add(this.keyboardHandler);
     this.scene.onPointerObservable.add(this.clickHandler);
     this.scene.registerBeforeRender(this.movementHandler);
@@ -568,6 +589,9 @@ export class AvatarController {
   
   /** Performs coordinate transformation and other bookkeeping required to switch from 3rd to 1st person camera. */
   firstPerson() {
+    if ( this.activeCamera == this.world.camera1p ) {
+      return;
+    }
     this.deactivateCamera();
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
     this.scene.onPointerObservable.remove( this.clickHandler );
@@ -576,6 +600,16 @@ export class AvatarController {
 
     this.worldManager.trackMesh(null);
     this.hideAvatar();
+
+    if ( this.world.inXR ) {
+      let pos = this.movement.movementTracker.position;
+      this.world.camera1p.position.x = pos.x;
+      this.world.camera1p.position.y = pos.y + this.world.vrHelper.camera().ellipsoid.y*2-this.world.vrHelper.camera().ellipsoidOffset.y;
+      this.world.camera1p.position.z = pos.z;
+      // messes up pretty much everything
+      //let rotY = this.movement.movementTracker.rotation.y;
+      //this.world.vrHelper.camera().rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
+    }
 
     // apply rotation to 1st person camera
     this.world.camera1p.rotation = new BABYLON.Vector3(0,1.5*Math.PI-this.world.camera3p.alpha,0);
@@ -659,8 +693,8 @@ export class AvatarController {
 
   /** Default pointer handler, calls moveToTarget on LMB click */
   handleClick(pointerInfo) {
-    this.clickTarget = pointerInfo.pickInfo.pickedMesh;
     if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
+      this.clickTarget = pointerInfo.pickInfo.pickedMesh;
     } else if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
       // LMB: 0, RMB: 2
       try {
@@ -679,7 +713,7 @@ export class AvatarController {
   /** Cleanup, CHECKME */
   dispose() {
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
-    this.scene.onPointerObservable.remove( this.clickHandler );
+    this.scene.onPointerObservable.remove(this.clickHandler);
     this.scene.unregisterBeforeRender(this.movementHandler);
     this.movement.dispose();
   }
