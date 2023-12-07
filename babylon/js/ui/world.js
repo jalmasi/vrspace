@@ -205,13 +205,10 @@ export class World {
   /**
   Utility method, creates a UniversalCamera and sets defaults: gravity, collisions, ellipsoid, keys.
   @param pos Vector3 to position camera at
-  @param name optional camera name, default 1st Person Camera
+  @param name optional camera name, default Universal Camera
    */
-  universalCamera(pos, name) {
-    if ( !name ) {
-      name = "1st Person Camera";
-    } 
-    var camera = new BABYLON.UniversalCamera(name, pos, this.scene);
+  universalCamera(pos, name = "Universal Camera") {
+    let camera = new BABYLON.UniversalCamera(name, pos, this.scene);
     camera.maxZ = 100000;
     camera.minZ = 0;
     camera.applyGravity = true;
@@ -230,20 +227,34 @@ export class World {
     
     camera.touchAngularSensitivity = 5000;
 
+    return camera;
+  }
+  
+  /**
+  Utility method, calls this.universalCamera with given parameters, and sets the camera speed function.
+  Original Babylon.js camera speed function takes FPS into account, but does not mean anything really.
+  This one attempts to approximate meters per second, and is computationally cheaper.
+  See https://forum.babylonjs.com/t/does-camera-speed-vary-depending-on-fps-performance/20802
+  @param pos Vector3 to position camera at
+  @param name optional camera name, default First Person Camera
+   */
+  firstPersonCamera(pos, name = "First Person Camera") {
+    let camera = this.universalCamera( pos, name );
     /*
-    // this actually makes camera speed real
+    // debug existing func
     console.log(camera._computeLocalCameraSpeed);
-    camera._computeLocalCameraSpeed = () => { return camera.speed * this.engine.getDeltaTime()/1000 };
-    
     setInterval(() => {
       console.log("engine delta: "+this.engine.getDeltaTime()+" fps "+this.engine.getFps());
     }, 5000);
     */
-   
+    // this actually makes camera speed real
+    camera._computeLocalCameraSpeed = () => { return camera.speed * this.engine.getDeltaTime()*0.001};
+    
     return camera;
   }
 
-  /** Utility method, creates 3rd person camera.
+  /** 
+   * Utility method, creates 3rd person camera.
    * Requires 1st person UniversalCamera already set, and sets rotation and direction based on it.
    * @param camera1p 1st person UniversalCamera, defaults to this.camera
    * @returns created 3rd person ArcRotateCamera this.camera3p

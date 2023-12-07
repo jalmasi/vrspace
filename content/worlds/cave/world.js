@@ -3,9 +3,9 @@ import { World, FloorRibbon } from '../../../babylon/js/vrspace-min.js';
 export class Cave extends World {
   async createCamera() {
     //this.camera = this.universalCamera(new BABYLON.Vector3(-44.5, 18, 24.5));
-    this.camera = this.universalCamera(new BABYLON.Vector3(-44.5, 6, 24.5));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(-44.5, 6, 24.5));
     this.camera.setTarget(new BABYLON.Vector3(-54.5,4,-33));
-    this.camera.speed = 0.3;
+    this.camera.speed = 0.5;
     this.thirdPersonCamera();
   }
   async createLights() {
@@ -15,7 +15,7 @@ export class Cave extends World {
     return light2;
   }
   async createPhysics() {
-    this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
+    this.scene.gravity = new BABYLON.Vector3(0, -0.05, 0);
   }
   async createGround(engine) {
 

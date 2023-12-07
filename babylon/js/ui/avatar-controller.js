@@ -413,6 +413,7 @@ E.g. when position changes, it sends 'walk' animation, if current avatar has ani
 User stops, it sends 'idle' animation, if current avatar has animation named 'idle', 
 so all other users see this avatar moving and idling.
 Provides methods to switch between 1st and 3rd person view, and manages movement of own avatar.
+Use World.firstPersonCamera() and World.thirdPersonCamera() to ensure equal movement speeds.
  */
 export class AvatarController {
   constructor( worldManager, avatar ) {
