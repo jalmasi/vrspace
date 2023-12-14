@@ -151,23 +151,28 @@ export class VRHelper {
       if ( !this.controllerObserver ) {
         // actual class is WebXRInputSource
         this.controllerObserver = (xrController) => {
-          console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
-          this.clearPointer();
-          VRSPACEUI.hud.allowSelection = true;
-          if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
-            this.controller.left = xrController;
-            xrController.onMotionControllerInitObservable.add((motionController) => {
-              console.log('left motion controller:',motionController.getComponentIds());
-              this.trackMotionController(motionController ,'left');
-            });
-          } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
-            this.controller.right = xrController;
-            xrController.onMotionControllerInitObservable.add((motionController) => {
-              console.log('right motion controller:',motionController.getComponentIds());
-              this.trackMotionController(motionController ,'right');
-            });
+          if ( xrController.grip ) {
+            console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
+            this.clearPointer();
+            VRSPACEUI.hud.allowSelection = true;
+            if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
+              this.controller.left = xrController;
+              xrController.onMotionControllerInitObservable.add((motionController) => {
+                console.log('left motion controller:',motionController.getComponentIds());
+                this.trackMotionController(motionController ,'left');
+              });
+            } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
+              this.controller.right = xrController;
+              xrController.onMotionControllerInitObservable.add((motionController) => {
+                console.log('right motion controller:',motionController.getComponentIds());
+                this.trackMotionController(motionController ,'right');
+              });
+            } else {
+              log("ERROR: don't know how to handle controller");
+            }
           } else {
-            log("ERROR: don't know how to handle controller");
+            // apparently grip can be null on mobile device(s)
+            console.log("Cannot handle xr controller device", xrController);
           }
         };
         xrHelper.input.onControllerAddedObservable.add(this.controllerObserver);
