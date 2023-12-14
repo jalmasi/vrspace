@@ -95,6 +95,9 @@ export class World {
   async init(engine, name, scene, callback, baseUrl, file) {
     this.canvas = engine.getInputElement();
     this.engine = engine;
+    // workaround for android chrome 120.0.6099.43 bug, see
+    // https://forum.babylonjs.com/t/problems-on-chrome-mobile-since-december-7th-2023/46288/16
+    engine.disableUniformBuffers = true
     if ( name ) {
       this.name = name;
     }
