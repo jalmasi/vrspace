@@ -437,7 +437,9 @@ export class AvatarSelection extends World {
     loaded.userHeight = this.userHeight;
     loaded.animateArms = false;
     loaded.debug = this.debug;
-    loaded.load( (c) => {
+    loaded.load( (c) => 
+    {
+      // on success
       this.removeVideoAvatar();
       this.tracking = true;
       this.indicator.remove(dir);
@@ -452,7 +454,10 @@ export class AvatarSelection extends World {
         this.selectionCallback(this.character);
       }
       this.checkValidName(); // conditionally enables portals
-    });
+    },
+    // on error
+    () => this.indicator.remove(dir)
+    );
   }
 
   setMyName(name) {

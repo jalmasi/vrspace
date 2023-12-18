@@ -613,7 +613,9 @@ export class AvatarController {
     }
 
     // apply rotation to 1st person camera
-    this.world.camera1p.rotation = new BABYLON.Vector3(0,1.5*Math.PI-this.world.camera3p.alpha,0);
+    if ( this.world.camera3p ) {
+      this.world.camera1p.rotation = new BABYLON.Vector3(0,1.5*Math.PI-this.world.camera3p.alpha,0);
+    }
 
     this.activateCamera(this.world.camera1p);
   }
