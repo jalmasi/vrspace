@@ -205,9 +205,7 @@ export class MediaStreams {
   attachAudioStream(mesh, mediaStream) {
     var audioTracks = mediaStream.getAudioTracks();
     if ( audioTracks && audioTracks.length > 0 ) {
-      console.log("Attaching audio stream to mesh "+mesh.id);
-      // see details of
-      // https://forum.babylonjs.com/t/sound-created-with-a-remote-webrtc-stream-track-does-not-seem-to-work/7047/6
+      // console.log("Attaching audio stream to mesh "+mesh.id);
       var voice = new BABYLON.Sound(
         "voice",
         mediaStream,
@@ -221,12 +219,6 @@ export class MediaStreams {
           panningModel: "equalpower" // or "HRTF"
         });
       voice.attachToMesh(mesh);
-      
-      var ctx = voice._inputAudioNode.context;
-      var gainNode = voice.getSoundGain();
-      voice._streamingSource.connect(voice._soundPanner);
-      voice._soundPanner.connect(gainNode);
-      gainNode.connect(ctx.destination);      
     }
   }
   
