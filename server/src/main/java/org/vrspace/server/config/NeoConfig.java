@@ -16,7 +16,6 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.FileSystemUtils;
@@ -25,17 +24,20 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Starts embedded Neo4J with database in directory specified in org.vrspace.db
- * property - only if the property is set.
+ * property - only if the property is set. Otherwise, database connection is
+ * controlled by the framework, and spring.neo4j.uri,
+ * spring.neo4j.authentication.username and spring.neo4j.authentication.password
+ * properties.
  * 
  * @author joe
  *
  */
 @Slf4j
 @Configuration
-@ConditionalOnProperty("org.vrspace.db")
+//@ConditionalOnProperty("org.vrspace.db")
 public class NeoConfig {
   /** Directory containing embedded database, property org.vrspace.db */
-  @Value("${org.vrspace.db}")
+  @Value("${org.vrspace.db:#{null}}")
   private String dbPath;
   /**
    * Recursive removal database directory on startup and shutdown, used in tests.
@@ -57,13 +59,18 @@ public class NeoConfig {
   @Bean("database")
   GraphDatabaseService config() throws URISyntaxException, IOException {
     String path = dbPath;
-    log.info("Configured database uri: " + path);
-    path = path.replace('\\', '/');
-    URI uri = new URI(path);
-    dbDir = new File(uri.getSchemeSpecificPart()).getCanonicalFile().getAbsoluteFile();
-    log.info("Absolute database path: " + dbDir);
-    neoStart(dbDir.toPath());
-    return graphDb;
+    if (path == null) {
+      log.info("Using external database uri: " + neoUri);
+      return null;
+    } else {
+      log.info("Configured database uri: " + path);
+      path = path.replace('\\', '/');
+      URI uri = new URI(path);
+      dbDir = new File(uri.getSchemeSpecificPart()).getCanonicalFile().getAbsoluteFile();
+      log.info("Absolute database path: " + dbDir);
+      neoStart(dbDir.toPath());
+      return graphDb;
+    }
   }
 
   private void neoStart(Path dbDir) {
