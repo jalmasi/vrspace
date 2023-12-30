@@ -37,7 +37,7 @@ export class LoadProgressIndicator {
     });
     this.scene.onActiveCameraChanged.add( () => {
       if ( this.scene.activeCamera ) {
-        console.log("Camera changed: "+this.scene.activeCamera.getClassName());
+        //console.log("Camera changed: "+this.scene.activeCamera.getClassName());
         this.attachTo(camera); // FIXME undefined
       }
     });

@@ -70,6 +70,7 @@ export class HUD {
    */
   trackCamera() {
     console.log("HUD tracking camera: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
+    console.log("Camera inputs:", this.scene.activeCamera.inputs.attached);
     this.camera = this.scene.activeCamera;
     this.rescaleHUD();
     if ( this.camera ) {

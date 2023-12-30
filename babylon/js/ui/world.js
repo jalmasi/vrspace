@@ -290,6 +290,19 @@ export class World {
       // assuming PC, and we're moving using LMB
       this.camera3p.inputs.attached.pointers.buttons = [1,2]; // disable LMB(0)
     }
+    
+    // gamepad support
+    // https://forum.babylonjs.com/t/gamepad-controller/34409
+    // this actually works only the first time
+    // select 1p then 3p cam again, and no gamepad input
+    const gamepadManager = new BABYLON.GamepadManager();
+    gamepadManager.onGamepadConnectedObservable.add((gamepad, state) => {
+      this.camera3p.inputs.add(new BABYLON.ArcRotateCameraGamepadInput());
+      //this.camera3p.inputs.attached.gamepad.gamepadAngularSensibility = 250;
+      this.camera3p.inputs.addGamepad();
+      this.gamepad = gamepad;
+    });
+        
     return this.camera3p;
   }
   
@@ -303,6 +316,10 @@ export class World {
     if ( this.camera ) {
       this.camera.dispose();
       this.camera = null;    
+    }
+    if ( this.camera3p ) {
+      this.camera3p.dispose();
+      this.camera3p = null;    
     }
     if ( this.skyBox ) {
       this.skyBox.dispose();
