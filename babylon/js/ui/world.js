@@ -305,13 +305,63 @@ export class World {
         this.gamepadInput.gamepad = gamepadManager.gamepads[0];
       }
     }
+    // we want to invert X axis, and disable Y, so we have same controls in 1st and 3rd person mode
+    // so we override checkInputs
+    // https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/Inputs/arcRotateCameraGamepadInput.ts
+    this.gamepadInput.checkInputs = () => {
+      const camera = this.camera3p;
+      const rsValues = this.gamepad.rightStick;
+
+      if (rsValues) {
+        if (rsValues.x != 0) {
+          const normalizedRX = rsValues.x / this.gamepadInput.gamepadRotationSensibility;
+          if (normalizedRX != 0 && Math.abs(normalizedRX) > 0.005) {
+            camera.inertialAlphaOffset -= normalizedRX;
+          }
+        }
+
+        if (rsValues.y != 0) {
+          const normalizedRY = (rsValues.y / this.gamepadInput.gamepadRotationSensibility) * this.gamepadInput._yAxisScale;
+          if (normalizedRY != 0 && Math.abs(normalizedRY) > 0.005) {
+            camera.inertialBetaOffset += normalizedRY;
+          }
+        }
+      }
+
+      // zoom in and out with left up/down
+      const buttonUp = this.gamepad.browserGamepad.buttons[12];
+      const buttonDown = this.gamepad.browserGamepad.buttons[13];
+      
+      if ( buttonUp && buttonUp.pressed ) {
+        const normalizedLY = 1 / this.gamepadInput.gamepadMoveSensibility;
+        if (normalizedLY != 0 && Math.abs(normalizedLY) > 0.005) {
+            this.camera3p.inertialRadiusOffset += normalizedLY;
+        }
+      }
+      
+      if ( buttonDown && buttonDown.pressed ) {
+        const normalizedLY = 1 / this.gamepadInput.gamepadMoveSensibility;
+        if (normalizedLY != 0 && Math.abs(normalizedLY) > 0.005) {
+            this.camera3p.inertialRadiusOffset -= normalizedLY;
+        }
+      }      
+      
+    }
+    
     gamepadManager.onGamepadConnectedObservable.add((gamepad, state) => {
-      this.camera3p.inputs.add(this.gamepadInput);
-      //this.camera3p.inputs.attached.gamepad.gamepadAngularSensibility = 250;
-      this.camera3p.inputs.addGamepad();
-      this.gamepad = gamepad;
+      if ( ! this.gamepad ) {
+        this.gamepad = gamepad;
+        this.camera3p.inputs.add(this.gamepadInput);
+        //this.camera3p.inputs.attached.gamepad.gamepadAngularSensibility = 250;
+        this.camera3p.inputs.addGamepad();
+        gamepad.onleftstickchanged( (stickValues) => {
+          if ( this.avatarController ) {
+            this.avatarController.processGamepadStick(stickValues);
+          }
+        });
+      }
     });
-        
+
     return this.camera3p;
   }
   

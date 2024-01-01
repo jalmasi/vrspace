@@ -548,6 +548,25 @@ export class AvatarController {
     }
   }
   
+  processGamepadStick(stickValues) {
+    if ( stickValues.y > 0.1 ) {
+      this.movement.addVector("back");
+    } else if ( stickValues.y < -0.1 ) {
+      this.movement.addVector("forward");
+    } else {
+      this.movement.removeVector("forward");
+      this.movement.removeVector("back");
+    }
+    if ( stickValues.x > 0.1 ) {
+      this.movement.addVector("right");
+    } else if ( stickValues.x < -0.1 ) {
+      this.movement.addVector("left");
+    } else {
+      this.movement.removeVector("left");
+      this.movement.removeVector("right");
+    }
+  }
+  
   /** Performs coordinate transformation and other bookkeeping required to switch from 1st to 3rd person camera. */
   thirdPerson() {
     if ( this.activeCamera == this.world.camera3p ) {
