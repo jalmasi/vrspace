@@ -295,9 +295,18 @@ export class World {
     // https://forum.babylonjs.com/t/gamepad-controller/34409
     // this actually works only the first time
     // select 1p then 3p cam again, and no gamepad input
-    const gamepadManager = new BABYLON.GamepadManager();
+    const gamepadManager = this.scene.gamepadManager;
+    this.gamepadInput = new BABYLON.ArcRotateCameraGamepadInput();
+    // so this is the workaround, also explained on the forum
+    const oldAttach = this.gamepadInput.attachControl;
+    this.gamepadInput.attachControl = () => {
+      oldAttach;
+      if (!this.gamepadInput.gamepad && gamepadManager.gamepads.length ) {
+        this.gamepadInput.gamepad = gamepadManager.gamepads[0];
+      }
+    }
     gamepadManager.onGamepadConnectedObservable.add((gamepad, state) => {
-      this.camera3p.inputs.add(new BABYLON.ArcRotateCameraGamepadInput());
+      this.camera3p.inputs.add(this.gamepadInput);
       //this.camera3p.inputs.attached.gamepad.gamepadAngularSensibility = 250;
       this.camera3p.inputs.addGamepad();
       this.gamepad = gamepad;
