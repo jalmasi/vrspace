@@ -74,8 +74,12 @@ export class MediaStreams {
   }
 
   async shareScreen(endCallback) {
-    var screenPublisher = this.OV.initPublisher(this.htmlElementName, 
-    { videoSource: "screen", audioSource: this.audioSource, publishAudio: this.publishAudio });
+    // do NOT share audio with the screen - already shared
+    var screenPublisher = this.OV.initPublisher(this.htmlElementName, { 
+      videoSource: "screen", 
+      audioSource: false, 
+      publishAudio: false 
+    });
     
     return new Promise( (resolve, reject) => {
     
