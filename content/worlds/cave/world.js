@@ -128,7 +128,7 @@ export class Cave extends World {
   
   loaded( file, mesh ) {
     // floor editor example (used to create floors in createGround method)
-    //this.floor = new FloorRibbon(this.scene);
+    //this.floor = new FloorRibbon(this);
     //this.floor.showUI();
     
     // make all meshes non-pickable, we react only on floor mesh selection

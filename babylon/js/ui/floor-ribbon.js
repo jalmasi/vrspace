@@ -6,12 +6,13 @@ UI Buttons are bound to current camera.
  */
 export class FloorRibbon {
   /**
-  @param scene
+  @param world a World to show in
   @param size floor size, default 1 m
   */
-  constructor( scene, size ) {
+  constructor( world, size ) {
     // parameters
-    this.scene = scene;
+    this.world = world;
+    this.scene = world.scene;
     if ( size ) {
       this.size = size;
     } else {
@@ -35,6 +36,9 @@ export class FloorRibbon {
     this.editing = false;
     this.resizing = false;
     this.floorCount = 0;
+    this.contentBase=VRSPACEUI.contentBase;
+    // required for Scene.pointerMovePredicate, resizing the ribbon
+    this.world.addSelectionPredicate(mesh=>this.isSelectableMesh(mesh));
   }
   cameraChanged() {
     console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
@@ -159,6 +163,9 @@ export class FloorRibbon {
     floorMesh.material = this.floorMaterial;
     floorMesh.checkCollisions = false;
     this.floorMesh = floorMesh;
+  }
+  isSelectableMesh(mesh) {
+    return mesh && this.floorMesh && this.floorMesh == mesh;
   }
   clear(){
     delete this.floorMesh;
