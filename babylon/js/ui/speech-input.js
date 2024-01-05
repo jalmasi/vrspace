@@ -7,7 +7,7 @@ export class SpeechInput {
   static instances = [];
   static enabled = true;
   static active = false;
-  static android = (navigator.userAgent.toLowerCase().indexOf('android') > -1);
+  static android = (typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('android') > -1);
   static touchListener = null;
   static mediaStreams = null;
   constructor() {

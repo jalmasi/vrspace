@@ -489,9 +489,11 @@ export class VRSpaceUI {
 
 export let VRSPACEUI;
 
-if (window.VRSPACEUI === undefined) {
-  VRSPACEUI = new VRSpaceUI();
-  window.VRSPACEUI=VRSPACEUI;
-} else {
-  VRSPACEUI = window.VRSPACEUI;
+if ( typeof window !== 'undefined' ) {
+  if (window.VRSPACEUI === undefined) {
+    VRSPACEUI = new VRSpaceUI();
+    window.VRSPACEUI=VRSPACEUI;
+  } else {
+    VRSPACEUI = window.VRSPACEUI;
+  }
 }

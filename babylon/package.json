@@ -1,8 +1,9 @@
 {
-  "name": "vrspace-babylon",
-  "version": "1.0.0",
+  "name": "@vrspace/babylonjs",
+  "version": "0.0.1",
   "description": "vrspace.org babylonjs client",
-  "main": "index.js",
+  "type": "module",
+  "main": "index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,6 +13,7 @@
   },
   "keywords": [
     "multiuser",
+    "VR",
     "3D",
     "javascript",
     "WebXR"
