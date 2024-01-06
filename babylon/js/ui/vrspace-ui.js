@@ -450,13 +450,18 @@ export class VRSpaceUI {
   */
   async loadScriptsToDocument(urls, parallel) {
     if ( Array.isArray(urls) ) {
-      urls.forEach((url) => this.scriptLoader.add(url));
+      urls.forEach((url) => this.addScript(url));
     } else {
-      this.scriptLoader.add(urls);
+      this.addScript(urls);
     }
     return this.scriptLoader.load(parallel);
   }
-  
+  addScript(url) {
+    if ( url.startsWith('/') && this.contentBase ) {
+      url = this.contentBase+url;
+    }
+    this.scriptLoader.add(url);
+  }
   /**
   Utility method - returns the top parent node in hierarchy
    */

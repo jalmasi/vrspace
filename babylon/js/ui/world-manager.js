@@ -304,6 +304,9 @@ export class WorldManager {
    * @param url URL to load avatar from 
    */  
   async createAvatarFromUrl(url) {
+    if ( url.startsWith('/') && VRSPACEUI.contentBase ) {
+      url = VRSPACEUI.contentBase+url;
+    }
     var pos = url.lastIndexOf('/');
     var path = url.substring(0,pos);
     var file = url.substring(pos+1);

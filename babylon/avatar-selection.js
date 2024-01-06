@@ -636,8 +636,8 @@ export class AvatarSelection extends World {
           var x = Math.sin(angle)*radius;
           var z = Math.cos(angle)*radius;
           // heavy performance impact
-          //new Portal( scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
-          var portal = new Portal( scene, worlds[i], (p)=>this.enterPortal(p));
+          //new Portal( this.scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
+          var portal = new Portal( this.scene, worlds[i], (p)=>this.enterPortal(p));
           this.portals[portal.name] = portal;
           portal.loadAt( x,0,z, angle);
           angle += angleIncrement;

@@ -139,7 +139,7 @@ export class SpeechInput {
         this.constructor.instances[this.constructor.instances.length -1].start();
       }
     }
-    if (annyang) {
+    if (typeof annyang !=='undefined' && annyang) {
       this.stop();
       if ( this.commands ) {
         // annyang expects array of phrases as argument

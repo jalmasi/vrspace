@@ -1,6 +1,6 @@
 {
   "name": "@vrspace/babylonjs",
-  "version": "0.0.2",
+  "version": "0.0.11",
   "description": "vrspace.org babylonjs client",
   "type": "module",
   "main": "index.mjs",
@@ -30,11 +30,12 @@
     "webpack-node-externals": "^2.5.2"
   },
   "dependencies": {
-    "babylonjs": "^4.2.0",
-    "babylonjs-gui": "^4.2.0",
-    "babylonjs-loaders": "^4.2.0",
-    "babylonjs-materials": "^4.2.0",
-    "babylonjs-post-process": "^4.2.0",
-    "babylonjs-procedural-textures": "^4.2.0"
+    "babylonjs": "^6.0.0",
+    "babylonjs-gui": "^6.0.0",
+    "babylonjs-loaders": "^6.0.0",
+    "babylonjs-materials": "^6.0.0",
+    "babylonjs-post-process": "^6.0.0",
+    "babylonjs-procedural-textures": "^6.0.0",
+    "babylonjs-inspector": "^6.0.0"
   }
 }

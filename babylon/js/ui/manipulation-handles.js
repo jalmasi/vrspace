@@ -1,3 +1,5 @@
+import { VRSPACEUI } from "./vrspace-ui";
+
 /**
  * Plane manipulation UI: adds handles around a plane, and installs pointer drag observable to the scene.
  * Top and bottom handles are used to move the plane around, with 6DOF.
@@ -74,7 +76,7 @@ export class ManipulationHandles {
       this.box.position = new BABYLON.Vector3(-this.width/2-this.width/20, -this.height/2-this.height/20, 0);
       this.box.parent = this.group;
       this.box.material = this.material.clone();
-      this.box.material.diffuseTexture = new BABYLON.Texture("/content/icons/minimize.png", this.scene);
+      this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/minimize.png", this.scene);
       this.box.material.diffuseTexture.hasAlpha = true;
       this.box.material.emissiveColor = BABYLON.Color3.White();
     }
