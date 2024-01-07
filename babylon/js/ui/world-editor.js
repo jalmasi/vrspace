@@ -79,7 +79,7 @@ export class WorldEditor {
     world.vrHelper.addSqueezeConsumer(this.squeeze);
   }
   endpoint() {
-    return "/vrspace/api/sketchfab";
+    return VRSPACEUI.contentBase+"/vrspace/api/sketchfab";
   }
   /**
   Creates the search panel, called from constructor

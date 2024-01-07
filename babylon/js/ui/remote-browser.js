@@ -1,5 +1,6 @@
 import { ImageArea } from './image-area.js';
 import { InputForm } from './input-form.js';
+import { VRSPACEUI } from './vrspace-ui.js';
 
 export class RemoteBrowser extends ImageArea {
   constructor(scene) {
@@ -11,7 +12,7 @@ export class RemoteBrowser extends ImageArea {
     this.inputForm = new InputForm("Enter");
   }
   endpoint() {
-    return "/vrspace/api/webbrowser"
+    return VRSPACEUI.contentBase+"/vrspace/api/webbrowser"
   }
   async available() {
     let response = await fetch(this.endpoint()+"/available")

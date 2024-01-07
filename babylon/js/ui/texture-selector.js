@@ -34,7 +34,7 @@ export class TextureSelector {
     this.textures = null;
   }
   endpoint() {
-    return "/vrspace/api/textures";
+    return VRSPACEUI.contentBase+"/vrspace/api/textures";
   }
   doFetch(url) {
       fetch(url).then(response => {
