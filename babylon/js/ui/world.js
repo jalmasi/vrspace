@@ -53,6 +53,8 @@ export class World {
     this.hasXR = false;
     /** Scene meshes, available once the world loads (in loaded, loadingStop, collisions methods) */
     this.sceneMeshes = null;
+    /** Terrain, optionally created in createTerrain() */
+    this.terrain = null;
     
     /** Handy reference to VRSpaceUI */
     this.VRSPACEUI = VRSPACEUI;

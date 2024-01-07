@@ -62,7 +62,7 @@ export class PersianCity extends World {
     // Register a render loop to repeatedly render the scene
     var camera = this.camera;
     this.engine.runRenderLoop(() => {
-      if ( this.terrain.isCreated() ) {
+      if ( this.terrain && this.terrain.isCreated() ) {
         //if ( vrHelper.currentVRCamera.position.x > -150 && vrHelper.currentVRCamera.position.x < 150 && vrHelper.currentVRCamera.position.z >= -150 && vrHelper.currentVRCamera.position.z <= 150 ) {
         //if ( camera.position.x > -150 && camera.position.x < 150 && camera.position.z >= -150 && camera.position.z <= 150 ) {
         if ( camera.globalPosition.x > -150 && camera.globalPosition.x < 150 && camera.globalPosition.z >= -150 && camera.globalPosition.z <= 150 ) {

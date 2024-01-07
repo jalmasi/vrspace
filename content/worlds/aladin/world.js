@@ -99,7 +99,7 @@ export class Aladinville extends World {
     var camera = this.camera;
     // Register a render loop to repeatedly render the scene
     this.engine.runRenderLoop(() => {
-      if ( this.terrain.isCreated()) {
+      if ( this.terrain && this.terrain.isCreated()) {
         if ( camera.globalPosition.x > -20 && camera.globalPosition.x < 20 && camera.globalPosition.z >= -20 && camera.globalPosition.z <= 25 ) {
           this.terrain.enabled(false);
         } else {
@@ -113,8 +113,8 @@ export class Aladinville extends World {
   }
   
   createTerrain() {
-    this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", scene)
-    var terrainTexture = new BABYLON.Texture(this.assetPath("textures/sand_houseslambert12_baseColor.png"), scene);
+    this.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", this.scene)
+    var terrainTexture = new BABYLON.Texture(this.assetPath("textures/sand_houseslambert12_baseColor.png"), this.scene);
     this.terrainMaterial.ambientTexture = terrainTexture;
     this.terrainMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     terrainTexture.uScale = 1;
