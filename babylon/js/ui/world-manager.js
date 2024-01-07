@@ -304,6 +304,7 @@ export class WorldManager {
    * @param url URL to load avatar from 
    */  
   async createAvatarFromUrl(url) {
+    // CHECKME: move this to asset loader?
     if ( url.startsWith('/') && VRSPACEUI.contentBase ) {
       url = VRSPACEUI.contentBase+url;
     }
@@ -468,6 +469,10 @@ export class WorldManager {
     if ( ! obj.mesh ) {
       console.log("Null mesh of client "+obj.id);
       return;
+    }
+    // CHECKME: do this in AssetLoader?
+    if ( obj.mesh.startsWith('/') && VRSPACEUI.contentBase ) {
+      obj.mesh = VRSPACEUI.contentBase+obj.mesh;
     }
     VRSPACEUI.assetLoader.loadObject(obj, (mesh) => {
       this.log("loaded "+obj.mesh);
