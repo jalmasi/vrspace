@@ -151,9 +151,9 @@ export class ManipulationHandles {
       });
       this.minimized = flag;
       if ( this.minimized ) {
-        this.box.material.diffuseTexture = new BABYLON.Texture("/content/icons/maximize.png", this.scene);
+        this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/maximize.png", this.scene);
       } else {
-        this.box.material.diffuseTexture = new BABYLON.Texture("/content/icons/minimize.png", this.scene);
+        this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/minimize.png", this.scene);
       }
     }
   }

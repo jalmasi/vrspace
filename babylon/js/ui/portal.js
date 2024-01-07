@@ -26,7 +26,7 @@ export class Portal {
     this.controls = [];
     this.textures = [];
     this.materials = [];
-    this.soundUrl = "/babylon/portal/couchhero_portal-idle.mp3";
+    this.soundUrl = VRSPACEUI.contentBase+"/babylon/portal/couchhero_portal-idle.mp3";
     this.soundDistance = 5;
     this.soundVolume = .5;
     

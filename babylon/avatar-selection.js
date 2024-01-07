@@ -2,7 +2,7 @@ import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, Vide
 
 // this is supposed to evolve into stand-alone REST client class
 class VRSpaceAPI {
-  base = "/vrspace/api";
+  base = VRSPACEUI.contentBase+"/vrspace/api";
   endpoint = {
     worlds : this.base+"/worlds",
     user : this.base+"/user",
