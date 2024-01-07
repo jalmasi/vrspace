@@ -28,7 +28,7 @@ export class SkyboxSelector {
     manager.addControl(this.panel);
     this.panel.linkToTransformNode(anchor);
 
-    VRSPACEUI.listMatchingFiles("/content/skybox/", list => {
+    VRSPACEUI.listMatchingFiles(VRSPACEUI.contentBase+"/content/skybox/", list => {
       // list is ServerFolder array
       list.forEach( sf => {
         // sf is ServerFolder object
