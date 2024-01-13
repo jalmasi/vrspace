@@ -363,6 +363,7 @@
             </executions>
             <configuration>
               <additionalJOption>--frames</additionalJOption>
+              <additionalJOption>-Xdoclint:none</additionalJOption>
             </configuration>
           </plugin>
 
