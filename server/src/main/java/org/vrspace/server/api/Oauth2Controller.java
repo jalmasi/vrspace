@@ -45,8 +45,11 @@ public class Oauth2Controller extends ApiBase {
   VRObjectRepository db;
   @Autowired
   ClientFactory clientFactory;
-  @Autowired
   private ClientRegistrationRepository clientRegistrationRepository;
+
+  public Oauth2Controller(@Autowired ClientRegistrationRepository clientRegistrationRepository) {
+    this.clientRegistrationRepository = clientRegistrationRepository;
+  }
 
   /**
    * List of OAuth2 registered authentication providers.
