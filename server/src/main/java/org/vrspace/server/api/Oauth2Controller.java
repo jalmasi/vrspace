@@ -8,6 +8,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @RestController
+@ConditionalOnProperty("org.vrspace.oauth2.enabled")
 @Slf4j
 @RequestMapping(Oauth2Controller.PATH)
 public class Oauth2Controller extends ApiBase {

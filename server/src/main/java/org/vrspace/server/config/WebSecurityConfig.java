@@ -1,5 +1,6 @@
 package org.vrspace.server.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,6 +14,7 @@ import org.vrspace.server.api.Oauth2Controller;
  *
  */
 @Configuration
+@ConditionalOnProperty("org.vrspace.oauth2.enabled")
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   // as the matter of fact, we do have dependency on the controller due to path

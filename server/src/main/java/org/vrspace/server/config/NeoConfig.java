@@ -36,8 +36,17 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 //@ConditionalOnProperty("org.vrspace.db")
 public class NeoConfig {
-  /** Directory containing embedded database, property org.vrspace.db */
-  @Value("${org.vrspace.db:#{null}}")
+  /**
+   * Should the server use embedded database, property org.vrspace.db.embedded,
+   * default true
+   */
+  @Value("${org.vrspace.db.embedded:#{true}}")
+  private boolean embedded;
+  /**
+   * Directory containing embedded database, property org.vrspace.db, default
+   * file:./vrspace.db (subdirectory of the server directory)
+   */
+  @Value("${org.vrspace.db:file:./vrspace.db}")
   private String dbPath;
   /**
    * Recursive removal database directory on startup and shutdown, used in tests.
@@ -59,10 +68,7 @@ public class NeoConfig {
   @Bean("database")
   GraphDatabaseService config() throws URISyntaxException, IOException {
     String path = dbPath;
-    if (path == null) {
-      log.info("Using external database uri: " + neoUri);
-      return null;
-    } else {
+    if (embedded) {
       log.info("Configured database uri: " + path);
       path = path.replace('\\', '/');
       URI uri = new URI(path);
@@ -71,6 +77,8 @@ public class NeoConfig {
       neoStart(dbDir.toPath());
       return graphDb;
     }
+    log.info("Using external database uri: " + neoUri);
+    return null;
   }
 
   private void neoStart(Path dbDir) {
