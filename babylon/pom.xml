@@ -69,8 +69,12 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
+            <version>3.0.0</version>
             <executions>
-              <!-- run webpack during package phase -->
+              <!-- 
+              run webpack during package phase
+              CHECKME this entire webpack business is likely a dead end 
+              -->
               <execution>
                 <id>webpack</id>
                 <goals>
@@ -104,6 +108,46 @@
       </build>
     </profile>
     
+    <profile>
+      <!-- publish the release to npm -->
+      <id>publish</id>
+      <build>
+        <plugins>
+          <!-- do NOT use maven deploy plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <!-- but exec npm publish -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+              <execution>
+                <id>npm</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>npm</executable>
+                  <arguments>
+                    <argument>publish</argument>
+                    <argument>--access</argument>
+                    <argument>public</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          </plugins>
+          </build>
+          </profile>
+          
   </profiles>
 
 </project>

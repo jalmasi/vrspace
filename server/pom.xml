@@ -386,8 +386,8 @@
     </profile>
 
     <profile>
-      <!-- release to nexus and maven central -->
-      <id>release</id>
+      <!-- publish the release to nexus and maven central -->
+      <id>publish</id>
       <build>
         <plugins>
           <plugin>
