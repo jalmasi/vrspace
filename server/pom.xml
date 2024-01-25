@@ -4,8 +4,9 @@
   <groupId>org.vrspace</groupId>
   <artifactId>server</artifactId>
   <name>server</name>
-  <version>0.5.6-SNAPSHOT</version>
+  <version>0.6.0</version>
   <description>VRSpace.org server</description>
+  <url>https://github.com/jalmasi/vrspace</url>
 
   <properties>
     <java.version>11</java.version>
@@ -26,6 +27,28 @@
     </dependencies>
   </dependencyManagement>
 
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Josip Almasi</name>
+      <email>joe@vrspace.org</email>
+      <organization>VRSpace.org</organization>
+      <organizationUrl>https://www.vrspace.org</organizationUrl>
+    </developer>
+  </developers>
+  
+  <scm>
+    <connection>scm:git:git://github.com/jalmasi/vrspace.git</connection>
+    <developerConnection>scm:git:ssh://github.com:jalmasi/vrspace.git</developerConnection>
+    <url>http://github.com/jalmasi/vrspace/tree/master</url>
+  </scm>
+  
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
