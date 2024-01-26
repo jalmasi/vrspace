@@ -255,6 +255,11 @@ thanks folks!
     }
   }
   
+	onload = (event) => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("serviceworker.js");
+    }
+	};
   </script>
 
   <div id="iframe" style="position:absolute;top:0px;width:100%;">

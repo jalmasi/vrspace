@@ -1,0 +1,21 @@
+{
+    "name": "VRSpace.org",
+    "short_name": "VRS",
+    "description": "Free and open VR engine",
+    "icons": [
+        {
+            "src": "favicon-32.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        },
+        {
+            "src": "favicon-128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "index.html",
+    "display": "standalone",
+    "theme_color": "#5656f6",
+    "background_color": "#000000"
+}
