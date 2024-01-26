@@ -63,8 +63,24 @@
 <script>
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 // focus canvas so we get keyboard events, otherwise need to click on it first
-canvas.focus();
+//canvas.focus();
+
+var fullscreen=false;
+
+// Safari defaults to passive: true for the touchstart event, so we need  to explicitly specify false
+// See https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+const options= { passive: false };
+var goFullscreen = (e) => {
+	if (!fullscreen) {
+		fullscreen=true;
+		canvas.requestFullscreen();
+	}
+}
+window.addEventListener("touchstart", goFullscreen, options);
+window.addEventListener("click", goFullscreen, options);
+
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+
 var scene;
 
 import("./avatar-selection.js").then( (module) =>{
