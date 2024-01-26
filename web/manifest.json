@@ -1,7 +1,7 @@
 {
     "name": "VRSpace.org",
     "short_name": "VRSpace",
-    "description": "Free and open VR engine",
+    "description": "Free and Open VR Platform",
     "icons": [
         {
             "src": "favicon-32.png",
@@ -19,7 +19,7 @@
             "type": "image/png"
         }
     ],
-    "start_url": "index.html",
+    "start_url": "babylon/avatar-selection.html",
     "display": "fullscreen",
     "theme_color": "#5656f6",
     "background_color": "#000000"

@@ -116,6 +116,13 @@ window.addEventListener("resize", function () {
   engine.resize();
 });
 
+onload = (event) => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register("serviceworker.js");
+    canvas.requestFullscreen();
+  }
+};
+
 function debugOnOff() {
   console.log("Debug: "+scene.debugLayer.isVisible());
   if ( scene.debugLayer.isVisible() ) {
