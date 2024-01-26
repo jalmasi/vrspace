@@ -13,7 +13,7 @@
     }
     canvas {
       width: 100%;
-      height:96%;
+      height:100%;
       padding-left: 0;
       padding-right: 0;
       margin-left: auto;
@@ -122,20 +122,7 @@ onload = (event) => {
   }
 };
 
-function debugOnOff() {
-  console.log("Debug: "+scene.debugLayer.isVisible());
-  if ( scene.debugLayer.isVisible() ) {
-    scene.debugLayer.hide();
-  } else {
-    scene.debugLayer.show();
-  }
-}
-
 </script>
-
-<div style="position:absolute;bottom:10px;right:50%;">
-  <button onClick="debugOnOff()">Debug</button>
-</div>
 
 <div id="videos" hidden>
 </div>
