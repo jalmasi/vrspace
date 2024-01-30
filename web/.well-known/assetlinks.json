@@ -1,11 +1,23 @@
-[{
- "relation": ["delegate_permission/common.handle_all_urls"],
- "target": {
-   "namespace": "android_app",
-   "package_name": "org.vrspace",
-   "sha256_cert_fingerprints": [
-     "80:05:7E:C5:8D:78:EA:61:76:68:B2:C3:85:97:CD:DB:15:95:A0:52:29:F7:32:11:CF:0A:F7:06:3A:60:12:41"
-   ]
- }
-}]
-
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.vrspace",
+      "sha256_cert_fingerprints": [
+        "80:05:7E:C5:8D:78:EA:61:76:68:B2:C3:85:97:CD:DB:15:95:A0:52:29:F7:32:11:CF:0A:F7:06:3A:60:12:41"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "check_validation"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.vrspace"
+    }
+  }
+]
