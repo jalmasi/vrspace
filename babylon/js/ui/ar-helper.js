@@ -16,10 +16,24 @@ export class ARHelper {
         sessionMode: "immersive-ar",
         referenceSpaceType: "unbounded"
       },
-      optionalFeatures: true      
+      optionalFeatures: true
     }).then( xr => {
       this.xr = xr;
       if ( this.xr && this.xr.baseExperience ) {
+        console.log("Available WebXR features: "+BABYLON.WebXRFeaturesManager.GetAvailableFeatures());
+        // we can also test if ar/vr is available with WebXRSessionManager.IsSessionSupportedAsync
+        // https://doc.babylonjs.com/typedoc/classes/BABYLON.WebXRSessionManager#IsSessionSupportedAsync
+        ["immersive-vr","immersive-ar","inline"].forEach(mode=>{
+          BABYLON.WebXRSessionManager.IsSessionSupportedAsync(mode).then(isSupported => {
+            console.log("XRMode "+mode+" available: "+isSupported)
+          })
+        });
+        console.log(this.xr);
+        // xr.enterExitUI.overlay is div html element, class div.xr-button-overlay        
+        // style.position contains absolute; left 20px; etc
+        xr.enterExitUI.overlay.children[0].textContent="AR";
+        xr.enterExitUI.overlay.style.cssText = xr.enterExitUI.overlay.style.cssText.replace("right","left");
+        
         this.featuresManager = xr.baseExperience.featuresManager;
         this.hitTest = this.featuresManager.enableFeature(BABYLON.WebXRHitTest, "latest");
         this.anchorSystem = this.featuresManager.enableFeature(BABYLON.WebXRAnchorSystem, "latest");
@@ -88,5 +102,8 @@ export class ARHelper {
     this.logo.scaling = new BABYLON.Vector3(0.2, 0.2, 0.2);
     this.logo.rotation = new BABYLON.Vector3(0,0,0);
     this.marker.rotationQuaternion = new BABYLON.Quaternion();
+  }
+  realWorldHeight() {
+    return 1.8;
   }
 }

@@ -21,6 +21,11 @@
     margin-right: auto;
     display: block;
   }
+  button.babylonVRicon {
+    height: 100px;
+    width: 160px; 
+    font-size: 32px;
+  }
   </style>﻿
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
@@ -53,6 +58,7 @@ import('./js/vrspace-min.js').then( (ui) => {
 
       debugLayer = this.scene.debugLayer;
       ui.VRSPACEUI.init(this.scene); // make sure to initialize the singleton
+      this.initXR();
     }
   }
 
@@ -63,7 +69,7 @@ import('./js/vrspace-min.js').then( (ui) => {
   var net = new ui.WorldManager(world);
   net.debug = false; // multi-user debug info
   net.VRSPACE.debug = false; // network debug info
-  net.remoteLogging = true; // instead of logging to the console (unavailable on mobiles)
+  //net.remoteLogging = true; // instead of logging to the console (unavailable on mobiles)
   
   // all users in the same world share same events
   world.name = 'AR test';
@@ -72,7 +78,7 @@ import('./js/vrspace-min.js').then( (ui) => {
   // connect, set own avatar and start the session
   net.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb', scale: {x:0.2,y:0.2,z:0.2}}).then(()=>{
 	  var arHelper = new ui.ARHelper()
-    arHelper.initXR(world, true);
+    arHelper.initXR(world, false);
     world.scene.onPointerObservable.add((e)=>{
       if(e.type == BABYLON.PointerEventTypes.POINTERDOWN){
         if ( arHelper.tracking ) {

@@ -46,6 +46,11 @@ export class VRHelper {
     } else {
       try {
         xrHelper = await this.world.scene.createDefaultXRExperienceAsync({floorMeshes: this.world.getFloorMeshes()});
+        // xr.enterExitUI.overlay is div html element, class div.xr-button-overlay
+        // contains a button of class babylonVRicon
+        // we can manipulate their styles like 
+        xrHelper.enterExitUI.overlay.children[0].textContent="VR";
+        //xrHelper.enterExitUI.overlay.style.cssText = xr.enterExitUI.overlay.style.cssText.replace("right","left");
         // selection disallowed until controllers are initialized
         VRSPACEUI.hud.allowSelection = false;
       } catch ( err ) {

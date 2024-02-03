@@ -705,7 +705,7 @@ export class WorldManager {
       var vrHelper = this.world.vrHelper;
 
       // track camera movements, find out where feet are
-      if ( this.camera.getClassName() == 'WebXRCamera' ) {
+      if ( vrHelper && this.camera.getClassName() == 'WebXRCamera' ) {
         // ellipsoid needs to be ignored, we have to use real world height instead
         var height = this.camera.globalPosition.y - vrHelper.realWorldHeight();
         this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);

@@ -59,7 +59,7 @@ class AssetSync {
         plugin.onParsedObservable.add(gltfBabylon => {
             var manifest = gltfBabylon.json;
             this.info = manifest.asset.extras;
-            console.log(this.info);
+            console.log("Asset extra info: ",this.info);
         });
       }
     });
