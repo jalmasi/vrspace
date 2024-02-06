@@ -77,6 +77,15 @@ export class VRHelper {
       this.vrHelper = xrHelper;
       world.hasXR = true;
 
+      xrHelper.baseExperience.sessionManager.onXRFrameObservable.addOnce(() => {
+        // CHECKME: works as expected?
+        console.log("XR Camera pos: "+this.camera().position);
+        this.camera().setTransformationFromNonVRCamera(world.camera)
+        console.log("XR Camera pos: "+this.camera().position);
+        //this.camera().position.y = world.camera.position.y;
+        //console.log("XR Camera pos: "+this.camera().position);
+      });
+      
       // updating terrain after teleport
       if ( this.movementObserver ) {
         // remove existing teleportation observer
@@ -119,13 +128,13 @@ export class VRHelper {
               // xr is being initialized, enter XR request was made
               console.log( "Entering "+this.sessionMode );
               this.world.xrHelper=this;
-              this.enableSkybox(false);
+              this.enableBackground(false);
               this.world.collisions(this.world.collisionsEnabledInXR);
               break;
             case BABYLON.WebXRState.EXITING_XR:
               // CHECKME: this doesn't seem to be emitted?
               console.log( "Exiting "+this.sessionMode );
-              this.enableSkybox(true);
+              this.enableBackground(true);
               this.stopTracking();
               this.world.camera.position = this.camera().position.clone();
               this.world.camera.rotation = this.camera().rotation.clone();
@@ -234,9 +243,10 @@ export class VRHelper {
     
     //console.log("VRHelper initialized", this.vrHelper);
   }
-  enableSkybox(enabled) {
+  enableBackground(enabled) {
     if ( "immersive-ar" == this.sessionMode && this.world.skyBox ) {
       this.world.skyBox.setEnabled(enabled);
+      this.world.enableBackground(enabled);
     }
   }
 

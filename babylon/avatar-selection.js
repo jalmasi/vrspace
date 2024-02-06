@@ -773,7 +773,7 @@ export class AvatarSelection extends World {
         
         // TODO install world's xr device tracker
         if ( this.inXR ) {
-          this.xrHelper.enableSkybox(false);
+          this.xrHelper.enableBackground(false);
           // for some reason, this sets Y to 0:
           this.xrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
           this.xrHelper.camera().position.y = world.WORLD.camera.position.y;
@@ -796,6 +796,9 @@ export class AvatarSelection extends World {
     });
   }
 
+  enableBackground(enabled) {
+    this.room.floorGroup.setEnabled(enabled);
+  }
   dispose() {
     super.dispose();
     this.hemisphere.dispose();

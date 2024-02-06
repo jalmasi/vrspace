@@ -57,6 +57,7 @@ export class Aladinville extends World {
     skybox.infiniteDistance = true;
     skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    return skybox;
   }
 
   getFloorMeshes() {

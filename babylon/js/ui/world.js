@@ -36,7 +36,7 @@ export class World {
     /** Wheter collisions are enabled, default true */
     this.collisionsEnabled = true;
     /** Wheter collisions are enabled in XR, default true */
-    this.collisionsEnabledInXR = true; // CHECKME I don't even remember why
+    this.collisionsEnabledInXR = false; // CHECKME I don't even remember why
     /** Progress indicator */
     this.indicator = null;
     /** Main world camera */
@@ -419,6 +419,7 @@ export class World {
       this.vrHelper = new VRHelper("immersive-vr");
     }
     this.vrHelper.initXR(this);
+    this.xrHelper = this.vrHelper;
     if ( VRSPACEUI.canAR ) {
       this.arHelper = new VRHelper("immersive-ar");
       this.arHelper.initXR(this)
@@ -438,6 +439,12 @@ export class World {
     if ( this.chatLog ) {
       this.chatLog.input.virtualKeyboardEnabled = false;
     }
+  }
+  /**
+   * Called when entering world in AR mode, or entering/exiting AR.
+   * VRHelper disables the skybox, but this method should dissable all other nodes that shouldn't be seen in AR. 
+   */
+  enableBackground(enabled) {
   }
   /**
   Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.
