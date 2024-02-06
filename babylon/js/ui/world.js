@@ -51,6 +51,12 @@ export class World {
     this.inXR = false;
     /** WebXR capability indicator, set by VRHelper */
     this.hasXR = false;
+    /** VR helper */
+    this.vrHelper = null;
+    /** AR helper */
+    this.arHelper = null;
+    /** Currently active VR/AR helper */
+    this.xrHelper = null;
     /** Scene meshes, available once the world loads (in loaded, loadingStop, collisions methods) */
     this.sceneMeshes = null;
     /** Terrain, optionally created in createTerrain() */
@@ -104,7 +110,6 @@ export class World {
       this.name = name;
     }
     this.scene = scene;
-    this.vrHelper = null;
     if ( !this.baseUrl && baseUrl ) {
       this.baseUrl = baseUrl;
     }
@@ -411,9 +416,13 @@ export class World {
       this.vrHelper = vrHelper;
     }
     if ( ! this.vrHelper ) {
-      this.vrHelper = new VRHelper();
+      this.vrHelper = new VRHelper("immersive-vr");
     }
     this.vrHelper.initXR(this);
+    if ( VRSPACEUI.canAR ) {
+      this.arHelper = new VRHelper("immersive-ar");
+      this.arHelper.initXR(this)
+    }
   }
   /** Called by VRHelper once XR devices are initialized. Default implementation does nothing. */
   trackXrDevices() {

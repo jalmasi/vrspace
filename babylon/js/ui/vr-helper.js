@@ -8,7 +8,7 @@ While this is mandatory to use gamepad in XR, it is also useful outside of XR, a
 CHECKME: SoC?
  */
 export class VRHelper {
-  constructor() {
+  constructor(sessionMode="immersive-vr") {
     /** Underlying babylon VR (obsolete) or XR helper (WebXRDefaultExperience) component */
     this.vrHelper = null;
     /** Function that currently tracks XR devices (headeset, controllers). Each world may install own one. */
@@ -33,6 +33,7 @@ export class VRHelper {
     this.gamepadObserver = null;
     this.teleporting = false;
     this.userHeight = 1.8;
+    this.sessionMode=sessionMode;
   }
   /**
   @param world attaches the control to the World
@@ -45,12 +46,23 @@ export class VRHelper {
       this.addFloors();
     } else {
       try {
-        xrHelper = await this.world.scene.createDefaultXRExperienceAsync({floorMeshes: this.world.getFloorMeshes()});
+        xrHelper = await this.world.scene.createDefaultXRExperienceAsync({
+          // ask for an ar-session
+          uiOptions: {
+            sessionMode: this.sessionMode,
+            referenceSpaceType: "local-floor"
+          },
+          floorMeshes: this.world.getFloorMeshes()
+        });
         // xr.enterExitUI.overlay is div html element, class div.xr-button-overlay
         // contains a button of class babylonVRicon
         // we can manipulate their styles like 
-        xrHelper.enterExitUI.overlay.children[0].textContent="VR";
-        //xrHelper.enterExitUI.overlay.style.cssText = xr.enterExitUI.overlay.style.cssText.replace("right","left");
+        if ("immersive-vr" == this.sessionMode) {
+          xrHelper.enterExitUI.overlay.children[0].textContent="VR";
+        } else if ("immersive-ar" == this.sessionMode) {
+          xrHelper.enterExitUI.overlay.children[0].textContent="AR";
+          xrHelper.enterExitUI.overlay.style.cssText = xrHelper.enterExitUI.overlay.style.cssText.replace("right","left");
+        }
         // selection disallowed until controllers are initialized
         VRSPACEUI.hud.allowSelection = false;
       } catch ( err ) {
@@ -92,7 +104,7 @@ export class VRHelper {
           switch (state) {
             case BABYLON.WebXRState.IN_XR:
               // XR is initialized and already submitted one frame
-              console.log( "Entered VR" );
+              console.log( "Entered "+this.sessionMode );
               if ( this.camera().realWorldHeight ) {
                 // are we absolutely sure that all mobiles deliver this value?
                 this.userHeight = this.camera().realWorldHeight;
@@ -105,12 +117,15 @@ export class VRHelper {
               break;
             case BABYLON.WebXRState.ENTERING_XR:
               // xr is being initialized, enter XR request was made
-              console.log( "Entering VR" );
+              console.log( "Entering "+this.sessionMode );
+              this.world.vrHelper=this;
+              this.enableSkybox(false);
               this.world.collisions(this.world.collisionsEnabledInXR);
               break;
             case BABYLON.WebXRState.EXITING_XR:
               // CHECKME: this doesn't seem to be emitted?
-              console.log( "Exiting VR" );
+              console.log( "Exiting "+this.sessionMode );
+              this.enableSkybox(true);
               this.stopTracking();
               this.world.camera.position = this.camera().position.clone();
               this.world.camera.rotation = this.camera().rotation.clone();
@@ -118,7 +133,7 @@ export class VRHelper {
               this.world.inXR = false;
               break;
             case BABYLON.WebXRState.NOT_IN_XR:
-              console.log( "Not in VR" );
+              console.log( "Exited "+this.sessionMode );
               this.stopTracking();
               this.world.camera.position = this.camera().position.clone();
               // CHECKME: use rotation quaternion instead?
@@ -219,7 +234,12 @@ export class VRHelper {
     
     //console.log("VRHelper initialized", this.vrHelper);
   }
-  
+  enableSkybox(enabled) {
+    if ( "immersive-ar" == this.sessionMode && this.world.skyBox ) {
+      this.world.skyBox.setEnabled(enabled);
+    }
+  }
+
   /**
    * Main point of gamepad support. Once the browser emits gamepadconnected event,
    * installs tracker function into main rendering loop, to track states that

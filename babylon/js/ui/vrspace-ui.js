@@ -41,6 +41,10 @@ export class VRSpaceUI {
     this.guiManager = null;
     /** Script loader */
     this.scriptLoader = new ScriptLoader();
+    /** VR availability */
+    this.canVR = null;
+    /** AR availability */
+    this.canAR = null;
     /** @private */ 
     this.indicator = null;
     /** @private */ 
@@ -69,6 +73,15 @@ export class VRSpaceUI {
         console.log( "WARNING: Can't create HUD - make sure to load babylon.gui.min.js", exception);
       }
       this.assetLoader = new AssetLoader(this.scene);
+      BABYLON.WebXRSessionManager.IsSessionSupportedAsync("immersive-vr").then(isSupported => {
+        console.log("XRMode VR available: "+isSupported)
+        this.canVR=isSupported;
+      })
+      BABYLON.WebXRSessionManager.IsSessionSupportedAsync("immersive-ar").then(isSupported => {
+        console.log("XRMode AR available: "+isSupported)
+        this.canAR=isSupported;
+      })
+      
       // TODO figure out location of script
       var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoDir(),this.logoFile,this.scene);
       this.logo = container.meshes[0];

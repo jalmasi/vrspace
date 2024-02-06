@@ -723,7 +723,7 @@ export class AvatarSelection extends World {
         this.worldManager.customAnimations = this.customAnimations;
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
-        //this.worldManager.remoteLogging = true;
+        this.worldManager.remoteLogging = true;
         
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
@@ -773,6 +773,7 @@ export class AvatarSelection extends World {
         
         // TODO install world's xr device tracker
         if ( this.inXR ) {
+          this.vrHelper.enableSkybox(false);
           // for some reason, this sets Y to 0:
           this.vrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
           this.vrHelper.camera().position.y = world.WORLD.camera.position.y;
