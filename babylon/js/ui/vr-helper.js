@@ -118,7 +118,7 @@ export class VRHelper {
             case BABYLON.WebXRState.ENTERING_XR:
               // xr is being initialized, enter XR request was made
               console.log( "Entering "+this.sessionMode );
-              this.world.vrHelper=this;
+              this.world.xrHelper=this;
               this.enableSkybox(false);
               this.world.collisions(this.world.collisionsEnabledInXR);
               break;

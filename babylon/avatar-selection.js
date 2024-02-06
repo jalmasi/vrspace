@@ -228,34 +228,34 @@ export class AvatarSelection extends World {
       ) {
       this.trackTime = Date.now();
       // CHECKME: mirror left-right
-      if ( this.vrHelper.controller.left ) {
+      if ( this.xrHelper.controller.left ) {
         if ( this.mirror ) {
-          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.left);
+          var leftPos = this.calcControllerPos( this.character.body.leftArm, this.xrHelper.controller.left);
           leftPos.z = -leftPos.z;
           this.character.reachFor( this.character.body.leftArm, leftPos );
         } else {
-          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.left);
+          var leftPos = this.calcControllerPos( this.character.body.rightArm, this.xrHelper.controller.left);
           this.character.reachFor( this.character.body.rightArm, leftPos );
         }
       }
-      if ( this.vrHelper.controller.right ) {
+      if ( this.xrHelper.controller.right ) {
         if ( this.mirror ) {
-          var rightPos = this.calcControllerPos( this.character.body.rightArm, this.vrHelper.controller.right );
+          var rightPos = this.calcControllerPos( this.character.body.rightArm, this.xrHelper.controller.right );
           rightPos.z = -rightPos.z;
           this.character.reachFor( this.character.body.rightArm, rightPos );
         } else {
-          var rightPos = this.calcControllerPos( this.character.body.leftArm, this.vrHelper.controller.right );
+          var rightPos = this.calcControllerPos( this.character.body.leftArm, this.xrHelper.controller.right );
           this.character.reachFor( this.character.body.leftArm, rightPos );
         }
       }
       this.character.lookAt( this.calcCameraTarget() );
-      this.character.trackHeight( this.vrHelper.camera().realWorldHeight );
+      this.character.trackHeight( this.xrHelper.camera().realWorldHeight );
     }
   }
   
   calcControllerPos( arm, xrController ) {
     this.calcControllerRot(arm, xrController);
-    var cameraPos = this.vrHelper.camera().position;
+    var cameraPos = this.xrHelper.camera().position;
     var pos = xrController.grip.absolutePosition.subtract( new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
     return pos;
   }
@@ -275,8 +275,8 @@ export class AvatarSelection extends World {
   }
   
   calcCameraTarget() {
-    var cameraQuat = this.vrHelper.camera().rotationQuaternion;
-    var target = new BABYLON.Vector3(0,this.vrHelper.camera().realWorldHeight,1);
+    var cameraQuat = this.xrHelper.camera().rotationQuaternion;
+    var target = new BABYLON.Vector3(0,this.xrHelper.camera().realWorldHeight,1);
     target.rotateByQuaternionAroundPointToRef(cameraQuat,this.character.headPos(),target);
     if ( this.mirror ) {
       target.z = -target.z;
@@ -432,7 +432,7 @@ export class AvatarSelection extends World {
     loaded.animations = this.customAnimations;
     // resize the character to real-world height
     if ( this.inXR ) {
-      this.userHeight = this.vrHelper.camera().realWorldHeight;
+      this.userHeight = this.xrHelper.camera().realWorldHeight;
     }
     loaded.userHeight = this.userHeight;
     loaded.animateArms = false;
@@ -570,7 +570,7 @@ export class AvatarSelection extends World {
     resizeButton.onPointerDownObservable.add( () => {
       if ( this.inXR ) {
         this.tracking = false;
-        this.userHeight = this.vrHelper.camera().realWorldHeight;
+        this.userHeight = this.xrHelper.camera().realWorldHeight;
         console.log("Resizing to "+this.userHeight);
         this.character.userHeight = this.userHeight;
         this.character.standUp(); // CHECKME: move to resize()?
@@ -727,9 +727,9 @@ export class AvatarSelection extends World {
         
         if ( this.inXR ) {
           console.log("Tracking, "+this.inXR);
-          this.worldManager.trackCamera(this.vrHelper.camera());
+          this.worldManager.trackCamera(this.xrHelper.camera());
           // floors that exist only after load
-          this.vrHelper.addFloors();
+          this.xrHelper.addFloors();
         }
         this.worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
         let avatar = this.video;
@@ -764,20 +764,20 @@ export class AvatarSelection extends World {
       var gamepad = this.camera.inputs.attached.gamepad.gamepad;
 
       world.WORLD.init(this.engine, worldName, this.scene, afterLoad, worldUrl+"/").then((newScene)=>{
-        this.vrHelper.stopTracking();
+        this.xrHelper.stopTracking();
         this.camera.detachControl(this.canvas);
 
         console.log("Loaded ", world);
-        this.vrHelper.clearFloors();
-        world.WORLD.initXR(this.vrHelper);
+        this.xrHelper.clearFloors();
+        world.WORLD.initXR(this.xrHelper);
         
         // TODO install world's xr device tracker
         if ( this.inXR ) {
-          this.vrHelper.enableSkybox(false);
+          this.xrHelper.enableSkybox(false);
           // for some reason, this sets Y to 0:
-          this.vrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
-          this.vrHelper.camera().position.y = world.WORLD.camera.position.y;
-          this.vrHelper.startTracking();
+          this.xrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
+          this.xrHelper.camera().position.y = world.WORLD.camera.position.y;
+          this.xrHelper.startTracking();
         } else {
           console.log('New world camera:');
           console.log(world.WORLD.camera);

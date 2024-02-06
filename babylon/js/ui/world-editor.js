@@ -76,7 +76,7 @@ export class WorldEditor {
     
     // add squeeze listener to take/drop an object
     this.squeeze = (side, value) => this.handleSqueeze(side,value);
-    world.vrHelper.addSqueezeConsumer(this.squeeze);
+    world.xrHelper.addSqueezeConsumer(this.squeeze);
   }
   endpoint() {
     return VRSPACEUI.contentBase+"/vrspace/api/sketchfab";
@@ -794,7 +794,7 @@ export class WorldEditor {
     }
     this.buttons.forEach((b)=>b.dispose());
     this.world.removeSelectionPredicate(this.selectionPredicate);
-    this.world.vrHelper.removeSqueezeConsumer(this.squeeze);
+    this.world.xrHelper.removeSqueezeConsumer(this.squeeze);
   }
   
   /**
@@ -814,13 +814,13 @@ export class WorldEditor {
   startManipulation(side) {
     if ( this.carrying ) {
       this.startData = {
-        left: this.world.vrHelper.leftArmPos().clone(),
-        right: this.world.vrHelper.rightArmPos().clone(),
+        left: this.world.xrHelper.leftArmPos().clone(),
+        right: this.world.xrHelper.rightArmPos().clone(),
         scaling: this.carrying.scale.y,
         side: side,
         rotation: {
-          left: this.world.vrHelper.leftArmRot().clone(),
-          right: this.world.vrHelper.leftArmRot().clone()
+          left: this.world.xrHelper.leftArmRot().clone(),
+          right: this.world.xrHelper.leftArmRot().clone()
         }
       }
     }
@@ -836,12 +836,12 @@ export class WorldEditor {
         //console.log('end manipulation '+this.carrying.id+" "+this.startData.left+' '+this.startData.right+' '+this.startData.scaling);
         //scaling
         let startDistance = this.startData.left.subtract(this.startData.right).length();
-        let distance = this.world.vrHelper.leftArmPos().subtract(this.world.vrHelper.rightArmPos()).length();
+        let distance = this.world.xrHelper.leftArmPos().subtract(this.world.xrHelper.rightArmPos()).length();
         let scale = this.startData.scaling*distance/startDistance;
         //console.log("distance start "+startDistance+" end "+distance+" scale "+scale);
         // rotation
         let startQuat = this.startData.rotation[this.startData.side];
-        let endQuat = this.world.vrHelper.armRot(this.startData.side);
+        let endQuat = this.world.xrHelper.armRot(this.startData.side);
         let diffQuat = endQuat.multiply(BABYLON.Quaternion.Inverse(startQuat));
         let curQuat = BABYLON.Quaternion.FromEulerAngles(this.carrying.rotation.x,this.carrying.rotation.y,this.carrying.rotation.z);
         let desiredQuat = curQuat.multiply(diffQuat);
@@ -872,8 +872,8 @@ export class WorldEditor {
    */
   handleSqueeze(value,side) {
     try {
-      let bothOn = this.world.vrHelper.squeeze.left.value == 1 && this.world.vrHelper.squeeze.right.value == 1;
-      let bothOff = this.world.vrHelper.squeeze.left.value == 0 && this.world.vrHelper.squeeze.right.value == 0;
+      let bothOn = this.world.xrHelper.squeeze.left.value == 1 && this.world.xrHelper.squeeze.right.value == 1;
+      let bothOff = this.world.xrHelper.squeeze.left.value == 0 && this.world.xrHelper.squeeze.right.value == 0;
       if (value == 1 ) {
         //console.log('squeeze '+side+' '+value+' both on '+bothOn+' off '+bothOff);
         if ( bothOn ) {

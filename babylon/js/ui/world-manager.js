@@ -702,7 +702,7 @@ export class WorldManager {
         return;
       }
       
-      var vrHelper = this.world.vrHelper;
+      var vrHelper = this.world.xrHelper;
 
       // track camera movements, find out where feet are
       if ( vrHelper && this.camera.getClassName() == 'WebXRCamera' ) {

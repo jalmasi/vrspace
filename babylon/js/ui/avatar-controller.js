@@ -521,12 +521,12 @@ export class AvatarController {
     } else {
       let pos = camera.position;
       console.log("Applying coordinates: "+pos);
-      //this.world.vrHelper.camera().setTransformationFromNonVRCamera(camera);
-      this.world.vrHelper.camera().position.x = pos.x;
-      this.world.vrHelper.camera().position.y = pos.y;
-      this.world.vrHelper.camera().position.z = pos.z;
+      //this.world.xrHelper.camera().setTransformationFromNonVRCamera(camera);
+      this.world.xrHelper.camera().position.x = pos.x;
+      this.world.xrHelper.camera().position.y = pos.y;
+      this.world.xrHelper.camera().position.z = pos.z;
       // TODO 
-      //this.world.vrHelper.camera().rotationQuaternion = this.world.camera1p.rotationQuaternion.clone();
+      //this.world.xrHelper.camera().rotationQuaternion = this.world.camera1p.rotationQuaternion.clone();
     }
     this.activeCamera = camera;
   }
@@ -579,10 +579,10 @@ export class AvatarController {
       // TODO XR camera position
       let camera = this.world.camera1p;
       if ( this.world.inXR ) {
-        camera = this.world.vrHelper.camera();
-        let pos = this.world.vrHelper.camera().position;
+        camera = this.world.xrHelper.camera();
+        let pos = this.world.xrHelper.camera().position;
         this.world.camera1p.position.x = pos.x;
-        this.world.camera1p.position.y = pos.y + this.world.vrHelper.camera().ellipsoid.y*2-this.world.vrHelper.camera().ellipsoidOffset.y;
+        this.world.camera1p.position.y = pos.y + this.world.xrHelper.camera().ellipsoid.y*2-this.world.xrHelper.camera().ellipsoidOffset.y;
         this.world.camera1p.position.z = pos.z;
       } 
       let y = camera.position.y - camera.ellipsoid.y*2 + camera.ellipsoidOffset.y;
@@ -624,11 +624,11 @@ export class AvatarController {
     if ( this.world.inXR ) {
       let pos = this.movement.movementTracker.position;
       this.world.camera1p.position.x = pos.x;
-      this.world.camera1p.position.y = pos.y + this.world.vrHelper.camera().ellipsoid.y*2-this.world.vrHelper.camera().ellipsoidOffset.y;
+      this.world.camera1p.position.y = pos.y + this.world.xrHelper.camera().ellipsoid.y*2-this.world.xrHelper.camera().ellipsoidOffset.y;
       this.world.camera1p.position.z = pos.z;
       // messes up pretty much everything
       //let rotY = this.movement.movementTracker.rotation.y;
-      //this.world.vrHelper.camera().rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
+      //this.world.xrHelper.camera().rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
     }
 
     // apply rotation to 1st person camera
