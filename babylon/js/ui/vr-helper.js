@@ -77,15 +77,6 @@ export class VRHelper {
       this.vrHelper = xrHelper;
       world.hasXR = true;
 
-      xrHelper.baseExperience.sessionManager.onXRFrameObservable.addOnce(() => {
-        // CHECKME: works as expected?
-        console.log("XR Camera pos: "+this.camera().position);
-        this.camera().setTransformationFromNonVRCamera(world.camera)
-        console.log("XR Camera pos: "+this.camera().position);
-        //this.camera().position.y = world.camera.position.y;
-        //console.log("XR Camera pos: "+this.camera().position);
-      });
-      
       // updating terrain after teleport
       if ( this.movementObserver ) {
         // remove existing teleportation observer
@@ -97,7 +88,10 @@ export class VRHelper {
       if ( !this.initialPoseObserver ) {
         this.initialPoseObserver = (xrCamera) => {
           // TODO restore this after exit VR
-          xrCamera.position.y = this.world.camera.position.y - this.world.camera.ellipsoid.y*2;
+          if ( this.sessionMode == "immersive-vr" ) {
+            // only in AR, this puts the camera to ground level, only on mobile
+            xrCamera.position.y = this.world.camera.position.y - this.world.camera.ellipsoid.y*2;
+          }
         };
         xrHelper.baseExperience.onInitialXRPoseSetObservable.add( this.initialPoseObserver ); 
       }
@@ -118,6 +112,7 @@ export class VRHelper {
                 // are we absolutely sure that all mobiles deliver this value?
                 this.userHeight = this.camera().realWorldHeight;
               }
+              this.camera().setTransformationFromNonVRCamera(world.camera);
               this.startTracking();
               // Workaround for teleporation/selection bug
               xrHelper.teleportation.setSelectionFeature(null);
