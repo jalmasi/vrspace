@@ -42,7 +42,7 @@ class NameForm extends Form {
 
   inputFocused(input, focused) {
     this.virtualKeyboardEnabled = VRSPACEUI.hud.inXR();
-    this.virtualKeyboardEnabled = true;
+    //this.virtualKeyboardEnabled = true;
     super.inputFocused(input,focused);
   }
   
