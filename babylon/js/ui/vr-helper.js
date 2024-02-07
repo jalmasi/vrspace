@@ -194,12 +194,25 @@ export class VRHelper {
             } else {
               log("ERROR: don't know how to handle controller");
             }
+          } else if (xrController.inputSource.profiles && xrController.inputSource.profiles.includes("generic-touchscreen")) {
+            console.log("Controller added: "+xrController.inputSource.profiles);
+            // this happens in AR, touching something brings up teleportation
+            this.touchTimestamp = Date.now();
           } else {
             // apparently grip can be null on mobile device(s)
-            console.log("Cannot handle xr controller device", xrController);
+            console.log("Cannot handle xr controller device, profiles: "+xrController.inputSource.profiles, xrController);
           }
         };
         xrHelper.input.onControllerAddedObservable.add(this.controllerObserver);
+        xrHelper.input.onControllerRemovedObservable.add((xrController)=>{
+          console.log("Controller removed", xrController);
+          if ( xrController.inputSource.profiles && xrController.inputSource.profiles.includes("generic-touchscreen")) {
+            if ( this.touchTimestamp && Date.now() - this.touchTimestamp > 1000 ) {
+              this.teleportForward();
+              delete this.touchTimestamp;
+            }
+          }
+        });
       }
       
       
@@ -361,6 +374,15 @@ export class VRHelper {
       var forwardDirection = this.camera().getForwardRay(distance).direction;
       //this.camera().position = forwardDirection;
       this.camera().position.addInPlace( new BABYLON.Vector3(-forwardDirection.x, 0, -forwardDirection.z));
+    }
+  }
+  teleportForward() {
+    console.log("touch end");
+    // based on WebXRControllerTeleportation.ts
+    const options = this.vrHelper.teleportation._options; 
+    if (options.teleportationTargetMesh && options.teleportationTargetMesh.isVisible) {
+      this.camera().position.copyFrom(options.teleportationTargetMesh.position);
+      this.camera().position.y += this.realWorldHeight();
     }
   }
   /**
