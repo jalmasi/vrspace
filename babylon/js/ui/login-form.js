@@ -42,7 +42,7 @@ class NameForm extends Form {
 
   inputFocused(input, focused) {
     this.virtualKeyboardEnabled = VRSPACEUI.hud.inXR();
-    //this.virtualKeyboardEnabled = true;
+    this.virtualKeyboardEnabled = true;
     super.inputFocused(input,focused);
   }
   
@@ -106,7 +106,7 @@ export class LoginForm extends Form {
   constructor(changeCallback, blurCallback, buttonCallback, providers) {
     super();
     this.position = null;
-    this.planeSize = .5;
+    this.planeSize = .25;
     this.providers = providers;
     this.changeCallback = changeCallback;
     this.blurCallback = blurCallback;

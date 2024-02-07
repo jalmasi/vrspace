@@ -52,6 +52,8 @@ export class AvatarSelection extends World {
     this.anonymousAllowed = true;
     /** enable plenty of debug info */
     this.debug=false;
+    /** z position of character and animation buttons */
+    this.buttonsZ=-1;
     // state variables
     this.mirror = true;
     this.authenticated = false;
@@ -124,7 +126,7 @@ export class AvatarSelection extends World {
     // position the form just in front of avatar
     // make room for virtual keyboard, and resize/mirror buttons
     if ( this.enableLogin ) {
-      this.loginForm.position = new BABYLON.Vector3(0,1,-0.5);
+      this.loginForm.position = new BABYLON.Vector3(.25,.6,-1);
       this.loginForm.init(); // starts speech recognition
     }
     // testing various REST calls here
@@ -306,7 +308,7 @@ export class AvatarSelection extends World {
       }
       var buttons = new Buttons(this.scene,"Avatars",folders,(dir) => this.createAvatarSelection(dir),"name");
       buttons.setHeight(.5);
-      buttons.group.position = new BABYLON.Vector3(.5,2.2,-.5);
+      buttons.group.position = new BABYLON.Vector3(.3,2.2,this.buttonsZ);
       buttons.select(0);
       this.mainButtons = buttons;
     });
@@ -321,7 +323,7 @@ export class AvatarSelection extends World {
       VRSPACEUI.listCharacters( folder.url(), (avatars) => {
         var buttons = new Buttons(this.scene,folder.name,avatars,(dir) => this.loadCharacter(dir),"name");
         buttons.setHeight(0.1 * Math.min(20,avatars.length));
-        buttons.group.position = new BABYLON.Vector3(1.3,2.2,-.5);
+        buttons.group.position = new BABYLON.Vector3(1,2.2,this.buttonsZ);
         this.characterButtons = buttons;
       });
     } else if (folder.name == "video") {
@@ -549,7 +551,7 @@ export class AvatarSelection extends World {
     this.animationSelection = new Buttons(this.scene,"Animations",names, (name)=>this.startAnimation(name));
     this.animationSelection.turnOff = true;
     this.animationSelection.setHeight(Math.min(2,names.length/10));
-    this.animationSelection.group.position = new BABYLON.Vector3(-2,2.2,-.5);
+    this.animationSelection.group.position = new BABYLON.Vector3(-1.5,2.2,this.buttonsZ);
   }
 
   startAnimation(name) {
@@ -560,12 +562,13 @@ export class AvatarSelection extends World {
   addCharacterButtons() {
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
     var resizeButton = new BABYLON.GUI.HolographicButton("resizeButton");
-    resizeButton.contentResolution = 128;
+    //resizeButton.contentResolution = 128;
+    resizeButton.contentResolution = 256;
     resizeButton.contentScaleRatio = 1;
     resizeButton.text = "Resize";
     this.guiManager.addControl(resizeButton);
 
-    resizeButton.position = new BABYLON.Vector3( -0.5,0.2,-1 );
+    resizeButton.position = new BABYLON.Vector3( -0.5,0.2,-0.8 );
     resizeButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
     resizeButton.onPointerDownObservable.add( () => {
       if ( this.inXR ) {
@@ -581,12 +584,13 @@ export class AvatarSelection extends World {
     });
 
     var mirrorButton = new BABYLON.GUI.HolographicButton("mirrorButton");
-    mirrorButton.contentResolution = 128;
+    //mirrorButton.contentResolution = 128;
+    mirrorButton.contentResolution = 256;
     mirrorButton.contentScaleRatio = 1;
     mirrorButton.text = "Mirroring";
     this.guiManager.addControl(mirrorButton);
 
-    mirrorButton.position = new BABYLON.Vector3( 0.5,0.2,-1 );
+    mirrorButton.position = new BABYLON.Vector3( 0.5,0.2,-0.8 );
     mirrorButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
     mirrorButton.onPointerDownObservable.add( () => {
         // TODO: rotate character, (un)set mirror var
