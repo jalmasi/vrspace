@@ -321,8 +321,10 @@ export class VRHelper {
     window.addEventListener("gamepaddisconnected", (e) => {
       console.log("Gamepad disconnected ",e.gamepad.id);
       this.world.scene.unregisterBeforeRender( gamepadTracker );
+      this.clearPointer();
     });
     window.addEventListener("gamepadconnected", (e) => {
+      this.createPointer();
       console.log("Gamepad "+e.gamepad.index+" connected "+e.gamepad.id);
       this.teleportTarget = new BABYLON.TransformNode("Teleport-target", this.world.scene);
       let teleportMesh = new BABYLON.MeshBuilder.CreatePlane("Teleport-mesh", {width: 1, height: 1}, this.world.scene);
@@ -668,7 +670,6 @@ export class VRHelper {
    */
   startTracking() {
     console.log("startTracking");
-    this.createPointer();
     this.world.scene.registerBeforeRender(this.xrDeviceTracker);
   }
   /**
