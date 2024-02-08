@@ -9,6 +9,7 @@ export class Terrain {
     this.visibility = params.visibility;
     this.terrainMaterial = params.material;
     this.checkCollisions = true;
+    this.enabled=true;
   }
   buildGrid() {
     this.mapData = new Float32Array(this.xSize * this.zSize * 3);
@@ -31,6 +32,7 @@ export class Terrain {
       terrainSub: this.visibility
     }
   }
+
   /** Height function used in constructor, intended to be overridden by subclasses
   @param x coordinate of current grid element
   @param y coordinate of current grid element
@@ -43,6 +45,9 @@ export class Terrain {
     return 0;
   }
   mesh() {
+    if ( ! this.isCreated() ) {
+      throw Error("Terrain has not been created yet");
+    }
     return this.terrain.mesh;
   }
   init(scene) {
@@ -69,6 +74,7 @@ export class Terrain {
         this.terrain.camera = this.scene.activeCamera;
       }
     });
+    this.terrain.mesh.setEnabled(this.enabled);
     console.log('Terrain created');
   }
   

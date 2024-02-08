@@ -17,9 +17,12 @@ export class Desert extends Terrain {
     noise.seed(this.seed);
   }
 
-  enabled( flag ) {
-    this.terrain.mesh.setEnabled(flag);
-    this.sps.mesh.setEnabled(flag);
+  // FIXME: refactor this into Terrain class
+  // but then Terrain constructor needs World as argument - check dependencies
+  setEnabled( flag ) {
+    this.enabled = flag;
+    this.terrain.mesh.setEnabled(flag && !this.world.inAR);
+    this.sps.mesh.setEnabled(flag && !this.world.inAR);
   }
   
   createTerrain() {

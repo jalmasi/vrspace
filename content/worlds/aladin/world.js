@@ -102,9 +102,9 @@ export class Aladinville extends World {
     this.engine.runRenderLoop(() => {
       if ( this.terrain && this.terrain.isCreated()) {
         if ( camera.globalPosition.x > -20 && camera.globalPosition.x < 20 && camera.globalPosition.z >= -20 && camera.globalPosition.z <= 25 ) {
-          this.terrain.enabled(false);
+          this.terrain.setEnabled(false);
         } else {
-          this.terrain.enabled(true);
+          this.terrain.setEnabled(true);
         }
       }
       if ( scene ) {

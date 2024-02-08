@@ -255,8 +255,13 @@ export class VRHelper {
     //console.log("VRHelper initialized", this.vrHelper);
   }
   enableBackground(enabled) {
-    if ( "immersive-ar" == this.sessionMode && this.world.skyBox ) {
-      this.world.skyBox.setEnabled(enabled);
+    if ( "immersive-ar" == this.sessionMode ) {
+      if ( this.world.skyBox ) {
+        this.world.skyBox.setEnabled(enabled);
+      }
+      if ( this.world.terrain ) {
+        this.world.terrain.enabled=enabled;
+      }
       this.world.enableBackground(enabled);
     }
   }

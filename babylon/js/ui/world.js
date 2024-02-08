@@ -450,7 +450,7 @@ export class World {
   }
   /**
    * Called when entering world in AR mode, or entering/exiting AR.
-   * VRHelper disables the skybox, but this method should dissable all other nodes that shouldn't be seen in AR. 
+   * VRHelper disables the skybox and terrain, but this method should dissable all other nodes that shouldn't be visible in AR. 
    */
   enableBackground(enabled) {
   }

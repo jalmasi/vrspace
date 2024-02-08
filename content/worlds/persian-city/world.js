@@ -66,9 +66,9 @@ export class PersianCity extends World {
         //if ( vrHelper.currentVRCamera.position.x > -150 && vrHelper.currentVRCamera.position.x < 150 && vrHelper.currentVRCamera.position.z >= -150 && vrHelper.currentVRCamera.position.z <= 150 ) {
         //if ( camera.position.x > -150 && camera.position.x < 150 && camera.position.z >= -150 && camera.position.z <= 150 ) {
         if ( camera.globalPosition.x > -150 && camera.globalPosition.x < 150 && camera.globalPosition.z >= -150 && camera.globalPosition.z <= 150 ) {
-          this.terrain.enabled(false);
+          this.terrain.setEnabled(false);
         } else {
-          this.terrain.enabled(true);
+          this.terrain.setEnabled(true);
         }
       }
       this.scene.render();
@@ -84,16 +84,19 @@ export class PersianCity extends World {
     terrainTexture.vScale = terrainTexture.uScale;
 
     // box to fix ground texture flickering
-    var box = BABYLON.MeshBuilder.CreateBox("fixBox", {width:1000, depth:1000,height:.10}, this.scene); // default box
-    box.position = new BABYLON.Vector3(-40,0,-20);
-    box.material = this.terrainMaterial;
-    box.checkCollisions = true;
+    this.groundBox = BABYLON.MeshBuilder.CreateBox("groundBox", {width:1000, depth:1000,height:.10}, this.scene); // default box
+    this.groundBox.position = new BABYLON.Vector3(-40,0,-20);
+    this.groundBox.material = this.terrainMaterial;
+    this.groundBox.checkCollisions = true;
 
     this.terrain = new Desert( this, this.terrainMaterial );
     this.terrain.checkCollisions = true;
     this.terrain.createTerrain(this.scene);
   }
   
+  enableBackground(enable) {
+    this.groundBox.setEnabled(enable);
+  }
   
 }
 

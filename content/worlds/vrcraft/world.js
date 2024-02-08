@@ -68,12 +68,27 @@ export class WorldEditorExample extends World {
   
   makeUI() {
     this.contentBase=VRSPACEUI.contentBase;
-    var worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world-edit.png", (b,i)=>this.editWorld(b,i));
-    var terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i));
-    var skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i));
+    this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world-edit.png", (b,i)=>this.editWorld(b,i));
+    this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i));
+    this.skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i));
+    this.terrainEdit.isVisible = !this.inAR;
+    this.skyboxEdit.isVisible = !this.inAR;
     VRSPACEUI.hud.enableSpeech(true);
   }
-    
+  
+  enterXR() {
+    super.enterXR();
+    this.terrainEdit.isVisible = !this.inAR;
+    this.skyboxEdit.isVisible = !this.inAR;
+  }
+  exitXR() {
+    super.exitXR();
+    if ( !this.editing ) {
+      this.terrainEdit.isVisible = true;
+      this.skyboxEdit.isVisible = true;    
+    }
+  }
+  
   editWorld(button, vector3WithInfo) {
     this.editing = !this.editing;
     console.log("World editor active:"+this.editing);
