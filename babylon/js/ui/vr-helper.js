@@ -116,7 +116,8 @@ export class VRHelper {
               this.startTracking();
               // Workaround for teleporation/selection bug
               xrHelper.teleportation.setSelectionFeature(null);
-              this.world.inXR = true;
+              this.world.inAR = (this.sessionMode=="immersive-ar");
+              this.world.inVR = (this.sessionMode=="immersive-vr");
               this.world.enterXR();
               break;
             case BABYLON.WebXRState.ENTERING_XR:
@@ -134,7 +135,8 @@ export class VRHelper {
               this.world.camera.position = this.camera().position.clone();
               this.world.camera.rotation = this.camera().rotation.clone();
               this.world.collisions(this.world.collisionsEnabled);
-              this.world.inXR = false;
+              this.world.inAR = false;
+              this.world.inVR = false;
               break;
             case BABYLON.WebXRState.NOT_IN_XR:
               console.log( "Exited "+this.sessionMode );
@@ -143,7 +145,8 @@ export class VRHelper {
               // CHECKME: use rotation quaternion instead?
               this.world.camera.rotation = this.camera().rotation.clone();
               this.world.collisions(this.world.collisionsEnabled);
-              this.world.inXR = false;
+              this.world.inAR = false;
+              this.world.inVR = false;
               // all the above copied from previous case
               if ( this.pointerLines ) {
                 this.pointerLines.dispose();
@@ -392,7 +395,7 @@ export class VRHelper {
    * Installs a ray caster into rendering loop, that moves teleportation destination marker around.
    */
   teleportStart() {
-    if ( this.teleporting || ! this.world.inXR) {
+    if ( this.teleporting || ! this.world.inXR()) {
       return;
     }
     this.teleporting = true;
@@ -601,7 +604,7 @@ export class VRHelper {
    * Calls World.trackXrDevices()
    */
   trackXrDevices() {
-    if ( this.world && this.world.inXR ) {
+    if ( this.world && this.world.inXR() ) {
       // user height has to be tracked here due to
       //XRFrame access outside the callback that produced it is invalid
       if ( this.camera().realWorldHeight ) {

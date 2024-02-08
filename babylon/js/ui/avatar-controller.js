@@ -486,7 +486,7 @@ export class AvatarController {
   @param changes array of field,value object pairs
    */
   processChanges(changes) {
-    if ( this.world.inXR ) {
+    if ( this.world.inXR() ) {
       // do NOT send anything while in XR
       return;
     }
@@ -510,12 +510,12 @@ export class AvatarController {
   }
 
   deactivateCamera(camera = this.scene.activeCamera) {
-    if ( !this.world.inXR ) {
+    if ( !this.world.inXR() ) {
       camera.detachControl();
     }
   }
   activateCamera(camera) {
-    if ( !this.world.inXR ) {
+    if ( !this.world.inXR() ) {
       this.scene.activeCamera = camera;
       this.scene.activeCamera.attachControl();
     } else {
@@ -578,7 +578,7 @@ export class AvatarController {
     if ( this.avatar.parentMesh ) {
       // TODO XR camera position
       let camera = this.world.camera1p;
-      if ( this.world.inXR ) {
+      if ( this.world.inXR() ) {
         camera = this.world.xrHelper.camera();
         let pos = this.world.xrHelper.camera().position;
         this.world.camera1p.position.x = pos.x;
@@ -621,7 +621,7 @@ export class AvatarController {
     this.worldManager.trackMesh(null);
     this.hideAvatar();
 
-    if ( this.world.inXR ) {
+    if ( this.world.inXR() ) {
       let pos = this.movement.movementTracker.position;
       this.world.camera1p.position.x = pos.x;
       this.world.camera1p.position.y = pos.y + this.world.xrHelper.camera().ellipsoid.y*2-this.world.xrHelper.camera().ellipsoidOffset.y;

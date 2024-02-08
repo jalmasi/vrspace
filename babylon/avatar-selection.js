@@ -433,7 +433,7 @@ export class AvatarSelection extends World {
     loaded.file = file;
     loaded.animations = this.customAnimations;
     // resize the character to real-world height
-    if ( this.inXR ) {
+    if ( this.inXR() ) {
       this.userHeight = this.xrHelper.camera().realWorldHeight;
     }
     loaded.userHeight = this.userHeight;
@@ -571,7 +571,7 @@ export class AvatarSelection extends World {
     resizeButton.position = new BABYLON.Vector3( -0.5,0.2,-0.8 );
     resizeButton.node.scaling = new BABYLON.Vector3(.2,.2,.2);
     resizeButton.onPointerDownObservable.add( () => {
-      if ( this.inXR ) {
+      if ( this.inXR() ) {
         this.tracking = false;
         this.userHeight = this.xrHelper.camera().realWorldHeight;
         console.log("Resizing to "+this.userHeight);
@@ -719,7 +719,8 @@ export class AvatarSelection extends World {
     import(worldUrl+'/'+worldScript).then((world)=>{
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;
-        world.inXR = this.inXR;
+        world.inVR = this.inVR;
+        world.inAR = this.inAR;
         
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
@@ -727,10 +728,10 @@ export class AvatarSelection extends World {
         this.worldManager.customAnimations = this.customAnimations;
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
-        this.worldManager.remoteLogging = true;
+        //this.worldManager.remoteLogging = true;
         
-        if ( this.inXR ) {
-          console.log("Tracking, "+this.inXR);
+        if ( this.inXR() ) {
+          console.log("Tracking, "+this.inXR());
           this.worldManager.trackCamera(this.xrHelper.camera());
           // floors that exist only after load
           this.xrHelper.addFloors();
@@ -776,7 +777,7 @@ export class AvatarSelection extends World {
         world.WORLD.initXR(this.xrHelper);
         
         // TODO install world's xr device tracker
-        if ( this.inXR ) {
+        if ( this.inXR() ) {
           this.xrHelper.enableBackground(false);
           // for some reason, this sets Y to 0:
           this.xrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);

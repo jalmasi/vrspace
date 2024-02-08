@@ -47,8 +47,10 @@ export class World {
     this.camera3p = null;
     /** Progress indicator functon */
     this.onProgress = null;
-    /** WebXR mode indicator, set by VRHelper */
-    this.inXR = false;
+    /** AR mode indicator, set by VRHelper */
+    this.inAR = false;
+    /** VR mode indicator, set by VRHelper */
+    this.inVR = false;
     /** WebXR capability indicator, set by VRHelper */
     this.hasXR = false;
     /** VR helper */
@@ -209,8 +211,14 @@ export class World {
     this.chatLog.show();
     this.worldManager.addChangeListener( (obj, field, node) => this.remoteEvent(obj, field, node));
     this.chatLog.input.addListener( text=>this.write(text) );
-    this.chatLog.input.virtualKeyboardEnabled = this.inXR;
+    this.chatLog.input.virtualKeyboardEnabled = this.inXR();
     this.addSelectionPredicate((mesh) => this.chatLog.isSelectableMesh(mesh));
+  }
+  /**
+   * Returns true if either VR or AR mode is currently active
+   */
+  inXR() {
+    return this.inVR || this.inAR;
   }
   /**
   Utility method, creates a UniversalCamera and sets defaults: gravity, collisions, ellipsoid, keys.
