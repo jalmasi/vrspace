@@ -361,7 +361,8 @@ export class HUD {
 
     let plane = form.createPlane(size,textureWidth,textureHeight);
     plane.parent = this.rowRoot;
-    plane.position = new BABYLON.Vector3(0,size/2,0.02);
+    //plane.position = new BABYLON.Vector3(0,size/2,0.02);
+    plane.position = new BABYLON.Vector3(0,size/2,-0.05); // closer than buttons
     
     this.elements.push(plane);
     this.controls.push(form.panel);

@@ -19,7 +19,7 @@ export class TextArea {
     this.titleText = titleText;
     this.scene = scene;
     this.size = .2;
-    this.position = new BABYLON.Vector3(-.08, 0, .3);
+    this.position = new BABYLON.Vector3(-.08, 0, .5);
     this.alpha = 0.7;
     this.fontSize = 16;
     this.width = 512;

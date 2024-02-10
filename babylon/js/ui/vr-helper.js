@@ -558,7 +558,12 @@ export class VRHelper {
       this.vrHelper.teleportation.attach();
     }
     this.squeezeConsumers.every(callback=>{
-      return callback(component.value, side);
+      try {
+        return callback(component.value, side);
+      } catch ( err ) {
+        log.error("Error processing squeeze ", err);
+        return true;
+      }
     });
   }
   /**
