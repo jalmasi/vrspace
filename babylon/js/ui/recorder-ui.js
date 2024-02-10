@@ -12,12 +12,13 @@ export class RecorderUI {
     // parameters
     this.scene = scene;
     this.recorder = null;
+    this.contentBase = VRSPACEUI.contentBase;
   }
   /** Shows the UI */
   showUI() {
 
 
-    this.recordButton = VRSPACEUI.hud.addButton("REC", this.contentBase+"/content/icons/Dot.png");
+    this.recordButton = VRSPACEUI.hud.addButton("REC", this.contentBase+"/content/icons/dot.png");
     this.recordButton.onPointerDownObservable.add( () => this.record());
     
     this.stopButton = VRSPACEUI.hud.addButton("Stop",this.contentBase+"/content/icons/pause.png");

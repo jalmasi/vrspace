@@ -8,7 +8,7 @@ export class WorldTemplate extends World {
     // your world file name, defaults to scene.gltf
     this.file='dolphin.glb';
     // your world directory, defaults to location of world script
-    this.baseUrl='//www.vrspace.org/babylon/';
+    this.baseUrl='https://www.vrspace.org/babylon/';
   }
   // OPTIONAL: override this method to customize loading of world mesh(es)
   // leave it empty if you don't want to load anything
@@ -58,7 +58,7 @@ export class WorldTemplate extends World {
     skyboxMaterial.disableLighting = true;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("//www.babylonjs.com/assets/skybox/TropicalSunnyDay", this.scene);
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("https://www.babylonjs.com/assets/skybox/TropicalSunnyDay", this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     return skybox;
   }

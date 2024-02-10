@@ -215,7 +215,7 @@ export class RemoteServer extends Client {
 See server side counterpart.
 @extends Client
  */
-export class EventRecorder extends Client {
+export class EventRecorder extends User {
   constructor() {
     super();
     /** Server-side class name */

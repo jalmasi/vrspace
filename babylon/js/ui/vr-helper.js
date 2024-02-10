@@ -54,15 +54,6 @@ export class VRHelper {
           },
           floorMeshes: this.world.getFloorMeshes()
         });
-        // xr.enterExitUI.overlay is div html element, class div.xr-button-overlay
-        // contains a button of class babylonVRicon
-        // we can manipulate their styles like 
-        if ("immersive-vr" == this.sessionMode) {
-          xrHelper.enterExitUI.overlay.children[0].textContent="VR";
-        } else if ("immersive-ar" == this.sessionMode) {
-          xrHelper.enterExitUI.overlay.children[0].textContent="AR";
-          xrHelper.enterExitUI.overlay.style.cssText = xrHelper.enterExitUI.overlay.style.cssText.replace("right","left");
-        }
         // selection disallowed until controllers are initialized
         VRSPACEUI.hud.allowSelection = false;
       } catch ( err ) {
@@ -76,6 +67,16 @@ export class VRHelper {
       console.log("Using XR helper");
       this.vrHelper = xrHelper;
       world.hasXR = true;
+
+      // xr.enterExitUI.overlay is div html element, class div.xr-button-overlay
+      // contains a button of class babylonVRicon
+      // we can manipulate their styles like 
+      if ("immersive-vr" == this.sessionMode) {
+        xrHelper.enterExitUI.overlay.children[0].textContent="VR";
+      } else if ("immersive-ar" == this.sessionMode) {
+        xrHelper.enterExitUI.overlay.children[0].textContent="AR";
+        xrHelper.enterExitUI.overlay.style.cssText = xrHelper.enterExitUI.overlay.style.cssText.replace("right","left");
+      }
 
       // updating terrain after teleport
       if ( this.movementObserver ) {
