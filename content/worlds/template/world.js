@@ -87,7 +87,7 @@ export class WorldTemplate extends World {
     
     // OPTIONAL development helpers
     // event recorder records your events and plays them back
-    var recorder = new RecorderUI(this.scene);
+    var recorder = new RecorderUI(this.scene, "Recorder:"+Math.floor(Math.random() * 100));
     recorder.showUI()
   }
 

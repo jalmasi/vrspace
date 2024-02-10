@@ -51,7 +51,7 @@ export class AvatarSelection extends World {
     /** is anonymous entry (guest login) allowed */
     this.anonymousAllowed = true;
     /** enable plenty of debug info */
-    this.debug=true;
+    this.debug=false;
     /** z position of character and animation buttons */
     this.buttonsZ=-1;
     // state variables
