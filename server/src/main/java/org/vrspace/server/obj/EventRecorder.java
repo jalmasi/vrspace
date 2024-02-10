@@ -149,8 +149,8 @@ public class EventRecorder extends Client {
    * finished.
    */
   public void play() {
-    log.debug(this.getName() + " Playing " + events.size() + " events...");
     if (this.events.size() > 0 && this.getListeners().size() > 0) {
+      log.debug(this.getName() + " Playing " + events.size() + " events...");
       this.playing = true;
       ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
       events.stream().filter((event) -> "own".equals(event.getType()))
@@ -166,6 +166,7 @@ public class EventRecorder extends Client {
         restart.shutdown();
       }
     } else {
+      log.debug(this.getName() + " Noone is listening, shutting down");
       this.playing = false;
     }
   }
