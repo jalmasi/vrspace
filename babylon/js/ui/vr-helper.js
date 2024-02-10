@@ -56,6 +56,19 @@ export class VRHelper {
         });
         // selection disallowed until controllers are initialized
         VRSPACEUI.hud.allowSelection = false;
+        
+        // xr.enterExitUI.overlay is div html element, class div.xr-button-overlay
+        // contains a button of class babylonVRicon
+        // we can manipulate their styles like 
+        if (  xrHelper.enterExitUI.overlay.children[0] ) {
+          if ("immersive-vr" == this.sessionMode) {
+            xrHelper.enterExitUI.overlay.children[0].textContent="VR";
+          } else if ("immersive-ar" == this.sessionMode) {
+            xrHelper.enterExitUI.overlay.children[0].textContent="AR";
+            xrHelper.enterExitUI.overlay.style.cssText = xrHelper.enterExitUI.overlay.style.cssText.replace("right","left");
+          }
+        }
+        
       } catch ( err ) {
         console.log("Can't init XR:"+err);
       }
@@ -67,16 +80,6 @@ export class VRHelper {
       console.log("Using XR helper");
       this.vrHelper = xrHelper;
       world.hasXR = true;
-
-      // xr.enterExitUI.overlay is div html element, class div.xr-button-overlay
-      // contains a button of class babylonVRicon
-      // we can manipulate their styles like 
-      if ("immersive-vr" == this.sessionMode) {
-        xrHelper.enterExitUI.overlay.children[0].textContent="VR";
-      } else if ("immersive-ar" == this.sessionMode) {
-        xrHelper.enterExitUI.overlay.children[0].textContent="AR";
-        xrHelper.enterExitUI.overlay.style.cssText = xrHelper.enterExitUI.overlay.style.cssText.replace("right","left");
-      }
 
       // updating terrain after teleport
       if ( this.movementObserver ) {
@@ -109,6 +112,8 @@ export class VRHelper {
             case BABYLON.WebXRState.IN_XR:
               // XR is initialized and already submitted one frame
               console.log( "Entered "+this.sessionMode );
+              this.world.inAR = (this.sessionMode=="immersive-ar");
+              this.world.inVR = (this.sessionMode=="immersive-vr");
               if ( this.camera().realWorldHeight ) {
                 // are we absolutely sure that all mobiles deliver this value?
                 this.userHeight = this.camera().realWorldHeight;
@@ -117,8 +122,6 @@ export class VRHelper {
               this.startTracking();
               // Workaround for teleporation/selection bug
               xrHelper.teleportation.setSelectionFeature(null);
-              this.world.inAR = (this.sessionMode=="immersive-ar");
-              this.world.inVR = (this.sessionMode=="immersive-vr");
               this.world.enterXR();
               break;
             case BABYLON.WebXRState.ENTERING_XR:
@@ -261,7 +264,7 @@ export class VRHelper {
         this.world.skyBox.setEnabled(enabled);
       }
       if ( this.world.terrain ) {
-        this.world.terrain.enabled=enabled;
+        this.world.terrain.setEnabled(enabled);
       }
       this.world.enableBackground(enabled);
     }
@@ -595,9 +598,12 @@ export class VRHelper {
    */
   afterTeleportation() {
     var targetPosition = this.vrHelper.baseExperience.camera.position;
-    this.world.camera.globalPosition.x = targetPosition.x;
-    this.world.camera.globalPosition.y = targetPosition.y;
-    this.world.camera.globalPosition.z = targetPosition.z;
+    if ( this.world.camera ) {
+      // this might get triggered before the world camera is initialized
+      this.world.camera.globalPosition.x = targetPosition.x;
+      this.world.camera.globalPosition.y = targetPosition.y;
+      this.world.camera.globalPosition.z = targetPosition.z;
+    }
     if ( this.world.terrain ) {
       this.world.terrain.refresh(false);
     }

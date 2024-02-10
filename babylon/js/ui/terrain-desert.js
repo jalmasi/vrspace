@@ -7,8 +7,7 @@ TODO refactor: generic randomized terrain
  */
 export class Desert extends Terrain {
   constructor(world, terrainMaterial) {
-    super({material: terrainMaterial, xSize:200, zSize:200, visibility:100});
-    this.world = world;
+    super(world, {material: terrainMaterial, xSize:200, zSize:200, visibility:100});
     this.checkCollisions = true;
     this.terrainObjects=[];
     this.seed = 0.3;                 // seed
@@ -17,14 +16,6 @@ export class Desert extends Terrain {
     noise.seed(this.seed);
   }
 
-  // FIXME: refactor this into Terrain class
-  // but then Terrain constructor needs World as argument - check dependencies
-  setEnabled( flag ) {
-    this.enabled = flag;
-    this.terrain.mesh.setEnabled(flag && !this.world.inAR);
-    this.sps.mesh.setEnabled(flag && !this.world.inAR);
-  }
-  
   createTerrain() {
     var world = this.world;
     

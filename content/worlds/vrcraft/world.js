@@ -1,6 +1,10 @@
 import { World, VRSPACEUI, WorldManager, WorldEditor, Terrain, TerrainEditor, SkyboxSelector } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldEditorExample extends World {
+  constructor(params) {
+    super(params);
+    this.gravityEnabled = false;
+  }
   async load(callback) {
     // we're not loading any models
     // but we're displaying UI instead
@@ -12,7 +16,6 @@ export class WorldEditorExample extends World {
   }
   async createCamera() {
     this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
-    this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;
     this.camera.applyGravity = false;
@@ -56,7 +59,7 @@ export class WorldEditorExample extends World {
   }
 
   async createTerrain() {
-    this.terrain = new Terrain();
+    this.terrain = new Terrain(this);
     this.terrain.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", this.scene);
     this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(.2, .2, .2);
     this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(0, .2, 0);
@@ -81,6 +84,7 @@ export class WorldEditorExample extends World {
     this.terrainEdit.isVisible = !this.inAR;
     this.skyboxEdit.isVisible = !this.inAR;
   }
+  
   exitXR() {
     super.exitXR();
     if ( !this.editing ) {
@@ -144,6 +148,7 @@ export class WorldEditorExample extends World {
     //this.worldManager.debug = true; // multi-user debug info
     //this.worldManager.VRSPACE.debug = true; // network debug info
     //this.worldManager.remoteLogging = true;
+    this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
     this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => {
       // we don't really need to do anything here
     });

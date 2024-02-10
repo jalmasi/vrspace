@@ -3,7 +3,8 @@ Wrapper around babylonjs dynamic terrain.
 See https://github.com/BabylonJS/Extensions/blob/b16eb03254c90438e8f6ea0ff5b3406f52035cd0/DynamicTerrain/src/babylon.dynamicTerrain.ts
  */
 export class Terrain {
-  constructor( params = {xSize:1000, zSize:1000, visibility:100, material:null }) {
+  constructor( world, params = {xSize:1000, zSize:1000, visibility:100, material:null }) {
+    this.world = world;
     this.xSize = params.xSize;
     this.zSize = params.zSize;
     this.visibility = params.visibility;
@@ -76,6 +77,14 @@ export class Terrain {
     });
     this.terrain.mesh.setEnabled(this.enabled);
     console.log('Terrain created');
+  }
+  
+  setEnabled( flag ) {
+    this.enabled = flag;
+    this.terrain.mesh.setEnabled(flag && !this.world.inAR);
+    if ( this.sps && this.sps.mesh ) {
+      this.sps.mesh.setEnabled(flag && !this.world.inAR);
+    }
   }
   
   /** Returns true if both this terrain and terrain mesh exist, i.e. safe to use */

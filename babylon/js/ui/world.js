@@ -119,11 +119,14 @@ export class World {
       this.file = file;
     }
     await this.createScene(engine);
+    this.registerRenderLoop();
     if ( ! this.onProgress ) {
       this.indicator = VRSPACEUI.loadProgressIndicator(this.scene, this.camera);
       this.onProgress = (evt, name) => this.indicator.progress( evt, name )
+    } else {
+      // make sure it's available for any and all operations (custom progress indicator may not have done it)
+      VRSPACEUI.init(scene);
     }
-    this.registerRenderLoop();
     this.createTerrain();
     this.createUI();
     this.load(callback);
@@ -418,8 +421,10 @@ export class World {
   /** Creates a VRHelper if needed, and initializes it with the current world.
   Normally called after world is loaded, safe to call elsewhere, or call multiple times.
   @param vrHelper optional existing vrHelper
+  @param arHelper optional existing arHelper
+  @param activeHelper optional, if given both helpers, one that's currently active (e.g. passed while in VR or AR mode)
    */
-  initXR(vrHelper) {
+  initXR(vrHelper, arHelper, activeHelper) {
     if ( vrHelper ) {
       this.vrHelper = vrHelper;
     }
@@ -427,10 +432,21 @@ export class World {
       this.vrHelper = new VRHelper("immersive-vr");
     }
     this.vrHelper.initXR(this);
-    this.xrHelper = this.vrHelper;
-    if ( VRSPACEUI.canAR ) {
+    
+    if ( arHelper ) {
+      this.arHelper = arHelper;
+    }
+    if ( ! this.arHelper ) {
       this.arHelper = new VRHelper("immersive-ar");
+    }
+    //if ( VRSPACEUI.canAR ) {
       this.arHelper.initXR(this)
+    //}
+    
+    if ( activeHelper && activeHelper == arHelper ) {
+      this.xrHelper = this.arHelper;
+    } else {
+      this.xrHelper = this.vrHelper;
     }
   }
   /** Called by VRHelper once XR devices are initialized. Default implementation does nothing. */

@@ -719,6 +719,7 @@ export class AvatarSelection extends World {
     import(worldUrl+'/'+worldScript).then((world)=>{
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;
+        world.initXR(this.vrHelper, this.arHelper, this.xrHelper);
         world.inVR = this.inVR;
         world.inAR = this.inAR;
         
@@ -774,7 +775,6 @@ export class AvatarSelection extends World {
 
         console.log("Loaded ", world);
         this.xrHelper.clearFloors();
-        world.WORLD.initXR(this.xrHelper);
         
         // TODO install world's xr device tracker
         if ( this.inXR() ) {

@@ -800,7 +800,7 @@ export class WorldManager {
     return new Promise( (resolve, reject) => {
       var afterEnter = (welcome) => {
         VRSPACE.removeWelcomeListener(afterEnter);
-        this.world.entered(welcome);
+        this.entered(welcome);
         // CHECKME formalize this as WorldListener interface?
         this.world.worldListeners.forEach(listener => {
           try {
@@ -811,13 +811,13 @@ export class WorldManager {
             console.log("Error in world listener", error);
           }
         });
-        if ( this.remoteLogging ) {
-          this.enableRemoteLogging();
-        }
         resolve(welcome);
       };
       var afterConnect = (welcome) => {
         VRSPACE.removeWelcomeListener(afterConnect);
+        if ( this.remoteLogging ) {
+          this.enableRemoteLogging();
+        }
         if ( properties ) {
           for ( var prop in properties ) {
             // publish own properties
@@ -833,7 +833,7 @@ export class WorldManager {
           VRSPACE.sendCommand("Session");
         } else {
           VRSPACE.sendCommand("Session");
-          this.world.entered(welcome)
+          this.entered(welcome)
           resolve(welcome);
         }
       };
@@ -853,6 +853,14 @@ export class WorldManager {
     });
   }
   
+  /** Called after user enters a world, calls world.entered() wrapped in try/catch */
+  entered(welcome) {
+    try {
+      this.world.entered(welcome);
+    } catch ( err ) {
+      console.log("Error in world entered", err);
+    }
+  }
   /** 
   Send own event.
   @param obj object containing changes to be sent, i.e. name-value pair(s).

@@ -43,7 +43,7 @@ export class TerrainEditorExample extends World {
   }
 
   createTerrain() {
-    this.terrain = new Terrain();
+    this.terrain = new Terrain(this);
 
     this.terrain.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", this.scene);
     //var terrainTexture = new BABYLON.Texture(this.assetPath("textures/LoamWalls0012_2_S_1_1_baseColor.jpeg"), this.scene);
@@ -62,10 +62,12 @@ export class TerrainEditorExample extends World {
   
   connect() {
     new WorldManager(this);
-    this.worldManager.debug = true; // multi-user debug info
-    this.worldManager.VRSPACE.debug = true; // network debug info
+    //this.worldManager.debug = true; // multi-user debug info
+    //this.worldManager.VRSPACE.debug = true; // network debug info
+    this.worldManager.remoteLogging = true; // send javascript logs to server
     this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(
       //() => this.worldEditor = new WorldEditor(this, this.fileInputElement)
+      this.initXR()
     );
   }
 
