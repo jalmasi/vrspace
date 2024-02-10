@@ -39,12 +39,16 @@ export class VRHelper {
   @param world attaches the control to the World
    */
   async initXR(world) {
-    this.world = world;
     var xrHelper = this.vrHelper;
     if ( this.vrHelper ) {
       console.log("VR helper already intialized");
+      if ( this.world ) {
+        this.clearFloors();
+      }
+      this.world = world;
       this.addFloors();
     } else {
+      this.world = world;
       try {
         xrHelper = await this.world.scene.createDefaultXRExperienceAsync({
           // ask for an ar-session
@@ -237,7 +241,7 @@ export class VRHelper {
         this.world.exitXR();
       });
 
-      this.vrHelper.enableTeleportation({floorMeshes: this.world.getFloorMeshes(this.world.scene)});
+      this.vrHelper.enableTeleportation({floorMeshes: this.world.getFloorMeshes()});
       this.vrHelper.raySelectionPredicate = (mesh) => {
         return this.world.isSelectableMesh(mesh);
       };
@@ -391,7 +395,7 @@ export class VRHelper {
     }
   }
   teleportForward() {
-    console.log("touch end");
+    console.log("touch end", this.vrHelper.teleportation);
     // based on WebXRControllerTeleportation.ts
     const options = this.vrHelper.teleportation._options; 
     if (options.teleportationTargetMesh && options.teleportationTargetMesh.isVisible) {

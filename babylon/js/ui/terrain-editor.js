@@ -205,6 +205,7 @@ export class TerrainEditor extends WorldListener {
     // TODO
   }
   isSelectableMesh(mesh) {
-    return this.terrain && mesh == this.terrain.mesh();
+    // terrain is selectable only while editing
+    return this.editing && this.terrain && mesh == this.terrain.mesh();
   }
 }

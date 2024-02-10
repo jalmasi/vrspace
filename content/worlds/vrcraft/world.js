@@ -8,7 +8,7 @@ export class WorldEditorExample extends World {
   async load(callback) {
     // we're not loading any models
     // but we're displaying UI instead
-    this.makeUI();
+    //this.makeUI();
     if ( callback ) {
       // make sure to notify avatar-selection
       callback(this);
@@ -23,10 +23,9 @@ export class WorldEditorExample extends World {
   }
 
   async createGround() {
-    this.ground = BABYLON.MeshBuilder.CreateDisc("ground", {radius:1000}, this.scene);
+    this.ground = BABYLON.MeshBuilder.CreateDisc("groundGrid", {radius:1000}, this.scene);
     this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
     this.ground.position = new BABYLON.Vector3( 0, -0.05, 0 );
-    this.ground.parent = this.floorGroup;
     //this.ground.isVisible = false;
     this.ground.checkCollisions = false;
     
@@ -69,7 +68,7 @@ export class WorldEditorExample extends World {
     this.terrainEditor = new TerrainEditor(this);
   }
   
-  makeUI() {
+  createUI() {
     this.contentBase=VRSPACEUI.contentBase;
     this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world-edit.png", (b,i)=>this.editWorld(b,i));
     this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i));
@@ -91,6 +90,14 @@ export class WorldEditorExample extends World {
       this.terrainEdit.isVisible = true;
       this.skyboxEdit.isVisible = true;    
     }
+  }
+
+  // ground is not selectable while editing terrain, but otherwise must be to allow teleportation
+  getFloorMeshes() {
+    if ( this.editing ) {
+      return [];
+    }
+    return [this.ground];
   }
   
   editWorld(button, vector3WithInfo) {

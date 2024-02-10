@@ -439,9 +439,10 @@ export class World {
     if ( ! this.arHelper ) {
       this.arHelper = new VRHelper("immersive-ar");
     }
-    //if ( VRSPACEUI.canAR ) {
+    // this flag may not work due to asynchronous calls
+    if ( VRSPACEUI.canAR ) {
       this.arHelper.initXR(this)
-    //}
+    }
     
     if ( activeHelper && activeHelper == arHelper ) {
       this.xrHelper = this.arHelper;

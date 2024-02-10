@@ -717,12 +717,15 @@ export class AvatarSelection extends World {
     }
     this.loginForm.dispose();
     import(worldUrl+'/'+worldScript).then((world)=>{
+
+      world.WORLD.inVR = this.inVR;
+      world.WORLD.inAR = this.inAR;
+        
       var afterLoad = (world) => {
         world.serverUrl = this.serverUrl;
+        // other components (e.g. AvatarController) may require this
         world.initXR(this.vrHelper, this.arHelper, this.xrHelper);
-        world.inVR = this.inVR;
-        world.inAR = this.inAR;
-        
+
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
         this.worldManager.customOptons = this.customOptions;
@@ -735,7 +738,7 @@ export class AvatarSelection extends World {
           console.log("Tracking, "+this.inXR());
           this.worldManager.trackCamera(this.xrHelper.camera());
           // floors that exist only after load
-          this.xrHelper.addFloors();
+          //this.xrHelper.addFloors(); // done in VRHelper.initXR(), called by default from World.initXR()
         }
         this.worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
         let avatar = this.video;
@@ -773,9 +776,7 @@ export class AvatarSelection extends World {
         this.xrHelper.stopTracking();
         this.camera.detachControl(this.canvas);
 
-        console.log("Loaded ", world);
-        this.xrHelper.clearFloors();
-        
+        console.log("Loaded ", world);        
         // TODO install world's xr device tracker
         if ( this.inXR() ) {
           this.xrHelper.enableBackground(false);
