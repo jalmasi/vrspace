@@ -602,46 +602,48 @@ export class HUD {
    */  
   initXR(vrHelper) {
     this.vrHelper = vrHelper;
-    this.vrHelper.addSqueezeConsumer((value,side)=>{
-      let xrController = this.vrHelper.controller[side];
-      let intersects = this.intersects(xrController.grip);
-      //console.log(side+' squeeze: '+value+ " Intersects: "+intersects);
-      if ( value == 1 && intersects ) {
-        if ( side == 'left' ) {
-          this.attachToLeftController();
-        } else {
-          this.attachToRightController();
-        }
-        return false;
-      } else if ( 
-        this.vrHelper.squeeze.left.value == 1 && this.vrHelper.squeeze.right.value == 1 &&
-        this.vrHelper.trigger.left.value == 0 && this.vrHelper.trigger.right.value == 0 ) 
-      {
-        // rescaling/repositioning the hud using both squeeze buttons
-        try {
-          let leftPos = this.vrHelper.controller.left.grip.absolutePosition;
-          let rightPos = this.vrHelper.controller.right.grip.absolutePosition;
-          let handDistance = leftPos.subtract(rightPos).length();
-          let leftDistance = leftPos.subtract(this.camera.position).length();
-          let rightDistance = rightPos.subtract(this.camera.position).length();
-          let distance = Math.min(leftDistance,rightDistance);
-          let leftHeight = leftPos.y - this.camera.position.y;
-          let rightHeight = rightPos.y - this.camera.position.y;
-          let height = (leftHeight+rightHeight)/2;
-          this.distanceXR = distance;
-          this.scaleXR = handDistance;
-          this.verticalXR = height;
-        } catch ( err ) {
-          console.log(err.stack);
-        }
-        this.attachToCamera();
-        this.rescaleHUD();
-        //return false; // let's not consume it
-      }
-      return true;
-    });
+    this.squeezeConsumer = (value,side)=>this.processSqueeze(value,side);
+    this.vrHelper.addSqueezeConsumer(this.squeezeConsumer);
   }
-  
+
+  processSqueeze(value,side) {
+    let xrController = this.vrHelper.controller[side];
+    let intersects = this.intersects(xrController.grip);
+    //console.log(side+' squeeze: '+value+ " Intersects: "+intersects);
+    if ( value == 1 && intersects ) {
+      if ( side == 'left' ) {
+        this.attachToLeftController();
+      } else {
+        this.attachToRightController();
+      }
+      return false;
+    } else if ( 
+      this.vrHelper.squeeze.left.value == 1 && this.vrHelper.squeeze.right.value == 1 &&
+      this.vrHelper.trigger.left.value == 0 && this.vrHelper.trigger.right.value == 0 ) 
+    {
+      // rescaling/repositioning the hud using both squeeze buttons
+      try {
+        let leftPos = this.vrHelper.controller.left.grip.absolutePosition;
+        let rightPos = this.vrHelper.controller.right.grip.absolutePosition;
+        let handDistance = leftPos.subtract(rightPos).length();
+        let leftDistance = leftPos.subtract(this.camera.position).length();
+        let rightDistance = rightPos.subtract(this.camera.position).length();
+        let distance = Math.min(leftDistance,rightDistance);
+        let leftHeight = leftPos.y - this.camera.position.y;
+        let rightHeight = rightPos.y - this.camera.position.y;
+        let height = (leftHeight+rightHeight)/2;
+        this.distanceXR = distance;
+        this.scaleXR = handDistance;
+        this.verticalXR = height;
+      } catch ( err ) {
+        console.log(err.stack);
+      }
+      this.attachToCamera();
+      this.rescaleHUD();
+      //return false; // let's not consume it
+    }
+    return true;    
+  }  
   /**
    * Attach hud to left hand
    */

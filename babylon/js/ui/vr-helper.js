@@ -77,7 +77,6 @@ export class VRHelper {
         console.log("Can't init XR:"+err);
       }
     }
-    VRSPACEUI.hud.initXR(this);
 
     if (xrHelper && xrHelper.baseExperience) {
       // WebXRDefaultExperience class
@@ -116,6 +115,7 @@ export class VRHelper {
             case BABYLON.WebXRState.IN_XR:
               // XR is initialized and already submitted one frame
               console.log( "Entered "+this.sessionMode );
+              VRSPACEUI.hud.initXR(this);
               this.world.inAR = (this.sessionMode=="immersive-ar");
               this.world.inVR = (this.sessionMode=="immersive-vr");
               if ( this.camera().realWorldHeight ) {
@@ -573,11 +573,16 @@ export class VRHelper {
    * @param callback returns true if processing should continue
    */
   addSqueezeConsumer(callback) {
-    this.squeezeConsumers.push(callback);
+    if ( !this.squeezeConsumers.includes(callback)) {
+      this.squeezeConsumers.push(callback);
+    }
   }
   /** Remove squeeze listener */
   removeSqueezeConsumer(callback) {
-    this.squeezeConsumers.splice(this.squeezeConsumers.indexOf(callback),1);
+    let index = this.squeezeConsumers.indexOf(callback);
+    if ( index > -1 ) {
+      this.squeezeConsumers.splice(index,1);
+    }
   }
   /**
    * Used internally to track triggers of VR controllers. Disables the teleporation if a trigger is pressed.
