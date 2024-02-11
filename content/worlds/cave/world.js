@@ -92,7 +92,7 @@ export class Cave extends World {
   };
   
   createUI() {
-    if ( ! this.inXR ) {
+    if ( ! this.inXR() ) {
       // we can't activate non-XR cameras from XR
       this.firstPButton = VRSPACEUI.hud.addButton("1st Person", VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png", () => this.firstPerson());
       this.thirdPButton = VRSPACEUI.hud.addButton("3rd Person", VRSPACEUI.contentBase+"/content/icons/camera-3rd-person.png", () => this.thirdPerson());
