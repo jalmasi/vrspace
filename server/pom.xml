@@ -4,7 +4,7 @@
   <groupId>org.vrspace</groupId>
   <artifactId>server</artifactId>
   <name>server</name>
-  <version>0.6.1</version>
+  <version>0.6.2-SNAPSHOT</version>
   <description>VRSpace.org server</description>
   <url>https://github.com/jalmasi/vrspace</url>
 
@@ -233,6 +233,8 @@
             <configuration>
               <mainClass>org.vrspace.server.ServerApplication</mainClass>
               <layout>JAR</layout>
+              <classifier>executable</classifier>
+              <attach>true</attach>
             </configuration>
             <executions>
                 <execution>
