@@ -1011,7 +1011,7 @@ export class Avatar {
       leg.upperNormal = new BABYLON.Vector3();
       leg.lowerNormal = new BABYLON.Vector3();
       BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.upperQuatInv,leg.upperNormal);
-      BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.lowerQuatInv,leg.lowerNormal);
+      BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.upperQuatInv.multiply(leg.lowerQuat),leg.lowerNormal);
     }
 
     // simplified math by using same length for both bones
@@ -1021,14 +1021,10 @@ export class Avatar {
     var innerAngle = Math.asin(length/2/boneLength);
     var upperAngle = Math.PI/2-innerAngle;
     var lowerAngle = -upperAngle*2;
-    //var lowerAngle = Math.PI/2+innerAngle;
 
     var upperQuat = BABYLON.Quaternion.RotationAxis(leg.upperNormal,upperAngle);
 
-    //var fix = leg.upperQuatInv.multiply(leg.lowerQuatInv);
-    //var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.lowerNormal,lowerAngle);
-    var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.upperNormal,lowerAngle);
-    //lowerQuat = lowerQuat.multiply(fix);
+    var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.lowerNormal,lowerAngle);
 
     // TODO animation
     upper.getTransformNode().rotationQuaternion = leg.upperRot.multiply(upperQuat);
