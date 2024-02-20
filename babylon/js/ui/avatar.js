@@ -427,16 +427,26 @@ export class Avatar {
   /** 
   Slice an animation group
   @param group AnimationGroup to slice
-  @param start starting key
-  @param end ending key
+  @param startTime slice starting time
+  @param endTime slice ending time
   @returns new AnimationGroup containing slice of original animations
   */
-  sliceGroup( group, start, end ) {
-    var newGroup = new BABYLON.AnimationGroup(group.name+":"+start+"-"+end);
-    for ( var i = 0; i < group.targetedAnimations.length; i++ ) {
-      var slice = this.sliceAnimation( group.targetedAnimations[i].animation, start, end );
-      if ( slice.getKeys().length > 0 ) {
-        newGroup.addTargetedAnimation( slice, group.targetedAnimations[i].target );
+  sliceGroup( group, startTime, endTime ) {
+    let newGroup = new BABYLON.AnimationGroup(group.name+":"+startTime+"-"+endTime);
+    let duration = group.getLength();
+    for ( let i = 0; i < group.targetedAnimations.length; i++ ) {
+      let animation = group.targetedAnimations[i].animation;
+      let keys = animation.getKeys();
+      if ( keys.length > 0 ) {
+        let first = keys[0].frame;
+        let last = keys[keys.length-1].frame;
+        let fps = (last-first)/duration
+        let start = startTime*fps;
+        let end = endTime*fps;
+        let slice = this.sliceAnimation( animation, start, end );
+        if ( slice.getKeys().length > 0 ) {
+          newGroup.addTargetedAnimation( slice, group.targetedAnimations[i].target );
+        }
       }
     }
     return newGroup;
@@ -462,8 +472,7 @@ export class Avatar {
         }
       }
     }
-    var ret = new BABYLON.Animation(animation.name, animation.targetProperty, animation.framePerSecond, animation.dataType, animation.enableBlending);
-    ret.loopMode = animation.loopMode;
+    var ret = new BABYLON.Animation(animation.name, animation.targetProperty, animation.framePerSecond, animation.dataType, animation.loopMode, animation.enableBlending);
     ret.setKeys( slice );
     return ret;
   }
