@@ -317,8 +317,8 @@ export class Avatar {
         this.calcLength(this.body.rightArm);
         this.calcLength(this.body.leftLeg);
         this.calcLength(this.body.rightLeg);
-        this.extractInitialTransformation(this.body.leftArm);
-        this.extractInitialTransformation(this.body.rightArm);
+        this.extractInitialArmTransformation(this.body.leftArm);
+        this.extractInitialArmTransformation(this.body.rightArm);
 
         this.body.processed = true;
 
@@ -997,17 +997,21 @@ export class Avatar {
 
     if ( ! leg.upperQuat ) {
       // CHECKME getTransformNode() ?
-      leg.upperQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
+      //leg.upperQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
+      leg.upperQuat = upper.getTransformNode().rotationQuaternion.clone();
       leg.upperQuatInv = BABYLON.Quaternion.Inverse(leg.upperQuat);
 
-      leg.lowerQuat = BABYLON.Quaternion.FromRotationMatrix(lower.getTransformNode().getWorldMatrix().getRotationMatrix());
+      //leg.lowerQuat = BABYLON.Quaternion.FromRotationMatrix(lower.getTransformNode().getWorldMatrix().getRotationMatrix());
+      leg.lowerQuat = lower.getTransformNode().rotationQuaternion.clone();
       leg.lowerQuatInv = BABYLON.Quaternion.Inverse(leg.lowerQuat);
 
       leg.upperRot = upper.getTransformNode().rotationQuaternion.clone();
+      leg.lowerRot = lower.getTransformNode().rotationQuaternion.clone();
       
-      let normal = BABYLON.Axis.X.negate();
-      normal.rotateByQuaternionToRef(leg.upperQuatInv,normal);
-      leg.normal = normal;
+      leg.upperNormal = new BABYLON.Vector3();
+      leg.lowerNormal = new BABYLON.Vector3();
+      BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.upperQuatInv,leg.upperNormal);
+      BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.lowerQuatInv,leg.lowerNormal);
     }
 
     // simplified math by using same length for both bones
@@ -1015,20 +1019,20 @@ export class Avatar {
     // length/2 is sinus of half of elbow angle
     var boneLength = (leg.lowerLength + leg.upperLength)/2;
     var innerAngle = Math.asin(length/2/boneLength);
-    //this.log("Bone length: "+boneLength+" distance to target "+length);
-    var upperAngle = -Math.PI/2+innerAngle;
-    var lowerAngle = upperAngle*2;
+    var upperAngle = Math.PI/2-innerAngle;
+    var lowerAngle = -upperAngle*2;
+    //var lowerAngle = Math.PI/2+innerAngle;
 
-    var upperQuat = BABYLON.Quaternion.RotationAxis(leg.normal,upperAngle);
+    var upperQuat = BABYLON.Quaternion.RotationAxis(leg.upperNormal,upperAngle);
 
+    //var fix = leg.upperQuatInv.multiply(leg.lowerQuatInv);
+    //var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.lowerNormal,lowerAngle);
+    var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.upperNormal,lowerAngle);
+    //lowerQuat = lowerQuat.multiply(fix);
+
+    // TODO animation
     upper.getTransformNode().rotationQuaternion = leg.upperRot.multiply(upperQuat);
-
-    var fix = leg.upperQuat.multiply(leg.lowerQuatInv);
-    //var lowerQuat = BABYLON.Quaternion.RotationAxis(axis,-lowerAngle*sign);
-    var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.normal,-lowerAngle);
-    lowerQuat = lowerQuat.multiply(fix);
-
-    lower.getTransformNode().rotationQuaternion = lowerQuat;
+    lower.getTransformNode().rotationQuaternion = leg.lowerRot.multiply(lowerQuat);
 
     return length;
   }
@@ -1059,7 +1063,7 @@ export class Avatar {
     return vector.x+vector.y+vector.z;
   }
 
-  extractInitialTransformation( arm ) {
+  extractInitialArmTransformation( arm ) {
     var upperArm = this.skeleton.bones[arm.upper];
     var lowerArm = this.skeleton.bones[arm.lower];
 
