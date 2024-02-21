@@ -53,7 +53,7 @@ public class Recording implements Command {
       recorder.play();
     } else if ("stop".equals(this.action)) {
       recorder.stop();
-      worldManager.save(recorder);
+      recorder = worldManager.save(recorder);
       log.debug("Saved recorder " + recorder);
       // so that recorder reloads:
       client.getScene().setDirty();

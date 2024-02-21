@@ -674,4 +674,27 @@ public class DBIT {
     // Terrain tp = (Terrain) ret.iterator().next();
     // assertEquals(1, tp.getPoints().size());
   }
+
+  @Test
+  @Transactional
+  public void testPolymorphism() throws Exception {
+    World world = new World("test");
+    world = repo.save(world);
+
+    EventRecorder recorder = new EventRecorder();
+    recorder.setName("Recorder:123");
+    recorder.setWorld(world);
+    recorder.setPosition(new Point(0, 0, 0));
+    recorder = repo.save(recorder);
+    System.err.println(recorder);
+
+    Client c = repo.getClientByName("Recorder:123");
+    System.err.println(c);
+    assertEquals(EventRecorder.class, c.getClass());
+    assertEquals(recorder, c);
+
+    Set<VRObject> range = repo.getRange(world.getId(), new Point(0, 0, 0), new Point(10, 10, 10));
+    assertEquals(1, range.size());
+    assertEquals(EventRecorder.class, range.iterator().next().getClass());
+  }
 }

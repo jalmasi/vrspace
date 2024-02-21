@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-public class EventRecorder extends Client {
+public class EventRecorder extends User {
   private boolean recordClient = true;
   private boolean recordScene = true;
   private boolean loop = true;
@@ -61,6 +61,7 @@ public class EventRecorder extends Client {
 
   public EventRecorder() {
     super();
+    this.setActive(true);
   }
 
   public EventRecorder(WorldManager worldManager, Client client, String name) {
@@ -93,6 +94,7 @@ public class EventRecorder extends Client {
       throw new IllegalStateException("Scene is null");
     }
     this.recording = true;
+    this.setActive(false); // prevent from popping up in the scene before finished
     this.start = System.currentTimeMillis();
   }
 
@@ -101,6 +103,7 @@ public class EventRecorder extends Client {
       throw new IllegalStateException("Scene is null");
     }
     this.recording = false;
+    this.setActive(true);
     this.length = System.currentTimeMillis() - this.start;
   }
 
@@ -220,7 +223,9 @@ public class EventRecorder extends Client {
       if (this.getMapper() == null) {
         this.setMapper(((Client) obj).getMapper());
       }
-      if (this.loop && !this.playing) {
+      log.debug(getName() + " First listener, loop: " + this.loop + " playing: " + this.playing + " recording: "
+          + this.recording);
+      if (this.loop && !this.playing && !this.recording) {
         this.play();
       }
     } else {
