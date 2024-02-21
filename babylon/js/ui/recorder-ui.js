@@ -41,6 +41,7 @@ export class RecorderUI {
       // create recorder on the server
       VRSPACE.send('{"command":{"Recording":{"action":"record", "name":"'+this.name+'"}}}');
     }
+    this.recordButton.isVisible = false;
     this.stopButton.isVisible = true;
     this.playButton.isVisible = false;
   }
@@ -57,6 +58,7 @@ export class RecorderUI {
     console.log('Playing...');
     VRSPACE.send('{"command":{"Recording":{"action":"play", "name":"'+this.name+'"}}}');
     this.recordButton.isVisible = false;
+    this.playButton.isVisible = false;
     this.stopButton.isVisible = true;
   }
   

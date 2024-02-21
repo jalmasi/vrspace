@@ -50,8 +50,11 @@ public class Recording implements Command {
       recorder.init(worldManager, client);
       recorder.start();
     } else if ("play".equals(this.action)) {
+      recorder.setLoop(true);
+      recorder = worldManager.save(recorder);
       recorder.play();
     } else if ("stop".equals(this.action)) {
+      recorder.setLoop(false);
       recorder.stop();
       recorder = worldManager.save(recorder);
       log.debug("Saved recorder " + recorder);

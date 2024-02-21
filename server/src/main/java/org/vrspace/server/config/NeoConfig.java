@@ -113,10 +113,13 @@ public class NeoConfig {
 
   @PreDestroy
   public void stop() {
-    log.info("Database shutting down...");
-    managementService.shutdown();
-    log.info("Database shutting down complete");
-    cleanup();
+    // null when using external database
+    if (managementService != null) {
+      log.info("Database shutting down...");
+      managementService.shutdown();
+      log.info("Database shutting down complete");
+      cleanup();
+    }
   }
 
   private void cleanup() {

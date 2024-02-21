@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.Command;
@@ -36,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
+@Node
 public class EventRecorder extends User {
   private boolean recordClient = true;
   private boolean recordScene = true;
