@@ -717,7 +717,7 @@ export class Avatar {
     var rootQuatInv = BABYLON.Quaternion.Inverse(totalRot);
     
     var armPos = this.getAbsolutePosition(upperArm);
-    console.log("Arm "+arm.side+" pos "+armPos);
+    //console.log("Arm "+arm.side+" pos "+armPos);
     
     var upperQuat = arm.upperQuat;
     var armVector = arm.armVector;
