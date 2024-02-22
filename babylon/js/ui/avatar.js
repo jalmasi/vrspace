@@ -1047,12 +1047,12 @@ export class Avatar {
     leg.length = length;
 
     if ( ! leg.upperQuat ) {
-      // CHECKME getTransformNode() ?
-      //leg.upperQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
+      leg.worldQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
+      leg.worldQuatInv = BABYLON.Quaternion.Inverse(leg.worldQuat);
+
       leg.upperQuat = upper.getTransformNode().rotationQuaternion.clone();
       leg.upperQuatInv = BABYLON.Quaternion.Inverse(leg.upperQuat);
 
-      //leg.lowerQuat = BABYLON.Quaternion.FromRotationMatrix(lower.getTransformNode().getWorldMatrix().getRotationMatrix());
       leg.lowerQuat = lower.getTransformNode().rotationQuaternion.clone();
       leg.lowerQuatInv = BABYLON.Quaternion.Inverse(leg.lowerQuat);
 
@@ -1061,12 +1061,8 @@ export class Avatar {
       
       leg.upperNormal = new BABYLON.Vector3();
       leg.lowerNormal = new BABYLON.Vector3();
-      // FIXME: wrong axis for
-      // cyberconnect, female specops, himeko, miku, racer, valora, red, 
-      // guard, spiderman, terrorist
-      // jason, knight, infandum, overlord, treeman, troll, zombie1, zombie2
-      BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.upperQuatInv,leg.upperNormal);
-      BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.upperQuatInv.multiply(leg.lowerQuat),leg.lowerNormal);
+      BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv,leg.upperNormal);
+      BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv.multiply(leg.lowerQuat),leg.lowerNormal);
     }
 
     // simplified math by using same length for both bones
