@@ -38,8 +38,8 @@ export class Avatar {
     this.groundHeight = 0;
     /** Object containing fixes */
     this.fixes = null;
-    /** Wheter to generate animations for arm movement, default true */
-    this.animateArms = false;
+    /** Wheter to generate animations for arms, legs and body (crouch/jump) movement, default true */
+    this.generateAnimations = true;
     /** Return to rest after cloning, default true (otherwise keeps the pose)*/
     this.returnToRest = true;
     /** GLTF characters are facing the user when loaded, turn it around, default false*/
@@ -91,11 +91,15 @@ export class Avatar {
       root: null,
       hips: null, // aka pelvis
       leftLeg: {
+        type: 'leg',
+        side: 'left',
         upper: null,
         lower: null,
         foot: [] // foot, toe, possibly more
       },
       rightLeg: {
+        type: 'leg',
+        side: 'right',
         upper: null,
         lower: null,
         foot: []
@@ -103,6 +107,7 @@ export class Avatar {
       spine: [], // can have one or more segments
       // aka clavicle
       leftArm: {
+        type: 'arm',
         side: 'left',
         frontAxis: null,
         sideAxis: null, // CHECKME: not used
@@ -123,6 +128,7 @@ export class Avatar {
         }
       },
       rightArm: {
+        type: 'arm',
         side: 'right',
         frontAxis: null,
         sideAxis: null, // CHECKME: not used
@@ -142,12 +148,8 @@ export class Avatar {
           pinky: []
         }
       },
-      neck: {
-        neck: null,
-        head: null,
-        lefEye: null,
-        rightEye: null
-      }
+      neck: null,
+      head: null
     };
   };
 
@@ -649,12 +651,10 @@ export class Avatar {
   @param t target Vector3
    */
   lookAt( t ) {
-    var head = this.skeleton.bones[this.body.head];
-
     // calc target pos in coordinate system of head
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
     var totalRot = this.rootMesh.rotationQuaternion.multiply(this.parentMesh.rotationQuaternion);
-    var target = new BABYLON.Vector3( t.x, t.y, t.z ).subtract(totalPos);
+    var target = new BABYLON.Vector3( t.x, t.y+this.bodyTargetHeight(), t.z ).subtract(totalPos);
 
     target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(totalRot),target);
 
@@ -682,9 +682,20 @@ export class Avatar {
       quat = quat.multiply(fix);
     }
 
-    head.getTransformNode().rotationQuaternion = quat;
+    this.renderHeadRotation(quat);
   }
 
+  renderHeadRotation(quat) {
+    let head = this.skeleton.bones[this.body.head];
+    if ( !this.generateAnimations ) {
+      head.getTransformNode().rotationQuaternion = quat;
+      return;
+    }
+    if ( ! this.body.headAnimation ) {
+      this.body.headAnimation = VRSPACEUI.createQuaternionAnimation(head.getTransformNode(), "rotationQuaternion", this.fps);
+    }
+    VRSPACEUI.updateQuaternionAnimation(this.body.headAnimation, head.getTransformNode().rotationQuaternion.clone(), quat);
+  }
   /** Debugging helper, draws a vector between given points */
   drawVector(from, to) {
     BABYLON.MeshBuilder.CreateLines("vector-"+from+"-"+to, {points:[from,to]}, this.scene);
@@ -713,7 +724,7 @@ export class Avatar {
     var worldQuatInv = arm.worldQuatInv;
     
     // calc target pos in coordinate system of character
-    var target = new BABYLON.Vector3(t.x, t.y, t.z);
+    var target = new BABYLON.Vector3(t.x, t.y+this.bodyTargetHeight(), t.z);
     //var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
     // CHECKME: probable bug, possibly related to worldQuat
     //target.rotateByQuaternionToRef(rootQuatInv,target);
@@ -761,7 +772,7 @@ export class Avatar {
     // then bend arm
     var bent = this.bendArm(arm, targetVector);
 
-    this.renderArmRotation(arm);
+    this.renderLimbRotation(arm);
     return quat;
   }
 
@@ -795,36 +806,36 @@ export class Avatar {
   }
 
   /**
-   * Move an arm, optionally creates/updates arm animation depending on this.animateArms flag
+   * Move an arm or leg, optionally creates/updates arm animation depending on this.generateAnimations flag
    */
-  renderArmRotation( arm ) {
-    var upperArm = this.skeleton.bones[arm.upper];
-    var lowerArm = this.skeleton.bones[arm.lower];
-    if ( ! this.animateArms ) {
-      upperArm.getTransformNode().rotationQuaternion = arm.upperRot;
-      lowerArm.getTransformNode().rotationQuaternion = arm.lowerRot;
+  renderLimbRotation( limb ) {
+    let upper = this.skeleton.bones[limb.upper];
+    let lower = this.skeleton.bones[limb.lower];
+    if ( ! this.generateAnimations ) {
+      upper.getTransformNode().rotationQuaternion = limb.upperRot;
+      lower.getTransformNode().rotationQuaternion = limb.lowerRot;
       return;
     }
-    if ( !arm.animation ) {
-      var armName = this.folder.name+'-'+arm.side;
-      var group = new BABYLON.AnimationGroup(armName+'ArmAnimation');
+    if ( !limb.animation ) {
+      let name = this.folder.name+'-'+limb.type+'-'+limb.side;
+      let group = new BABYLON.AnimationGroup(name+'Animation');
       
-      var upper = this._createArmAnimation(armName+"-upper");
-      var lower = this._createArmAnimation(armName+"-lower");
+      let upperAnim = this._createLimbAnimation(name+"-upper");
+      let lowerAnim = this._createLimbAnimation(name+"-lower");
       
-      group.addTargetedAnimation(upper, this.skeleton.bones[arm.upper].getTransformNode());
-      group.addTargetedAnimation(lower, this.skeleton.bones[arm.lower].getTransformNode());
-      arm.animation = group;
+      group.addTargetedAnimation(upperAnim, this.skeleton.bones[limb.upper].getTransformNode());
+      group.addTargetedAnimation(lowerAnim, this.skeleton.bones[limb.lower].getTransformNode());
+      limb.animation = group;
     }
-    this._updateArmAnimation(upperArm, arm.animation.targetedAnimations[0], arm.upperRot);
-    this._updateArmAnimation(lowerArm, arm.animation.targetedAnimations[1], arm.lowerRot);
-    if ( arm.animation.isPlaying ) {
-      arm.animation.stop();
+    this._updateLimbAnimation(upper, limb.animation.targetedAnimations[0], limb.upperRot);
+    this._updateLimbAnimation(lower, limb.animation.targetedAnimations[1], limb.lowerRot);
+    if ( limb.animation.isPlaying ) {
+      limb.animation.stop();
     }
-    arm.animation.play(false);
+    limb.animation.play(false);
   }
   
-  _createArmAnimation(name) {
+  _createLimbAnimation(name) {
     var anim = new BABYLON.Animation(name, 'rotationQuaternion', this.fps, BABYLON.Animation.ANIMATIONTYPE_QUATERNION, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
     var keys = []; 
     keys.push({frame:0, value: 0});
@@ -832,8 +843,8 @@ export class Avatar {
     anim.setKeys(keys);
     return anim;
   }
-  _updateArmAnimation(arm, anim, dest) {
-    anim.animation.getKeys()[0].value = arm.getTransformNode().rotationQuaternion;
+  _updateLimbAnimation(limb, anim, dest) {
+    anim.animation.getKeys()[0].value = limb.getTransformNode().rotationQuaternion;
     anim.animation.getKeys()[1].value = dest;
   }
 
@@ -930,7 +941,6 @@ export class Avatar {
    */
   standUp() {
     this.jump(0);
-    this.rootMesh.computeWorldMatrix(true); // CHECKME
     this.bendLeg( this.body.leftLeg, 10 );
     this.bendLeg( this.body.rightLeg, 10 );
   }
@@ -945,19 +955,53 @@ export class Avatar {
       return;
     }
 
-    // CHECKME: what was this double-check for?
-    //if ( this.headPos().y + height > this.initialHeadPos.y ) {
-      //height = this.initialHeadPos.y - this.headPos().y;
-    //}
     var legLength = (this.body.leftLeg.length + this.body.rightLeg.length)/2;
     var length = legLength+height;
     this.bendLeg( this.body.leftLeg, length );
     this.bendLeg( this.body.rightLeg, length );
 
-    this.rootMesh.position.y += height;
+    this.renderBodyPosition(height);
     this.changed();
   }
 
+  /**
+   * Renders crouch/raise changes to body: either generates the animation, or changes this.rootMesh position right away,
+   * depending on this.generateAnimations flag.
+   */
+  renderBodyPosition(height) {
+    if ( ! this.generateAnimations ) {
+      this.rootMesh.position.y += height;
+      return;
+    }
+    
+    if ( !this.body.rootAnimation ) {
+      let name = this.folder.name+'-body';
+      let group = new BABYLON.AnimationGroup(name+'Animation');
+      
+      let anim = new BABYLON.Animation(name, 'position.y', this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+      let keys = []; 
+      keys.push({frame:0, value: 0});
+      keys.push({frame:1, value: 0});
+      anim.setKeys(keys);
+      
+      group.addTargetedAnimation(anim, this.rootMesh);
+      this.body.rootAnimation = group;
+    }
+    this.body.rootAnimation.targetedAnimations[0].animation.getKeys()[0].value = this.rootMesh.position.y;
+    this.body.rootAnimation.targetedAnimations[0].animation.getKeys()[1].value = this.rootMesh.position.y+height;
+    this.body.rootAnimation.play(false);
+  }
+  
+  isBodyPositionChanging() {
+    return this.body.rootAnimation && this.body.rootAnimation.isPlaying;
+  }
+
+  bodyTargetHeight() {
+    if ( this.isBodyPositionChanging() ) {
+      return this.rootMesh.position.y-this.body.rootAnimation.targetedAnimations[0].animation.getKeys()[1].value;
+    }
+    return 0;
+  }  
   /**
   Crouch a bit
   @param height how much
@@ -977,8 +1021,7 @@ export class Avatar {
     this.bendLeg( this.body.leftLeg, length );
     this.bendLeg( this.body.rightLeg, length );
 
-    this.rootMesh.position.y -= height;
-    //this.rootMesh.computeWorldMatrix(true); // CHECKME
+    this.renderBodyPosition(-height);
     this.changed();
   }
 
@@ -994,7 +1037,6 @@ export class Avatar {
     }
     var upper = this.skeleton.bones[leg.upper];
     var lower = this.skeleton.bones[leg.lower];
-    var scaling = this.rootMesh.scaling.x;
 
     if ( length > leg.lowerLength + leg.upperLength ) {
       length = leg.lowerLength + leg.upperLength;
@@ -1019,6 +1061,10 @@ export class Avatar {
       
       leg.upperNormal = new BABYLON.Vector3();
       leg.lowerNormal = new BABYLON.Vector3();
+      // FIXME: wrong axis for
+      // cyberconnect, female specops, himeko, miku, racer, valora, red, 
+      // guard, spiderman, terrorist
+      // jason, knight, infandum, overlord, treeman, troll, zombie1, zombie2
       BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.upperQuatInv,leg.upperNormal);
       BABYLON.Axis.X.negate().rotateByQuaternionToRef(leg.upperQuatInv.multiply(leg.lowerQuat),leg.lowerNormal);
     }
@@ -1035,10 +1081,10 @@ export class Avatar {
 
     var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.lowerNormal,lowerAngle);
 
-    // TODO animation
-    upper.getTransformNode().rotationQuaternion = leg.upperRot.multiply(upperQuat);
-    lower.getTransformNode().rotationQuaternion = leg.lowerRot.multiply(lowerQuat);
-
+    leg.upperRot = leg.upperQuat.multiply(upperQuat);
+    leg.lowerRot = leg.lowerQuat.multiply(lowerQuat);
+    this.renderLimbRotation(leg);
+    
     return length;
   }
 
@@ -1126,28 +1172,28 @@ export class Avatar {
       let downVector = new BABYLON.Vector3(0,-1,0);
       var leftQuat = this.armDirectionCharacter(this.body.leftArm, downVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
-      this.renderArmRotation(this.body.leftArm);
+      this.renderLimbRotation(this.body.leftArm);
       var rightQuat = this.armDirectionCharacter(this.body.rightArm, downVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
-      this.renderArmRotation(this.body.rightArm);
+      this.renderLimbRotation(this.body.rightArm);
     } else if ( 'T' == pose ) {
       let leftVector = new BABYLON.Vector3(-1,0,0);
       var leftQuat = this.armDirectionCharacter(this.body.leftArm, leftVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
-      this.renderArmRotation(this.body.leftArm);
+      this.renderLimbRotation(this.body.leftArm);
       let rightVector = new BABYLON.Vector3(1,0,0);
       var rightQuat = this.armDirectionCharacter(this.body.rightArm, rightVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
-      this.renderArmRotation(this.body.rightArm);
+      this.renderLimbRotation(this.body.rightArm);
     } else if ( 'A' == pose ) {
       let leftVector = new BABYLON.Vector3(-1,-1,0);
       var leftQuat = this.armDirectionCharacter(this.body.leftArm, leftVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
-      this.renderArmRotation(this.body.leftArm);
+      this.renderLimbRotation(this.body.leftArm);
       let rightVector = new BABYLON.Vector3(1,-1,0);
       var rightQuat = this.armDirectionCharacter(this.body.rightArm, rightVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
-      this.renderArmRotation(this.body.rightArm);
+      this.renderLimbRotation(this.body.rightArm);
     }
   }
   
@@ -1406,8 +1452,8 @@ export class Avatar {
   }
 
   processNeck( bone ) {
-    if ( this.body.neck.neck && this.bonesProcessed.includes(bone.name) ) {
-      this.log("neck "+bone.name+" already processed: "+this.body.neck.neck);
+    if ( this.body.neck && this.bonesProcessed.includes(bone.name) ) {
+      this.log("neck "+bone.name+" already processed: "+this.body.neck);
       return;
     }
     this.log("processing neck "+bone.name+" children: "+bone.children.length);

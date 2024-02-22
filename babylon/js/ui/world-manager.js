@@ -342,7 +342,7 @@ export class WorldManager {
     avatar.animations = this.customAnimations;
     avatar.file = file;
     avatar.fps = this.fps;
-    avatar.animateArms = this.createAnimations;
+    avatar.generateAnimations = this.createAnimations;
     // GLTF characters are facing the user when loaded, turn it around
     // this doesn't do anything for cloned characters, affects only first one that loads
     avatar.turnAround = true;

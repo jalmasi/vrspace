@@ -101,10 +101,12 @@ import('./js/vrspace-min.js').then( (ui) => {
           if ( p.pickedMesh.name != "ground" ) {
             if ( crouch ) {
               crouch = false;
-              character.crouch(0.3);
+              character.rise(0.3);
+              // CHECKME need another way to test standUp()
+              //character.standUp();
             } else {
               crouch = true;
-              character.standUp();
+              character.crouch(0.3);
             }
           }
           if ( p.pickedMesh == leftSphere ) {

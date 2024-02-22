@@ -437,7 +437,7 @@ export class AvatarSelection extends World {
       this.userHeight = this.xrHelper.camera().realWorldHeight;
     }
     loaded.userHeight = this.userHeight;
-    loaded.animateArms = false;
+    loaded.generateAnimations = false;
     loaded.debug = this.debug;
     loaded.load( (c) => 
     {
