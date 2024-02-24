@@ -1056,7 +1056,11 @@ export class Avatar {
     if ( ! leg.upperQuat ) {
       leg.worldQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
       leg.worldQuatInv = BABYLON.Quaternion.Inverse(leg.worldQuat);
-
+      if (this.turnAround) {
+        // network instances of characters are backwards
+        leg.worldQuatInv.multiplyInPlace(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));
+      }
+      
       leg.upperQuat = upper.getTransformNode().rotationQuaternion.clone();
       leg.upperQuatInv = BABYLON.Quaternion.Inverse(leg.upperQuat);
 
