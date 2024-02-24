@@ -12,8 +12,8 @@ export class VRHelper {
   constructor(sessionMode="immersive-vr") {
     /** Underlying babylon VR (obsolete) or XR helper (WebXRDefaultExperience) component */
     this.vrHelper = null;
-    /** Function that currently tracks XR devices (headeset, controllers). Each world may install own one. */
-    this.xrDeviceTracker = null;
+    /** Function that tracks XR devices (headeset, controllers), calls this.trackXrDevices() */
+    this.xrDeviceTracker = () => this.trackXrDevices();
     this.tracking = false;
     this.controller = { left:null, right: null };
     /** Function that tracks enter/exit VR */
@@ -117,12 +117,6 @@ export class VRHelper {
         xrHelper.baseExperience.onInitialXRPoseSetObservable.add( this.initialPoseObserver ); 
       }
 
-      // CHECKME: should be redundant
-      if ( this.xrDeviceTracker ) {
-        this.stopTracking();
-      }
-      this.xrDeviceTracker = () => this.trackXrDevices();
-      
       if ( !this.stateChangeObserver ) {
         this.stateChangeObserver = (state) => {
           console.log( "State: "+state );
@@ -702,8 +696,8 @@ export class VRHelper {
           this.world.scene.simulatePointerMove(this.pickInfo);
           this.pointerLines.alwaysSelectAsActiveMesh = true;
         }
-        this.world.trackXrDevices();
       }
+      this.world.trackXrDevices();
     }
   }
   /**
