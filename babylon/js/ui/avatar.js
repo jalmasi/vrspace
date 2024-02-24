@@ -324,7 +324,9 @@ export class Avatar {
         this.calcLength(this.body.rightLeg);
         this.extractInitialArmTransformation(this.body.leftArm);
         this.extractInitialArmTransformation(this.body.rightArm);
-
+        this.extractInitialLegTransformation(this.body.leftLeg);
+        this.extractInitialLegTransformation(this.body.rightLeg);
+        
         this.body.processed = true;
 
         if ( this.debugViewier1 || this.debugViewer2 ) {
@@ -1032,6 +1034,32 @@ export class Avatar {
     this.changed();
   }
 
+  extractInitialLegTransformation( leg ) {
+    var upper = this.skeleton.bones[leg.upper];
+    var lower = this.skeleton.bones[leg.lower];
+    
+    leg.worldQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
+    leg.worldQuatInv = BABYLON.Quaternion.Inverse(leg.worldQuat);
+    if (this.turnAround) {
+      // network instances of characters are backwards
+      leg.worldQuatInv.multiplyInPlace(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));
+    }
+    
+    leg.upperQuat = upper.getTransformNode().rotationQuaternion.clone();
+    leg.upperQuatInv = BABYLON.Quaternion.Inverse(leg.upperQuat);
+
+    leg.lowerQuat = lower.getTransformNode().rotationQuaternion.clone();
+    leg.lowerQuatInv = BABYLON.Quaternion.Inverse(leg.lowerQuat);
+
+    leg.upperRot = upper.getTransformNode().rotationQuaternion.clone();
+    leg.lowerRot = lower.getTransformNode().rotationQuaternion.clone();
+    
+    leg.upperNormal = new BABYLON.Vector3();
+    leg.lowerNormal = new BABYLON.Vector3();
+    BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv,leg.upperNormal);
+    BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv.multiply(leg.lowerQuat),leg.lowerNormal);
+  }
+  
   /**
   Bend/stretch leg to a length
   @param leg
@@ -1042,8 +1070,6 @@ export class Avatar {
       console.log("ERROR: can't bend leg to "+length);
       return
     }
-    var upper = this.skeleton.bones[leg.upper];
-    var lower = this.skeleton.bones[leg.lower];
 
     if ( length > leg.lowerLength + leg.upperLength ) {
       length = leg.lowerLength + leg.upperLength;
@@ -1052,29 +1078,6 @@ export class Avatar {
       }
     }
     leg.length = length;
-
-    if ( ! leg.upperQuat ) {
-      leg.worldQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
-      leg.worldQuatInv = BABYLON.Quaternion.Inverse(leg.worldQuat);
-      if (this.turnAround) {
-        // network instances of characters are backwards
-        leg.worldQuatInv.multiplyInPlace(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));
-      }
-      
-      leg.upperQuat = upper.getTransformNode().rotationQuaternion.clone();
-      leg.upperQuatInv = BABYLON.Quaternion.Inverse(leg.upperQuat);
-
-      leg.lowerQuat = lower.getTransformNode().rotationQuaternion.clone();
-      leg.lowerQuatInv = BABYLON.Quaternion.Inverse(leg.lowerQuat);
-
-      leg.upperRot = upper.getTransformNode().rotationQuaternion.clone();
-      leg.lowerRot = lower.getTransformNode().rotationQuaternion.clone();
-      
-      leg.upperNormal = new BABYLON.Vector3();
-      leg.lowerNormal = new BABYLON.Vector3();
-      BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv,leg.upperNormal);
-      BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv.multiply(leg.lowerQuat),leg.lowerNormal);
-    }
 
     // simplified math by using same length for both bones
     // it's right angle, hypotenuse is bone
