@@ -406,7 +406,8 @@ class AvatarMovement {
 }
 
 /**
-This is control for user's avatar, both local and remote.
+This is control for user's avatar, both local and remote:
+propagates local avatar events to the network, and acts as remote controller for all remote instances.
 Installed as change listener to WorldManager, tracks position of all events that user 
 sends - typically movement - and optinally adds some more - typically avatar animations.
 E.g. when position changes, it sends 'walk' animation, if current avatar has animation named 'walk'.

@@ -323,6 +323,7 @@ export class WorldManager {
       fix = url.substring(0,url.lastIndexOf('.'))+'-fixes.json';
     }
     if ( ! this.notFound.includes(fix)) {
+      // FIXME this await has to go away
       await fetch(fix, {cache: 'no-cache'}).then(response => {
         if ( ! response.ok ) {
           this.notFound.push( fix );

@@ -44,7 +44,8 @@ export class Avatar {
     this.generateAnimations = true;
     /** Return to rest after cloning, default true (otherwise keeps the pose)*/
     this.returnToRest = true;
-    /** GLTF characters are facing the user when loaded, turn it around, default false*/
+    /** GLTF characters are facing the user when loaded, turn it around, default false. 
+     * Does not apply to cloned characters, only to the first one actually loaded.*/
     this.turnAround = false;
     /** Object containing author, license, source, title */
     this.info = null;
