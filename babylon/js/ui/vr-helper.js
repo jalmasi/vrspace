@@ -1,3 +1,5 @@
+import { MovementTracker } from "./movement-tracker";
+
 /** 
 Wrapper around BabylonJS XR/VR classes, whatever is available in current browser, if any.
 Attached to a World, uses World floor meshes and camera.
@@ -13,6 +15,7 @@ export class VRHelper {
     this.vrHelper = null;
     /** Function that currently tracks XR devices (headeset, controllers). Each world may install own one. */
     this.xrDeviceTracker = null;
+    this.movementTracker = MovementTracker.getInstance();
     this.controller = { left:null, right: null };
     /** Function that tracks enter/exit VR */
     this.stateChangeObserver = null;
@@ -32,7 +35,6 @@ export class VRHelper {
     this.triggerListeners = [];
     this.gamepadObserver = null;
     this.teleporting = false;
-    this.userHeight = 1.8;
     this.sessionMode=sessionMode;
   }
   /**
@@ -103,6 +105,7 @@ export class VRHelper {
         xrHelper.baseExperience.onInitialXRPoseSetObservable.add( this.initialPoseObserver ); 
       }
 
+      // CHECKME: should be redundant
       if ( this.xrDeviceTracker ) {
         this.stopTracking();
       }
@@ -120,7 +123,7 @@ export class VRHelper {
               this.world.inVR = (this.sessionMode=="immersive-vr");
               if ( this.camera().realWorldHeight ) {
                 // are we absolutely sure that all mobiles deliver this value?
-                this.userHeight = this.camera().realWorldHeight;
+                this.movementTracker.userHeight = this.camera().realWorldHeight;
               }
               this.camera().setTransformationFromNonVRCamera(world.camera);
               this.startTracking();
@@ -434,7 +437,7 @@ export class VRHelper {
       this.caster = null;
       this.teleporting = false;
       this.teleportTarget.setEnabled(false);
-      this.camera().position = this.teleportTarget.position.add(new BABYLON.Vector3(0,this.userHeight,0));
+      this.camera().position = this.teleportTarget.position.add(new BABYLON.Vector3(0,this.movementTracker.userHeight,0));
       this.afterTeleportation();
     }
   }
@@ -635,7 +638,7 @@ export class VRHelper {
       //XRFrame access outside the callback that produced it is invalid
       if ( this.camera().realWorldHeight ) {
         // are we absolutely sure that all mobiles deliver this value?
-        this.userHeight = this.camera().realWorldHeight;
+        this.movementTracker.userHeight = this.camera().realWorldHeight;
       }
       if ( ! this.controller.left && ! this.controller.right && this.pointerTarget ) {
         // we don't have controllers (yet), use ray from camera for interaction
@@ -764,7 +767,7 @@ export class VRHelper {
    * Returns the height of the user, as defined by WebXRCamera
    */
   realWorldHeight() {
-    return this.userHeight;
+    return this.movementTracker.userHeight;
   }
   /**
    * Returns the current WebXRCamera

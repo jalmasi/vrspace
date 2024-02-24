@@ -32,7 +32,7 @@ export { SpeechInput } from "./ui/speech-input.js";
 
 export { VRHelper } from "./ui/vr-helper.js";
 export { ARHelper } from "./ui/ar-helper.js";
-
+export { MovementTracker } from "./ui/movement-tracker.js"
 export { Avatar } from "./ui/avatar.js";
 export { AvatarController } from "./ui/avatar-controller.js";
 

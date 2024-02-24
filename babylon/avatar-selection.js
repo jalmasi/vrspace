@@ -434,7 +434,7 @@ export class AvatarSelection extends World {
     loaded.animations = this.customAnimations;
     // resize the character to real-world height
     if ( this.inXR() ) {
-      this.userHeight = this.xrHelper.camera().realWorldHeight;
+      this.userHeight = this.xrHelper.realWorldHeight();
     }
     loaded.userHeight = this.userHeight;
     loaded.generateAnimations = false;
@@ -573,7 +573,7 @@ export class AvatarSelection extends World {
     resizeButton.onPointerDownObservable.add( () => {
       if ( this.inXR() ) {
         this.tracking = false;
-        this.userHeight = this.xrHelper.camera().realWorldHeight;
+        this.userHeight = this.xrHelper.realWorldHeight();
         console.log("Resizing to "+this.userHeight);
         this.character.userHeight = this.userHeight;
         this.character.standUp(); // CHECKME: move to resize()?

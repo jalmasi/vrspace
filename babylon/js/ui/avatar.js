@@ -8,9 +8,11 @@ Animation groups are also inspected and optionally modified.
 Optional fixes can be applied to an avatar, typically position of an avatar, or changing the animation.
  */
 export class Avatar {
-  /** Whether to display the name above the head, default true */
+  /** Whether to display the name above the head, default true 
+   * @static*/
   static displayName = true;
-  /** Should written/spoken text be displayed above the head, default true */
+  /** Should written/spoken text be displayed above the head, default true 
+   * @static*/
   static displayText = true;
   /**
   @param scene
