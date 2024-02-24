@@ -418,8 +418,10 @@ export class World {
     // TODO dispose of WorldManager, AvatarController, Avatar?
   }
 
-  /** Creates a VRHelper if needed, and initializes it with the current world.
-  Normally called after world is loaded, safe to call elsewhere, or call multiple times.
+  /** 
+  Creates a VRHelper if needed, and initializes it with the current world.
+  Normally called after world is loaded, safe to call elsewhere, or call multiple times, 
+  but only after World.init() has finished. (world.scene must be initialized)
   @param vrHelper optional existing vrHelper
   @param arHelper optional existing arHelper
   @param activeHelper optional, if given both helpers, one that's currently active (e.g. passed while in VR or AR mode)
@@ -666,6 +668,7 @@ export class World {
       if ( callback ) {
         callback(this);
       }
+      this.initXR();
     });
     
     return this;
@@ -679,7 +682,8 @@ export class World {
   @param mesh root mesh of the world
    */
   loaded( file, mesh ) {
-    this.initXR();
+    //FIXME
+    //this.initXR();
   }
   
   /** Register render loop. */

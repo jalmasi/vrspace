@@ -702,48 +702,52 @@ export class WorldManager {
         return;
       }
       
-      var vrHelper = this.world.xrHelper;
-
-      // track camera movements, find out where feet are
-      if ( vrHelper && this.camera.getClassName() == 'WebXRCamera' ) {
-        // ellipsoid needs to be ignored, we have to use real world height instead
-        var height = this.camera.globalPosition.y - vrHelper.realWorldHeight();
-        this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
-      } else if ( this.camera.ellipsoid ) {
-        var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
-        if ( this.camera.ellipsoidOffset ) {
-          height += this.camera.ellipsoidOffset.y;
+      try {
+        var vrHelper = this.world.xrHelper;
+  
+        // track camera movements, find out where feet are
+        if ( vrHelper && this.camera.getClassName() == 'WebXRCamera' ) {
+          // ellipsoid needs to be ignored, we have to use real world height instead
+          var height = this.camera.globalPosition.y - vrHelper.realWorldHeight();
+          this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
+        } else if ( this.camera.ellipsoid ) {
+          var height = this.camera.globalPosition.y - this.camera.ellipsoid.y*2;
+          if ( this.camera.ellipsoidOffset ) {
+            height += this.camera.ellipsoidOffset.y;
+          }
+          this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
+        } else {
+          this.checkChange("position", this.pos, this.camera.globalPosition, changes);
         }
-        this.checkChange("position", this.pos, new BABYLON.Vector3(this.camera.globalPosition.x, height, this.camera.globalPosition.z), changes);
-      } else {
-        this.checkChange("position", this.pos, this.camera.globalPosition, changes);
+        if ( this.trackRotation ) {
+          var cameraRotation = this.camera.rotation;
+          if ( this.camera.getClassName() == 'WebXRCamera' ) {
+            // CHECKME do other cameras require this?
+            cameraRotation = this.camera.rotationQuaternion.toEulerAngles();
+          }
+          this.checkChange("rotation", this.rot, cameraRotation, changes);
+        }
+        
+        // and now track controllers
+        if ( vrHelper ) {
+          if ( vrHelper.controller.left) {
+            this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftArmPos(), changes );
+            this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftArmRot(), changes );
+          }
+          if ( vrHelper.controller.right ) {
+            this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightArmPos(), changes );
+            this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightArmRot(), changes );
+          }
+          // track and transmit userHeight in VR
+          if ( this.isChanged( this.userHeight, vrHelper.realWorldHeight(), this.resolution)) {
+            this.userHeight = vrHelper.realWorldHeight();
+            changes.push({field: 'userHeight', value: this.userHeight});
+          }
+        }
+      } catch ( err ) {
+        console.error(err);
       }
-      if ( this.trackRotation ) {
-        var cameraRotation = this.camera.rotation;
-        if ( this.camera.getClassName() == 'WebXRCamera' ) {
-          // CHECKME do other cameras require this?
-          cameraRotation = this.camera.rotationQuaternion.toEulerAngles();
-        }
-        this.checkChange("rotation", this.rot, cameraRotation, changes);
-      }
-      
-      // and now track controllers
-      if ( vrHelper ) {
-        if ( vrHelper.controller.left) {
-          this.checkChange( 'leftArmPos', this.leftArmPos, vrHelper.leftArmPos(), changes );
-          this.checkChange( 'leftArmRot', this.leftArmRot, vrHelper.leftArmRot(), changes );
-        }
-        if ( vrHelper.controller.right ) {
-          this.checkChange( 'rightArmPos', this.rightArmPos, vrHelper.rightArmPos(), changes );
-          this.checkChange( 'rightArmRot', this.rightArmRot, vrHelper.rightArmRot(), changes );
-        }
-        // track and transmit userHeight in VR
-        if ( this.isChanged( this.userHeight, vrHelper.realWorldHeight(), this.resolution)) {
-          this.userHeight = vrHelper.realWorldHeight();
-          changes.push({field: 'userHeight', value: this.userHeight});
-        }
-      }
-      
+    
     }
     this.publishChanges(changes);
 

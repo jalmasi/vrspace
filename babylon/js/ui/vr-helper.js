@@ -1,5 +1,3 @@
-import { MovementTracker } from "./movement-tracker";
-
 /** 
 Wrapper around BabylonJS XR/VR classes, whatever is available in current browser, if any.
 Attached to a World, uses World floor meshes and camera.
@@ -15,7 +13,7 @@ export class VRHelper {
     this.vrHelper = null;
     /** Function that currently tracks XR devices (headeset, controllers). Each world may install own one. */
     this.xrDeviceTracker = null;
-    this.movementTracker = MovementTracker.getInstance();
+    this.tracking = false;
     this.controller = { left:null, right: null };
     /** Function that tracks enter/exit VR */
     this.stateChangeObserver = null;
@@ -35,7 +33,9 @@ export class VRHelper {
     this.triggerListeners = [];
     this.gamepadObserver = null;
     this.teleporting = false;
-    this.sessionMode=sessionMode;
+    this.sessionMode = sessionMode;
+    this.userHeight = 1.8;
+    console.log("New VRHelper "+sessionMode);
   }
   /**
   @param world attaches the control to the World
@@ -123,7 +123,7 @@ export class VRHelper {
               this.world.inVR = (this.sessionMode=="immersive-vr");
               if ( this.camera().realWorldHeight ) {
                 // are we absolutely sure that all mobiles deliver this value?
-                this.movementTracker.userHeight = this.camera().realWorldHeight;
+                this.userHeight = this.camera().realWorldHeight;
               }
               this.camera().setTransformationFromNonVRCamera(world.camera);
               this.startTracking();
@@ -437,7 +437,7 @@ export class VRHelper {
       this.caster = null;
       this.teleporting = false;
       this.teleportTarget.setEnabled(false);
-      this.camera().position = this.teleportTarget.position.add(new BABYLON.Vector3(0,this.movementTracker.userHeight,0));
+      this.camera().position = this.teleportTarget.position.add(new BABYLON.Vector3(0,this.userHeight,0));
       this.afterTeleportation();
     }
   }
@@ -638,7 +638,7 @@ export class VRHelper {
       //XRFrame access outside the callback that produced it is invalid
       if ( this.camera().realWorldHeight ) {
         // are we absolutely sure that all mobiles deliver this value?
-        this.movementTracker.userHeight = this.camera().realWorldHeight;
+        this.userHeight = this.camera().realWorldHeight;
       }
       if ( ! this.controller.left && ! this.controller.right && this.pointerTarget ) {
         // we don't have controllers (yet), use ray from camera for interaction
@@ -663,10 +663,34 @@ export class VRHelper {
           this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, instance: this.pointerLines});
           this.pointerTarget.setEnabled(false);
         }
-        this.world.scene.simulatePointerMove(this.pickInfo);
-        this.pointerLines.alwaysSelectAsActiveMesh = true;
+        if ( ! this.controller.left && ! this.controller.right && this.pointerTarget ) {
+          // we don't have controllers (yet), use ray from camera for interaction
+          var ray = this.camera().getForwardRay(100);
+          this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
+            return this.world.isSelectableMesh(mesh);
+            //return this.world.isSelectableMesh(mesh) || this.world.getFloorMeshes().includes(mesh);
+          });
+          if ( this.pickInfo.hit ) {
+            const points = [
+                new BABYLON.Vector3(this.camera().position.x,this.camera().position.y-.5,this.camera().position.z),
+                this.pickInfo.pickedPoint
+            ]
+            this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, instance: this.pointerLines});
+            this.pointerTarget.position = this.pickInfo.pickedPoint;
+            this.pointerTarget.setEnabled(true);
+          } else {
+            const points = [
+                new BABYLON.Vector3(this.camera().position.x,this.camera().position.y-.5,this.camera().position.z),
+                ray.direction.scale(ray.length)
+            ]
+            this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", {points: points, instance: this.pointerLines});
+            this.pointerTarget.setEnabled(false);
+          }
+          this.world.scene.simulatePointerMove(this.pickInfo);
+          this.pointerLines.alwaysSelectAsActiveMesh = true;
+        }
+        this.world.trackXrDevices();
       }
-      this.world.trackXrDevices();
     }
   }
   /**
@@ -701,8 +725,13 @@ export class VRHelper {
    * Start XR device tracking: prepare pointer ray and mesh, and register tracking function (trackXrDevices) to scene render loop.
    */
   startTracking() {
-    console.log("startTracking");
-    this.world.scene.registerBeforeRender(this.xrDeviceTracker);
+    if ( ! this.tracking ) {
+      console.log("startTracking");
+      this.tracking = true;
+      this.world.scene.registerBeforeRender(this.xrDeviceTracker);
+    } else {
+      console.log("already tracking");
+    }
   }
   /**
    * Removes pointer ray and target
@@ -721,9 +750,14 @@ export class VRHelper {
    * Stop XR device tracking: clean up
    */
   stopTracking() {
-    console.log("stopTracking");
-    this.world.scene.unregisterBeforeRender(this.xrDeviceTracker);
-    this.clearPointer();
+    if ( this.tracking ) {
+      console.log("stopTracking");
+      this.world.scene.unregisterBeforeRender(this.xrDeviceTracker);
+      this.clearPointer();
+      this.tracking = false;
+    } else {
+      console.log("tracking already stopped");
+    }
   }
   /**
    * Returns the absolute position of left or right controller grip
@@ -767,7 +801,7 @@ export class VRHelper {
    * Returns the height of the user, as defined by WebXRCamera
    */
   realWorldHeight() {
-    return this.movementTracker.userHeight;
+    return this.userHeight;
   }
   /**
    * Returns the current WebXRCamera
