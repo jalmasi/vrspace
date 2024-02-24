@@ -734,6 +734,10 @@ export class Avatar {
 
     // calc target vectors in local coordinate system of the arm
     var targetVector = target.subtract(armPos);
+    if ( this.instantiatedEntries ) {
+      // cloned characters are backwards
+      targetVector.rotateByQuaternionToRef(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI), targetVector);
+    }
     // TODO: multiply these quaternions some time earlier and only once
     targetVector.rotateByQuaternionToRef(rootQuatInv,targetVector);
     targetVector.rotateByQuaternionToRef(worldQuatInv,targetVector);
