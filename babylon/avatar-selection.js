@@ -744,6 +744,7 @@ export class AvatarSelection extends World {
             console.log("Tracking, " + this.inXR());
             this.worldManager.trackCamera(this.xrHelper.camera());
             this.xrHelper.startTracking();
+            this.xrHelper.enableBackground(false);
           }
 
           let controller = new AvatarController(this.worldManager, avatar);
@@ -777,7 +778,6 @@ export class AvatarSelection extends World {
           console.log("Loaded ", world);
           // TODO install world's xr device tracker
           if (this.inXR()) {
-            this.xrHelper.enableBackground(false);
             // for some reason, this sets Y to 0:
             this.xrHelper.camera().setTransformationFromNonVRCamera(world.WORLD.camera);
             this.xrHelper.camera().position.y = world.WORLD.camera.position.y;
