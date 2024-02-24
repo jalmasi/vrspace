@@ -431,7 +431,7 @@ export class World {
       this.vrHelper = vrHelper;
     }
     if ( ! this.vrHelper ) {
-      this.vrHelper = new VRHelper("immersive-vr");
+      this.vrHelper = VRHelper.getInstance("immersive-vr");
     }
     this.vrHelper.initXR(this);
     
@@ -439,7 +439,7 @@ export class World {
       this.arHelper = arHelper;
     }
     if ( ! this.arHelper ) {
-      this.arHelper = new VRHelper("immersive-ar");
+      this.arHelper = VRHelper.getInstance("immersive-ar");
     }
     // this flag may not work due to asynchronous calls
     if ( VRSPACEUI.canAR ) {

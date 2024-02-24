@@ -8,6 +8,7 @@ While this is mandatory to use gamepad in XR, it is also useful outside of XR, a
 CHECKME: SoC?
  */
 export class VRHelper {
+  static instances = {};
   constructor(sessionMode="immersive-vr") {
     /** Underlying babylon VR (obsolete) or XR helper (WebXRDefaultExperience) component */
     this.vrHelper = null;
@@ -36,6 +37,17 @@ export class VRHelper {
     this.sessionMode = sessionMode;
     this.userHeight = 1.8;
     console.log("New VRHelper "+sessionMode);
+    if ( this.constructor.instances[sessionMode] ) {
+      throw new Error("VRHelper "+sessionMode+" already exists");
+    }
+    this.constructor.instances[sessionMode] = this;
+  }
+  static getInstance(sessionMode="immersive-vr") {
+    let instance = VRHelper.instances[sessionMode];
+    if ( ! instance ) {
+      instance = new VRHelper(sessionMode);
+    }
+    return instance;
   }
   /**
   @param world attaches the control to the World
@@ -266,6 +278,7 @@ export class VRHelper {
     //console.log("VRHelper initialized", this.vrHelper);
   }
   enableBackground(enabled) {
+    console.log("background: "+this.sessionMode+" enabled: "+enabled);
     if ( "immersive-ar" == this.sessionMode ) {
       if ( this.world.skyBox ) {
         this.world.skyBox.setEnabled(enabled);
