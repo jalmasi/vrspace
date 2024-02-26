@@ -149,6 +149,9 @@ export class LoginForm extends Form {
       this.addControl(this.providerForm.panel);
       this.providerForm.panel.isVisible = false;
     }
+    // CHECKME do we want to auto-focus name input?
+    // available since babylon 5
+    this.nameForm.input.focus();
 
   }
   defaultLabel() {

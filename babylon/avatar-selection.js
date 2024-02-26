@@ -699,6 +699,10 @@ export class AvatarSelection extends World {
     }
   }
 
+  /**
+   * Enter a world.
+   * TODO quite complex method, order matters. This needs to be moved to a utility method, to allow entering one world from another.
+   */
   async enterWorld(worldUrl, worldName, avatarUrl = this.avatarUrl(), worldScript = 'world.js') {
     console.log("Entering world " + worldUrl + '/' + worldScript + ' as ' + avatarUrl);
     if (this.video && this.displayOwnVideo) {
