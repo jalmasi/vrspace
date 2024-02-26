@@ -904,6 +904,7 @@ export class WorldEditor {
    */
   handleSqueeze(value,side) {
     try {
+      this.clearGizmo();
       let bothOn = this.world.xrHelper.squeeze.left.value == 1 && this.world.xrHelper.squeeze.right.value == 1;
       let bothOff = this.world.xrHelper.squeeze.left.value == 0 && this.world.xrHelper.squeeze.right.value == 0;
       if (value == 1 ) {
