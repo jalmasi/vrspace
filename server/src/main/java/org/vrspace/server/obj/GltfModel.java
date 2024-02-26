@@ -3,6 +3,8 @@ package org.vrspace.server.obj;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.neo4j.core.schema.Node;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,6 +17,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@Node
 public class GltfModel extends Content {
   private String uid; // TODO: unique index
   private String uri;
