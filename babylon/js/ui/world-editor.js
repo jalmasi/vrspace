@@ -219,17 +219,15 @@ export class WorldEditor {
     this.clearGizmo();
     this.gizmo = new BABYLON.BoundingBoxGizmo();
     this.gizmo.attachedMesh = obj;
-    this.gizmo.onScaleBoxDragObservable.add(() => {
-      console.log("scaleDrag");
-    });
     this.gizmo.onScaleBoxDragEndObservable.add(() => {
-      console.log("scaleEnd");
-    });
-    this.gizmo.onRotationSphereDragObservable.add(() => {
-      console.log("rotDrag");
+      this.worldManager.VRSPACE.sendEvent(obj.VRObject, {scale: { x:obj.scaling.x, y:obj.scaling.y, z:obj.scaling.z}} );
     });
     this.gizmo.onRotationSphereDragEndObservable.add(() => {
-      console.log("rotEnd");
+      if ( obj.rotationQuaternion ) {
+        obj.rotation = obj.rotationQuaternion.toEulerAngles();
+        obj.rotationQuaternion = null;
+      }
+      this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:obj.rotation.x, y:obj.rotation.y, z:obj.rotation.z}} );
     });
   }
   clearGizmo() {
@@ -548,6 +546,7 @@ export class WorldEditor {
     var rot = VRSPACEUI.hud.camera.rotation;
     var pos = obj.position;
     if ( obj.target ) {
+      // TODO this is not compatible with gizmo, calculate resulting rotation here
       pos = obj.target.absolutePosition;
       rot = obj.target.absoluteRotationQuaternion.toEulerAngles();
     }
