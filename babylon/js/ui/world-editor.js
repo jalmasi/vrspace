@@ -171,6 +171,7 @@ export class WorldEditor {
         // already pressed, turn it off
         this.activeButton = null;
         this.displayButtons(true);
+        this.clearGizmo();
       } else {
         this.displayButtons(false, button);
         this.activeButton = button;
@@ -187,7 +188,7 @@ export class WorldEditor {
    * This is what happens when selecting a sketchfab object to load.
    */
   objectLoaded( vrObject, rootMesh ) {
-    console.log("WorldEditor loaded: "+vrObject.className+" "+vrObject.id);
+    console.log("WorldEditor loaded: "+vrObject.className+" "+vrObject.id+" "+vrObject.mesh);
     if ( vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id ) {
       VRSPACEUI.indicator.remove("Download");
       console.log("Loaded my object "+vrObject.id)
@@ -201,6 +202,7 @@ export class WorldEditor {
       } else {
         this.takeObject(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
       }
+      this.createGizmo(rootMesh);
     } else if ( this.defaultloadCallback ) {
       this.defaultloadCallback(vrObject, rootMesh);
     }
@@ -212,7 +214,30 @@ export class WorldEditor {
   loadingFailed( obj, exception ) {
     VRSPACEUI.indicator.remove("Download");
   }
-  
+
+  createGizmo(obj) {
+    this.clearGizmo();
+    this.gizmo = new BABYLON.BoundingBoxGizmo();
+    this.gizmo.attachedMesh = obj;
+    this.gizmo.onScaleBoxDragObservable.add(() => {
+      console.log("scaleDrag");
+    });
+    this.gizmo.onScaleBoxDragEndObservable.add(() => {
+      console.log("scaleEnd");
+    });
+    this.gizmo.onRotationSphereDragObservable.add(() => {
+      console.log("rotDrag");
+    });
+    this.gizmo.onRotationSphereDragEndObservable.add(() => {
+      console.log("rotEnd");
+    });
+  }
+  clearGizmo() {
+    if ( this.gizmo ) {
+      this.gizmo.dispose();
+      this.gizmo = null;
+    }
+  }  
   /**
    * Called when an object is selected, calls the appropriate action e.g. take, resize etc
    * @param obj root scene object
@@ -221,8 +246,10 @@ export class WorldEditor {
   manipulateObject(obj, action) {
     if ( ! action ) {
       this.displayButtons(true);
+      this.clearGizmo();
       return;
     }
+    this.createGizmo(obj);
     action(obj);
   }
 
@@ -294,7 +321,6 @@ export class WorldEditor {
             // rotating around all axes
             this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:result.x, y:result.y, z:result.z}} );
           }
-
         }
       }
     });
@@ -317,6 +343,7 @@ export class WorldEditor {
     }
     if ( pickInfo.hit ) {
       this.worldManager.VRSPACE.sendEvent(obj.VRObject, {position: newPos} );
+      this.clearGizmo();
     }
   }
 
@@ -368,6 +395,7 @@ export class WorldEditor {
     this.activeButton = null;
     this.displayButtons(true);
     this.createSharedObject(vrObject.mesh, {position:vrObject.position, rotation:vrObject.rotation, scale:vrObject.scale});
+    this.clearGizmo();
   }
   
   /**
@@ -560,6 +588,7 @@ export class WorldEditor {
       obj.properties.editing = this.worldManager.VRSPACE.me.id;
     } else {
       obj.properties.editing = null;
+      this.clearGizmo();
     }
     this.worldManager.VRSPACE.sendEvent(obj, {properties: obj.properties} );
   }
