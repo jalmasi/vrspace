@@ -94,8 +94,9 @@ export class WorldEditor {
   createButtons() {
     this.moveButton = this.makeAButton( "Move", this.contentBase+"/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
     this.moveButton.onPointerUpObservable.add(()=>this.dropObject());
-    this.rotateButton = this.makeAButton( "Rotate", this.contentBase+"/content/icons/refresh.png", (o)=>this.rotateObject(o));  
-    this.scaleButton = this.makeAButton("Resize", this.contentBase+"/content/icons/resize.png", (o)=>this.resizeObject(o));
+    //this.rotateButton = this.makeAButton( "Rotate", this.contentBase+"/content/icons/refresh.png", (o)=>this.rotateObject(o));  
+    //this.scaleButton = this.makeAButton("Resize", this.contentBase+"/content/icons/resize.png", (o)=>this.resizeObject(o));
+    this.gizmoButton = this.makeAButton("Rotate/Scale", this.contentBase+"/content/icons/rotate-resize.png", (o)=>this.createGizmo(o));
     this.alignButton = this.makeAButton("Align", this.contentBase+"/content/icons/download.png", (o)=>this.alignObject(o));
     this.alignButton = this.makeAButton("Upright", this.contentBase+"/content/icons/upload.png", (o)=>this.upright(o));
     this.copyButton = this.makeAButton("Copy", this.contentBase+"/content/icons/copy.png", (o)=>this.copyObject(o));
@@ -202,7 +203,8 @@ export class WorldEditor {
       } else {
         this.takeObject(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
       }
-      this.createGizmo(rootMesh);
+      // CHECKME: we can do it here
+      //this.createGizmo(rootMesh);
     } else if ( this.defaultloadCallback ) {
       this.defaultloadCallback(vrObject, rootMesh);
     }
@@ -247,7 +249,6 @@ export class WorldEditor {
       this.clearGizmo();
       return;
     }
-    this.createGizmo(obj);
     action(obj);
   }
 
@@ -256,6 +257,7 @@ export class WorldEditor {
    * @param obj a scene object to resize
    */  
   resizeObject(obj) {
+    this.createGizmo(obj);
     var point;
     var resizeHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
@@ -285,6 +287,7 @@ export class WorldEditor {
    * @param obj scene object
    */
   rotateObject(obj) {
+    this.createGizmo(obj);
     var point;
     var rotateHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
@@ -372,6 +375,7 @@ export class WorldEditor {
    * @param obj a scene object
    */  
   upright(obj) {
+    this.clearGizmo();
     this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:0, y:obj.rotation.y, z:0 }} );
   }
 
