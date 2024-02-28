@@ -52,6 +52,7 @@ export class SpeechInput {
     this.commands[command+'.'+text] = (text) => this.callback(command, text, callbacks);
     this.commands[command+','+text] = (text) => this.callback(command, text, callbacks);
   }
+  
   callback(command, text, callbacks) {
     //console.log("Executing "+text, callback);
     if ( text ) {
@@ -92,8 +93,17 @@ export class SpeechInput {
       }
     }
   }
+  
+  static available() {
+    return typeof(annyang) != 'undefined' && annyang;
+  }
+  
+  static isEnabled() {
+    return SpeechInput.enabled && SpeechInput.available();
+  }
+  
   start() {
-    if (this.constructor.enabled && typeof(annyang) != 'undefined' && annyang ) {
+    if ( SpeechInput.enabled && SpeechInput.available() ) {
       let index = this.constructor.instances.indexOf(this);
       if ( index < 0 ) {
         // this instance might have been disposed, kept elsewhere, and restarted

@@ -1,4 +1,5 @@
 import { VRSPACEUI } from './vrspace-ui.js';
+import { SpeechInput } from './speech-input.js';
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -9,7 +10,7 @@ export class DefaultHud {
     this.hud.verticalWeb = -0.15;
     this.contentBase = VRSPACEUI.contentBase;
     this.displayButtons = false;
-    this.state = { mic: false, cam: false, speech: false }
+    this.state = { mic: false, cam: false, speech: SpeechInput.isEnabled() }
   }
   init() {
     if ( this.settingsButton && this.displayButtons ) {
@@ -17,6 +18,7 @@ export class DefaultHud {
       this.displayButtons = false;
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
+      this.hud.enableSpeech(true);
     }
   }
   settings() {
@@ -28,9 +30,9 @@ export class DefaultHud {
       this.micButton = this.hud.addButton("Mic", this.contentBase + "/content/icons/microphone-off.png", () => this.microphone(), false);
       this.camButton = this.hud.addButton("Cam", this.contentBase + "/content/icons/webcam-off.png", () => this.webcam(), false);
       this.speechButton = this.hud.addButton("Voice", this.contentBase + "/content/icons/voice-recognition-off.png", () => this.speech(), false);
-      this.speechButton.tooltipText = "N/A";
-      this.speechButton.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
+      this.speech(this.state.speech);
       this.helpButton = this.hud.addButton("Help", this.contentBase + "/content/icons/help.png", () => this.help());
+      this.hud.enableSpeech(true);
     } else {
       this.hud.clearRow();
       this.hud.showButtons(true);
@@ -55,12 +57,21 @@ export class DefaultHud {
       this.camButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
     }
   }
-  speech() {
-    this.state.speech = !this.state.speech;
-    if (this.state.speech) {
-      this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition.png";
+  speech(enable=!this.state.speech) {
+    if ( SpeechInput.available() ) {
+      this.state.speech = enable;
+      SpeechInput.enabled = enable;
+      this.hud.enableSpeech(enable);
+      if (this.state.speech) {
+        this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition.png";
+        this.speechButton.tooltipText = "Disable";
+      } else {
+        this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition-off.png";
+        this.speechButton.tooltipText = "Enable";
+      }
     } else {
-      this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition-off.png";
+      this.speechButton.tooltipText = "N/A";
+      this.speechButton.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
     }
   }
   help() {
