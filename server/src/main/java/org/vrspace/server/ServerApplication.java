@@ -8,8 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Main application
  * 
@@ -18,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SpringBootApplication
 @ServletComponentScan
-@Slf4j
 public class ServerApplication implements ServletContextListener {
   private static ConfigurableApplicationContext ctx;
 

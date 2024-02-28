@@ -1,4 +1,4 @@
-import { World, FloorRibbon } from '../../../babylon/js/vrspace-min.js';
+import { World, FloorRibbon, VRSPACEUI } from '../../../babylon/js/vrspace-min.js';
 
 export class Cave extends World {
   async createCamera() {

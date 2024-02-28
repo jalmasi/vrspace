@@ -25,6 +25,7 @@ export { SkyboxSelector } from "./ui/skybox-selector.js";
 export { WorldListener } from "./ui/world-listener.js";
 export { VideoAvatar } from "./ui/video-avatar.js";
 export { UnityWorld } from "./ui/unity-world.js";
+export { DefaultHud } from "./ui/default-hud.js";
 
 export { MediaStreams, OpenViduStreams } from "./ui/media-streams.js";
 export { Screencast } from "./ui/screencast.js";

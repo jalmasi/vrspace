@@ -160,12 +160,13 @@ export class HUD {
   @param text description to display
   @param imageUrl image to display
   @param onPointerDown callback function activated when pressed
+  @param shareMaterial optional, defaults to true, use shared material for all buttons or create a new one
   @returns a BabylonJS HolographicButton
    */
-  addButton(text, imageUrl, onPointerDown) {
+  addButton(text, imageUrl, onPointerDown, shareMaterial=true) {
     var width = this.makeRoomForMore();
     
-    var button = new BABYLON.GUI.HolographicButton(text+"Button");
+    var button = new BABYLON.GUI.HolographicButton(text+"Button", shareMaterial);
     this.guiManager.addControl(button);
     button.imageUrl = imageUrl;
     button.text=text;

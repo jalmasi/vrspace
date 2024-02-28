@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm } from './js/vrspace-min.js';
+import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud } from './js/vrspace-min.js';
 
 // this is supposed to evolve into stand-alone REST client class
 class VRSpaceAPI {
@@ -116,6 +116,7 @@ export class AvatarSelection extends World {
     this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
   }
   async createUI() {
+    
     let providers = await this.getJson(this.api.endpoint.oauth2 + '/providers'); // TODO API call lib
     this.loginForm = new LoginForm(
       (text) => this.setMyName(text),
@@ -146,6 +147,9 @@ export class AvatarSelection extends World {
       }
     });
 
+    this.hud = new DefaultHud();
+    this.hud.init();
+    
   }
 
   // CHECKME this is confusing as it enables/disables portals
