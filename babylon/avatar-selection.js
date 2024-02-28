@@ -719,6 +719,7 @@ export class AvatarSelection extends World {
       this.beforeEnter(this);
     }
     this.loginForm.dispose();
+    this.hud.init();
     import(worldUrl + '/' + worldScript).then((world) => {
 
       world.WORLD.inVR = this.inVR;

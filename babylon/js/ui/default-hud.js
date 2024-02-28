@@ -12,7 +12,12 @@ export class DefaultHud {
     this.state = { mic: false, cam: false, speech: false }
   }
   init() {
-    this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
+    if ( this.settingsButton && this.displayButtons ) {
+      this.hud.clearRow();
+      this.displayButtons = false;
+    } else if (!this.settingsButton) {
+      this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
+    }
   }
   settings() {
     this.displayButtons = !this.displayButtons;
