@@ -24,6 +24,7 @@ export class VideoAvatar {
     this.userHeight = 1.8;
     /** Compatbility with Avatar class */
     this.name = null;
+    this.displaying="NONE";
     if ( customOptions ) {
       for(var c of Object.keys(customOptions)) {
         this[c] = customOptions[c];
@@ -87,6 +88,7 @@ export class VideoAvatar {
   Display and optionally set altText.
    */
   displayText(text) {
+    this.displaying="TEXT";
     if ( text ) {
       this.altText = text;
     }
@@ -102,6 +104,7 @@ export class VideoAvatar {
   @param image path to the image file
    */
   displayImage(image) {
+    this.displaying="IMAGE";
     if ( image ) {
       this.altImage = image;
     }
@@ -119,11 +122,14 @@ export class VideoAvatar {
       this.displayText();
     }
   }
-  
+
   /** 
   Display video from given device, used for own avatar.
    */
   async displayVideo( deviceId ) {
+    if ( this.displaying === "VIDEO" ) {
+      return;
+    }
     if ( deviceId ) {
       this.deviceId = deviceId;
     }
@@ -150,6 +156,7 @@ export class VideoAvatar {
            this.mesh.material.diffuseTexture.dispose();
         }
         this.mesh.material.diffuseTexture = texture;
+        this.displaying="VIDEO";
         if ( this.callback ) {
           this.callback();
         }
@@ -161,12 +168,16 @@ export class VideoAvatar {
   Create and display VideoTexture from given MediaStream.
    */
   displayStream( mediaStream ) {
-    BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
-      if ( this.mesh.material.diffuseTexture ) {
-         this.mesh.material.diffuseTexture.dispose();
-      }
-      this.mesh.material.diffuseTexture = texture;
-    });
+    if ( mediaStream ) {
+      // CHECKME: otherwise error?
+      BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
+        if ( this.mesh.material.diffuseTexture ) {
+           this.mesh.material.diffuseTexture.dispose();
+        }
+        this.mesh.material.diffuseTexture = texture;
+        this.displaying="STREAM";
+      });
+    }
   }
   
   /**

@@ -354,6 +354,7 @@ export class AvatarSelection extends World {
           delete this.guiManager;
         }
         this.portalsEnabled(true);
+        this.hud.camera(true, this.video);
       },
       this.customOptions
     );

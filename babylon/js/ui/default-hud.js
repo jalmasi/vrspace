@@ -10,7 +10,8 @@ export class DefaultHud {
     this.hud.verticalWeb = -0.15;
     this.contentBase = VRSPACEUI.contentBase;
     this.displayButtons = false;
-    this.state = { mic: false, cam: false, speech: SpeechInput.isEnabled() }
+    this.videoAvatar = null;
+    this.state = { mic: false, camera: false, speech: SpeechInput.isEnabled() }
   }
   init() {
     if ( this.settingsButton && this.displayButtons ) {
@@ -27,8 +28,9 @@ export class DefaultHud {
       this.hud.showButtons(false, this.settingsButton);
       this.hud.newRow();
       this.profileButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.avatar());
-      this.micButton = this.hud.addButton("Mic", this.contentBase + "/content/icons/microphone-off.png", () => this.microphone(), false);
-      this.camButton = this.hud.addButton("Cam", this.contentBase + "/content/icons/webcam-off.png", () => this.webcam(), false);
+      this.micButton = this.hud.addButton("Microphone", this.contentBase + "/content/icons/microphone-off.png", () => this.microphone(), false);
+      this.camButton = this.hud.addButton("Camera", this.contentBase + "/content/icons/webcam-off.png", () => this.camera(), false);
+      this.camera(this.state.camera);
       this.speechButton = this.hud.addButton("Voice", this.contentBase + "/content/icons/voice-recognition-off.png", () => this.speech(), false);
       this.speech(this.state.speech);
       this.helpButton = this.hud.addButton("Help", this.contentBase + "/content/icons/help.png", () => this.help());
@@ -49,13 +51,28 @@ export class DefaultHud {
       this.micButton.imageUrl = this.contentBase + "/content/icons/microphone-off.png";
     }
   }
-  webcam() {
-    this.state.cam = !this.state.cam;
-    if (this.state.cam) {
-      this.camButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
-    } else {
-      this.camButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
+  camera(enable=!this.state.camera, videoAvatar) {
+    console.log("Webcam: "+enable);
+    if ( videoAvatar ) {
+      this.videoAvatar = videoAvatar;
     }
+    //if ( this.state.camera != enable ) {
+      this.state.camera = enable;
+      if ( this.camButton ) {
+        // camButton may be created/destroyed any time
+        if (this.state.camera) {
+          this.camButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
+          if ( this.videoAvatar ) {
+            this.videoAvatar.displayVideo();
+          }
+        } else {
+          this.camButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
+          if ( this.videoAvatar ) {
+            this.videoAvatar.displayAlt();
+          }
+        }
+      }
+    //}
   }
   speech(enable=!this.state.speech) {
     if ( SpeechInput.available() ) {
