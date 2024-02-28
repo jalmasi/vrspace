@@ -33,7 +33,7 @@ export class HUD {
     this.alpha=0.7; // button opacity
     this.distanceWeb = .5;
     this.distanceXR = .5;
-    this.verticalWeb = -0.1;
+    this.verticalWeb = -0.15;
     this.verticalXR = -0.1;
     this.scaleWeb = 1;
     this.scaleXR = .5;
@@ -512,7 +512,7 @@ export class HUD {
   newRow() {
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(.5);
-      row.root.position.addInPlace(this.rowOffset.scale(1/(this.rows.length*2)));
+      row.root.position.addInPlace(this.rowOffset.scale(.6/(this.rows.length*2)));
     });
     this.unselectCurrent();
     this.currentRow().activeControl = this.activeControl;
@@ -563,7 +563,7 @@ export class HUD {
 
     this.rows.forEach(row=>{
       row.root.scaling.scaleInPlace(2);
-      row.root.position.addInPlace(this.rowOffset.scale(-1/(this.rows.length*2)));
+      row.root.position.addInPlace(this.rowOffset.scale(-.6/(this.rows.length*2)));
     });
 
     var row = this.rows[this.rows.length-1];

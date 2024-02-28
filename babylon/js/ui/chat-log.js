@@ -112,7 +112,8 @@ export class ChatLog extends TextArea {
     this.inputPrefix = "ME";
     this.showLinks = true;
     this.size = .3;
-    this.baseAnchor = -.2;
+    this.baseAnchor = -.4;
+    //this.baseAnchor = 0;
     this.anchor = this.baseAnchor;
     this.leftSide();
     this.linkStack = new LinkStack(this.scene, this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
@@ -163,7 +164,8 @@ export class ChatLog extends TextArea {
    * Move either left or right, whatever is the current anchor
    */
   moveToAnchor() {
-    this.position = new BABYLON.Vector3(this.anchor, this.size/2-.025, 0);
+    //this.position = new BABYLON.Vector3(this.anchor, this.size/2-.025, 0);
+    this.position = new BABYLON.Vector3(this.anchor, this.size/2-.1, 0.2);
     this.group.position = this.position;
   }
   /**
@@ -171,9 +173,12 @@ export class ChatLog extends TextArea {
    */
   handleResize() {
     let aspectRatio = this.scene.getEngine().getAspectRatio(this.scene.activeCamera);
-    //console.log("Aspect ratio: "+aspectRatio+" "+Math.sign(this.anchor));
-    let diff = aspectRatio/2; // 2 being HD
-    this.anchor = -this.baseAnchor * diff * Math.sign(this.anchor);
+    // 0.67 -> anchor 0.1 (e.g. smartphone vertical)
+    // 2 -> anchor 0.4 (pc, smartphone horizontal)
+    let diff = (aspectRatio-0.67)/1.33;
+    //this.anchor = -this.baseAnchor * diff * Math.sign(this.anchor);
+    this.anchor = this.baseAnchor * diff;
+    //console.log("Aspect ratio: "+aspectRatio+" anchor "+Math.sign(this.anchor)+" "+this.anchor+" base "+this.baseAnchor+" diff "+diff);
     this.moveToAnchor();
   }
   hasLink(line) {
