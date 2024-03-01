@@ -32,13 +32,18 @@ export class DefaultHud {
       this.hud.newRow();
       this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.changeAvatar());
       this.avatarButton.isVisible = (this.avatar != null);
+      this.avatarButton.tooltipText = "TODO";
       this.micButton = this.hud.addButton("Microphone", this.contentBase + "/content/icons/microphone-off.png", () => this.toggleMic(), false);
+      this.micButton.tooltipText = "Toggle Microphone";
       this.displayMic();
       this.camButton = this.hud.addButton("Camera", this.contentBase + "/content/icons/webcam-off.png", () => this.camera(), false);
+      this.camButton.tooltipText = "Toggle Webcam";
       this.camera(this.state.camera);
       this.speechButton = this.hud.addButton("Voice", this.contentBase + "/content/icons/voice-recognition-off.png", () => this.speech(), false);
+      this.speechButton.tooltipText = "Voice Commands";
       this.speech(this.state.speech);
       this.helpButton = this.hud.addButton("Help", this.contentBase + "/content/icons/help.png", () => this.help());
+      this.helpButton.tooltipText = "TODO";
       this.hud.enableSpeech(true);
     } else {
       this.hud.clearRow();
@@ -118,10 +123,8 @@ export class DefaultHud {
       this.hud.enableSpeech(enable);
       if (this.state.speech) {
         this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition.png";
-        this.speechButton.tooltipText = "Disable";
       } else {
         this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition-off.png";
-        this.speechButton.tooltipText = "Enable";
       }
     } else {
       this.markDisabled(this.speechButton);
