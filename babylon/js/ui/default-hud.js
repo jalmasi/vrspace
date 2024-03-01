@@ -88,6 +88,9 @@ export class DefaultHud {
           this.videoAvatar.displayAlt();
         }
       }
+      if ( MediaStreams.instance ) {
+        MediaStreams.instance.publishVideo(enable);
+      }
     }
   }
   speech(enable=!this.state.speech) {
