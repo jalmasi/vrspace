@@ -1,5 +1,7 @@
 import { VRSPACEUI } from './vrspace-ui.js';
+import { MediaStreams } from './media-streams.js';
 import { SpeechInput } from './speech-input.js';
+
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -28,7 +30,8 @@ export class DefaultHud {
       this.hud.showButtons(false, this.settingsButton);
       this.hud.newRow();
       this.profileButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.avatar());
-      this.micButton = this.hud.addButton("Microphone", this.contentBase + "/content/icons/microphone-off.png", () => this.microphone(), false);
+      this.micButton = this.hud.addButton("Microphone", this.contentBase + "/content/icons/microphone-off.png", () => this.toggleMic(), false);
+      this.displayMic();
       this.camButton = this.hud.addButton("Camera", this.contentBase + "/content/icons/webcam-off.png", () => this.camera(), false);
       this.camera(this.state.camera);
       this.speechButton = this.hud.addButton("Voice", this.contentBase + "/content/icons/voice-recognition-off.png", () => this.speech(), false);
@@ -40,15 +43,30 @@ export class DefaultHud {
       this.hud.showButtons(true);
     }
   }
+  markDisabled(button) {
+    button.tooltipText = "N/A";
+    button.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
+  }
   avatar() {
     // TODO
   }
-  microphone() {
-    this.state.mic = !this.state.mic;
-    if (this.state.mic) {
-      this.micButton.imageUrl = this.contentBase + "/content/icons/microphone.png";
+  displayMic() {
+    if ( MediaStreams.instance ) {
+      this.state.mic = MediaStreams.instance.publishingAudio;
+      if (this.state.mic) {
+        this.micButton.imageUrl = this.contentBase + "/content/icons/microphone.png";
+      } else {
+        this.micButton.imageUrl = this.contentBase + "/content/icons/microphone-off.png";
+      }
     } else {
-      this.micButton.imageUrl = this.contentBase + "/content/icons/microphone-off.png";
+      this.state.mic = false;
+      this.markDisabled(this.micButton);
+    }    
+  }
+  toggleMic(enabled=!this.state.mic) {
+    if ( MediaStreams.instance ) {
+      MediaStreams.instance.publishAudio(enabled);
+      this.displayMic();
     }
   }
   camera(enable=!this.state.camera, videoAvatar) {
@@ -56,23 +74,21 @@ export class DefaultHud {
     if ( videoAvatar ) {
       this.videoAvatar = videoAvatar;
     }
-    //if ( this.state.camera != enable ) {
-      this.state.camera = enable;
-      if ( this.camButton ) {
-        // camButton may be created/destroyed any time
-        if (this.state.camera) {
-          this.camButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
-          if ( this.videoAvatar ) {
-            this.videoAvatar.displayVideo();
-          }
-        } else {
-          this.camButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
-          if ( this.videoAvatar ) {
-            this.videoAvatar.displayAlt();
-          }
+    this.state.camera = enable;
+    if ( this.camButton ) {
+      // camButton may be created/destroyed any time
+      if (this.state.camera) {
+        this.camButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
+        if ( this.videoAvatar ) {
+          this.videoAvatar.displayVideo();
+        }
+      } else {
+        this.camButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
+        if ( this.videoAvatar ) {
+          this.videoAvatar.displayAlt();
         }
       }
-    //}
+    }
   }
   speech(enable=!this.state.speech) {
     if ( SpeechInput.available() ) {
@@ -87,8 +103,7 @@ export class DefaultHud {
         this.speechButton.tooltipText = "Enable";
       }
     } else {
-      this.speechButton.tooltipText = "N/A";
-      this.speechButton.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
+      this.markDisabled(this.speechButton);
     }
   }
   help() {

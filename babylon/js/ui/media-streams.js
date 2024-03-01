@@ -3,11 +3,17 @@ WebRTC video/audio streaming support, intended to be overridden by implementatio
 Provides interface to WorldManager, that manages all clients and their streams.
  */
 export class MediaStreams {
+  /** There can be only one */
+  static instance;
   /**
   @param scene
   @param htmlElementName
    */
   constructor(scene, htmlElementName) {
+    if ( MediaStreams.instance ) {
+      throw "MediaStreams already instantiated: "+instance;
+    }
+    MediaStreams.instance = this;
     this.scene = scene;
     // CHECKME null check that element?
     this.htmlElementName = htmlElementName;
@@ -15,17 +21,19 @@ export class MediaStreams {
     this.playStream = ( client, mediaStream ) => this.unknownStream( client, mediaStream );
     this.startAudio = true;
     this.startVideo = false;
+    // state variables:
     this.audioSource = undefined; // use default
     this.videoSource = false;     // disabled
     this.publisher = null;
+    this.publishingVideo = false;
+    this.publishingAudio = false;
     // this is to track/match clients and streams:
     this.clients = [];
-    this.subscribers = [];    
+    this.subscribers = [];
   }
   
   /**
-  Initialize streaming and attach event listeners.
-  This implementation initializes OpenVidu session.
+  Initialize streaming and attach event listeners. Intended to be overridden, default implementation throws error.
   @param callback executed when new subscriber starts playing the stream
    */
   async init( callback ) {
@@ -54,6 +62,9 @@ export class MediaStreams {
       publishAudio: this.startAudio,   // Whether to start publishing with your audio unmuted or not
       publishVideo: this.startVideo    // Should publish video?
     });
+    
+    this.publishingVideo = this.startVideo;
+    this.publishingAudio = this.startAudio;
     
     // this is only triggered if htmlElement is specified
     this.publisher.on('videoElementCreated', e => {
@@ -118,6 +129,7 @@ export class MediaStreams {
     if ( this.publisher ) {
       console.log("Publishing video: "+enabled);
       this.publisher.publishVideo(enabled);
+      this.publishingVideo = enabled;
     }
   }
 
@@ -128,6 +140,7 @@ export class MediaStreams {
     if ( this.publisher ) {
       console.log("Publishing audio: "+enabled);
       this.publisher.publishAudio(enabled);
+      this.publishingAudio = enabled;
     }
   }
   
