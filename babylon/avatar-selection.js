@@ -361,6 +361,8 @@ export class AvatarSelection extends World {
     await this.video.show();
   }
   removeVideoAvatar() {
+    this.hud.camera(false);
+    this.hud.videoAvatar = null;
     if (this.video) {
       this.video.dispose();
       delete this.video;
