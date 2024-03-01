@@ -354,6 +354,7 @@ export class AvatarSelection extends World {
           delete this.guiManager;
         }
         this.portalsEnabled(true);
+        this.hud.setAvatar(null);
         this.hud.camera(true, this.video);
       },
       this.customOptions
@@ -463,6 +464,7 @@ export class AvatarSelection extends World {
         this.selectionCallback(this.character);
       }
       this.checkValidName(); // conditionally enables portals
+      this.hud.setAvatar(this.character);
     },
       // on error
       (exception) => {

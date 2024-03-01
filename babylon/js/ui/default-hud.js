@@ -12,6 +12,7 @@ export class DefaultHud {
     this.hud.verticalWeb = -0.15;
     this.contentBase = VRSPACEUI.contentBase;
     this.displayButtons = false;
+    this.avatar = null;
     this.videoAvatar = null;
     this.state = { mic: false, camera: false, speech: SpeechInput.isEnabled() }
   }
@@ -29,7 +30,8 @@ export class DefaultHud {
     if ( this.displayButtons ) {
       this.hud.showButtons(false, this.settingsButton);
       this.hud.newRow();
-      this.profileButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.avatar());
+      this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.changeAvatar());
+      this.avatarButton.isVisible = (this.avatar != null);
       this.micButton = this.hud.addButton("Microphone", this.contentBase + "/content/icons/microphone-off.png", () => this.toggleMic(), false);
       this.displayMic();
       this.camButton = this.hud.addButton("Camera", this.contentBase + "/content/icons/webcam-off.png", () => this.camera(), false);
@@ -44,10 +46,20 @@ export class DefaultHud {
     }
   }
   markDisabled(button) {
-    button.tooltipText = "N/A";
-    button.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
+    if ( button ) {
+      button.tooltipText = "N/A";
+      button.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
+    }
   }
-  avatar() {
+  setAvatar(avatar) {
+    if ( this.avatarButton ) {
+      this.avatarButton.isVisible = (avatar != null);
+      // we can't stream to avatar anyway, not yet
+      this.camButton.isVisible = (avatar == null);
+    }
+    this.avatar = avatar;
+  }
+  changeAvatar() {
     // TODO
   }
   displayMic() {
@@ -77,6 +89,12 @@ export class DefaultHud {
     this.state.camera = enable;
     if ( this.camButton ) {
       // camButton may be created/destroyed any time
+      if ( this.avatar ) {
+        // no video streaming to the avatar
+        this.camButton.isVisible = false;
+        return;
+      }
+      this.camButton.isVisible = true;
       if (this.state.camera) {
         this.camButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         if ( this.videoAvatar ) {
