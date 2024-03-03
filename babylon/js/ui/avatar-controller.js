@@ -449,7 +449,7 @@ export class AvatarController {
     // CHECKME: unless we call firstPerson here, first call to thirdPerson turns camera wildly
     // and then firstPerson() hides the avatar, we have to reactivate it
     let tmp = this.scene.activeCamera;
-    this.firstPerson();
+    //this.firstPerson();
     if ( tmp != this.scene.activeCamera ) {
       this.activateCamera(tmp);
       this.showAvatar();
