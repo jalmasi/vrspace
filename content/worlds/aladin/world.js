@@ -35,9 +35,10 @@ export class Aladinville extends World {
     return ground;
   }
   async createCamera() {
-    this.camera = this.universalCamera(new BABYLON.Vector3(-8, 10, -60));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(-8, 10, -60));
     this.camera.setTarget(new BABYLON.Vector3(0,10,0));
     this.camera.speed = 1;
+    this.thirdPersonCamera();
   }
   
   async createLights() {

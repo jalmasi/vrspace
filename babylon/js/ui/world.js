@@ -270,6 +270,7 @@ export class World {
     */
     // this actually makes camera speed real
     camera._computeLocalCameraSpeed = () => { return camera.speed * this.engine.getDeltaTime()*0.001};
+    this.camera1p = camera;
     
     return camera;
   }
@@ -283,8 +284,10 @@ export class World {
   thirdPersonCamera(camera1p = this.camera) {
     // CHECKME: use camera1p.rotation.y for alpha?
     this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI/2, 1.5*Math.PI-camera1p.rotation.y, 3, camera1p.position, this.scene);
-    this.camera3p.maxZ = 1000;
-    this.camera3p.minZ = 0;
+    //this.camera3p.maxZ = 1000;
+    //this.camera3p.minZ = 0;
+    this.camera3p.maxZ = this.camera1p.maxZ;
+    this.camera3p.minZ = this.camera1p.minZ;
     this.camera3p.wheelPrecision = 100;
     this.camera3p.checkCollisions = true;
     

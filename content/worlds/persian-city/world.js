@@ -24,9 +24,10 @@ export class PersianCity extends World {
     return skybox;
   }
   async createCamera() {
-    this.camera = this.universalCamera(new BABYLON.Vector3(60, 23, -54));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(60, 23, -54));
     this.camera.setTarget(new BABYLON.Vector3(-50,-10,-50));
     this.camera.speed = 1;
+    //this.thirdPersonCamera(); // too slow
   }
   async createLights() {
     // Add lights to the scene

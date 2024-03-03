@@ -2,9 +2,10 @@ import { World } from '../../../babylon/js/vrspace-min.js';
 
 export class Paris extends World {
   async createCamera() {
-    this.camera = this.universalCamera(new BABYLON.Vector3(61.153, 10.676, -87.172));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(61.153, 10.676, -87.172));
     this.camera.setTarget(new BABYLON.Vector3(0,-10,0));
     this.camera.speed = 0.5;
+    //this.thirdPersonCamera(); // too slow
   }
   async createLights() {
     // Add lights to the scene

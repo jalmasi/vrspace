@@ -15,10 +15,11 @@ export class WorldEditorExample extends World {
     }
   }
   async createCamera() {
-    this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(0, 2, -2));
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;
     this.camera.applyGravity = false;
+    this.thirdPersonCamera();
     return this.camera;
   }
 

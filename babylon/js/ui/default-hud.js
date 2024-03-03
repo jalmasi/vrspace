@@ -1,6 +1,7 @@
 import { VRSPACEUI } from './vrspace-ui.js';
 import { MediaStreams } from './media-streams.js';
 import { SpeechInput } from './speech-input.js';
+import { WorldManager } from './world-manager.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -14,7 +15,7 @@ export class DefaultHud {
     this.displayButtons = false;
     this.avatar = null;
     this.videoAvatar = null;
-    this.state = { mic: false, camera: false, speech: SpeechInput.isEnabled() }
+    this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() }
   }
   init() {
     if ( this.settingsButton && this.displayButtons ) {
@@ -30,18 +31,25 @@ export class DefaultHud {
     if ( this.displayButtons ) {
       this.hud.showButtons(false, this.settingsButton);
       this.hud.newRow();
+
+      this.showCameraControls();
+      
       this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.changeAvatar());
       this.avatarButton.isVisible = (this.avatar != null);
       this.avatarButton.tooltipText = "TODO";
+
       this.micButton = this.hud.addButton("Microphone", this.contentBase + "/content/icons/microphone-off.png", () => this.toggleMic(), false);
       this.micButton.tooltipText = "Toggle Microphone";
       this.displayMic();
-      this.camButton = this.hud.addButton("Camera", this.contentBase + "/content/icons/webcam-off.png", () => this.camera(), false);
-      this.camButton.tooltipText = "Toggle Webcam";
-      this.camera(this.state.camera);
+
+      this.webcamButton = this.hud.addButton("Camera", this.contentBase + "/content/icons/webcam-off.png", () => this.toggleWebcam(), false);
+      this.webcamButton.tooltipText = "Toggle Webcam";
+      this.toggleWebcam(this.state.webcam);
+
       this.speechButton = this.hud.addButton("Voice", this.contentBase + "/content/icons/voice-recognition-off.png", () => this.speech(), false);
       this.speechButton.tooltipText = "Voice Commands";
       this.speech(this.state.speech);
+
       this.helpButton = this.hud.addButton("Help", this.contentBase + "/content/icons/help.png", () => this.help());
       this.helpButton.tooltipText = "TODO";
       this.hud.enableSpeech(true);
@@ -60,13 +68,39 @@ export class DefaultHud {
     if ( this.avatarButton ) {
       this.avatarButton.isVisible = (avatar != null);
       // we can't stream to avatar anyway, not yet
-      this.camButton.isVisible = (avatar == null);
+      this.webcamButton.isVisible = (avatar == null);
     }
     this.avatar = avatar;
   }
   changeAvatar() {
     // TODO
   }
+  
+  showCameraControls() {
+    if ( WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p ) {
+      if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
+        this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png", () => this.toggleCamera());
+        this.cameraButton.tooltipText = "1st Person";
+      } else if ( this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
+        this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase+"/content/icons/camera-3rd-person.png", () => this.toggleCamera());
+        this.cameraButton.tooltipText = "3rd Person";
+      }
+    } 
+  }
+  toggleCamera() {
+    if ( WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p ) {
+      if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
+        WorldManager.instance.world.thirdPerson();
+        this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-3rd-person.png";
+        this.cameraButton.tooltipText = "3rd Person";
+      } else if ( this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
+        WorldManager.instance.world.firstPerson();
+        this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png";
+        this.cameraButton.tooltipText = "1st Person";
+      }
+    }
+  }
+  
   displayMic() {
     if ( MediaStreams.instance ) {
       this.state.mic = MediaStreams.instance.publishingAudio;
@@ -86,27 +120,27 @@ export class DefaultHud {
       this.displayMic();
     }
   }
-  camera(enable=!this.state.camera, videoAvatar) {
+  toggleWebcam(enable=!this.state.webcam, videoAvatar) {
     console.log("Webcam: "+enable);
     if ( videoAvatar ) {
       this.videoAvatar = videoAvatar;
     }
-    this.state.camera = enable;
-    if ( this.camButton ) {
-      // camButton may be created/destroyed any time
+    this.state.webcam = enable;
+    if ( this.webcamButton ) {
+      // webcamButton may be created/destroyed any time
       if ( this.avatar ) {
         // no video streaming to the avatar
-        this.camButton.isVisible = false;
+        this.webcamButton.isVisible = false;
         return;
       }
-      this.camButton.isVisible = true;
-      if (this.state.camera) {
-        this.camButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
+      this.webcamButton.isVisible = true;
+      if (this.state.webcam) {
+        this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         if ( this.videoAvatar ) {
           this.videoAvatar.displayVideo();
         }
       } else {
-        this.camButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
+        this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
         if ( this.videoAvatar ) {
           this.videoAvatar.displayAlt();
         }

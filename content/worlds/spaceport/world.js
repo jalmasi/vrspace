@@ -14,8 +14,9 @@ export class Spaceport extends World {
   }
 
   async createCamera() {
-    this.camera = this.universalCamera(new BABYLON.Vector3(-280, 2.5, -260));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(-280, 2.5, -260));
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
+    //this.thirdPersonCamera(); // too slow
   }
 
   async createLights() {

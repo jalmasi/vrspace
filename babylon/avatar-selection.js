@@ -147,7 +147,7 @@ export class AvatarSelection extends World {
       }
     });
 
-    this.hud = new DefaultHud();
+    this.hud = new DefaultHud(this.scene);
     this.hud.init();
     
   }
@@ -350,19 +350,21 @@ export class AvatarSelection extends World {
         if (this.character) {
           this.character.dispose();
           delete this.character;
-          this.guiManager.dispose();
-          delete this.guiManager;
+          // do NOT dispose one created by HUD
+          //this.guiManager.dispose();
+          //delete this.guiManager;
+          this.removeCharacterButtons();
         }
         this.portalsEnabled(true);
         this.hud.setAvatar(null);
-        this.hud.camera(true, this.video);
+        this.hud.toggleWebcam(true, this.video);
       },
       this.customOptions
     );
     await this.video.show();
   }
   removeVideoAvatar() {
-    this.hud.camera(false);
+    this.hud.toggleWebcam(false);
     this.hud.videoAvatar = null;
     if (this.video) {
       this.video.dispose();
@@ -569,12 +571,14 @@ export class AvatarSelection extends World {
   }
 
   addCharacterButtons() {
-    this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
+    //this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
+    this.guiManager = VRSPACEUI.hud.guiManager;
     var resizeButton = new BABYLON.GUI.HolographicButton("resizeButton");
     resizeButton.contentResolution = 256;
     resizeButton.contentScaleRatio = 1;
     resizeButton.text = "Resize";
     this.guiManager.addControl(resizeButton);
+    this.resizeButton = resizeButton;
 
     resizeButton.position = new BABYLON.Vector3(-0.5, 0.2, -0.8);
     resizeButton.node.scaling = new BABYLON.Vector3(.2, .2, .2);
@@ -596,6 +600,7 @@ export class AvatarSelection extends World {
     mirrorButton.contentScaleRatio = 1;
     mirrorButton.text = "Mirroring";
     this.guiManager.addControl(mirrorButton);
+    this.mirrorButton = mirrorButton;
 
     mirrorButton.position = new BABYLON.Vector3(0.5, 0.2, -0.8);
     mirrorButton.node.scaling = new BABYLON.Vector3(.2, .2, .2);
@@ -610,6 +615,17 @@ export class AvatarSelection extends World {
         this.character.parentMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, 0);
       }
     });
+  }
+  
+  removeCharacterButtons() {
+    if ( this.resizeButton ) {
+      this.resizeButton.dispose();
+      this.resizeButton = null;
+    }
+    if ( this.mirrorButton ) {
+      this.mirrorButton.dispose();
+      this.mirrorButton = null;
+    }
   }
 
   showPortals() {
@@ -844,8 +860,10 @@ export class AvatarSelection extends World {
       this.animationSelection.dispose();
     }
     if (this.guiManager) {
-      this.guiManager.dispose();
+      // do NOT dispose one created by HUD
+      //this.guiManager.dispose();
     }
+    this.removeCharacterButtons();
     // CHECKME: this scene should be cleaned up, but when?
     //this.scene = null; // next call to render loop stops the current loop
   }

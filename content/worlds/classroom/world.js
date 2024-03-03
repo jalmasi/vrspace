@@ -27,11 +27,14 @@ export class Classroom extends World {
     //lecturer view
     //this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, 0));
     //this.camera.setTarget(new BABYLON.Vector3(0,2,10));
-    this.camera = this.universalCamera(new BABYLON.Vector3(-6, 2, 16));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(-6, 2, 16));
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;
     // collision debug
     //this.camera.onCollide = (mesh)=>console.log('collided with '+mesh.id);
+    this.thirdPersonCamera();
+    this.camera3p.radius = 0.5;    
+    this.camera3p.upperRadiusLimit = 2;
     return this.camera;
   }
   async createLights() {

@@ -3,8 +3,10 @@ import { World } from '../../../babylon/js/vrspace-min.js';
 export class Kidville extends World {
   async createCamera() {
     // Add a camera to the scene and attach it to the scene
-    this.camera = this.universalCamera(new BABYLON.Vector3(-97.51, 10, 62.72));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(-97.51, 10, 62.72));
+    this.camera.speed = 1;
     this.camera.setTarget(new BABYLON.Vector3(0,0,0));
+    //this.thirdPersonCamera(); // too slow
   }
   async createLights() {
     var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), this.scene);

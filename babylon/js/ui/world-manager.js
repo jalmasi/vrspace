@@ -11,11 +11,15 @@ Loads avatars of other users and maps network events to their avatars,
 including user video and audio streams.
  */
 export class WorldManager {
+  static instance = null;
   /** Creates world manager with default values and connection, scene, camera listeners.
   @param world
   @param fps network framerate, default 5 (send up to 5 events per second)
    */
   constructor(world, fps) {
+    if ( WorldManager.instance ) {
+      throw "WorldManager already created";
+    }
     /** the world */
     this.world = world;
     /** the scene */
@@ -88,6 +92,7 @@ export class WorldManager {
     this.world.worldManager = this;
     this.notFound = []; // 404 cache used for avatar fix files
     VRSPACEUI.init(this.scene); // to ensure assetLoader is available
+    WorldManager.instance = this;
   }
   /** Publish and subscribe */
   pubSub( user, autoPublishVideo ) {
