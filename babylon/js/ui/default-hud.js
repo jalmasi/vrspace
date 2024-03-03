@@ -34,9 +34,12 @@ export class DefaultHud {
 
       this.showCameraControls();
       
+      /*
+      // this is supposed to either change profile, or allow user to activate some avatar animation
       this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.changeAvatar());
       this.avatarButton.isVisible = (this.avatar != null);
       this.avatarButton.tooltipText = "TODO";
+      */
 
       this.micButton = this.hud.addButton("Microphone", this.contentBase + "/content/icons/microphone-off.png", () => this.toggleMic(), false);
       this.micButton.tooltipText = "Toggle Microphone";
