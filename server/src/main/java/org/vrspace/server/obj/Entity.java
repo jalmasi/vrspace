@@ -3,6 +3,9 @@ package org.vrspace.server.obj;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.vrspace.server.types.ID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,4 +26,10 @@ public abstract class Entity {
   @GeneratedValue
   @EqualsAndHashCode.Include
   private Long id;
+
+  @JsonIgnore
+  public ID getObjectId() {
+    return new ID(this);
+  }
+
 }

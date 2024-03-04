@@ -192,11 +192,6 @@ public class VRObject extends Entity {
   public void processEvent(VREvent event) {
   }
 
-  @JsonIgnore
-  public ID getObjectId() {
-    return new ID(this);
-  }
-
   public VRObject active() {
     this.active = Boolean.TRUE;
     return this;

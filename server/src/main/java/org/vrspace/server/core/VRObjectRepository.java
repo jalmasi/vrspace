@@ -63,6 +63,15 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   // @Query("MATCH (o:Client) WHERE o.name = $name RETURN *")
   // Client getClientByName(String name);
 
+  @Query("MATCH (o:VRObject) WHERE o.worldId = $worldId RETURN o")
+  Set<VRObject> getAllInWorld(Long worldId);
+
+  default void deleteWorld(World world) {
+    Set<VRObject> objects = getAllInWorld(world.getId());
+    objects.forEach(o -> delete(o));
+    deleteById(world.getClass(), world.getId());
+  }
+
   @Query("MATCH (o:World) WHERE o.name = $name RETURN o")
   World getWorldByName(String name);
 
@@ -124,9 +133,11 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (o:World) RETURN o")
   List<World> listWorlds();
 
+  // CHECKME this actually counts Client rather than User instances
   @Query("MATCH (o:Client) WHERE o.worldId = $worldId RETURN count(*)")
   int countUsers(long worldId);
 
+  // CHECKME this actually counts Client rather than User instances
   @Query("MATCH (o:Client) WHERE o.worldId = $worldId AND o.active = $active RETURN count(*)")
   int countUsers(long worldId, boolean active);
 

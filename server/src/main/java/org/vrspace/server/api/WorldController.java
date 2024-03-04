@@ -1,10 +1,10 @@
 package org.vrspace.server.api;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,9 +62,15 @@ public class WorldController extends ApiBase {
    * @param session           automatically passed by framework
    * @param worldName         optional world name of created world, must be unique
    * @param templateWorldName optional world template to use
+   * @param isPublic          optional flag to create public or private world,
+   *                          default false
+   * @param isTemporary       optional flag to create a temporary world, default
+   *                          true
+   * @return token required to enter the world, only for private worlds
    */
   @PostMapping("/create")
-  public void createWorld(HttpSession session, String worldName, String templateWorldName) {
+  public String createWorld(HttpSession session, String worldName, String templateWorldName, boolean isPublic,
+      boolean isTemporary) {
     String userName = currentUserName(session, clientFactory);
     if (userName == null) {
       throw new SecurityException("User must be logged in");
@@ -81,9 +87,22 @@ public class WorldController extends ApiBase {
       if (template == null) {
         throw new ApiException("World template " + templateWorldName + " not found");
       }
-      BeanUtils.copyProperties(template, world);
+      // this won't do anything useful
+      // BeanUtils.copyProperties(template, world);
+      // TODO copy existing objects to a new world
     }
+    if (worldName == null) {
+      worldName = userName + "'s world";
+    }
+    world.setName(worldName);
     world.setOwner(user);
-    manager.saveWorld(world);
+    world.setDefaultWorld(false);
+    world.setPublicWorld(isPublic);
+    world.setTemporaryWorld(isTemporary);
+    if (!isPublic) {
+      world.setToken(UUID.randomUUID().toString());
+    }
+    world = manager.saveWorld(world);
+    return world.getToken();
   }
 }

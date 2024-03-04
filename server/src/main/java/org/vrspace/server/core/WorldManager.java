@@ -184,11 +184,16 @@ public class WorldManager {
     return (World) updateCache(ret);
   }
 
+  private void deleteWorld(World world) {
+    cache.remove(world.getObjectId());
+    db.deleteWorld(world);
+  }
+
   // CHECKME World is not VRObject but an Entity; do we need a method to save
   // Entities?
   public World saveWorld(World world) {
     world = db.save(world);
-    cache.put(new ID(world), world);
+    cache.put(world.getObjectId(), world);
     return world;
   }
 
@@ -221,7 +226,7 @@ public class WorldManager {
 
   public <T extends VRObject> T save(T obj) {
     T ret = db.save(obj); // CHECKME: writeback save/write ?
-    cache.put(new ID(obj), ret);
+    cache.put(obj.getObjectId(), ret);
     return ret;
   }
 
@@ -245,7 +250,7 @@ public class WorldManager {
   private Entity updateCache(Entity o) {
     // CHECKME: should this be null safe?
     if (o != null) {
-      ID id = new ID(o);
+      ID id = o.getObjectId();
       Entity cached = cache.get(id);
       if (cached != null) {
         return cached;
@@ -384,7 +389,7 @@ public class WorldManager {
     writeBack.setActive(config.isWriteBackActive());
     writeBack.setDelay(config.getWriteBackDelay());
     client.setWriteBack(writeBack);
-    cache.put(new ID(client), client);
+    cache.put(client.getObjectId(), client);
   }
 
   public World defaultWorld() {
@@ -392,7 +397,7 @@ public class WorldManager {
       defaultWorld = getWorld("default");
       if (defaultWorld == null) {
         defaultWorld = db.save(new World("default", true));
-        cache.put(new ID(defaultWorld), defaultWorld);
+        cache.put(defaultWorld.getObjectId(), defaultWorld);
         log.info("Created default world: " + defaultWorld);
       }
     }
@@ -500,6 +505,10 @@ public class WorldManager {
     client = save(client);
     // and notify the world
     world.exit(client, this);
+    // remove temporary world after last client disconnects
+    if (world.isTemporaryWorld() && db.countUsers(world.getId()) == 0) {
+      deleteWorld(world);
+    }
   }
 
   @Transactional
