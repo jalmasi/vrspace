@@ -13,7 +13,7 @@
 Main entry point is http://localhost:8080/babylon/avatar-selection.html - choose your avatar and enter a world.
 Use content/worlds/template as a template for your own multiuser worlds, it's all exposed at http://localhost:8080/content/
 
-*) Java 17 users instead use this:
+*) Java 17+ users instead use this:
 
     java --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED -jar target/server-VERSION-executable.jar
 
@@ -40,3 +40,7 @@ If you need to extend the server, see example spring boot application: https://g
 # Server binary
 
 Instead of building the server, you can simply download released executable jar file: https://github.com/jalmasi/vrspace/releases/
+
+# Docker image
+
+Start here: https://hub.docker.com/r/gangrif/vrspace
