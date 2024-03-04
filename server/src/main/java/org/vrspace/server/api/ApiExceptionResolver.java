@@ -23,6 +23,15 @@ public class ApiExceptionResolver extends ResponseEntityExceptionHandler {
     return handleExceptionInternal(ex, responseBody, new HttpHeaders(), HttpStatus.PRECONDITION_REQUIRED, request);
   }
 
+  @ExceptionHandler(value = { SecurityException.class })
+  protected ResponseEntity<Object> handleSecurity(SecurityException ex, WebRequest request) {
+    // return plain text
+    // String responseBody = ex.getMessage();
+    // return json string:
+    ErrorMessage responseBody = new ErrorMessage(ex.getMessage());
+    return handleExceptionInternal(ex, responseBody, new HttpHeaders(), HttpStatus.FORBIDDEN, request);
+  }
+
   @Data
   @AllArgsConstructor
   public class ErrorMessage {
