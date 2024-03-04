@@ -15,10 +15,10 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * World in which all servers reside. Once a RemoteServer enters here, its
- * properties are set to defaults defined in application.properties, i.e
- * portalMesh and portalScript of this object. Properties of other clients
- * (users) are not changed.
+ * World in which all servers reside, created by WorldManager on startup. Once a
+ * RemoteServer enters here, its properties are set to defaults defined in
+ * application.properties, i.e portalMesh and portalScript of this object.
+ * Properties of other clients (users) are not changed.
  * 
  * @author joe
  *

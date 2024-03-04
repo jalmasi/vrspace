@@ -11,6 +11,10 @@ import org.vrspace.client.VRSpaceClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * This configures VRSpace client that connects to and advertises at central
+ * vrspace.org server - if org.vrspace.server.advertise property is true.
+ */
 @Configuration
 @ConditionalOnProperty(name = "org.vrspace.server.advertise", havingValue = "true")
 public class ClientConfig {
@@ -20,7 +24,7 @@ public class ClientConfig {
   ServerConfig serverConfig;
 
   @Bean
-  public VRSpaceClient connectToVRSpace() {
+  VRSpaceClient connectToVRSpace() {
     URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
     VRSpaceClient client = new VRSpaceClient(uri, objectMapper);
     client.connectAndEnter("galaxy", Map.of("url", serverConfig.getServerUrl(), "thumbnail",

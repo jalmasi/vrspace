@@ -30,6 +30,7 @@ public class World extends Entity {
   private String name;
   // there can be only one
   private boolean defaultWorld;
+  private Client owner;
 
   public World(String name, boolean defaultWorld) {
     this.name = name;

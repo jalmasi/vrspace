@@ -32,7 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Oauth2 login is completely handled by spring security, this is just callback
  * once it's all done. Client's identity is something like joe:facebook, but
- * hashed. Login name must match the stored identity.
+ * hashed. Login name must match the stored identity. After login, user's Client
+ * object is stored in HttpSession, under key specified by
+ * clientFactory.clientAttribute() (local-user-name by default).
  * 
  * @author joe
  *
@@ -44,9 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 public class Oauth2Controller extends ApiBase {
   public static final String PATH = API_ROOT + "/oauth2";
   @Autowired
-  VRObjectRepository db;
+  private VRObjectRepository db;
   @Autowired
-  ClientFactory clientFactory;
+  private ClientFactory clientFactory;
   private ClientRegistrationRepository clientRegistrationRepository;
 
   public Oauth2Controller(@Autowired ClientRegistrationRepository clientRegistrationRepository) {
@@ -97,7 +99,8 @@ public class Oauth2Controller extends ApiBase {
    * performs authentication through a series of on-site and off-site redirects.
    * Only after successful Oauth2 authentication with external provider, this
    * method fetches or creates the Client object, and redirect back to the
-   * referring page.
+   * referring page. Client object is stored in HttpSession, under key specified
+   * by clientFactory.clientAttribute().
    * 
    * @param name     Login name of the user, local
    * @param provider Oauth2 authentication provider id , as registered in

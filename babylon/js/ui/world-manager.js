@@ -504,6 +504,10 @@ export class WorldManager {
     }, this.loadErrorHandler);
   }
 
+  /**
+   * Load a script, call it's constructor with the VRObject, then calls init(), and adds the listener.
+   * See basic-script.js and web-portal.js.
+   */
   loadScript(obj) {
     import(obj.script).then(module=>{
       console.log(module);

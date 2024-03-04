@@ -16,7 +16,7 @@ import com.nimbusds.oauth2.sdk.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Basic user information. User's can't be created here yet, it's all automated
+ * Basic user information. Users can't be created here yet, it's all automated
  * in Oauth2Controller for authenticated users, and WorldManager for guest
  * users.
  * 
@@ -77,9 +77,7 @@ public class UserController extends ApiBase {
    */
   @GetMapping("/name")
   public String userName(HttpSession session) {
-    Object currentName = session.getAttribute(clientFactory.clientAttribute());
-    log.debug("Current name:" + currentName);
-    return (String) currentName;
+    return currentUserName(session, clientFactory);
   }
 
   /**
@@ -90,7 +88,7 @@ public class UserController extends ApiBase {
    */
   @GetMapping("/object")
   public Client userObject(HttpSession session) {
-    String currentName = userName(session);
+    String currentName = currentUserName(session, clientFactory);
     if (currentName != null) {
       return db.getClientByName(currentName);
     }

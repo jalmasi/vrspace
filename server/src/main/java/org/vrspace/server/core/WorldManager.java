@@ -128,6 +128,7 @@ public class WorldManager {
     createWorlds();
   }
 
+  // CHECKME world factory?
   private void createWorlds() {
     defaultWorld();
     for (String worldName : worldConfig.getWorld().keySet()) {
@@ -183,12 +184,23 @@ public class WorldManager {
     return (World) updateCache(ret);
   }
 
+  // CHECKME World is not VRObject but an Entity; do we need a method to save
+  // Entities?
+  public World saveWorld(World world) {
+    world = db.save(world);
+    cache.put(new ID(world), world);
+    return world;
+  }
+
+  // TODO WorldFactory
   public World getOrCreateWorld(String name) {
     World world = getWorld(name);
     if (world == null) {
+      // CHECKME this property may be ambiguous - it applies to worlds being
+      // automatically created on-demand, and authenticated user creating a world
+      // explicitly
       if (config.isCreateWorlds()) {
-        world = db.save(new World(name));
-        cache.put(new ID(world), world);
+        world = saveWorld(new World(name));
       } else {
         throw new IllegalArgumentException("Unknown world: " + name);
       }
