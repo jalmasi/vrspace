@@ -11,13 +11,18 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,30 +47,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class WorldManagerTest {
 
   @Autowired
-  ObjectMapper objectMapper;
+  private ObjectMapper objectMapper;
 
   @Mock
   private ConcurrentWebSocketSessionDecorator session;
-
+  @Mock
+  private ConcurrentWebSocketSessionDecorator anotherSession;
   @Mock
   private VRObjectRepository repo;
-
   @Mock
   private WorldConfig worldConfig;
-
   @Mock
   private StreamManager streamManager;
-
   @Mock
   private WriteBack writeBack;
 
-  ServerConfig config = new ServerConfig();
-
   @InjectMocks
-  WorldManager worldManager;
+  private WorldManager worldManager;
 
-  List<Ownership> owned = new ArrayList<>();
-  long id = 0;
+  private ServerConfig config = new ServerConfig();
+  private List<Ownership> owned = new ArrayList<>();
+  private long id = 0;
+  @Captor
+  private ArgumentCaptor<World> capturedWorld;
 
   @BeforeEach
   public void setUp() {
@@ -155,7 +159,6 @@ public class WorldManagerTest {
 
     worldManager.logout(clients.get(0));
     worldManager.startSession(welcome.getClient());
-
   }
 
   @Test
@@ -180,6 +183,77 @@ public class WorldManagerTest {
 
     // guest and temporary removed from cache and db, world and persistent remain
     assertEquals(2, worldManager.cache.size());
-
   }
+
+  @Test
+  public void testTemporaryWorld() {
+    lenient().doNothing().when(repo).deleteWorld(capturedWorld.capture());
+
+    config.setGuestAllowed(true);
+    worldManager.sceneProperties = new SceneProperties();
+    Welcome welcomeDefault = worldManager.login(session);
+
+    World world = new World("one");
+    world.setId(1L);
+    world.setOwner(welcomeDefault.getClient());
+    world.setTemporaryWorld(true);
+
+    worldManager.saveWorld(world);
+
+    worldManager.enter(welcomeDefault.getClient(), world);
+    worldManager.logout(welcomeDefault.getClient());
+
+    assertEquals(world, capturedWorld.getValue());
+  }
+
+  private void mockSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
+    Client client = new Client(clientName);
+    lenient().when(s.getPrincipal()).thenReturn(new Principal() {
+      @Override
+      public String getName() {
+        return clientName;
+      }
+    });
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put(ClientFactory.CLIENT_ATTRIBUTE, "tester");
+    lenient().when(s.getAttributes()).thenReturn(attributes);
+
+    lenient().when(repo.getClientByName(any(), any())).thenReturn(client);
+  }
+
+  @Test
+  public void testPrivateWorld() {
+    mockSession("owner", session);
+
+    config.setGuestAllowed(false);
+    worldManager.sceneProperties = new SceneProperties();
+    Welcome welcomeOwner = worldManager.login(session);
+
+    World world = new World("one");
+    world.setId(1L);
+    world.setOwner(welcomeOwner.getClient());
+    world.setPublicWorld(false);
+
+    worldManager.saveWorld(world);
+
+    // owner enters:
+    worldManager.enter(welcomeOwner.getClient(), world);
+
+    mockSession("guest", anotherSession);
+    Welcome welcomeGuest = worldManager.login(session);
+    Client guest = welcomeGuest.getClient();
+
+    // guest enters and fails:
+    assertThrows(SecurityException.class, () -> worldManager.enter(guest, world));
+
+    // guest enters with wrong token and fails:
+    guest.setToken(world.tokenName(), "BADTOKEN");
+    assertThrows(SecurityException.class, () -> worldManager.enter(guest, world));
+
+    // guest enters with good token and succeeds:
+    world.setToken("GOODTOKEN");
+    guest.setToken(world.tokenName(), "GOODTOKEN");
+    worldManager.enter(guest, world);
+  }
+
 }

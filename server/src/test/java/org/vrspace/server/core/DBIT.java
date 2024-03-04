@@ -599,6 +599,37 @@ public class DBIT {
 
   @Test
   @Transactional
+  public void testDeleteWorld() {
+    World w1 = repo.save(new World("one"));
+    World w2 = repo.save(new World("two"));
+
+    Client c1 = new Client();
+    c1.setWorldId(w1.getId());
+    c1.setActive(true);
+    repo.save(c1);
+
+    Client c2 = new Client();
+    c2.setWorldId(w1.getId());
+    c2.setActive(false);
+    repo.save(c2);
+
+    Client t1 = new Client();
+    t1.setWorldId(w2.getId());
+    t1.setActive(false);
+    repo.save(t1);
+
+    assertEquals(3, repo.listWorlds().size());
+    assertEquals(2, repo.getAllInWorld(w1.getId()).size());
+    assertEquals(1, repo.getAllInWorld(w2.getId()).size());
+
+    repo.deleteWorld(w1);
+
+    assertEquals(0, repo.getAllInWorld(w1.getId()).size());
+    assertEquals(1, repo.getAllInWorld(w2.getId()).size());
+  }
+
+  @Test
+  @Transactional
   public void testOwnership() {
     // client owns an object:
     Client c1 = new Client();

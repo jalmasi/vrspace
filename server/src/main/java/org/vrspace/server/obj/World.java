@@ -81,7 +81,7 @@ public class World extends Entity {
     }
   }
 
-  protected String tokenName() {
+  public String tokenName() {
     return this.getObjectId().toString();
   }
 }

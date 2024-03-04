@@ -4,6 +4,9 @@ import java.io.File;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;
+import org.apache.catalina.connector.Connector;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
@@ -21,7 +24,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component
 @Slf4j
-public class ContentTomcatCustomizer implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
+public class EmbeddedTomcatCustomizer implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
+  @Autowired
+  private ServerConfig serverConfig;
+
   @Override
   public void customize(TomcatServletWebServerFactory factory) {
     String serverDir = ClassUtil.projectHomeDirectory();
@@ -31,6 +37,15 @@ public class ContentTomcatCustomizer implements WebServerFactoryCustomizer<Tomca
       File contentDir = new File(serverDir);
       factory.setDocumentRoot(contentDir);
       factory.setContextPath("");
+      if (serverConfig.isBehindProxy()) {
+        factory.addConnectorCustomizers(new TomcatConnectorCustomizer() {
+          @Override
+          public void customize(Connector connector) {
+            connector.setScheme("https");
+            connector.setSecure(true);
+          }
+        });
+      }
       factory.addContextCustomizers(new TomcatContextCustomizer() {
         @Override
         public void customize(Context context) {

@@ -31,6 +31,9 @@ public class ServerConfig {
   @Value("${org.vrspace.server.sessionStartTimeout:0}")
   private int sessionStartTimeout;
 
+  @Value("${org.vrspace.server.behindProxy:false}")
+  private boolean behindProxy = false;
+
   @Value("${org.vrspace.server.selenium-enabled:false}")
   private boolean seleniumEnabled;
 
