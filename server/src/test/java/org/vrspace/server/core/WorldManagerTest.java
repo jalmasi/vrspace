@@ -2,6 +2,7 @@ package org.vrspace.server.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -228,16 +229,17 @@ public class WorldManagerTest {
     config.setGuestAllowed(false);
     worldManager.sceneProperties = new SceneProperties();
     Welcome welcomeOwner = worldManager.login(session);
+    Client owner = welcomeOwner.getClient();
 
     World world = new World("one");
     world.setId(1L);
-    world.setOwner(welcomeOwner.getClient());
+    world.setOwner(owner);
     world.setPublicWorld(false);
 
     worldManager.saveWorld(world);
 
     // owner enters:
-    worldManager.enter(welcomeOwner.getClient(), world);
+    worldManager.enter(owner, world);
 
     mockSession("guest", anotherSession);
     Welcome welcomeGuest = worldManager.login(session);
@@ -254,6 +256,10 @@ public class WorldManagerTest {
     world.setToken("GOODTOKEN");
     guest.setToken(world.tokenName(), "GOODTOKEN");
     worldManager.enter(guest, world);
+
+    // owner exits, token is removed
+    worldManager.logout(owner);
+    assertNull(world.getToken());
   }
 
 }
