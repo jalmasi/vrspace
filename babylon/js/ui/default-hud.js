@@ -15,8 +15,11 @@ export class DefaultHud {
     this.displayButtons = false;
     this.avatar = null;
     this.videoAvatar = null;
+    this.isAuthenticated = false;
+    this.portals = {};
     this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() }
   }
+  
   init() {
     if ( this.settingsButton && this.displayButtons ) {
       this.hud.clearRow();
@@ -24,8 +27,11 @@ export class DefaultHud {
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
       this.hud.enableSpeech(true);
+      this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => {this.showWorldTemplates()});
+      this.worldButton.isVisible = this.isAuthenticated;
     }
   }
+  
   settings() {
     this.displayButtons = !this.displayButtons;
     if ( this.displayButtons ) {
@@ -61,12 +67,14 @@ export class DefaultHud {
       this.hud.showButtons(true);
     }
   }
+  
   markDisabled(button) {
     if ( button ) {
       button.tooltipText = "N/A";
       button.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
     }
   }
+  
   setAvatar(avatar) {
     if ( this.avatarButton ) {
       this.avatarButton.isVisible = (avatar != null);
@@ -75,8 +83,16 @@ export class DefaultHud {
     }
     this.avatar = avatar;
   }
+  
   changeAvatar() {
     // TODO
+  }
+  
+  setAuthenticated(arg=false) {
+    this.isAuthenticated = arg;
+    if ( !this.displayButtons ) {
+      this.worldButton.isVisible = this.isAuthenticated;
+    }
   }
   
   showCameraControls() {
@@ -90,6 +106,7 @@ export class DefaultHud {
       }
     } 
   }
+  
   toggleCamera() {
     if ( WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p ) {
       if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
@@ -117,12 +134,14 @@ export class DefaultHud {
       this.markDisabled(this.micButton);
     }    
   }
+
   toggleMic(enabled=!this.state.mic) {
     if ( MediaStreams.instance ) {
       MediaStreams.instance.publishAudio(enabled);
       this.displayMic();
     }
   }
+
   toggleWebcam(enable=!this.state.webcam, videoAvatar) {
     console.log("Webcam: "+enable);
     if ( videoAvatar ) {
@@ -153,6 +172,7 @@ export class DefaultHud {
       }
     }
   }
+
   speech(enable=!this.state.speech) {
     if ( SpeechInput.available() ) {
       this.state.speech = enable;
@@ -167,7 +187,28 @@ export class DefaultHud {
       this.markDisabled(this.speechButton);
     }
   }
+
   help() {
     // TODO
+  }
+  
+  showWorldTemplates() {
+    this.displayButtons = !this.displayButtons;
+    if ( this.displayButtons ) {
+      this.hud.showButtons(false, this.worldButton);
+      this.hud.newRow();
+      
+      for (let name in this.portals) {
+        let p = this.portals[name];
+        let button = this.hud.addButton(p.name, p.imageUrl, () => {this.createWorld(p)});
+      }
+    } else {
+      this.hud.clearRow();
+      this.hud.showButtons(true);
+    }
+  }
+  
+  createWorld(portal) {
+    console.log("TODO: creating new world from "+portal.name);
   }
 }

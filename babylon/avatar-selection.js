@@ -117,6 +117,9 @@ export class AvatarSelection extends World {
   }
   async createUI() {
     
+    this.hud = new DefaultHud(this.scene);
+    this.hud.init();
+
     let providers = await this.getJson(this.api.endpoint.oauth2 + '/providers'); // TODO API call lib
     this.loginForm = new LoginForm(
       (text) => this.setMyName(text),
@@ -145,11 +148,9 @@ export class AvatarSelection extends World {
           this.loginForm.dispose();
         });
       }
+      this.hud.setAuthenticated(isAuthenticated);
     });
 
-    this.hud = new DefaultHud(this.scene);
-    this.hud.init();
-    
   }
 
   // CHECKME this is confusing as it enables/disables portals
@@ -666,6 +667,7 @@ export class AvatarSelection extends World {
         portal.loadAt(x, 0, z, angle);
         angle += angleIncrement;
       }
+      this.hud.portals = this.portals;
     });
     //}
     this.showActiveUsers();

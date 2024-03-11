@@ -17,8 +17,10 @@ export class Portal {
     this.name = serverFolder.name;
     this.subTitle = null;
     this.alwaysShowTitle = false;
+    this.imageUrl = null;
     if ( serverFolder.relatedUrl() ) {
-      this.thumbnail = new BABYLON.Texture(serverFolder.relatedUrl());
+      this.imageUrl = serverFolder.relatedUrl();
+      this.thumbnail = new BABYLON.Texture(this.imageUrl);
     }
     this.shadowGenerator = shadowGenerator;
     this.isEnabled = false;
