@@ -214,5 +214,6 @@ export class DefaultHud {
     const userName = this.avatar.name?this.avatar.name:this.videoAvatar.name;
     const worldName = userName+"'s world";
     const token = await VRSpaceAPI.getInstance().createWorldFromTemplate(worldName, portal.name);
+    window.location.href = window.location.href+"?worldName="+worldName+"&worldToken="+token+"worldThumbnail="+portal.name;
   }
 }

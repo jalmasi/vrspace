@@ -1,4 +1,4 @@
-import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud } from './js/vrspace-min.js';
+import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud, ServerFolder } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -576,32 +576,39 @@ export class AvatarSelection extends World {
     }
   }
 
+  /**
+   * Show portals, typically called from html.
+   * Sets internal variable this.portals.
+   */
   showPortals() {
     this.portals = {};
-    var radius = this.room.diameter / 2;
-    var angle = 0;
 
-    /* looks like failed experiment
     if ( window.location.search ) {
       // use specified worlds
       // at the moment, world folder still has to exist on the server
-      var worldList = new URLSearchParams(window.location.search).get("worlds");
-      // use specified worlds to bring up portals
-      var worlds = worldList.split(',');
-      var angleIncrement = 2*Math.PI/worlds.length;
-      for ( var i=0; i < worlds.length; i++ ) {
-        var x = Math.sin(angle)*radius;
-        var z = Math.cos(angle)*radius;
-        // CHECKME: this ignores baseUrl
-        var serverFolder = new ServerFolder(this.worldDir()+"/", worlds[i]);
-        var portal = new Portal( scene, serverFolder, (p)=>this.enterPortal(p));
-        this.portals[portal.name] = portal;
-        portal.loadAt( x,0,z, angle);
-        angle += angleIncrement;
-      }
+      const params = new URLSearchParams(window.location.search);
+      const worldToken = params.get("worldToken");
+      const worldName = params.get("worldName");
+      const template = params.get("worldThumbnail");
+      // CHECKME: this ignores baseUrl
+      var serverFolder = new ServerFolder(this.worldDir()+"/", template, template+".jpg");
+      var portal = new Portal( this.scene, serverFolder, (p)=>this.enterPortal(p));
+      portal.name = worldName;
+      portal.token = worldToken;
+      this.portals[portal.name] = portal;
+      portal.loadAt( 0,0,this.room.diameter / 2, 0);
     } else {
-    */
-    // by default, list worlds from /content/worlds directory
+      // by default, list worlds from /content/worlds directory
+      this.showContentPortals();
+    }
+  }
+
+  /**
+   * Show portals to public worlds avaliable under content/worlds server directory.
+   */
+  showContentPortals() {
+    var radius = this.room.diameter / 2;
+    var angle = 0;
     VRSPACEUI.listThumbnails(this.worldDir(), (worlds) => {
       var angleIncrement = 2 * Math.PI / worlds.length;
       for (var i = 0; i < worlds.length; i++) {
@@ -615,11 +622,9 @@ export class AvatarSelection extends World {
         angle += angleIncrement;
       }
       this.hud.portals = this.portals;
+      this.showActiveUsers();
     });
-    //}
-    this.showActiveUsers();
   }
-
   // TODO: API client class/library
   showActiveUsers() {
     fetch(this.api.endpoint.worlds + '/users').then(response => response.json().then(worldStats => {
