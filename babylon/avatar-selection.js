@@ -1,14 +1,4 @@
-import { VRSPACEUI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud } from './js/vrspace-min.js';
-
-// this is supposed to evolve into stand-alone REST client class
-class VRSpaceAPI {
-  base = VRSPACEUI.contentBase + "/vrspace/api";
-  endpoint = {
-    worlds: this.base + "/worlds",
-    user: this.base + "/user",
-    oauth2: this.base + "/oauth2"
-  }
-}
+import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -120,11 +110,11 @@ export class AvatarSelection extends World {
     this.hud = new DefaultHud(this.scene);
     this.hud.init();
 
-    let providers = await this.getJson(this.api.endpoint.oauth2 + '/providers'); // TODO API call lib
+    let providers = await this.api.getJson(this.api.endpoint.oauth2 + '/providers'); // TODO API call lib
     this.loginForm = new LoginForm(
       (text) => this.setMyName(text),
       () => this.checkValidName(),
-      (providerId, providerName) => this.oauth2login(providerId, providerName),
+      (providerId, providerName) => this.api.oauth2login(providerId, providerName),
       providers
     );
     // position the form just in front of avatar
@@ -134,13 +124,13 @@ export class AvatarSelection extends World {
       this.loginForm.init(); // starts speech recognition
     }
     // testing various REST calls here
-    this.getAuthenticated().then(isAuthenticated => {
+    this.api.getAuthenticated().then(isAuthenticated => {
       if (isAuthenticated) {
         this.authenticated = true;
-        this.getUserName().then(name => {
+        this.api.getUserName().then(name => {
           this.setMyName(name);
         });
-        this.getUserObject().then(me => {
+        this.api.getUserObject().then(me => {
           console.log("user mesh " + me.mesh, me);
           if (me.mesh) {
             this.loadCharacterUrl(me.mesh);
@@ -161,7 +151,7 @@ export class AvatarSelection extends World {
     } else {
       console.log('checking name ' + this.userName);
       if (this.userName) {
-        this.verifyName(this.userName).then(validName => {
+        this.api.verifyName(this.userName).then(validName => {
           console.log("Valid name: " + validName);
           if (validName) {
             this.loginForm.defaultLabel();
@@ -486,59 +476,6 @@ export class AvatarSelection extends World {
 
   getMyName() {
     return this.userName;
-  }
-
-  // TODO: provide API calls lib
-  async getJson(url) {
-    let data = await this.getText(url);
-    try {
-      console.log(url + ' returned ' + data);
-      return JSON.parse(data);
-    } catch (err) {
-      console.log("JSON error: ", err);
-    }
-  }
-
-  async getText(url) {
-    let data = await (fetch(url)
-      .then(res => {
-        return res.text();
-      })
-      .catch(err => {
-        console.log("Fetch error: ", err);
-      })
-    );
-    return data;
-  }
-
-  async verifyName(name) {
-    var validName = await this.getText(this.api.endpoint.user + "/available?name=" + name);
-    return validName === "true";
-  }
-
-  async oauth2login(providerId, providerName) {
-    if (this.oauth2enabled) {
-      console.log(providerId, providerName);
-      window.open(this.api.endpoint.oauth2 + '/login?name=' + this.userName + '&provider=' + providerId + '&avatar=' + this.avatarUrl(), '_top');
-    }
-  }
-
-  async getUserName() {
-    var loginName = await this.getText(this.api.endpoint.user + "/name");
-    console.log("User name: " + loginName);
-    return loginName;
-  }
-
-  async getUserObject() {
-    var userObject = await this.getJson(this.api.endpoint.user + "/object");
-    console.log("User object ", userObject);
-    return userObject.User;
-  }
-
-  async getAuthenticated() {
-    var isAuthenticated = await this.getText(this.api.endpoint.user + "/authenticated");
-    console.log("User is authenticated: " + isAuthenticated);
-    return 'true' === isAuthenticated;
   }
 
   animationButtons(avatar) {
