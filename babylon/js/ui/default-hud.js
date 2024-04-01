@@ -2,6 +2,7 @@ import { VRSPACEUI } from './vrspace-ui.js';
 import { MediaStreams } from './media-streams.js';
 import { SpeechInput } from './speech-input.js';
 import { WorldManager } from './world-manager.js';
+import { VRSpaceAPI } from '../vrspace-min.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -208,7 +209,10 @@ export class DefaultHud {
     }
   }
   
-  createWorld(portal) {
+  async createWorld(portal) {
     console.log("TODO: creating new world from "+portal.name);
+    const userName = this.avatar.name?this.avatar.name:this.videoAvatar.name;
+    const worldName = userName+"'s world";
+    const token = await VRSpaceAPI.getInstance().createWorldFromTemplate(worldName, portal.name);
   }
 }

@@ -1,16 +1,17 @@
 /**
- * Class to execute REST API calls.
+ * Class to execute REST API calls, singleton.
  * By default, we're making API calls to the same server that serves the content.
  * This can be changed by providing different apiBase URL to the constructor.
  * All methods are asynchronous but blocking calls.
  */
 export class VRSpaceAPI {
+  static instance = null;
   /**
    * @param apiBase Base URL for all API endpoint, defaults to /vrspace/api
    */
   constructor(apiBase = "/vrspace/api") {
     this.base = apiBase;
-
+    VRSpaceAPI.instance = this;
     this.endpoint = {
       worlds: this.base + "/worlds",
       user: this.base + "/user",
@@ -18,6 +19,16 @@ export class VRSpaceAPI {
     }
   }
 
+  /**
+   * Returns VRSpaceAPI instance, creates one if required.
+   */
+  static getInstance(apiBase) {
+    if ( !VRSpaceAPI.instance ) {
+      new VRSpaceAPI(apiBase);
+    }
+    return VRSpaceAPI.instance;
+  }
+  
   /**
    * Verify if given user name is valid, i.e. we can create user with that name.
    * @param name user name
@@ -68,14 +79,32 @@ export class VRSpaceAPI {
   }
   
   /**
-   * Returns User object of the current user
+   * Returns User object of the current user, or null for anonymous users
    */
   async getUserObject() {
     var userObject = await this.getJson(this.endpoint.user + "/object");
     console.log("User object ", userObject);
-    return userObject.User;
+    if (userObject) {
+      return userObject.User;
+    }
+    return null;
   }
 
+  async createWorldFromTemplate(worldName, templateName) {
+    const params = {
+      worldName: worldName,
+      templateWorldName: templateName,
+      isPublic: false,
+      isTemporary: true
+    };
+    const rawResponse = await fetch(this.endpoint.worlds+"/create", {
+      method: 'POST',
+      body: JSON.stringify(params)
+    });
+    const token = await rawResponse.text();
+    console.log("Created private world "+worldName+" from template "+templateName+", access token "+token);
+  }
+  
   /**
    * Internally used helper method
    */

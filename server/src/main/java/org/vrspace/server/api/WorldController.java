@@ -92,6 +92,8 @@ public class WorldController extends ApiBase {
       // TODO copy existing objects to a new world
     }
     if (worldName == null) {
+      // FIXME this may not be known to the client, meaning they may not have means to
+      // enter this world
       worldName = userName + "'s world";
     }
     world.setName(worldName);

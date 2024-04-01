@@ -479,6 +479,8 @@ export class AvatarSelection extends World {
     this.userName = name;
     if (this.character) {
       this.character.setName(this.userName);
+    } else if ( this.video ) {
+      this.video.name = name;
     }
   }
 
