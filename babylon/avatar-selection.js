@@ -52,6 +52,7 @@ export class AvatarSelection extends World {
     this.trackTime = Date.now();
     this.trackDelay = 1000 / this.fps;
     this.api = new VRSpaceAPI(VRSPACEUI.contentBase + "/vrspace/api");
+    this.tokens = {};
   }
   async createSkyBox() {
     if (this.backgroundPanorama) {
@@ -594,7 +595,7 @@ export class AvatarSelection extends World {
       var serverFolder = new ServerFolder(this.worldDir()+"/", template, template+".jpg");
       var portal = new Portal( this.scene, serverFolder, (p)=>this.enterPortal(p));
       portal.name = worldName;
-      portal.token = worldToken;
+      this.tokens[worldName] = worldToken;
       this.portals[portal.name] = portal;
       portal.loadAt( 0,0,this.room.diameter / 2, 0);
     } else {
@@ -705,6 +706,7 @@ export class AvatarSelection extends World {
 
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
+        this.worldManager.tokens = this.tokens;
         this.worldManager.customOptons = this.customOptions;
         this.worldManager.customAnimations = this.customAnimations;
         this.worldManager.debug = this.debug; // scene debug

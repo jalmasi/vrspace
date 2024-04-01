@@ -22,6 +22,8 @@ export class WorldManager {
     }
     /** the world */
     this.world = world;
+    /** client tokens */
+    this.tokens = null;
     /** the scene */
     this.scene = world.scene;
     /** Movement resolution, default 1 cm/3.6 deg. Any movement less than this will be ignored.*/
@@ -831,6 +833,11 @@ export class WorldManager {
         VRSPACE.removeWelcomeListener(afterConnect);
         if ( this.remoteLogging ) {
           this.enableRemoteLogging();
+        }
+        if ( this.tokens ) {
+          for ( let token in this.tokens ) {
+            VRSPACE.setToken(token, this.tokens[token]);
+          } 
         }
         if ( properties ) {
           for ( var prop in properties ) {

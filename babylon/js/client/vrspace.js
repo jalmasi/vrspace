@@ -595,6 +595,15 @@ export class VRSpace {
   }
 
   /**
+   * Set a client token e.g. required to enter a world
+   * @param name token name
+   * @param value token value
+   */
+  setToken( name, value ) {
+    this.sendCommand( "SetToken", {name:name, value:value});
+  }
+
+  /**
   Send changes to an object
   @param obj VRObject that changes
   @param changes array containing field/value pairs

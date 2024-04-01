@@ -31,7 +31,6 @@ export class Portal {
     this.soundUrl = VRSPACEUI.contentBase+"/babylon/portal/couchhero_portal-idle.mp3";
     this.soundDistance = 5;
     this.soundVolume = .5;
-    this.token = null;
     
   }
   /** handy, returns base url and folder name */
