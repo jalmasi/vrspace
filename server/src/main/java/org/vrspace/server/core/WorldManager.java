@@ -507,6 +507,7 @@ public class WorldManager {
     world.exit(client, this);
     // remove temporary world after last client disconnects
     if (world.isTemporaryWorld() && db.countUsers(world.getId()) == 0) {
+      log.info("Deleting temporary world " + world.getId() + " " + world.getName());
       deleteWorld(world);
     }
   }

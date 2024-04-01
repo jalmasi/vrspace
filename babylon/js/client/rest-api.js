@@ -99,15 +99,20 @@ export class VRSpaceAPI {
    * @param isTemporary default true, i.e. world is deleted once the last user exits
    */
   async createWorldFromTemplate(worldName, templateName, isPublic=false, isTemporary=true) {
+    /*
+    // CHECKME: DTO?
     const params = {
       worldName: worldName,
       templateWorldName: templateName,
       isPublic: isPublic,
       isTemporary: isTemporary
     };
-    const rawResponse = await fetch(this.endpoint.worlds+"/create", {
-      method: 'POST',
-      body: JSON.stringify(params)
+    */
+    // FIXME: error handling
+    const rawResponse = await fetch(this.endpoint.worlds+"/create?worldName="+worldName+"&templateWorldName="+templateName
+    +"&isPublic="+isPublic+"&isTemporary="+isTemporary, {
+      method: 'POST'//,
+      //body: JSON.stringify(params)
     });
     const token = await rawResponse.text();
     console.log("Created private world "+worldName+" from template "+templateName+", access token "+token);
