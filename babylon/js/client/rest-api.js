@@ -90,12 +90,20 @@ export class VRSpaceAPI {
     return null;
   }
 
-  async createWorldFromTemplate(worldName, templateName) {
+  /**
+   * Create a world from template
+   * @returns token required to access the world
+   * @param worldName unique world name
+   * @param templateName optional template name, a world with this name must exist on the server
+   * @param isPublic default false, i.e. only invited users (having the token) can enter
+   * @param isTemporary default true, i.e. world is deleted once the last user exits
+   */
+  async createWorldFromTemplate(worldName, templateName, isPublic=false, isTemporary=true) {
     const params = {
       worldName: worldName,
       templateWorldName: templateName,
-      isPublic: false,
-      isTemporary: true
+      isPublic: isPublic,
+      isTemporary: isTemporary
     };
     const rawResponse = await fetch(this.endpoint.worlds+"/create", {
       method: 'POST',
@@ -103,6 +111,7 @@ export class VRSpaceAPI {
     });
     const token = await rawResponse.text();
     console.log("Created private world "+worldName+" from template "+templateName+", access token "+token);
+    return token;
   }
   
   /**
