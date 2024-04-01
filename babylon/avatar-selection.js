@@ -51,7 +51,7 @@ export class AvatarSelection extends World {
     this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000 / this.fps;
-    this.api = new VRSpaceAPI();
+    this.api = new VRSpaceAPI(VRSPACEUI.contentBase + "/vrspace/api");
   }
   async createSkyBox() {
     if (this.backgroundPanorama) {
@@ -110,11 +110,15 @@ export class AvatarSelection extends World {
     this.hud = new DefaultHud(this.scene);
     this.hud.init();
 
-    let providers = await this.api.getJson(this.api.endpoint.oauth2 + '/providers'); // TODO API call lib
+    let providers = await this.api.listOAuthProviders();
     this.loginForm = new LoginForm(
       (text) => this.setMyName(text),
       () => this.checkValidName(),
-      (providerId, providerName) => this.api.oauth2login(providerId, providerName),
+      (providerId, providerName) => {
+        if (this.oauth2enabled) {
+          this.api.oauth2login(providerId, this.userName, this.avatarUrl(""))
+        }
+      },
       providers
     );
     // position the form just in front of avatar
@@ -133,7 +137,11 @@ export class AvatarSelection extends World {
         this.api.getUserObject().then(me => {
           console.log("user mesh " + me.mesh, me);
           if (me.mesh) {
-            this.loadCharacterUrl(me.mesh);
+            if ( me.mesh == "video") {
+              this.createVideoAvatar();
+            } else {
+              this.loadCharacterUrl(me.mesh);
+            }
           }
           this.loginForm.dispose();
         });
@@ -649,8 +657,8 @@ export class AvatarSelection extends World {
     }
   }
 
-  avatarUrl() {
-    var url = "video";
+  avatarUrl(defaultUrl="video") {
+    var url = defaultUrl;
     if (this.character) {
       url = this.character.getUrl();
     }
