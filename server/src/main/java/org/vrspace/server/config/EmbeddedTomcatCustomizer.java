@@ -6,6 +6,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -17,13 +18,17 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Adds content and client (babylon) directories to content path, and enables
- * directory listings. TODO: paths should be configurable
+ * directory listings. Conditional on property
+ * server.servlet.register-default-servlet, as it may mess up tomcat context
+ * config and break the application startup (of executable jar that uses vrspace
+ * as library). TODO: paths should be configurable
  * 
  * @author joe
  *
  */
 @Component
 @Slf4j
+@ConditionalOnProperty("server.servlet.register-default-servlet")
 public class EmbeddedTomcatCustomizer implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
   @Autowired
   private ServerConfig serverConfig;
