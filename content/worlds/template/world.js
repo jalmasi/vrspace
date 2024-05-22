@@ -68,9 +68,10 @@ export class WorldTemplate extends World {
   }
   
   // OPTIONAL, RECOMMENDED:
-  createPhysics() {
+  async createPhysics() {
     // default Earth gravity is too high, set your own here
     this.scene.gravity = new BABYLON.Vector3(0,-.05,0);
+    super.createPhysics();
   }
   
   // OPTIONAL, RECOMMENDED:  

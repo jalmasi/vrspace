@@ -65,8 +65,9 @@ export class Classroom extends World {
     return this.ground;
   }
   
-  createPhysics() {
+  async createPhysics() {
     this.scene.gravity = new BABYLON.Vector3(0,-.05,0);
+    super.createPhysics();
     
     // walls mess with collision detection, easy to get stuck
     // so add two invisible planes just for collision detection

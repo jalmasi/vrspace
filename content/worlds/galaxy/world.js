@@ -163,9 +163,10 @@ export class ServerWorld extends World {
     return skybox;
   }
 
-  createPhysics() {
+  async createPhysics() {
     // default Earth gravity is too high, set your own here
     this.scene.gravity = new BABYLON.Vector3(0, -.05, 0);
+    super.createPhysics();
   }
 
   loaded(file, mesh) {

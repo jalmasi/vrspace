@@ -105,6 +105,7 @@ export class AvatarSelection extends World {
   async createPhysics() {
     // 1g makes nasty floor collisions
     this.scene.gravity = new BABYLON.Vector3(0, -0.1, 0);
+    super.createPhysics();
   }
   async createUI() {
     

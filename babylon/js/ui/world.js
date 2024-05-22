@@ -192,8 +192,19 @@ export class World {
   async createGround() {}
   /** Optional, empty implementation, called from createScene */
   async createEffects() {};
-  /** Optional, empty implementation, called from createScene */
-  async createPhysics() {};
+  /** Optional, called from createScene. Creates Havok physics engine and plugin, with this.scene.gravity.
+   * Generally, to enable physics in the scene, just set gravity and call super.createPhysics().
+   * Or to disable gravity, simply do not call super.
+  */
+  async createPhysics() {
+    try {
+      const havokInstance = await HavokPhysics();
+      this.physicsPlugin = new BABYLON.HavokPlugin(true, havokInstance);
+      this.scene.enablePhysics(this.scene.gravity, this.physicsPlugin);
+    } catch ( err ) {
+      console.error("Physics initialization error", err);
+    }
+  };
   /** Optional, empty implementation, called from createScene */
   async createTerrain() {}
   /** Optional, empty implementation, called from createScene */

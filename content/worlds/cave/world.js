@@ -16,6 +16,7 @@ export class Cave extends World {
   }
   async createPhysics() {
     this.scene.gravity = new BABYLON.Vector3(0, -0.05, 0);
+    super.createPhysics();
   }
   async createGround(engine) {
 
