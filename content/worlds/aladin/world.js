@@ -66,7 +66,7 @@ export class Aladinville extends World {
   }
   
   isSelectableMesh(mesh) {
-    return mesh.name == "ground";
+    return mesh.name == "ground" || super.isSelectableMesh(mesh);
   }
   
   setMeshCollisions( mesh, state ) {
