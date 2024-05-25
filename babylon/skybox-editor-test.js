@@ -51,10 +51,6 @@ export class SkyboxEditorExample extends World {
     return skybox;
   }
 
-  isSelectableMesh(mesh) {
-    return this.skyboxSelector.boxes.includes(mesh) || super.isSelectableMesh();
-  }
-  
   connect() {
     this.initXR(this.vrHelper);
     this.skyboxSelector = new SkyboxSelector(this);

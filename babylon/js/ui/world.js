@@ -771,7 +771,10 @@ export class World {
   }
   /** Remove a selection predicate function */
   removeSelectionPredicate(p) {
-    this.selectionPredicates.splice(this.selectionPredicates.indexOf(p),1);
+    let pos = this.selectionPredicates.indexOf(p);
+    if ( pos > -1 ) {
+      this.selectionPredicates.splice(pos,1);
+    }
   }
 
   /**

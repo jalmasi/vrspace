@@ -2,7 +2,11 @@ export class SkyboxSelector {
   constructor(world) {
     this.world = world;
     this.boxes=[];
+    // add own selection predicate to the world
+    this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
+    world.addSelectionPredicate(this.selectionPredicate);
   }
+  
   makeSkyBox( dir,name ) {
     var skybox = BABYLON.Mesh.CreateBox("skyBox-"+name, 1, this.scene);
     var skyboxMaterial = new BABYLON.StandardMaterial("skyBox-"+name, this.scene);
@@ -21,6 +25,9 @@ export class SkyboxSelector {
     var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(6).direction;
     anchor.position = VRSPACEUI.hud.camera.position.add(forwardDirection);
     anchor.rotation = new BABYLON.Vector3(VRSPACEUI.hud.camera.rotation.x,VRSPACEUI.hud.camera.rotation.y,VRSPACEUI.hud.camera.rotation.z);
+    //console.log("Anchor position: ", anchor.position);
+    // TODO: this often causes UI elements being below ground level
+    // we could cast a ray down and calc position to put the panel on top of ground or whatever is below it
     
     this.panel = new BABYLON.GUI.CylinderPanel();
     this.panel.margin = .2;
@@ -65,5 +72,16 @@ export class SkyboxSelector {
   
   hide() {
     this.panel.dispose();
+    this.boxes = [];
   }
+
+  dispose() {
+    this.hide();
+    this.world.removeSelectionPredicate(this.selectionPredicate);    
+  }  
+  
+  isSelectableMesh(mesh) {
+    return this.boxes.includes(mesh);
+  }
+  
 }
