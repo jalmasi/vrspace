@@ -18,6 +18,7 @@ export class DefaultHud {
     this.avatar = null;
     this.videoAvatar = null;
     this.isAuthenticated = false;
+    this.xrMovementChangeEnabled = true;
     this.xrTeleport = true;
     this.portals = {};
     this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() }
@@ -111,7 +112,7 @@ export class DefaultHud {
       }
     }
     // CHECKME: rather useless, should not be enabled by default
-    if ( this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
+    if ( this.xrMovementChangeEnabled && this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
       this.movementButton = this.hud.addButton("Slide", VRSPACEUI.contentBase+"/content/icons/man-run.png", () => this.toggleMovement());
       this.movementButton.tooltipText = "Slide";
     }
