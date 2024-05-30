@@ -860,5 +860,45 @@ export class VRHelper {
       this.addFloorMesh(this.world.getFloorMeshes()[i]);
     }
   }
-}
 
+  /**
+   * Disable sliding movement and enable teleportation.
+   */
+  enableTeleportation() {
+    if ( this.world && this.world.hasXR ) {
+      const featureManager = this.vrHelper.baseExperience.featuresManager;
+      featureManager.disableFeature(BABYLON.WebXRFeatureName.MOVEMENT);
+      featureManager.enableFeature(BABYLON.WebXRFeatureName.TELEPORTATION, "latest", {
+        xrInput: this.vrHelper.input,
+        floorMeshes: this.world.getFloorMeshes()
+      });
+    }
+  }
+  
+  /**
+   * Experimental, quite limited.
+   * Disable teleportation and enable sliding movement.
+   * Movement then ignores collisions, i.e. camera flies through everything.
+   * Correctly implementing this will require collision calculation using a collider mesh,
+   * mesh.moveWithCollisions(), then setting camera positon - much like AvatarMovement.moveAvatar().
+   */
+  enableSliding() {
+    if ( this.world && this.world.hasXR ) {
+      const featureManager = this.vrHelper.baseExperience.featuresManager;
+      featureManager.disableFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
+      let speed = 1;
+      if ( this.world.camera1p ) {
+        speed = this.world.camera1p.speed;
+      }
+      featureManager.enableFeature(BABYLON.WebXRFeatureName.MOVEMENT, "latest", {
+        xrInput: this.vrHelper.input,
+        // disables rotation, but left stick still calculates into position
+        // movementOrientationFollowsViewerPose: false,
+        // does not work, use speed 0 instead
+        //movementEnabled: false,
+        movementSpeed: speed
+      });
+    }
+  }
+  
+}

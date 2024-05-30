@@ -2,7 +2,8 @@ import { VRSPACEUI } from './vrspace-ui.js';
 import { MediaStreams } from './media-streams.js';
 import { SpeechInput } from './speech-input.js';
 import { WorldManager } from './world-manager.js';
-import { VRSpaceAPI } from '../vrspace-min.js';
+import { VRSpaceAPI } from '../client/rest-api.js';
+import { VRHelper } from './vr-helper.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -17,6 +18,7 @@ export class DefaultHud {
     this.avatar = null;
     this.videoAvatar = null;
     this.isAuthenticated = false;
+    this.xrTeleport = true;
     this.portals = {};
     this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() }
   }
@@ -101,11 +103,18 @@ export class DefaultHud {
       if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
         this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png", () => this.toggleCamera());
         this.cameraButton.tooltipText = "1st Person";
+        return;
       } else if ( this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
         this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase+"/content/icons/camera-3rd-person.png", () => this.toggleCamera());
         this.cameraButton.tooltipText = "3rd Person";
+        return;
       }
-    } 
+    }
+    // CHECKME: rather useless, should not be enabled by default
+    if ( this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
+      this.movementButton = this.hud.addButton("Slide", VRSPACEUI.contentBase+"/content/icons/man-run.png", () => this.toggleMovement());
+      this.movementButton.tooltipText = "Slide";
+    }
   }
   
   toggleCamera() {
@@ -118,6 +127,21 @@ export class DefaultHud {
         WorldManager.instance.world.firstPerson();
         this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png";
         this.cameraButton.tooltipText = "1st Person";
+      }
+    }
+  }
+  
+  toggleMovement() {
+    if ( this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
+      this.xrTeleport = !this.xrTeleport;
+      if ( this.xrTeleport ) {
+        VRHelper.getInstance().enableTeleportation();
+        this.movementButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/man-run.png";
+        this.movementButton.tooltipText = "Slide";
+      } else {
+        VRHelper.getInstance().enableSliding();
+        this.movementButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/man-jump.png";
+        this.movementButton.tooltipText = "Teleport";
       }
     }
   }
