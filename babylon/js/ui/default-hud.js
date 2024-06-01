@@ -21,7 +21,9 @@ export class DefaultHud {
     this.xrMovementChangeEnabled = true;
     this.xrTeleport = true;
     this.portals = {};
-    this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() }
+    this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() };
+    this.movementButton = null;
+    this.cameraButton = null;
   }
   
   init() {
@@ -43,6 +45,9 @@ export class DefaultHud {
       this.hud.newRow();
 
       this.showCameraControls();
+      // CHECKME: flying through everything, should not be enabled by default
+      this.movementButton = null; // ensure button creation
+      this.showXRMovementControls();
       
       /*
       // this is supposed to either change profile, or allow user to activate some avatar animation
@@ -101,20 +106,16 @@ export class DefaultHud {
   
   showCameraControls() {
     if ( WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p ) {
-      if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
-        this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png", () => this.toggleCamera());
-        this.cameraButton.tooltipText = "1st Person";
-        return;
-      } else if ( this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
-        this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase+"/content/icons/camera-3rd-person.png", () => this.toggleCamera());
-        this.cameraButton.tooltipText = "3rd Person";
-        return;
+      if ( ! this.cameraButton ) {
+        this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png", () => this.toggleCamera());        
       }
-    }
-    // CHECKME: rather useless, should not be enabled by default
-    if ( this.xrMovementChangeEnabled && this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
-      this.movementButton = this.hud.addButton("Slide", VRSPACEUI.contentBase+"/content/icons/man-run.png", () => this.toggleMovement());
-      this.movementButton.tooltipText = "Slide";
+      if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
+        this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-3rd-person.png";
+        this.cameraButton.tooltipText = "3rd Person";
+      } else if ( this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
+        this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png";
+        this.cameraButton.tooltipText = "1st Person";
+      }
     }
   }
   
@@ -122,19 +123,18 @@ export class DefaultHud {
     if ( WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p ) {
       if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
         WorldManager.instance.world.thirdPerson();
-        this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-3rd-person.png";
-        this.cameraButton.tooltipText = "3rd Person";
       } else if ( this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
         WorldManager.instance.world.firstPerson();
-        this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png";
-        this.cameraButton.tooltipText = "1st Person";
       }
+      this.showCameraControls();
     }
   }
   
-  toggleMovement() {
+  showXRMovementControls() {
     if ( this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
-      this.xrTeleport = !this.xrTeleport;
+      if ( ! this.movementButton ) {
+        this.movementButton = this.hud.addButton("Movement", VRSPACEUI.contentBase+"/content/icons/man-run.png.png", () => this.toggleXRMovement());
+      }
       if ( this.xrTeleport ) {
         VRHelper.getInstance().enableTeleportation();
         this.movementButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/man-run.png";
@@ -143,8 +143,13 @@ export class DefaultHud {
         VRHelper.getInstance().enableSliding();
         this.movementButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/man-jump.png";
         this.movementButton.tooltipText = "Teleport";
-      }
+      }    
     }
+  }
+  
+  toggleXRMovement() {
+    this.xrTeleport = !this.xrTeleport;
+    this.showXRMovementControls();
   }
   
   displayMic() {
