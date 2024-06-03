@@ -131,6 +131,7 @@ export class AvatarSelection extends World {
     }
     // testing various REST calls here
     this.api.getAuthenticated().then(isAuthenticated => {
+      this.hud.setAuthenticated(isAuthenticated);
       if (isAuthenticated) {
         this.authenticated = true;
         this.api.getUserName().then(name => {
@@ -148,7 +149,6 @@ export class AvatarSelection extends World {
           this.loginForm.dispose();
         });
       }
-      this.hud.setAuthenticated(isAuthenticated);
     });
 
   }

@@ -33,8 +33,6 @@ export class DefaultHud {
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
       this.hud.enableSpeech(true);
-      this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => {this.showWorldTemplates()});
-      this.worldButton.isVisible = this.isAuthenticated;
     }
   }
   
@@ -99,8 +97,9 @@ export class DefaultHud {
   
   setAuthenticated(arg=false) {
     this.isAuthenticated = arg;
-    if ( !this.displayButtons ) {
-      this.worldButton.isVisible = this.isAuthenticated;
+    if ( !this.displayButtons  && this.isAuthenticated && ! this.worldButton) {
+      // add this button only once, to the first row along with settings button
+      this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => {this.showWorldTemplates()});
     }
   }
   
