@@ -176,6 +176,7 @@ export class ServerWorld extends World {
   // OPTIONAL, RECOMMENDED:
   // executed once connected to the server and entered the space
   entered(welcome) {
+    super.entered(welcome);
     this.worldManager.debug = true;
     this.worldManager.VRSPACE.debug = true;
     console.log("CONNECTED as " + welcome.client.id, this.worldManager.VRSPACE.me);

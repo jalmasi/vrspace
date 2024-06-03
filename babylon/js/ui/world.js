@@ -215,12 +215,18 @@ export class World {
   }
   /**
   Called by WorldManager after the user has entered a multiuser world.
-  Default implementation creates a ChatLog and binds it to the HUD, then it registers remoteEvent() method
-  as a change listener with WorldManager to process remote events.
+  Default implementation calls this.createChatlog().
   Note that at this point world geometry may not have been loaded.
   @param welcome message containing users Client object and array of permanent objects
    */
   async entered(welcome) {
+    this.createChatlog();
+  }
+  /**
+  Creates a ChatLog and binds it to the HUD, then it registers remoteEvent() method
+  as a change listener with WorldManager to process remote events.
+  */
+  createChatlog() {
     this.chatLog = new ChatLog(this.scene);
     this.chatLog.show();
     this.worldManager.addChangeListener( (obj, field, node) => this.remoteEvent(obj, field, node));
