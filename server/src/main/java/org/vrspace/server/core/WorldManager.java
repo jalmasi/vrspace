@@ -205,7 +205,10 @@ public class WorldManager {
       // automatically created on-demand, and authenticated user creating a world
       // explicitly
       if (config.isCreateWorlds()) {
-        world = saveWorld(new World(name));
+        log.info("Creating temporary world on demand: " + name);
+        world = new World(name);
+        world.setTemporaryWorld(true);
+        world = saveWorld(world);
       } else {
         throw new IllegalArgumentException("Unknown world: " + name);
       }
