@@ -42,6 +42,8 @@ public class StreamManager {
   private Session startStreamingSession(String name) throws OpenViduException {
     Session ret = null;
     OpenVidu openVidu = new OpenVidu(openViduUrl, openViduSecret);
+    // CHECKME: we can't use anything for the name, this may fail if it contains
+    // e.g. spaces or quotes
     SessionProperties properties = new SessionProperties.Builder().customSessionId(name).build();
     try {
       ret = openVidu.createSession(properties);
@@ -122,8 +124,12 @@ public class StreamManager {
       } catch (OpenViduException e) {
         log.error("Failed to disconnect client " + client, e);
       }
+      String sessionName = world.getToken();
+      if (sessionName == null) {
+        sessionName = world.getName();
+      }
       try {
-        Session session = startStreamingSession(world.getName());
+        Session session = startStreamingSession(sessionName);
         try {
           String token = generateToken(session, client);
           client.setToken(serviceId, token);
@@ -133,7 +139,7 @@ public class StreamManager {
           // TODO failing here probably means the session is invalid, should we remove it?
         }
       } catch (OpenViduException e) {
-        log.error("Can't start streaming session", e);
+        log.error("Can't start streaming session " + sessionName, e);
       }
     }
   }

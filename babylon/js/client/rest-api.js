@@ -126,8 +126,12 @@ export class VRSpaceAPI {
     // CHECKME await
     let data = await this.getText(url);
     try {
-      console.log(url + ' returned ' + data);
-      return JSON.parse(data);
+      console.log(url + " returned '" + data + "'");
+      if ( data ) {
+        return JSON.parse(data);        
+      } else {
+        return null;
+      }
     } catch (err) {
       console.log("JSON error: ", err);
     }

@@ -138,13 +138,19 @@ export class AvatarSelection extends World {
           this.setMyName(name);
         });
         this.api.getUserObject().then(me => {
-          console.log("user mesh " + me.mesh, me);
-          if (me.mesh) {
-            if ( me.mesh == "video") {
-              this.createVideoAvatar();
-            } else {
-              this.loadCharacterUrl(me.mesh);
+          if ( me ) {
+            console.log("user mesh " + me.mesh, me);
+            if (me.mesh) {
+              if ( me.mesh == "video") {
+                this.createVideoAvatar();
+              } else {
+                this.loadCharacterUrl(me.mesh);
+              }
             }
+          } else {
+            console.log("WARNING: user is logged in but has no avatar");
+            // TODO
+            // apparently user can be authenticated via Oauth2 but not to vrspace server
           }
           this.loginForm.dispose();
         });
