@@ -1,6 +1,6 @@
-import {VRSPACEUI} from './vrspace-ui.js';
-import {ScrollablePanel} from "./scrollable-panel.js";
-import {Form} from './form.js';
+import { VRSPACEUI } from './vrspace-ui.js';
+import { ScrollablePanel } from "./scrollable-panel.js";
+import { Form } from './form.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -25,15 +25,15 @@ class SearchForm extends Form {
     var text3 = this.textBlock("Rigged:");
     text3.paddingLeft = "10px";
     this.panel.addControl(text3);
-    
+
     this.rigged = this.checkbox("rigged");
     this.panel.addControl(this.rigged);
 
     var enter = this.submitButton("submit", () => this.callback(this.input.text));
     this.panel.addControl(enter);
-    
+
     //input.focus(); // not available in babylon 4
-    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
+    this.speechInput.addNoMatch((phrases) => console.log('no match:', phrases));
     this.speechInput.start();
   }
 }
@@ -50,67 +50,67 @@ export class WorldEditor {
    * @param fileInput optional html file input component, required for load
    * @throws when world doesn't have WorldManager associated
    */
-  constructor( world, fileInput ) {
-    if ( ! world.worldManager ) {
+  constructor(world, fileInput) {
+    if (!world.worldManager) {
       throw "World editor requires connection to the server - enter a world first";
     }
     this.world = world;
     this.scene = world.scene;
-    if ( fileInput ) {
-      this.setFileInput( fileInput );
+    if (fileInput) {
+      this.setFileInput(fileInput);
     }
-    this.contentBase=VRSPACEUI.contentBase;
+    this.contentBase = VRSPACEUI.contentBase;
     this.worldManager = world.worldManager;
     this.defaultErrorHandler = world.worldManager.loadErrorHandler;
     this.defaultloadCallback = world.worldManager.loadCallback;
-    this.buttons=[];
+    this.buttons = [];
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
     this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
-    this.worldManager.loadErrorHandler= (object, exception) => this.loadingFailed(object, exception);
+    this.worldManager.loadErrorHandler = (object, exception) => this.loadingFailed(object, exception);
 
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
     world.addSelectionPredicate(this.selectionPredicate);
-    
+
     // add squeeze listener to take/drop an object
-    this.squeeze = (side, value) => this.handleSqueeze(side,value);
+    this.squeeze = (side, value) => this.handleSqueeze(side, value);
     world.xrHelper.addSqueezeConsumer(this.squeeze);
   }
   endpoint() {
-    return VRSPACEUI.contentBase+"/vrspace/api/sketchfab";
+    return VRSPACEUI.contentBase + "/vrspace/api/sketchfab";
   }
   /**
   Creates the search panel, called from constructor
-  */  
+  */
   makeUI() {
     this.searchPanel = new ScrollablePanel(this.scene, "SearchUI");
   }
 
   /**
   Creates HUD buttons, called from constructor
-  */  
+  */
   createButtons() {
-    this.moveButton = this.makeAButton( "Move", this.contentBase+"/content/icons/move.png", (o)=>this.take(o.VRObject, o.position));
-    this.moveButton.onPointerUpObservable.add(()=>this.dropObject());
+    this.moveButton = this.makeAButton("Move", this.contentBase + "/content/icons/move.png", (o) => this.take(o.VRObject, o.position));
+    this.moveButton.onPointerUpObservable.add(() => this.dropObject());
     //this.rotateButton = this.makeAButton( "Rotate", this.contentBase+"/content/icons/refresh.png", (o)=>this.rotateObject(o));  
     //this.scaleButton = this.makeAButton("Resize", this.contentBase+"/content/icons/resize.png", (o)=>this.resizeObject(o));
-    this.gizmoButton = this.makeAButton("Rotate/Scale", this.contentBase+"/content/icons/rotate-resize.png", (o)=>this.createGizmo(o));
-    this.alignButton = this.makeAButton("Align", this.contentBase+"/content/icons/download.png", (o)=>this.alignObject(o));
-    this.alignButton = this.makeAButton("Upright", this.contentBase+"/content/icons/upload.png", (o)=>this.upright(o));
-    this.copyButton = this.makeAButton("Copy", this.contentBase+"/content/icons/copy.png", (o)=>this.copyObject(o));
-    this.deleteButton = this.makeAButton("Remove", this.contentBase+"/content/icons/delete.png", (o)=>this.removeObject(o));
-    this.searchButton = this.makeAButton("Search", this.contentBase+"/content/icons/zoom.png");
-    this.saveButton = this.makeAButton("Save", this.contentBase+"/content/icons/save.png");
-    this.loadButton = this.makeAButton("Load", this.contentBase+"/content/icons/open.png");
-    
-    this.searchButton.onPointerDownObservable.add( () => {
+    this.gizmoButton = this.makeAButton("Rotate/Scale", this.contentBase + "/content/icons/rotate-resize.png", (o) => this.createGizmo(o));
+    this.alignButton = this.makeAButton("Align", this.contentBase + "/content/icons/download.png", (o) => this.alignObject(o));
+    this.alignButton = this.makeAButton("Upright", this.contentBase + "/content/icons/upload.png", (o) => this.upright(o));
+    this.copyButton = this.makeAButton("Copy", this.contentBase + "/content/icons/copy.png", (o) => this.copyObject(o));
+    this.deleteButton = this.makeAButton("Remove", this.contentBase + "/content/icons/delete.png", (o) => this.removeObject(o));
+    this.searchButton = this.makeAButton("Search", this.contentBase + "/content/icons/zoom.png");
+    this.saveButton = this.makeAButton("Save", this.contentBase + "/content/icons/save.png");
+    this.loadButton = this.makeAButton("Load", this.contentBase + "/content/icons/open.png");
+
+    this.searchButton.onPointerDownObservable.add(() => {
       this.searchPanel.relocatePanel();
       this.searchForm();
     });
-    this.saveButton.onPointerDownObservable.add( () => {this.save()});
-    this.loadButton.onPointerDownObservable.add( () => {this.load()});
+    this.saveButton.onPointerDownObservable.add(() => { this.save() });
+    this.loadButton.onPointerDownObservable.add(() => { this.load() });
     VRSPACEUI.hud.enableSpeech(true);
   }
 
@@ -119,17 +119,17 @@ export class WorldEditor {
    * Search form has virtual keyboard attached if created in XR.
    */
   searchForm() {
-    if ( this.form ) {
+    if (this.form) {
       this.clearForm();
     } else {
       VRSPACEUI.hud.newRow(); // stops speech recognition
-      this.form = new SearchForm((text)=>this.doSearch(text));
+      this.form = new SearchForm((text) => this.doSearch(text));
       this.form.init(); // starts speech recognition
-      if ( VRSPACEUI.hud.inXR() ) {
-        let texture = VRSPACEUI.hud.addForm(this.form,1536,512);
+      if (VRSPACEUI.hud.inXR()) {
+        let texture = VRSPACEUI.hud.addForm(this.form, 1536, 512);
         this.form.keyboard(texture);
       } else {
-        VRSPACEUI.hud.addForm(this.form,1536,64);
+        VRSPACEUI.hud.addForm(this.form, 1536, 64);
       }
     }
   }
@@ -146,7 +146,7 @@ export class WorldEditor {
    * Search form callback, prepares parameters, calls this.search, and clears the form 
    */
   doSearch(text) {
-    if ( text ) {
+    if (text) {
       var args = {};
       if (this.form.animated.isChecked) {
         args.animated = true;
@@ -158,7 +158,7 @@ export class WorldEditor {
     }
     this.clearForm();
   }
-  
+
   /**
    * Creates a HUD button. Adds customAction field to the button, that is executed if a scene object is clicked on.
    * @param text button text
@@ -166,9 +166,9 @@ export class WorldEditor {
    * @param action callback executed upon clicking on an object in the scene
    */
   makeAButton(text, imageUrl, action) {
-    var button = VRSPACEUI.hud.addButton(text,imageUrl);
-    button.onPointerDownObservable.add( () => {
-      if ( this.activeButton == button ) {
+    var button = VRSPACEUI.hud.addButton(text, imageUrl);
+    button.onPointerDownObservable.add(() => {
+      if (this.activeButton == button) {
         // already pressed, turn it off
         this.activeButton = null;
         this.displayButtons(true);
@@ -182,30 +182,30 @@ export class WorldEditor {
     this.buttons.push(button);
     return button;
   }
-  
+
   /**
    * WorldManager callback, installed by constructor. Executed every time a shared object has loaded into the scene.
    * If it is own object, rescales it and calls this.takeObject().
    * This is what happens when selecting a sketchfab object to load.
    */
-  objectLoaded( vrObject, rootMesh ) {
-    console.log("WorldEditor loaded: "+vrObject.className+" "+vrObject.id+" "+vrObject.mesh);
-    if ( vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id ) {
+  objectLoaded(vrObject, rootMesh) {
+    console.log("WorldEditor loaded: " + vrObject.className + " " + vrObject.id + " " + vrObject.mesh);
+    if (vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id) {
       VRSPACEUI.indicator.remove("Download");
-      console.log("Loaded my object "+vrObject.id)
-      if ( ! vrObject.scale ) {
+      console.log("Loaded my object " + vrObject.id)
+      if (!vrObject.scale) {
         this.takeObject(vrObject);
-        setTimeout( () => {
-          var scale = 1/this.worldManager.bBoxMax(rootMesh);
+        setTimeout(() => {
+          var scale = 1 / this.worldManager.bBoxMax(rootMesh);
           //var scale = 1/this.worldManager.bBoxMax(this.worldManager.getRootNode(vrObject));
-          this.worldManager.VRSPACE.sendEvent(vrObject, {scale: { x:scale, y:scale, z:scale }} );
-        }, 100 );
+          this.worldManager.VRSPACE.sendEvent(vrObject, { scale: { x: scale, y: scale, z: scale } });
+        }, 100);
       } else {
         this.takeObject(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
       }
       // CHECKME: we can do it here
       //this.createGizmo(rootMesh);
-    } else if ( this.defaultloadCallback ) {
+    } else if (this.defaultloadCallback) {
       this.defaultloadCallback(vrObject, rootMesh);
     }
   }
@@ -213,7 +213,7 @@ export class WorldEditor {
   /**
    * WorldManager error callback, installed by constructor.
    */
-  loadingFailed( obj, exception ) {
+  loadingFailed(obj, exception) {
     VRSPACEUI.indicator.remove("Download");
   }
 
@@ -222,29 +222,29 @@ export class WorldEditor {
     this.gizmo = new BABYLON.BoundingBoxGizmo();
     this.gizmo.attachedMesh = obj;
     this.gizmo.onScaleBoxDragEndObservable.add(() => {
-      this.worldManager.VRSPACE.sendEvent(obj.VRObject, {scale: { x:obj.scaling.x, y:obj.scaling.y, z:obj.scaling.z}} );
+      this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: obj.scaling.x, y: obj.scaling.y, z: obj.scaling.z } });
     });
     this.gizmo.onRotationSphereDragEndObservable.add(() => {
-      if ( obj.rotationQuaternion ) {
+      if (obj.rotationQuaternion) {
         obj.rotation = obj.rotationQuaternion.toEulerAngles();
         obj.rotationQuaternion = null;
       }
-      this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:obj.rotation.x, y:obj.rotation.y, z:obj.rotation.z}} );
+      this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } });
     });
   }
   clearGizmo() {
-    if ( this.gizmo ) {
+    if (this.gizmo) {
       this.gizmo.dispose();
       this.gizmo = null;
     }
-  }  
+  }
   /**
    * Called when an object is selected, calls the appropriate action e.g. take, resize etc
    * @param obj root scene object
    * @param action customAction of whatever button is currently active
    */
   manipulateObject(obj, action) {
-    if ( ! action ) {
+    if (!action) {
       this.displayButtons(true);
       this.clearGizmo();
       return;
@@ -255,33 +255,33 @@ export class WorldEditor {
   /**
    * Resize an object using pointer. Drag up or down to scale up or down, drag more to resize more.
    * @param obj a scene object to resize
-   */  
+   */
   resizeObject(obj) {
     this.createGizmo(obj);
     var point;
     var resizeHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
+      if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN) {
         point = pointerInfo.pickInfo.pickedPoint;
       }
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
+      if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP) {
         this.scene.onPointerObservable.remove(resizeHandler);
-        if ( pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj ) {
+        if (pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj) {
           //var diff = pointerInfo.pickInfo.pickedPoint.y - point.y;
           var sign = Math.sign(pointerInfo.pickInfo.pickedPoint.y - point.y);
           var diff = pointerInfo.pickInfo.pickedPoint.subtract(point).length() * sign;
           var bbox = this.worldManager.bBoxMax(obj);
-          console.log("bBoxMax:"+bbox+" diff:"+diff+" scaling:"+obj.scaling.y);
+          console.log("bBoxMax:" + bbox + " diff:" + diff + " scaling:" + obj.scaling.y);
           //var scale = obj.scaling.y + diff;
-          var scale = obj.scaling.y*(bbox+diff)/bbox;
+          var scale = obj.scaling.y * (bbox + diff) / bbox;
           scale = Math.max(scale, obj.scaling.y * .2);
           scale = Math.min(scale, obj.scaling.y * 5);
-          console.log("Scaling: "+obj.scaling.y+" to "+scale); 
-          this.worldManager.VRSPACE.sendEvent(obj.VRObject, {scale: { x:scale, y:scale, z:scale }} );
+          console.log("Scaling: " + obj.scaling.y + " to " + scale);
+          this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: scale, y: scale, z: scale } });
         }
       }
     });
   }
-  
+
   /**
    * Rotate an object using pointer. Drag left-right or up-down to rotate, drag more to rotate more.
    * @param obj scene object
@@ -290,60 +290,60 @@ export class WorldEditor {
     this.createGizmo(obj);
     var point;
     var rotateHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
+      if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN) {
         point = pointerInfo.pickInfo.pickedPoint;
       }
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP ) {
+      if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP) {
         this.scene.onPointerObservable.remove(rotateHandler);
-        if ( pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj ) {
+        if (pointerInfo.pickInfo.hit && VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh) == obj) {
           var dest = pointerInfo.pickInfo.pickedPoint;
 
           //var center = obj.position;
-          var center = new BABYLON.Vector3(obj.position.x, (dest.y+point.y)/2, obj.position.z);
+          var center = new BABYLON.Vector3(obj.position.x, (dest.y + point.y) / 2, obj.position.z);
           var vFrom = point.subtract(center).normalize();
           var vTo = dest.subtract(center).normalize();
-           
+
           var rotationMatrix = new BABYLON.Matrix();
           BABYLON.Matrix.RotationAlignToRef(vFrom, vTo, rotationMatrix);
           var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
           var result = BABYLON.Quaternion.FromEulerVector(obj.rotation).multiply(quat).toEulerAngles();
 
-          console.log( obj.rotation+"->"+result);
+          console.log(obj.rotation + "->" + result);
 
           // vertical pointer movement:
           var dy = dest.y - point.y;
           // horizontal pointer movement:
-          var dxz = new BABYLON.Vector3(dest.x,0,dest.z).subtract(new BABYLON.Vector3(point.x,0,point.z)).length();
-          if ( Math.abs(dxz) > Math.abs(dy*3) ) {
+          var dxz = new BABYLON.Vector3(dest.x, 0, dest.z).subtract(new BABYLON.Vector3(point.x, 0, point.z)).length();
+          if (Math.abs(dxz) > Math.abs(dy * 3)) {
             // mostly horizontal movement, rotation only around y
             console.log("Y rotation")
-            this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:obj.rotation.x, y:result.y, z:obj.rotation.z}} );
+            this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: obj.rotation.x, y: result.y, z: obj.rotation.z } });
           } else {
             // rotating around all axes
-            this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:result.x, y:result.y, z:result.z}} );
+            this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: result.x, y: result.y, z: result.z } });
           }
         }
       }
     });
   }
-  
+
   /**
    * Align an object using pointer. Casts a ray down, and puts the object on whatever is below it.
    * @param obj selected scene object
    */
   alignObject(obj) {
-    var pickInfo = this.pick(obj, new BABYLON.Vector3(0,-1,0));
-    var newPos = { x:obj.position.x, y:obj.position.y, z:obj.position.z };
-    if ( pickInfo.hit ) {
+    var pickInfo = this.pick(obj, new BABYLON.Vector3(0, -1, 0));
+    var newPos = { x: obj.position.x, y: obj.position.y, z: obj.position.z };
+    if (pickInfo.hit) {
       // there was something below
       newPos.y = obj.position.y - pickInfo.distance;
     } else {
       // nothing below, let's try to move up
-      pickInfo = this.pick(obj, new BABYLON.Vector3(0,1,0));      
+      pickInfo = this.pick(obj, new BABYLON.Vector3(0, 1, 0));
       newPos.y = obj.position.y + pickInfo.distance;
     }
-    if ( pickInfo.hit ) {
-      this.worldManager.VRSPACE.sendEvent(obj.VRObject, {position: newPos} );
+    if (pickInfo.hit) {
+      this.worldManager.VRSPACE.sendEvent(obj.VRObject, { position: newPos });
       this.clearGizmo();
     }
   }
@@ -356,11 +356,11 @@ export class WorldEditor {
    * @param length vector length, default 100
    * @returns PickingInfo
    */
-  pick( obj, direction, length = 100 ) {
+  pick(obj, direction, length = 100) {
     // CHECKME: we may need to compute world matrix or something to make sure this works
     var bbox = obj.getHierarchyBoundingVectors();
     //var origin = obj.position;
-    var origin = new BABYLON.Vector3((bbox.max.x-bbox.min.x)/2, bbox.min.y, (bbox.max.z-bbox.min.z)/2)
+    var origin = new BABYLON.Vector3((bbox.max.x - bbox.min.x) / 2, bbox.min.y, (bbox.max.z - bbox.min.z) / 2)
     var ray = new BABYLON.Ray(origin, direction, length);
     var pickInfo = this.scene.pickWithRay(ray, (mesh) => {
       var pickedRoot = VRSPACEUI.findRootNode(mesh);
@@ -373,10 +373,10 @@ export class WorldEditor {
   /**
    * Puts an object into original up-down position.
    * @param obj a scene object
-   */  
+   */
   upright(obj) {
     this.clearGizmo();
-    this.worldManager.VRSPACE.sendEvent(obj.VRObject, {rotation: { x:0, y:obj.rotation.y, z:0 }} );
+    this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: 0, y: obj.rotation.y, z: 0 } });
   }
 
   /**
@@ -396,10 +396,10 @@ export class WorldEditor {
     console.log(vrObject);
     this.activeButton = null;
     this.displayButtons(true);
-    this.createSharedObject(vrObject.mesh, {position:vrObject.position, rotation:vrObject.rotation, scale:vrObject.scale});
+    this.createSharedObject(vrObject.mesh, { position: vrObject.position, rotation: vrObject.rotation, scale: vrObject.scale });
     this.clearGizmo();
   }
-  
+
   /**
    * Display or hide all buttons, except.
    * @param show true or false
@@ -407,11 +407,11 @@ export class WorldEditor {
    */
   displayButtons(show, ...except) {
     VRSPACEUI.hud.showButtons(show, ...except);
-    if ( show ) {
+    if (show) {
       this.activeButton = null;
     }
   }
-  
+
   /**
    * Called by constructor, installs onPointerObservable event handler to the scene,
    * executed when something is clicked on (BABYLON.PointerEventTypes.POINTERDOWN event).
@@ -421,16 +421,16 @@ export class WorldEditor {
    */
   installClickHandler() {
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      if ( pointerInfo.pickInfo.pickedMesh ) {
+      if (pointerInfo.pickInfo.pickedMesh) {
         var pickedRoot = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
         switch (pointerInfo.type) {
           case BABYLON.PointerEventTypes.POINTERDOWN:
-            if ( this.activeButton ) {
+            if (this.activeButton) {
               //console.log("pickedMesh", pointerInfo.pickInfo.pickedMesh);
               //console.log("pickedRoot", pickedRoot);
-              if ( pickedRoot.VRObject && this.activeButton.isVisible) {
+              if (pickedRoot.VRObject && this.activeButton.isVisible) {
                 // make an action on the object
-                console.log("Manipulating shared object "+pickedRoot.VRObject.id+" "+pickedRoot.name);
+                console.log("Manipulating shared object " + pickedRoot.VRObject.id + " " + pickedRoot.name);
                 this.manipulateObject(pickedRoot, this.activeButton.customAction);
               }
             }
@@ -441,18 +441,18 @@ export class WorldEditor {
       }
     });
   }
-  
+
   /**
    * Drop the object currently being carried, if any, and display all buttons.
    */
   dropObject() {
-    if ( this.carrying ) {
+    if (this.carrying) {
       console.log("dropping");
       this.drop(this.carrying);
       this.carrying = null;
     }
   }
-  
+
   /**
    * Activate this.moveButton and call take()
    * @param vrObject VRObject to take
@@ -463,7 +463,7 @@ export class WorldEditor {
     this.displayButtons(false, this.moveButton);
     this.take(vrObject, position);
   }
-  
+
   /** 
    * Take an object, if not already carrying one.
    * Creates an invisible object, and binds it to current camera, or a VR controller.
@@ -473,29 +473,29 @@ export class WorldEditor {
    * @param position optional, current object position, default is 2 meters front of the camera
    */
   take(vrObject, position) {
-    if ( vrObject.changeListener || this.carrying ) {
+    if (vrObject.changeListener || this.carrying) {
       // already tracking
       return;
     }
 
     try {
       this.carrying = vrObject;
-      this.editObject( vrObject, true );
-          
+      this.editObject(vrObject, true);
+
       // default position
-      if ( ! position ) {
+      if (!position) {
         var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(2).direction;
-        var forwardLower = forwardDirection.add(new BABYLON.Vector3(0,-.5,0));
+        var forwardLower = forwardDirection.add(new BABYLON.Vector3(0, -.5, 0));
         position = VRSPACEUI.hud.camera.position.add(forwardLower);
         vrObject.position.x = position.x;
         vrObject.position.y = position.y;
         vrObject.position.z = position.z;
         this.sendPos(vrObject);
       }
-  
+
       let parent = VRSPACEUI.hud.camera;
-  
-      if ( VRSPACEUI.hud.inXR() ) {
+
+      if (VRSPACEUI.hud.inXR()) {
         // if HUD is attached to a controller, we carry object in the other hand
         if (VRSPACEUI.hud.otherController()) {
           parent = VRSPACEUI.hud.otherController().pointer;
@@ -503,43 +503,43 @@ export class WorldEditor {
           parent = VRSPACEUI.hud.attachedController().pointer;
         }
       }
-  
+
       // create an object and bind it to camera to track the position
       var targetDirection = position.subtract(parent.position);
       var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(targetDirection.length()).direction;
-  
+
       var rotationMatrix = new BABYLON.Matrix();
       BABYLON.Matrix.RotationAlignToRef(forwardDirection.normalizeToNew(), targetDirection.normalizeToNew(), rotationMatrix);
       var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
-  
-      var pos = new BABYLON.Vector3(0,0,targetDirection.length());
+
+      var pos = new BABYLON.Vector3(0, 0, targetDirection.length());
       pos.rotateByQuaternionToRef(quat, pos);
-      
-      var target = BABYLON.MeshBuilder.CreateBox("Position of "+vrObject.id, {size: .5}, this.scene);
+
+      var target = BABYLON.MeshBuilder.CreateBox("Position of " + vrObject.id, { size: .5 }, this.scene);
       target.parent = parent;
       target.isPickable = false;
       target.isVisible = false;
       target.position = pos;
-      if ( vrObject.rotation ) {
+      if (vrObject.rotation) {
         var rot = new BABYLON.Vector3(vrObject.rotation.x, vrObject.rotation.y, vrObject.rotation.z);
         var quat = BABYLON.Quaternion.FromEulerVector(rot);
         //if ( parent == VRSPACEUI.hud.camera ) {
-          quat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(quat);
+        quat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(quat);
         //} else {
-          //quat = BABYLON.Quaternion.Inverse(parent.absoluteRotationQuaternion).multiply(quat);
+        //quat = BABYLON.Quaternion.Inverse(parent.absoluteRotationQuaternion).multiply(quat);
         //}
         target.rotation = quat.toEulerAngles()
       }
       vrObject.target = target;
-      
+
       vrObject.changeListener = () => this.sendPos(vrObject);
-      this.worldManager.addMyChangeListener( vrObject.changeListener );
-      console.log("took "+vrObject.id);
-      
-    } catch ( err ) {
+      this.worldManager.addMyChangeListener(vrObject.changeListener);
+      console.log("took " + vrObject.id);
+
+    } catch (err) {
       console.error(err.stack);
     }
-    
+
   }
 
   /**
@@ -549,36 +549,36 @@ export class WorldEditor {
   sendPos(obj) {
     var rot = VRSPACEUI.hud.camera.rotation;
     var pos = obj.position;
-    if ( obj.target ) {
+    if (obj.target) {
       // TODO this is not compatible with gizmo, calculate resulting rotation here
       pos = obj.target.absolutePosition;
       rot = obj.target.absoluteRotationQuaternion.toEulerAngles();
     }
-    this.worldManager.VRSPACE.sendEvent(obj, {position: { x:pos.x, y:pos.y, z:pos.z }, rotation: {x:rot.x, y:rot.y, z:rot.z}} );
+    this.worldManager.VRSPACE.sendEvent(obj, { position: { x: pos.x, y: pos.y, z: pos.z }, rotation: { x: rot.x, y: rot.y, z: rot.z } });
   }
-  
+
   /**
    * Drop the object. Cleans change listener, invisible object used track the position, and sends one final position to the server.
    * @param obj VRObject to drop
    */
   drop(obj) {
-    console.log("Dropping "+obj.target);
+    console.log("Dropping " + obj.target);
     this.editObject(obj, false);
-        
+
     this.scene.onPointerObservable.remove(obj.clickHandler);
-    this.worldManager.removeMyChangeListener( obj.changeListener );
+    this.worldManager.removeMyChangeListener(obj.changeListener);
     delete obj.clickHandler;
     delete obj.changeListener;
     this.sendPos(obj);
 
-    if ( obj.target ) {
+    if (obj.target) {
       obj.target.parent = null;
       obj.target.dispose();
       obj.target = null;
     }
-    console.log("dropped "+obj.id);
+    console.log("dropped " + obj.id);
   }
-  
+
   /**
    * Publishes beggining/end of object manipulation. Sets a transient property of the shared object, editing, to own id, or null.
    * @param obj VRObject
@@ -587,13 +587,13 @@ export class WorldEditor {
   editObject(obj, editing) {
     // FIXME: fails for objects not created with world editor with
     // Uncaught TypeError: Cannot set properties of null (setting 'editing')
-    if ( editing ) {
+    if (editing) {
       obj.properties.editing = this.worldManager.VRSPACE.me.id;
     } else {
       obj.properties.editing = null;
       this.clearGizmo();
     }
-    this.worldManager.VRSPACE.sendEvent(obj, {properties: obj.properties} );
+    this.worldManager.VRSPACE.sendEvent(obj, { properties: obj.properties });
   }
 
   /**
@@ -602,28 +602,28 @@ export class WorldEditor {
    * @param args search paramters object
    */
   search(text, args) {
-      var url = new URL('https://api.sketchfab.com/v3/search');
-      /*
-      interesting params:
-        categories - dropdown, radio? Array[string]
-        downloadable
-        animated
-        rigged
-        license: by = CC-BY, sketchfab default
-      */
-      var params = { 
-          q:text,
-          type:'models',
-          downloadable:true
-      };
-      if ( args ) {
-        for ( var arg in args ) {
-          params[arg] = args[arg];
-        }
+    var url = new URL('https://api.sketchfab.com/v3/search');
+    /*
+    interesting params:
+      categories - dropdown, radio? Array[string]
+      downloadable
+      animated
+      rigged
+      license: by = CC-BY, sketchfab default
+    */
+    var params = {
+      q: text,
+      type: 'models',
+      downloadable: true
+    };
+    if (args) {
+      for (var arg in args) {
+        params[arg] = args[arg];
       }
-      url.search = new URLSearchParams(params).toString();
+    }
+    url.search = new URLSearchParams(params).toString();
 
-      this.doFetch(url, true);
+    this.doFetch(url, true);
   }
 
   /**
@@ -632,8 +632,8 @@ export class WorldEditor {
   save() {
     this.displayButtons(true);
     var dump = VRSPACEUI.assetLoader.dump();
-    if ( Object.keys(dump).length > 0 ) {
-      VRSPACEUI.saveFile(this.world.name+".json", JSON.stringify(dump));
+    if (Object.keys(dump).length > 0) {
+      VRSPACEUI.saveFile(this.world.name + ".json", JSON.stringify(dump));
     }
   }
 
@@ -643,9 +643,9 @@ export class WorldEditor {
    */
   setFileInput(fileInput) {
     this.fileInput = fileInput;
-    fileInput.addEventListener('change', ()=>{
+    fileInput.addEventListener('change', () => {
       const selectedFile = fileInput.files[0];
-      if ( selectedFile ) {
+      if (selectedFile) {
         console.log(selectedFile);
         const reader = new FileReader();
         reader.onload = e => {
@@ -655,98 +655,98 @@ export class WorldEditor {
         }
         reader.readAsText(selectedFile);
       }
-    }, false );
-  }  
-  
+    }, false);
+  }
+
   /**
    * Load saved scene, requires file input html element
    */
   load() {
     this.displayButtons(true);
-    if ( this.fileInput ) {
+    if (this.fileInput) {
       this.fileInput.click();
     } else {
       console.log("WARNING no file input element");
     }
   }
-  
+
   /**
    * Publish all loaded object to the server
    * @param objects VRObject array
    */
-  publish( objects ) {
-    for ( var url in objects) {
+  publish(objects) {
+    for (var url in objects) {
       var instances = objects[url].instances;
-      if ( !url.startsWith("/") ) {
+      if (!url.startsWith("/")) {
         // relative url, make it relative to world script path
-        url = this.baseUrl+url;
+        url = this.baseUrl + url;
       }
-      instances.forEach( (instance) => {
-        var mesh = { 
+      instances.forEach((instance) => {
+        var mesh = {
           mesh: url,
           active: true,
           position: instance.position,
           rotation: instance.rotation,
-          scale: instance.scale 
+          scale: instance.scale
         };
-        this.worldManager.VRSPACE.createSharedObject(mesh, (obj)=>{
+        this.worldManager.VRSPACE.createSharedObject(mesh, (obj) => {
           console.log("Created new VRObject", obj);
         });
       });
     }
   }
-  
+
   /**
    * Execute Sketchfab search call, and process response.
    * Adds thumbnails of all search results as buttons to the search panel.
    */
   doFetch(url, relocate) {
-      fetch(url).then(response => {
-          response.json().then( obj=> {
-              this.searchPanel.beginUpdate(
-                obj.previous != null, 
-                obj.next != null, 
-                () => this.doFetch(obj.previous),
-                () => this.doFetch(obj.next)
-              );
-              obj.results.forEach(  result => {
-                  // interesting result fields:
-                  // next - url of next result page
-                  // previous - url of previous page
-                  //   for thumbnails.images, pick largest size, use url
-                  //  archives.gltf.size
-                  //  name
-                  //  description
-                  //  user.displayname
-                  //  isAgeRestricted
-                  //  categories.name
-                  //console.log( result.description );
-                  var thumbnail = result.thumbnails.images[0];
-                  result.thumbnails.images.forEach( img => {
-                    if ( img.size > thumbnail.size ) {
-                      thumbnail = img;
-                    }
-                  });
-                  //console.log(thumbnail);
-                  
-                  this.searchPanel.addButton(
-                    [ result.name, 
-                      'by '+result.user.displayName,
-                      (result.archives.gltf.size/1024/1024).toFixed(2)+"MB"
-                      //'Faces: '+result.faceCount,
-                      //'Vertices: '+result.vertexCount
-                    ],
-                    thumbnail.url,
-                    () => this.download(result)
-                  );
-                  
-              });
-              // ending workaround:
-              this.searchPanel.endUpdate(relocate);
+    fetch(url).then(response => {
+      response.json().then(obj => {
+        this.searchPanel.beginUpdate(
+          obj.previous != null,
+          obj.next != null,
+          () => this.doFetch(obj.previous),
+          () => this.doFetch(obj.next)
+        );
+        obj.results.forEach(result => {
+          // interesting result fields:
+          // next - url of next result page
+          // previous - url of previous page
+          //   for thumbnails.images, pick largest size, use url
+          //  archives.gltf.size
+          //  name
+          //  description
+          //  user.displayname
+          //  isAgeRestricted
+          //  categories.name
+          //console.log( result.description );
+          var thumbnail = result.thumbnails.images[0];
+          result.thumbnails.images.forEach(img => {
+            if (img.size > thumbnail.size) {
+              thumbnail = img;
+            }
           });
-      }).catch( err => console.log(err));
+          //console.log(thumbnail);
+
+          this.searchPanel.addButton(
+            [result.name,
+            'by ' + result.user.displayName,
+            (result.archives.gltf.size / 1024 / 1024).toFixed(2) + "MB"
+              //'Faces: '+result.faceCount,
+              //'Vertices: '+result.vertexCount
+            ],
+            thumbnail.url,
+            () => this.download(result)
+          );
+
+        });
+        // ending workaround:
+        this.searchPanel.endUpdate(relocate);
+      });
+    }).catch(err => console.log(err));
   }
-  
+
   /**
    * Search panel selection callback, download selected item.
    * Performs REST API call to VRSpace sketchfab endpoint. Should this call fail with 401 Unauthorized, 
@@ -755,51 +755,51 @@ export class WorldEditor {
    * @param result search result object
    */
   download(result) {
-    if ( this.fetching || this.activeButton ) {
+    if (this.fetching || this.activeButton) {
       return;
     }
     this.fetching = result;
     VRSPACEUI.indicator.animate();
     VRSPACEUI.indicator.add("Download");
-    fetch(this.endpoint()+"/download?uid="+result.uid)
+    fetch(this.endpoint() + "/download?uid=" + result.uid)
       .then(response => {
-          this.fetching = null;
-          console.log(response);
-          if ( response.status == 401 ) {
-            console.log("Redirecting to login form")
-            this.sketchfabLogin();
-            return;
-          }
-          response.json().then(res => {
-            console.log(res);
-            this.createSharedObject(res.mesh);
-          });
-      }).catch( err => {
+        this.fetching = null;
+        console.log(response);
+        if (response.status == 401) {
+          console.log("Redirecting to login form")
+          this.sketchfabLogin();
+          return;
+        }
+        response.json().then(res => {
+          console.log(res);
+          this.createSharedObject(res.mesh);
+        });
+      }).catch(err => {
         this.fetching = null;
         console.log(err);
         VRSPACEUI.indicator.remove("Download");
       });
   }
-  
+
   /**
    * Create a shared object, i.e. publish a mesh to the server. The object is marked with a transient property
    * editing set to current user id.
    * @param mesh the object to publish
    * @param properties optional properties
    */
-  createSharedObject( mesh, properties ) {
+  createSharedObject(mesh, properties) {
     var object = {
       mesh: mesh,
-      properties: {editing: this.worldManager.VRSPACE.me.id},
-      position:{x:0, y:0, z:0},
-      active:true
+      properties: { editing: this.worldManager.VRSPACE.me.id },
+      position: { x: 0, y: 0, z: 0 },
+      active: true
     };
-    if ( properties ) {
-      for ( var p in properties ) {
+    if (properties) {
+      for (var p in properties) {
         object[p] = properties[p];
       }
     }
-    this.worldManager.VRSPACE.createSharedObject(object, (obj)=>{
+    this.worldManager.VRSPACE.createSharedObject(object, (obj) => {
       console.log("Created new VRObject", obj);
     });
   }
@@ -808,43 +808,43 @@ export class WorldEditor {
    * Rest API call to VRSpace sketchfab endpoint. If login is required, this opens the login page in the same browser window.
    */
   sketchfabLogin() {
-    fetch(this.endpoint()+"/login").then(response => {
-        console.log(response);
-        response.json().then(login => {
-          window.open( login.url, "_self" );
-        });
+    fetch(this.endpoint() + "/login").then(response => {
+      console.log(response);
+      response.json().then(login => {
+        window.open(login.url, "_self");
+      });
     });
   }
 
   /**
    * Dispose of everything
-   */  
+   */
   dispose() {
     this.dropObject(); // just in case
-    if ( this.searchPanel ) {
+    if (this.searchPanel) {
       this.searchPanel.dispose();
     }
-    this.buttons.forEach((b)=>b.dispose());
+    this.buttons.forEach((b) => b.dispose());
     this.world.removeSelectionPredicate(this.selectionPredicate);
     this.world.xrHelper.removeSqueezeConsumer(this.squeeze);
   }
-  
+
   /**
    * XR selection support
    * @param mesh
    * @returns true if root node of the mesh has VRObject associated
    */
   isSelectableMesh(mesh) {
-    return typeof(VRSPACEUI.findRootNode(mesh).VRObject) === 'object';
+    return typeof (VRSPACEUI.findRootNode(mesh).VRObject) === 'object';
   }
-  
+
   /**
    * Start manipulation (scaling,rotating) of currently carried object using XR controllers.
    * Marks current positions and rotations of controllers.
    * @param side left or right
    */
   startManipulation(side) {
-    if ( this.carrying ) {
+    if (this.carrying) {
       this.startData = {
         left: this.world.xrHelper.leftArmPos().clone(),
         right: this.world.xrHelper.rightArmPos().clone(),
@@ -857,34 +857,34 @@ export class WorldEditor {
       }
     }
   }
-  
+
   /**
    * End object manipulation: currently carried object is scaled and rotated depending on position and rotation XR controllers.
    * Sends scaling and rotation data to the server, actual change is performed once the server responds.
    */
   endManipulation() {
     try {
-      if ( this.carrying && this.startData ) {
+      if (this.carrying && this.startData) {
         //console.log('end manipulation '+this.carrying.id+" "+this.startData.left+' '+this.startData.right+' '+this.startData.scaling);
         //scaling
         let startDistance = this.startData.left.subtract(this.startData.right).length();
         let distance = this.world.xrHelper.leftArmPos().subtract(this.world.xrHelper.rightArmPos()).length();
-        let scale = this.startData.scaling*distance/startDistance;
+        let scale = this.startData.scaling * distance / startDistance;
         //console.log("distance start "+startDistance+" end "+distance+" scale "+scale);
         // rotation
         let startQuat = this.startData.rotation[this.startData.side];
         let endQuat = this.world.xrHelper.armRot(this.startData.side);
         let diffQuat = endQuat.multiply(BABYLON.Quaternion.Inverse(startQuat));
-        let curQuat = BABYLON.Quaternion.FromEulerAngles(this.carrying.rotation.x,this.carrying.rotation.y,this.carrying.rotation.z);
+        let curQuat = BABYLON.Quaternion.FromEulerAngles(this.carrying.rotation.x, this.carrying.rotation.y, this.carrying.rotation.z);
         let desiredQuat = curQuat.multiply(diffQuat);
         let rotation = desiredQuat.toEulerAngles();
         // send
-        this.worldManager.VRSPACE.sendEvent(this.carrying, 
-          {scale: {x:scale, y:scale, z:scale}, rotation: {x:rotation.x, y:rotation.y, z:rotation.z}} 
+        this.worldManager.VRSPACE.sendEvent(this.carrying,
+          { scale: { x: scale, y: scale, z: scale }, rotation: { x: rotation.x, y: rotation.y, z: rotation.z } }
         );
         // carried object tracks hud, we have to update holder object rotation or next event just rotates it back
         let parentQuat = VRSPACEUI.hud.camera.absoluteRotation;
-        if ( this.carrying.target && this.carrying.target.parent !== VRSPACEUI.hud.camera ) {
+        if (this.carrying.target && this.carrying.target.parent !== VRSPACEUI.hud.camera) {
           //parentQuat = this.carrying.target.parent.absoluteRotationQuaternion;
         }
         let targetQuat = BABYLON.Quaternion.Inverse(parentQuat).multiply(desiredQuat);
@@ -902,14 +902,14 @@ export class WorldEditor {
    * @param value 0-1
    * @param side left or right
    */
-  handleSqueeze(value,side) {
+  handleSqueeze(value, side) {
     try {
       this.clearGizmo();
       let bothOn = this.world.xrHelper.squeeze.left.value == 1 && this.world.xrHelper.squeeze.right.value == 1;
       let bothOff = this.world.xrHelper.squeeze.left.value == 0 && this.world.xrHelper.squeeze.right.value == 0;
-      if (value == 1 ) {
+      if (value == 1) {
         //console.log('squeeze '+side+' '+value+' both on '+bothOn+' off '+bothOff);
-        if ( bothOn ) {
+        if (bothOn) {
           this.displayButtons(true); // resets activeControl
           // hiding buttons makes it next to impossible to grab HUD - see intersects() in hud
           //this.displayButtons(false, this.scaleButton, this.rotateButton);
@@ -920,9 +920,9 @@ export class WorldEditor {
           this.activeButton = this.moveButton;
         }
         return false;
-      } else if ( value == 0 ) {
+      } else if (value == 0) {
         this.displayButtons(true);
-        if ( bothOff ) {
+        if (bothOff) {
           this.dropObject();
           this.displayButtons(true);
         } else {
@@ -932,7 +932,7 @@ export class WorldEditor {
         }
         return false;
       }
-    } catch ( error ) {
+    } catch (error) {
       console.error(error.stack);
     }
     return true;
