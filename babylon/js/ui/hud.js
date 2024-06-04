@@ -696,7 +696,10 @@ export class HUD {
     let ret = false;
     this.elements.forEach(e=>{
       if (e.getClassName() == "HolographicButton") {
+        // also trying currently invisible buttons
+        let visible = e.mesh.isVisible;
         ret |= e.mesh.intersectsMesh(mesh);
+        e.mesh.isVisible = visible;
       } else {
         ret |= e.intersectsMesh(mesh);
       }
