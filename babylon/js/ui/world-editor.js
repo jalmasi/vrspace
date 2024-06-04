@@ -911,7 +911,8 @@ export class WorldEditor {
         //console.log('squeeze '+side+' '+value+' both on '+bothOn+' off '+bothOff);
         if ( bothOn ) {
           this.displayButtons(true); // resets activeControl
-          this.displayButtons(false, this.scaleButton, this.rotateButton);
+          //this.displayButtons(false, this.scaleButton, this.rotateButton);
+          this.displayButtons(false, this.gizmoButton);
           this.startManipulation(side);
         } else if (this.activeButton == null) {
           this.displayButtons(false, this.moveButton);
