@@ -495,12 +495,22 @@ export class WorldEditor {
 
       let parent = VRSPACEUI.hud.camera;
 
+      /*
+      // bad experience overall
       if (VRSPACEUI.hud.inXR()) {
         // if HUD is attached to a controller, we carry object in the other hand
         if (VRSPACEUI.hud.otherController()) {
           parent = VRSPACEUI.hud.otherController().pointer;
         } else if (VRSPACEUI.hud.attachedController()) {
           parent = VRSPACEUI.hud.attachedController().pointer;
+        }
+      }
+      */
+     
+      if ( this.world.inXR() ) {
+        let side = this.world.xrHelper.activeController;
+        if ( "none" != side ) {
+          parent = this.world.xrHelper.controller[side].pointer
         }
       }
 

@@ -32,6 +32,7 @@ export class VRHelper {
     this.buttons = { left: [], right: [] };
     this.squeezeConsumers = [];
     this.triggerListeners = [];
+    this.activeController = "none";
     this.gamepadObserver = null;
     this.teleporting = false;
     this.sessionMode = sessionMode;
@@ -198,6 +199,8 @@ export class VRHelper {
           if ( xrController.grip ) {
             console.log("Controller added: "+xrController.grip.name+" "+xrController.grip.name);
             this.clearPointer();
+            // right contrtoller seems to be active by default, do we have a way to know?
+            this.activeController = "right";
             VRSPACEUI.hud.allowSelection = true;
             if ( xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >=0 ) {
               this.controller.left = xrController;
@@ -601,6 +604,7 @@ export class VRHelper {
   triggerTracker(component,side) {
     if ( component.value == 1 ) {
       this.vrHelper.teleportation.detach();
+      this.activeController = side;
     } else if (component.value == 0) {
       this.vrHelper.teleportation.attach();
     }
