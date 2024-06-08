@@ -142,7 +142,8 @@ export class VRSpaceUI {
     return this.portal;
   }
 
-  /** lists files on a server directory
+  /** 
+  lists files on a server directory
   @param theUrl url to load from
   @param callback to call load, passing it XMLHttpRequest
   */
@@ -159,8 +160,7 @@ export class VRSpaceUI {
     xmlHttp.send(null);
     return xmlHttp;
   }
-  
-  
+
   /** list folders with their jpg thumbnails (files ending with .jpg)
   @param dir directory to list
   @param callback to call
@@ -175,6 +175,13 @@ export class VRSpaceUI {
   */
   listCharacters(dir, callback) {
     this.listMatchingFiles( dir, callback, '-fixes.json' )
+  }
+
+  /** list character folders and their fix files 
+  @param dir directory to list
+  */
+  async listCharactersAsync(dir, callback) {
+    return this.listMatchingFilesAsync( dir, callback, '-fixes.json' )
   }
 
   /**
@@ -221,7 +228,7 @@ export class VRSpaceUI {
   list server folders along with their matching files
   i.e. files with the same name, plus given suffix
   @param dir directory to list
-  @param callback to call, receives ServerFolder list as argument
+  @param callback to call, receives ServerFolder array as argument
   @param suffix of related file
    */
   listMatchingFiles(dir, callback, suffix) {
@@ -274,6 +281,71 @@ export class VRSpaceUI {
       callback(folders);
     });
   }
+
+  /**
+  list server folders along with their matching files
+  i.e. files with the same name, plus given suffix
+  @param dir directory to list
+  @param suffix of related file
+  @returns Promise with ServerFolder array
+   */
+  async listMatchingFilesAsync(dir, suffix) {
+    if ( !dir.endsWith('/') ) {
+      dir += '/';
+    }
+    // TODO error handling
+    let response = await fetch(dir);
+    let baseUri = response.url;
+
+    return response.text().then( html => { 
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(html, "text/html");
+        let links = doc.links;
+        let files = [];
+        let fixes = [];
+        
+        // first pass:
+        // iterate all links, collect avatar directories and fixes
+        for ( var i = 0; i < links.length; i++ ) {
+          let link = links[i];
+          let href = link.href;
+          if ( href.indexOf('?') > 0 ) {
+            continue;
+          }
+          if ( baseUri.length > link.href.length ) {
+            continue;
+          }
+          if ( link.href.endsWith(suffix) ) {
+            fixes.push(href.substring(baseUri.length));
+            continue;
+          }
+          if ( ! link.href.endsWith('/') ) {
+            continue;
+          }
+          href = href.substring(baseUri.length);
+          href = href.substring(0,href.indexOf('/'));
+          this.log(baseUri+' '+href);
+          files.push(href);
+        }
+  
+        // second pass: match folders with related files
+        var folders = [];
+        for ( var i = 0; i < files.length; i++ ) {
+          var fix = null;
+          var fixName = files[i]+suffix;
+          var index = fixes.indexOf(fixName);
+          if ( index >= 0) {
+            fix = fixes[index];
+          }
+          folders.push(new ServerFolder( dir, files[i], fix ));
+        }
+        
+        this.log(folders);
+        return folders;
+
+    });
+  }
+  
   
   /**
   Utility method, should a node and its children receive shadows.

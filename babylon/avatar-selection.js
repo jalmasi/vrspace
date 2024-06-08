@@ -313,7 +313,7 @@ export class AvatarSelection extends World {
     }
 
     this.selectionCallback = selectionCallback;
-    VRSPACEUI.listMatchingFiles(this.characterDir(), (folders) => {
+    VRSPACEUI.listMatchingFilesAsync(this.characterDir()).then( (folders) => {
       folders.push({ name: "video" });
       if (this.customAvatarFrame) {
         folders.push({ name: "custom" });
@@ -332,7 +332,7 @@ export class AvatarSelection extends World {
       this.characterButtons.dispose();
     }
     if (folder.url) {
-      VRSPACEUI.listCharacters(folder.url(), (avatars) => {
+      VRSPACEUI.listCharactersAsync(folder.url()).then( avatars => {
         var buttons = new Buttons(this.scene, folder.name, avatars, (dir) => this.loadCharacter(dir), "name");
         buttons.setHeight(0.1 * Math.min(20, avatars.length));
         buttons.group.position = new BABYLON.Vector3(1, 2.2, this.buttonsZ);
