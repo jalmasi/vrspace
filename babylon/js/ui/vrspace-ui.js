@@ -161,6 +161,27 @@ export class VRSpaceUI {
     return xmlHttp;
   }
 
+  /** 
+  lists files on a server directory
+  @param theUrl url to load from
+  @returns Promise with XMLHttpRequest
+  */
+  async listFilesAsync(theUrl){
+    return new Promise( (resolve, reject) => {
+      this.log("Fetching "+theUrl);
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.responseType = "document";
+      xmlHttp.onreadystatechange = () => {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+          resolve(xmlHttp);
+        }
+        // TODO error handling
+      }
+      xmlHttp.open("GET", theUrl, true); // true for asynchronous
+      xmlHttp.send(null);
+    });
+  }
+
   /** list folders with their jpg thumbnails (files ending with .jpg)
   @param dir directory to list
   @param callback to call
@@ -293,22 +314,18 @@ export class VRSpaceUI {
     if ( !dir.endsWith('/') ) {
       dir += '/';
     }
-    // TODO error handling
-    let response = await fetch(dir);
-    let baseUri = response.url;
 
-    return response.text().then( html => { 
-        let parser = new DOMParser();
-        let doc = parser.parseFromString(html, "text/html");
-        let links = doc.links;
-        let files = [];
-        let fixes = [];
-        
+    return this.listFilesAsync(dir).then( xmlHttp => {
+        var links = xmlHttp.responseXML.links;
+        var files = [];
+        var fixes = [];
+
         // first pass:
         // iterate all links, collect avatar directories and fixes
         for ( var i = 0; i < links.length; i++ ) {
           let link = links[i];
           let href = link.href;
+          let baseUri = link.baseURI;
           if ( href.indexOf('?') > 0 ) {
             continue;
           }
