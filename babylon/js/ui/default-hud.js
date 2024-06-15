@@ -26,6 +26,7 @@ export class DefaultHud {
     this.movementButton = null;
     this.cameraButton = null;
     this.particleSystem = null;
+    this.particleSource = null;
   }
   
   init() {
@@ -113,9 +114,18 @@ export class DefaultHud {
       this.particleSystem = new BABYLON.ParticleSystem("Emojis", 100, scene);
     }
     this.particleSystem.particleTexture = new BABYLON.Texture(url, this.scene);
-    
-    let pos = this.scene.activeCamera.position.add(this.scene.activeCamera.getForwardRay(1).direction.scale(2));
-    this.particleSystem.emitter = pos;
+
+    // fixed position    
+    //let pos = this.scene.activeCamera.position.add(this.scene.activeCamera.getForwardRay(1).direction.scale(2));
+    //this.particleSystem.emitter = pos;
+    // position bound to the camera
+    if ( ! this.particleSource ) {
+      this.particleSource = BABYLON.MeshBuilder.CreateSphere("particlePositon",{diameter: 0.1},this.scene);
+      this.particleSource.isVisible = false;
+      this.particleSource.position = new BABYLON.Vector3(0,0,2);
+      this.particleSource.parent = this.scene.activeCamera;
+    }
+    this.particleSystem.emitter = this.particleSource;
 
     this.particleSystem.color1 = new BABYLON.Color4(1, 1, 1, 1.0);
     this.particleSystem.color2 = new BABYLON.Color4(1, 1, 1, 1.0);
@@ -149,7 +159,11 @@ export class DefaultHud {
       console.log("Stopping emoji");
       this.particleSystem.stop();
       if ( dispose ) {
-        this.particleSystem.dispose();        
+        this.particleSystem.dispose();
+        if ( this.particleSource ) {
+          this.particleSource.dispose();
+          this.particleSource = null;
+        }
       }
       this.particleSystem = null;
     }
