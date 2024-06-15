@@ -4,6 +4,7 @@ import { SpeechInput } from './speech-input.js';
 import { WorldManager } from './world-manager.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
 import { VRHelper } from './vr-helper.js';
+import { ServerFile } from './server-folder.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -32,6 +33,7 @@ export class DefaultHud {
       this.displayButtons = false;
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
+      this.emojiButton = this.hud.addButton("Emoji", this.contentBase + "/content/icons/emoji.png", () => this.emojis());
       this.hud.enableSpeech(true);
     }
   }
@@ -73,6 +75,33 @@ export class DefaultHud {
       this.hud.clearRow();
       this.hud.showButtons(true);
     }
+  }
+
+  emojis() {
+    this.displayButtons = !this.displayButtons;
+    if ( this.displayButtons ) {
+      this.hud.showButtons(false, this.emojiButton);
+      this.hud.newRow();
+      // FIXME synchronize this
+      VRSPACEUI.listDirectory(this.contentBase + "/content/emoji", emojis => {
+        console.log(emojis);
+        emojis.forEach( url=>{
+          let sf=new ServerFile(url);
+          console.log(sf.baseName);
+          let button = this.hud.addButton(sf.baseName, url, () => this.playEmoji(url), false);
+          button.backMaterial.alpha = 1;
+          button.plateMaterial.disableLighting = true;
+          button.plateMaterial.emissiveColor = new BABYLON.Color3(0.3,0.3,0.3);
+        });
+      })
+    } else {
+      this.hud.clearRow();
+      this.hud.showButtons(true);
+    }
+  }
+  
+  playEmoji(url) {
+    console.log("Playing "+url);
   }
   
   markDisabled(button) {

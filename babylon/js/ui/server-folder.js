@@ -45,5 +45,8 @@ export class ServerFile extends ServerFolder {
     this.name = path.substring(pos+1);
     this.related = related;
     this.fileUrl = url;
+    pos = this.file.indexOf('.');
+    this.baseName = this.file.substring(0,pos);
+    this.extension = this.file.substring(pos+1);
   }
 }

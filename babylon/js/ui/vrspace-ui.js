@@ -212,6 +212,7 @@ export class VRSpaceUI {
   @param suffix optional suffix of listed files
    */
   listDirectory(dir, callback, suffix) {
+    // TODO we need sync version of this
     if ( !dir.endsWith('/') ) {
       dir += '/';
     }
