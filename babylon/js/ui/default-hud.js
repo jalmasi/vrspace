@@ -25,6 +25,7 @@ export class DefaultHud {
     this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() };
     this.movementButton = null;
     this.cameraButton = null;
+    this.particleSystem = null;
   }
   
   init() {
@@ -82,7 +83,7 @@ export class DefaultHud {
     if ( this.displayButtons ) {
       this.hud.showButtons(false, this.emojiButton);
       this.hud.newRow();
-      // FIXME synchronize this
+      // FIXME: synchronize this
       VRSPACEUI.listDirectory(this.contentBase + "/content/emoji", emojis => {
         console.log(emojis);
         emojis.forEach( url=>{
@@ -92,8 +93,9 @@ export class DefaultHud {
           button.backMaterial.alpha = 1;
           button.plateMaterial.disableLighting = true;
           button.plateMaterial.emissiveColor = new BABYLON.Color3(0.3,0.3,0.3);
+          button.onPointerUpObservable.add( () => this.stopEmoji(false) );      
         });
-      })
+      });
     } else {
       this.hud.clearRow();
       this.hud.showButtons(true);
@@ -102,6 +104,55 @@ export class DefaultHud {
   
   playEmoji(url) {
     console.log("Playing "+url);
+    
+    this.stopEmoji();
+    
+    if ( BABYLON.GPUParticleSystem.IsSupported ) {
+      this.particleSystem = new BABYLON.GPUParticleSystem("Emojis", {capacity: 100}, scene);
+    } else {
+      this.particleSystem = new BABYLON.ParticleSystem("Emojis", 100, scene);
+    }
+    this.particleSystem.particleTexture = new BABYLON.Texture(url, this.scene);
+    
+    let pos = this.scene.activeCamera.position.add(this.scene.activeCamera.getForwardRay(1).direction.scale(2));
+    this.particleSystem.emitter = pos;
+
+    this.particleSystem.color1 = new BABYLON.Color4(1, 1, 1, 1.0);
+    this.particleSystem.color2 = new BABYLON.Color4(1, 1, 1, 1.0);
+    this.particleSystem.colorDead = new BABYLON.Color4(0.1, 0.1, 0.1, .5);
+
+    // either randomize the size or animate the size all the same
+    //this.particleSystem.minSize = 0.01;
+    //this.particleSystem.maxSize = 0.1;
+    this.particleSystem.addSizeGradient(0, 0.05); //size at start of particle lifetime
+    this.particleSystem.addSizeGradient(0.5, 0.5); //size at half lifetime
+    this.particleSystem.addSizeGradient(1, 1); //size at end of particle lifetime
+
+    this.particleSystem.minLifeTime = 0.5;
+    this.particleSystem.maxLifeTime = 3;
+
+    this.particleSystem.emitRate = 20;
+    
+
+    this.particleSystem.createDirectedSphereEmitter(0.5, new BABYLON.Vector3(-0.5, 1, -0.5), new BABYLON.Vector3(0.5, 1, 0.5));
+
+    this.particleSystem.minEmitPower = 1;
+    this.particleSystem.maxEmitPower = 5;
+    this.particleSystem.updateSpeed = 0.005;
+    this.particleSystem.gravity = new BABYLON.Vector3(0,-2,0);
+
+    this.particleSystem.start();
+  }
+  
+  stopEmoji(dispose=true) {
+    if ( this.particleSystem ) {
+      console.log("Stopping emoji");
+      this.particleSystem.stop();
+      if ( dispose ) {
+        this.particleSystem.dispose();        
+      }
+      this.particleSystem = null;
+    }
   }
   
   markDisabled(button) {
