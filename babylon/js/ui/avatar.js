@@ -1,5 +1,6 @@
 import { TextWriter } from './text-writer.js';
 import { VRSPACEUI } from './vrspace-ui.js';
+import { EmojiParticleSystem } from './emoji-particle-system.js';
 
 /**
 GLTF 3D Avatar.
@@ -71,6 +72,7 @@ export class Avatar {
       this.writer = new TextWriter(this.scene);
       this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
     }
+    this.emojiParticleSystem = null;
     /** fetch API cache control - use no-cache in development */
     this.cache = 'default';
     //this.cache = 'no-cache';
@@ -1892,8 +1894,15 @@ export class Avatar {
     console.log("Remote emoji: "+url);
     if ( url == null ) {
       // cleanup existing particle system
+      if (this.emojiParticleSystem) {
+        this.emojiParticleSystem.stop();
+      }
     } else {
       // start emoji particle system
+      if ( ! this.emojiParticleSystem ) {
+        this.emojiParticleSystem = new EmojiParticleSystem(this.scene);
+      }
+      this.emojiParticleSystem.init(url, this).start();
     }
   }
   

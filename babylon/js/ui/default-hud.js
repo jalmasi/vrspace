@@ -5,6 +5,7 @@ import { WorldManager } from './world-manager.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
 import { VRHelper } from './vr-helper.js';
 import { ServerFile } from './server-folder.js';
+import { EmojiParticleSystem } from './emoji-particle-system.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -25,9 +26,8 @@ export class DefaultHud {
     this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() };
     this.movementButton = null;
     this.cameraButton = null;
-    this.particleSystem = null;
-    this.particleSource = null;
     this.buttons = [];
+    this.emojiParticleSystem = new EmojiParticleSystem(scene);
   }
   
   init() {
@@ -107,7 +107,7 @@ export class DefaultHud {
           button.backMaterial.alpha = 1;
           button.plateMaterial.disableLighting = true;
           button.plateMaterial.emissiveColor = new BABYLON.Color3(0.3,0.3,0.3);
-          button.onPointerUpObservable.add( () => this.stopEmoji(false) );   
+          button.onPointerUpObservable.add( () => this.stopEmoji() );   
           this.buttons.push(button);   
         });
       });
@@ -120,101 +120,30 @@ export class DefaultHud {
     console.log("Playing emoji "+url);
     
     this.stopEmoji();
-    
-    if ( BABYLON.GPUParticleSystem.IsSupported ) {
-      this.particleSystem = new BABYLON.GPUParticleSystem("Emojis", {capacity: 100}, scene);
-    } else {
-      this.particleSystem = new BABYLON.ParticleSystem("Emojis", 100, scene);
-    }
-    this.particleSystem.particleTexture = new BABYLON.Texture(url, this.scene);
-
-    // fixed position    
-    //let pos = this.scene.activeCamera.position.add(this.scene.activeCamera.getForwardRay(1).direction.scale(2));
-    //this.particleSystem.emitter = pos;
-    // position bound to the camera
-    if ( ! this.particleSource ) {
-      this.particleSource = BABYLON.MeshBuilder.CreateSphere("particlePositon",{diameter: 0.1},this.scene);
-      this.particleSource.isVisible = false;
-    }
-    let particleDirection = 5;
-    // CHECKME: this may change with camera change, should be bound to avatar
     if (WorldManager.instance && WorldManager.instance.isOnline()) {
       // online, bind to camera in 1st person and to avatar in 3rd person view
       if ( WorldManager.instance.world.camera3p && this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
-        let avatar = WorldManager.instance.world.avatarController.avatar;
-        this.particleSource.parent = avatar.parentMesh;
-        this.particleSource.position = avatar.headPos().subtract(avatar.parentMesh.position);
-        particleDirection = 5;
+        this.emojiParticleSystem.init(url, WorldManager.instance.world.avatarController.avatar).start();
       } else {
-        this.particleSource.parent = this.scene.activeCamera;
-        this.particleSource.position = new BABYLON.Vector3(0,0,0.5);        
+        this.emojiParticleSystem.init(url).start();
       }
       // start remote emoji here
       WorldManager.instance.publishChanges( [{field:'emoji',value:url}] );
+    } else if (this.avatar) {
+      // offline, avatar chosen
+      this.emojiParticleSystem.init(url, this.avatar, -5).start();
     } else {
-      // offline, bind to avatar in avatar choice room, or camera if no avatar chosen yet
-      if ( this.avatar ) {
-        this.particleSource.parent = this.avatar.parentMesh;
-        this.particleSource.position = this.avatar.headPos();
-        particleDirection = -5;
-      } else {
-        this.particleSource.parent = this.scene.activeCamera;
-        this.particleSource.position = new BABYLON.Vector3(0,0,0.5);
-      }      
+      // offline, no avatar yet
+      this.emojiParticleSystem.init(url).start();
     }
-    this.particleSystem.emitter = this.particleSource;
-
-    this.particleSystem.color1 = new BABYLON.Color4(1, 1, 1, 1.0);
-    this.particleSystem.color2 = new BABYLON.Color4(1, 1, 1, 1.0);
-    this.particleSystem.colorDead = new BABYLON.Color4(0.1, 0.1, 0.1, .5);
-    // these make particles not disappear:
-    //this.particleSystem.addColorGradient(0, new BABYLON.Color4(.2, .2, .2, 0.2), new BABYLON.Color4(.5, .5, .5, .5));
-    //this.particleSystem.addColorGradient(0.2, new BABYLON.Color4(1, 1, 1, 1), new BABYLON.Color4(1, 1, 1, 1));
-    //this.particleSystem.addColorGradient(0.8, new BABYLON.Color4(1, 1, 1, 1), new BABYLON.Color4(1, 1, 1, 1));
-    //this.particleSystem.addColorGradient(1, new BABYLON.Color4(.2, .2, .2, 0), new BABYLON.Color4(.5, .5, .5, 0));
-
-    // either randomize the size or animate the size all the same
-    //this.particleSystem.minSize = 0.01;
-    //this.particleSystem.maxSize = 0.1;
-    this.particleSystem.addSizeGradient(0, 0.05); //size at start of particle lifetime
-    this.particleSystem.addSizeGradient(0.5, 0.5); //size at half lifetime
-    this.particleSystem.addSizeGradient(1, 1); //size at end of particle lifetime
-
-    // and they slow down over time
-    this.particleSystem.addVelocityGradient(0, 5);
-    this.particleSystem.addVelocityGradient(1, 1);
-
-    this.particleSystem.minLifeTime = 0.5;
-    this.particleSystem.maxLifeTime = 3;
-
-    this.particleSystem.emitRate = 20;
-    
-    this.particleSystem.createDirectedSphereEmitter(0.5, new BABYLON.Vector3(-0.5, -0.5, particleDirection), new BABYLON.Vector3(0.5, 0.5, particleDirection));
-
-    this.particleSystem.minEmitPower = 1;
-    this.particleSystem.maxEmitPower = 5;
-    this.particleSystem.updateSpeed = 0.005;
-    this.particleSystem.gravity = new BABYLON.Vector3(0,2,0);
-
-    this.particleSystem.start();
   }
   
-  stopEmoji(dispose=true) {
-    if ( this.particleSystem ) {
-      console.log("Stopping emoji");
-      this.particleSystem.stop();
-      if ( dispose ) {
-        this.particleSystem.dispose();
-        if ( this.particleSource ) {
-          this.particleSource.dispose();
-          this.particleSource = null;
-        }
-      }
-      this.particleSystem = null;
-      // stop remote emoji here
-      if (WorldManager.instance && WorldManager.instance.isOnline()) {
-        WorldManager.instance.publishChanges( [{field:'emoji',value:null}] );
-      }
+  stopEmoji() {
+    console.log("Stopping emoji");
+    this.emojiParticleSystem.stop();
+    // stop remote emoji here
+    if (WorldManager.instance && WorldManager.instance.isOnline()) {
+      WorldManager.instance.publishChanges( [{field:'emoji',value:null}] );
     }
   }
   
