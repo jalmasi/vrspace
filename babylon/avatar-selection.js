@@ -369,6 +369,7 @@ export class AvatarSelection extends World {
       this.customOptions
     );
     await this.video.show();
+    this.video.setName(this.userName);
   }
   removeVideoAvatar() {
     this.hud.toggleWebcam(false);
@@ -488,7 +489,7 @@ export class AvatarSelection extends World {
     if (this.character) {
       this.character.setName(this.userName);
     } else if ( this.video ) {
-      this.video.name = name;
+      this.video.setName(this.userName);
     }
   }
 

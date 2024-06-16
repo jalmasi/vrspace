@@ -132,6 +132,8 @@ export class DefaultHud {
     } else if (this.avatar) {
       // offline, avatar chosen
       this.emojiParticleSystem.init(url, this.avatar, -5).start();
+    } else if ( this.videoAvatar) {
+      this.emojiParticleSystem.init(url, this.videoAvatar, -5).start();
     } else {
       // offline, no avatar yet
       this.emojiParticleSystem.init(url).start();
