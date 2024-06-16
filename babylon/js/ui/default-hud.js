@@ -131,6 +131,11 @@ export class DefaultHud {
     this.particleSystem.color1 = new BABYLON.Color4(1, 1, 1, 1.0);
     this.particleSystem.color2 = new BABYLON.Color4(1, 1, 1, 1.0);
     this.particleSystem.colorDead = new BABYLON.Color4(0.1, 0.1, 0.1, .5);
+    // these make particles not disappear:
+    //this.particleSystem.addColorGradient(0, new BABYLON.Color4(.2, .2, .2, 0.2), new BABYLON.Color4(.5, .5, .5, .5));
+    //this.particleSystem.addColorGradient(0.2, new BABYLON.Color4(1, 1, 1, 1), new BABYLON.Color4(1, 1, 1, 1));
+    //this.particleSystem.addColorGradient(0.8, new BABYLON.Color4(1, 1, 1, 1), new BABYLON.Color4(1, 1, 1, 1));
+    //this.particleSystem.addColorGradient(1, new BABYLON.Color4(.2, .2, .2, 0), new BABYLON.Color4(.5, .5, .5, 0));
 
     // either randomize the size or animate the size all the same
     //this.particleSystem.minSize = 0.01;
