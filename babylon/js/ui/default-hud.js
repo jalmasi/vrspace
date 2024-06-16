@@ -122,7 +122,8 @@ export class DefaultHud {
     if ( ! this.particleSource ) {
       this.particleSource = BABYLON.MeshBuilder.CreateSphere("particlePositon",{diameter: 0.1},this.scene);
       this.particleSource.isVisible = false;
-      this.particleSource.position = new BABYLON.Vector3(0,0,2);
+      this.particleSource.position = new BABYLON.Vector3(0,0,0.5);
+      // CHECKME: this may change with camera change, should be bound to avatar
       this.particleSource.parent = this.scene.activeCamera;
     }
     this.particleSystem.emitter = this.particleSource;
@@ -138,18 +139,21 @@ export class DefaultHud {
     this.particleSystem.addSizeGradient(0.5, 0.5); //size at half lifetime
     this.particleSystem.addSizeGradient(1, 1); //size at end of particle lifetime
 
+    // and they slow down over time
+    this.particleSystem.addVelocityGradient(0, 5);
+    this.particleSystem.addVelocityGradient(1, 1);
+
     this.particleSystem.minLifeTime = 0.5;
     this.particleSystem.maxLifeTime = 3;
 
     this.particleSystem.emitRate = 20;
     
-
-    this.particleSystem.createDirectedSphereEmitter(0.5, new BABYLON.Vector3(-0.5, 1, -0.5), new BABYLON.Vector3(0.5, 1, 0.5));
+    this.particleSystem.createDirectedSphereEmitter(0.5, new BABYLON.Vector3(-0.5, -0.5, 5), new BABYLON.Vector3(0.5, 0.5, 5));
 
     this.particleSystem.minEmitPower = 1;
     this.particleSystem.maxEmitPower = 5;
     this.particleSystem.updateSpeed = 0.005;
-    this.particleSystem.gravity = new BABYLON.Vector3(0,-2,0);
+    this.particleSystem.gravity = new BABYLON.Vector3(0,2,0);
 
     this.particleSystem.start();
   }
