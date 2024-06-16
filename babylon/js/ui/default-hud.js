@@ -149,6 +149,8 @@ export class DefaultHud {
         this.particleSource.parent = this.scene.activeCamera;
         this.particleSource.position = new BABYLON.Vector3(0,0,0.5);        
       }
+      // start remote emoji here
+      WorldManager.instance.publishChanges( [{field:'emoji',value:url}] );
     } else {
       // offline, bind to avatar in avatar choice room, or camera if no avatar chosen yet
       if ( this.avatar ) {
@@ -209,6 +211,10 @@ export class DefaultHud {
         }
       }
       this.particleSystem = null;
+      // stop remote emoji here
+      if (WorldManager.instance && WorldManager.instance.isOnline()) {
+        WorldManager.instance.publishChanges( [{field:'emoji',value:null}] );
+      }
     }
   }
   

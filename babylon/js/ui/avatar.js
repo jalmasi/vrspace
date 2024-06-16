@@ -1861,7 +1861,8 @@ export class Avatar {
       this.nameParent.position = pos;
     }
   }
-  
+
+  /** Remote event routed by WorldManager, displays whatever user wrote above avatar's head*/  
   async wrote(client) {
     if ( this.writer && this.displayText ) {
       var limit = 20;
@@ -1882,6 +1883,17 @@ export class Avatar {
       //this.writer.relativePosition = this.rootMesh.position.add(new BABYLON.Vector3(0,.4+this.height()+.2*(text.length-1),0));
       this.writer.relativePosition = new BABYLON.Vector3(0,.4+this.userHeight+.2*(text.length-1),0);
       this.writer.writeArray(this.parentMesh, text);
+    }
+  }
+  
+  
+  async emoji(client) {
+    let url = client.emoji;
+    console.log("Remote emoji: "+url);
+    if ( url == null ) {
+      // cleanup existing particle system
+    } else {
+      // start emoji particle system
     }
   }
   
