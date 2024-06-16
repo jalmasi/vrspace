@@ -613,7 +613,7 @@ export class Avatar {
   head() {
     return this.skeleton.bones[this.body.head];
   }
-  /** Returns position of the the head 'bone' */
+  /** Returns absolute position of the the head 'bone' */
   headPos() {
     // FIXME this is way suboptimal as it forces computation
     this.head().getTransformNode().computeWorldMatrix(true);

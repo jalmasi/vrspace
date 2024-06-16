@@ -27,11 +27,12 @@ export class DefaultHud {
     this.cameraButton = null;
     this.particleSystem = null;
     this.particleSource = null;
+    this.buttons = [];
   }
   
   init() {
     if ( this.settingsButton && this.displayButtons ) {
-      this.hud.clearRow();
+      this.clearRow();
       this.displayButtons = false;
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
@@ -48,7 +49,6 @@ export class DefaultHud {
 
       this.showCameraControls();
       // CHECKME: flying through everything, should not be enabled by default
-      this.movementButton = null; // ensure button creation
       this.showXRMovementControls();
       
       /*
@@ -74,11 +74,25 @@ export class DefaultHud {
       this.helpButton.tooltipText = "TODO";
       this.hud.enableSpeech(true);
     } else {
-      this.hud.clearRow();
-      this.hud.showButtons(true);
+      this.clearRow();
     }
   }
 
+  clearRow() {
+    this.hud.clearRow();
+    if ( this.cameraButton ) {
+      this.cameraButton.dispose();
+      this.cameraButton = null;
+    }
+    if ( this.movementButton ) {
+      this.movementButton.dispose();
+      this.movementButton = null;
+    }
+    this.buttons.forEach(b=>b.dispose());
+    this.buttons = [];
+    this.hud.showButtons(true);    
+  }
+  
   emojis() {
     this.displayButtons = !this.displayButtons;
     if ( this.displayButtons ) {
@@ -89,22 +103,21 @@ export class DefaultHud {
         console.log(emojis);
         emojis.forEach( url=>{
           let sf=new ServerFile(url);
-          console.log(sf.baseName);
           let button = this.hud.addButton(sf.baseName, url, () => this.playEmoji(url), false);
           button.backMaterial.alpha = 1;
           button.plateMaterial.disableLighting = true;
           button.plateMaterial.emissiveColor = new BABYLON.Color3(0.3,0.3,0.3);
-          button.onPointerUpObservable.add( () => this.stopEmoji(false) );      
+          button.onPointerUpObservable.add( () => this.stopEmoji(false) );   
+          this.buttons.push(button);   
         });
       });
     } else {
-      this.hud.clearRow();
-      this.hud.showButtons(true);
+      this.clearRow();
     }
   }
   
   playEmoji(url) {
-    console.log("Playing "+url);
+    console.log("Playing emoji "+url);
     
     this.stopEmoji();
     
@@ -122,9 +135,30 @@ export class DefaultHud {
     if ( ! this.particleSource ) {
       this.particleSource = BABYLON.MeshBuilder.CreateSphere("particlePositon",{diameter: 0.1},this.scene);
       this.particleSource.isVisible = false;
-      this.particleSource.position = new BABYLON.Vector3(0,0,0.5);
-      // CHECKME: this may change with camera change, should be bound to avatar
-      this.particleSource.parent = this.scene.activeCamera;
+    }
+    let particleDirection = 5;
+    // CHECKME: this may change with camera change, should be bound to avatar
+    if (WorldManager.instance && WorldManager.instance.isOnline()) {
+      // online, bind to camera in 1st person and to avatar in 3rd person view
+      if ( WorldManager.instance.world.camera3p && this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
+        let avatar = WorldManager.instance.world.avatarController.avatar;
+        this.particleSource.parent = avatar.parentMesh;
+        this.particleSource.position = avatar.headPos().subtract(avatar.parentMesh.position);
+        particleDirection = 5;
+      } else {
+        this.particleSource.parent = this.scene.activeCamera;
+        this.particleSource.position = new BABYLON.Vector3(0,0,0.5);        
+      }
+    } else {
+      // offline, bind to avatar in avatar choice room, or camera if no avatar chosen yet
+      if ( this.avatar ) {
+        this.particleSource.parent = this.avatar.parentMesh;
+        this.particleSource.position = this.avatar.headPos();
+        particleDirection = -5;
+      } else {
+        this.particleSource.parent = this.scene.activeCamera;
+        this.particleSource.position = new BABYLON.Vector3(0,0,0.5);
+      }      
     }
     this.particleSystem.emitter = this.particleSource;
 
@@ -153,7 +187,7 @@ export class DefaultHud {
 
     this.particleSystem.emitRate = 20;
     
-    this.particleSystem.createDirectedSphereEmitter(0.5, new BABYLON.Vector3(-0.5, -0.5, 5), new BABYLON.Vector3(0.5, 0.5, 5));
+    this.particleSystem.createDirectedSphereEmitter(0.5, new BABYLON.Vector3(-0.5, -0.5, particleDirection), new BABYLON.Vector3(0.5, 0.5, particleDirection));
 
     this.particleSystem.minEmitPower = 1;
     this.particleSystem.maxEmitPower = 5;
@@ -334,10 +368,10 @@ export class DefaultHud {
       for (let name in this.portals) {
         let p = this.portals[name];
         let button = this.hud.addButton(p.name, p.imageUrl, () => {this.createWorld(p)});
+        this.buttons.push(button);
       }
     } else {
-      this.hud.clearRow();
-      this.hud.showButtons(true);
+      this.clearRow();
     }
   }
   
