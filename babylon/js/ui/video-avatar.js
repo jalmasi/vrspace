@@ -1,4 +1,3 @@
-import { EmojiParticleSystem } from './emoji-particle-system.js';
 import { Avatar } from './avatar.js';
 /**
 A disc that shows video stream. Until streaming starts, altText is displayed on the cylinder.
@@ -7,6 +6,7 @@ It can be extended, and new class provided to WorldManager factory.
 export class VideoAvatar extends Avatar {
   constructor( scene, callback, customOptions ) {
     super(scene);
+    this.video = true;
     this.callback = callback;
     this.deviceId = null;
     this.radius = 1;
@@ -222,7 +222,6 @@ export class VideoAvatar extends Avatar {
     }
   }
  
-  /** Compatbility with Avatar class */
   getUrl() {
     return "video";
   }

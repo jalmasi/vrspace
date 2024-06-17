@@ -20,7 +20,9 @@ import lombok.ToString;
 @Owned
 public class User extends Client {
   /** Does this client have humanoid avatar, default true */
-  private boolean isHumanoid = true;
+  private boolean humanoid = true;
+  /** Does this client have video avatar, default false */
+  private boolean video = false;
   /**
    * Left arm position, used in VR. Transient biometric data.
    */

@@ -79,8 +79,6 @@ export class VRObject {
     this.active = false;
     /** Active animation */
     this.animation = null;
-    /** Used for video/audio streaming */
-    this.streamId = null;
     /** URL of dynamically loaded script TODO */
     this.script = null;
     /** Custom properties of an object - shared transient object*/
@@ -169,6 +167,7 @@ export class Client extends VRObject {
     this.tokens = null;
     /** Server-side class name */
     this.className = 'Client';
+    this.hasAvatar = true;
   }
 }
 
@@ -181,6 +180,8 @@ export class User extends Client {
     super();
     /** Does this client have humanoid avatar, default true */
     this.humanoid = true;
+    /** Does this client have video avatar, default false */
+    this.video = false;
     /** Left arm position */
     this.leftArmPos = { x: null, y: null, z: null };
     /** Right arm position */
@@ -194,10 +195,6 @@ export class User extends Client {
     /** Server-side class name */
     this.className = 'User';
     /** true if the client has avatar */
-  }
-  hasAvatar() {
-    // FIXME as ugly as it gets, get rid of this video thing
-    return this.humanoid && this.mesh && this.mesh !== 'video';
   }
 }
 
@@ -232,11 +229,6 @@ export class Bot extends User {
     super();
     /** Server-side class name */
     this.className = 'Bot';
-  }
-  /** FIXME always returns true */
-  hasAvatar() {
-    return true;
-    //return this.humanoid && this.mesh;
   }
 }
 export class ArthurBot extends Bot {

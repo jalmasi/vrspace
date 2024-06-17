@@ -26,7 +26,7 @@ export class EmojiParticleSystem {
     }
     if ( avatar ) {
       this.particleSource.parent = avatar.baseMesh();
-      this.particleSource.position = avatar.topPositionAbsolute();
+      this.particleSource.position = avatar.topPositionRelative();
     } else {
       this.particleSource.parent = this.scene.activeCamera;
       this.particleSource.position = new BABYLON.Vector3(0,0,0.5);

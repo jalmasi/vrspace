@@ -26,6 +26,8 @@ export class Avatar {
     this.userHeight = 1.8;
     /** Distance for text above the avatar */
     this.textOffset = 0.4;
+    this.humanoid = false;
+    this.video = false;
     /** Original root mesh of the avatar, used to scale the avatar */
     /** Whether to display the name above the head, defaults to value of static displayName */
     this.displayName = this.constructor.displayName;
@@ -106,7 +108,7 @@ export class Avatar {
   }
 
   /** Position of top of the avatar, default implementation returns basePosition()+topPositionRelative() */
-  topPositionAbolute() {
+  topPositionAbsolute() {
     return this.basePosition().add(this.topPositionRelative());
   }
 
@@ -114,9 +116,13 @@ export class Avatar {
   topPositionRelative() {
     return new BABYLON.Vector3(0, this.userHeight, 0);    
   }
-
+  
   /** Position of text above the avatar, default implementation returns topPositionRelative()+textOffset */
   textPositionRelative() {
     return this.topPositionRelative().add(new BABYLON.Vector3(0,this.textOffset,0));
+  }
+  
+  dispose() {
+    throw new Error("Implement this method");
   }
 }

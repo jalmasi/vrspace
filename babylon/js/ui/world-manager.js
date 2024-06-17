@@ -3,6 +3,7 @@ import {VRSPACEUI} from './vrspace-ui.js';
 import {HumanoidAvatar} from './humanoid-avatar.js';
 import {VideoAvatar} from './video-avatar.js';
 import {ServerFolder} from './server-folder.js';
+import {MeshAvatar} from './mesh-avatar.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -168,11 +169,15 @@ export class WorldManager {
     if (e.added != null) {
       this.log("ADDED " + e.objectId + " new size " + e.scene.size);
       this.log(e);
-      // FIXME: need better way to determine avatar type
-      if ( e.added.hasAvatar && e.added.hasAvatar()) {
-        this.loadAvatar( e.added );
-      } else if ("video" === e.added.mesh) {
-        this.loadStream( e.added );
+
+      if (typeof e.added.hasAvatar != 'undefined' && e.added.hasAvatar) {
+        if (e.added.humanoid) {
+          this.loadAvatar(e.added);
+        } else if (e.added.video) {
+          this.loadStream(e.added);
+        } else {
+          this.loadMeshAvatar(e.added);
+        }
       } else if (e.added.mesh) {
         this.loadMesh(e.added);
       } else if (e.added.script) {
@@ -236,7 +241,7 @@ export class WorldManager {
     // obfuscators get in the way 
     //video.mesh.id = obj.constructor.name+" "+obj.id;
     video.mesh.id = obj.className+" "+obj.id;
-    obj.video = video;
+    obj.avatar = video;
     
     var parent = new BABYLON.TransformNode("Root of "+video.mesh.id, this.scene);
     video.mesh.parent = parent;
@@ -297,8 +302,10 @@ export class WorldManager {
    */
   async enterAs( avatar ) {
     let myProperties = {
-      mesh:avatar.getUrl(), 
-      userHeight:this.userHeight
+      mesh:avatar.getUrl(),
+      userHeight:this.userHeight,
+      video:avatar.video,
+      humanoid:avatar.humanoid
     };
     if ( avatar.name ) {
       myProperties.name = avatar.name;
@@ -368,8 +375,7 @@ export class WorldManager {
     var avatar = await this.createAvatarFromUrl(obj.mesh);
     avatar.userHeight = obj.userHeight;
     avatar.load( (avatar) => {
-      // FIXME: this is not container but avatar
-      obj.container = avatar;
+      obj.avatar = avatar;
       obj.instantiatedEntries = avatar.instantiatedEntries;
       avatar.VRObject = obj;
       // apply current name, position and rotation
@@ -386,13 +392,13 @@ export class WorldManager {
       obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
       // subscribe to media stream here if available
       if ( this.mediaStreams ) {
-        this.mediaStreams.streamToMesh(obj, obj.container.parentMesh);        
+        this.mediaStreams.streamToMesh(obj, obj.avatar.baseMesh());        
       }
       this.notifyLoadListeners(obj, avatar);
     }, (error) => {
-      console.log("Failed to load avatar, loading as mesh");
-      obj.hasAvatar = false;
-      this.loadMesh(obj);
+      console.log("Failed to load humanoid avatar, loading as mesh");
+      obj.humanoid = false;
+      this.loadMeshAvatar(obj);
     }
     );
   }
@@ -407,9 +413,9 @@ export class WorldManager {
   changeAvatar(obj,changes) {
     this.log( 'Processing changes on avatar' );
     this.log(changes);
-    var avatar = obj.container;
+    var avatar = obj.avatar;
     for ( var field in changes ) {
-      var node = avatar.parentMesh;
+      var node = avatar.baseMesh();
       // TODO introduce event handler functions in Avatar class, use only routeEvent here
       if ( 'position' === field ) {
         if ( ! obj.translate ) {
@@ -468,11 +474,24 @@ export class WorldManager {
   removeChangeListener( listener ) {
     VRSPACE.removeListener( this.changeListeners, listener );
   }
-  
+
+  /** Any 3d object can be an avatar */
+  loadMeshAvatar(obj) {
+    let avatar = new MeshAvatar(this.scene, obj);
+    this.loadMesh(obj, mesh=>{
+      avatar.mesh = mesh;
+      obj.avatar = avatar;
+      var bbox = avatar.baseMesh().getHierarchyBoundingVectors();
+      this.log("Bounding box:");
+      this.log(bbox);
+      avatar.userHeight = bbox.max.y-bbox.min.y;
+      avatar.setName(obj.name);
+    });
+  }
   /**
   Load an object and attach a listener.
    */
-  loadMesh(obj) {
+  async loadMesh(obj, callback) {
     this.log("Loading object "+obj.mesh);
     if ( ! obj.mesh ) {
       console.log("Null mesh of client "+obj.id);
@@ -503,6 +522,9 @@ export class WorldManager {
         }
       }
       this.notifyLoadListeners(obj, mesh);
+      if ( callback ) {
+        callback(mesh);
+      }
     }, this.loadErrorHandler);
   }
 
@@ -590,13 +612,16 @@ export class WorldManager {
   }
   
   getRootNode( obj ) {
-    if ( obj.container ) {
+    if ( obj.avatar ) {
+      return obj.avatar.baseMesh();
+    } else if ( obj.container ) {
       return obj.container.meshes[0];
     } else if ( obj.instantiatedEntries ) {
       return obj.instantiatedEntries.rootNodes[0];
     }
     console.log("ERROR: unknown root for "+obj);
   }
+  
   /** Apply remote changes to an object. */
   changeObject(obj,changes, node) {
     this.log("Changes on "+obj.id+": "+JSON.stringify(changes));
@@ -633,10 +658,10 @@ export class WorldManager {
    */
   routeEvent(obj, field, node) {
     var object = obj;
-    if ( obj.container ) {
+    if ( obj.avatar ) {
+      object = obj.avatar;
+    } else if ( obj.container ) {
       object = obj.container;
-    } else if ( obj.video ) {
-      object = obj.video;
     } else if ( obj.instantiatedEntries ) {
       object = obj.instantiatedEntries;
     } else {
@@ -660,9 +685,9 @@ export class WorldManager {
       this.mediaStreams.removeClient(obj);
     }
     VRSPACEUI.assetLoader.unloadObject(obj);
-    if ( obj.video ) {
-      obj.video.dispose();
-      obj.video = null;
+    if ( obj.avatar ) {
+      obj.avatar.dispose();
+      obj.avatar = null;
     }
     if ( obj.translate ) {
       obj.translate.dispose();

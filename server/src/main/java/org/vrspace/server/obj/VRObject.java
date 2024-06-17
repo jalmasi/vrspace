@@ -112,9 +112,6 @@ public class VRObject extends Entity {
   @Transient
   private transient Map<String, Object> properties;
 
-  // video/audio stream attached to this object CHECKME not used yet?
-  private transient String streamId;
-
   @JsonIgnore
   @Transient
   private ConcurrentHashMap<ID, VRObject> listeners;

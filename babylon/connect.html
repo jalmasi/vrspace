@@ -127,6 +127,8 @@ import('./js/vrspace-min.js').then((ui) => {
   world.VRSPACE.addWelcomeListener(() => {
     // at least set own avatar mesh so that others can see you
 	  world.VRSPACE.sendMy("mesh", avatarUrl);
+    // optionally send the user name
+    world.VRSPACE.sendMy("name", "u"+Math.ceil(Math.random()*100));
     // and start the session
     world.VRSPACE.sendCommand("Session");
   });

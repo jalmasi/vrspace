@@ -1,5 +1,4 @@
 import { VRSPACEUI } from './vrspace-ui.js';
-import { EmojiParticleSystem } from './emoji-particle-system.js';
 import { Avatar } from './avatar.js';
 
 /**
@@ -17,6 +16,7 @@ export class HumanoidAvatar extends Avatar {
   constructor(scene, folder, shadowGenerator) {
     // parameters
     super(scene);
+    this.humanoid = true;
     /** ServerFolder with content path */
     this.folder = folder;
     /** File name, default scene.gltf */
@@ -170,25 +170,10 @@ export class HumanoidAvatar extends Avatar {
     if ( this.debugViewer2 ) {
       this.debugViewer2.dispose();
     }
-    if ( this.nameTag ) {
-      this.nameTag.dispose();
-    }
-    if ( this.nameMesh ) {
-      this.nameMesh.dispose();
-      this.nameParent.dispose();
-    }
-    if (this.textParent) {
-      this.textParent.dispose();
-      this.textParent = null;
-    }
     // TODO also dispose of materials and textures (asset container)
   }
   // CHECKME this is called only from avatar-selection dispose()
   hide() {
-    if ( this.nameMesh ) {
-      this.nameMesh.dispose();
-      this.nameParent.dispose();
-    }
     if ( this.character && this.parentMesh ) {
       this.parentMesh.setEnabled(false);
       // CHECKME: turnAround for cloned character
@@ -1822,13 +1807,8 @@ export class HumanoidAvatar extends Avatar {
     return scale;
   }
 
-  /** Called when avatar size/height changes, TODO notify listeners */ 
+  /** TODO Called when avatar size/height changes, supposed move name/text above the head, notify listeners */ 
   changed() {
-    if ( this.nameParent ) {
-      var pos = this.headPos().clone();
-      pos.y += .4;
-      this.nameParent.position = pos;
-    }
   }
 
   basePosition() {
