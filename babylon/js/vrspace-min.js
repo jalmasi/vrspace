@@ -24,7 +24,6 @@ export { TextureSelector } from "./ui/texture-selector.js";
 export { WorldEditor } from "./ui/world-editor.js";
 export { SkyboxSelector } from "./ui/skybox-selector.js";
 export { WorldListener } from "./ui/world-listener.js";
-export { VideoAvatar } from "./ui/video-avatar.js";
 export { UnityWorld } from "./ui/unity-world.js";
 export { DefaultHud } from "./ui/default-hud.js";
 export { EmojiParticleSystem } from "./ui/emoji-particle-system.js";
@@ -37,6 +36,8 @@ export { VRHelper } from "./ui/vr-helper.js";
 export { ARHelper } from "./ui/ar-helper.js";
 
 export { Avatar } from "./ui/avatar.js";
+export { VideoAvatar } from "./ui/video-avatar.js";
+export { HumanoidAvatar } from "./ui/humanoid-avatar.js";
 export { AvatarController } from "./ui/avatar-controller.js";
 
 export { Terrain } from "./ui/terrain.js";

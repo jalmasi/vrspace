@@ -1,6 +1,6 @@
 import {VRSPACE} from '../client/vrspace.js';
 import {VRSPACEUI} from './vrspace-ui.js';
-import {Avatar} from './avatar.js';
+import {HumanoidAvatar} from './humanoid-avatar.js';
 import {VideoAvatar} from './video-avatar.js';
 import {ServerFolder} from './server-folder.js';
 
@@ -346,7 +346,7 @@ export class WorldManager {
       fix = null;
     }
     var folder = new ServerFolder( baseUrl, dir, fix );
-    var avatar = new Avatar(this.scene, folder);
+    var avatar = new HumanoidAvatar(this.scene, folder);
     avatar.animations = this.customAnimations;
     avatar.file = file;
     avatar.fps = this.fps;

@@ -1,4 +1,4 @@
-import { VRSPACEUI, Avatar } from './js/vrspace-min.js';
+import { VRSPACEUI, HumanoidAvatar } from './js/vrspace-min.js';
 import { AvatarSelection } from './avatar-selection.js'
 
 var selectButtons = [];
@@ -42,7 +42,7 @@ export class AvatarLoader extends AvatarSelection {
   }
   
   loadAvatar( dir, pos, angle, indicator, callback ) {
-    var avatar = new Avatar(scene, dir);
+    var avatar = new HumanoidAvatar(scene, dir);
     indicator.add(avatar);
     avatar.particles = this.startParticles(avatar.folder.name, pos);
 

@@ -1,4 +1,4 @@
-import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, Avatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud, ServerFolder } from './js/vrspace-min.js';
+import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, HumanoidAvatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud, ServerFolder } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -448,7 +448,7 @@ export class AvatarSelection extends World {
     this.indicator.add(dir);
     this.indicator.animate();
     console.log("Loading character from " + dir.name);
-    var loaded = new Avatar(this.scene, dir, this.shadowGenerator);
+    var loaded = new HumanoidAvatar(this.scene, dir, this.shadowGenerator);
     loaded.file = file;
     loaded.animations = this.customAnimations;
     // resize the character to real-world height

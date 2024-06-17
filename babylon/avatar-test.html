@@ -181,7 +181,7 @@ var loadAvatar = () => {
     var url = document.getElementById("avatarUrl").value;
     var folder = new module.ServerFile(url);
     console.log(folder);
-    var loaded = new module.Avatar(scene, folder, shadowGenerator);
+    var loaded = new module.HumanoidAvatar(scene, folder, shadowGenerator);
     loaded.debug = true;
     loaded.load((c) => {
       angle = 0;
@@ -195,11 +195,11 @@ var loadAvatar = () => {
 };
 
 var replaceAvatar = () => {
-  import('./js/ui/avatar.js').then( (module) => {
+  import('./js/ui/humanoid-avatar.js').then( (module) => {
     var index = document.getElementById("avatarName").value;
     var folder = characters[index];
     console.log(folder);
-    var loaded = new module.Avatar(scene, folder, shadowGenerator);
+    var loaded = new module.HumanoidAvatar(scene, folder, shadowGenerator);
     loaded.debug = true;
     loaded.load((c) => {
       angle = 0;
@@ -219,10 +219,10 @@ var createController = () => {
   avatarController = new vrspaceUI.AvatarController(worldManager, character);
 }
 var instantiate = () => {
-  import('./js/ui/avatar.js').then( (module) => {
+  import('./js/ui/humanoid-avatar.js').then( (module) => {
     var index = document.getElementById("avatarName").value;
     var folder = characters[index];
-    var loaded = new module.Avatar(scene, folder, shadowGenerator);
+    var loaded = new module.HumanoidAvatar(scene, folder, shadowGenerator);
     loaded.returnToRest = rest;
     loaded.debug = false;
     loaded.load((c) => {
