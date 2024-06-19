@@ -1,4 +1,4 @@
-import {VRSPACEUI} from './vrspace-ui.js';
+import {VRSPACEUI} from '../vrspace-ui.js';
 
 /** UI to create floors, see {@link https://www.youtube.com/watch?v=8RxToSgtoko|this youtube video}.
 Start recording, then edit, then save, either as js or json.

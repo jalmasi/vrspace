@@ -1,6 +1,6 @@
 import { Label } from './label.js';
 import { ManipulationHandles } from "./manipulation-handles.js";
-import { VRSPACEUI } from "./vrspace-ui.js";
+import { VRSPACEUI } from "../vrspace-ui.js";
 
 /**
  * Text area somewhere in space, like a screen.

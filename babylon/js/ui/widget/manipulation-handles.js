@@ -1,4 +1,4 @@
-import { VRSPACEUI } from "./vrspace-ui.js";
+import { VRSPACEUI } from "../vrspace-ui.js";
 
 /**
  * Plane manipulation UI: adds handles around a plane, and installs pointer drag observable to the scene.

@@ -1,4 +1,4 @@
-import {VRSPACEUI} from './vrspace-ui.js';
+import {VRSPACEUI} from '../vrspace-ui.js';
 
 /**
 Portal is an entrance to other worlds, disabled by default.

@@ -1,6 +1,6 @@
 import { TextArea } from './text-area.js';
 import { TextAreaInput } from './text-area-input.js';
-import { VRSPACEUI } from './vrspace-ui.js';
+import { VRSPACEUI } from '../vrspace-ui.js';
 import { Label } from './label.js';
 import { RemoteBrowser } from './remote-browser.js';
 

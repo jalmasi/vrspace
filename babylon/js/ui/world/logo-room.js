@@ -1,4 +1,4 @@
-import {VRSPACEUI} from './vrspace-ui.js';
+import {VRSPACEUI} from '../vrspace-ui.js';
 
 /** 
 Room with vrspace.org logo as floor and invisible cylinder walls, as used on vrspace.org demo site.

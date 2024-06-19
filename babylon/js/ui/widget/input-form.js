@@ -1,5 +1,5 @@
 import { Form } from './form.js';
-import { VRSPACEUI } from './vrspace-ui.js';
+import { VRSPACEUI } from '../vrspace-ui.js';
 /**
  * Basic input form, contains a TextBlock, InputText and a submit button.
  */

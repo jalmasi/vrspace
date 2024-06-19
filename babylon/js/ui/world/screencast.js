@@ -1,4 +1,4 @@
-import { OpenViduStreams } from '../core/media-streams.js';
+import { OpenViduStreams } from '../../core/media-streams.js';
 
 /**
 Simple screen sharing component. Creates two planes: 

@@ -1,5 +1,5 @@
 import { TextWriter } from '../core/text-writer.js';
-import { EmojiParticleSystem } from '../ui/emoji-particle-system.js';
+import { EmojiParticleSystem } from '../ui/world/emoji-particle-system.js';
 
 /**
  * Base avatar class, provides common methods for actual humanoid/video/mesh avatars

@@ -1,5 +1,5 @@
 import {ScrollablePanel} from "./scrollable-panel.js";
-import {Form} from './form.js';
+import {Form} from '../widget/form.js';
 
 class SearchForm extends Form {
   constructor(callback) {

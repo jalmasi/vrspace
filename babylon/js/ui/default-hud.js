@@ -5,7 +5,7 @@ import { WorldManager } from '../core/world-manager.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
 import { VRHelper } from '../xr/vr-helper.js';
 import { ServerFile } from '../core/server-folder.js';
-import { EmojiParticleSystem } from './emoji-particle-system.js';
+import { EmojiParticleSystem } from './world/emoji-particle-system.js';
 
 /**
  * Adds default holographic buttons to the HUD.

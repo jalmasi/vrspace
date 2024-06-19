@@ -1,6 +1,6 @@
 import { ImageArea } from './image-area.js';
 import { InputForm } from './input-form.js';
-import { VRSPACEUI } from './vrspace-ui.js';
+import { VRSPACEUI } from '../vrspace-ui.js';
 
 export class RemoteBrowser extends ImageArea {
   constructor(scene) {

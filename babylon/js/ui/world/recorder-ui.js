@@ -1,5 +1,5 @@
-import {VRSPACE} from '../client/vrspace.js';
-import {VRSPACEUI} from './vrspace-ui.js';
+import {VRSPACE} from '../../client/vrspace.js';
+import {VRSPACEUI} from '../vrspace-ui.js';
 
 /**
 Event Recorder is server-side component.

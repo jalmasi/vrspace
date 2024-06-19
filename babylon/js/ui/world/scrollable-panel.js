@@ -1,6 +1,6 @@
-import { VRSPACEUI } from './vrspace-ui.js';
-import { TextWriter } from '../core/text-writer.js';
-import { TextArea } from './text-area.js';
+import { VRSPACEUI } from '../vrspace-ui.js';
+import { TextWriter } from '../../core/text-writer.js';
+import { TextArea } from '../widget/text-area.js';
 
 /**
  * A 3D panel displayed in the world, with arbitrary number of holographic buttons.
