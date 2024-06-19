@@ -1,5 +1,5 @@
 import { VRSPACEUI } from './vrspace-ui.js';
-import { TextWriter } from './text-writer.js';
+import { TextWriter } from '../core/text-writer.js';
 import { TextArea } from './text-area.js';
 
 /**

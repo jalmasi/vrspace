@@ -1,5 +1,5 @@
 import {World}  from './world.js';
-import {VRSPACEUI}  from './vrspace-ui.js';
+import {VRSPACEUI}  from '../ui/vrspace-ui.js';
 
 /**
 Use in conjunction with babylon.js unity exporter.

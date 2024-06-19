@@ -1,5 +1,5 @@
 import {VRSPACEUI} from './vrspace-ui.js';
-import {WorldListener} from './world-listener.js';
+import {WorldListener} from '../core/world-listener.js';
 import {TextureSelector} from './texture-selector.js';
 
 export class TerrainEditor extends WorldListener {

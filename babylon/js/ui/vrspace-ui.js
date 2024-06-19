@@ -1,9 +1,9 @@
 import {VRSPACE} from '../client/vrspace.js';
-import {ScriptLoader} from './script-loader.js';
-import {AssetLoader} from './asset-loader.js';
+import {ScriptLoader} from '../core/script-loader.js';
+import {AssetLoader} from '../core/asset-loader.js';
 import {LoadProgressIndicator} from './load-progress-indicator.js';
 import {HUD} from './hud.js';
-import {ServerFolder} from './server-folder.js';
+import {ServerFolder} from '../core/server-folder.js';
 
 /**
 Main UI class, provides utility methods and basic UI elements.

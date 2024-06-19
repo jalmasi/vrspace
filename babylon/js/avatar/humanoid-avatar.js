@@ -1,4 +1,4 @@
-import { VRSPACEUI } from './vrspace-ui.js';
+import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Avatar } from './avatar.js';
 
 /**

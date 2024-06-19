@@ -1,4 +1,4 @@
-import {VRSPACEUI} from './vrspace-ui.js';
+import {VRSPACEUI} from '../ui/vrspace-ui.js';
 /** 
 Wrapper around BabylonJS XR/VR classes, whatever is available in current browser, if any.
 Attached to a World, places the world mesh somewhere in real world TODO

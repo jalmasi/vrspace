@@ -31,7 +31,7 @@
         <script src="./js/lib/babylonjs.loaders.min.js"></script>
         <script src="./js/lib/babylon.gui.min.js"></script>
         -->
-        <script src="./js/ui/avatar.js"  type="module"></script>
+        <script src="./js/avatar/humanoid-avatar.js"  type="module"></script>
     </head>
   <body>
 
@@ -195,7 +195,7 @@ var loadAvatar = () => {
 };
 
 var replaceAvatar = () => {
-  import('./js/ui/humanoid-avatar.js').then( (module) => {
+  import('./js/avatar/humanoid-avatar.js').then( (module) => {
     var index = document.getElementById("avatarName").value;
     var folder = characters[index];
     console.log(folder);
@@ -219,7 +219,7 @@ var createController = () => {
   avatarController = new vrspaceUI.AvatarController(worldManager, character);
 }
 var instantiate = () => {
-  import('./js/ui/humanoid-avatar.js').then( (module) => {
+  import('./js/avatar/humanoid-avatar.js').then( (module) => {
     var index = document.getElementById("avatarName").value;
     var folder = characters[index];
     var loaded = new module.HumanoidAvatar(scene, folder, shadowGenerator);

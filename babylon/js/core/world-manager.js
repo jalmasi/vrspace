@@ -1,9 +1,9 @@
 import {VRSPACE} from '../client/vrspace.js';
-import {VRSPACEUI} from './vrspace-ui.js';
-import {HumanoidAvatar} from './humanoid-avatar.js';
-import {VideoAvatar} from './video-avatar.js';
+import {VRSPACEUI} from '../ui/vrspace-ui.js';
+import {HumanoidAvatar} from '../avatar/humanoid-avatar.js';
+import {VideoAvatar} from '../avatar/video-avatar.js';
 import {ServerFolder} from './server-folder.js';
-import {MeshAvatar} from './mesh-avatar.js';
+import {MeshAvatar} from '../avatar/mesh-avatar.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 

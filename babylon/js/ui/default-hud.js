@@ -1,10 +1,10 @@
 import { VRSPACEUI } from './vrspace-ui.js';
-import { MediaStreams } from './media-streams.js';
-import { SpeechInput } from './speech-input.js';
-import { WorldManager } from './world-manager.js';
+import { MediaStreams } from '../core/media-streams.js';
+import { SpeechInput } from '../core/speech-input.js';
+import { WorldManager } from '../core/world-manager.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
-import { VRHelper } from './vr-helper.js';
-import { ServerFile } from './server-folder.js';
+import { VRHelper } from '../xr/vr-helper.js';
+import { ServerFile } from '../core/server-folder.js';
 import { EmojiParticleSystem } from './emoji-particle-system.js';
 
 /**

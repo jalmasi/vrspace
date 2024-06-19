@@ -1,4 +1,4 @@
-import {SpeechInput} from './speech-input.js';
+import {SpeechInput} from '../core/speech-input.js';
 
 /**
  * Base form helper class contains utility methods for creation of UI elements - text blocks, checkboxes, text input etc.

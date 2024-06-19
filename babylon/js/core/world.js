@@ -1,8 +1,8 @@
-import {VRSPACEUI} from './vrspace-ui.js';
-import {VRHelper} from './vr-helper.js';
-import {ChatLog} from './chat-log.js';
+import {VRSPACEUI} from '../ui/vrspace-ui.js';
+import {VRHelper} from '../xr/vr-helper.js';
+import {ChatLog} from '../ui/chat-log.js';
 import {WorldManager} from './world-manager.js';
-import {AvatarController} from './avatar-controller.js';
+import {AvatarController} from '../avatar/avatar-controller.js';
 
 /**
 Basic world, intended to be overridden.

@@ -1,4 +1,4 @@
-import {VRSPACEUI} from './vrspace-ui.js';
+import {VRSPACEUI} from '../ui/vrspace-ui.js';
 
 /**
  * 3D Text writer, based on https://doc.babylonjs.com/extensions/meshWriter

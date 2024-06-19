@@ -1,4 +1,4 @@
-import {SpeechInput} from './speech-input.js';
+import {SpeechInput} from '../core/speech-input.js';
 /**
 HUD stands for head-up display - a UI container mounted on users head.
 Typically we have some buttons around 50 cm front, 10-20 cm below line of sight.
