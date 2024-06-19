@@ -37,16 +37,26 @@ export class ServerFile extends ServerFolder {
  /** Create new server file from the url*/
   constructor(url, related) {
     super();
-    var pos = url.lastIndexOf('/');
-    var path = url.substring(0,pos);
-    this.file = url.substring(pos+1);
-    pos = path.lastIndexOf('/');
-    this.baseUrl = path.substring(0,pos+1);
-    this.name = path.substring(pos+1);
+    this.url = new URL(url);
+
+    this.fileUrl = url; // or this.url.href
     this.related = related;
-    this.fileUrl = url;
+    
+    let pos = this.url.pathname.lastIndexOf('/');
+    this.file = this.url.pathname.substring(pos+1);
     pos = this.file.indexOf('.');
     this.baseName = this.file.substring(0,pos);
     this.extension = this.file.substring(pos+1);
+    
+    // CHECKME: this is done only for compatibility with ServerFolder; is it used anywhere?
+    pos = url.lastIndexOf('/');
+    let path = url.substring(0,pos);
+    pos = path.lastIndexOf('/');
+    this.baseUrl = path.substring(0,pos+1);
+    this.name = path.substring(pos+1);
+    
+  }
+  getPath() {
+    return this.url.pathname;
   }
 }

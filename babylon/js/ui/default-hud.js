@@ -103,7 +103,8 @@ export class DefaultHud {
         console.log(emojis);
         emojis.forEach( url=>{
           let sf=new ServerFile(url);
-          let button = this.hud.addButton(sf.baseName, url, () => this.playEmoji(url), false);
+          // do not use full url here, use only path and file
+          let button = this.hud.addButton(sf.baseName, sf.getPath(), () => this.playEmoji(sf.getPath()), false);
           button.backMaterial.alpha = 1;
           button.plateMaterial.disableLighting = true;
           button.plateMaterial.emissiveColor = new BABYLON.Color3(0.3,0.3,0.3);
