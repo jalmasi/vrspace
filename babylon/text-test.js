@@ -134,7 +134,7 @@ export class TextWorld extends World {
     
     // detach/attach to hud/camera test
     let state = 0;
-    let hudText = new TextArea(this.scene);
+    let hudText = new TextArea(this.scene, "TouchTextArea");
     hudText.text = "An example of a TextArea\nattached to camera";
     hudText.attachToCamera();
     hudText.size = .1;

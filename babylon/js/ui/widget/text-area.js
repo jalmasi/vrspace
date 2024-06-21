@@ -1,12 +1,12 @@
 import { Label } from './label.js';
 import { ManipulationHandles } from "./manipulation-handles.js";
 import { VRSPACEUI } from "../vrspace-ui.js";
-
+import { BaseArea } from './base-area.js';
 /**
  * Text area somewhere in space, like a screen.
  * Provides methods for writing the text, movement, resizing.
  */
-export class TextArea {
+export class TextArea extends BaseArea {
   /**
    * Creates the area with default values. 
    * By default, it's sized and positioned to be attached to the camera, is nicely transparent, font size 16 on 512x512 texture,
@@ -16,9 +16,8 @@ export class TextArea {
    * @param titleText optional title to display above the area 
    */
   constructor(scene, name = "TextArea", titleText = null) {
+    super(scene,name);
     this.titleText = titleText;
-    this.scene = scene;
-    this.size = .2;
     this.position = new BABYLON.Vector3(-.08, 0, .5);
     this.alpha = 0.7;
     this.fontSize = 16;
@@ -26,16 +25,11 @@ export class TextArea {
     this.height = 512;
     this.capacity = this.width*this.height/this.fontSize;
     this.textWrapping = true;
-    this.addHandles = true;
     this.addBackground = true;
-    this.canMinimize = true;
     this.autoScale = false; // experimental, unstable
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
-    this.group = new BABYLON.TransformNode(name, this.scene);
-    this.attachedToHud = false;
-    this.attachedToCamera = false;
     this.title = null;
   }
   /**
@@ -70,8 +64,8 @@ export class TextArea {
     }
     this.ratio = this.width/this.height;
 
-    this.textAreaPlane = BABYLON.MeshBuilder.CreatePlane("TextAreaPlane", {width:this.size*this.ratio,height:this.size}, this.scene);
-    this.textAreaPlane.parent = this.group;
+    this.areaPlane = BABYLON.MeshBuilder.CreatePlane("TextAreaPlane", {width:this.size*this.ratio,height:this.size}, this.scene);
+    this.areaPlane.parent = this.group;
 
     if ( this.addBackground ) {
       this.material = new BABYLON.StandardMaterial("TextAreaMaterial", this.scene);
@@ -82,19 +76,19 @@ export class TextArea {
       this.backgroundPlane.position = new BABYLON.Vector3(0, 0, this.size/100);
       this.backgroundPlane.parent = this.group;
       this.backgroundPlane.material = this.material;
-    }    
+    }
   
     if (this.addHandles) {
       this.createHandles();
     }
     
     this.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
-      this.textAreaPlane,
+      this.areaPlane,
       this.width,
       this.height,
       false // do not handle pointer events
     );
-    this.textAreaPlane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
+    this.areaPlane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
   
     this.texture.addControl(this.textBlock);
     
@@ -135,15 +129,7 @@ export class TextArea {
     this.handles.canMinimize = this.canMinimize;
     this.handles.show();
   }
-  /**
-   * Removes manipulation handles.
-   */
-  removeHandles() {
-    if ( this.handles ) {
-      this.handles.dispose();
-      this.handles = null;
-    }
-  }
+
   /**
    * Hide/show (requires manipulation handles)
    * @param flag boolean, hide/show
@@ -155,61 +141,38 @@ export class TextArea {
   }
   /** Clean up. */
   dispose() {
+    super.dispose();
     this.removeTitle();
-    this.removeHandles();
     if ( this.backgroundPlane ) {
       this.backgroundPlane.dispose();
-      this.material.dispose();
     }
     if ( this.texture ) {
-      this.textAreaPlane.dispose();
       this.textBlock.dispose();
       this.texture.dispose();
     }
   }
-  /**
-   * Attach it to the hud. It does not resize automatically, just sets the parent.
-   */
+  
+  /** Attach both textPlane and backgroundPlane to the HUD, and optionally also handles. */
   attachToHud() {
-    this.group.parent = VRSPACEUI.hud.root;
-    this.attachedToCamera = false;
-    this.attachedToHud = true;
-    VRSPACEUI.hud.addAttachment(this.textAreaPlane);
+    super.attachToHud();
     VRSPACEUI.hud.addAttachment(this.backgroundPlane);
-    if ( this.handles ) {
-      this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
-      VRSPACEUI.hud.addAttachment(this.handles.box);
-    }
   }
+  
   /**
    * Attach it to the camera. It does not resize automatically, just sets the parent.
    * It does not automatically switch to another camera if active camera changes.
    * @param camera currently active camera
    */
   attachToCamera(camera = this.scene.activeCamera) {
-    this.group.parent = camera;
-    this.attachedToCamera = true;
-    this.attachedToHud = false;
-    VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
+    super.attachToCamera(camera);
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
-    if ( this.handles ) {
-      this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
-      VRSPACEUI.hud.addAttachment(this.handles.box);
-    }
   }
   /**
    * Detach from whatever attached to, i.e. drop it where you stand.
    */
   detach() {
-    this.group.parent = null;
-    this.attachedToCamera = false;
-    this.attachedToHud = false;
-    VRSPACEUI.hud.removeAttachment(this.textAreaPlane);
+    super.detach();
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
-    if ( this.handles ) {
-      this.handles.handles.forEach( h => VRSPACEUI.hud.removeAttachment(h));
-      VRSPACEUI.hud.removeAttachment(this.handles.box);
-    }
   }
   /**
    * Check if current text length exceeds the capacity and truncate as required.
@@ -266,6 +229,6 @@ export class TextArea {
    * XR pointer support
    */
   isSelectableMesh(mesh) {
-    return mesh == this.textAreaPlane || (this.handles && this.handles.handles.includes(mesh)); 
+    return mesh == this.areaPlane || (this.handles && this.handles.handles.includes(mesh)); 
   }
 }

@@ -96,6 +96,7 @@ export class ManipulationHandles {
             // moving around
             if ( ! this.behavior ) {
               this.behavior = new BABYLON.SixDofDragBehavior()
+              // does not work if group.parent is camera
               this.group.addBehavior(this.behavior);
               pointerInfo.pickInfo.pickedMesh.material = this.selectedMaterial;
               this.selectedHandle = pointerInfo.pickInfo.pickedMesh;
@@ -126,7 +127,7 @@ export class ManipulationHandles {
           let scale = (this.height + diff)/this.height;
           this.group.scaling = this.group.scaling.scale(scale);
         }
-        if ( this.selectedHandle) {
+        if ( this.selectedHandle ) {
           this.selectedHandle.material = this.material;
           this.selectedHandle = null;
           if ( this.behavior ) {
