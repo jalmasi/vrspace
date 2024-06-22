@@ -2,6 +2,12 @@ import { ImageArea } from './image-area.js';
 import { InputForm } from './input-form.js';
 import { VRSPACEUI } from '../vrspace-ui.js';
 
+/**
+ * Experimental remote web browser. Communicates with server-side component that controls a headless web browser with Selenium.
+ * Requires firefox on the server, and org.vrspace.server.selenium-enabled=true property.
+ * Forwards click to the server, and loads resulting screenshots.
+ * Severe limitation is that there's no such thing as 'web page is ready' signal in web browser.
+ */
 export class RemoteBrowser extends ImageArea {
   constructor(scene) {
     super(scene);
