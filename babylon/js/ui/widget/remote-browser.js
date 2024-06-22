@@ -145,25 +145,10 @@ export class RemoteBrowser extends ImageArea {
     formPlane.position = new BABYLON.Vector3(0,-0.12,-.05);
     formPlane.setEnabled(false);
     this.inputForm.addListener(text=>this.enter(text));
-    
-    this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
-        && pointerInfo.pickInfo.hit
-        && this.areaPlane == pointerInfo.pickInfo.pickedMesh
-      ) {
-        let coords = pointerInfo.pickInfo.getTextureCoordinates();
-        let y = Math.round(this.height*(1-coords.y));
-        let x = Math.round(coords.x*this.width);
-        console.log("Clicked: x="+x+" y="+y+" coord "+pointerInfo.pickInfo.getTextureCoordinates() );
-        this.click(x,y);
-      }
-    });
   }
+  
   dispose() {
     super.dispose();
-    if ( this.clickHandler) {
-      this.scene.onPointerObservable.remove(this.clickHandler);
-    }
     this.inputForm.dispose();
     if ( this.buttonBack ) {
       this.buttonBack.dispose();

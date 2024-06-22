@@ -14,6 +14,7 @@ export class BaseArea {
     this.attachedToCamera = false;
     this.areaPlane = null;
     this.handles = null;
+    this.texture = null;
     this.material = null;
   }
   
@@ -77,6 +78,13 @@ export class BaseArea {
     }
   }
  
+  /**
+  * XR pointer support
+  */
+  isSelectableMesh(mesh) {
+    return mesh == this.areaPlane || (this.handles && this.handles.handles.includes(mesh)); 
+  }
+
   /** Clean up allocated resources */
   dispose() {
     this.detach();

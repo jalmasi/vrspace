@@ -18,8 +18,8 @@ export class ImageArea extends BaseArea {
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
     this.visible = false;
-    this.texture = null;
     this.noiseTexture = null;
+    this.callback = null; // FIXME
   }
 
   /** Show the area, optionally also creates manipulation handles */  
@@ -49,6 +49,20 @@ export class ImageArea extends BaseArea {
     if (this.addHandles) {
       this.createHandles();
     }
+    
+    this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
+      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
+        && pointerInfo.pickInfo.hit
+        && this.areaPlane == pointerInfo.pickInfo.pickedMesh
+      ) {
+        let coords = pointerInfo.pickInfo.getTextureCoordinates();
+        let y = Math.round(this.height*(1-coords.y));
+        let x = Math.round(coords.x*this.width);
+        console.log("Clicked: x="+x+" y="+y+" coord "+pointerInfo.pickInfo.getTextureCoordinates() );
+        this.click(x,y);
+      }
+    });
+    
   }
   
   /**
@@ -97,14 +111,28 @@ export class ImageArea extends BaseArea {
     this.fullyVisible();
   }
 
-  /** Load video texture from the url */
-  loadVideo(url) {
+  /** Load video texture from the url, and by default also creates and plays the spatial sound. */
+  loadVideo(url, playSound=true) {
     let texture = new BABYLON.VideoTexture(null, url, this.scene);
     this.texturesDispose();
     this.material.diffuseTexture = texture;
     this.texture = texture;
     this.fullyVisible();
-    this.texture.video.play(); // CHECKME
+    if ( playSound ) {
+      this.sound = new BABYLON.Sound(
+        "videoTextureSound",
+        texture.video,
+        this.scene, null, {
+          //loop: true,
+          autoplay: true,
+          spatialSound: true,
+          //streaming: false,
+          distanceModel: "linear",
+          maxDistance: 10,
+          panningModel: "equalpower" // or "HRTF"
+        });
+      this.sound.attachToMesh(this.areaPlane);
+    }
   }
   
   /**
@@ -119,9 +147,29 @@ export class ImageArea extends BaseArea {
     this.handles.show();
   }
 
+  async click(x,y) {
+    if ( this.callback ) {
+      this.callback(this,x,y);
+    }
+  }
+  
+  /**
+   * Set click event handler here
+   * @param callback executed on pointer click, passed Control argument
+   */
+  onClick(callback) {
+    this.callback = callback;   
+  }
+
   /** Clean up. */
   dispose() {
     super.dispose();
+    if ( this.clickHandler) {
+      this.scene.onPointerObservable.remove(this.clickHandler);
+    }
+    if ( this.sound ) {
+      this.sound.dispose();
+    }
     this.texturesDispose();
   }
 

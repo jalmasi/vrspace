@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, ChatLog } from './js/vrspace-min.js';
+import { VRSPACEUI, World, ChatLog, ImageArea } from './js/vrspace-min.js';
 
 export class BrowserWorld extends World {
   async load(callback) {
@@ -62,7 +62,47 @@ export class BrowserWorld extends World {
     
     chatLog.writeln("Click here: www.vrspace.org");
     
+    this.selectables = [];
+    // detach/attach to hud/camera test
+    let state = 0;
+    let imageArea = new ImageArea(this.scene, "TouchImageArea");
+    imageArea.text = "An example of a TextArea\nattached to camera";
+    imageArea.attachToCamera();
+    imageArea.size = .1;
+    imageArea.position = new BABYLON.Vector3(.1, 0, .2);
+    imageArea.show();
+    this.selectables.push(imageArea);
+    
+    imageArea.onClick(e=>{
+      // loading video only on click, otherwise chrome doesn't allow sound
+      if ( ! this.videoLoaded ) {
+        this.videoLoaded = true;
+        imageArea.loadVideo("https://www.vrspace.org/content/vrspace-ui-demo.mp4");
+      }
+      if ( imageArea.handles ) {
+        imageArea.removeHandles();
+      } else {
+        imageArea.createHandles();
+      }
+      if ( state%3 == 0 ) {
+        imageArea.attachToHud();
+      } else if (state%3 == 1) {
+        imageArea.attachToCamera();
+        chatLog.leftSide();
+      } else if (state%3 == 2) {
+        imageArea.detach();
+        chatLog.rightSide();
+      }
+      state ++;
+    });
   }
+  
+  isSelectableMesh(mesh) {
+    let ret = super.isSelectableMesh(mesh);
+    this.selectables.forEach( o => ret |= o.isSelectableMesh(mesh));
+    return ret;
+  }  
+
 }
 
 export { VRSPACEUI };
