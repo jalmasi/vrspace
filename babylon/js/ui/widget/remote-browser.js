@@ -143,7 +143,7 @@ export class RemoteBrowser extends ImageArea {
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
         && pointerInfo.pickInfo.hit
-        && this.plane == pointerInfo.pickInfo.pickedMesh
+        && this.areaPlane == pointerInfo.pickInfo.pickedMesh
       ) {
         let coords = pointerInfo.pickInfo.getTextureCoordinates();
         let y = Math.round(this.height*(1-coords.y));
@@ -159,8 +159,10 @@ export class RemoteBrowser extends ImageArea {
       this.scene.onPointerObservable.remove(this.clickHandler);
     }
     this.inputForm.dispose();
-    this.buttonBack.dispose();
-    this.buttonForward.dispose();
-    this.buttonQuit.dispose();
+    if ( this.buttonBack ) {
+      this.buttonBack.dispose();
+      this.buttonForward.dispose();
+      this.buttonQuit.dispose();
+    }
   }
 }

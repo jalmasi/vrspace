@@ -1,6 +1,6 @@
 import { VRSPACEUI, World, ChatLog } from './js/vrspace-min.js';
 
-export class TextWorld extends World {
+export class BrowserWorld extends World {
   async load(callback) {
     // we're not loading any models
     // but we're displaying UI instead
@@ -66,4 +66,4 @@ export class TextWorld extends World {
 }
 
 export { VRSPACEUI };
-export const WORLD = new TextWorld();
+export const WORLD = new BrowserWorld();

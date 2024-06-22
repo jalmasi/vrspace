@@ -21,7 +21,8 @@ export class ImageArea extends BaseArea {
     this.texture = null;
     this.noiseTexture = null;
   }
-  
+
+  /** Show the area, optionally also creates manipulation handles */  
   show () {
     if ( this.visible ) {
       return;
@@ -40,7 +41,7 @@ export class ImageArea extends BaseArea {
     this.noiseTexture.persistence = 1.5;
     this.noiseTexture.animationSpeedFactor = 3;
 
-    this.this.areaPlane = BABYLON.MeshBuilder.CreatePlane("ImageAreaPlane", {width:this.size*this.ratio,height:this.size}, this.scene);
+    this.areaPlane = BABYLON.MeshBuilder.CreatePlane("ImageAreaPlane", {width:this.size*this.ratio,height:this.size}, this.scene);
     this.areaPlane.parent = this.group;
     this.areaPlane.material = this.material;
     this.areaPlane.visibility = 0.1;
@@ -50,6 +51,10 @@ export class ImageArea extends BaseArea {
     }
   }
   
+  /**
+   * Internally used while replacing the texture
+   * @private
+   */
   texturesDispose() {
     if ( this.noiseTexture ) {
       this.noiseTexture.dispose();
@@ -61,11 +66,17 @@ export class ImageArea extends BaseArea {
     }
   }
   
+  /**
+   * Internally used after texture is set, sets emissiveColor and visibility
+   */
   fullyVisible() {
     this.material.emissiveColor = new BABYLON.Color3(1,1,1);
     this.areaPlane.visibility = 1;
   }
   
+  /**
+   * Load the texture from the url
+   */
   loadUrl(url) {
     let texture = new BABYLON.Texture(url, this.scene);
     this.texturesDispose();
@@ -74,6 +85,9 @@ export class ImageArea extends BaseArea {
     this.fullyVisible();
   }
 
+  /**
+   * Load texture from the data buffer, e.g. blob
+   */
   loadData(data, name="bufferedTexture") {
     console.log("Loading texture, size "+data.size);
     this.texturesDispose();
@@ -83,6 +97,16 @@ export class ImageArea extends BaseArea {
     this.fullyVisible();
   }
 
+  /** Load video texture from the url */
+  loadVideo(url) {
+    let texture = new BABYLON.VideoTexture(null, url, this.scene);
+    this.texturesDispose();
+    this.material.diffuseTexture = texture;
+    this.texture = texture;
+    this.fullyVisible();
+    this.texture.video.play(); // CHECKME
+  }
+  
   /**
    * Creates manipulation handles. Left and right handle resize, and top and bottom move it.
    */

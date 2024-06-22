@@ -1,5 +1,6 @@
 /**
  * Base class common for TextArea and ImageArea, possibly more to come.
+ * Provides methods to attach the area to HUD or camera, and common variables.
  */
 export class BaseArea {
   constructor(scene, name) {
@@ -76,6 +77,7 @@ export class BaseArea {
     }
   }
  
+  /** Clean up allocated resources */
   dispose() {
     this.detach();
     this.removeHandles();
