@@ -20,6 +20,7 @@ export class ImageArea extends BaseArea {
     this.visible = false;
     this.noiseTexture = null;
     this.callback = null; // FIXME
+    this.pointerIsDown = false;
   }
 
   /** Show the area, optionally also creates manipulation handles */  
@@ -60,6 +61,10 @@ export class ImageArea extends BaseArea {
         let x = Math.round(coords.x*this.width);
         console.log("Clicked: x="+x+" y="+y+" coord "+pointerInfo.pickInfo.getTextureCoordinates() );
         this.click(x,y);
+        this.pointerIsDown = true;
+      } else if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP && this.pointerIsDown ) {
+        this.pointerIsDown = false;
+        this.pointerUp();
       }
     });
     
@@ -118,6 +123,7 @@ export class ImageArea extends BaseArea {
     this.material.diffuseTexture = texture;
     this.texture = texture;
     this.fullyVisible();
+    console.log("Loaded video "+url+" playing sound: "+playSound);
     if ( playSound ) {
       this.sound = new BABYLON.Sound(
         "videoTextureSound",
@@ -132,6 +138,7 @@ export class ImageArea extends BaseArea {
           panningModel: "equalpower" // or "HRTF"
         });
       this.sound.attachToMesh(this.areaPlane);
+      this.attachVolumeControl();
     }
   }
   
@@ -145,12 +152,29 @@ export class ImageArea extends BaseArea {
     this.handles.material.diffuseColor = new BABYLON.Color3(.2,.2,.3);
     this.handles.canMinimize = this.canMinimize;
     this.handles.show();
+    this.attachVolumeControl();
   }
 
+  attachVolumeControl() {
+    if ( this.handles && this.sound && !this.handles.onMinMax ) {
+      this.handles.onMinMax = minimized => {
+        console.log("Minimized: "+minimized);
+        if ( minimized ) {
+          this.sound.setVolume(0,1);
+        } else {
+          this.sound.setVolume(1,1);
+        }
+      }
+    }
+  }
+  
   async click(x,y) {
     if ( this.callback ) {
       this.callback(this,x,y);
     }
+  }
+
+  pointerUp() {
   }
   
   /**

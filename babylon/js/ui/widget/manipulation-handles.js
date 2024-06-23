@@ -36,8 +36,8 @@ export class ManipulationHandles {
     this.alertMaterial = new BABYLON.StandardMaterial("alertMaterial", this.scene);
     this.alertMaterial.alpha = this.material.alpha;
     this.alertMaterial.diffuseColor = new BABYLON.Color3(.3, 0, 0);
-  
-    
+    /** Callback on area minimized/maximized, passed a minimized/hidden flag */
+    this.onMinMax = null;
   }
   /**
    * Creates manipulation handles. 
@@ -145,6 +145,7 @@ export class ManipulationHandles {
    */
   hide(flag) {
     if ( this.canMinimize ) {
+      console.log("Hiding handles: "+flag);
       this.group.getChildMeshes().forEach( h => {
         if ( h !== this.box && !this.dontMinimize.includes(h)) {
           h.setEnabled(!flag);
@@ -155,6 +156,9 @@ export class ManipulationHandles {
         this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/maximize.png", this.scene);
       } else {
         this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/minimize.png", this.scene);
+      }
+      if ( this.onMinMax ) {
+        this.onMinMax(this.minimized);
       }
     }
   }
