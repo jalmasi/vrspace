@@ -2,12 +2,10 @@ import { OpenViduStreams } from '../../core/media-streams.js';
 import { ImageArea } from '../widget/image-area.js';
 
 /**
-Simple screen sharing component. Creates two planes: 
-one (screenShareMesh) to start/stop sharing, 
-and the other one (imageArea) to display the video stream.
-Properties of created meshes (position etc) are safe to be changed after creation.
-Creates and deletes a server-side object for synchronization.
-*/
+ * Base screen sharing class. Uses ImageArea to play a video stream.
+ * Using should be simple - construct and init. All methods except startSharing/stopSharing are internally called,
+ * intended to be overridden by subclasses.
+ */
 export class Screencast {
   /**
    * Creates but hides meshes.
@@ -22,16 +20,8 @@ export class Screencast {
     this.scene = world.scene;
     this.name = name;
     this.sceneEventHandler = sceneEvent => this.handleSceneEvent(sceneEvent);
-    
-    this.screenShareMesh = BABYLON.MeshBuilder.CreatePlane('screencast-button', {width:1, height:.5}, this.scene);
-    this.screenShareMesh.position = new BABYLON.Vector3(0, 1, 0);
-    this.screenShareMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-    this.screenShareMesh.material = new BABYLON.StandardMaterial('shareScreen', this.scene);;
-    this.screenShareMesh.material.emissiveColor = BABYLON.Color3.White();
-    this.screenShareMesh.material.backFaceCulling = false;
-    this.screenShareMesh.material.diffuseTexture = new BABYLON.DynamicTexture("screenShareTexture", {width:128, height:64}, this.scene);
-    this.writeText(this.text);
-    this.screenShareMesh.setEnabled(false);
+    /** Contains VRObject used to exchange screens share messages */
+    this.screenShare = null;
   }
 
   /**
@@ -41,42 +31,12 @@ export class Screencast {
   init() {
     this.worldManager = this.world.worldManager;
     this.setupStreaming();
-    
-    this.screenShareMesh.setEnabled(true);
-    this.scene.onPointerPick = (e,p) => {
-      console.log("Picked ", p.pickedMesh.name);
-      
-      if ( p.pickedMesh.name === this.screenShareMesh.name) {
-        if ( ! this.screenShare ) {
-          console.log('start sharing screen');
-          this.startSharing();
-        } else {
-          console.log('stop sharing screen');
-          this.stopSharing();
-        }
-      }
-      
-    }
-
   }
 
-  writeText( text, where ) {
-    if ( ! where ) {
-      where = this.screenShareMesh;
-    }
-    var material = where.material;
-    material.diffuseTexture.drawText(text, 
-      null, 
-      null, 
-      'bold 12px monospace', 
-      'black', 
-      'white', 
-      true, 
-      true
-    );
-  }
-
-
+  /**
+   * Called from init(). Attaches itself to MediaStreams, creates new MediaStreams if required.
+   * Registers handleSceneEvent() as a SceneListener with WorldManager.
+  */
   setupStreaming() {
     let client = this.worldManager.VRSPACE.me;
     if ( ! this.worldManager.mediaStreams ) {
@@ -94,6 +54,9 @@ export class Screencast {
     this.worldManager.VRSPACE.addSceneListener( this.sceneEventHandler );
   }
   
+  /**
+   * Starts the screencast: creates new shared VRObject, and calls MediaStreams.shareScreen().
+   */
   startSharing() {
     let client = this.worldManager.VRSPACE.me;
     let screenName = this.name;
@@ -121,29 +84,37 @@ export class Screencast {
       });
     });
   }  
-  
+
+  /**
+   * Stop sharing and delete shared object.
+  */  
   stopSharing() {
     this.worldManager.mediaStreams.stopSharingScreen();
     this.deleteSharedObject();
   }
 
+  /**
+   * Handle a scene event. If a screen share object has been added, calls this.show().
+   * If removed, calls hide().
+   */
   handleSceneEvent(sceneEvent) {
     //console.log(sceneEvent);
     // identify the object
     if ( sceneEvent.added && sceneEvent.added.properties && sceneEvent.added.properties.screenName) {
       // keep the reference, share the event when touched on
       this.screenShare = sceneEvent.added;
-      this.writeText('Sharing: '+sceneEvent.added.properties.screenName);
-      this.show();
+      this.show(sceneEvent);
     } else if ( sceneEvent.removed && this.screenShare && sceneEvent.removed.id == this.screenShare.id) {
       console.log("Screen share removed");
       this.screenShare = null;
-      this.imageArea.dispose();
-      this.writeText(this.text);
+      this.hide(sceneEvent);
     }
   }
   
-  show() {
+  /**
+   * Create and show an ImageArea.
+   */
+  show(sceneEvent) {
     this.imageArea = new ImageArea(this.scene, "ScreencastArea");
     this.imageArea.size = 3;
     this.imageArea.addHandles = false;
@@ -151,16 +122,29 @@ export class Screencast {
     this.imageArea.group.rotation = new BABYLON.Vector3(0, Math.PI, 0);
     this.imageArea.show();
   }
+
+  /**
+   * Dispose of ImageArea.
+   */
+  hide(sceneEvent) {
+    this.imageArea.dispose();
+  }  
   
+  /**
+   * Internally used to delete the shared object.
+   */
   deleteSharedObject() {
     if ( this.screenShare ) {
       this.worldManager.VRSPACE.deleteSharedObject(this.screenShare);
     }
   }
 
+  /**
+   * Clean up.
+   */
   dispose() {
      this.screenShareMesh.dispose();
-     this.imageArea.dispose();
+     this.hide();
      this.worldManager.VRSPACE.removeSceneListener( this.sceneEventHandler );
      this.deleteSharedObject();
   }
