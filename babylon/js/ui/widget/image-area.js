@@ -14,9 +14,7 @@ export class ImageArea extends BaseArea {
     this.position = new BABYLON.Vector3(0, 0, .3);
     this.width = 2048;
     this.height = 1024;
-    this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-    this.text = "";
+    this.autoResize = true;
     this.visible = false;
     this.noiseTexture = null;
     this.callback = null; // FIXME
@@ -42,7 +40,9 @@ export class ImageArea extends BaseArea {
     this.noiseTexture.persistence = 1.5;
     this.noiseTexture.animationSpeedFactor = 3;
 
-    this.areaPlane = BABYLON.MeshBuilder.CreatePlane("ImageAreaPlane", {width:this.size*this.ratio,height:this.size}, this.scene);
+    this.areaPlane = BABYLON.MeshBuilder.CreatePlane("ImageAreaPlane", {width:1,height:1}, this.scene);
+    this.areaPlane.scaling.x = this.size*this.ratio;
+    this.areaPlane.scaling.y = this.size;
     this.areaPlane.parent = this.group;
     this.areaPlane.material = this.material;
     this.areaPlane.visibility = 0.1;
@@ -102,6 +102,7 @@ export class ImageArea extends BaseArea {
     this.material.diffuseTexture = texture;
     this.texture = texture;
     this.fullyVisible();
+    this.resizeArea(texture.getSize().width, texture.getSize().height);
   }
 
   /**
@@ -114,6 +115,7 @@ export class ImageArea extends BaseArea {
     this.material.diffuseTexture = texture;
     this.texture = texture;
     this.fullyVisible();
+    this.resizeArea(texture.getSize().width, texture.getSize().height);
   }
 
   /** Load video texture from the url, and by default also creates and plays the spatial sound. */
@@ -139,6 +141,54 @@ export class ImageArea extends BaseArea {
         });
       this.sound.attachToMesh(this.areaPlane);
       this.attachVolumeControl();
+    }
+    console.log(texture.video.videoWidth+"x"+texture.video.videoHeight);
+    // resize the plane
+    texture.video.onresize = (event) => {
+      this.resizeArea(texture.video.videoWidth,texture.video.videoHeight);
+    }
+  }
+  
+  /**
+   * Load a MediaStream, and resize the plane
+   */
+  loadStream(mediaStream) {
+    BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
+      this.texturesDispose();
+      this.texture = texture;
+      this.material.diffuseTexture = texture;
+      this.material.diffuseTexture.vScale = -1
+      this.fullyVisible();
+    });
+
+    let mediaTrackSettings = mediaStream.getVideoTracks()[0].getSettings();
+    //console.log('Playing video track', mediaTrackSettings);
+    /*
+    // local:
+    frameRate: 30
+    height: 2160
+    width: 3840
+    // remote:
+    aspectRatio: 1.7774436090225565
+    deviceId: "96a38882-6269-454e-8009-3d3960b343ba"
+    frameRate: 30
+    height: 1330
+    resizeMode: "none"
+    width: 2364
+    */
+    // now resize the area
+    this.resizeArea(mediaTrackSettings.width, mediaTrackSettings.height);
+  }
+  
+  /** Internally used to resize the plane once video/image resolution is known */
+  resizeArea(width, height) {
+    if ( this.autoResize && width && height ) {
+      //console.log("ImageArea resizing to "+width+"x"+height);
+      this.width = width;
+      this.height = height;
+      this.ratio = this.width/this.height;
+      this.areaPlane.scaling.x = this.size*this.ratio;
+      this.areaPlane.scaling.y = this.size;
     }
   }
   

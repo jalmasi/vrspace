@@ -1,9 +1,10 @@
 import { OpenViduStreams } from '../../core/media-streams.js';
+import { ImageArea } from '../widget/image-area.js';
 
 /**
 Simple screen sharing component. Creates two planes: 
 one (screenShareMesh) to start/stop sharing, 
-and the other one (videoMesh) to display the video stream.
+and the other one (imageArea) to display the video stream.
 Properties of created meshes (position etc) are safe to be changed after creation.
 Creates and deletes a server-side object for synchronization.
 */
@@ -30,14 +31,6 @@ export class Screencast {
     this.screenShareMesh.material.diffuseTexture = new BABYLON.DynamicTexture("screenShareTexture", {width:128, height:64}, this.scene);
     this.writeText(this.text);
     this.screenShareMesh.setEnabled(false);
-
-    // HD resolution 16:9
-    this.videoMesh = BABYLON.MeshBuilder.CreatePlane('screencast-videoScreen', {width:16/3, height:9/3}, this.scene);
-    this.videoMesh.position = new BABYLON.Vector3(0, 3, 0);
-    this.videoMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-    this.videoMesh.material = new BABYLON.StandardMaterial('screencast-video', this.scene);
-    this.videoMesh.material.emissiveColor = BABYLON.Color3.White();
-    this.videoMesh.setEnabled(false);
   }
 
   /**
@@ -138,33 +131,20 @@ export class Screencast {
   }
 
   showVideo( mediaStream ) {
-    BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
-      if ( this.videoMesh.material.diffuseTexture ) {
-         this.videoMesh.material.diffuseTexture.dispose();
-      }
-      this.videoMesh.material.diffuseTexture = texture;
-      this.videoMesh.material.diffuseTexture.vScale = -1
-      this.videoMesh.setEnabled(true);
-    });
+    this.imageArea.loadStream(mediaStream);
   }
   
   showNoise() {
-    if ( this.videoMesh.material.diffuseTexture ) {
-       this.videoMesh.material.diffuseTexture.dispose();
-    }
-    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
-    this.videoMesh.material.diffuseTexture = noiseTexture;
-    noiseTexture.octaves = 8;
-    noiseTexture.persistence = 2;
-    noiseTexture.animationSpeedFactor = 10;
-    this.videoMesh.setEnabled(true);
+    this.imageArea = new ImageArea(this.scene, "ScreencastArea");
+    this.imageArea.size = 3;
+    this.imageArea.addHandles = false;
+    this.imageArea.position = new BABYLON.Vector3(0, 3, 0);
+    this.imageArea.group.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+    this.imageArea.show();
   }
   
   removeScreen() {
-    if ( this.videoMesh.material.diffuseTexture ) {
-       this.videoMesh.material.diffuseTexture.dispose();
-    }
-    this.videoMesh.setEnabled(false);    
+    this.imageArea.dispose();
   }
 
   deleteSharedObject() {
