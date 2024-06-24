@@ -3,6 +3,7 @@ import {VRHelper} from '../xr/vr-helper.js';
 import {ChatLog} from '../ui/widget/chat-log.js';
 import {WorldManager} from '../core/world-manager.js';
 import {AvatarController} from '../avatar/avatar-controller.js';
+import { VRSPACE } from '../vrspace-min.js';
 
 /**
 Basic world, intended to be overridden.
@@ -819,5 +820,12 @@ export class World {
     });
   }
   
+  addListener(worldListener) {
+    VRSPACE.addListener(this.worldListeners, worldListener);
+  }
+  
+  removeListener(worldListener) {
+    VRSPACE.removeListener(this.worldListeners, worldListener);
+  }
 }
 

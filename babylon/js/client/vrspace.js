@@ -320,7 +320,7 @@ export class VRSpace {
 
   /* Used internally to add a listener */  
   addListener(array, callback) {
-    if ( typeof callback == 'function') {
+    if ( typeof callback == 'function' || typeof callback == 'object') {
       array.push(callback);
     }
   }
@@ -538,6 +538,34 @@ export class VRSpace {
     this.log(json);
     // response to command contains object ID
     this.call('{"command":{"Add":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
+      this.log("Response:", response);
+      var objectId = response.response[0][className];
+      const id = new ID(className,objectId);
+      this.log("Created object:"+ objectId);
+      // by now the object is already in the scene, since Add message preceeded the response
+      var ret = this.scene.get(id.toString());
+      callback(ret);
+    });
+  }
+  
+  /**
+  Create a streaming object, FIXME: copied
+  @param obj the new VRObject, containing all properties
+  @param callback called when shared object is received
+  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
+   */
+  createStreamingObject( obj, callback, className ) {
+    if ( ! className ) {
+      if ( obj.className ) {
+        className = obj.className;
+      } else {
+        className = 'VRObject';
+      }
+    }
+    let json = JSON.stringify(obj);
+    this.log(json);
+    // response to command contains object ID
+    this.call('{"command":{"Streaming":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
       this.log("Response:", response);
       var objectId = response.response[0][className];
       const id = new ID(className,objectId);

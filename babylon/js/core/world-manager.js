@@ -161,7 +161,7 @@ export class WorldManager {
 
   /** Called when scene has changed (scene listener). 
   If an object was added, calls either loadAvatar, loadStream or loadMesh, as appropriate.
-  If an object was removed, calls removeMesh.
+  If an object was removed, calls removeObject.
   Any WorldListeners on the world are notified after changes are performed, by calling added and removed methods.
   @param e SceneEvent containing the change
   */
@@ -198,7 +198,7 @@ export class WorldManager {
       });
     } else if (e.removed != null) {
       this.log("REMOVED " + e.objectId + " new size " + e.scene.size)
-      this.removeMesh( e.removed );
+      this.removeObject( e.removed );
       try {
         this.world.worldListeners.forEach(listener => {
           try {
@@ -543,7 +543,7 @@ export class WorldManager {
       var node = instance.init();
       if ( node && obj.active ) {
         obj.addListener((obj, changes) => this.changeObject(obj, changes, node));
-      }      
+      }
     });
   }
   /**
@@ -678,13 +678,17 @@ export class WorldManager {
     }
   }
 
-  /** Remove a mesh from the scene (scene listener), and dispose of everything.
+  /** 
+   * Remove an object: remove the mesh from the scene (scene listener), and dispose of everything.
   */
-  removeMesh(obj) {
+  removeObject(obj) {
     if ( this.mediaStreams ) {
       this.mediaStreams.removeClient(obj);
     }
     VRSPACEUI.assetLoader.unloadObject(obj);
+    if ( obj.attachedScript ) {
+      obj.attachedScript.dispose();
+    }
     if ( obj.avatar ) {
       obj.avatar.dispose();
       obj.avatar = null;

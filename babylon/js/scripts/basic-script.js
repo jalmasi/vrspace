@@ -12,11 +12,15 @@ export class BasicScript {
     this.worldManager = world.worldManager;
     this.VRSPACE = this.worldManager.VRSPACE;
     this.vrObject = vrObject;
+    vrObject.attachedScript = this;
   }
   /**
   Supposed to create a visible object and return root node
    */
   init() {
     return null;
+  }
+  dispose() {
+    console.log("Disposing of script", this.vrObject);
   }
 }

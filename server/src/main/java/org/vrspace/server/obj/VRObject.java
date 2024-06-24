@@ -100,7 +100,7 @@ public class VRObject extends Entity {
    * Script that client runs. To prevent cross-site scripting, this is a read-only
    * property.
    */
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonProperty
   private String script;
 
   /** Currently active animation */

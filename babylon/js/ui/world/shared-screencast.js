@@ -15,7 +15,10 @@ export class SharedScreencast extends Screencast {
    */
   constructor(world, name) {
     super(world, name);
-    
+
+    world.addListener(this);
+    this.sharing = false;
+        
     this.screenShareMesh = BABYLON.MeshBuilder.CreatePlane('screencast-button', {width:1, height:.5}, this.scene);
     this.screenShareMesh.position = new BABYLON.Vector3(0, 1, 0);
     this.screenShareMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
@@ -32,14 +35,16 @@ export class SharedScreencast extends Screencast {
   init() {
     super.init();
     this.screenShareMesh.setEnabled(true);
+    this.world.worldManager.mediaStreams.addStreamListener(this.client.id, mediaStream => this.streamPlaying(mediaStream));
+    
     this.scene.onPointerPick = (e,p) => {
       console.log("Picked ", p.pickedMesh.name);
       
       if ( p.pickedMesh.name === this.screenShareMesh.name) {
-        if ( ! this.screenShare ) {
+        if ( ! this.screenShare && ! this.sharing ) {
           console.log('start sharing screen');
           this.startSharing();
-        } else {
+        } else if (this.screenShare && this.sharing) {
           console.log('stop sharing screen');
           this.stopSharing();
         }
@@ -63,14 +68,18 @@ export class SharedScreencast extends Screencast {
     );
   }
 
-  show(sceneEvent) {
-    super.show(sceneEvent);
-    this.writeText('Sharing: '+sceneEvent.added.properties.screenName);
+  added(vrObject) {
+    if ( vrObject.properties && vrObject.properties.screenName ) {
+      this.sharing = true;
+      this.writeText('Sharing: '+vrObject.properties.screenName);
+    }
   }
   
-  hide(sceneEvent) {
-    super.hide();
-    this.writeText(this.text);
+  removed(vrObject) {
+    if ( vrObject.properties && vrObject.properties.screenName ) {
+      this.sharing = false;
+      this.writeText(this.text);
+    }
   }
   
   dispose() {
