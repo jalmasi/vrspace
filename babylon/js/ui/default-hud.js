@@ -6,6 +6,7 @@ import { VRSpaceAPI } from '../client/rest-api.js';
 import { VRHelper } from '../xr/vr-helper.js';
 import { ServerFile } from '../core/server-folder.js';
 import { EmojiParticleSystem } from './world/emoji-particle-system.js';
+import { Screencast } from './world/screencast.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -28,6 +29,7 @@ export class DefaultHud {
     this.cameraButton = null;
     this.buttons = [];
     this.emojiParticleSystem = new EmojiParticleSystem(scene);
+    this.screencast = null;
   }
   
   init() {
@@ -37,10 +39,19 @@ export class DefaultHud {
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
       this.emojiButton = this.hud.addButton("Emoji", this.contentBase + "/content/icons/emoji.png", () => this.emojis());
-      this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.screencast());
+      this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
       this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.whiteboard());
       this.hud.enableSpeech(true);
     }
+    if ( this.isOnline() ) {
+      this.markEnabled(this.screencastButton);
+    } else {
+      this.markDisabled(this.screencastButton);
+    }
+  }
+  
+  isOnline() {
+    return WorldManager.instance && WorldManager.instance.isOnline();
   }
   
   settings() {
@@ -123,7 +134,7 @@ export class DefaultHud {
     console.log("Playing emoji "+url);
     
     this.stopEmoji();
-    if (WorldManager.instance && WorldManager.instance.isOnline()) {
+    if (this.isOnline()) {
       // online, bind to camera in 1st person and to avatar in 3rd person view
       if ( WorldManager.instance.world.camera3p && this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
         this.emojiParticleSystem.init(url, WorldManager.instance.world.avatarController.avatar).start();
@@ -147,11 +158,18 @@ export class DefaultHud {
     console.log("Stopping emoji");
     this.emojiParticleSystem.stop();
     // stop remote emoji here
-    if (WorldManager.instance && WorldManager.instance.isOnline()) {
+    if (this.isOnline()) {
       WorldManager.instance.publishChanges( [{field:'emoji',value:null}] );
     }
   }
   
+  markEnabled(button) {
+    if ( button ) {
+      button.tooltipText = null;
+      button.backMaterial.albedoColor = new BABYLON.Color3(0.3, 0.35, 0.4);
+    }
+  }
+
   markDisabled(button) {
     if ( button ) {
       button.tooltipText = "N/A";
@@ -321,5 +339,23 @@ export class DefaultHud {
     const worldName = userName+"'s world";
     const token = await VRSpaceAPI.getInstance().createWorldFromTemplate(worldName, portal.name);
     window.location.href = window.location.href+"?worldName="+worldName+"&worldToken="+token+"&worldThumbnail="+portal.name;
+  }
+  
+  shareScreen() {
+    if ( ! this.isOnline() ) {
+      return;
+    }
+    if ( this.screencast ) {
+      this.screencast.dispose();
+      this.screencast = null;
+      return;
+    }
+    let world = WorldManager.instance.world;
+    let camera = this.scene.activeCamera;
+    this.screencast = new Screencast(world);
+    this.screencast.position = camera.position.add(camera.getForwardRay(1).direction);
+    this.screencast.size = 1;
+    this.screencast.init();
+    this.screencast.startSharing();
   }
 }

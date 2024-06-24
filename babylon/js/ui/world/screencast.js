@@ -13,13 +13,20 @@ export class Screencast {
    * @param world the world
    * @param name screen share name, displayed when sharing. Defaults to user name or id.
    */
-  constructor(world, name) {
+  constructor(world, name="Shared screen") {
     /** text to display on the share screen button, by default Share screen */
     this.text = 'Share screen';
     this.world = world;
     this.scene = world.scene;
     this.name = name;
+    
+    this.size = 3;
+    this.addHandles = false;
+    this.position = new BABYLON.Vector3(0, 3, 0);
+    this.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+    
     this.sceneEventHandler = sceneEvent => this.handleSceneEvent(sceneEvent);
+    this.listeners = [];
     /** Contains VRObject used to exchange screens share messages */
     this.screenShare = null;
   }
@@ -89,8 +96,8 @@ export class Screencast {
    * Stop sharing and delete shared object.
   */  
   stopSharing() {
-    this.worldManager.mediaStreams.stopSharingScreen();
     this.deleteSharedObject();
+    this.worldManager.mediaStreams.stopSharingScreen();
   }
 
   /**
@@ -113,14 +120,16 @@ export class Screencast {
   
   /**
    * Create and show an ImageArea.
+   * @param sceneEvent Event that starts screen sharing, most important is sceneEvent.added.properties.screenName property.
    */
   show(sceneEvent) {
     this.imageArea = new ImageArea(this.scene, "ScreencastArea");
-    this.imageArea.size = 3;
-    this.imageArea.addHandles = false;
-    this.imageArea.position = new BABYLON.Vector3(0, 3, 0);
-    this.imageArea.group.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+    this.imageArea.size = this.size;
+    this.imageArea.addHandles = this.addHandles;
+    this.imageArea.position = this.position;
+    this.imageArea.group.rotation = this.rotation;
     this.imageArea.show();
+    this.listeners.forEach(listener=>listener(true));
   }
 
   /**
@@ -128,6 +137,7 @@ export class Screencast {
    */
   hide(sceneEvent) {
     this.imageArea.dispose();
+    this.listeners.forEach(listener=>listener(false));
   }  
   
   /**
@@ -143,9 +153,9 @@ export class Screencast {
    * Clean up.
    */
   dispose() {
-     this.screenShareMesh.dispose();
-     this.hide();
-     this.worldManager.VRSPACE.removeSceneListener( this.sceneEventHandler );
-     this.deleteSharedObject();
+    this.stopSharing();
+    this.hide();
+    this.worldManager.VRSPACE.removeSceneListener( this.sceneEventHandler );
+    //this.deleteSharedObject();
   }
 }

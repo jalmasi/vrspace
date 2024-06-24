@@ -703,7 +703,6 @@ export class AvatarSelection extends World {
       this.beforeEnter(this);
     }
     this.loginForm.dispose();
-    this.hud.init();
     import(worldUrl + '/' + worldScript).then((world) => {
 
       world.WORLD.inVR = this.inVR;
@@ -745,6 +744,7 @@ export class AvatarSelection extends World {
           this.worldManager.addMyChangeListener(changes => controller.processChanges(changes));
           // CHECKME better way to flag publishing video?
           this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
+          this.hud.init();
           if (this.afterEnter) {
             this.afterEnter(this, world);
           }

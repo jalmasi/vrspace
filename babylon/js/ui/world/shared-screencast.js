@@ -72,4 +72,9 @@ export class SharedScreencast extends Screencast {
     super.hide();
     this.writeText(this.text);
   }
+  
+  dispose() {
+    super.dispose();
+    this.screenShareMesh.dispose();
+  }
 }
