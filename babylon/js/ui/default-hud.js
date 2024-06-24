@@ -43,13 +43,17 @@ export class DefaultHud {
       this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.whiteboard());
       this.hud.enableSpeech(true);
     }
-    if ( this.isOnline() ) {
+    if ( this.streamingAvailable() ) {
       this.markEnabled(this.screencastButton);
     } else {
       this.markDisabled(this.screencastButton);
     }
   }
   
+  streamingAvailable() {
+    // TODO check server capabilities
+    return this.isOnline();
+  }
   isOnline() {
     return WorldManager.instance && WorldManager.instance.isOnline();
   }
@@ -174,6 +178,13 @@ export class DefaultHud {
     if ( button ) {
       button.tooltipText = "N/A";
       button.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
+    }
+  }
+
+  markActive(button) {
+    if ( button ) {
+      button.tooltipText = "N/A";
+      button.backMaterial.albedoColor = new BABYLON.Color3(0.29, 0.67, 0.29);
     }
   }
   
@@ -342,14 +353,16 @@ export class DefaultHud {
   }
   
   shareScreen() {
-    if ( ! this.isOnline() ) {
+    if ( ! this.streamingAvailable() ) {
       return;
     }
     if ( this.screencast ) {
+      this.markEnabled(this.screencastButton)
       this.screencast.dispose();
       this.screencast = null;
       return;
     }
+    this.markActive(this.screencastButton)
     let world = WorldManager.instance.world;
     let camera = this.scene.activeCamera;
     this.screencast = new Screencast(world);
