@@ -368,6 +368,7 @@ export class DefaultHud {
     this.screencast = new Screencast(world);
     this.screencast.position = camera.position.add(camera.getForwardRay(1).direction);
     this.screencast.size = 1;
+    this.screencast.callback = state=>{ if(!state) this.markEnabled(this.screencastButton)};
     this.screencast.init();
     this.screencast.startSharing();
   }

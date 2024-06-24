@@ -14,7 +14,7 @@ export class RemoteScreen extends BasicScript {
   show() {
     this.imageArea = new ImageArea(this.scene, "ScreencastArea");
     this.imageArea.size = this.vrObject.properties.size;
-    this.imageArea.addHandles = false;
+    this.imageArea.addHandles = true;
     this.imageArea.position = new BABYLON.Vector3(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z); 
     this.imageArea.group.rotation = new BABYLON.Vector3(this.vrObject.rotation.x, this.vrObject.rotation.y, this.vrObject.rotation.z);
     this.imageArea.show();

@@ -189,6 +189,12 @@ export class ImageArea extends BaseArea {
       this.ratio = this.width/this.height;
       this.areaPlane.scaling.x = this.size*this.ratio;
       this.areaPlane.scaling.y = this.size;
+      if ( this.addHandles ) {
+        if ( this.handles ) {
+          this.handles.dispose();
+        }
+        this.createHandles();
+      }
     }
   }
   
