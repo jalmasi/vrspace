@@ -39,14 +39,8 @@ export class DefaultHud {
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
       this.emojiButton = this.hud.addButton("Emoji", this.contentBase + "/content/icons/emoji.png", () => this.emojis());
-      this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
-      this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.whiteboard());
+      this.shareButton = this.hud.addButton("Share", this.contentBase + "/content/icons/share.png", () => this.share());
       this.hud.enableSpeech(true);
-    }
-    if ( this.streamingAvailable() ) {
-      this.markEnabled(this.screencastButton);
-    } else {
-      this.markDisabled(this.screencastButton);
     }
   }
   
@@ -105,6 +99,12 @@ export class DefaultHud {
       this.movementButton.dispose();
       this.movementButton = null;
     }
+    if ( this.screencastButton ) {
+      this.screencastButton.dispose();
+      this.whiteboardButton.dispose();
+      this.screencastButton = null;
+      this.whiteboardButton = null;
+    }
     this.buttons.forEach(b=>b.dispose());
     this.buttons = [];
     this.hud.showButtons(true);    
@@ -133,7 +133,7 @@ export class DefaultHud {
       this.clearRow();
     }
   }
-  
+
   playEmoji(url) {
     console.log("Playing emoji "+url);
     
@@ -350,6 +350,23 @@ export class DefaultHud {
     const worldName = userName+"'s world";
     const token = await VRSpaceAPI.getInstance().createWorldFromTemplate(worldName, portal.name);
     window.location.href = window.location.href+"?worldName="+worldName+"&worldToken="+token+"&worldThumbnail="+portal.name;
+  }
+
+  share() {
+    this.displayButtons = !this.displayButtons;
+    if ( this.displayButtons ) {
+      this.hud.showButtons(false, this.shareButton);
+      this.hud.newRow();
+      this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
+      this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.whiteboard());
+      if ( this.streamingAvailable() ) {
+        this.markEnabled(this.screencastButton);
+      } else {
+        this.markDisabled(this.screencastButton);
+      }
+    } else {
+      this.clearRow();
+    }
   }
   
   shareScreen() {
