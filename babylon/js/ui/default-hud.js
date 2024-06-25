@@ -102,8 +102,10 @@ export class DefaultHud {
     if ( this.screencastButton ) {
       this.screencastButton.dispose();
       this.whiteboardButton.dispose();
+      this.fileButton.dispose();
       this.screencastButton = null;
       this.whiteboardButton = null;
+      this.fileButton = null;
     }
     this.buttons.forEach(b=>b.dispose());
     this.buttons = [];
@@ -359,6 +361,7 @@ export class DefaultHud {
       this.hud.newRow();
       this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
       this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.whiteboard());
+      this.fileButton = this.hud.addButton("File", this.contentBase + "/content/icons/file.png", () => this.file());
       if ( this.streamingAvailable() ) {
         this.markEnabled(this.screencastButton);
       } else {
