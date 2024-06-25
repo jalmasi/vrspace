@@ -2,9 +2,10 @@ import { OpenViduStreams } from '../../core/media-streams.js';
 import { WorldListener } from '../../world/world-listener.js';
 
 /**
- * Base screen sharing class. Uses ImageArea to play a video stream.
+ * Base screen sharing class, sending side.
  * Using should be simple - construct and init. All methods except startSharing/stopSharing are internally called,
  * intended to be overridden by subclasses.
+ * Receiving side of the screen is implemented by RemoteScreen script.
  */
 export class Screencast extends WorldListener {
   /**
@@ -21,9 +22,13 @@ export class Screencast extends WorldListener {
     this.scene = world.scene;
     this.name = name;
     
+    /** Screen size, default 3. Height is fixed, width may scale accordingly. */
     this.size = 3;
-    this.addHandles = false;
+    /** Add manupulation handles? Default true. */
+    this.addHandles = true;
+    /** Screen position, default 0,3,0 */
     this.position = new BABYLON.Vector3(0, 3, 0);
+    /** Screen rotation, default Math.PI - away from presenter */
     this.rotation = new BABYLON.Vector3(0, Math.PI, 0);
     
     /** Contains VRObject used to exchange screens share messages, exists only on the sending side */
@@ -67,7 +72,7 @@ export class Screencast extends WorldListener {
     }
 
     this.worldManager.VRSPACE.createStreamingObject({
-      properties:{ screenName:screenName, clientId: this.client.id, size:this.size },
+      properties:{ screenName:screenName, clientId: this.client.id, size:this.size, addHandles:this.addHandles },
       active:true,
       script:'/babylon/js/scripts/remote-screen.js',
       position: {x: this.position.x, y: this.position.y, z: this.position.z},

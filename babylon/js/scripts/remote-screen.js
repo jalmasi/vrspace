@@ -1,6 +1,12 @@
 import { BasicScript } from "./basic-script.js";
 import { ImageArea } from '../ui/widget/image-area.js';
 
+/**
+ * Receiving component of a screen share, or some other video stream.
+ * When a client creates a screen sharing VRObject (by calling VRSPACE.createStreamingObject),
+ * client-side presentation logic is implemented by this class.
+ * It creates an ImageArea, and once stream starts, executes ImageArea.loadStream().
+ */
 export class RemoteScreen extends BasicScript {
   async init() {
     console.log("Remote screen initializing", this.vrObject);
@@ -14,7 +20,7 @@ export class RemoteScreen extends BasicScript {
   show() {
     this.imageArea = new ImageArea(this.scene, "ScreencastArea");
     this.imageArea.size = this.vrObject.properties.size;
-    this.imageArea.addHandles = true;
+    this.imageArea.addHandles = this.vrObject.properties.addHandles;
     this.imageArea.position = new BABYLON.Vector3(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z); 
     this.imageArea.group.rotation = new BABYLON.Vector3(this.vrObject.rotation.x, this.vrObject.rotation.y, this.vrObject.rotation.z);
     this.imageArea.show();

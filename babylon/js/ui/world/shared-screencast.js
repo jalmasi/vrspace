@@ -1,10 +1,11 @@
 import { Screencast } from "./screencast.js";
 
 /**
-Simple screen sharing component that allows anybody to share their screen in the fixed place in the world. 
-Creates two planes: one (screenShareMesh) to start/stop sharing, and the other one (imageArea) to display the video stream.
+Simple screen sharing component that allows anybody to share their screen in the fixed place in the world,
+but only one person can share the screen at the same time.
+Creates a plane (screenShareMesh) to start/stop sharing.
 Properties of created meshes (position etc) are safe to be changed after creation.
-Utilizies base Screencast class for state management.
+Utilizies base Screencast class for state management, receiving side is implemented by RemoteScreen.
 */
 export class SharedScreencast extends Screencast {
   /**
@@ -15,6 +16,9 @@ export class SharedScreencast extends Screencast {
    */
   constructor(world, name) {
     super(world, name);
+
+    /** Create manipulation handles? Default false */
+    this.addHandles = false;
 
     this.isSharing = false;
         
