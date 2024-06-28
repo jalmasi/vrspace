@@ -30,6 +30,7 @@ export class DefaultHud {
     this.buttons = [];
     this.emojiParticleSystem = new EmojiParticleSystem(scene);
     this.screencast = null;
+    this.whiteboard = null;
   }
   
   init() {
@@ -360,7 +361,7 @@ export class DefaultHud {
       this.hud.showButtons(false, this.shareButton);
       this.hud.newRow();
       this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
-      this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.whiteboard());
+      this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.toggleWhiteboard());
       this.fileButton = this.hud.addButton("File", this.contentBase + "/content/icons/file.png", () => this.file());
       if ( this.streamingAvailable() ) {
         this.markEnabled(this.screencastButton);
@@ -391,5 +392,15 @@ export class DefaultHud {
     this.screencast.callback = state=>{ if(!state) this.markEnabled(this.screencastButton)};
     this.screencast.init();
     this.screencast.startSharing();
+  }
+  
+  toggleWhiteboard() {
+    if ( this.whiteboard ) {
+      this.markEnabled(this.whiteboardButton)
+      this.whiteboard.dispose();
+      this.whiteboard = null;
+      return;
+    }
+    this.markActive(this.whiteboardButton)
   }
 }

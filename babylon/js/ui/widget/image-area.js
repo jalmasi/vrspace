@@ -47,6 +47,8 @@ export class ImageArea extends BaseArea {
     this.areaPlane.material = this.material;
     this.areaPlane.visibility = 0.1;
 
+    this.areaPlane.enablePointerMoveEvents = true;
+
     if (this.addHandles) {
       this.createHandles();
     }
@@ -65,6 +67,14 @@ export class ImageArea extends BaseArea {
       } else if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP && this.pointerIsDown ) {
         this.pointerIsDown = false;
         this.pointerUp();
+      } else if ( this.pointerIsDown && pointerInfo.type == BABYLON.PointerEventTypes.POINTERMOVE 
+        && pointerInfo.pickInfo.hit
+        && this.areaPlane == pointerInfo.pickInfo.pickedMesh
+      ) {
+        let coords = pointerInfo.pickInfo.getTextureCoordinates();
+        let y = Math.round(this.height*(1-coords.y));
+        let x = Math.round(coords.x*this.width);
+        this.pointerDrag(x,y);
       }
     });
     
@@ -223,14 +233,20 @@ export class ImageArea extends BaseArea {
       }
     }
   }
-  
+
+  /** Called on pointer event, passed texture coordinates. Executes callback */
   async click(x,y) {
     if ( this.callback ) {
       this.callback(this,x,y);
     }
   }
 
+  /** Called on pointer event */
   pointerUp() {
+  }
+
+  /** Called on pointer event, passed texture coordinates */  
+  pointerDrag(x, y) {
   }
   
   /**

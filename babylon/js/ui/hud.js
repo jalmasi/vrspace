@@ -445,7 +445,7 @@ export class HUD {
   Adds color picker to the HUD.
   @return babylon ColorPicker object
    */
-  addColorPicker(text="Color",value=new BABYLON.Color3()) {
+  addColorPicker(text="Color",color=new BABYLON.Color3()) {
     var width = this.makeRoomForMore();
     
     var plane = BABYLON.MeshBuilder.CreatePlane("Plane-Picker:"+text, {width: 0.07, height: 0.07});
@@ -466,7 +466,7 @@ export class HUD {
     panel.addControl(header); 
 
     var picker = new BABYLON.GUI.ColorPicker("Picker:"+text);
-    picker.value = value;
+    picker.value = color;
     picker.height = "150px";
     picker.width = "150px";
     picker.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;

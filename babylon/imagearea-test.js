@@ -1,3 +1,4 @@
+import { Whiteboard } from './js/ui/world/whiteboard.js';
 import { VRSPACEUI, World, ChatLog, ImageArea } from './js/vrspace-min.js';
 
 export class BrowserWorld extends World {
@@ -66,9 +67,8 @@ export class BrowserWorld extends World {
     // detach/attach to hud/camera test
     let state = 0;
     let imageArea = new ImageArea(this.scene, "TouchImageArea");
-    imageArea.text = "An example of a TextArea\nattached to camera";
     imageArea.attachToCamera();
-    imageArea.size = .1;
+    imageArea.size = .05;
     imageArea.position = new BABYLON.Vector3(.1, 0, .2);
     imageArea.show();
     this.selectables.push(imageArea);
@@ -95,8 +95,15 @@ export class BrowserWorld extends World {
       }
       state ++;
     });
+
+    let whiteboard = new Whiteboard(this.scene, "Whiteboard");
+    whiteboard.size = 2;
+    whiteboard.position = new BABYLON.Vector3(0,2,3);
+    whiteboard.show();
+    this.selectables.push(imageArea);
+
   }
-  
+
   isSelectableMesh(mesh) {
     let ret = super.isSelectableMesh(mesh);
     this.selectables.forEach( o => ret |= o.isSelectableMesh(mesh));
