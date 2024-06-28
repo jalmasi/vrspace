@@ -1,4 +1,5 @@
 import {SpeechInput} from '../core/speech-input.js';
+import { ColorPickerPanel } from './widget/colorpicker-panel.js';
 /**
 HUD stands for head-up display - a UI container mounted on users head.
 Typically we have some buttons around 50 cm front, 10-20 cm below line of sight.
@@ -446,37 +447,19 @@ export class HUD {
   @return babylon ColorPicker object
    */
   addColorPicker(text="Color",color=new BABYLON.Color3()) {
-    var width = this.makeRoomForMore();
+    let width = this.makeRoomForMore();
+    let pickerPanel = new ColorPickerPanel(0.07, 0.07,text,color);
     
-    var plane = BABYLON.MeshBuilder.CreatePlane("Plane-Picker:"+text, {width: 0.07, height: 0.07});
-    plane.parent = this.rowRoot;
-    plane.position = new BABYLON.Vector3(this.elements.length*width/2,0,0);
+    pickerPanel.plane.parent = this.rowRoot;
+    pickerPanel.plane.position = new BABYLON.Vector3(this.elements.length*width/2,0,0);
 
-    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane,256,256);
-    var panel = new BABYLON.GUI.StackPanel();
-    panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    advancedTexture.addControl(panel);
-    this.textures.push(advancedTexture);
-    
-    var header = new BABYLON.GUI.TextBlock("Text-Picker:"+text);
-    header.text = text;
-    header.height = "30px";
-    header.color = "white";
-    panel.addControl(header); 
+    this.textures.push(pickerPanel.advancedTexture);
 
-    var picker = new BABYLON.GUI.ColorPicker("Picker:"+text);
-    picker.value = color;
-    picker.height = "150px";
-    picker.width = "150px";
-    picker.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-
-    panel.addControl(picker);
-    this.elements.push(plane);
-    this.controls.push(panel);
+    this.elements.push(pickerPanel.plane);
+    this.controls.push(pickerPanel.panel);
 
     this.rescaleHUD();
-    return picker;
+    return pickerPanel.picker;
   }
 
   /**

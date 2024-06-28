@@ -31,6 +31,7 @@ export { TerrainEditor } from "./ui/world/terrain-editor.js";
 export { WorldEditor } from "./ui/world/world-editor.js";
 
 export { Buttons } from "./ui/widget/buttons.js";
+export { ColorPickerPanel } from './ui/widget/colorpicker-panel.js';
 export { Form } from "./ui/widget/form.js";
 export { LoginForm } from "./ui/widget/login-form.js";
 export { Label } from "./ui/widget/label.js";
