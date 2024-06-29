@@ -32,4 +32,10 @@ export class SliderPanel {
     this.panel.addControl(this.slider);
 
   }
+  dispose() {
+    this.panel.dispose();
+    this.header.dispose();
+    this.slider.dispose();
+    this.advancedTexture.dispose();
+  }
 }

@@ -26,4 +26,11 @@ export class ColorPickerPanel {
 
     this.panel.addControl(this.picker);
   }
+  
+  dispose() {
+    this.panel.dispose();
+    this.header.dispose();
+    this.picker.dispose();
+    this.advancedTexture.dispose();
+  }
 }

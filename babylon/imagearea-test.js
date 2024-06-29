@@ -1,7 +1,6 @@
-import { Whiteboard } from './js/ui/world/whiteboard.js';
-import { VRSPACEUI, World, ChatLog, ImageArea } from './js/vrspace-min.js';
+import { World, WorldManager, ChatLog, ImageArea, Whiteboard } from './js/vrspace-min.js';
 
-export class BrowserWorld extends World {
+export class ImageAreaWorld extends World {
   async load(callback) {
     // we're not loading any models
     // but we're displaying UI instead
@@ -96,21 +95,27 @@ export class BrowserWorld extends World {
       state ++;
     });
 
-    let whiteboard = new Whiteboard(this.scene, "Whiteboard");
-    whiteboard.size = 2;
-    whiteboard.position = new BABYLON.Vector3(0,2,3);
-    whiteboard.show();
-    this.selectables.push(imageArea);
+    this.whiteboard = new Whiteboard(this.scene, "Whiteboard");
+    this.whiteboard.size = 2;
+    this.whiteboard.position = new BABYLON.Vector3(0,2,3);
+    this.whiteboard.show();
+    this.selectables.push(this.whiteboard);
+    this.addListener(this.whiteboard);
 
+    this.connect();
   }
 
   isSelectableMesh(mesh) {
     let ret = super.isSelectableMesh(mesh);
     this.selectables.forEach( o => ret |= o.isSelectableMesh(mesh));
     return ret;
-  }  
+  }
+
+  connect() {
+    new WorldManager(this);
+    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
+  }
 
 }
 
-export { VRSPACEUI };
-export const WORLD = new BrowserWorld();
+export const WORLD = new ImageAreaWorld();

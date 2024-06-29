@@ -134,6 +134,10 @@ export class VRObject {
     this.VRSPACE.log(json);
     this.VRSPACE.send(json);
   }
+  
+  getID() {
+    return new ID(this.className, this.id);
+  }
 }
 
 /**
@@ -387,7 +391,7 @@ export class VRSpace {
 
   /**
   Return the current scene, optionally filtered
-  @param filter string to match current members, usually class name
+  @param filter string to match current members, usually class name, or function that takes VRObject as argument
    */
   getScene( filter ) {
     if ( typeof filter === 'undefined') {
@@ -396,6 +400,14 @@ export class VRSpace {
       var ret = new Map();
       for ( const [key,value] of this.scene ) {
         if ( key.startsWith(filter) ) {
+          ret.set(key,value);
+        }
+      }
+      return ret;
+    } else if ( typeof filter === 'function') {
+      var ret = new Map();
+      for ( const [key,value] of this.scene ) {
+        if ( filter(value) ) {
           ret.set(key,value);
         }
       }
@@ -554,7 +566,7 @@ export class VRSpace {
   @param callback called when shared object is received
   @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
    */
-  createStreamingObject( obj, callback, className ) {
+  createScriptedObject( obj, callback, className ) {
     if ( ! className ) {
       if ( obj.className ) {
         className = obj.className;
@@ -565,7 +577,7 @@ export class VRSpace {
     let json = JSON.stringify(obj);
     this.log(json);
     // response to command contains object ID
-    this.call('{"command":{"Streaming":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
+    this.call('{"command":{"Share":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
       this.log("Response:", response);
       var objectId = response.response[0][className];
       const id = new ID(className,objectId);

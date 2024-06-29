@@ -407,6 +407,15 @@ export class WorldManager {
     if ( this.loadCallback ) {
       this.loadCallback(obj, avatar);
     }
+    this.world.worldListeners.forEach(listener => {
+      try {
+        if ( listener.loaded) {
+          listener.loaded(obj);
+        }
+      } catch ( error ) {
+        console.log("Error in world listener", error);
+      }
+    });
   }
   
   /** Apply remote changes to an avatar (VRObject listener) */
@@ -540,6 +549,9 @@ export class WorldManager {
       let cls = module[className];
       var instance = new cls(this.world, obj);
       console.log("instance", instance);
+      
+      this.notifyLoadListeners(obj, instance);
+      
       var node = instance.init();
       if ( node && obj.active ) {
         obj.addListener((obj, changes) => this.changeObject(obj, changes, node));

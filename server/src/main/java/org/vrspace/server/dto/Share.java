@@ -1,5 +1,7 @@
 package org.vrspace.server.dto;
 
+import java.util.Set;
+
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 
@@ -14,12 +16,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-public class Streaming extends Add {
+public class Share extends Add {
+  public static final Set<String> allowedScripts = Set.of("/babylon/js/scripts/remote-screen.js",
+      "/babylon/js/scripts/remote-whiteboard.js");
 
   @Override
   public ClientResponse execute(WorldManager world, Client client) {
     // FIXME: must not be hardcoded
-    this.objects.forEach(o -> o.setScript("/babylon/js/scripts/remote-screen.js"));
+    this.objects.forEach(o -> {
+      if (o.getScript() != null && !allowedScripts.contains(o.getScript())) {
+        throw new SecurityException("Disallowed script path: " + o.getScript());
+      }
+    });
     return super.execute(world, client);
   }
 

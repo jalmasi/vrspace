@@ -25,7 +25,7 @@ export class SharedScreencast extends Screencast {
     this.screenShareMesh = BABYLON.MeshBuilder.CreatePlane('screencast-button', {width:1, height:.5}, this.scene);
     this.screenShareMesh.position = new BABYLON.Vector3(0, 1, 0);
     this.screenShareMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-    this.screenShareMesh.material = new BABYLON.StandardMaterial('shareScreen', this.scene);;
+    this.screenShareMesh.material = new BABYLON.StandardMaterial('shareScreen', this.scene);
     this.screenShareMesh.material.emissiveColor = BABYLON.Color3.White();
     this.screenShareMesh.material.backFaceCulling = false;
     this.screenShareMesh.material.diffuseTexture = new BABYLON.DynamicTexture("screenShareTexture", {width:128, height:64}, this.scene);

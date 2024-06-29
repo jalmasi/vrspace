@@ -15,6 +15,12 @@ export class WorldListener {
    */
   added(vrobject){}
   /**
+  Called when a new object is loaded.
+  What that exactly means, depends on type of object - e.g. avatars are loaded differently than video streams.
+  @param vrobject a VRObject, typically a Client, added to the scene.
+   */
+  loaded(vrobject){}
+  /**
   Called when an object is removed from the scene
   @param vrobject a VRObject, typically a Client, removed from the scene
    */

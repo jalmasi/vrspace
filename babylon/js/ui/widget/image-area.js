@@ -17,7 +17,7 @@ export class ImageArea extends BaseArea {
     this.autoResize = true;
     this.visible = false;
     this.noiseTexture = null;
-    this.callback = null; // FIXME
+    this.callback = null; // FIXME - not used?
     this.pointerIsDown = false;
   }
 

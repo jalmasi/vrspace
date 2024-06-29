@@ -5,6 +5,7 @@
 export class BaseArea {
   constructor(scene, name) {
     this.scene = scene;
+    this.name = name;
     this.size = .2;
     this.position = BABYLON.Vector3.ZERO; // OVERRIDE!
     this.addHandles = true;

@@ -9,11 +9,14 @@ import { ImageArea } from '../ui/widget/image-area.js';
  */
 export class RemoteScreen extends BasicScript {
   async init() {
+    super.init();
     console.log("Remote screen initializing", this.vrObject);
     //properties:{ screenName:screenName, clientId: client.id },
     //active:true,
     //script:'/babylon/js/scripts/remote-screen.js'
-    this.worldManager.mediaStreams.addStreamListener(this.vrObject.properties.clientId, mediaStream => this.playStream(mediaStream));
+    if (this.worldManager.mediaStreams) {
+      this.worldManager.mediaStreams.addStreamListener(this.vrObject.properties.clientId, mediaStream => this.playStream(mediaStream));
+    }
     this.show();
   }
   
@@ -22,7 +25,9 @@ export class RemoteScreen extends BasicScript {
     this.imageArea.size = this.vrObject.properties.size;
     this.imageArea.addHandles = this.vrObject.properties.addHandles;
     this.imageArea.position = new BABYLON.Vector3(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z); 
-    this.imageArea.group.rotation = new BABYLON.Vector3(this.vrObject.rotation.x, this.vrObject.rotation.y, this.vrObject.rotation.z);
+    if (this.vrObject.rotation) {
+      this.imageArea.group.rotation = new BABYLON.Vector3(this.vrObject.rotation.x, this.vrObject.rotation.y, this.vrObject.rotation.z);
+    }
     this.imageArea.show();
   }
 
@@ -34,4 +39,5 @@ export class RemoteScreen extends BasicScript {
   playStream(mediaStream) {
     this.imageArea.loadStream(mediaStream);
   }
+  
 }

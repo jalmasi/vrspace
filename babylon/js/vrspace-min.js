@@ -24,6 +24,7 @@ export { FloorRibbon } from "./ui/world/floor-ribbon.js";
 export { EmojiParticleSystem } from "./ui/world/emoji-particle-system.js";
 export { Screencast } from "./ui/world/screencast.js";
 export { SharedScreencast } from "./ui/world/shared-screencast.js";
+export { Whiteboard } from "./ui/world/whiteboard.js";
 export { ScrollablePanel } from "./ui/world/scrollable-panel.js";
 export { TextureSelector } from "./ui/world/texture-selector.js";
 export { SkyboxSelector } from "./ui/world/skybox-selector.js";
