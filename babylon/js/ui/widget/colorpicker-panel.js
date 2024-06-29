@@ -3,8 +3,8 @@
  * name of the color, and color picker itself. 
  */
 export class ColorPickerPanel {
-  constructor(width, height, text="Color",color=new BABYLON.Color3()) {
-    this.plane = BABYLON.MeshBuilder.CreatePlane("Plane-Picker:"+text, {width: width, height: height});
+  constructor(size, text="Color",color=new BABYLON.Color3()) {
+    this.plane = BABYLON.MeshBuilder.CreatePlane("Plane-Picker:"+text, {width: size, height: size});
 
     this.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.plane,256,256);
     this.panel = new BABYLON.GUI.StackPanel();
