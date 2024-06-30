@@ -17,6 +17,7 @@ export class BaseArea {
     this.handles = null;
     this.texture = null;
     this.material = null;
+    this.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
   }
   
   /**
@@ -83,7 +84,7 @@ export class BaseArea {
   * XR pointer support
   */
   isSelectableMesh(mesh) {
-    return mesh == this.areaPlane || (this.handles && this.handles.handles.includes(mesh)); 
+    return mesh == this.areaPlane && this.areaPlane.isEnabled() || (this.handles && !this.handles.minimized && this.handles.handles.includes(mesh)); 
   }
 
   /** Clean up allocated resources */

@@ -15,6 +15,7 @@ export class Whiteboard extends ImageArea {
     this.share = null;
     this.closeCallback = null;
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
+    this.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
   }
 
   show() {

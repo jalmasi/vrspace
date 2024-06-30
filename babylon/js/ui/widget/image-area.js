@@ -17,7 +17,7 @@ export class ImageArea extends BaseArea {
     this.autoResize = true;
     this.visible = false;
     this.noiseTexture = null;
-    this.callback = null; // FIXME - not used?
+    this.callback = null; // CHECKME - onClick only used in test to start the video
     this.pointerIsDown = false;
   }
 
@@ -27,6 +27,7 @@ export class ImageArea extends BaseArea {
       return;
     }
     this.visible = true;
+    this.group.billboardMode = this.billboardMode;
     this.group.position = this.position;
     this.ratio = this.width/this.height;
 

@@ -95,7 +95,7 @@ export class ManipulationHandles {
           if (pointerInfo.pickInfo.pickedMesh == this.bottomHandle || pointerInfo.pickInfo.pickedMesh == this.topHandle) {
             // moving around
             if ( ! this.behavior ) {
-              this.behavior = new BABYLON.SixDofDragBehavior()
+              this.behavior = this.createBehavior();
               // does not work if group.parent is camera
               this.group.addBehavior(this.behavior);
               pointerInfo.pickInfo.pickedMesh.material = this.selectedMaterial;
@@ -138,6 +138,13 @@ export class ManipulationHandles {
       }
     });
     
+  }
+  
+  createBehavior() {
+    if ( this.group.billboardMode == BABYLON.Mesh.BILLBOARDMODE_Y ) {
+      return new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
+    }
+    return new BABYLON.SixDofDragBehavior();
   }
   /**
    * Minimize or maximize (hide or show all children of this.group)
