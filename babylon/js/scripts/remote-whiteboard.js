@@ -1,12 +1,15 @@
 import { BasicScript } from "./basic-script.js";
 import { Whiteboard } from '../ui/world/whiteboard.js';
-import { VRSPACE, VRSpace } from "../vrspace-min.js";
+import { VRSPACE } from "../vrspace-min.js";
 
 /**
- * Receiving component of a screen share, or some other video stream.
- * When a client creates a screen sharing VRObject (by calling VRSPACE.createStreamingObject),
+ * Receiving component of a Whiteboard.
+ * When a client creates a screen sharing VRObject (by calling VRSPACE.createScriptedObject),
  * client-side presentation logic is implemented by this class.
- * It creates an ImageArea, and once stream starts, executes ImageArea.loadStream().
+ * Creates and shows the whiteboard, but only if not already created.
+ * This allows for Whiteboard class to be used in two scenarios: 
+ * added to the world statically and shared on demand, or,
+ * added and shared on demand.
  */
 export class RemoteWhiteboard extends BasicScript {
   async init() {

@@ -7,6 +7,7 @@ import { VRHelper } from '../xr/vr-helper.js';
 import { ServerFile } from '../core/server-folder.js';
 import { EmojiParticleSystem } from './world/emoji-particle-system.js';
 import { Screencast } from './world/screencast.js';
+import { Whiteboard } from './world/whiteboard.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -47,8 +48,10 @@ export class DefaultHud {
   
   streamingAvailable() {
     // TODO check server capabilities
+    // screen sharing unavailable on mobiles
     return this.isOnline();
   }
+  
   isOnline() {
     return WorldManager.instance && WorldManager.instance.isOnline();
   }
@@ -361,12 +364,17 @@ export class DefaultHud {
       this.hud.showButtons(false, this.shareButton);
       this.hud.newRow();
       this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
-      this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.toggleWhiteboard());
-      this.fileButton = this.hud.addButton("File", this.contentBase + "/content/icons/file.png", () => this.file());
+      this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.toggleWhiteboard(), false);
+      this.fileButton = this.hud.addButton("File", this.contentBase + "/content/icons/file.png", () => this.file(), false);
       if ( this.streamingAvailable() ) {
         this.markEnabled(this.screencastButton);
       } else {
         this.markDisabled(this.screencastButton);
+      }
+      if ( this.whiteboard ) {
+        this.markActive(this.whiteboardButton);
+      } else {
+        this.markEnabled(this.whiteboardButton);
       }
     } else {
       this.clearRow();
@@ -401,6 +409,15 @@ export class DefaultHud {
       this.whiteboard = null;
       return;
     }
+    let camera = this.scene.activeCamera;
+    this.whiteboard = new Whiteboard(this.scene, "Whiteboard-"+WorldManager.myId());
+    this.whiteboard.size = 2;
+    this.whiteboard.position = camera.position.add(camera.getForwardRay(1).direction.scale(2));
+    this.whiteboard.show();
     this.markActive(this.whiteboardButton)
+    this.whiteboard.callback = () => {
+      this.markEnabled(this.whiteboardButton)
+      this.whiteboard = null;
+    }
   }
 }

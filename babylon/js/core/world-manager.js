@@ -931,6 +931,14 @@ export class WorldManager {
     VRSPACE.sendMyEvent(obj);
   }
   
+  /** Returns VRSPACE.me if available, null otherwise */
+  static myId() {
+    if ( VRSPACE.me ) {
+      return VRSPACE.me.id;
+    }
+    return null;
+  }
+  
   enableRemoteLogging() {
     let oldConsole = window.console;
     let console=

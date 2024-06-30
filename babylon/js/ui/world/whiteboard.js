@@ -13,6 +13,7 @@ export class Whiteboard extends ImageArea {
     this.lineWidth = 1;
 
     this.share = null;
+    this.callback = null;
   }
 
   show() {
@@ -211,8 +212,15 @@ export class Whiteboard extends ImageArea {
   close() {
     this.deleteSharedObject()
     this.dispose();
+    if ( this.callback ) {
+      this.callback();
+    }
   }
   
+  /**
+   * WorldListener interface. Upon receiving own notification, adds itself to the VRObject.
+   * This prevents creation of another whiteboard instance when VRObject loads.
+   */
   loaded(vrobject){
     if ( vrobject.properties && vrobject.properties.name == this.name ) {
       console.log("Shared object added to the scene", vrobject);

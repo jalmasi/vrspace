@@ -151,7 +151,7 @@ export class LoginForm extends Form {
     }
     // CHECKME do we want to auto-focus name input?
     // available since babylon 5
-    this.nameForm.input.focus();
+    //this.nameForm.input.focus();
 
   }
   defaultLabel() {
