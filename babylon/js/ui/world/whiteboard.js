@@ -13,7 +13,8 @@ export class Whiteboard extends ImageArea {
     this.lineWidth = 1;
 
     this.share = null;
-    this.callback = null;
+    this.closeCallback = null;
+    this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
   }
 
   show() {
@@ -163,6 +164,7 @@ export class Whiteboard extends ImageArea {
   }
 
   dispose() {
+    this.deleteSharedObject();
     this.buttonClose.dispose();
     this.buttonUndo.dispose();
     this.widthPanel.dispose();
@@ -212,11 +214,15 @@ export class Whiteboard extends ImageArea {
   close() {
     this.deleteSharedObject()
     this.dispose();
-    if ( this.callback ) {
-      this.callback();
+    if ( this.closeCallback ) {
+      this.closeCallback();
     }
   }
   
+  isSelectableMesh(mesh) {
+    return this.areaPlane == mesh;
+  }
+
   /**
    * WorldListener interface. Upon receiving own notification, adds itself to the VRObject.
    * This prevents creation of another whiteboard instance when VRObject loads.

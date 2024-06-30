@@ -297,6 +297,22 @@ public class Scene {
   }
 
   /**
+   * Unpublish an object: WorldManager deletes all temporary owned objects when
+   * guest client exits, but they also need to be removed from all scenes.
+   * 
+   * @param obj
+   */
+  public void unpublish(VRObject obj) {
+    members.stream().filter(o -> o instanceof Client).forEach(o -> {
+      Client c = (Client) o;
+      if (c.getScene() != null) {
+        Remove remove = remove(new Remove(), c);
+        sendRemove(remove);
+      }
+    });
+  }
+
+  /**
    * Ensure the scene will be updated on next update() call.
    */
   public void setDirty() {

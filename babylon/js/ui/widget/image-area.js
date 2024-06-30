@@ -48,26 +48,29 @@ export class ImageArea extends BaseArea {
     this.areaPlane.visibility = 0.1;
 
     this.areaPlane.enablePointerMoveEvents = true;
+    //this.areaPlane.pointerOverDisableMeshTesting = true; // no effect
 
     if (this.addHandles) {
       this.createHandles();
     }
     
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
+      //console.log(pointerInfo.type+" "+pointerInfo.pickInfo.hit+" "+(this.areaPlane == pointerInfo.pickInfo.pickedMesh));
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
         && pointerInfo.pickInfo.hit
         && this.areaPlane == pointerInfo.pickInfo.pickedMesh
       ) {
+        //console.log("Clicked: x="+x+" y="+y+" coord "+pointerInfo.pickInfo.getTextureCoordinates() );
         let coords = pointerInfo.pickInfo.getTextureCoordinates();
         let y = Math.round(this.height*(1-coords.y));
         let x = Math.round(coords.x*this.width);
-        console.log("Clicked: x="+x+" y="+y+" coord "+pointerInfo.pickInfo.getTextureCoordinates() );
         this.click(x,y);
         this.pointerIsDown = true;
       } else if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP && this.pointerIsDown ) {
         this.pointerIsDown = false;
         this.pointerUp();
-      } else if ( this.pointerIsDown && pointerInfo.type == BABYLON.PointerEventTypes.POINTERMOVE 
+      } else if ( this.pointerIsDown 
+        && pointerInfo.type == BABYLON.PointerEventTypes.POINTERMOVE 
         && pointerInfo.pickInfo.hit
         && this.areaPlane == pointerInfo.pickInfo.pickedMesh
       ) {

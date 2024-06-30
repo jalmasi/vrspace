@@ -7,9 +7,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collection;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -92,7 +95,7 @@ public class CommandTest {
 
     verify(repo, times(2)).save(any(Client.class));
     verify(writeBack, times(2)).delete(any(VRObject.class));
-    verify(scene, times(1)).unpublish(any());
+    verify(scene, times(1)).unpublish(ArgumentMatchers.<Collection<VRObject>>any());
   }
 
   @Test

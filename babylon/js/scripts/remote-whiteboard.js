@@ -29,6 +29,7 @@ export class RemoteWhiteboard extends BasicScript {
       this.whiteboard.size = this.vrObject.properties.size;
       this.whiteboard.addHandles = this.vrObject.properties.addHandles;
       this.whiteboard.position = new BABYLON.Vector3(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z); 
+      this.whiteboard.share = this.vrObject;
       this.whiteboard.show();
     }
   }

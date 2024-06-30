@@ -465,23 +465,18 @@ public class WorldManager {
     exit(client);
     // delete guest client
     if (client.isGuest()) {
-      List<Ownership> owned = db.getOwned(client.getId());
-      for (Ownership ownership : owned) {
-        // CHECKME getOwned seems to return shallow copy!?
-        VRObject ownedObject = get(ownership.getOwned().getObjectId());
-        if (ownedObject.isTemporary()) {
-          // remove() doesn't free up cache
-          delete(client, ownedObject);
-          db.delete(ownership);
-          log.debug("Deleted owned temporary " + ownership.getOwned().getObjectId());
-        }
-      }
       delete(client, client);
       log.debug("Deleted guest client " + client.getId());
     }
     client.getWriteBack().flush();
   }
 
+  /**
+   * Exit from a world. Called in two cases: enter, and logout. Clean up the
+   * scene, notify listeners, remove temporary objects.
+   * 
+   * @param client
+   */
   private void exit(Client client) {
     // notify all listeners that the client disconnected
     client.setActive(false);
@@ -489,6 +484,25 @@ public class WorldManager {
     VREvent ev = new VREvent(client, client);
     ev.addChange("active", false);
     client.notifyListeners(ev);
+
+    // temporary objects cleanup
+    List<Ownership> owned = db.getOwned(client.getId());
+    // CHECKME: this needs to be refactored, maybe into client.unpublish()
+    for (Ownership ownership : owned) {
+      // CHECKME getOwned seems to return shallow copy!?
+      VRObject ownedObject = get(ownership.getOwned().getObjectId());
+      if (ownedObject.isTemporary() || client.isGuest()) {
+        if (client.getScene() != null) {
+          client.getScene().unpublish(ownedObject);
+        }
+        // remove() doesn't free up cache
+        delete(client, ownedObject);
+        db.delete(ownership);
+        log.debug("Deleted owned temporary " + ownership.getOwned().getObjectId());
+      }
+    }
+
+    // scene cleanup
     if (client.getScene() != null) {
       // remove client from all scenes
       client.getScene().unpublish();

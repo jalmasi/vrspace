@@ -220,7 +220,8 @@ export class AvatarSelection extends World {
     return mesh == this.ground
       || this.loginForm && this.loginForm.isSelectableMesh(mesh)
       || mesh.name && (mesh.name.startsWith("Button")
-        || mesh.name.startsWith("PortalEntrance"));
+      || mesh.name.startsWith("PortalEntrance"))
+      || super.isSelectableMesh(mesh);
   }
 
   getFloorMeshes() {

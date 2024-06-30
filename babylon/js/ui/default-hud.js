@@ -2,6 +2,7 @@ import { VRSPACEUI } from './vrspace-ui.js';
 import { MediaStreams } from '../core/media-streams.js';
 import { SpeechInput } from '../core/speech-input.js';
 import { WorldManager } from '../core/world-manager.js';
+import { World } from '../world/world.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
 import { VRHelper } from '../xr/vr-helper.js';
 import { ServerFile } from '../core/server-folder.js';
@@ -401,7 +402,7 @@ export class DefaultHud {
     this.screencast.init();
     this.screencast.startSharing();
   }
-  
+
   toggleWhiteboard() {
     if ( this.whiteboard ) {
       this.markEnabled(this.whiteboardButton)
@@ -415,9 +416,15 @@ export class DefaultHud {
     this.whiteboard.position = camera.position.add(camera.getForwardRay(1).direction.scale(2));
     this.whiteboard.show();
     this.markActive(this.whiteboardButton)
-    this.whiteboard.callback = () => {
+    this.whiteboard.closeCallback = () => {
       this.markEnabled(this.whiteboardButton)
       this.whiteboard = null;
     }
+    if ( this.isOnline() ) {
+      WorldManager.instance.world.addListener(this.whiteboard);
+      this.whiteboard.startSharing();
+    }
+    World.lastInstance.addSelectionPredicate(this.whiteboard.selectionPredicate);
+
   }
 }

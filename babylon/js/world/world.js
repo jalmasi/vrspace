@@ -18,6 +18,10 @@ rotation and scale for each object.
  */
 export class World {
   /**
+   * World instance that was created last.
+   */
+  static lastInstance = null;
+  /**
   Constructor takes parems that allow to override default values.
   @param params object to override world defaults - all properties are copied to world properties
    */
@@ -91,7 +95,9 @@ export class World {
       }
     }
     
+    World.lastInstance = this;
   }
+  
   /** Create, load and and show the world.
   Enables gravity and collisions, then executes createScene method, optionally creates load indicator,
   registers render loop, crates terrain, and finally, executes load method. Every method executed can be overridden.
