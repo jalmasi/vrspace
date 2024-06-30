@@ -427,4 +427,23 @@ export class DefaultHud {
     World.lastInstance.addSelectionPredicate(this.whiteboard.selectionPredicate);
 
   }
+  
+  file() {
+    let input = document.createElement("input");
+    input.setAttribute('type', 'file');
+    input.setAttribute('style','display:none');
+    document.body.appendChild(input);
+    input.addEventListener("change", ()=>this.upload(input), false);
+    input.addEventListener("cancel", ()=>this.upload(input), false);
+    input.click();
+  }
+  
+  upload(input) {
+    console.log("Files: ", input.files);
+    for ( let i = 0; i < input.files.length; i++) {
+      const file = input.files[i];
+      console.log("Uploading ",file);
+    };
+    document.body.removeChild(input);
+  }
 }
