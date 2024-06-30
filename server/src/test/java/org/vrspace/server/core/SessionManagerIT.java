@@ -139,7 +139,7 @@ public class SessionManagerIT {
       }
     });
     Map<String, Object> attributes = new HashMap<>();
-    attributes.put(ClientFactory.CLIENT_ATTRIBUTE, "tester");
+    attributes.put(ClientFactory.CLIENT_NAME_ATTRIBUTE, "tester");
     when(session.getAttributes()).thenReturn(attributes);
 
     testUser = new User();
@@ -190,7 +190,7 @@ public class SessionManagerIT {
   public void testInvalidLoginFail() throws Exception {
     config.setGuestAllowed(false);
     Map<String, Object> attributes = new HashMap<>();
-    attributes.put(ClientFactory.CLIENT_ATTRIBUTE, "unknown");
+    attributes.put(ClientFactory.CLIENT_NAME_ATTRIBUTE, "unknown");
     when(session.getAttributes()).thenReturn(attributes);
     sessionManager.afterConnectionEstablished(session);
 

@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -216,6 +217,11 @@ public class WorldManager {
     return world;
   }
 
+  public Client getClient(Long id) {
+    Client ret = db.get(Client.class, id);
+    return (Client) updateCache(ret);
+  }
+
   public Client getClientByName(String name) {
     Client ret = db.getClientByName(name);
     return (Client) updateCache(ret);
@@ -269,6 +275,28 @@ public class WorldManager {
   }
 
   /**
+   * Add an object to client's current position
+   * 
+   * @param client Client adding objects
+   * @param o      A VRObject
+   * @return saved VRObject
+   */
+  public VRObject add(Client client, VRObject o) {
+    if (o.getPosition() == null && client.getPosition() != null) {
+      o.setPosition(new Point(client.getPosition()));
+    }
+    o.setWorld(client.getWorld());
+    if (o.getTemporary() == null && client.isGuest()) {
+      o.setTemporary(true);
+    }
+    o = db.save(o);
+    Ownership ownership = new Ownership(client, o);
+    db.save(ownership);
+    cache.put(o.getObjectId(), o);
+    return o;
+  }
+
+  /**
    * Add objects to client's current position
    * 
    * @param client  client adding objects
@@ -276,20 +304,7 @@ public class WorldManager {
    * @return list of added objects
    */
   public List<VRObject> add(Client client, List<VRObject> objects) {
-    List<VRObject> ret = objects.stream().map(o -> {
-      if (o.getPosition() == null && client.getPosition() != null) {
-        o.setPosition(new Point(client.getPosition()));
-      }
-      o.setWorld(client.getWorld());
-      if (o.getTemporary() == null && client.isGuest()) {
-        o.setTemporary(true);
-      }
-      o = db.save(o);
-      Ownership ownership = new Ownership(client, o);
-      db.save(ownership);
-      cache.put(o.getObjectId(), o);
-      return o;
-    }).collect(Collectors.toList());
+    List<VRObject> ret = objects.stream().map(o -> add(client, o)).collect(Collectors.toList());
     db.save(client);
     return ret;
   }
@@ -374,6 +389,11 @@ public class WorldManager {
       }
     }
     client.setSession(session);
+    HttpSession httpSession = (HttpSession) attributes.get("HTTP.SESSION");
+    if (httpSession != null) {
+      // may be null in tests
+      httpSession.setAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE, client.getId());
+    }
     login(client);
     return enter(client, defaultWorld());
   }

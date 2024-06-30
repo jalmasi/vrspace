@@ -29,6 +29,13 @@ public class FileUtil {
   }
 
   /**
+   * Returns absolute name of uploaded content directory
+   */
+  public static String uploadDir() {
+    return ClassUtil.projectHomeDirectory() + "/content/tmp";
+  }
+
+  /**
    * Unzip a file to a directory
    * 
    * @param file zip to unzip

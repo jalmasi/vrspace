@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -182,8 +183,36 @@ public class WorldManagerTest {
 
     worldManager.logout(welcome.getClient());
 
-    // guest and temporary removed from cache and db, world and persistent remain
-    assertEquals(2, worldManager.cache.size());
+    // guest and owned objects removed from cache and db, world remains
+    assertEquals(1, worldManager.cache.size());
+  }
+
+  @Test
+  public void testNonGuestLogout() {
+    mockAuthorizedSession("owner", session);
+
+    config.setGuestAllowed(false);
+    worldManager.sceneProperties = new SceneProperties();
+
+    Welcome welcome = worldManager.login(session);
+    List<VRObject> newObjects = new ArrayList<VRObject>();
+    // add temporary object:
+    VRObject temp = new VRObject(1L);
+    temp.setTemporary(true);
+    newObjects.add(temp);
+    VRObject notTemp = new VRObject(2L);
+    // add persistent object:
+    notTemp.setTemporary(false);
+    newObjects.add(notTemp);
+    worldManager.add(welcome.getClient(), newObjects);
+
+    // everything added to cache/db, including the world
+    assertEquals(4, worldManager.cache.size());
+
+    worldManager.logout(welcome.getClient());
+
+    // temporary removed from cache and db, world, client and persistent remain
+    assertEquals(3, worldManager.cache.size());
   }
 
   @Test
@@ -207,26 +236,36 @@ public class WorldManagerTest {
     assertEquals(world, capturedWorld.getValue());
   }
 
-  private void mockSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
+  private Client mockGuestSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
     Client client = new Client(clientName);
+    client.setId(id++);
+    client.setGuest(true);
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put(ClientFactory.CLIENT_NAME_ATTRIBUTE, clientName);
+    lenient().when(s.getAttributes()).thenReturn(attributes);
+
+    lenient().when(repo.getClientByName(ArgumentMatchers.eq(clientName), any())).thenReturn(client);
+
+    return client;
+  }
+
+  private Client mockAuthorizedSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
+    Client client = mockGuestSession(clientName, s);
+    client.setGuest(false);
     lenient().when(s.getPrincipal()).thenReturn(new Principal() {
       @Override
       public String getName() {
         return clientName;
       }
     });
-    Map<String, Object> attributes = new HashMap<>();
-    attributes.put(ClientFactory.CLIENT_ATTRIBUTE, "tester");
-    lenient().when(s.getAttributes()).thenReturn(attributes);
-
-    lenient().when(repo.getClientByName(any(), any())).thenReturn(client);
+    return client;
   }
 
   @Test
   public void testPrivateWorld() {
-    mockSession("owner", session);
+    mockAuthorizedSession("owner", session);
 
-    config.setGuestAllowed(false);
+    config.setGuestAllowed(true);
     worldManager.sceneProperties = new SceneProperties();
     Welcome welcomeOwner = worldManager.login(session);
     Client owner = welcomeOwner.getClient();
@@ -241,8 +280,8 @@ public class WorldManagerTest {
     // owner enters:
     worldManager.enter(owner, world);
 
-    mockSession("guest", anotherSession);
-    Welcome welcomeGuest = worldManager.login(session);
+    mockGuestSession("guest", anotherSession);
+    Welcome welcomeGuest = worldManager.login(anotherSession);
     Client guest = welcomeGuest.getClient();
 
     // guest enters and fails:

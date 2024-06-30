@@ -425,7 +425,6 @@ export class DefaultHud {
       this.whiteboard.startSharing();
     }
     World.lastInstance.addSelectionPredicate(this.whiteboard.selectionPredicate);
-
   }
   
   file() {
@@ -443,6 +442,11 @@ export class DefaultHud {
     for ( let i = 0; i < input.files.length; i++) {
       const file = input.files[i];
       console.log("Uploading ",file);
+      // TODO upload
+      fetch('/vrspace/api/files/upload', {
+        method: 'PUT',
+        body: file
+      })
     };
     document.body.removeChild(input);
   }

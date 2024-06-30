@@ -39,7 +39,7 @@ public class DefaultClientFactory implements ClientFactory {
   @Override
   public <T extends Client> T findClient(Class<T> clientClass, Principal principal, VRObjectRepository db,
       HttpHeaders headers, Map<String, Object> attributes) {
-    Object name = attributes.get(clientAttribute());
+    Object name = attributes.get(clientNameAttribute());
     if (name != null && name instanceof String) {
       return db.getClientByName((String) name, clientClass);
     }

@@ -16,7 +16,8 @@ import org.vrspace.server.obj.Client;
  *
  */
 public interface ClientFactory {
-  public static final String CLIENT_ATTRIBUTE = "local-user-name";
+  public static final String CLIENT_NAME_ATTRIBUTE = "local-user-name";
+  public static final String CLIENT_ID_ATTRIBUTE = "local-user-id";
 
   /**
    * Find an authorised known client, called only if security principal is known.
@@ -67,8 +68,8 @@ public interface ClientFactory {
    * 
    * @return
    */
-  public default String clientAttribute() {
-    return CLIENT_ATTRIBUTE;
+  public default String clientNameAttribute() {
+    return CLIENT_NAME_ATTRIBUTE;
   }
 
 }
