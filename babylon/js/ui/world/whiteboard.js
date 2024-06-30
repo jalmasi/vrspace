@@ -129,7 +129,7 @@ export class Whiteboard extends ImageArea {
   
   click(x, y) {
     this.clickAt(x,y);
-    this.sendEvent({ clickAt: { atx: x, aty: y } });
+    this.sendEvent({ clickAt: { x: x, y: y } });
   }
 
   dragTo(x,y) {
@@ -140,7 +140,7 @@ export class Whiteboard extends ImageArea {
   
   pointerDrag(x, y) {
     this.dragTo(x,y);
-    this.sendEvent({ dragTo: { atx: x, aty: y } });
+    this.sendEvent({ dragTo: { x: x, y: y } });
   }
 
   dragEnd() {

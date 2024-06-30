@@ -44,7 +44,7 @@ export class RemoteWhiteboard extends BasicScript {
           if (Object.keys(args).length == 0) {
             this.whiteboard[method]();
           } if (Object.keys(args).length == 2) {
-            this.whiteboard[method](args.atx, args.aty);
+            this.whiteboard[method](args.x, args.y);
           } else if (Object.keys(args).length == 3) {
             this.whiteboard[method](args.r, args.g, args.b);
           }

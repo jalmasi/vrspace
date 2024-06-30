@@ -489,10 +489,16 @@ export class VRSpace {
     } else if ( typeof value == 'object') {
       if ( value == null ) {
         return '"'+field+'":null';
-      } if(value.hasOwnProperty('w')) {
-        return '"'+field+'":'+this.stringifyQuaternion(value);
-      } else if (value.hasOwnProperty('x') || value.hasOwnProperty('_x')) {
-        return '"'+field+'":'+this.stringifyVector(value);
+      } else if (
+        (value.hasOwnProperty('x') || value.hasOwnProperty('_x')) &&
+        (value.hasOwnProperty('y') || value.hasOwnProperty('_y')) &&
+        (value.hasOwnProperty('z') || value.hasOwnProperty('_z'))
+      ) {
+        if(value.hasOwnProperty('w')) {
+          return '"'+field+'":'+this.stringifyQuaternion(value);
+        } else {
+          return '"'+field+'":'+this.stringifyVector(value);
+        }
       } else {
         // assuming custom object
         return '"'+field+'":'+JSON.stringify(value);
