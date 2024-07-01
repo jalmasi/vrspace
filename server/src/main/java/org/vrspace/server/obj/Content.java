@@ -4,6 +4,8 @@ import java.io.File;
 
 import org.springframework.data.neo4j.core.schema.Node;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Content extends Embedded {
   private String fileName;
+  @JsonIgnore
   private String folder;
   private String contentType;
   private long length;

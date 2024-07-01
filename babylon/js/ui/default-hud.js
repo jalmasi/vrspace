@@ -366,7 +366,7 @@ export class DefaultHud {
       this.hud.newRow();
       this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
       this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.toggleWhiteboard(), false);
-      this.fileButton = this.hud.addButton("File", this.contentBase + "/content/icons/file.png", () => this.file(), false);
+      this.fileButton = this.hud.addButton("Share file", this.contentBase + "/content/icons/file.png", () => this.file(), false);
       if ( this.streamingAvailable() ) {
         this.markEnabled(this.screencastButton);
       } else {
@@ -376,6 +376,11 @@ export class DefaultHud {
         this.markActive(this.whiteboardButton);
       } else {
         this.markEnabled(this.whiteboardButton);
+      }
+      if ( this.isOnline() ) {
+        this.markEnabled(this.fileButton);
+      } else {
+        this.markDisabled(this.fileButton);
       }
     } else {
       this.clearRow();
@@ -428,6 +433,9 @@ export class DefaultHud {
   }
   
   file() {
+    if ( ! this.isOnline() ) {
+      return;
+    }
     let input = document.createElement("input");
     input.setAttribute('type', 'file');
     input.setAttribute('style','display:none');

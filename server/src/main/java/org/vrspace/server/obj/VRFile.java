@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
 @Slf4j
 public class VRFile extends VRObject {
-  public static final String FILE_SCRIPT = "/babylon/js/scripts/file.js";
+  public static final String FILE_SCRIPT = "/babylon/js/scripts/shared-file.js";
 
   @JsonMerge
   private Content content;

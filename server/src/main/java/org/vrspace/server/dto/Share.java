@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 public class Share extends Add {
   public static final Set<String> allowedScripts = Set.of("/babylon/js/scripts/remote-screen.js",
-      "/babylon/js/scripts/remote-whiteboard.js", "/babylon/js/scripts/file.js");
+      "/babylon/js/scripts/remote-whiteboard.js", "/babylon/js/scripts/shared-file.js");
 
   @Override
   public ClientResponse execute(WorldManager world, Client client) {

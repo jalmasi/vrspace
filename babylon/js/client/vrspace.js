@@ -247,6 +247,15 @@ export class Terrain extends VRObject {
   }
 }
 
+export class VRFile extends VRObject {
+  constructor() {
+    super();
+    this.className = 'VRFile';
+    /** Content object contains fileName, contentType, length */    
+    this.content = null;
+  }
+}
+
 /**
 An event that happened to an object.
 @param obj VRObject instance
@@ -308,7 +317,7 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain, VRFile };
     //this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {
