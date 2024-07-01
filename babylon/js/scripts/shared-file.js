@@ -14,7 +14,7 @@ export class SharedFile extends BasicScript {
     this.imageArea.show();
     this.imageArea.areaPlane.rotation = new BABYLON.Vector3(0,Math.PI,0);
     this.imageArea.loadUrl('/content/icons/file.png');
-    this.imageArea.onClick(() => console.log("TODO Download ", this.vrObject.content));
+    this.imageArea.onClick(() => this.download());
     
     this.label = new Label(this.vrObject.content.fileName, new BABYLON.Vector3(0, .2, 0), this.imageArea.group);
     this.label.height = 0.1;
@@ -27,5 +27,25 @@ export class SharedFile extends BasicScript {
       this.imageArea.dispose();
       this.label.dispose();
     }
+  }
+  
+  download() {
+    console.log("Downloading ", this.vrObject.content);
+    let path = "/content/tmp/"+this.vrObject.content.fileName;
+    // https://stackoverflow.com/questions/32545632/how-can-i-download-a-file-using-window-fetch
+    fetch(path).then(res=>{
+      return res.blob();
+    }).then(blob=>{
+      const href = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), {
+        href,
+        style: "display:none",
+        download: this.vrObject.content.fileName
+      });
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(href);
+      a.remove();
+    });
   }
 }

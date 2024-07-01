@@ -452,7 +452,7 @@ export class DefaultHud {
       console.log("Uploading ",file);
       let camera = this.scene.activeCamera;
       let pos = camera.position.add(camera.getForwardRay(1).direction);
-      // TODO upload
+
       const formData  = new FormData();
       formData.append('fileName', file.name);
       formData.append('contentType', file.type);
