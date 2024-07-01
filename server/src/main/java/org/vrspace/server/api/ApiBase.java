@@ -14,7 +14,7 @@ public abstract class ApiBase {
   public static final String API_ROOT = "/vrspace/api";
 
   public static String currentUserName(HttpSession session, ClientFactory clientFactory) {
-    return (String) session.getAttribute(clientFactory.clientAttribute());
+    return (String) session.getAttribute(clientFactory.clientNameAttribute());
   }
 
 }

@@ -1,6 +1,6 @@
-import { VRSPACEUI, World, ChatLog } from './js/vrspace-min.js';
+import { World, WorldManager, ChatLog, ImageArea, Whiteboard } from './js/vrspace-min.js';
 
-export class TextWorld extends World {
+export class ImageAreaWorld extends World {
   async load(callback) {
     // we're not loading any models
     // but we're displaying UI instead
@@ -62,8 +62,60 @@ export class TextWorld extends World {
     
     chatLog.writeln("Click here: www.vrspace.org");
     
+    this.selectables = [];
+    // detach/attach to hud/camera test
+    let state = 0;
+    let imageArea = new ImageArea(this.scene, "TouchImageArea");
+    imageArea.attachToCamera();
+    imageArea.size = .05;
+    imageArea.position = new BABYLON.Vector3(.1, 0, .2);
+    imageArea.show();
+    this.selectables.push(imageArea);
+    
+    imageArea.onClick(e=>{
+      // loading video only on click, otherwise chrome doesn't allow sound
+      if ( ! this.videoLoaded ) {
+        this.videoLoaded = true;
+        imageArea.loadVideo("https://www.vrspace.org/content/vrspace-ui-demo.mp4");
+      }
+      if ( imageArea.handles ) {
+        imageArea.removeHandles();
+      } else {
+        imageArea.createHandles();
+      }
+      if ( state%3 == 0 ) {
+        imageArea.attachToHud();
+      } else if (state%3 == 1) {
+        imageArea.attachToCamera();
+        chatLog.leftSide();
+      } else if (state%3 == 2) {
+        imageArea.detach();
+        chatLog.rightSide();
+      }
+      state ++;
+    });
+
+    this.whiteboard = new Whiteboard(this.scene, "Whiteboard");
+    this.whiteboard.size = 2;
+    this.whiteboard.position = new BABYLON.Vector3(0,2,3);
+    this.whiteboard.show();
+    this.selectables.push(this.whiteboard);
+    this.addListener(this.whiteboard);
+
+    this.connect();
   }
+
+  isSelectableMesh(mesh) {
+    let ret = super.isSelectableMesh(mesh);
+    this.selectables.forEach( o => ret |= o.isSelectableMesh(mesh));
+    return ret;
+  }
+
+  connect() {
+    new WorldManager(this);
+    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
+  }
+
 }
 
-export { VRSPACEUI };
-export const WORLD = new TextWorld();
+export const WORLD = new ImageAreaWorld();

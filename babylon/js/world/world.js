@@ -3,6 +3,7 @@ import {VRHelper} from '../xr/vr-helper.js';
 import {ChatLog} from '../ui/widget/chat-log.js';
 import {WorldManager} from '../core/world-manager.js';
 import {AvatarController} from '../avatar/avatar-controller.js';
+import { VRSPACE } from '../vrspace-min.js';
 
 /**
 Basic world, intended to be overridden.
@@ -16,6 +17,10 @@ rotation and scale for each object.
 @abstract
  */
 export class World {
+  /**
+   * World instance that was created last.
+   */
+  static lastInstance = null;
   /**
   Constructor takes parems that allow to override default values.
   @param params object to override world defaults - all properties are copied to world properties
@@ -90,7 +95,9 @@ export class World {
       }
     }
     
+    World.lastInstance = this;
   }
+  
   /** Create, load and and show the world.
   Enables gravity and collisions, then executes createScene method, optionally creates load indicator,
   registers render loop, crates terrain, and finally, executes load method. Every method executed can be overridden.
@@ -819,5 +826,12 @@ export class World {
     });
   }
   
+  addListener(worldListener) {
+    VRSPACE.addListener(this.worldListeners, worldListener);
+  }
+  
+  removeListener(worldListener) {
+    VRSPACE.removeListener(this.worldListeners, worldListener);
+  }
 }
 

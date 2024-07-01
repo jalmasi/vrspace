@@ -2,10 +2,13 @@ import { VRSPACEUI } from './vrspace-ui.js';
 import { MediaStreams } from '../core/media-streams.js';
 import { SpeechInput } from '../core/speech-input.js';
 import { WorldManager } from '../core/world-manager.js';
+import { World } from '../world/world.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
 import { VRHelper } from '../xr/vr-helper.js';
 import { ServerFile } from '../core/server-folder.js';
 import { EmojiParticleSystem } from './world/emoji-particle-system.js';
+import { Screencast } from './world/screencast.js';
+import { Whiteboard } from './world/whiteboard.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -28,6 +31,8 @@ export class DefaultHud {
     this.cameraButton = null;
     this.buttons = [];
     this.emojiParticleSystem = new EmojiParticleSystem(scene);
+    this.screencast = null;
+    this.whiteboard = null;
   }
   
   init() {
@@ -37,8 +42,19 @@ export class DefaultHud {
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
       this.emojiButton = this.hud.addButton("Emoji", this.contentBase + "/content/icons/emoji.png", () => this.emojis());
+      this.shareButton = this.hud.addButton("Share", this.contentBase + "/content/icons/share.png", () => this.share());
       this.hud.enableSpeech(true);
     }
+  }
+  
+  streamingAvailable() {
+    // TODO check server capabilities
+    // screen sharing unavailable on mobiles
+    return this.isOnline();
+  }
+  
+  isOnline() {
+    return WorldManager.instance && WorldManager.instance.isOnline();
   }
   
   settings() {
@@ -88,6 +104,14 @@ export class DefaultHud {
       this.movementButton.dispose();
       this.movementButton = null;
     }
+    if ( this.screencastButton ) {
+      this.screencastButton.dispose();
+      this.whiteboardButton.dispose();
+      this.fileButton.dispose();
+      this.screencastButton = null;
+      this.whiteboardButton = null;
+      this.fileButton = null;
+    }
     this.buttons.forEach(b=>b.dispose());
     this.buttons = [];
     this.hud.showButtons(true);    
@@ -116,12 +140,12 @@ export class DefaultHud {
       this.clearRow();
     }
   }
-  
+
   playEmoji(url) {
     console.log("Playing emoji "+url);
     
     this.stopEmoji();
-    if (WorldManager.instance && WorldManager.instance.isOnline()) {
+    if (this.isOnline()) {
       // online, bind to camera in 1st person and to avatar in 3rd person view
       if ( WorldManager.instance.world.camera3p && this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
         this.emojiParticleSystem.init(url, WorldManager.instance.world.avatarController.avatar).start();
@@ -145,15 +169,29 @@ export class DefaultHud {
     console.log("Stopping emoji");
     this.emojiParticleSystem.stop();
     // stop remote emoji here
-    if (WorldManager.instance && WorldManager.instance.isOnline()) {
+    if (this.isOnline()) {
       WorldManager.instance.publishChanges( [{field:'emoji',value:null}] );
     }
   }
   
+  markEnabled(button) {
+    if ( button ) {
+      button.tooltipText = null;
+      button.backMaterial.albedoColor = new BABYLON.Color3(0.3, 0.35, 0.4);
+    }
+  }
+
   markDisabled(button) {
     if ( button ) {
       button.tooltipText = "N/A";
       button.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
+    }
+  }
+
+  markActive(button) {
+    if ( button ) {
+      button.tooltipText = "N/A";
+      button.backMaterial.albedoColor = new BABYLON.Color3(0.29, 0.67, 0.29);
     }
   }
   
@@ -319,5 +357,115 @@ export class DefaultHud {
     const worldName = userName+"'s world";
     const token = await VRSpaceAPI.getInstance().createWorldFromTemplate(worldName, portal.name);
     window.location.href = window.location.href+"?worldName="+worldName+"&worldToken="+token+"&worldThumbnail="+portal.name;
+  }
+
+  share() {
+    this.displayButtons = !this.displayButtons;
+    if ( this.displayButtons ) {
+      this.hud.showButtons(false, this.shareButton);
+      this.hud.newRow();
+      this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
+      this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.toggleWhiteboard(), false);
+      this.fileButton = this.hud.addButton("Share file", this.contentBase + "/content/icons/file.png", () => this.file(), false);
+      if ( this.streamingAvailable() ) {
+        this.markEnabled(this.screencastButton);
+      } else {
+        this.markDisabled(this.screencastButton);
+      }
+      if ( this.whiteboard ) {
+        this.markActive(this.whiteboardButton);
+      } else {
+        this.markEnabled(this.whiteboardButton);
+      }
+      if ( this.isOnline() ) {
+        this.markEnabled(this.fileButton);
+      } else {
+        this.markDisabled(this.fileButton);
+      }
+    } else {
+      this.clearRow();
+    }
+  }
+  
+  shareScreen() {
+    if ( ! this.streamingAvailable() ) {
+      return;
+    }
+    if ( this.screencast ) {
+      this.markEnabled(this.screencastButton)
+      this.screencast.dispose();
+      this.screencast = null;
+      return;
+    }
+    this.markActive(this.screencastButton)
+    let world = WorldManager.instance.world;
+    let camera = this.scene.activeCamera;
+    this.screencast = new Screencast(world);
+    this.screencast.position = camera.position.add(camera.getForwardRay(1).direction);
+    this.screencast.size = 1;
+    this.screencast.callback = state=>{ if(!state) this.markEnabled(this.screencastButton)};
+    this.screencast.init();
+    this.screencast.startSharing();
+  }
+
+  toggleWhiteboard() {
+    if ( this.whiteboard ) {
+      this.markEnabled(this.whiteboardButton)
+      this.whiteboard.dispose();
+      this.whiteboard = null;
+      return;
+    }
+    let camera = this.scene.activeCamera;
+    this.whiteboard = new Whiteboard(this.scene, "Whiteboard-"+WorldManager.myId());
+    this.whiteboard.size = 2;
+    this.whiteboard.position = camera.position.add(camera.getForwardRay(1).direction.scale(2));
+    this.whiteboard.show();
+    this.markActive(this.whiteboardButton)
+    this.whiteboard.closeCallback = () => {
+      this.markEnabled(this.whiteboardButton)
+      this.whiteboard = null;
+    }
+    if ( this.isOnline() ) {
+      WorldManager.instance.world.addListener(this.whiteboard);
+      this.whiteboard.startSharing();
+    }
+    World.lastInstance.addSelectionPredicate(this.whiteboard.selectionPredicate);
+  }
+  
+  file() {
+    if ( ! this.isOnline() ) {
+      return;
+    }
+    let input = document.createElement("input");
+    input.setAttribute('type', 'file');
+    input.setAttribute('style','display:none');
+    document.body.appendChild(input);
+    input.addEventListener("change", ()=>this.upload(input), false);
+    input.addEventListener("cancel", ()=>this.upload(input), false);
+    input.click();
+  }
+  
+  upload(input) {
+    console.log("Files: ", input.files);
+    for ( let i = 0; i < input.files.length; i++) {
+      const file = input.files[i];
+      console.log("Uploading ",file);
+      let camera = this.scene.activeCamera;
+      let pos = camera.position.add(camera.getForwardRay(1).direction);
+
+      const formData  = new FormData();
+      formData.append('fileName', file.name);
+      formData.append('contentType', file.type);
+      formData.append('x', pos.x);
+      formData.append('y', pos.y);
+      formData.append('z', pos.z);
+      formData.append('fileData', file);
+
+      fetch('/vrspace/api/files/upload', {
+        method: 'PUT',
+        body: formData
+      })
+    };
+    document.body.removeChild(input);
   }
 }

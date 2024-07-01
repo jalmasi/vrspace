@@ -220,7 +220,8 @@ export class AvatarSelection extends World {
     return mesh == this.ground
       || this.loginForm && this.loginForm.isSelectableMesh(mesh)
       || mesh.name && (mesh.name.startsWith("Button")
-        || mesh.name.startsWith("PortalEntrance"));
+      || mesh.name.startsWith("PortalEntrance"))
+      || super.isSelectableMesh(mesh);
   }
 
   getFloorMeshes() {
@@ -703,7 +704,6 @@ export class AvatarSelection extends World {
       this.beforeEnter(this);
     }
     this.loginForm.dispose();
-    this.hud.init();
     import(worldUrl + '/' + worldScript).then((world) => {
 
       world.WORLD.inVR = this.inVR;
@@ -745,6 +745,7 @@ export class AvatarSelection extends World {
           this.worldManager.addMyChangeListener(changes => controller.processChanges(changes));
           // CHECKME better way to flag publishing video?
           this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
+          this.hud.init();
           if (this.afterEnter) {
             this.afterEnter(this, world);
           }

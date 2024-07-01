@@ -1,9 +1,11 @@
 /**
  * Base class common for TextArea and ImageArea, possibly more to come.
+ * Provides methods to attach the area to HUD or camera, and common variables.
  */
 export class BaseArea {
   constructor(scene, name) {
     this.scene = scene;
+    this.name = name;
     this.size = .2;
     this.position = BABYLON.Vector3.ZERO; // OVERRIDE!
     this.addHandles = true;
@@ -13,7 +15,9 @@ export class BaseArea {
     this.attachedToCamera = false;
     this.areaPlane = null;
     this.handles = null;
+    this.texture = null;
     this.material = null;
+    this.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
   }
   
   /**
@@ -76,6 +80,14 @@ export class BaseArea {
     }
   }
  
+  /**
+  * XR pointer support
+  */
+  isSelectableMesh(mesh) {
+    return mesh == this.areaPlane && this.areaPlane.isEnabled() || (this.handles && !this.handles.minimized && this.handles.handles.includes(mesh)); 
+  }
+
+  /** Clean up allocated resources */
   dispose() {
     this.detach();
     this.removeHandles();

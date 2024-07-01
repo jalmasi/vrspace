@@ -134,6 +134,10 @@ export class VRObject {
     this.VRSPACE.log(json);
     this.VRSPACE.send(json);
   }
+  
+  getID() {
+    return new ID(this.className, this.id);
+  }
 }
 
 /**
@@ -243,6 +247,15 @@ export class Terrain extends VRObject {
   }
 }
 
+export class VRFile extends VRObject {
+  constructor() {
+    super();
+    this.className = 'VRFile';
+    /** Content object contains fileName, contentType, length */    
+    this.content = null;
+  }
+}
+
 /**
 An event that happened to an object.
 @param obj VRObject instance
@@ -304,7 +317,7 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain, VRFile };
     //this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {
@@ -320,7 +333,7 @@ export class VRSpace {
 
   /* Used internally to add a listener */  
   addListener(array, callback) {
-    if ( typeof callback == 'function') {
+    if ( typeof callback == 'function' || typeof callback == 'object') {
       array.push(callback);
     }
   }
@@ -387,7 +400,7 @@ export class VRSpace {
 
   /**
   Return the current scene, optionally filtered
-  @param filter string to match current members, usually class name
+  @param filter string to match current members, usually class name, or function that takes VRObject as argument
    */
   getScene( filter ) {
     if ( typeof filter === 'undefined') {
@@ -396,6 +409,14 @@ export class VRSpace {
       var ret = new Map();
       for ( const [key,value] of this.scene ) {
         if ( key.startsWith(filter) ) {
+          ret.set(key,value);
+        }
+      }
+      return ret;
+    } else if ( typeof filter === 'function') {
+      var ret = new Map();
+      for ( const [key,value] of this.scene ) {
+        if ( filter(value) ) {
           ret.set(key,value);
         }
       }
@@ -477,10 +498,16 @@ export class VRSpace {
     } else if ( typeof value == 'object') {
       if ( value == null ) {
         return '"'+field+'":null';
-      } if(value.hasOwnProperty('w')) {
-        return '"'+field+'":'+this.stringifyQuaternion(value);
-      } else if (value.hasOwnProperty('x') || value.hasOwnProperty('_x')) {
-        return '"'+field+'":'+this.stringifyVector(value);
+      } else if (
+        (value.hasOwnProperty('x') || value.hasOwnProperty('_x')) &&
+        (value.hasOwnProperty('y') || value.hasOwnProperty('_y')) &&
+        (value.hasOwnProperty('z') || value.hasOwnProperty('_z'))
+      ) {
+        if(value.hasOwnProperty('w')) {
+          return '"'+field+'":'+this.stringifyQuaternion(value);
+        } else {
+          return '"'+field+'":'+this.stringifyVector(value);
+        }
       } else {
         // assuming custom object
         return '"'+field+'":'+JSON.stringify(value);
@@ -538,6 +565,34 @@ export class VRSpace {
     this.log(json);
     // response to command contains object ID
     this.call('{"command":{"Add":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
+      this.log("Response:", response);
+      var objectId = response.response[0][className];
+      const id = new ID(className,objectId);
+      this.log("Created object:"+ objectId);
+      // by now the object is already in the scene, since Add message preceeded the response
+      var ret = this.scene.get(id.toString());
+      callback(ret);
+    });
+  }
+  
+  /**
+  Create a streaming object, FIXME: copied
+  @param obj the new VRObject, containing all properties
+  @param callback called when shared object is received
+  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
+   */
+  createScriptedObject( obj, callback, className ) {
+    if ( ! className ) {
+      if ( obj.className ) {
+        className = obj.className;
+      } else {
+        className = 'VRObject';
+      }
+    }
+    let json = JSON.stringify(obj);
+    this.log(json);
+    // response to command contains object ID
+    this.call('{"command":{"Share":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
       this.log("Response:", response);
       var objectId = response.response[0][className];
       const id = new ID(className,objectId);

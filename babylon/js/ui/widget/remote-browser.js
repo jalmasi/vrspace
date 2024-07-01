@@ -2,6 +2,12 @@ import { ImageArea } from './image-area.js';
 import { InputForm } from './input-form.js';
 import { VRSPACEUI } from '../vrspace-ui.js';
 
+/**
+ * Experimental remote web browser. Communicates with server-side component that controls a headless web browser with Selenium.
+ * Requires firefox on the server, and org.vrspace.server.selenium-enabled=true property.
+ * Forwards click to the server, and loads resulting screenshots.
+ * Severe limitation is that there's no such thing as 'web page is ready' signal in web browser.
+ */
 export class RemoteBrowser extends ImageArea {
   constructor(scene) {
     super(scene);
@@ -139,28 +145,15 @@ export class RemoteBrowser extends ImageArea {
     formPlane.position = new BABYLON.Vector3(0,-0.12,-.05);
     formPlane.setEnabled(false);
     this.inputForm.addListener(text=>this.enter(text));
-    
-    this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
-        && pointerInfo.pickInfo.hit
-        && this.plane == pointerInfo.pickInfo.pickedMesh
-      ) {
-        let coords = pointerInfo.pickInfo.getTextureCoordinates();
-        let y = Math.round(this.height*(1-coords.y));
-        let x = Math.round(coords.x*this.width);
-        console.log("Clicked: x="+x+" y="+y+" coord "+pointerInfo.pickInfo.getTextureCoordinates() );
-        this.click(x,y);
-      }
-    });
   }
+  
   dispose() {
     super.dispose();
-    if ( this.clickHandler) {
-      this.scene.onPointerObservable.remove(this.clickHandler);
-    }
     this.inputForm.dispose();
-    this.buttonBack.dispose();
-    this.buttonForward.dispose();
-    this.buttonQuit.dispose();
+    if ( this.buttonBack ) {
+      this.buttonBack.dispose();
+      this.buttonForward.dispose();
+      this.buttonQuit.dispose();
+    }
   }
 }

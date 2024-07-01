@@ -95,6 +95,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   default void delete(VRObject o) {
     try {
       deleteMembers(o.getClass(), o);
+      o.dispose();
     } catch (Exception e) {
       log.error("Cannot delete members of " + o.getClass().getSimpleName() + " " + o.getId(), e);
     }
@@ -115,11 +116,13 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
           log.debug("Deleting " + f.getName() + " " + e.getClass().getSimpleName() + ":" + e.getId() + " of "
               + obj.getClass().getSimpleName() + " " + obj.getId());
           deleteById(e.getClass(), e.getId());
+          e.dispose();
         }
       }
     }
   }
 
+  // CHECKME: doesn't seem used anywhere
   default void nullSafeDelete(Entity e) {
     if (e != null && e.getId() != null) {
       deleteById(e.getClass(), e.getId());

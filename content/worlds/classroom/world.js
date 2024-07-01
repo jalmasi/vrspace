@@ -1,4 +1,4 @@
-import { World, Screencast } from '../../../babylon/js/vrspace-min.js';
+import { World, SharedScreencast } from '../../../babylon/js/vrspace-min.js';
 
 export class Classroom extends World {
   constructor() {
@@ -124,11 +124,9 @@ export class Classroom extends World {
   // executed once connected to the server and entered the space
   entered( welcome ) {
     super.entered( welcome );
-    this.screencast = new Screencast( this, 'teacher' );
+    this.screencast = new SharedScreencast( this, 'teacher' );
     this.screencast.screenShareMesh.position = new BABYLON.Vector3(-0.04, 1, 1.2);
     this.screencast.screenShareMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-    this.screencast.videoMesh.position = new BABYLON.Vector3(0, 3, -.4);
-    this.screencast.videoMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
     this.screencast.init();
   }
 

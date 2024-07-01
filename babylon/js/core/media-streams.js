@@ -30,6 +30,7 @@ export class MediaStreams {
     // this is to track/match clients and streams:
     this.clients = [];
     this.subscribers = [];
+    this.streamListeners = {};
   }
   
   /**
@@ -89,7 +90,7 @@ export class MediaStreams {
     var screenPublisher = this.OV.initPublisher(this.htmlElementName, { 
       videoSource: "screen", 
       audioSource: false, 
-      publishAudio: false 
+      publishAudio: false
     });
     
     return new Promise( (resolve, reject) => {
@@ -241,6 +242,7 @@ export class MediaStreams {
   
   /**
   Attaches a videoStream to a VideoAvatar
+  @param client Client that streams
    */
   attachVideoStream(client, subscriber) {
     var mediaStream = subscriber.stream.getMediaStream();
@@ -263,6 +265,8 @@ export class MediaStreams {
           }
         }
       });
+    } else if (this.streamListeners[client.id]) {
+      this.streamListeners[client.id](mediaStream);
     } else {
       this.playStream(client, mediaStream );
     }
@@ -271,7 +275,14 @@ export class MediaStreams {
   unknownStream( client, mediaStream ) {
     console.log("Can't attach video stream to "+client.id+" - not a video avatar");
   }
+
+  addStreamListener(clientId, listener) {
+    this.streamListeners[clientId] = listener;
+  }
   
+  removeStreamListener(clientId) {
+    delete this.streamListeners[clientId];
+  }
 }
 
 /**
@@ -284,6 +295,7 @@ export class OpenViduStreams extends MediaStreams {
     //await import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/openvidu-browser@2.17.0/lib/index.min.js');
     await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.17.0.min.js');
     this.OV = new OpenVidu();
+    this.OV.enableProdMode(); // Disable logging
     this.session = this.OV.initSession();
     this.session.on('streamCreated', (event) => {
       // client id can be used to match the stream with the avatar

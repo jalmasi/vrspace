@@ -1,43 +1,39 @@
 import { OpenViduStreams } from '../../core/media-streams.js';
+import { WorldListener } from '../../world/world-listener.js';
 
 /**
-Simple screen sharing component. Creates two planes: 
-one (screenShareMesh) to start/stop sharing, 
-and the other one (videoMesh) to display the video stream.
-Properties of created meshes (position etc) are safe to be changed after creation.
-Creates and deletes a server-side object for synchronization.
-*/
-export class Screencast {
+ * Base screen sharing class, sending side.
+ * Using should be simple - construct and init. All methods except startSharing/stopSharing are internally called,
+ * intended to be overridden by subclasses.
+ * Receiving side of the screen is implemented by RemoteScreen script.
+ */
+export class Screencast extends WorldListener {
   /**
    * Creates but hides meshes.
    * 
    * @param world the world
    * @param name screen share name, displayed when sharing. Defaults to user name or id.
    */
-  constructor(world, name) {
+  constructor(world, name="Shared screen") {
+    super();
     /** text to display on the share screen button, by default Share screen */
     this.text = 'Share screen';
     this.world = world;
     this.scene = world.scene;
     this.name = name;
     
-    this.screenShareMesh = BABYLON.MeshBuilder.CreatePlane('screencast-button', {width:1, height:.5}, this.scene);
-    this.screenShareMesh.position = new BABYLON.Vector3(0, 1, 0);
-    this.screenShareMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-    this.screenShareMesh.material = new BABYLON.StandardMaterial('shareScreen', this.scene);;
-    this.screenShareMesh.material.emissiveColor = BABYLON.Color3.White();
-    this.screenShareMesh.material.backFaceCulling = false;
-    this.screenShareMesh.material.diffuseTexture = new BABYLON.DynamicTexture("screenShareTexture", {width:128, height:64}, this.scene);
-    this.writeText(this.text);
-    this.screenShareMesh.setEnabled(false);
-
-    // HD resolution 16:9
-    this.videoMesh = BABYLON.MeshBuilder.CreatePlane('screencast-videoScreen', {width:16/3, height:9/3}, this.scene);
-    this.videoMesh.position = new BABYLON.Vector3(0, 3, 0);
-    this.videoMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-    this.videoMesh.material = new BABYLON.StandardMaterial('screencast-video', this.scene);
-    this.videoMesh.material.emissiveColor = BABYLON.Color3.White();
-    this.videoMesh.setEnabled(false);
+    /** Screen size, default 3. Height is fixed, width may scale accordingly. */
+    this.size = 3;
+    /** Add manupulation handles? Default true. */
+    this.addHandles = true;
+    /** Screen position, default 0,3,0 */
+    this.position = new BABYLON.Vector3(0, 3, 0);
+    /** Screen rotation, default Math.PI - away from presenter */
+    this.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+    
+    /** Contains VRObject used to exchange screens share messages, exists only on the sending side */
+    this.screenShare = null;
+    this.callback = null;
   }
 
   /**
@@ -46,131 +42,100 @@ export class Screencast {
    */  
   init() {
     this.worldManager = this.world.worldManager;
-    var client = this.worldManager.VRSPACE.me;
-    
-    this.screenShareMesh.setEnabled(true);
+    this.world.addListener(this);
+    this.setupStreaming();
+  }
+
+  /**
+   * Called from init(). Attaches itself to MediaStreams, creates new MediaStreams if required.
+   * Registers handleSceneEvent() as a SceneListener with WorldManager.
+  */
+  setupStreaming() {
+    this.client = this.worldManager.VRSPACE.me;
     if ( ! this.worldManager.mediaStreams ) {
       this.worldManager.mediaStreams = new OpenViduStreams(this.scene, 'videos');
-      this.worldManager.pubSub(client, false); // audio only
+      this.worldManager.pubSub(this.client, false); // audio only
     }
-    this.worldManager.mediaStreams.playStream = ( client, mediaStream ) => {
-      console.log('mapping incoming screen share of '+client.id+" to ",this.screenShare);
-      if ( this.screenShare && client.id == this.screenShare.properties.clientId ) {
-        this.showVideo(mediaStream);
-      }
-    }
-    //this.worldManager.debug = true;
-
-    this.scene.onPointerPick = (e,p) => {
-      console.log("Picked ", p.pickedMesh.name);
-      
-      if ( p.pickedMesh.name === this.screenShareMesh.name) {
-        if ( ! this.screenShare ) {
-          console.log('start sharing screen');
-          var screenName = this.name;
-          if ( ! screenName ) {
-            if ( client.name ) {
-              screenName = client.name;
-            } else {
-              screenName = 'u'+client.id;
-            }
-          }
-          this.worldManager.VRSPACE.createSharedObject({
-            properties:{ screenName:screenName, clientId: client.id },
-            active:true
-          }, (obj)=>{
-            console.log("Created new VRObject", obj);
-            this.worldManager.mediaStreams.shareScreen(()=>{
-              // end callback, executed when user presses browser stop share button
-              this.deleteSharedObject();
-            }).then((mediaStream)=>{
-              console.log("streaming",mediaStream);
-              this.showVideo(mediaStream);
-            }).catch((e) => {
-              console.log('sharing denied', e);
-              this.deleteSharedObject();
-            });
-          });
-        } else {
-          console.log('stop sharing screen');
-          this.worldManager.mediaStreams.stopSharingScreen();
-          this.deleteSharedObject();
-        }
-      }
-      
-    }
-
-    // this gets triggers whenever any client receives any new VRobject
-    this.worldManager.VRSPACE.addSceneListener( (sceneEvent) => {
-      console.log(sceneEvent);
-      // identify the object
-      if ( sceneEvent.added && sceneEvent.added.properties && sceneEvent.added.properties.screenName) {
-        // keep the reference, share the event when touched on
-        this.screenShare = sceneEvent.added;
-        this.writeText('Sharing: '+sceneEvent.added.properties.screenName);
-        this.showNoise();
-      } else if ( sceneEvent.removed && this.screenShare && sceneEvent.removed.id == this.screenShare.id) {
-        console.log("Screen share removed");
-        this.screenShare = null;
-        this.removeScreen();
-        this.writeText(this.text);
-      }
-      
-    });
-
   }
   
-  // internal methods
-  writeText( text, where ) {
-    if ( ! where ) {
-      where = this.screenShareMesh;
-    }
-    var material = where.material;
-    material.diffuseTexture.drawText(text, 
-      null, 
-      null, 
-      'bold 12px monospace', 
-      'black', 
-      'white', 
-      true, 
-      true
-    );
-  }
-
-  showVideo( mediaStream ) {
-    BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
-      if ( this.videoMesh.material.diffuseTexture ) {
-         this.videoMesh.material.diffuseTexture.dispose();
+  /**
+   * Starts the screencast: creates new shared VRObject, and calls MediaStreams.shareScreen().
+   */
+  startSharing() {
+    let screenName = this.name;
+    if ( ! screenName ) {
+      if ( this.client.name ) {
+        screenName = this.client.name;
+      } else {
+        screenName = 'u'+this.client.id;
       }
-      this.videoMesh.material.diffuseTexture = texture;
-      this.videoMesh.material.diffuseTexture.vScale = -1
-      this.videoMesh.setEnabled(true);
+    }
+
+    this.worldManager.VRSPACE.createScriptedObject({
+      properties:{ screenName:screenName, type: "Screencast", clientId: this.client.id, size:this.size, addHandles:this.addHandles },
+      active:true,
+      script:'/babylon/js/scripts/remote-screen.js',
+      position: {x: this.position.x, y: this.position.y, z: this.position.z},
+      rotation: {x: this.rotation.x, y: this.rotation.y, z: this.rotation.z}
+    }, (obj)=>{
+      this.screenShare = obj;
+      console.log("Created new VRObject", obj);
+      this.worldManager.mediaStreams.shareScreen(()=>{
+        // end callback, executed when user presses browser stop share button
+        this.deleteSharedObject();
+      }).then((mediaStream)=>{
+        console.log("streaming",mediaStream);
+        // imageArea is created by scene event handler
+        //this.imageArea.loadStream(mediaStream);
+        obj.attachedScript.playStream(mediaStream);
+      }).catch((e) => {
+        console.log('sharing denied', e);
+        this.deleteSharedObject();
+      });
     });
   }
-  
-  showNoise() {
-    if ( this.videoMesh.material.diffuseTexture ) {
-       this.videoMesh.material.diffuseTexture.dispose();
-    }
-    var noiseTexture = new BABYLON.NoiseProceduralTexture(this.name+"-perlin", 256, this.scene);
-    this.videoMesh.material.diffuseTexture = noiseTexture;
-    noiseTexture.octaves = 8;
-    noiseTexture.persistence = 2;
-    noiseTexture.animationSpeedFactor = 10;
-    this.videoMesh.setEnabled(true);
-  }
-  
-  removeScreen() {
-    if ( this.videoMesh.material.diffuseTexture ) {
-       this.videoMesh.material.diffuseTexture.dispose();
-    }
-    this.videoMesh.setEnabled(false);    
+
+  /**
+   * Stop sharing and delete shared object.
+  */  
+  stopSharing() {
+    this.deleteSharedObject();
+    this.worldManager.mediaStreams.stopSharingScreen();
   }
 
+  /**
+   * Internally used to delete the shared object.
+   */
   deleteSharedObject() {
     if ( this.screenShare ) {
       this.worldManager.VRSPACE.deleteSharedObject(this.screenShare);
+      this.screenShare = null;
     }
   }
 
+  /**
+   * Clean up.
+   */
+  dispose() {
+    this.stopSharing();
+    //this.deleteSharedObject();
+  }
+  
+  added(vrObject){
+    if ( vrObject.properties && vrObject.properties.screenName ) {
+      this.sharing(true);
+    }    
+  }
+  
+  removed(vrObject){
+    if ( vrObject.properties && vrObject.properties.screenName ) {
+      this.sharing(false);
+    }
+  }
+  
+  sharing(state) {
+    if ( this.callback ) {
+      this.callback(state);
+    }
+  }
 }

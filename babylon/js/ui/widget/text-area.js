@@ -225,10 +225,4 @@ export class TextArea extends BaseArea {
   onClick(callback) {
     this.texture.onControlPickedObservable.add(callback);   
   }
-  /**
-   * XR pointer support
-   */
-  isSelectableMesh(mesh) {
-    return mesh == this.areaPlane || (this.handles && this.handles.handles.includes(mesh)); 
-  }
 }

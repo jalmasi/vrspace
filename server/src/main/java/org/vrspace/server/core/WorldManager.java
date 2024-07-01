@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -216,6 +217,11 @@ public class WorldManager {
     return world;
   }
 
+  public Client getClient(Long id) {
+    Client ret = db.get(Client.class, id);
+    return (Client) updateCache(ret);
+  }
+
   public Client getClientByName(String name) {
     Client ret = db.getClientByName(name);
     return (Client) updateCache(ret);
@@ -269,6 +275,28 @@ public class WorldManager {
   }
 
   /**
+   * Add an object to client's current position
+   * 
+   * @param client Client adding objects
+   * @param o      A VRObject
+   * @return saved VRObject
+   */
+  public VRObject add(Client client, VRObject o) {
+    if (o.getPosition() == null && client.getPosition() != null) {
+      o.setPosition(new Point(client.getPosition()));
+    }
+    o.setWorld(client.getWorld());
+    if (o.getTemporary() == null && client.isGuest()) {
+      o.setTemporary(true);
+    }
+    o = db.save(o);
+    Ownership ownership = new Ownership(client, o);
+    db.save(ownership);
+    cache.put(o.getObjectId(), o);
+    return o;
+  }
+
+  /**
    * Add objects to client's current position
    * 
    * @param client  client adding objects
@@ -276,20 +304,7 @@ public class WorldManager {
    * @return list of added objects
    */
   public List<VRObject> add(Client client, List<VRObject> objects) {
-    List<VRObject> ret = objects.stream().map(o -> {
-      if (o.getPosition() == null && client.getPosition() != null) {
-        o.setPosition(new Point(client.getPosition()));
-      }
-      o.setWorld(client.getWorld());
-      if (o.getTemporary() == null && client.isGuest()) {
-        o.setTemporary(true);
-      }
-      o = db.save(o);
-      Ownership ownership = new Ownership(client, o);
-      db.save(ownership);
-      cache.put(o.getObjectId(), o);
-      return o;
-    }).collect(Collectors.toList());
+    List<VRObject> ret = objects.stream().map(o -> add(client, o)).collect(Collectors.toList());
     db.save(client);
     return ret;
   }
@@ -374,6 +389,11 @@ public class WorldManager {
       }
     }
     client.setSession(session);
+    HttpSession httpSession = (HttpSession) attributes.get("HTTP.SESSION");
+    if (httpSession != null) {
+      // may be null in tests
+      httpSession.setAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE, client.getId());
+    }
     login(client);
     return enter(client, defaultWorld());
   }
@@ -465,23 +485,18 @@ public class WorldManager {
     exit(client);
     // delete guest client
     if (client.isGuest()) {
-      List<Ownership> owned = db.getOwned(client.getId());
-      for (Ownership ownership : owned) {
-        // CHECKME getOwned seems to return shallow copy!?
-        VRObject ownedObject = get(ownership.getOwned().getObjectId());
-        if (ownedObject.isTemporary()) {
-          // remove() doesn't free up cache
-          delete(client, ownedObject);
-          db.delete(ownership);
-          log.debug("Deleted owned temporary " + ownership.getOwned().getObjectId());
-        }
-      }
       delete(client, client);
       log.debug("Deleted guest client " + client.getId());
     }
     client.getWriteBack().flush();
   }
 
+  /**
+   * Exit from a world. Called in two cases: enter, and logout. Clean up the
+   * scene, notify listeners, remove temporary objects.
+   * 
+   * @param client
+   */
   private void exit(Client client) {
     // notify all listeners that the client disconnected
     client.setActive(false);
@@ -489,6 +504,25 @@ public class WorldManager {
     VREvent ev = new VREvent(client, client);
     ev.addChange("active", false);
     client.notifyListeners(ev);
+
+    // temporary objects cleanup
+    List<Ownership> owned = db.getOwned(client.getId());
+    // CHECKME: this needs to be refactored, maybe into client.unpublish()
+    for (Ownership ownership : owned) {
+      // CHECKME getOwned seems to return shallow copy!?
+      VRObject ownedObject = get(ownership.getOwned().getObjectId());
+      if (ownedObject.isTemporary() || client.isGuest()) {
+        if (client.getScene() != null) {
+          client.getScene().unpublish(ownedObject);
+        }
+        // remove() doesn't free up cache
+        delete(client, ownedObject);
+        db.delete(ownership);
+        log.debug("Deleted owned temporary " + ownership.getOwned().getObjectId());
+      }
+    }
+
+    // scene cleanup
     if (client.getScene() != null) {
       // remove client from all scenes
       client.getScene().unpublish();

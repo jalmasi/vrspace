@@ -36,8 +36,8 @@ export class ManipulationHandles {
     this.alertMaterial = new BABYLON.StandardMaterial("alertMaterial", this.scene);
     this.alertMaterial.alpha = this.material.alpha;
     this.alertMaterial.diffuseColor = new BABYLON.Color3(.3, 0, 0);
-  
-    
+    /** Callback on area minimized/maximized, passed a minimized/hidden flag */
+    this.onMinMax = null;
   }
   /**
    * Creates manipulation handles. 
@@ -95,7 +95,7 @@ export class ManipulationHandles {
           if (pointerInfo.pickInfo.pickedMesh == this.bottomHandle || pointerInfo.pickInfo.pickedMesh == this.topHandle) {
             // moving around
             if ( ! this.behavior ) {
-              this.behavior = new BABYLON.SixDofDragBehavior()
+              this.behavior = this.createBehavior();
               // does not work if group.parent is camera
               this.group.addBehavior(this.behavior);
               pointerInfo.pickInfo.pickedMesh.material = this.selectedMaterial;
@@ -139,12 +139,20 @@ export class ManipulationHandles {
     });
     
   }
+  
+  createBehavior() {
+    if ( this.group.billboardMode == BABYLON.Mesh.BILLBOARDMODE_Y ) {
+      return new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
+    }
+    return new BABYLON.SixDofDragBehavior();
+  }
   /**
    * Minimize or maximize (hide or show all children of this.group)
    * @param flag boolean indicating whether to hide or show children
    */
   hide(flag) {
     if ( this.canMinimize ) {
+      console.log("Hiding handles: "+flag);
       this.group.getChildMeshes().forEach( h => {
         if ( h !== this.box && !this.dontMinimize.includes(h)) {
           h.setEnabled(!flag);
@@ -155,6 +163,9 @@ export class ManipulationHandles {
         this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/maximize.png", this.scene);
       } else {
         this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/minimize.png", this.scene);
+      }
+      if ( this.onMinMax ) {
+        this.onMinMax(this.minimized);
       }
     }
   }

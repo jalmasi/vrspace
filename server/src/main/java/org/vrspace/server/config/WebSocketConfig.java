@@ -1,8 +1,16 @@
 package org.vrspace.server.config;
 
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
@@ -35,8 +43,26 @@ public class WebSocketConfig implements WebSocketConfigurer {
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
     // setAllowedOrigins or 403 forbidden when behind proxy
     registry.addHandler(sessionManager, clientPath).setAllowedOrigins(origins)
-        .addInterceptors(new HttpSessionHandshakeInterceptor());
+        .addInterceptors(new CustomSessionHandshakeInterceptor());
     registry.addHandler(serverSessionManager, serverPath).setAllowedOrigins(origins)
-        .addInterceptors(new HttpSessionHandshakeInterceptor());
+        .addInterceptors(new CustomSessionHandshakeInterceptor());
   }
+
+  public class CustomSessionHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
+    public static final String HTTP_SESSION_ATTR_NAME = "HTTP.SESSION";
+
+    @Override
+    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
+        Map<String, Object> attributes) throws Exception {
+      boolean ret = super.beforeHandshake(request, response, wsHandler, attributes);
+      if (request instanceof ServletServerHttpRequest) {
+        ServletServerHttpRequest serverRequest = (ServletServerHttpRequest) request;
+        HttpSession httpSession = serverRequest.getServletRequest().getSession(isCreateSession());
+        attributes.put(HTTP_SESSION_ATTR_NAME, httpSession);
+      }
+      return ret;
+    }
+
+  }
+
 }

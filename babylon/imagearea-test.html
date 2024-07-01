@@ -4,7 +4,7 @@
     <head>
       <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
       <meta content="utf-8" http-equiv="encoding">
-    <title>VRSpace remote browser test</title>
+    <title>VRSpace image area and remote browser test</title>
     ﻿<style type="text/css">
     html, body {
       width: 100%;
@@ -38,7 +38,7 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 //canvas.style.width = '90%';
 //canvas.style.height = '60%';
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
-import("./browser-test.js").then( (module) =>{
+import("./imagearea-test.js").then( (module) =>{
   var world = module.WORLD;
   world.init(engine);
   scene = world.scene;

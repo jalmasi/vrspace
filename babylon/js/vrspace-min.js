@@ -23,6 +23,8 @@ export { RecorderUI } from "./ui/world/recorder-ui.js";
 export { FloorRibbon } from "./ui/world/floor-ribbon.js";
 export { EmojiParticleSystem } from "./ui/world/emoji-particle-system.js";
 export { Screencast } from "./ui/world/screencast.js";
+export { SharedScreencast } from "./ui/world/shared-screencast.js";
+export { Whiteboard } from "./ui/world/whiteboard.js";
 export { ScrollablePanel } from "./ui/world/scrollable-panel.js";
 export { TextureSelector } from "./ui/world/texture-selector.js";
 export { SkyboxSelector } from "./ui/world/skybox-selector.js";
@@ -30,10 +32,12 @@ export { TerrainEditor } from "./ui/world/terrain-editor.js";
 export { WorldEditor } from "./ui/world/world-editor.js";
 
 export { Buttons } from "./ui/widget/buttons.js";
+export { ColorPickerPanel } from './ui/widget/colorpicker-panel.js';
 export { Form } from "./ui/widget/form.js";
 export { LoginForm } from "./ui/widget/login-form.js";
 export { Label } from "./ui/widget/label.js";
 export { ChatLog } from './ui/widget/chat-log.js';
+export { ImageArea } from './ui/widget/image-area.js';
 export { TextArea } from './ui/widget/text-area.js';
 export { TextAreaInput } from './ui/widget/text-area-input.js';
 

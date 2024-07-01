@@ -56,23 +56,23 @@ public class WorldControllerTest {
 
   @Test
   public void testCreateByAnonymous() throws Exception {
-    when(clientFactory.clientAttribute()).thenReturn(ClientFactory.CLIENT_ATTRIBUTE);
+    when(clientFactory.clientNameAttribute()).thenReturn(ClientFactory.CLIENT_NAME_ATTRIBUTE);
     mockMvc.perform(post(ENDPOINT + "/create").param("worldName", "test").session(session))
         .andExpect(status().isForbidden());
   }
 
   @Test
   public void testCreateByNonExistingUser() throws Exception {
-    when(clientFactory.clientAttribute()).thenReturn(ClientFactory.CLIENT_ATTRIBUTE);
-    session.setAttribute(ClientFactory.CLIENT_ATTRIBUTE, "testUser");
+    when(clientFactory.clientNameAttribute()).thenReturn(ClientFactory.CLIENT_NAME_ATTRIBUTE);
+    session.setAttribute(ClientFactory.CLIENT_NAME_ATTRIBUTE, "testUser");
     mockMvc.perform(post(ENDPOINT + "/create").param("worldName", "test").session(session))
         .andExpect(status().isForbidden());
   }
 
   // @Test
   public void testCreateFromInvalidTemplate() throws Exception {
-    when(clientFactory.clientAttribute()).thenReturn(ClientFactory.CLIENT_ATTRIBUTE);
-    session.setAttribute(ClientFactory.CLIENT_ATTRIBUTE, "testUser");
+    when(clientFactory.clientNameAttribute()).thenReturn(ClientFactory.CLIENT_NAME_ATTRIBUTE);
+    session.setAttribute(ClientFactory.CLIENT_NAME_ATTRIBUTE, "testUser");
     when(manager.getClientByName(any(String.class))).thenReturn(new Client("testUser"));
 
     mockMvc.perform(
@@ -84,8 +84,8 @@ public class WorldControllerTest {
   public void testCreateValid() throws Exception {
     Client client = new Client("testUser");
 
-    when(clientFactory.clientAttribute()).thenReturn(ClientFactory.CLIENT_ATTRIBUTE);
-    session.setAttribute(ClientFactory.CLIENT_ATTRIBUTE, "testUser");
+    when(clientFactory.clientNameAttribute()).thenReturn(ClientFactory.CLIENT_NAME_ATTRIBUTE);
+    session.setAttribute(ClientFactory.CLIENT_NAME_ATTRIBUTE, "testUser");
     when(manager.getClientByName(any(String.class))).thenReturn(client);
     when(manager.saveWorld(worldCaptor.capture())).thenAnswer(i -> i.getArguments()[0]);
 
