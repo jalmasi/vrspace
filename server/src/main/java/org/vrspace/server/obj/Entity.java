@@ -32,4 +32,11 @@ public abstract class Entity {
     return new ID(this);
   }
 
+  /**
+   * Called while an object is being deleted. Used for cleanup tasks, e.g. removal
+   * of created files etc.
+   */
+  public void dispose() {
+  }
+
 }

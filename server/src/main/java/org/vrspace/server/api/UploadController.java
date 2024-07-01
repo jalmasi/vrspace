@@ -33,7 +33,7 @@ public class UploadController extends ApiBase {
   WorldManager worldManager;
 
   @PutMapping("/upload")
-  public void upload(HttpSession session, HttpServletRequest request, String fileName,
+  public void upload(HttpSession session, HttpServletRequest request, String fileName, String contentType,
       @RequestPart MultipartFile fileData) throws IOException {
 
     // get user info first (session etc)
@@ -48,7 +48,7 @@ public class UploadController extends ApiBase {
     String path = FileUtil.uploadDir();
     Long fileSize = fileData.getSize();
     File dest = new File(path + File.separator + fileName);
-    log.debug("uploading to " + dest + " " + fileSize);
+    log.debug("uploading " + contentType + " to " + dest + " " + fileSize);
     if ("model/gltf+json".equals(fileData.getContentType())) {
       // TODO: handle gltf upload
     }
@@ -64,7 +64,8 @@ public class UploadController extends ApiBase {
     // create Content
     Content content = new Content();
     content.setFileName(fileName);
-    content.setContentType(request.getContentType());
+    content.setFolder(path);
+    content.setContentType(contentType);
     content.setLength(fileSize);
     // create VRObject, set URL
     // drop VRObject at position

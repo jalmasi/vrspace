@@ -4,6 +4,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonMerge;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
@@ -21,10 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 public class VRFile extends VRObject {
   public static final String FILE_SCRIPT = "/babylon/js/scripts/file.js";
 
+  @JsonMerge
   private Content content;
 
   public VRFile() {
     super();
     setScript(FILE_SCRIPT);
   }
+
 }

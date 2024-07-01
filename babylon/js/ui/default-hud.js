@@ -445,6 +445,7 @@ export class DefaultHud {
       // TODO upload
       const formData  = new FormData();
       formData.append('fileName', file.name);
+      formData.append('contentType', file.type);
       formData.append('fileData', file);
 
       fetch('/vrspace/api/files/upload', {
