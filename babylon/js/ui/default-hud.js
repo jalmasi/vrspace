@@ -443,9 +443,13 @@ export class DefaultHud {
       const file = input.files[i];
       console.log("Uploading ",file);
       // TODO upload
+      const formData  = new FormData();
+      formData.append('fileName', file.name);
+      formData.append('fileData', file);
+
       fetch('/vrspace/api/files/upload', {
         method: 'PUT',
-        body: file
+        body: formData
       })
     };
     document.body.removeChild(input);

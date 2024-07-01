@@ -12,6 +12,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.vrspace.server.core.ClientFactory;
@@ -32,23 +33,30 @@ public class UploadController extends ApiBase {
   WorldManager worldManager;
 
   @PutMapping("/upload")
-  public void upload(HttpSession session, HttpServletRequest request, String fileName, int fileSize,
-      MultipartFile fileData) throws IOException {
+  public void upload(HttpSession session, HttpServletRequest request, String fileName,
+      @RequestPart MultipartFile fileData) throws IOException {
 
     // get user info first (session etc)
     // TODO return error if this does not exist
     Long clientId = (Long) session.getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
     Client client = worldManager.getClient(clientId);
 
+    if (client == null) {
+      throw new SecurityException("The client is not connected");
+    }
+
     String path = FileUtil.uploadDir();
-    log.debug("uploading to " + path + ": " + fileName + " " + fileSize + " " + fileData.getSize());
+    Long fileSize = fileData.getSize();
+    File dest = new File(path + File.separator + fileName);
+    log.debug("uploading to " + dest + " " + fileSize);
     if ("model/gltf+json".equals(fileData.getContentType())) {
       // TODO: handle gltf upload
     }
-    File dest = new File(path + File.pathSeparator + fileName);
     dest.mkdirs();
     try (InputStream inputStream = fileData.getInputStream()) {
       Files.copy(inputStream, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+      // FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(new
+      // File("/storage/upload/", file.getOriginalFilename())));
     } catch (Exception e) {
       log.error("Upload error", e);
     }
