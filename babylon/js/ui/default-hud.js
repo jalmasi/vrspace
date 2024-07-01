@@ -450,10 +450,15 @@ export class DefaultHud {
     for ( let i = 0; i < input.files.length; i++) {
       const file = input.files[i];
       console.log("Uploading ",file);
+      let camera = this.scene.activeCamera;
+      let pos = camera.position.add(camera.getForwardRay(1).direction);
       // TODO upload
       const formData  = new FormData();
       formData.append('fileName', file.name);
       formData.append('contentType', file.type);
+      formData.append('x', pos.x);
+      formData.append('y', pos.y);
+      formData.append('z', pos.z);
       formData.append('fileData', file);
 
       fetch('/vrspace/api/files/upload', {

@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Simple content manager, allows for browsing and uploading of files under
  * org.vrspace.adminUI.contentRoot. Optionally activated when
- * org.vrspace.adminUI.enabled=true.
+ * org.vrspace.adminUI.enabled=true. NOT MAINTAINED, TO BE REMOVED
  * 
  * @author joe
  *
@@ -73,13 +73,13 @@ public class ContentManager {
     if (dir.isDirectory()) {
       for (File file : dir.listFiles()) {
         if (file.isDirectory()) {
-          dirs.add(new Content(file.getName(), "dir", file.length()));
+          dirs.add(new Content(file.getName(), null, "dir", file.length()));
         } else {
           String mimeType = Files.probeContentType(file.toPath());
           if (mimeType == null) {
             mimeType = "application/octet-stream";
           }
-          files.add(new Content(file.getName(), mimeType, file.length()));
+          files.add(new Content(file.getName(), null, mimeType, file.length()));
         }
       }
     }

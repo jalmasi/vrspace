@@ -20,6 +20,7 @@ import org.vrspace.server.core.FileUtil;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Content;
+import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRFile;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +34,8 @@ public class UploadController extends ApiBase {
   WorldManager worldManager;
 
   @PutMapping("/upload")
-  public void upload(HttpSession session, HttpServletRequest request, String fileName, String contentType,
-      @RequestPart MultipartFile fileData) throws IOException {
+  public void upload(HttpSession session, HttpServletRequest request, String fileName, String contentType, Double x,
+      Double y, Double z, @RequestPart MultipartFile fileData) throws IOException {
 
     // get user info first (session etc)
     // TODO return error if this does not exist
@@ -48,7 +49,7 @@ public class UploadController extends ApiBase {
     String path = FileUtil.uploadDir();
     Long fileSize = fileData.getSize();
     File dest = new File(path + File.separator + fileName);
-    log.debug("uploading " + contentType + " to " + dest + " " + fileSize);
+    log.debug("uploading " + contentType + " to " + dest + " size " + fileSize + " pos " + x + "," + y + "," + z);
     if ("model/gltf+json".equals(fileData.getContentType())) {
       // TODO: handle gltf upload
     }
@@ -72,6 +73,10 @@ public class UploadController extends ApiBase {
     // set owner
     VRFile obj = new VRFile();
     obj.setContent(content);
+    if (x != null & y != null & z != null) {
+      obj.setPosition(new Point(x, y, z));
+    }
     worldManager.add(client, obj);
+    client.getScene().publish(obj); // so that it gets displayed right away
   }
 }
