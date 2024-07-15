@@ -75,7 +75,10 @@ export class AvatarSelection extends World {
       skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
       skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
       // CHECKME:
-      //this.scene.environmentTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
+      this.environmentTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
+      this.environmentTexture.rotationY = Math.PI;
+      this.scene.environmentTexture = this.environmentTexture
+      this.scene.environmentIntensity = 1;
     }
     return skybox;
   }
@@ -832,6 +835,10 @@ export class AvatarSelection extends World {
       //this.guiManager.dispose();
     }
     this.removeCharacterButtons();
+    if (this.environmentTexture) {
+      this.scene.environmentTexture = null;
+      this.environmentTexture.dispose();
+    }
     // CHECKME: this scene should be cleaned up, but when?
     //this.scene = null; // next call to render loop stops the current loop
   }

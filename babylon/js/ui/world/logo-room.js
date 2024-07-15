@@ -42,6 +42,14 @@ export class LogoRoom {
     this.floorGroup.position = new BABYLON.Vector3( 0, -0.05, 0 );
     this.scene.addTransformNode(this.floorGroup);
     
+    this.floorGroup.getChildMeshes().forEach(child=>{
+      if (child.name && child.name.indexOf("-instance") > 0 && child.material.getClassName() == "PBRMaterial") {
+        child.material.clearCoat.isEnabled = true;
+        child.material.metalic = 0.4;
+        child.material.roughness = 0.6;
+      }
+    });
+    
     return this;
   }
   /** disposes of instantiated geometry */
