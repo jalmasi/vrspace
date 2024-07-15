@@ -74,6 +74,8 @@ export class AvatarSelection extends World {
       skybox.infiniteDistance = true;
       skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
       skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+      // CHECKME:
+      //this.scene.environmentTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
     }
     return skybox;
   }
@@ -196,6 +198,7 @@ export class AvatarSelection extends World {
       return this.contentBase + "/content/skybox/eso_milkyway/eso0932a.jpg";
     }
     return this.contentBase + "/content/skybox/mp_drakeq/drakeq";
+    //return this.contentBase + "/content/skybox/eso_milkyway/milkyway";
   }
   characterDir() {
     if (this.characterPath) {

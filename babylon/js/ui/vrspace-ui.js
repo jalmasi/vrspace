@@ -386,6 +386,7 @@ export class VRSpaceUI {
 
   /**
   Utility method to instantiate if possible, or otherwise clone a mesh, including all children recursivelly.
+  Both instance and clone use the same material, but only the clone has own lightning effects (e.g. shadows, environment).
   @param mesh to instantiate/clone
   @param parent optional, copy will have this parent
   @param replaceParent optional
@@ -393,12 +394,13 @@ export class VRSpaceUI {
    */
   copyMesh(mesh, parent, replaceParent) {
     if ( mesh.geometry ) {
-      var copy = mesh.createInstance(mesh.name+"-copy");
+      var copy = mesh.createInstance(mesh.name+"-instance");
+      //var copy = mesh.clone( mesh.name+"-clone", parent, true, false );
       copy.parent = parent;
     } else if (replaceParent && parent) {
       copy = parent;
     } else {
-      var copy = mesh.clone( mesh.name+"-copy", parent, true, false );
+      var copy = mesh.clone( mesh.name+"-clone", parent, true, false );
       copy.parent = parent;
     }
     var children = mesh.getChildren();

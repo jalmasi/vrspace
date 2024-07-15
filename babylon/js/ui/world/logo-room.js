@@ -28,8 +28,8 @@ export class LogoRoom {
     // mesh that we display as floor
     await VRSPACEUI.init(this.scene); // wait for logo to load
     VRSPACEUI.receiveShadows( VRSPACEUI.logo, this.shadows );
-    // CHECKME: true - why and why not?
-    VRSPACEUI.copyMesh(VRSPACEUI.logo, this.floorGroup, false);
+    // CHECKME: true - why and why not? Shadows!
+    VRSPACEUI.copyMesh(VRSPACEUI.logo, this.floorGroup, true);
 
     // walls, used for collisions, to limit the movement
     var walls = BABYLON.MeshBuilder.CreateCylinder("FloorWalls", {height:4,diameter:1,sideOrientation:BABYLON.Mesh.BACKSIDE}, this.scene);
