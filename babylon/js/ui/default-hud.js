@@ -366,6 +366,7 @@ export class DefaultHud {
       this.hud.newRow();
       this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
       this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.toggleWhiteboard(), false);
+      this.imageButton = this.hud.addButton("Share image", this.contentBase + "/content/icons/sky.png", () => this.image(), false);
       this.fileButton = this.hud.addButton("Share file", this.contentBase + "/content/icons/file.png", () => this.file(), false);
       if ( this.streamingAvailable() ) {
         this.markEnabled(this.screencastButton);
@@ -379,8 +380,10 @@ export class DefaultHud {
       }
       if ( this.isOnline() ) {
         this.markEnabled(this.fileButton);
+        this.markEnabled(this.imageButton);
       } else {
         this.markDisabled(this.fileButton);
+        this.markDisabled(this.imageButton);
       }
     } else {
       this.clearRow();
@@ -432,13 +435,20 @@ export class DefaultHud {
     World.lastInstance.addSelectionPredicate(this.whiteboard.selectionPredicate);
   }
   
-  file() {
+  image() {
+    this.file(".jpg,.jpeg,.png");
+  }
+  
+  file(accept) {
     if ( ! this.isOnline() ) {
       return;
     }
     let input = document.createElement("input");
     input.setAttribute('type', 'file');
     input.setAttribute('style','display:none');
+    if ( accept ) {
+      input.setAttribute('accept', accept);
+    }
     document.body.appendChild(input);
     input.addEventListener("change", ()=>this.upload(input), false);
     input.addEventListener("cancel", ()=>this.upload(input), false);
@@ -459,6 +469,10 @@ export class DefaultHud {
       formData.append('x', pos.x);
       formData.append('y', pos.y);
       formData.append('z', pos.z);
+      formData.append('rotX', 0);
+      formData.append('rotY', 1);
+      formData.append('rotZ', 0);
+      formData.append('angle', this.scene.activeCamera.rotation.y);
       formData.append('fileData', file);
 
       fetch('/vrspace/api/files/upload', {

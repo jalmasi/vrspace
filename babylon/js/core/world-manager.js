@@ -647,10 +647,19 @@ export class WorldManager {
         }
         VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
       } else if ( 'rotation' === field ) {
-        if ( ! obj.rotate ) {
-          obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
+        // FIXME: this could also be quaternion
+        if( typeof obj.rotation.angle != 'undefined') {
+          // quaternion
+          if ( ! obj.rotate ) {
+            obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
+          }
+          VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);
+        } else {
+          if ( ! obj.rotate ) {
+            obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
+          }
+          VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
         }
-        VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
       } else if ( 'scale' === field ) {
         if ( ! obj.rescale ) {
           obj.rescale = VRSPACEUI.createAnimation(node, "scaling", this.fps);

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -21,6 +22,7 @@ import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Content;
 import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.VRFile;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +37,8 @@ public class UploadController extends ApiBase {
 
   @PutMapping("/upload")
   public void upload(HttpSession session, HttpServletRequest request, String fileName, String contentType, Double x,
-      Double y, Double z, @RequestPart MultipartFile fileData) throws IOException {
+      Double y, Double z, Double rotX, Double rotY, Double rotZ, Double angle, @RequestPart MultipartFile fileData)
+      throws IOException {
 
     // get user info first (session etc)
     // TODO return error if this does not exist
@@ -49,7 +52,8 @@ public class UploadController extends ApiBase {
     String path = FileUtil.uploadDir();
     Long fileSize = fileData.getSize();
     File dest = new File(path + File.separator + fileName);
-    log.debug("uploading " + contentType + " to " + dest + " size " + fileSize + " pos " + x + "," + y + "," + z);
+    log.debug("uploading " + contentType + " to " + dest + " size " + fileSize + " pos " + x + "," + y + "," + z
+        + " rot " + rotX + "," + rotY + "," + rotZ);
     if ("model/gltf+json".equals(fileData.getContentType())) {
       // TODO: handle gltf upload
     }
@@ -71,11 +75,18 @@ public class UploadController extends ApiBase {
     // create VRObject, set URL
     // drop VRObject at position
     // set owner
+    // properties: { name: this.name, type: "Whiteboard", clientId: VRSPACE.me.id,
+    // size: this.size, addHandles: this.addHandles },
     VRFile obj = new VRFile();
     obj.setContent(content);
     if (x != null & y != null & z != null) {
       obj.setPosition(new Point(x, y, z));
     }
+    if (rotX != null & rotY != null & rotZ != null) {
+      obj.setRotation(new Rotation(rotX, rotY, rotZ, angle));
+    }
+    obj.setProperties(Map.of("clientId", client.getId()));
+    obj.setActive(true);
     worldManager.add(client, obj);
     client.getScene().publish(obj); // so that it gets displayed right away
   }

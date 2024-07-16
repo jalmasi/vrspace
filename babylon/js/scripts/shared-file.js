@@ -3,7 +3,7 @@ import { ImageArea } from "../ui/widget/image-area.js";
 import { Label } from "../ui/widget/label.js";
 
 export class SharedFile extends BasicScript {
-  async init() {
+  init() {
     this.imageArea = new ImageArea(this.scene, this.vrObject.content.fileName);
     this.imageArea.addHandles = false;
     let pos = this.vrObject.position;
@@ -20,6 +20,8 @@ export class SharedFile extends BasicScript {
     this.label.height = 0.1;
     this.label.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
     this.label.display();
+    
+    return this.imageArea.group;
   }
   
   dispose() {

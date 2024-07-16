@@ -28,6 +28,8 @@ export class ManipulationHandles {
     this.canMinimize = true;
     this.minimized = false;
     this.dontMinimize = [];
+    this.sizeCallback = null;
+    this.positionCallback = null;
     
     this.selectedMaterial = new BABYLON.StandardMaterial("selectedMaterial", this.scene);
     this.selectedMaterial.alpha = this.material.alpha;
@@ -126,6 +128,9 @@ export class ManipulationHandles {
           let diff = pointerInfo.pickInfo.pickedPoint.y - this.point.y;
           let scale = (this.height + diff)/this.height;
           this.group.scaling = this.group.scaling.scale(scale);
+          if ( this.sizeCallback ) {
+            this.sizeCallback(this.group.scaling);
+          }
         }
         if ( this.selectedHandle ) {
           this.selectedHandle.material = this.material;
@@ -133,6 +138,10 @@ export class ManipulationHandles {
           if ( this.behavior ) {
             this.group.removeBehavior(this.behavior);
             this.behavior = null;
+            if ( this.positionCallback ) {
+              this.positionCallback(this.group.position, this.group.rotationQuaternion.toEulerAngles());
+              //this.positionCallback(this.group.position, this.group.rotationQuaternion);
+            }
           }
         }
       }
@@ -146,6 +155,7 @@ export class ManipulationHandles {
     }
     return new BABYLON.SixDofDragBehavior();
   }
+  
   /**
    * Minimize or maximize (hide or show all children of this.group)
    * @param flag boolean indicating whether to hide or show children
