@@ -316,6 +316,7 @@ export class VRSpace {
     this.sceneListeners = [];
     this.welcomeListeners = [];
     this.errorListeners = [];
+    /** Listener to response to a command. */
     this.responseListener = null;
     this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, ArthurBot, BotLibre, Terrain, VRFile };
     //this.pingTimerId = 0;
@@ -548,12 +549,13 @@ export class VRSpace {
   }
 
   /**
-  Share an object.
+  Common code for createSharedObject and createScriptedObject
+  @param command either Add or Share
   @param obj the new VRObject, containing all properties
-  @param callback called when shared object is received
   @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
+  @returns Promise with the created VRObject instance
    */
-  createSharedObject( obj, callback, className ) {
+  async _createSharedObject( command, obj, className ) {
     if ( ! className ) {
       if ( obj.className ) {
         className = obj.className;
@@ -563,44 +565,40 @@ export class VRSpace {
     }
     let json = JSON.stringify(obj);
     this.log(json);
-    // response to command contains object ID
-    this.call('{"command":{"Add":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
-      this.log("Response:", response);
-      var objectId = response.response[0][className];
-      const id = new ID(className,objectId);
-      this.log("Created object:"+ objectId);
-      // by now the object is already in the scene, since Add message preceeded the response
-      var ret = this.scene.get(id.toString());
-      callback(ret);
+    return new Promise( (resolve, reject) => {
+      // response to command contains object ID
+      this.call('{"command":{"'+command+'":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
+        this.log("Response:", response);
+        var objectId = response.response[0][className];
+        const id = new ID(className,objectId);
+        this.log("Created object:"+ objectId);
+        // by now the object is already in the scene, since Add message preceeded the response
+        var ret = this.scene.get(id.toString());
+        resolve(ret);
+      });
     });
+  }
+
+  /**
+  Share an object.
+  @param obj the new VRObject, containing all properties
+  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
+  @returns Promise with the created VRObject instance
+   */
+  async createSharedObject( obj, className ) {
+    return this._createSharedObject("Add", obj, className);
   }
   
   /**
-  Create a streaming object, FIXME: copied
+  Create a shared scripted object. 
+  The server determines which scripts are allowed, so this sends different command than createSharedObject.
   @param obj the new VRObject, containing all properties
   @param callback called when shared object is received
   @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
+  @returns Promise with the created VRObject instance
    */
-  createScriptedObject( obj, callback, className ) {
-    if ( ! className ) {
-      if ( obj.className ) {
-        className = obj.className;
-      } else {
-        className = 'VRObject';
-      }
-    }
-    let json = JSON.stringify(obj);
-    this.log(json);
-    // response to command contains object ID
-    this.call('{"command":{"Share":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
-      this.log("Response:", response);
-      var objectId = response.response[0][className];
-      const id = new ID(className,objectId);
-      this.log("Created object:"+ objectId);
-      // by now the object is already in the scene, since Add message preceeded the response
-      var ret = this.scene.get(id.toString());
-      callback(ret);
-    });
+  async createScriptedObject( obj, className ) {
+    return this._createSharedObject("Share", obj, className);
   }
   
   /**
@@ -838,7 +836,7 @@ export class VRSpace {
       if ( welcome.permanents ) {
         welcome.permanents.forEach( o => this.addObject(o));
       }
-    } else if ( "response" in obj) {
+    } else if ("response" in obj) {
       this.log("Response to command");
       if ( typeof this.responseListener === 'function') {
         var callback = this.responseListener;

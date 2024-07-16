@@ -179,18 +179,15 @@ export class Whiteboard extends ImageArea {
       console.log("Can't share whiteboard - WorldManager offline");
       return;
     }
-    return new Promise( (resolve, reject) => {
-      VRSPACE.createScriptedObject({
-        properties: { name: this.name, type: "Whiteboard", clientId: VRSPACE.me.id, size: this.size, addHandles: this.addHandles },
-        active: true,
-        script: '/babylon/js/scripts/remote-whiteboard.js',
-        position: { x: this.position.x, y: this.position.y, z: this.position.z }
-        //rotation: {x: this.rotation.x, y: this.rotation.y, z: this.rotation.z}
-      }, (obj) => {
-        this.share = obj;
-        console.log("Created new VRObject", obj);
-        resolve(obj);
-      });
+    VRSPACE.createScriptedObject({
+      properties: { name: this.name, type: "Whiteboard", clientId: VRSPACE.me.id, size: this.size, addHandles: this.addHandles },
+      active: true,
+      script: '/babylon/js/scripts/remote-whiteboard.js',
+      position: { x: this.position.x, y: this.position.y, z: this.position.z }
+      //rotation: {x: this.rotation.x, y: this.rotation.y, z: this.rotation.z}
+    }).then( obj => {
+      this.share = obj;
+      console.log("Created new VRObject", obj);
     });
   }
 

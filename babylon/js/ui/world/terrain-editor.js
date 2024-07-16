@@ -86,10 +86,10 @@ export class TerrainEditor extends WorldListener {
       diffuseColor:this.terrain.terrainMaterial.diffuseColor,
       emissiveColor:this.terrain.terrainMaterial.emissiveColor
     };
-    this.world.worldManager.VRSPACE.createSharedObject(object, (obj)=>{
+    this.world.worldManager.VRSPACE.createSharedObject(object, "Terrain").then(obj=>{
       console.log("Created new Terrain", obj);
       this.sharedTerrain = obj;
-    }, "Terrain");
+    });
   }
   
   edit() {

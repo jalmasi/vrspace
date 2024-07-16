@@ -699,7 +699,7 @@ export class WorldEditor {
           rotation: instance.rotation,
           scale: instance.scale
         };
-        this.worldManager.VRSPACE.createSharedObject(mesh, (obj) => {
+        this.worldManager.VRSPACE.createSharedObject(mesh).then(obj => {
           console.log("Created new VRObject", obj);
         });
       });
@@ -809,7 +809,7 @@ export class WorldEditor {
         object[p] = properties[p];
       }
     }
-    this.worldManager.VRSPACE.createSharedObject(object, (obj) => {
+    this.worldManager.VRSPACE.createSharedObject(object).then(obj => {
       console.log("Created new VRObject", obj);
     });
   }
