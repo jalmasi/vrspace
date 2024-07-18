@@ -7,7 +7,7 @@ export class SharedFile extends BasicScript {
     this.imageArea = new ImageArea(this.scene, this.vrObject.content.fileName);
     this.imageArea.addHandles = false;
     let pos = this.vrObject.position;
-    this.imageArea.position = new BABYLON.Vector3(pos.x, pos.y, pos.z); // TODO move it in front of avatar
+    this.imageArea.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
     this.imageArea.width = 256;
     this.imageArea.height = 256;
     this.imageArea.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;

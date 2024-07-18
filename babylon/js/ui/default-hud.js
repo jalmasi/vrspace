@@ -368,6 +368,7 @@ export class DefaultHud {
       this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.toggleWhiteboard(), false);
       this.imageButton = this.hud.addButton("Share image", this.contentBase + "/content/icons/sky.png", () => this.image(), false);
       this.fileButton = this.hud.addButton("Share file", this.contentBase + "/content/icons/file.png", () => this.file(), false);
+      this.modelButton = this.hud.addButton("Share model", this.contentBase + "/content/icons/cube.png", () => this.model(), false);
       if ( this.streamingAvailable() ) {
         this.markEnabled(this.screencastButton);
       } else {
@@ -381,9 +382,11 @@ export class DefaultHud {
       if ( this.isOnline() ) {
         this.markEnabled(this.fileButton);
         this.markEnabled(this.imageButton);
+        this.markEnabled(this.modelButton);
       } else {
         this.markDisabled(this.fileButton);
         this.markDisabled(this.imageButton);
+        this.markDisabled(this.modelButton);
       }
     } else {
       this.clearRow();
@@ -439,6 +442,10 @@ export class DefaultHud {
     this.file(".jpg,.jpeg,.png");
   }
   
+  model() {
+    this.file(".glb,.zip");
+  }
+  
   file(accept) {
     if ( ! this.isOnline() ) {
       return;
@@ -465,14 +472,19 @@ export class DefaultHud {
 
       const formData  = new FormData();
       formData.append('fileName', file.name);
-      formData.append('contentType', file.type);
+      if ( file.type ) {
+        formData.append('contentType', file.type);
+      } else if (file.name.toLowerCase().endsWith('.glb')) {
+        formData.append('contentType', 'model/gltf-binary');
+      }
       formData.append('x', pos.x);
       formData.append('y', pos.y);
       formData.append('z', pos.z);
-      formData.append('rotX', 0);
-      formData.append('rotY', 1);
-      formData.append('rotZ', 0);
-      formData.append('angle', this.scene.activeCamera.rotation.y);
+      formData.append('rotX', this.scene.activeCamera.rotation.x);
+      formData.append('rotY', this.scene.activeCamera.rotation.y);
+      formData.append('rotZ', this.scene.activeCamera.rotation.z);
+      // watch out - quaternion implementation may be unstable
+      //formData.append('angle', this.scene.activeCamera.rotation.w);
       formData.append('fileData', file);
 
       fetch('/vrspace/api/files/upload', {

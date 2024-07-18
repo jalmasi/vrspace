@@ -24,6 +24,7 @@ import org.vrspace.server.obj.Content;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.VRFile;
+import org.vrspace.server.obj.VRObject;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,13 +36,7 @@ public class UploadController extends ApiBase {
   @Autowired
   WorldManager worldManager;
 
-  @PutMapping("/upload")
-  public void upload(HttpSession session, HttpServletRequest request, String fileName, String contentType, Double x,
-      Double y, Double z, Double rotX, Double rotY, Double rotZ, Double angle, @RequestPart MultipartFile fileData)
-      throws IOException {
-
-    // get user info first (session etc)
-    // TODO return error if this does not exist
+  private Client findClient(HttpSession session) {
     Long clientId = (Long) session.getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
     Client client = worldManager.getClient(clientId);
 
@@ -49,45 +44,71 @@ public class UploadController extends ApiBase {
       throw new SecurityException("The client is not connected");
     }
 
+    return client;
+  }
+
+  @PutMapping("/upload")
+  public void upload(HttpSession session, HttpServletRequest request, String fileName, String contentType, Double x,
+      Double y, Double z, Double rotX, Double rotY, Double rotZ, Double angle, @RequestPart MultipartFile fileData)
+      throws IOException {
+
+    // get user info first (session etc)
+    Client client = findClient(session);
+
     String path = FileUtil.uploadDir();
     Long fileSize = fileData.getSize();
     File dest = new File(path + File.separator + fileName);
-    log.debug("uploading " + contentType + " to " + dest + " size " + fileSize + " pos " + x + "," + y + "," + z
-        + " rot " + rotX + "," + rotY + "," + rotZ);
-    if ("model/gltf+json".equals(fileData.getContentType())) {
-      // TODO: handle gltf upload
-    }
     dest.mkdirs();
+
+    log.debug("uploading " + contentType + "/" + fileData.getContentType() + " to " + dest + " size " + fileSize
+        + " pos " + x + "," + y + "," + z + " rot " + rotX + "," + rotY + "," + rotZ + "," + angle);
+
     try (InputStream inputStream = fileData.getInputStream()) {
       Files.copy(inputStream, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-      // FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(new
-      // File("/storage/upload/", file.getOriginalFilename())));
     } catch (Exception e) {
       log.error("Upload error", e);
     }
 
-    // create Content
-    Content content = new Content();
-    content.setFileName(fileName);
-    content.setFolder(path);
-    content.setContentType(contentType);
-    content.setLength(fileSize);
-    // create VRObject, set URL
-    // drop VRObject at position
-    // set owner
-    // properties: { name: this.name, type: "Whiteboard", clientId: VRSPACE.me.id,
-    // size: this.size, addHandles: this.addHandles },
-    VRFile obj = new VRFile();
-    obj.setContent(content);
+    VRObject obj = null;
+    Content content = null;
+
+    if ("model/gltf+json".equals(contentType)) {
+      // TODO: handle gltf upload
+      // they are going to come in zip format anyway
+    } else if ("model/gltf-binary".equals(contentType)) {
+      obj = new VRObject();
+      obj.setMesh("/content/tmp/" + fileName);
+      obj.setActive(false);
+    } else {
+      content = new Content();
+      content.setFileName(fileName);
+      content.setFolder(path);
+      content.setContentType(contentType);
+      content.setLength(fileSize);
+
+      obj = new VRFile();
+      ((VRFile) obj).setContent(content);
+      obj.setActive(true);
+    }
+
+    Point pos = null;
+    Rotation rot = null;
     if (x != null & y != null & z != null) {
-      obj.setPosition(new Point(x, y, z));
+      pos = new Point(x, y, z);
     }
-    if (rotX != null & rotY != null & rotZ != null) {
-      obj.setRotation(new Rotation(rotX, rotY, rotZ, angle));
+    if (rotX != null & rotY != null & rotZ != null && angle != null) {
+      rot = new Rotation(rotX, rotY, rotZ, angle);
+    } else if (rotX != null & rotY != null & rotZ != null) {
+      rot = new Rotation(rotX, rotY, rotZ);
     }
+
+    obj.setPosition(pos);
+    obj.setRotation(rot);
     obj.setProperties(Map.of("clientId", client.getId()));
-    obj.setActive(true);
+
     worldManager.add(client, obj);
     client.getScene().publish(obj); // so that it gets displayed right away
+
   }
+
 }

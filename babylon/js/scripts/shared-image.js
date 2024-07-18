@@ -9,7 +9,7 @@ export class SharedImage extends SharedFile {
     this.imageArea = new ImageArea(this.scene, this.vrObject.content.fileName);
     this.imageArea.addHandles = this.isMine();
     let pos = this.vrObject.position;
-    this.imageArea.position = new BABYLON.Vector3(pos.x, pos.y, pos.z); // TODO move it in front of avatar
+    this.imageArea.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
     this.imageArea.width = 256;
     this.imageArea.height = 256;
 
@@ -18,7 +18,8 @@ export class SharedImage extends SharedFile {
     let rot = this.vrObject.rotation;
     this.imageArea.group.rotation = new BABYLON.Vector3(rot.x, rot.y, rot.z);
 
-    this.imageArea.onClick(() => this.download());
+    // CHECKME: Do we want to allow download?
+    //this.imageArea.onClick(() => this.download());
     
     let path = "/content/tmp/"+this.vrObject.content.fileName;
     this.imageArea.loadUrl(path);

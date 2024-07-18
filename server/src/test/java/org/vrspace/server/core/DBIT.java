@@ -385,7 +385,7 @@ public class DBIT {
   @Transactional
   public void testRotation() throws Exception {
     VRObject o = new VRObject().active();
-    Rotation r = new Rotation(1, 2, 3, 4);
+    Rotation r = new Rotation(1, 2, 3, 4.0);
     o.setRotation(r);
     o = repo.save(o);
     System.err.println(o);
@@ -637,7 +637,7 @@ public class DBIT {
     VRObject o1 = new VRObject();
     o1.setPosition(new Point(1, 2, 3));
     o1.setScale(new Point(4, 5, 6));
-    o1.setRotation(new Rotation(7, 8, 9, 0));
+    o1.setRotation(new Rotation(7, 8, 9, 0.0));
     o1 = repo.save(o1);
     Ownership ownership = new Ownership(c1, o1);
     ownership = repo.save(ownership);
@@ -658,7 +658,7 @@ public class DBIT {
     // change the object:
     o1.getPosition().setX(11);
     o1.setScale(new Point(1, 1, 1));
-    o1.getRotation().setAngle(1);
+    o1.getRotation().setAngle(1.0);
     o1 = repo.save(o1);
     System.err.println(o1);
 

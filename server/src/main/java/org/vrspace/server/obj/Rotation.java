@@ -21,11 +21,14 @@ import lombok.NoArgsConstructor;
 @Node
 public class Rotation extends Embedded {
 
-  public double x, y, z, angle;
+  private double x, y, z;
+  /** Typically null, if not, rotation is quaternion */
+  private Double angle;
 
   public Rotation(double x, double y, double z) {
     this.x = x;
     this.y = y;
     this.z = z;
   }
+
 }

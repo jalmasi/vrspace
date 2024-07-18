@@ -78,7 +78,7 @@ public class BotConfig {
       if (coord.size() > 3) {
         return new Rotation(coord.get(0), coord.get(1), coord.get(2), coord.get(3));
       }
-      return new Rotation(coord.get(0), coord.get(1), coord.get(2), 0);
+      return new Rotation(coord.get(0), coord.get(1), coord.get(2), 0.0);
     }
   }
 
