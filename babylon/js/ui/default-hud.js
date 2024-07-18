@@ -389,9 +389,13 @@ export class DefaultHud {
         this.markDisabled(this.imageButton);
         this.markDisabled(this.modelButton);
       }
-      WorldManager.instance.world.addListener(this);
+      if ( this.isOnline() ) {
+        WorldManager.instance.world.addListener(this);
+      }
     } else {
-      WorldManager.instance.world.removeListener(this);
+      if ( this.isOnline() ) {
+        WorldManager.instance.world.removeListener(this);
+      }
       this.clearRow();
     }
   }
