@@ -49,7 +49,7 @@ public class UploadController extends ApiBase {
 
   @PutMapping("/upload")
   public void upload(HttpSession session, HttpServletRequest request, String fileName, String contentType, Double x,
-      Double y, Double z, Double rotX, Double rotY, Double rotZ, Double angle, @RequestPart MultipartFile fileData)
+      Double y, Double z, Double rotX, Double rotY, Double rotZ, @RequestPart MultipartFile fileData)
       throws IOException {
 
     // get user info first (session etc)
@@ -61,7 +61,7 @@ public class UploadController extends ApiBase {
     dest.mkdirs();
 
     log.debug("uploading " + contentType + "/" + fileData.getContentType() + " to " + dest + " size " + fileSize
-        + " pos " + x + "," + y + "," + z + " rot " + rotX + "," + rotY + "," + rotZ + "," + angle);
+        + " pos " + x + "," + y + "," + z + " rot " + rotX + "," + rotY + "," + rotZ);
 
     try (InputStream inputStream = fileData.getInputStream()) {
       Files.copy(inputStream, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -78,7 +78,7 @@ public class UploadController extends ApiBase {
     } else if ("model/gltf-binary".equals(contentType)) {
       obj = new VRObject();
       obj.setMesh("/content/tmp/" + fileName);
-      obj.setActive(false);
+      obj.setActive(true);
     } else {
       content = new Content();
       content.setFileName(fileName);
@@ -96,9 +96,7 @@ public class UploadController extends ApiBase {
     if (x != null & y != null & z != null) {
       pos = new Point(x, y, z);
     }
-    if (rotX != null & rotY != null & rotZ != null && angle != null) {
-      rot = new Rotation(rotX, rotY, rotZ, angle);
-    } else if (rotX != null & rotY != null & rotZ != null) {
+    if (rotX != null & rotY != null & rotZ != null) {
       rot = new Rotation(rotX, rotY, rotZ);
     }
 

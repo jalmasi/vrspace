@@ -1,3 +1,4 @@
+import { VRSPACE } from '../client/vrspace.js';
 import { VRSPACEUI } from './vrspace-ui.js';
 import { MediaStreams } from '../core/media-streams.js';
 import { SpeechInput } from '../core/speech-input.js';
@@ -388,7 +389,9 @@ export class DefaultHud {
         this.markDisabled(this.imageButton);
         this.markDisabled(this.modelButton);
       }
+      WorldManager.instance.world.addListener(this);
     } else {
+      WorldManager.instance.world.removeListener(this);
       this.clearRow();
     }
   }
@@ -417,6 +420,7 @@ export class DefaultHud {
   toggleWhiteboard() {
     if ( this.whiteboard ) {
       this.markEnabled(this.whiteboardButton)
+      WorldManager.instance.world.removeListener(this.whiteboard);
       this.whiteboard.dispose();
       this.whiteboard = null;
       return;
@@ -464,6 +468,7 @@ export class DefaultHud {
   
   upload(input) {
     console.log("Files: ", input.files);
+    // we load only one, but still
     for ( let i = 0; i < input.files.length; i++) {
       const file = input.files[i];
       console.log("Uploading ",file);
@@ -483,8 +488,6 @@ export class DefaultHud {
       formData.append('rotX', this.scene.activeCamera.rotation.x);
       formData.append('rotY', this.scene.activeCamera.rotation.y);
       formData.append('rotZ', this.scene.activeCamera.rotation.z);
-      // watch out - quaternion implementation may be unstable
-      //formData.append('angle', this.scene.activeCamera.rotation.w);
       formData.append('fileData', file);
 
       fetch('/vrspace/api/files/upload', {
@@ -493,5 +496,18 @@ export class DefaultHud {
       })
     };
     document.body.removeChild(input);
+  }
+  
+  /** World LoadListener interface */
+  loaded(vrObject) {
+    console.log("Loaded ",vrObject);
+    if ( vrObject.container ) {
+      setTimeout(() => {
+        let rootMesh = vrObject.container.meshes[0];
+        var scale = 1 / WorldManager.instance.bBoxMax(rootMesh);
+        //var scale = 1/this.worldManager.bBoxMax(this.worldManager.getRootNode(vrObject));
+        VRSPACE.sendEvent(vrObject, { scale: { x: scale, y: scale, z: scale } });
+      }, 100);
+    }
   }
 }

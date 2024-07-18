@@ -17,6 +17,7 @@ export class WorldListener {
   /**
   Called when a new object is loaded.
   What that exactly means, depends on type of object - e.g. avatars are loaded differently than video streams.
+  Actual mesh/avatar/etc is in vrobject, e.g. vrobject.container in case of general model.
   @param vrobject a VRObject, typically a Client, added to the scene.
    */
   loaded(vrobject){}
