@@ -9,9 +9,9 @@ export class EmojiParticleSystem {
   init(url, avatar, particleDirection=5){
     //this.dispose();
     if ( BABYLON.GPUParticleSystem.IsSupported ) {
-      this.particleSystem = new BABYLON.GPUParticleSystem("Emojis", {capacity: 100}, scene);
+      this.particleSystem = new BABYLON.GPUParticleSystem("Emojis", {capacity: 100}, this.scene);
     } else {
-      this.particleSystem = new BABYLON.ParticleSystem("Emojis", 100, scene);
+      this.particleSystem = new BABYLON.ParticleSystem("Emojis", 100, this.scene);
     }
     //this.particleSystem.disposeOnStop = true;
     this.particleSystem.particleTexture = new BABYLON.Texture(url, this.scene);
