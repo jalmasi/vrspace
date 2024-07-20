@@ -77,7 +77,7 @@ export class Screencast extends WorldListener {
       script:'/babylon/js/scripts/remote-screen.js',
       position: {x: this.position.x, y: this.position.y, z: this.position.z},
       rotation: {x: this.rotation.x, y: this.rotation.y, z: this.rotation.z}
-    }, (obj)=>{
+    }).then(obj=>{
       this.screenShare = obj;
       console.log("Created new VRObject", obj);
       this.worldManager.mediaStreams.shareScreen(()=>{
