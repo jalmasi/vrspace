@@ -208,6 +208,7 @@ export class RemoteServer extends Client {
     this.url = null;
     this.thumbnail = null;
     this.humanoid = false;
+    this.hasAvatar = false;
     this.className = 'RemoteServer';
   }
 }

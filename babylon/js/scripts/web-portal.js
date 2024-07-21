@@ -1,6 +1,6 @@
 import { BasicScript } from "./basic-script.js";
-import { Portal } from "../ui/portal.js";
-import { ServerFolder } from "../ui/server-folder.js";
+import { Portal } from "../ui/world/portal.js";
+import { ServerFolder } from "../core/server-folder.js";
 
 export class WebPortal extends BasicScript {
   constructor(world, vrObject) {
