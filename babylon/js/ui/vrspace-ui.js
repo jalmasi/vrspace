@@ -187,7 +187,7 @@ export class VRSpaceUI {
   @param callback to call
    */ 
   listThumbnails(dir, callback) {
-    this.listMatchingFiles( dir, callback, '.jpg' )
+    this.listMatchingFiles( dir, callback, '.jpg' );
   }
 
   /** list character folders and their fix files 
@@ -195,14 +195,14 @@ export class VRSpaceUI {
   @param callback to call
   */
   listCharacters(dir, callback) {
-    this.listMatchingFiles( dir, callback, '-fixes.json' )
+    this.listMatchingFiles( dir, callback, '-fixes.json' );
   }
 
   /** list character folders and their fix files 
   @param dir directory to list
   */
-  async listCharactersAsync(dir, callback) {
-    return this.listMatchingFilesAsync( dir, callback, '-fixes.json' )
+  async listCharactersAsync(dir) {
+    return this.listMatchingFilesAsync( dir, '-fixes.json' );
   }
 
   /**

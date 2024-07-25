@@ -162,7 +162,7 @@ export class ManipulationHandles {
    */
   hide(flag) {
     if ( this.canMinimize ) {
-      console.log("Hiding handles: "+flag);
+      //console.log("Hiding handles: "+flag);
       this.group.getChildMeshes().forEach( h => {
         if ( h !== this.box && !this.dontMinimize.includes(h)) {
           h.setEnabled(!flag);
