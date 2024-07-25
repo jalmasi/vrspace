@@ -10,6 +10,7 @@ import { ServerFile } from '../core/server-folder.js';
 import { EmojiParticleSystem } from './world/emoji-particle-system.js';
 import { Screencast } from './world/screencast.js';
 import { Whiteboard } from './world/whiteboard.js';
+import { TextArea } from './widget/text-area.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -34,6 +35,7 @@ export class DefaultHud {
     this.emojiParticleSystem = new EmojiParticleSystem(scene);
     this.screencast = null;
     this.whiteboard = null;
+    this.creditArea = null;
   }
   
   init() {
@@ -87,6 +89,9 @@ export class DefaultHud {
       this.speechButton.tooltipText = "Voice Commands";
       this.speech(this.state.speech);
 
+      this.authorsButton = this.hud.addButton("Credits", this.contentBase + "/content/icons/copyleft.png", () => this.credits(), false);
+      this.authorsButton.tooltipText = "Authors";
+
       this.helpButton = this.hud.addButton("Help", this.contentBase + "/content/icons/help.png", () => this.help());
       this.helpButton.tooltipText = "TODO";
       this.hud.enableSpeech(true);
@@ -112,6 +117,10 @@ export class DefaultHud {
       this.screencastButton = null;
       this.whiteboardButton = null;
       this.fileButton = null;
+    }
+    if ( this.creditArea ) {
+      this.creditArea.dispose();
+      this.creditArea = null;
     }
     this.buttons.forEach(b=>b.dispose());
     this.buttons = [];
@@ -175,23 +184,29 @@ export class DefaultHud {
     }
   }
   
-  markEnabled(button) {
+  markEnabled(button, keepTooltip = false) {
     if ( button ) {
-      button.tooltipText = null;
+      if ( ! keepTooltip ) {
+        button.tooltipText = null;
+      }
       button.backMaterial.albedoColor = new BABYLON.Color3(0.3, 0.35, 0.4);
     }
   }
 
-  markDisabled(button) {
+  markDisabled(button, keepTooltip = false) {
     if ( button ) {
-      button.tooltipText = "N/A";
+      if ( ! keepTooltip ) {
+        button.tooltipText = "N/A";
+      }
       button.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
     }
   }
 
-  markActive(button) {
+  markActive(button, keepTooltip = false) {
     if ( button ) {
-      button.tooltipText = "N/A";
+      if ( ! keepTooltip ) {
+        button.tooltipText = "N/A";
+      }
       button.backMaterial.albedoColor = new BABYLON.Color3(0.29, 0.67, 0.29);
     }
   }
@@ -332,6 +347,40 @@ export class DefaultHud {
     }
   }
 
+  credits() {
+    let assets = VRSPACEUI.assetLoader.assetInfos();
+    if ( this.creditArea ) {
+      this.markEnabled(this.authorsButton, true);
+      this.creditArea.dispose();
+      this.creditArea = null;
+      return;
+    }
+    if ( Object.keys(assets).length > 0 ) {
+      this.markActive(this.authorsButton, true);
+      this.creditArea = new TextArea(this.scene, "TouchTextArea");
+      let rows = Math.floor(Object.keys(assets).length / 4)+ 1;
+      this.creditArea.width = 1024;
+      this.creditArea.height = 512*rows;
+      this.creditArea.text = "Credits:";
+      this.creditArea.attachToHud();
+      this.creditArea.size = .5;
+      this.creditArea.position = new BABYLON.Vector3(0, .2, .5);
+      this.creditArea.show();
+      for ( let url in assets ) {
+        this.creditArea.writeln();
+        this.creditArea.writeln(url);
+        let info = assets[url];
+        if ( info ) {
+          for ( let data in info ) {
+            this.creditArea.println(data+": "+info[data]);
+          }
+        } else {
+          this.creditArea.writeln('No author information available');
+        }
+      }    
+    }
+  }
+  
   help() {
     // TODO
   }

@@ -197,7 +197,7 @@ export class TextArea extends BaseArea {
     this.writeln(string);
   }
   /** Print a string into a new line */
-  writeln(string) {
+  writeln(string="") {
     this.write("\n"+string);
   }
   /** Print a number of lines */

@@ -213,12 +213,13 @@ export class AssetLoader {
     }
   }
   /** 
-  Returns all currently loaded assets, with spatial coordinates of all instances.
+  Returns all assets currently loaded from the server, with spatial coordinates of all instances.
+  Note that this does not return object loaded before joining the server, e.g. in world.js, user's own avatar, etc. 
    */
   dump() {
-    var dump = {};
+    let dump = {};
     this.scene.rootNodes.forEach( (node) => {
-      var url = node.name;
+      let url = node.name;
       // CHECKME: do we want also to return user avatars? (starts with Client)
       if ( node.id.startsWith("VRObject") && this.containers[url] ) {
         if ( ! dump[url] ) {
@@ -239,5 +240,18 @@ export class AssetLoader {
       }
     });
     return dump;
+  }
+  /**
+   * Returns object containing information about all assets loaded by this AssetLoader.
+   * Object contains one field that is asset (relative) url, and the value is info object.
+   * That's manifest.asset.extras of GLTF file, present in Sketchfab models.
+   * Contains author, license, source, and title fields.
+   */
+  assetInfos() {
+    let infos = {};
+    for ( let url in this.containers ) {
+      infos[url]=this.containers[url].info;
+    };
+    return infos;
   }
 }
