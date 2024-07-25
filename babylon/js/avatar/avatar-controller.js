@@ -23,7 +23,7 @@ class AvatarMovement {
     };
     this.stop();
     // we only track walk if the avatar can walk
-    this.trackWalk = this.animation.canWalk();;
+    this.trackWalk = this.animation.canWalk();
     this.findFeet();
   }
   
