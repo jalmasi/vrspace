@@ -53,7 +53,7 @@ export class DefaultHud {
   streamingAvailable() {
     // TODO check server capabilities
     // screen sharing unavailable on mobiles
-    return this.isOnline();
+    return this.isOnline() && ! WorldManager.instance.world.hasTouchScreen();
   }
   
   isOnline() {
