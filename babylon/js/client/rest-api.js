@@ -15,7 +15,8 @@ export class VRSpaceAPI {
     this.endpoint = {
       worlds: this.base + "/worlds",
       user: this.base + "/user",
-      oauth2: this.base + "/oauth2"
+      oauth2: this.base + "/oauth2",
+      files: this.base+'/files'
     }
   }
 
@@ -153,4 +154,32 @@ export class VRSpaceAPI {
     return data;
   }
 
+  /**
+   * Upload a file.
+   * @param file File object
+   * @param position an object containing x,y,z (Vector3)
+   * @param rotation an object containing x,y,z (Vector3)
+   */
+  upload( file, position, rotation) {
+    const formData  = new FormData();
+    formData.append('fileName', file.name);
+    if ( file.type ) {
+      formData.append('contentType', file.type);
+    } else if (file.name.toLowerCase().endsWith('.glb')) {
+      formData.append('contentType', 'model/gltf-binary');
+    }
+    formData.append('x', position.x);
+    formData.append('y', position.y);
+    formData.append('z', position.z);
+    formData.append('rotX', rotation.x);
+    formData.append('rotY', rotation.y);
+    formData.append('rotZ', rotation.z);
+    formData.append('fileData', file);
+
+    fetch(this.endpoint.files+'/upload', {
+      method: 'PUT',
+      body: formData
+    });
+
+  }
 }

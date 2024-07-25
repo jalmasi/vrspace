@@ -528,25 +528,7 @@ export class DefaultHud {
       let camera = this.scene.activeCamera;
       let pos = camera.position.add(camera.getForwardRay(1).direction);
 
-      const formData  = new FormData();
-      formData.append('fileName', file.name);
-      if ( file.type ) {
-        formData.append('contentType', file.type);
-      } else if (file.name.toLowerCase().endsWith('.glb')) {
-        formData.append('contentType', 'model/gltf-binary');
-      }
-      formData.append('x', pos.x);
-      formData.append('y', pos.y);
-      formData.append('z', pos.z);
-      formData.append('rotX', this.scene.activeCamera.rotation.x);
-      formData.append('rotY', this.scene.activeCamera.rotation.y);
-      formData.append('rotZ', this.scene.activeCamera.rotation.z);
-      formData.append('fileData', file);
-
-      fetch('/vrspace/api/files/upload', {
-        method: 'PUT',
-        body: formData
-      })
+      VRSpaceAPI.getInstance().upload(file, pos, camera.rotation);
     };
     document.body.removeChild(input);
   }
