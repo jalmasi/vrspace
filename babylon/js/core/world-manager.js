@@ -4,7 +4,6 @@ import {HumanoidAvatar} from '../avatar/humanoid-avatar.js';
 import {VideoAvatar} from '../avatar/video-avatar.js';
 import {ServerFolder} from './server-folder.js';
 import {MeshAvatar} from '../avatar/mesh-avatar.js';
-import { AvatarController } from '../vrspace-min.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -397,7 +396,8 @@ export class WorldManager {
       }
       if ( obj.className.indexOf("Bot") >= 0 ) {
         console.log("Bot loaded");
-        obj.avatarController = new AvatarController(this, avatar);
+        // TODO bot controller
+        //obj.avatarController = new AvatarController(this, avatar);
       }
       this.notifyLoadListeners(obj, avatar);
     }, (error) => {
