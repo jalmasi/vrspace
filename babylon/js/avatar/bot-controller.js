@@ -17,7 +17,40 @@ export class BotController {
     this.setupIdleTimer();
     this.vrObject.addListener((obj,changes)=>this.processChanges(obj,changes));
     this.animationEnd = (animation) => this.animationEnded(animation);
+    this.voice = null;
+    
+    const voices = window.speechSynthesis.getVoices();
+    if ( voices.length == 0 ) {
+      // chrome fires event
+      window.speechSynthesis.onvoiceschanged = (changed) => {
+        this.processVoices(window.speechSynthesis.getVoices());
+      }
+    } else {
+      // mozilla returns it right away
+      this.processVoices(voices);
+    }
   }
+  
+  processVoices(voices) {
+    console.log("voices",voices);
+    this.voice = voices[0];
+    let langMatch = this.vrObject.lang == null; // null means any matches
+    let genderMatch = this.vrObject.gender == null; // null means any matches
+    voices.forEach( (voice, index) => {
+      // CHECKME this could be easily wrong way to select female voice
+      if ( ! langMatch && this.vrObject.lang && voice.lang == this.vrObject.lang ) {
+        langMatch = true;
+        this.voice = voice;
+      }
+      let female = voice.name.indexOf("Zira") >= 0 || voice.name.indexOf("Female") >= 0;
+      if ( !genderMatch && female && this.vrObject.gender && this.vrObject.gender.toLowerCase() === "female") {
+        genderMatch = true;
+        this.voice = voice;
+      }
+    });
+    console.log("Voice selected", this.voice);
+  }
+  
   /**
    * Create timer for idle animation, if it doesn't exist.
    * CHECKME copied from AvatarController
@@ -50,6 +83,11 @@ export class BotController {
   processChanges(obj,changes) {
     //console.log("processing changes ",obj,changes);
     if ( changes['wrote'] ) {
+      if ( this.voice ) {
+        const utter = new SpeechSynthesisUtterance(changes.wrote);
+        utter.voice = this.voice;
+        window.speechSynthesis.speak(utter);
+      }
       let animation = this.animation.processText(changes.wrote);
       if ( animation ) {
         animation.onAnimationGroupEndObservable.add(this.animationEnd);

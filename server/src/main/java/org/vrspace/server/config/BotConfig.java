@@ -47,6 +47,8 @@ public class BotConfig {
     private String url;
     private String world;
     private String mesh;
+    private String gender;
+    private String lang;
     private Map<String, String> parameterMap;
     private List<Double> position;
     private List<Double> rotation;

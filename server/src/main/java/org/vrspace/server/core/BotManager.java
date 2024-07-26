@@ -77,6 +77,8 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
       bot.setName(botName);
       bot.setUrl(props.getUrl());
       bot.setMesh(props.getMesh());
+      bot.setGender(props.getGender());
+      bot.setLang(props.getLang());
 
       log.debug(botName + " parameter map: " + props.getParameterMap());
       bot.setParameterMap(props.getParameterMap());

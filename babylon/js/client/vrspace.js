@@ -232,6 +232,8 @@ Robot base class, useful for chatbots.
 export class Bot extends User {
   constructor() {
     super();
+    this.gender = null;
+    this.lang = null;
     /** Server-side class name */
     this.className = 'Bot';
   }
