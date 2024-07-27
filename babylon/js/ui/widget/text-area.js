@@ -100,9 +100,10 @@ export class TextArea extends BaseArea {
   showTitle() {
     if (this.titleText) {
       let titleHeight = this.size / this.getMaxRows() * 2; // twice as high as a text row
-      if ( ! this.title ) {
-        this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.size/2 + titleHeight/2, 0), this.group);
+      if ( this.title ) {
+        this.title.dispose();
       }
+      this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.size/2 + titleHeight/2, 0), this.group);
       this.title.text = this.titleText;
       this.title.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
       this.title.height = titleHeight;

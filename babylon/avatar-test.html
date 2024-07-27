@@ -69,6 +69,13 @@ import('./js/vrspace-min.js').then( (ui) => {
   	  }
   	});
 
+    document.getElementById('wrote').addEventListener('input', (e)=>{
+      let text = e.target.value;
+      if ( character ) {
+        character.write(text);
+      }
+    });
+
     world.init(engine, 'avatar').then((s) => {
       scene = s;
       worldManager = new ui.WorldManager(world);
@@ -196,6 +203,8 @@ var loadAvatar = () => {
 
 var replaceAvatar = () => {
   import('./js/avatar/humanoid-avatar.js').then( (module) => {
+	  module.HumanoidAvatar.use3dText = document.getElementById('text3d').checked;
+    
     var index = document.getElementById("avatarName").value;
     var folder = characters[index];
     console.log(folder);
@@ -320,6 +329,10 @@ function debugOnOff() {
 <div id="loginForm" style="position:absolute;bottom:50px;right:45%;">
 <label for="nickname">Name:</label>
 <input title="Avatar name, displayed over head" id="nickname" type="text">
+<label for="wrote">Say:</label>
+<input title="Text to write" id="wrote" type="text">
+<label for="text3d">3D text:</label>
+<input title="Use 3d Text (requires avatar reload)" id="text3d" type="checkbox">
 </div>
 
 <div style="position:absolute;bottom:10px;right:50%;">

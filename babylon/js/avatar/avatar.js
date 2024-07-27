@@ -1,5 +1,7 @@
 import { TextWriter } from '../core/text-writer.js';
 import { EmojiParticleSystem } from '../ui/world/emoji-particle-system.js';
+import { Label } from '../ui/widget/label.js';
+import { TextArea } from '../ui/widget/text-area.js';
 
 /**
  * Base avatar class, provides common methods for actual humanoid/video/mesh avatars
@@ -12,6 +14,9 @@ export class Avatar {
   /** Should written/spoken text be displayed above the head, default true 
    * @static*/
   static displayText = true;
+  /** Should we use 3d text (as opposed to Label and TextArea) - performance penalty 
+   * @static  */
+  static use3dText = false;
   /**
   @param scene
   @param folder ServerFolder with the content
@@ -33,9 +38,15 @@ export class Avatar {
     this.displayName = this.constructor.displayName;
     /** Should written/spoken text be displayed above the head, defaults to value of static displayText */
     this.displayText = this.constructor.displayText;
+    /** Should 3d text be used for name/spoken text, defaults to value of static use3dText */
+    this.use3dText = this.constructor.use3dText;
     if ( this.displayName || this.displayText ) {
-      this.writer = new TextWriter(this.scene);
-      this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      if ( this.use3dText ) {
+        this.writer = new TextWriter(this.scene);
+        this.writer.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      } else {
+        this.nameLabel = null;
+      }
     }
     this.emojiParticleSystem = null;
   }
@@ -45,33 +56,84 @@ export class Avatar {
   @param name 
   */
   async setName(name) {
-    if ( this.writer && this.displayName ) {
-      this.writer.clear(this.baseMesh());
-      this.writer.relativePosition = this.textPositionRelative();
-      this.writer.write(this.baseMesh(), name);
+    if ( this.displayName ) {
+      if ( this.use3dText && this.writer ) {
+        this.writer.clear(this.baseMesh());
+        this.writer.relativePosition = this.textPositionRelative();
+        this.writer.write(this.baseMesh(), name);
+      } else {
+        if ( this.nameLabel) {
+          this.nameLabel.dispose();
+        }
+        if ( this.textArea ) {
+          this.textArea.titleText = name;
+          this.textArea.showTitle();
+        } else if (name) {
+          this.nameLabel = new Label(name, this.textPositionRelative(), this.baseMesh());
+          this.nameLabel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+          this.nameLabel.height = .2;
+          this.nameLabel.display();
+          //this.nameLabel.textPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
+          this.nameLabel.textPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+        }
+      }
     }
     this.name = name;
   }
 
-  /** Remote event routed by WorldManager, displays whatever user wrote above avatar's head*/  
-  async wrote(client) {
-    if ( this.writer && this.displayText ) {
-      let limit = 20;
-      let text = [this.name];
-      let line = '';
-      client.wrote.split(' ').forEach((word) => {
-        if ( line.length + word.length > limit ) {
-          text.push(line);
-          line = '';
+  processText(text, limit, lines = []) {
+    let line = '';
+    text.split(' ').forEach((word) => {
+      if ( line.length + word.length > limit ) {
+        lines.push(line);
+        line = '';
+      }
+      line += word + ' ';
+    });
+    lines.push(line);
+    return lines;
+  }
+  /**
+   * Write locally generated text, used internally
+   * @param wrote text to write above the head
+   */
+  async write( text ) {
+    if ( this.displayText ) {
+      if ( this.use3dText && this.writer ) {
+        let lines = this.processText(text, 20, [this.name]);
+        this.writer.clear(this.baseMesh());
+        this.writer.relativePosition = this.textPositionRelative().add( new BABYLON.Vector3(0,.2*(lines.length-1),0) );
+        this.writer.writeArray(this.baseMesh(), lines);
+      } else {
+        if ( this.nameLabel ) {
+          this.nameLabel.dispose();
         }
-        line += word + ' ';
-      });
-      text.push(line);
-
-      this.writer.clear(this.baseMesh());
-      this.writer.relativePosition = this.textPositionRelative().add( new BABYLON.Vector3(0,.2*(text.length-1),0) );
-      this.writer.writeArray(this.baseMesh(), text);
+        if ( this.textArea ) {
+          this.textArea.dispose();
+        }
+        this.textArea = new TextArea(this.scene, this.name+'-TextArea',this.displayName?this.name:null);
+        this.textArea.addHandles = false;
+        let lines = this.processText(text, 32, []);
+        this.textArea.height = lines.length * (this.textArea.fontSize+4);
+        this.textArea.width = 16*this.textArea.fontSize;
+        this.textArea.position = this.textPositionRelative().add( new BABYLON.Vector3(0,.2*(lines.length/2),0) );
+        this.textArea.size = .2*lines.length;
+        this.textArea.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+        this.textArea.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+        this.textArea.group.parent = this.baseMesh();
+        this.textArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+        this.textArea.show();
+        lines.forEach( line=>this.textArea.writeln(line));
+      }
     }
+  }
+
+  /** 
+   * Remote event routed by WorldManager, displays whatever user wrote above avatar's head
+   * @param client Client that wrote a text
+   */  
+  async wrote(client) {
+    return this.write( client.wrote );
   }
   
   /** Remote emoji event routed by WorldManager */  
