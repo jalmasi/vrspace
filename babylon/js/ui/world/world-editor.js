@@ -2,6 +2,28 @@ import { VRSPACEUI } from '../vrspace-ui.js';
 import { ScrollablePanel } from "./scrollable-panel.js";
 import { Form } from '../widget/form.js';
 
+class PromptForm extends Form {
+  constructor(callback) {
+    super();
+    this.callback = callback;
+  }
+  init() {
+    this.createPanel();
+    this.panel.addControl(this.textBlock("Prompt Metakraft:"));
+
+    this.input = this.inputText('generate');
+    //this.input.text = 'test'; // skip typing in VR
+    this.panel.addControl(this.input);
+
+    var enter = this.submitButton("submit", () => this.callback(this.input.text));
+    this.panel.addControl(enter);
+
+    //input.focus(); // not available in babylon 4
+    this.speechInput.addNoMatch((phrases) => console.log('no match:', phrases));
+    this.speechInput.start();
+  }
+}
+
 class SearchForm extends Form {
   constructor(callback) {
     super();
@@ -102,6 +124,7 @@ export class WorldEditor {
     this.copyButton = this.makeAButton("Copy", this.contentBase + "/content/icons/copy.png", (o) => this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", this.contentBase + "/content/icons/delete.png", (o) => this.removeObject(o));
     this.searchButton = this.makeAButton("Search", this.contentBase + "/content/icons/zoom.png");
+    this.generateButton = this.makeAButton("Generate", this.contentBase + "/content/icons/magic-wand.png");
     this.saveButton = this.makeAButton("Save", this.contentBase + "/content/icons/save.png");
     this.loadButton = this.makeAButton("Load", this.contentBase + "/content/icons/open.png");
 
@@ -111,6 +134,7 @@ export class WorldEditor {
     });
     this.saveButton.onPointerDownObservable.add(() => { this.save() });
     this.loadButton.onPointerDownObservable.add(() => { this.load() });
+    this.generateButton.onPointerDownObservable.add(() => { this.generate() });
     VRSPACEUI.hud.enableSpeech(true);
   }
 
@@ -142,6 +166,7 @@ export class WorldEditor {
     VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
     this.displayButtons(true);
   }
+
   /**
    * Search form callback, prepares parameters, calls this.search, and clears the form 
    */
@@ -159,6 +184,48 @@ export class WorldEditor {
     this.clearForm();
   }
 
+  /**
+   * Creates the search form, or destroys if it exists.
+   * Search form has virtual keyboard attached if created in XR.
+   */
+  generate() {
+    if (this.prompt) {
+      this.clearPrompt();
+    } else {
+      VRSPACEUI.hud.newRow(); // stops speech recognition
+      this.prompt = new PromptForm((text) => this.doPrompt(text));
+      this.prompt.init(); // starts speech recognition
+      if (VRSPACEUI.hud.inXR()) {
+        let texture = VRSPACEUI.hud.addForm(this.prompt, 1536, 512);
+        this.prompt.keyboard(texture);
+      } else {
+        VRSPACEUI.hud.addForm(this.prompt, 1536, 64);
+      }
+    }
+  }
+  /**
+   * Disposes of search form and displays HUD buttons
+   */
+  clearPrompt() {
+    this.prompt.dispose(); // stops speech recognition
+    delete this.prompt;
+    VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
+    this.displayButtons(true);
+  }
+
+  doPrompt(text) {
+    fetch("https://api.metakraft.ai/3d-model-gen/generate", {
+      "method": "POST",
+      "body": {
+        "prompt": text,
+        "quality": "normal"
+      },
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uIjoiNjZhNjEyNTYxNjBkYWZlOGJkYWM4NWM5IiwiaWF0IjoxNzIyMTU5NzAyfQ.Uqw5VosZRmN26s8vL1HQm8Um5AVek8AllkCu5eh7DJs"
+      }
+    }).then(res=>res.text().then(json=>console.log(json)));
+  }
+  
   /**
    * Creates a HUD button. Adds customAction field to the button, that is executed if a scene object is clicked on.
    * @param text button text
