@@ -36,6 +36,13 @@ public class FileUtil {
   }
 
   /**
+   * Returns absolute name of uploaded content directory
+   */
+  public static String generatedContentDir() {
+    return ClassUtil.projectHomeDirectory() + "/content/generated";
+  }
+
+  /**
    * Unzip a file to a directory
    * 
    * @param file zip to unzip

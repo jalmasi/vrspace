@@ -214,18 +214,17 @@ export class WorldEditor {
   }
 
   doPrompt(text) {
-    fetch("https://api.metakraft.ai/3d-model-gen/generate", {
-      "method": "POST",
-      "body": {
-        "prompt": text,
-        "quality": "normal"
-      },
-      "headers": {
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uIjoiNjZhNjEyNTYxNjBkYWZlOGJkYWM4NWM5IiwiaWF0IjoxNzIyMTU5NzAyfQ.Uqw5VosZRmN26s8vL1HQm8Um5AVek8AllkCu5eh7DJs"
-      }
-    }).then(res=>res.text().then(json=>console.log(json)));
+    this.world.loadingStart('generated object');
+    let camera = this.scene.activeCamera;
+    let pos = camera.position.add(camera.getForwardRay(1).direction);
+    fetch( "/vrspace/api/metakraft/generate?prompt="+text+
+      "&x="+pos.x+
+      "&y="+pos.y+
+      "&z="+pos.z, {
+      method: "POST"
+    }).then(res=>res.text().then(json=>console.log(json))).finally(()=>this.world.loadingStop('generated object'));
   }
-  
+   
   /**
    * Creates a HUD button. Adds customAction field to the button, that is executed if a scene object is clicked on.
    * @param text button text
