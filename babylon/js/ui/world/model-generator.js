@@ -29,10 +29,11 @@ export class ModelGenerator{
     this.world = world;
     this.contentBase = VRSPACEUI.contentBase;
     this.buttons = [];
+    this.world.addListener(this);
   }
   show() {
     VRSPACEUI.hud.newRow(); // stops speech recognition
-    this.generateButton = this.makeAButton("Generate", this.contentBase + "/content/icons/magic-wand.png", ()=>this.generate());
+    this.generateButton = this.makeAButton("Generate", this.contentBase + "/content/icons/magic-wand.png", ()=>this.generate(), true);
     this.refineButton = this.makeAButton("Refine", this.contentBase + "/content/icons/magic-wand.png", ()=>this.refine());
     this.styleButton = this.makeAButton("Style", this.contentBase + "/content/icons/magic-wand.png", ()=>this.style());
     this.rigButton = this.makeAButton("Rig", this.contentBase + "/content/icons/magic-wand.png", ()=>this.rig());
@@ -66,6 +67,24 @@ export class ModelGenerator{
    * Allowed types: lego, voxel, voronoi
    */
   style() {
+    if ( this.legoButton ) {
+      VRSPACEUI.hud.clearRow();
+      VRSPACEUI.hud.showButtons(true);
+    } else {
+      VRSPACEUI.hud.newRow(); // stops speech recognition
+      this.legoButton = this.makeAButton("Lego", this.contentBase + "/content/icons/magic-wand.png", ()=>this.doStyle('lego'), true);
+      this.voxelButton = this.makeAButton("Voxel", this.contentBase + "/content/icons/magic-wand.png", ()=>this.doStyle('voxel'), true);
+      this.voronoiButton = this.makeAButton("Voronoi", this.contentBase + "/content/icons/magic-wand.png", ()=>this.doStyle('voronoi'), true);
+    }
+  }
+  
+  doStyle(name) {
+    this.world.loadingStart('styling');
+    fetch( "/vrspace/api/metakraft/style?style="+name+"&id="+this.vrObject.id,
+    {
+      method: "POST"
+    }).then(res=>res.text().then(json=>console.log(json))).finally(()=>this.world.loadingStop('styling'));
+    
   }
   /**
    * Rig a model (IF riggable, that's another call)
@@ -99,16 +118,22 @@ export class ModelGenerator{
     }).then(res=>res.text().then(json=>console.log(json))).finally(()=>this.world.loadingStop('generated object'));
   }
    
-  makeAButton(text, imageUrl, action) {
+  makeAButton(text, imageUrl, action, enabled=false) {
     var button = VRSPACEUI.hud.addButton(text, imageUrl, () => {
-      VRSPACEUI.hud.showButtons(false, button);
-      action();
+      if ( VRSPACEUI.hud.isEnabled(button)) {
+        VRSPACEUI.hud.showButtons(false, button);
+        action();
+      }
     }, false);
+    if ( !enabled ) {
+      VRSPACEUI.hud.markDisabled(button, true);
+    }
     this.buttons.push(button);
     return button;
   }
 
   dispose() {
+    this.world.removeListener(this);
     if ( this.form ) {
       this.form.dispose(); // stops speech recognition
       delete this.form;
@@ -116,4 +141,28 @@ export class ModelGenerator{
     this.buttons = [];
     VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
   }
+
+  /** WorldListener interface */  
+  loaded(vrObject) {
+    console.log("Object loaded", vrObject);
+    if ( this.isMine(vrObject) && vrObject.properties.metakraftId) {
+      this.vrObject = vrObject;
+      console.log("Object generated: ", vrObject.properties.metakraftId, vrObject);
+      this.clearPrompt();
+      // CHECKME: enabled for advanced models only
+      if ( vrObject.properties.isAdvanced ) {
+        VRSPACEUI.hud.markEnabled(this.refineButton);
+        VRSPACEUI.hud.markEnabled(this.styleButton);
+      }
+      if ( vrObject.properties.canRig ) {
+        VRSPACEUI.hud.markEnabled(this.rigButton);
+        VRSPACEUI.hud.markEnabled(this.this.animateButton);
+      }
+    }
+  }
+  
+  isMine(vrObject) {
+    return vrObject.properties && this.world.worldManager.VRSPACE.me.id == vrObject.properties.clientId;
+  }
+  
 }

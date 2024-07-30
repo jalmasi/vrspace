@@ -708,6 +708,14 @@ export class HUD {
   }
 
   /**
+   * Returns true if button color matches colorEnabled
+   */
+  isEnabled(button) {
+    return button.backMaterial.albedoColor.r == this.colorEnabled.r
+    && button.backMaterial.albedoColor.g == this.colorEnabled.g
+    && button.backMaterial.albedoColor.b == this.colorEnabled.b;
+  }
+  /**
    * Common code for markEnabled/Disabled/Active
    */
   markButton(button, color, keepTooltip = false) {

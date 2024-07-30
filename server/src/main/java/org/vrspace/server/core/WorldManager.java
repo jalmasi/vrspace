@@ -158,7 +158,13 @@ public class WorldManager {
     log.info("WorldManager ready");
   }
 
-  protected VRObject get(ID id) {
+  /**
+   * Get a cached VRObject
+   * 
+   * @param id
+   * @return
+   */
+  public VRObject get(ID id) {
     return (VRObject) cache.get(id);
   }
 
