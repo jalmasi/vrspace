@@ -40,6 +40,9 @@ export class HUD {
     this.scaleWeb = 1;
     this.scaleXR = .5;
     this.rowOffset = new BABYLON.Vector3(0,this.verticalWeb,0);
+    this.colorEnabled = new BABYLON.Color3(0.3, 0.35, 0.4);
+    this.colorDisabled = new BABYLON.Color3(0.67, 0.29, 0.29);
+    this.colorActive = new BABYLON.Color3(0.29, 0.67, 0.29);
     // state variables
     /** set by World.InitXR() */
     this.vrHelper = null;
@@ -682,4 +685,38 @@ export class HUD {
       this.attachments.splice(pos,1);
     }
   }
+
+  /**
+   * Helper method to set button color, note that button needs it's own material. 
+   */  
+  markEnabled(button, keepTooltip = false) {
+    this.markButton(button, this.colorEnabled, keepTooltip);
+  }
+
+  /**
+   * Helper method to set button color to red, note that button needs it's own material. 
+   */  
+  markDisabled(button, keepTooltip = false) {
+    this.markButton(button, this.colorDisabled, keepTooltip);
+  }
+
+  /**
+   * Helper method to set button color to green, note that button needs it's own material. 
+   */  
+  markActive(button, keepTooltip = false) {
+    this.markButton(button, this.colorActive, keepTooltip);
+  }
+
+  /**
+   * Common code for markEnabled/Disabled/Active
+   */
+  markButton(button, color, keepTooltip = false) {
+    if ( button ) {
+      if ( ! keepTooltip ) {
+        button.tooltipText = "N/A";
+      }
+      button.backMaterial.albedoColor = color;
+    }
+  }
+ 
 }

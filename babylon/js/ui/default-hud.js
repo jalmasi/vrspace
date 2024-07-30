@@ -184,33 +184,6 @@ export class DefaultHud {
     }
   }
   
-  markEnabled(button, keepTooltip = false) {
-    if ( button ) {
-      if ( ! keepTooltip ) {
-        button.tooltipText = null;
-      }
-      button.backMaterial.albedoColor = new BABYLON.Color3(0.3, 0.35, 0.4);
-    }
-  }
-
-  markDisabled(button, keepTooltip = false) {
-    if ( button ) {
-      if ( ! keepTooltip ) {
-        button.tooltipText = "N/A";
-      }
-      button.backMaterial.albedoColor = new BABYLON.Color3(0.67, 0.29, 0.29);
-    }
-  }
-
-  markActive(button, keepTooltip = false) {
-    if ( button ) {
-      if ( ! keepTooltip ) {
-        button.tooltipText = "N/A";
-      }
-      button.backMaterial.albedoColor = new BABYLON.Color3(0.29, 0.67, 0.29);
-    }
-  }
-  
   setAvatar(avatar) {
     if ( this.avatarButton ) {
       this.avatarButton.isVisible = (avatar != null);
@@ -290,7 +263,7 @@ export class DefaultHud {
       }
     } else {
       this.state.mic = false;
-      this.markDisabled(this.micButton);
+      this.hud.markDisabled(this.micButton);
     }    
   }
 
@@ -343,20 +316,20 @@ export class DefaultHud {
         this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition-off.png";
       }
     } else {
-      this.markDisabled(this.speechButton);
+      this.hud.markDisabled(this.speechButton);
     }
   }
 
   credits() {
     let assets = VRSPACEUI.assetLoader.assetInfos();
     if ( this.creditArea ) {
-      this.markEnabled(this.authorsButton, true);
+      this.hud.markEnabled(this.authorsButton, true);
       this.creditArea.dispose();
       this.creditArea = null;
       return;
     }
     if ( Object.keys(assets).length > 0 ) {
-      this.markActive(this.authorsButton, true);
+      this.hud.markActive(this.authorsButton, true);
       this.creditArea = new TextArea(this.scene, "TouchTextArea");
       let rows = Math.floor(Object.keys(assets).length / 4)+ 1;
       this.creditArea.width = 1024;
@@ -420,23 +393,23 @@ export class DefaultHud {
       this.fileButton = this.hud.addButton("Share file", this.contentBase + "/content/icons/file.png", () => this.file(), false);
       this.modelButton = this.hud.addButton("Share model", this.contentBase + "/content/icons/cube.png", () => this.model(), false);
       if ( this.streamingAvailable() ) {
-        this.markEnabled(this.screencastButton);
+        this.hud.markEnabled(this.screencastButton);
       } else {
-        this.markDisabled(this.screencastButton);
+        this.hud.markDisabled(this.screencastButton);
       }
       if ( this.whiteboard ) {
-        this.markActive(this.whiteboardButton);
+        this.hud.markActive(this.whiteboardButton);
       } else {
-        this.markEnabled(this.whiteboardButton);
+        this.hud.markEnabled(this.whiteboardButton);
       }
       if ( this.isOnline() ) {
-        this.markEnabled(this.fileButton);
-        this.markEnabled(this.imageButton);
-        this.markEnabled(this.modelButton);
+        this.hud.markEnabled(this.fileButton);
+        this.hud.markEnabled(this.imageButton);
+        this.hud.markEnabled(this.modelButton);
       } else {
-        this.markDisabled(this.fileButton);
-        this.markDisabled(this.imageButton);
-        this.markDisabled(this.modelButton);
+        this.hud.markDisabled(this.fileButton);
+        this.hud.markDisabled(this.imageButton);
+        this.hud.markDisabled(this.modelButton);
       }
       if ( this.isOnline() ) {
         WorldManager.instance.world.addListener(this);
@@ -454,25 +427,25 @@ export class DefaultHud {
       return;
     }
     if ( this.screencast ) {
-      this.markEnabled(this.screencastButton)
+      this.hud.markEnabled(this.screencastButton)
       this.screencast.dispose();
       this.screencast = null;
       return;
     }
-    this.markActive(this.screencastButton)
+    this.hud.markActive(this.screencastButton)
     let world = WorldManager.instance.world;
     let camera = this.scene.activeCamera;
     this.screencast = new Screencast(world);
     this.screencast.position = camera.position.add(camera.getForwardRay(1).direction);
     this.screencast.size = 1;
-    this.screencast.callback = state=>{ if(!state) this.markEnabled(this.screencastButton)};
+    this.screencast.callback = state=>{ if(!state) this.hud.markEnabled(this.screencastButton)};
     this.screencast.init();
     this.screencast.startSharing();
   }
 
   toggleWhiteboard() {
     if ( this.whiteboard ) {
-      this.markEnabled(this.whiteboardButton)
+      this.hud.markEnabled(this.whiteboardButton)
       WorldManager.instance.world.removeListener(this.whiteboard);
       this.whiteboard.dispose();
       this.whiteboard = null;
@@ -483,9 +456,9 @@ export class DefaultHud {
     this.whiteboard.size = 2;
     this.whiteboard.position = camera.position.add(camera.getForwardRay(1).direction.scale(2));
     this.whiteboard.show();
-    this.markActive(this.whiteboardButton)
+    this.hud.markActive(this.whiteboardButton)
     this.whiteboard.closeCallback = () => {
-      this.markEnabled(this.whiteboardButton)
+      this.hud.markEnabled(this.whiteboardButton)
       this.whiteboard = null;
     }
     if ( this.isOnline() ) {

@@ -30,6 +30,8 @@ public class MetakraftController extends ApiBase {
 
   @Value("${metakraft.key}")
   private String metakraftKey;
+  @Value("${metakraft.quality:normal}")
+  private String quality;
 
   @Data
   public static class MetakraftModelInfo {
@@ -51,6 +53,7 @@ public class MetakraftController extends ApiBase {
 
     MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
     map.add("prompt", prompt);
+    map.add("quality", quality);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     headers.set("x-api-key", metakraftKey);

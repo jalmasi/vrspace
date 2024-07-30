@@ -1,28 +1,7 @@
 import { VRSPACEUI } from '../vrspace-ui.js';
 import { ScrollablePanel } from "./scrollable-panel.js";
 import { Form } from '../widget/form.js';
-
-class PromptForm extends Form {
-  constructor(callback) {
-    super();
-    this.callback = callback;
-  }
-  init() {
-    this.createPanel();
-    this.panel.addControl(this.textBlock("Prompt Metakraft:"));
-
-    this.input = this.inputText('generate');
-    //this.input.text = 'test'; // skip typing in VR
-    this.panel.addControl(this.input);
-
-    var enter = this.submitButton("submit", () => this.callback(this.input.text));
-    this.panel.addControl(enter);
-
-    //input.focus(); // not available in babylon 4
-    this.speechInput.addNoMatch((phrases) => console.log('no match:', phrases));
-    this.speechInput.start();
-  }
-}
+import { ModelGenerator } from './model-generator.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -138,6 +117,17 @@ export class WorldEditor {
     VRSPACEUI.hud.enableSpeech(true);
   }
 
+  generate() {
+    if ( this.modelGenerator ) {
+      this.modelGenerator.dispose();
+      this.modelGenerator = null;
+      this.displayButtons(true);
+    } else {
+      this.modelGenerator = new ModelGenerator(this.scene,this.world);
+      this.modelGenerator.show();
+    }
+  }
+  
   /**
    * Creates the search form, or destroys if it exists.
    * Search form has virtual keyboard attached if created in XR.
@@ -184,47 +174,6 @@ export class WorldEditor {
     this.clearForm();
   }
 
-  /**
-   * Creates the search form, or destroys if it exists.
-   * Search form has virtual keyboard attached if created in XR.
-   */
-  generate() {
-    if (this.prompt) {
-      this.clearPrompt();
-    } else {
-      VRSPACEUI.hud.newRow(); // stops speech recognition
-      this.prompt = new PromptForm((text) => this.doPrompt(text));
-      this.prompt.init(); // starts speech recognition
-      if (VRSPACEUI.hud.inXR()) {
-        let texture = VRSPACEUI.hud.addForm(this.prompt, 1536, 512);
-        this.prompt.keyboard(texture);
-      } else {
-        VRSPACEUI.hud.addForm(this.prompt, 1536, 64);
-      }
-    }
-  }
-  /**
-   * Disposes of search form and displays HUD buttons
-   */
-  clearPrompt() {
-    this.prompt.dispose(); // stops speech recognition
-    delete this.prompt;
-    VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
-    this.displayButtons(true);
-  }
-
-  doPrompt(text) {
-    this.world.loadingStart('generated object');
-    let camera = this.scene.activeCamera;
-    let pos = camera.position.add(camera.getForwardRay(1).direction);
-    fetch( "/vrspace/api/metakraft/generate?prompt="+text+
-      "&x="+pos.x+
-      "&y="+pos.y+
-      "&z="+pos.z, {
-      method: "POST"
-    }).then(res=>res.text().then(json=>console.log(json))).finally(()=>this.world.loadingStop('generated object'));
-  }
-   
   /**
    * Creates a HUD button. Adds customAction field to the button, that is executed if a scene object is clicked on.
    * @param text button text
