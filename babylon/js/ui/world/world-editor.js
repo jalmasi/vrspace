@@ -118,13 +118,16 @@ export class WorldEditor {
   }
 
   generate() {
-    if ( this.modelGenerator ) {
+    if ( this.modelGenerator && this.modelGenerator.isActive) {
       this.modelGenerator.dispose();
+      //this.modelGenerator.clearPrompt();
       this.modelGenerator = null;
       this.displayButtons(true);
     } else {
       this.modelGenerator = new ModelGenerator(this.scene,this.world);
-      this.modelGenerator.show();
+      //this.modelGenerator.show();
+      this.displayButtons(false,this.generateButton); // CHECKME should not be required with show()
+      this.modelGenerator.generate();
     }
   }
   

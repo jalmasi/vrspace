@@ -25,6 +25,10 @@ import org.vrspace.server.types.ID;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Generative AI, early version. Only generate method actually works, all others
+ * get various 400 errors.
+ */
 @RestController
 @RequestMapping(MetakraftController.PATH)
 @Slf4j

@@ -23,14 +23,22 @@ class PromptForm extends Form {
   }
 }
 
-export class ModelGenerator{
+/**
+ * Experimental UI for early version of generative AI.
+ * Plenty of functions, but only one actually works, so everything is disabled except generate.
+ */
+export class ModelGenerator {
   constructor(scene,world) {
     this.scene = scene;
     this.world = world;
     this.contentBase = VRSPACEUI.contentBase;
     this.buttons = [];
     this.world.addListener(this);
+    this.isActive = true; // TODO remove - temporary indicator used in world editor
   }
+  /**
+   * Shows all buttons, but only one works - use generate() instead
+   */
   show() {
     VRSPACEUI.hud.newRow(); // stops speech recognition
     this.generateButton = this.makeAButton("Generate", this.contentBase + "/content/icons/magic-wand.png", ()=>this.generate(), true);
@@ -149,7 +157,10 @@ export class ModelGenerator{
       this.vrObject = vrObject;
       console.log("Object generated: ", vrObject.properties.metakraftId, vrObject);
       this.clearPrompt();
-      // CHECKME: enabled for advanced models only
+      // CHECKME: remove this
+      this.world.removeListener(this);
+      this.isActive = false;
+      // CHECKME: none of this works
       if ( vrObject.properties.isAdvanced ) {
         VRSPACEUI.hud.markEnabled(this.refineButton);
         VRSPACEUI.hud.markEnabled(this.styleButton);
