@@ -10,7 +10,7 @@ class PromptForm extends Form {
     this.createPanel();
     this.panel.addControl(this.textBlock("Prompt Metakraft:"));
 
-    this.input = this.inputText('generate');
+    this.input = this.inputText('prompt');
     //this.input.text = 'test'; // skip typing in VR
     this.panel.addControl(this.input);
 
