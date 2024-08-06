@@ -453,7 +453,7 @@ export class DefaultHud {
     }
     let camera = this.scene.activeCamera;
     this.whiteboard = new Whiteboard(this.scene, "Whiteboard-"+WorldManager.myId());
-    this.whiteboard.size = 2;
+    this.whiteboard.size = 1;
     this.whiteboard.position = camera.position.add(camera.getForwardRay(1).direction.scale(2));
     this.whiteboard.show();
     this.hud.markActive(this.whiteboardButton)
