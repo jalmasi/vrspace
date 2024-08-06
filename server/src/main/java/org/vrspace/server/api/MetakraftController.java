@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(MetakraftController.PATH)
 @Slf4j
 @ConditionalOnProperty("metakraft.key")
-public class MetakraftController extends ApiBase {
+public class MetakraftController extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/metakraft";
 
   @Value("${metakraft.key}")

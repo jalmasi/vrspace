@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @Slf4j
 @RequestMapping(UploadController.PATH)
-public class UploadController extends ApiBase {
+public class UploadController extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/files";
 
   @PutMapping("/upload")
