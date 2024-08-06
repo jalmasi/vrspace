@@ -25,9 +25,9 @@ public class WebSecurityConfig {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
     return httpSecurity.csrf(csrf -> csrf.disable())
-        .authorizeRequests(requests -> requests.antMatchers(ENDPOINT + "/login**").authenticated())
-        .oauth2Login(login -> login.loginPage(ENDPOINT + "/provider").authorizationEndpoint()
-            .baseUri(ENDPOINT + "/authorization"))
+        .authorizeHttpRequests(requests -> requests.requestMatchers(ENDPOINT + "/login**").authenticated())
+        .oauth2Login(login -> login.loginPage(ENDPOINT + "/provider")
+            .authorizationEndpoint(config -> config.baseUri(ENDPOINT + "/authorization")))
         .build();
   }
 }

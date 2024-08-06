@@ -1,11 +1,11 @@
 package org.vrspace.server.api;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
+
+import jakarta.servlet.http.HttpSession;
 
 /**
  * Base class for API controllers

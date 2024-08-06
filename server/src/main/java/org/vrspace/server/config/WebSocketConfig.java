@@ -2,8 +2,6 @@ package org.vrspace.server.config;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +15,8 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 import org.vrspace.server.core.ServerSessionManager;
 import org.vrspace.server.core.SessionManager;
+
+import jakarta.servlet.http.HttpSession;
 
 /**
  * Configures WebSocket path (default:/vrspace) and allowed origins (default:*)

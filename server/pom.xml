@@ -9,8 +9,8 @@
   <url>https://github.com/jalmasi/vrspace</url>
 
   <properties>
-    <java.version>11</java.version>
-    <maven.compiler.release>11</maven.compiler.release>
+    <java.version>17</java.version>
+    <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <start-class>org.vrspace.server.ServerApplication</start-class>
@@ -21,7 +21,7 @@
         <dependency>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-dependencies</artifactId>
-          <version>2.7.18</version>
+          <version>3.3.2</version>
           <type>pom</type>
           <scope>import</scope>
         </dependency>

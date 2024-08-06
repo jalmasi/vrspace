@@ -1,7 +1,5 @@
 package org.vrspace.server.api;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +11,7 @@ import org.vrspace.server.obj.Client;
 
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 /**

@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 
-import javax.servlet.http.HttpSession;
-
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
@@ -30,6 +28,7 @@ import org.vrspace.server.config.ServerConfig;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 /**

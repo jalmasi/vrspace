@@ -3,9 +3,6 @@ package org.vrspace.server.api;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,6 +24,8 @@ import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.User;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 /**

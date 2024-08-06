@@ -7,9 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -23,6 +20,8 @@ import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.VRFile;
 import org.vrspace.server.obj.VRObject;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController

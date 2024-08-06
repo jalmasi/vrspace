@@ -13,9 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -47,6 +44,8 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import io.openvidu.java.client.OpenViduException;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 /**

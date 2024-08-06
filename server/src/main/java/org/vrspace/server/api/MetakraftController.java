@@ -2,8 +2,6 @@ package org.vrspace.server.api;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpEntity;
@@ -22,6 +20,7 @@ import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.ID;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
