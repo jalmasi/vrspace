@@ -3,7 +3,6 @@ package org.vrspace.server.config;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -26,16 +25,13 @@ public class WebSecurityConfig {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
     httpSecurity.csrf(csrf -> csrf.disable());
-    httpSecurity.securityMatcher(ENDPOINT + "/login**");
-    httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers(ENDPOINT + "/login**").authenticated());
 
-    httpSecurity.oauth2Client(Customizer.withDefaults());
-    httpSecurity.oauth2Login(Customizer.withDefaults());
-    // httpSecurity.oauth2Login(login -> {
-    // login.loginPage(ENDPOINT + "/provider");
-    // login.authorizationEndpoint(config -> config.baseUri(ENDPOINT +
-    // "/authorization"));
-    // });
+    httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers(ENDPOINT + "/login**").authenticated());
+    httpSecurity.oauth2Login(login -> {
+      login.loginPage(ENDPOINT + "/provider");
+      login.authorizationEndpoint(config -> config.baseUri(ENDPOINT + "/authorization"));
+    });
+    httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/**").permitAll());
 
     return httpSecurity.build();
   }
