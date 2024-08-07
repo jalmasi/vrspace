@@ -1,9 +1,12 @@
 package org.vrspace.server.api;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.shiro.codec.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ResolvableType;
@@ -140,11 +143,19 @@ public class Oauth2Controller extends ApiBase {
   }
 
   // CHECKME some kind of universal identity
+  // this returns something like "facebook:joe"
   private String identity(OAuth2AuthenticationToken token) {
     String authority = token.getAuthorizedClientRegistrationId();
     String realName = token.getPrincipal().getAttribute("name");
     // hash the name - we don't want any private data stored anywhere
-    String hashedName = DigestUtils.sha256Hex(realName);
+    String hashedName = realName;
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA3-256");
+      final byte[] hashbytes = digest.digest(realName.getBytes(StandardCharsets.UTF_8));
+      hashedName = Hex.encodeToString(hashbytes);
+    } catch (NoSuchAlgorithmException e) {
+      log.error("Can't has user name", e);
+    }
     return authority + ":" + hashedName;
   }
 

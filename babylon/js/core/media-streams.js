@@ -293,7 +293,7 @@ export class OpenViduStreams extends MediaStreams {
   async init(callback) {
     // CHECKME: utilize CDN
     //await import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/openvidu-browser@2.17.0/lib/index.min.js');
-    await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.17.0.min.js');
+    await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.OV = new OpenVidu();
     this.OV.enableProdMode(); // Disable logging
     this.session = this.OV.initSession();
