@@ -16,6 +16,8 @@ import jakarta.servlet.ServletContextListener;
  */
 @SpringBootApplication
 @ServletComponentScan
+//@EnableWebMvc // CHECKME
+//@EnableAutoConfiguration(exclude = { ErrorMvcAutoConfiguration.class }) // FIXME used temporary during spring boot upgrade
 public class ServerApplication implements ServletContextListener {
   private static ConfigurableApplicationContext ctx;
 
