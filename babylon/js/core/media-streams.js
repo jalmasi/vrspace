@@ -251,7 +251,7 @@ export class MediaStreams {
       // optional: also stream video as diffuseTexture
       if ( subscriber.stream.hasVideo && subscriber.stream.videoActive) {
         console.log("Streaming video texture")
-        client.video.displayStream(mediaStream);
+        client.avatar.displayStream(mediaStream);
       }
       subscriber.on('streamPropertyChanged', event => {
         // "videoActive", "audioActive", "videoDimensions" or "filter"
@@ -259,9 +259,9 @@ export class MediaStreams {
         console.log(event);
         if ( event.changedProperty === 'videoActive') {
           if ( event.newValue && event.stream.hasVideo ) {
-            client.video.displayStream(mediaStream);
+            client.avatar.displayStream(mediaStream);
           } else {
-            client.video.displayAlt();
+            client.avatar.displayAlt();
           }
         }
       });
