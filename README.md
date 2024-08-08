@@ -2,7 +2,7 @@
 
 # Quickstart
 
-0) java 17+ required
+0) requirements: java 17+, maven 3.8+
 
 1) cd server
 
