@@ -7,6 +7,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Main application
@@ -16,6 +17,7 @@ import jakarta.servlet.ServletContextListener;
  */
 @SpringBootApplication
 @ServletComponentScan
+@Slf4j
 public class ServerApplication implements ServletContextListener {
   private static ConfigurableApplicationContext ctx;
 
@@ -27,5 +29,10 @@ public class ServerApplication implements ServletContextListener {
   public void contextDestroyed(ServletContextEvent context) {
     // stop the application when tomcat tells it to stop
     ctx.stop();
+  }
+
+  @Override
+  public void contextInitialized(ServletContextEvent sce) {
+    log.info("VRSpace server context initialized, starting components");
   }
 }
