@@ -38,6 +38,14 @@ export class RemoteScreen extends BasicScript {
   
   playStream(mediaStream) {
     this.imageArea.loadStream(mediaStream);
+    // play audio, if available
+    let audioTracks = mediaStream.getAudioTracks();
+    console.log("Audio tracks attached: "+audioTracks.length);
+    // TODO
+    // mute remote audio, create 3D sound object
+    if ( audioTracks.length > 0 ) {
+      this.worldManager.mediaStreams.attachAudioStream(this.imageArea.group, mediaStream);
+    }
   }
   
 }

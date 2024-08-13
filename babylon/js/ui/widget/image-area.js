@@ -167,6 +167,7 @@ export class ImageArea extends BaseArea {
    * Load a MediaStream, and resize the plane
    */
   loadStream(mediaStream) {
+    console.log("Attaching media stream", mediaStream);
     BABYLON.VideoTexture.CreateFromStreamAsync(this.scene, mediaStream).then( (texture) => {
       this.texturesDispose();
       this.texture = texture;

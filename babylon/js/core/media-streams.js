@@ -88,9 +88,10 @@ export class MediaStreams {
   async shareScreen(endCallback) {
     // do NOT share audio with the screen - already shared
     var screenPublisher = this.OV.initPublisher(this.htmlElementName, { 
-      videoSource: "screen", 
-      audioSource: false, 
-      publishAudio: false
+      videoSource: "screen",
+      // allows share screen audio in Chrome/Edge 
+      audioSource: "screen",
+      publishAudio: true
     });
     
     return new Promise( (resolve, reject) => {
@@ -224,7 +225,7 @@ export class MediaStreams {
     var audioTracks = mediaStream.getAudioTracks();
     if ( audioTracks && audioTracks.length > 0 ) {
       // console.log("Attaching audio stream to mesh "+mesh.id);
-      var voice = new BABYLON.Sound(
+      let voice = new BABYLON.Sound(
         "voice",
         mediaStream,
         this.scene, null, {
@@ -237,7 +238,9 @@ export class MediaStreams {
           panningModel: "equalpower" // or "HRTF"
         });
       voice.attachToMesh(mesh);
+      return voice;
     }
+    return null;
   }
   
   /**
