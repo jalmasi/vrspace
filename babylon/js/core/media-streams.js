@@ -86,7 +86,8 @@ export class MediaStreams {
   }
 
   async shareScreen(endCallback) {
-    // do NOT share audio with the screen - already shared
+    // FIXME this replaces video and audio both
+    // TODO create new Openvidu object, and THEN create publisher
     var screenPublisher = this.OV.initPublisher(this.htmlElementName, { 
       videoSource: "screen",
       // allows share screen audio in Chrome/Edge 
@@ -184,6 +185,8 @@ export class MediaStreams {
     console.log("Stream started for client "+id)
     for ( var i = 0; i < this.clients.length; i++) {
       var client = this.clients[i];
+      // FIXME this implies that the streamToMesh is called before streamingStart
+      // this seems to always be the case, but is not guaranteed
       if ( client.id == id ) {
         // matched
         this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
