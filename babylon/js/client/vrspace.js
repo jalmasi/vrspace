@@ -452,11 +452,6 @@ export class VRSpace {
     this.ws = new WebSocket(url);
     this.ws.onopen = () => {
       this.connectionListeners.forEach((listener)=>listener(true));
-      /*
-      this.pingTimerId = setInterval(() => {
-        this.sendCommand("Ping");
-      }, 20000);
-      */
     }
     this.ws.onclose = () => {
       this.connectionListeners.forEach((listener)=>listener(false));
@@ -852,6 +847,28 @@ export class VRSpace {
     } else {
       this.log("ERROR: unknown message type");
     }
+  }
+  
+  /**
+   * Experimental. Executes StreamingSession start command on the server that returns session token,
+   * the executes callback, passing the token to it 
+   */
+  async startStreaming( callback ) {
+    return new Promise( (resolve, reject) => {
+      this.call('{"command":{"StreamingSession":{"action":"start"}}}', (response) => {
+        resolve(response.response);
+        if ( callback ) {
+          callback(response.response);
+        }
+      });
+    });
+  }
+
+  /**
+   * Experimental. Executes StreamingSession stop command on the server.
+   */
+  stopStreaming() {
+    this.sendCommand("StreamingSession", {action:"stop"});
   }
   
 }

@@ -1,4 +1,4 @@
-import {VRSPACE} from '../client/vrspace.js';
+import {Client, VRSPACE} from '../client/vrspace.js';
 import {VRSPACEUI} from '../ui/vrspace-ui.js';
 import {HumanoidAvatar} from '../avatar/humanoid-avatar.js';
 import {VideoAvatar} from '../avatar/video-avatar.js';
@@ -98,17 +98,21 @@ export class WorldManager {
     VRSPACEUI.init(this.scene); // to ensure assetLoader is available
     WorldManager.instance = this;
   }
-  /** Publish and subscribe */
+  /** 
+   * Publish and subscribe
+   * @param {Client} user Client object of the local user
+   * @param {boolean} autoPublishVideo should webcam video be published as soon as possible
+   */
   pubSub( user, autoPublishVideo ) {
     // CHECKME: should it be OpenVidu or general streaming service name?
-    if ( this.mediaStreams && user.tokens && user.tokens.OpenVidu ) {
-      this.log("Subscribing as User "+user.id+" with token "+user.tokens.OpenVidu);
+    if ( this.mediaStreams && user.tokens && user.tokens.OpenViduMain ) {
+      this.log("Subscribing as User "+user.id+" with token "+user.tokens.OpenViduMain);
       // obtain token and start pub/sub voices
       if ( autoPublishVideo ) {
         this.mediaStreams.startVideo = true;
         this.mediaStreams.videoSource = undefined;
       }
-      this.mediaStreams.connect(user.tokens.OpenVidu).then(() => this.mediaStreams.publish());
+      this.mediaStreams.connect(user.tokens.OpenViduMain).then(() => this.mediaStreams.publish());
     }
     // we may need to pause/unpause audio publishing during speech input
     VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;

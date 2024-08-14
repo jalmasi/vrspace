@@ -19,12 +19,12 @@ export class RemoteScreen extends BasicScript {
     }
     this.show();
   }
-  
+
   show() {
     this.imageArea = new ImageArea(this.scene, "ScreencastArea");
     this.imageArea.size = this.vrObject.properties.size;
     this.imageArea.addHandles = this.vrObject.properties.addHandles;
-    this.imageArea.position = new BABYLON.Vector3(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z); 
+    this.imageArea.position = new BABYLON.Vector3(this.vrObject.position.x, this.vrObject.position.y, this.vrObject.position.z);
     if (this.vrObject.rotation) {
       this.imageArea.group.rotation = new BABYLON.Vector3(this.vrObject.rotation.x, this.vrObject.rotation.y, this.vrObject.rotation.z);
     }
@@ -35,17 +35,17 @@ export class RemoteScreen extends BasicScript {
     this.worldManager.mediaStreams.removeStreamListener(this.vrObject.properties.clientId);
     this.imageArea.dispose();
   }
-  
-  playStream(mediaStream) {
+
+  playStream(mediaStream, muteAudio = false) {
     this.imageArea.loadStream(mediaStream);
     // play audio, if available
     let audioTracks = mediaStream.getAudioTracks();
-    console.log("Audio tracks attached: "+audioTracks.length);
+    console.log("Audio tracks attached: " + audioTracks.length);
     // TODO
     // mute remote audio, create 3D sound object
-    if ( audioTracks.length > 0 ) {
+    if (audioTracks.length > 0 && !muteAudio) {
       this.worldManager.mediaStreams.attachAudioStream(this.imageArea.group, mediaStream);
     }
   }
-  
+
 }

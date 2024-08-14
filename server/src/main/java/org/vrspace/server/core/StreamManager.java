@@ -29,7 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class StreamManager {
-  public static final String serviceId = "OpenVidu";
+  public static final String mainConnectionId = "OpenViduMain";
+  public static final String additionalConnectionId = "OpenViduScreen";
 
   @Value("#{systemProperties['openvidu.publicurl'] ?: '${openvidu.publicurl:none}' }")
   private String openViduUrl;
@@ -39,6 +40,14 @@ public class StreamManager {
 
   private Map<String, Session> sessions = new ConcurrentHashMap<>();
 
+  /**
+   * Attempt to start a session, if it does not exist.
+   * 
+   * @param name Session name, defaults to world name
+   * @return OpenVidu session
+   * @throws OpenViduException if create session call fails with anything other
+   *                           than 409
+   */
   private Session startStreamingSession(String name) throws OpenViduException {
     Session ret = null;
     OpenVidu openVidu = new OpenVidu(openViduUrl, openViduSecret);
@@ -64,7 +73,15 @@ public class StreamManager {
     return ret;
   }
 
-  private String generateToken(Session session, Client client) throws OpenViduException {
+  /**
+   * Create connection to OpenVidu session.
+   * 
+   * @param session OpenVidu Session to connect to
+   * @param client  Client that connects to the session
+   * @return token (URL) of the connection
+   * @throws OpenViduException
+   */
+  private String createConnection(Session session, Client client) throws OpenViduException {
     ConnectionProperties connectionProperties = new ConnectionProperties.Builder().type(ConnectionType.WEBRTC)
         .role(OpenViduRole.PUBLISHER).data(client.getId().toString()).build();
     // token is something like
@@ -85,10 +102,19 @@ public class StreamManager {
     return token;
   }
 
-  public void disconnect(Client client, String worldName) throws OpenViduException {
+  /**
+   * Disconnect a client from a session
+   * 
+   * @param client      whom to disconnect
+   * @param sessionName name of the session/world to disconnect from
+   * @throws OpenViduException
+   */
+  public void disconnect(Client client, String sessionName) throws OpenViduException {
     // client is only connected if it has session token
-    if (client.getToken(serviceId) != null && worldName != null) {
-      Session session = sessions.get(worldName);
+    if (client.getToken(mainConnectionId) != null && sessionName != null) {
+      client.clearToken(mainConnectionId);
+      client.clearToken(additionalConnectionId);
+      Session session = sessions.get(sessionName);
       if (session != null) {
         session.fetch();
         List<Connection> activeConnections = session.getActiveConnections();
@@ -97,13 +123,13 @@ public class StreamManager {
         for (Connection connection : activeConnections) {
           if (client.getId().toString().equals(connection.getServerData())) {
             session.forceDisconnect(connection);
-            client.clearToken(serviceId);
-            log.debug("Disconnected client " + client.getId() + " from world " + worldName);
+            log.debug("Disconnected client " + client.getId() + " from world " + sessionName);
             if (activeConnections.size() <= 1) {
-              sessions.remove(worldName);
-              log.info("Removed streaming session " + worldName);
+              sessions.remove(sessionName);
+              log.info("Removed streaming session " + sessionName);
             }
-            break;
+            // do not stop yet - a client may have multiple connections
+            // break;
           }
         }
       }
@@ -124,15 +150,12 @@ public class StreamManager {
       } catch (OpenViduException e) {
         log.error("Failed to disconnect client " + client, e);
       }
-      String sessionName = world.getToken();
-      if (sessionName == null) {
-        sessionName = world.getName();
-      }
+      String sessionName = getSessionName(world);
       try {
         Session session = startStreamingSession(sessionName);
         try {
-          String token = generateToken(session, client);
-          client.setToken(serviceId, token);
+          String token = createConnection(session, client);
+          client.setToken(mainConnectionId, token);
           log.debug("Client " + client.getId() + " joined session " + world.getName() + " with token " + token);
         } catch (OpenViduException e) {
           log.error("Can't generate OpenVidu token", e);
@@ -142,6 +165,39 @@ public class StreamManager {
         log.error("Can't start streaming session " + sessionName, e);
       }
     }
+  }
+
+  private String getSessionName(World world) {
+    String sessionName = world.getToken();
+    if (sessionName == null) {
+      sessionName = world.getName();
+    }
+    return sessionName;
+  }
+
+  /**
+   * Add another streaming session (for e.g. screen share). Only one additional
+   * session supported so far.
+   * 
+   * @param client
+   * @return null if an error occurred, or streaming is not configured, session
+   *         token otherwise
+   */
+  public String addConnection(Client client) {
+    if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
+      String sessionName = getSessionName(client.getWorld());
+      try {
+        Session session = startStreamingSession(sessionName);
+        String token = createConnection(session, client);
+        client.setToken(additionalConnectionId, token);
+        log.debug("Client " + client.getId() + " added connection to session " + client.getWorld().getName()
+            + " with token " + token);
+        return token;
+      } catch (OpenViduException e) {
+        log.error("Can't generate OpenVidu token", e);
+      }
+    }
+    return null;
   }
 
 }

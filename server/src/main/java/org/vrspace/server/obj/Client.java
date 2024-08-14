@@ -189,9 +189,11 @@ public class Client extends VRObject {
   /** Set token for a given service */
   public void setToken(String serviceId, String value) {
     if (value == null) {
+      // CHECKME - should null be valid argument?
       this.clearToken(serviceId);
+    } else {
+      tokens.put(serviceId, value);
     }
-    tokens.put(serviceId, value);
   }
 
   /** Remove token for a given service */

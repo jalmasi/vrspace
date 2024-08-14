@@ -87,7 +87,7 @@ export class Screencast extends WorldListener {
         console.log("streaming",mediaStream);
         // imageArea is created by scene event handler
         //this.imageArea.loadStream(mediaStream);
-        obj.attachedScript.playStream(mediaStream);
+        obj.attachedScript.playStream(mediaStream, true);
       }).catch((e) => {
         console.log('sharing denied', e);
         this.deleteSharedObject();

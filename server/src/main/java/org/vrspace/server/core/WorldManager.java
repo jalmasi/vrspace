@@ -609,4 +609,12 @@ public class WorldManager {
     }
   }
 
+  /**
+   * CHECKME Commands need access to StreamManager
+   * 
+   * @return StreamManager
+   */
+  public StreamManager getStreamManager() {
+    return this.streamManager;
+  }
 }
