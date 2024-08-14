@@ -449,11 +449,10 @@ public class WorldManager {
       throw new SecurityException("Client forbidden to enter the world");
     }
 
-    // create audio stream
-    streamManager.join(client, world);
-
     // client has now entered the world
     client.setWorld(world);
+    // create audio stream
+    streamManager.join(client);
     // client.setActive(true); // DON'T
     client = save(client);
 

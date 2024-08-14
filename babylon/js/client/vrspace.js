@@ -303,6 +303,27 @@ export class SceneEvent {
 }
 
 /**
+ * Streaming session data, used to match the client avatar or other mesh to the video/audio stream.
+ */
+export class SessionData{
+  /**
+   * @param {String} json string representation of this object (passed along connection as user data) 
+   */
+  constructor(json) {
+    /** Client id, long */
+    this.clientId = null;
+    /** Session name, matches either world name for public world, or world token for private world */
+    this.name = null;
+    /** Session type - 'main' or 'screen' */
+    this.type = null;
+    JSON.parse(json, (key,value)=>{
+      this[key] = value;
+      return value;
+    });
+  }
+}
+
+/**
 Main client API class, no external dependencies.
 Provides send methods to send messages to the server, to be distributed to other clients.
 Listeners receive remote events.

@@ -4,10 +4,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.World;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.openvidu.java.client.Connection;
 import io.openvidu.java.client.ConnectionProperties;
@@ -18,6 +22,7 @@ import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduRole;
 import io.openvidu.java.client.Session;
 import io.openvidu.java.client.SessionProperties;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -37,6 +42,9 @@ public class StreamManager {
 
   @Value("#{systemProperties['openvidu.secret'] ?: '${openvidu.secret:none}' }")
   private String openViduSecret;
+
+  @Autowired
+  ObjectMapper objectMapper;
 
   private Map<String, Session> sessions = new ConcurrentHashMap<>();
 
@@ -76,14 +84,14 @@ public class StreamManager {
   /**
    * Create connection to OpenVidu session.
    * 
-   * @param session OpenVidu Session to connect to
-   * @param client  Client that connects to the session
+   * @param session     OpenVidu Session to connect to
+   * @param sessionData SessionData serialized to String
    * @return token (URL) of the connection
    * @throws OpenViduException
    */
-  private String createConnection(Session session, Client client) throws OpenViduException {
+  private String createConnection(Session session, String sessionData) throws OpenViduException {
     ConnectionProperties connectionProperties = new ConnectionProperties.Builder().type(ConnectionType.WEBRTC)
-        .role(OpenViduRole.PUBLISHER).data(client.getId().toString()).build();
+        .role(OpenViduRole.PUBLISHER).data(sessionData).build();
     // token is something like
     // wss://localhost:4443?sessionId=cave&token=tok_W1LlxOQElNQGcSIw&role=PUBLISHER&version=2.15.0
     String token = null;
@@ -143,23 +151,25 @@ public class StreamManager {
    * @param client
    * @param world
    */
-  public void join(Client client, World world) {
+  public void join(Client client) {
     if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
       try {
-        disconnect(client, world.getName());
+        disconnect(client, client.getWorld().getName());
       } catch (OpenViduException e) {
         log.error("Failed to disconnect client " + client, e);
       }
-      String sessionName = getSessionName(world);
+      String sessionName = getSessionName(client.getWorld());
       try {
         Session session = startStreamingSession(sessionName);
         try {
-          String token = createConnection(session, client);
+          String token = createConnection(session, sessionData(client, "main"));
           client.setToken(mainConnectionId, token);
-          log.debug("Client " + client.getId() + " joined session " + world.getName() + " with token " + token);
+          log.debug("Client " + client.getId() + " joined session " + client.getWorld().getName() + " with token " + token);
         } catch (OpenViduException e) {
           log.error("Can't generate OpenVidu token", e);
           // TODO failing here probably means the session is invalid, should we remove it?
+        } catch (JsonProcessingException e) {
+          log.error("JSON error", e);
         }
       } catch (OpenViduException e) {
         log.error("Can't start streaming session " + sessionName, e);
@@ -188,16 +198,55 @@ public class StreamManager {
       String sessionName = getSessionName(client.getWorld());
       try {
         Session session = startStreamingSession(sessionName);
-        String token = createConnection(session, client);
+        String token = createConnection(session, sessionData(client, "screen"));
         client.setToken(additionalConnectionId, token);
         log.debug("Client " + client.getId() + " added connection to session " + client.getWorld().getName()
             + " with token " + token);
         return token;
       } catch (OpenViduException e) {
         log.error("Can't generate OpenVidu token", e);
+      } catch (JsonProcessingException e) {
+        log.error("JSON error", e);
       }
     }
     return null;
   }
 
+  public void closeConection(Client client) {
+    if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
+      if (client.getToken(additionalConnectionId) != null) {
+        client.clearToken(additionalConnectionId);
+        Session session = sessions.get(getSessionName(client.getWorld()));
+        if (session != null) {
+          try {
+            session.fetch();
+            List<Connection> activeConnections = session.getActiveConnections();
+            log.debug(
+                "Disconnecting client " + client.getId() + ", current active connections " + activeConnections.size());
+            for (Connection connection : activeConnections) {
+              if (client.getId().toString().equals(connection.getServerData())) {
+              }
+            }
+          } catch (Exception e) {
+            log.error("Can't close OpenVidu connection for " + client.getId(), e);
+          }
+        }
+      }
+    }
+  }
+
+  String sessionData(Client client, String type) throws JsonProcessingException {
+    SessionData sessionData = new SessionData();
+    sessionData.clientId = client.getId();
+    sessionData.name = getSessionName(client.getWorld());
+    sessionData.type = type;
+    return objectMapper.writeValueAsString(sessionData);
+  }
+
+  @Data
+  public class SessionData {
+    private Long clientId;
+    private String name;
+    private String type;
+  }
 }

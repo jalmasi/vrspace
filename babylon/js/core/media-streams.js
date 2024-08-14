@@ -4,6 +4,7 @@ Provides interface to WorldManager, that manages all clients and their streams.
  */
 
 import { VRSPACE } from '../client/vrspace.js';
+import { SessionData } from '../client/vrspace.js';
 
 export class MediaStreams {
   /** There can be only one */
@@ -118,11 +119,15 @@ export class MediaStreams {
     }
   }
 
+  getClientData(subscriber) {
+    return new SessionData(subscriber.stream.connection.data);
+  }
+  
   /**
   Retrieve VRSpace Client id from WebRTC subscriber data
    */
   getClientId(subscriber) {
-    return parseInt(subscriber.stream.connection.data, 10);
+    return this.getClientData(subscriber).id;
   }
 
   /**
@@ -152,22 +157,33 @@ export class MediaStreams {
   Tries to find an existing client, and if found, calls attachAudioStream and attachVideoStream.
    */
   streamingStart(subscriber) {
-    var id = this.getClientId(subscriber);
-    console.log("Stream started for client " + id)
-    for (var i = 0; i < this.clients.length; i++) {
-      var client = this.clients[i];
-      // FIXME this implies that the streamToMesh is called before streamingStart
-      // this seems to always be the case, but is not guaranteed
-      if (client.id == id) {
-        // matched
-        this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
-        //this.clients.splice(i,1); // too eager, we may need to keep it for another stream
-        console.log("Audio/video stream started for avatar of client " + id)
-        this.attachVideoStream(client, subscriber);
-        break;
+    var data = this.getClientData(subscriber);
+    if ( "main" == data.type ) {
+      console.log("Stream started for client", data );
+      for (var i = 0; i < this.clients.length; i++) {
+        var client = this.clients[i];
+        // FIXME this implies that the streamToMesh is called before streamingStart
+        // this seems to always be the case, but is not guaranteed
+        if (client.id == data.clientId) {
+          // matched
+          this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
+          //this.clients.splice(i,1); // too eager, we may need to keep it for another stream
+          console.log("Audio/video stream started for avatar of client ", data);
+          this.attachVideoStream(client, subscriber);
+          break;
+        }
       }
+      this.subscribers.push(subscriber);
+    } else if ( "screen" == data.type ) {
+      if (this.streamListeners[data.clientId]) {
+        console.log("Stream started for share", data );
+        this.streamListeners[data.clientId](this.getStream(subscriber));
+      } else {
+        console.log("No stream listeners found", data);
+      }
+    } else {
+      console.log("Unknown stream type", data);
     }
-    this.subscribers.push(subscriber);
   }
 
   /** 
@@ -181,15 +197,15 @@ export class MediaStreams {
     }
     console.log("Streaming to avatar of client " + client.id);
     client.streamToMesh = mesh;
-    for (var i = 0; i < this.subscribers.length; i++) {
-      var subscriber = this.subscribers[i];
-      var id = this.getClientId(subscriber);
-      if (client.id == id) {
+    for (let i = 0; i < this.subscribers.length; i++) {
+      let subscriber = this.subscribers[i];
+      let data = this.getClientData(subscriber);
+      if (client.id == data.clientId) {
         // matched
         this.attachAudioStream(mesh, this.getStream(subscriber));
         this.attachVideoStream(client, subscriber);
         //this.subscribers.splice(i,1);
-        console.log("Audio/video stream connected to avatar of client " + id)
+        console.log("Audio/video stream connected to avatar of client ", data);
         //break; // don't break, there may be multiple streams
       }
     }
@@ -197,7 +213,10 @@ export class MediaStreams {
   }
 
   /**
-  Attaches an audio stream to a mesh (e.g. avatar)
+  Creates babylon Sound object from the stram with default parameters, and attaches it to the mesh (e.g. avatar).
+  @param mesh babylon mesh to attach to
+  @param mediaStream MediaStream to attach
+  @returns created babylon Sound object, or null if stream contains no audio tracks
    */
   attachAudioStream(mesh, mediaStream) {
     var audioTracks = mediaStream.getAudioTracks();

@@ -16,14 +16,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class StreamingSession implements Command {
-  String action; // optional, TODO start/stop/pause/resume
+  /** start/stop */
+  String action;
 
   @Override
   public ClientResponse execute(WorldManager manager, Client client) throws ClassNotFoundException, SessionException {
     if ("start".equals(action)) {
       return new ClientResponse(manager.getStreamManager().addConnection(client));
     } else if ("stop".equals(action)) {
-      manager.getStreamManager();
+      manager.getStreamManager().closeConection(client);
     } else {
       throw new IllegalArgumentException("Invalid action: " + action);
     }
