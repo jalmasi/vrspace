@@ -216,12 +216,26 @@ export class MediaStreams {
   Creates babylon Sound object from the stram with default parameters, and attaches it to the mesh (e.g. avatar).
   @param mesh babylon mesh to attach to
   @param mediaStream MediaStream to attach
+  @param options custom sound options, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions
   @returns created babylon Sound object, or null if stream contains no audio tracks
    */
-  attachAudioStream(mesh, mediaStream) {
-    var audioTracks = mediaStream.getAudioTracks();
+  attachAudioStream(mesh, mediaStream, options={}) {
+    let audioTracks = mediaStream.getAudioTracks();
     if (audioTracks && audioTracks.length > 0) {
       // console.log("Attaching audio stream to mesh "+mesh.id);
+      let properties = {
+        loop: false,
+        autoplay: true,
+        spatialSound: true,
+        streaming: true,
+        distanceModel: "linear",
+        maxDistance: 50, // default 100, used only when linear
+        panningModel: "equalpower" // or "HRTF"
+      }
+      for(let p of Object.keys(options)) {
+        properties[p] = options[p];
+      }
+      
       let voice = new BABYLON.Sound(
         "voice",
         mediaStream,

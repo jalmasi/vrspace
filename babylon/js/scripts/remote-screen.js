@@ -44,7 +44,11 @@ export class RemoteScreen extends BasicScript {
     // TODO
     // mute remote audio, create 3D sound object
     if (audioTracks.length > 0 && !muteAudio) {
-      this.worldManager.mediaStreams.attachAudioStream(this.imageArea.group, mediaStream);
+      let options = {
+        panningModel: "HRTF",
+        maxDistance: 100
+      }
+      this.worldManager.mediaStreams.attachAudioStream(this.imageArea.group, mediaStream, options);
     }
   }
 
