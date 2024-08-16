@@ -456,19 +456,23 @@ export class VRSpaceUI {
   @param to Vector3
    */
   updateAnimation(group, from, to) {
-    if ( group.isPlaying ) {
-      group.stop();
+    try {
+      if ( group.isPlaying ) {
+        group.stop();
+      }
+      var xAnim = group.targetedAnimations[0].animation;
+      xAnim.getKeys()[0].value = from.x;
+      xAnim.getKeys()[1].value = to.x;
+      var yAnim = group.targetedAnimations[1].animation;
+      yAnim.getKeys()[0].value = from.y;
+      yAnim.getKeys()[1].value = to.y;
+      var zAnim = group.targetedAnimations[2].animation;
+      zAnim.getKeys()[0].value = from.z;
+      zAnim.getKeys()[1].value = to.z;
+      group.play(false);
+    } catch ( err ) {
+      console.error("updateAnimation failed", err);
     }
-    var xAnim = group.targetedAnimations[0].animation;
-    xAnim.getKeys()[0].value = from.x;
-    xAnim.getKeys()[1].value = to.x;
-    var yAnim = group.targetedAnimations[1].animation;
-    yAnim.getKeys()[0].value = from.y;
-    yAnim.getKeys()[1].value = to.y;
-    var zAnim = group.targetedAnimations[2].animation;
-    zAnim.getKeys()[0].value = from.z;
-    zAnim.getKeys()[1].value = to.z;
-    group.play(false);
   }
  
   /**

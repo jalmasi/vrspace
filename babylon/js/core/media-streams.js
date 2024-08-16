@@ -203,11 +203,16 @@ export class MediaStreams {
       let data = this.getClientData(subscriber);
       if (client.id == data.clientId) {
         // matched
-        this.attachAudioStream(mesh, this.getStream(subscriber));
-        this.attachVideoStream(client, subscriber);
-        //this.subscribers.splice(i,1);
-        console.log("Audio/video stream connected to avatar of client ", data);
-        //break; // don't break, there may be multiple streams
+        let mediaStream = this.getStream(subscriber);
+        if ( mediaStream ) {
+          this.attachAudioStream(mesh, mediaStream);
+          this.attachVideoStream(client, subscriber);
+          //this.subscribers.splice(i,1);
+          console.log("Audio/video stream connected to avatar of client ", data);
+          //break; // don't break, there may be multiple streams
+        } else {
+          console.log("Streaming not yet started, delaying ", data);
+        }
       }
     }
     this.clients.push(client);
@@ -240,15 +245,10 @@ export class MediaStreams {
       let voice = new BABYLON.Sound(
         "voice",
         mediaStream,
-        this.scene, null, {
-        loop: false,
-        autoplay: true,
-        spatialSound: true,
-        streaming: true,
-        distanceModel: "linear",
-        maxDistance: 50, // default 100, used only when linear
-        panningModel: "equalpower" // or "HRTF"
-      });
+        this.scene, 
+        null, // callback 
+        properties
+      );
       voice.attachToMesh(mesh);
       return voice;
     }
@@ -262,6 +262,7 @@ export class MediaStreams {
   attachVideoStream(client, subscriber) {
     var mediaStream = subscriber.stream.getMediaStream();
     // CHECKME: this doesn't always trigger
+    // maybe use getVideoTracks() instead?
     if (client.video) {
       // optional: also stream video as diffuseTexture
       if (subscriber.stream.hasVideo && subscriber.stream.videoActive) {
@@ -280,8 +281,6 @@ export class MediaStreams {
           }
         }
       });
-    } else if (this.streamListeners[client.id]) {
-      this.streamListeners[client.id](mediaStream);
     } else {
       this.playStream(client, mediaStream);
     }

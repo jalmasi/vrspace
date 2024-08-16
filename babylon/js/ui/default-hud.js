@@ -443,8 +443,9 @@ export class DefaultHud {
       this.screencast.rotation = new BABYLON.Vector3(0,camera.rotation.y+Math.PI,0);
     }
     this.screencast.size = 1;
-    this.screencast.callback = state => { 
-      if(!state) {
+    this.screencast.callback = state => {
+      // callback may be executed after screencast was disposed above 
+      if(!state && this.screencast) {
         this.hud.markEnabled(this.screencastButton);
         this.screencast.dispose();
         this.screencast = null;

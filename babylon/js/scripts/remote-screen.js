@@ -44,6 +44,25 @@ export class RemoteScreen extends BasicScript {
     // TODO
     // mute remote audio, create 3D sound object
     if (audioTracks.length > 0 && !muteAudio) {
+      /*
+      // attempting to get stereo sound with ambient sound - does not help
+      // (sound automatically becomes spatial when attached to mesh)
+      let options = {
+        loop: false,
+        autoplay: true,
+        streaming: true,
+        panningModel: "HRTF",
+        maxDistance: 100,
+        spatialSound: false
+      }
+      let sound = new BABYLON.Sound(
+        "voice",
+        mediaStream,
+        this.scene, 
+        null, // callback 
+        options
+      );
+      */
       let options = {
         panningModel: "HRTF",
         maxDistance: 100

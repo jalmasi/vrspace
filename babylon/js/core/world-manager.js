@@ -406,7 +406,7 @@ export class WorldManager {
       }
       this.notifyLoadListeners(obj, avatar);
     }, (error) => {
-      console.log("Failed to load humanoid avatar, loading as mesh");
+      console.log("Failed to load humanoid avatar, loading as mesh", error);
       obj.humanoid = false;
       this.loadMeshAvatar(obj);
     }
