@@ -437,8 +437,19 @@ export class DefaultHud {
     let camera = this.scene.activeCamera;
     this.screencast = new Screencast(world);
     this.screencast.position = camera.position.add(camera.getForwardRay(1).direction);
+      // CHECKME: Web3d camera uses quaternion, some others may
+    if ( !camera.rotationQuaternion ) {
+      // assuming user is facing the audience, share is also facing the audience
+      this.screencast.rotation = new BABYLON.Vector3(0,camera.rotation.y+Math.PI,0);
+    }
     this.screencast.size = 1;
-    this.screencast.callback = state=>{ if(!state) this.hud.markEnabled(this.screencastButton)};
+    this.screencast.callback = state => { 
+      if(!state) {
+        this.hud.markEnabled(this.screencastButton);
+        this.screencast.dispose();
+        this.screencast = null;
+      }
+    };
     this.screencast.init();
     this.screencast.startSharing();
   }

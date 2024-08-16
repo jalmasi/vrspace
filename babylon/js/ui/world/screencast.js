@@ -33,6 +33,7 @@ export class Screencast extends WorldListener {
     
     /** Contains VRObject used to exchange screens share messages, exists only on the sending side */
     this.screenShare = null;
+    /** Callback executed when sharing state changes, passed true/false */
     this.callback = null;
   }
 
@@ -118,21 +119,23 @@ export class Screencast extends WorldListener {
    */
   dispose() {
     this.stopSharing();
-    //this.deleteSharedObject();
   }
-  
+ 
+  /** WorldListener interface */ 
   added(vrObject){
     if ( vrObject.properties && vrObject.properties.screenName ) {
       this.sharing(true);
     }    
   }
   
+  /** WorldListener interface */
   removed(vrObject){
     if ( vrObject.properties && vrObject.properties.screenName ) {
       this.sharing(false);
     }
   }
   
+  /** Called when sharing starts/stops (shared object is added/removed), executes callback */
   sharing(state) {
     if ( this.callback ) {
       this.callback(state);

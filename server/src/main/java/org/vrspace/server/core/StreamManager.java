@@ -126,8 +126,8 @@ public class StreamManager {
       if (session != null) {
         session.fetch();
         List<Connection> activeConnections = session.getActiveConnections();
-        log.debug(
-            "Disconnecting client " + client.getId() + ", current active connections " + activeConnections.size());
+        log.debug("Disconnecting client " + client.getId() + " from " + sessionName + ", current active connections "
+            + activeConnections.size());
         for (Connection connection : activeConnections) {
           if (client.getId().toString().equals(connection.getServerData())) {
             session.forceDisconnect(connection);
@@ -164,7 +164,8 @@ public class StreamManager {
         try {
           String token = createConnection(session, sessionData(client, "main"));
           client.setToken(mainConnectionId, token);
-          log.debug("Client " + client.getId() + " joined session " + client.getWorld().getName() + " with token " + token);
+          log.debug(
+              "Client " + client.getId() + " joined session " + client.getWorld().getName() + " with token " + token);
         } catch (OpenViduException e) {
           log.error("Can't generate OpenVidu token", e);
           // TODO failing here probably means the session is invalid, should we remove it?

@@ -53,6 +53,7 @@ export class MediaStreams {
     token.replaceAll('&amp;', '&');
     console.log('token: ' + token);
     await this.init((subscriber) => this.streamingStart(subscriber));
+    // FIXME: this may throw (or just log?) this.connection is undefined
     return this.session.connect(token);
   }
 
@@ -222,7 +223,7 @@ export class MediaStreams {
   attachAudioStream(mesh, mediaStream, options={}) {
     let audioTracks = mediaStream.getAudioTracks();
     if (audioTracks && audioTracks.length > 0) {
-      // console.log("Attaching audio stream to mesh "+mesh.id);
+      //console.log("Attaching audio stream to mesh "+mesh.id, audioTracks[0]);
       let properties = {
         loop: false,
         autoplay: true,
@@ -358,6 +359,7 @@ export class OpenViduStreams extends MediaStreams {
       this.screenPublisher.once('accessAllowed', (event) => {
         this.screenPublisher.stream.getMediaStream().getVideoTracks()[0].addEventListener('ended', () => {
           console.log('User pressed the "Stop sharing" button');
+          this.screenPublisher = null;
           VRSPACE.stopStreaming();
           if (endCallback) {
             endCallback();
@@ -371,6 +373,7 @@ export class OpenViduStreams extends MediaStreams {
 
       this.screenPublisher.once('accessDenied', (event) => {
         console.warn('ScreenShare: Access Denied');
+        this.screenPublisher = null;
         reject(event);
       });
 
@@ -378,7 +381,10 @@ export class OpenViduStreams extends MediaStreams {
   }
 
   stopSharingScreen() {
-    this.screenSession.unpublish(this.screenPublisher);
+    if ( this.screenPublisher ) {
+      this.screenSession.unpublish(this.screenPublisher);
+      this.screenPublisher = null;
+    }
   }
 
 }
