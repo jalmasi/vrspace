@@ -11,6 +11,7 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.World;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.openvidu.java.client.Connection;
@@ -213,6 +214,13 @@ public class StreamManager {
     return null;
   }
 
+  /**
+   * Close additional (screen share) session. CHECKME: session is closed
+   * automatically when streaming stops, or when disconnect() is called. This may
+   * not be needed at all.
+   * 
+   * @param client
+   */
   public void closeConection(Client client) {
     if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
       if (client.getToken(additionalConnectionId) != null) {
@@ -225,7 +233,9 @@ public class StreamManager {
             log.debug(
                 "Disconnecting client " + client.getId() + ", current active connections " + activeConnections.size());
             for (Connection connection : activeConnections) {
-              if (client.getId().toString().equals(connection.getServerData())) {
+              SessionData data = sessionData(connection.getServerData());
+              if (client.getId().equals(data.getClientId())) {
+                session.forceDisconnect(connection);
               }
             }
           } catch (Exception e) {
@@ -234,6 +244,10 @@ public class StreamManager {
         }
       }
     }
+  }
+
+  SessionData sessionData(String data) throws JsonMappingException, JsonProcessingException {
+    return objectMapper.readValue(data, SessionData.class);
   }
 
   String sessionData(Client client, String type) throws JsonProcessingException {

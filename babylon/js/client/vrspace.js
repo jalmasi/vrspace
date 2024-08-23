@@ -886,7 +886,8 @@ export class VRSpace {
   }
 
   /**
-   * Experimental. Executes StreamingSession stop command on the server.
+   * Experimental. Executes StreamingSession stop command on the server. 
+   * CHECKME Since the server manages streaming sessions anyway, this may not be needed at all.
    */
   stopStreaming() {
     this.sendCommand("StreamingSession", {action:"stop"});

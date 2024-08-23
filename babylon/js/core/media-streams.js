@@ -359,7 +359,8 @@ export class OpenViduStreams extends MediaStreams {
         this.screenPublisher.stream.getMediaStream().getVideoTracks()[0].addEventListener('ended', () => {
           console.log('User pressed the "Stop sharing" button');
           this.screenPublisher = null;
-          VRSPACE.stopStreaming();
+          // CHECKME: this may be too aggressive:
+          //VRSPACE.stopStreaming();
           if (endCallback) {
             endCallback();
           }

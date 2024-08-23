@@ -41,12 +41,12 @@ export class RemoteScreen extends BasicScript {
     // play audio, if available
     let audioTracks = mediaStream.getAudioTracks();
     console.log("Audio tracks attached: " + audioTracks.length);
-    // TODO
     // mute remote audio, create 3D sound object
     if (audioTracks.length > 0 && !muteAudio) {
       /*
       // attempting to get stereo sound with ambient sound - does not help
-      // (sound automatically becomes spatial when attached to mesh)
+      // sound automatically becomes spatial when attached to mesh
+      // even when ambient and not attached, streamed sound is mono
       let options = {
         loop: false,
         autoplay: true,
