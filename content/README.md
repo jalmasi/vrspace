@@ -6,4 +6,4 @@ Most of the models was autoconverted to GLTF and downloaded from sketchfab.com.
 
 Each of skybox directories contains author and license information.
 
-Icons are downloaded from pngrepo.com.
+Icons are downloaded from pngrepo.com, CC0 license.
