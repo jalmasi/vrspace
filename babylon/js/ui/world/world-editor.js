@@ -1,7 +1,6 @@
 import { VRSPACEUI } from '../vrspace-ui.js';
 import { ScrollablePanel } from "./scrollable-panel.js";
 import { Form } from '../widget/form.js';
-import { ModelGenerator } from './model-generator.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -103,7 +102,6 @@ export class WorldEditor {
     this.copyButton = this.makeAButton("Copy", this.contentBase + "/content/icons/copy.png", (o) => this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", this.contentBase + "/content/icons/delete.png", (o) => this.removeObject(o));
     this.searchButton = this.makeAButton("Search", this.contentBase + "/content/icons/zoom.png");
-    this.generateButton = this.makeAButton("Generate", this.contentBase + "/content/icons/magic-wand.png");
     this.saveButton = this.makeAButton("Save", this.contentBase + "/content/icons/save.png");
     this.loadButton = this.makeAButton("Load", this.contentBase + "/content/icons/open.png");
 
@@ -113,24 +111,9 @@ export class WorldEditor {
     });
     this.saveButton.onPointerDownObservable.add(() => { this.save() });
     this.loadButton.onPointerDownObservable.add(() => { this.load() });
-    this.generateButton.onPointerDownObservable.add(() => { this.generate() });
     VRSPACEUI.hud.enableSpeech(true);
   }
 
-  generate() {
-    if ( this.modelGenerator && this.modelGenerator.isActive) {
-      this.modelGenerator.dispose();
-      //this.modelGenerator.clearPrompt();
-      this.modelGenerator = null;
-      this.displayButtons(true);
-    } else {
-      this.modelGenerator = new ModelGenerator(this.scene,this.world);
-      //this.modelGenerator.show();
-      this.displayButtons(false,this.generateButton); // CHECKME should not be required with show()
-      this.modelGenerator.generate();
-    }
-  }
-  
   /**
    * Creates the search form, or destroys if it exists.
    * Search form has virtual keyboard attached if created in XR.
