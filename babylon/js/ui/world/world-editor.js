@@ -40,7 +40,7 @@ class SearchForm extends Form {
 
 /**
  * World editor can be constructed after the world has worldManager attached.
- * Allows for searching through 300,000+ free objects on sketchfab, adding them to the scene,
+ * Allows for searching through 600,000+ free objects on sketchfab, adding them to the scene,
  * and manipulating own objects.
  * Works on PC, VR devices and mobiles, including mobile VR+gamepad. Or at least it's supposed to;)
  */
@@ -56,8 +56,10 @@ export class WorldEditor {
     }
     this.world = world;
     this.scene = world.scene;
+    this.autoCreateFileInput = true; 
     if (fileInput) {
       this.setFileInput(fileInput);
+      this.autoCreateFileInput = false;
     }
     this.contentBase = VRSPACEUI.contentBase;
     this.worldManager = world.worldManager;
@@ -474,6 +476,7 @@ export class WorldEditor {
    * @param position optional, current object position, default is 2 meters front of the camera
    */
   take(vrObject, position) {
+    // FIXME: also check properties.editing to ensure only one user can carry an object
     if (vrObject.changeListener || this.carrying) {
       // already tracking
       return;
@@ -596,10 +599,12 @@ export class WorldEditor {
    * @param editing true/false
    */
   editObject(obj, editing) {
-    // FIXME: fails for objects not created with world editor with
-    // Uncaught TypeError: Cannot set properties of null (setting 'editing')
     if (editing) {
+      if ( ! obj.properties ) {
+        obj.properties = {};
+      }
       obj.properties.editing = this.worldManager.VRSPACE.me.id;
+      // FIXME: this needs to be published, so that only one user can manipulate the object at the same time 
     } else {
       obj.properties.editing = null;
       this.clearGizmo();
@@ -670,15 +675,27 @@ export class WorldEditor {
   }
 
   /**
+   * Create a hidden file input.
+   */
+  createFileInput() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.id = 'VRSpace-fileInput';
+      input.style = 'display:none';
+      input.accept = '.json';
+      this.setFileInput(input);
+  }
+  
+  /**
    * Load saved scene, requires file input html element
    */
   load() {
     this.displayButtons(true);
-    if (this.fileInput) {
-      this.fileInput.click();
-    } else {
-      console.log("WARNING no file input element");
+    if (!this.fileInput && this.autoCreateFileInput) {
+      console.log("WARNING no file input element, creating one");
+      this.createFileInput();
     }
+    this.fileInput.click();
   }
 
   /**
