@@ -588,7 +588,43 @@ export class VRSpaceUI {
     a.download = filename;
     a.click();
   }
+
+  /**
+   * Save the entire scene as a GLB file.
+   * @param fileName defaults to "scene"
+   */
+  saveSceneGlb(fileName="scene") {
+    BABYLON.GLTF2Export.GLBAsync(this.scene, fileName).then((glb) => {
+      glb.downloadFiles();
+    });
+  }
   
+  /**
+   * Save the entire scene as GLTF: fileName.gltf, fileName.bin, textures, etc.
+   * @param fileName defaults to "scene"
+   */
+  saveSceneGltf(fileName="scene") {
+    BABYLON.GLTF2Export.GLTFAsync(this.scene, fileName).then((gltf) => {
+      gltf.downloadFiles();
+    });
+  }
+
+  /**
+   * Save scene as babylon json file. This only works for very simple scenes, 
+   * and is likely to fail for any vrspace world with TypeError: cyclic object value
+   * @param fileName defaults to "scene.babylon"
+   */
+  saveSceneBabylon(fileName="scene.babylon") {
+    const serializedScene = BABYLON.SceneSerializer.Serialize(this.scene);
+    const strScene = JSON.stringify(serializedScene);
+  
+    this.saveFile(fileName,strScene);
+  }
+
+  saveSceneHtml(fileName="scene") {
+    const serializedScene = BABYLON.SceneSerializer.Serialize(scene);
+    const strScene = JSON.stringify(serializedScene);
+  }
 }
 
 // this does not ensure singleton in the browser

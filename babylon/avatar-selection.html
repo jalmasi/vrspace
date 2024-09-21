@@ -52,6 +52,7 @@
     <script src="./js/lib/babylonjs.materials.min.js"></script>
     <script src="./js/lib/babylonjs.proceduralTextures.min.js"></script>
     <script src="./js/lib/babylon.dynamicTerrain.min.js"></script>
+    <script src="./js/lib/babylonjs.serializers.min.js"></script>
     <script src="./js/lib/HavokPhysics_umd.js"></script>
 
     <script src="./js/vrspace-min.js" type="module"></script>
@@ -135,10 +136,29 @@ function debugOnOff() {
   }
 }
 
+function saveBabylon() {
+  VRSPACEUI.saveSceneBabylon();
+}
+
+function saveGltf() {
+  VRSPACEUI.saveSceneGltf();
+}
+
+function saveGlb() {
+  VRSPACEUI.saveSceneGlb();
+}
+
+function saveHtml() {
+  VRSPACEUI.saveSceneHtml();
+}
+
 </script>
 
 <div style="position:absolute;bottom:10px;right:50%;">
   <button onClick="debugOnOff()">Debug</button>
+  <button onClick="saveBabylon()">Save babylon</button>
+  <button onClick="saveGltf()">Save GLTF</button>
+  <button onClick="saveGlb()">Save GLB</button>
 </div>
 
 <div id="videos" hidden>
