@@ -611,20 +611,17 @@ export class VRSpaceUI {
 
   /**
    * Save scene as babylon json file. This only works for very simple scenes, 
-   * and is likely to fail for any vrspace world with TypeError: cyclic object value
+   * and is likely to fail for any vrspace world with TypeError: cyclic object value.
+   * Furthermore, it does not save instances.
    * @param fileName defaults to "scene.babylon"
    */
   saveSceneBabylon(fileName="scene.babylon") {
-    const serializedScene = BABYLON.SceneSerializer.Serialize(this.scene);
-    const strScene = JSON.stringify(serializedScene);
-  
-    this.saveFile(fileName,strScene);
+    BABYLON.SceneSerializer.SerializeAsync(this.scene).then(serializedScene=>{
+      const strScene = JSON.stringify(serializedScene);
+      this.saveFile(fileName,strScene);
+    });
   }
 
-  saveSceneHtml(fileName="scene") {
-    const serializedScene = BABYLON.SceneSerializer.Serialize(scene);
-    const strScene = JSON.stringify(serializedScene);
-  }
 }
 
 // this does not ensure singleton in the browser
