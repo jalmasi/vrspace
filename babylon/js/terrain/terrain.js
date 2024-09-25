@@ -11,6 +11,7 @@ export class Terrain {
     this.terrainMaterial = params.material;
     this.checkCollisions = true;
     this.enabled=true;
+    this.sps=null;
   }
   buildGrid() {
     this.mapData = new Float32Array(this.xSize * this.zSize * 3);

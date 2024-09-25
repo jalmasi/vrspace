@@ -32,17 +32,23 @@ export class WorldLoader {
         worldInfo.lights.forEach(light => {
           this.loadComponent(light, world.scene);
         });
+        worldInfo.sceneMeshes.forEach(mesh=> {
+          this.loadComponent(mesh, world.scene);
+        });
         world.registerRenderLoop();
         
         VRSPACEUI.init(world.scene).then(()=>{
           world.scene.activeCamera.attachControl();
           world.camera = world.scene.activeCamera;
-          world.load();
-          
 
           if (worldInfo.room) {
             new LogoRoom(world.scene).load();
           }
+
+          if (worldInfo.terrain) {
+            this.loadComponent(worldInfo.terrain.mesh, world.scene);
+            this.loadComponent(worldInfo.terrain.sps, world.scene);
+          }          
 
           for (let portalName in worldInfo.portals) {
             let portalInfo = worldInfo.portals[portalName];

@@ -849,9 +849,9 @@ export class World {
    * - ground
    * - camera(s)
    * - light(s)
+   * - terrain
    * - shadow generator(s)
    * - physics?
-   * - terrain?
    * - UI?
    * - portal(s)?
    */
@@ -869,6 +869,7 @@ export class World {
       portals: {}
     };
     world.assets = VRSPACEUI.assetLoader.dump(true);
+    world.sceneMeshes = [];
     if ( this.skyBox ) {
       world.skyBox = BABYLON.SceneSerializer.SerializeMesh(this.skyBox);
     }
@@ -892,6 +893,13 @@ export class World {
       // FIXME must be custom
       world.shadowGenerator = BABYLON.SceneSerializer.SerializeMesh(this.shadowGenerator);
     }
+    if ( this.sceneMeshes ) {
+      this.sceneMeshes.forEach(mesh=>{
+        if ( !mesh.parent ) {
+          world.sceneMeshes.push(BABYLON.SceneSerializer.SerializeMesh(mesh,false,true));
+        }
+      });
+    }
     this.scene.rootNodes.forEach( (node) => {
       if ( node.name.startsWith('Portal:') ) {
         let portal = node.Portal;
@@ -907,9 +915,15 @@ export class World {
         }
       }
     });
-    // TODO terrain
+    if ( this.terrain ) {
+      world.terrain = {
+        mesh: BABYLON.SceneSerializer.SerializeMesh(this.terrain.mesh())
+      }
+      if ( this.terrain.sps ) {
+        world.terrain.sps = BABYLON.SceneSerializer.SerializeMesh(this.terrain.sps.mesh);
+      }
+    }
     // CHECKME UI?
-    console.log(world);
     VRSPACEUI.saveFile(world.name + ".json", JSON.stringify(world));
   }
 }
