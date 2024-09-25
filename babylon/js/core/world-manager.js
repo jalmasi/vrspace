@@ -383,6 +383,7 @@ export class WorldManager {
       obj.avatar = avatar;
       obj.instantiatedEntries = avatar.instantiatedEntries;
       avatar.VRObject = obj;
+      avatar.parentMesh.VRObject = obj;
       // apply current name, position and rotation
       this.changeAvatar(obj, { name: obj.name, position: obj.position });
       if ( obj.rotation ) {

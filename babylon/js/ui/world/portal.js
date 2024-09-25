@@ -24,6 +24,7 @@ export class Portal {
     }
     this.shadowGenerator = shadowGenerator;
     this.isEnabled = false;
+    this.angle = 0;
     // used in dispose:
     this.controls = [];
     this.textures = [];
@@ -70,10 +71,12 @@ export class Portal {
   @param angle
    */
   async loadAt(x,y,z,angle) {
+    this.angle = angle;
     this.group = new BABYLON.TransformNode('Portal:'+this.name);
     this.group.position = new BABYLON.Vector3(x,y,z);
     this.group.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle);
-
+    this.group.Portal = this;
+    
     if (this.shadowGenerator) {
       var clone = VRSPACEUI.portal.clone();
       clone.parent = this.group;

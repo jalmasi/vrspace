@@ -3,7 +3,8 @@ import {VRHelper} from '../xr/vr-helper.js';
 import {ChatLog} from '../ui/widget/chat-log.js';
 import {WorldManager} from '../core/world-manager.js';
 import {AvatarController} from '../avatar/avatar-controller.js';
-import { VRSPACE } from '../vrspace-min.js';
+import {VRSPACE} from '../client/vrspace.js';
+import {WorldListener} from './world-listener.js';
 
 /**
 Basic world, intended to be overridden.
@@ -826,12 +827,89 @@ export class World {
     });
   }
   
+  /**
+   * Add a world listener to listen for world events
+   * @param {WorldListener} worldListener 
+   */
   addListener(worldListener) {
     VRSPACE.addListener(this.worldListeners, worldListener);
   }
-  
+
+  /**
+   * Remove a world listener
+   */  
   removeListener(worldListener) {
     VRSPACE.removeListener(this.worldListeners, worldListener);
   }
+  
+  /**
+   * Save the world:
+   * - all dynamically loaded assets
+   * - skybox
+   * - ground
+   * - camera(s)
+   * - light(s)
+   * - shadow generator(s)
+   * - physics?
+   * - terrain?
+   * - UI?
+   * - portal(s)?
+   */
+  save() {
+    let world = {
+      name: this.name,
+      baseUrl: this.baseUrl,
+      file: this.file,
+      worldObjects: this.worldObjects,
+      objectsFile: this.objectsFile,
+      physics: {
+        gravityEnabled: this.gravityEnabled,
+        physicsPlugin: this.physicsPlugin?.name
+      },
+      portals: {}
+    };
+    world.assets = VRSPACEUI.assetLoader.dump(true);
+    if ( this.skyBox ) {
+      world.skyBox = BABYLON.SceneSerializer.SerializeMesh(this.skyBox);
+    }
+    if ( this.room ) {
+      world.room = true;
+    }
+    if ( this.ground ) { // CHECKME: elseif?
+      world.ground = BABYLON.SceneSerializer.SerializeMesh(this.ground);
+    }
+    if ( this.camera1p ) {
+      world.camera1p = BABYLON.SceneSerializer.SerializeMesh(this.camera1p);
+    }
+    if ( this.camera3p ) {
+      world.camera3p = BABYLON.SceneSerializer.SerializeMesh(this.camera3p);
+    }
+    world.lights=[];
+    this.scene.lights.forEach(light=>{
+      world.lights.push(BABYLON.SceneSerializer.SerializeMesh(light));
+    });
+    if ( this.shadowGenerator ) {
+      // FIXME must be custom
+      world.shadowGenerator = BABYLON.SceneSerializer.SerializeMesh(this.shadowGenerator);
+    }
+    this.scene.rootNodes.forEach( (node) => {
+      if ( node.name.startsWith('Portal:') ) {
+        let portal = node.Portal;
+        //let name = node.name.substring(node.name.indexOf(':')+1);
+        let name = portal.name;
+        world.portals[name] = {
+          serverFolder: portal.serverFolder,
+          x: node.position.x, 
+          y: node.position.y, 
+          z: node.position.z,
+          angle: portal.angle, 
+          enabled: portal.isEnabled
+        }
+      }
+    });
+    // TODO terrain
+    // CHECKME UI?
+    console.log(world);
+    VRSPACEUI.saveFile(world.name + ".json", JSON.stringify(world));
+  }
 }
-

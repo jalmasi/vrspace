@@ -89,6 +89,9 @@ export class DefaultHud {
       this.speechButton.tooltipText = "Voice Commands";
       this.speech(this.state.speech);
 
+      this.saveButton = this.hud.addButton("Save", this.contentBase + "/content/icons/save.png", () => this.save(), false);
+      this.saveButton.tooltipText = "Save&Download";
+
       this.authorsButton = this.hud.addButton("Credits", this.contentBase + "/content/icons/copyleft.png", () => this.credits(), false);
       this.authorsButton.tooltipText = "Authors";
 
@@ -529,5 +532,9 @@ export class DefaultHud {
         VRSPACE.sendEvent(vrObject, { scale: { x: scale, y: scale, z: scale } });
       }, 100);
     }
+  }
+  
+  save() {
+    World.lastInstance.save();
   }
 }

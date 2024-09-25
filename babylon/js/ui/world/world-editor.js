@@ -647,7 +647,7 @@ export class WorldEditor {
    */
   save() {
     this.displayButtons(true);
-    var dump = VRSPACEUI.assetLoader.dump();
+    const dump = VRSPACEUI.assetLoader.dump();
     if (Object.keys(dump).length > 0) {
       VRSPACEUI.saveFile(this.world.name + ".json", JSON.stringify(dump));
     }

@@ -667,7 +667,7 @@ export class AvatarSelection extends World {
   }
 
   hasAvatar() {
-    return this.video || this.character;
+    return this.video != null || this.character != null;
   }
 
   removePortals() {
