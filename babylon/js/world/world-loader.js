@@ -2,14 +2,59 @@ import { World } from './world.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Portal } from '../ui/world/portal.js';
 import { ServerFolder } from '../core/server-folder.js';
-import { LogoRoom } from '../vrspace-min.js';
+import { LogoRoom } from '../ui/world/logo-room.js';
+import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 
 export class WorldLoader {
   static loadComponent(component, scene) {
     if (component) {
       BABYLON.SceneLoader.Append("", 'data:' + JSON.stringify(component), scene);
-    }    
+    }
   }
+
+  static async loadAvatar(url, instance, scene) {
+    let avatar = await HumanoidAvatar.createFromUrl(scene, url);
+    avatar.userHeight = instance.userHeight;
+    avatar.turnAround = instance.turnAround
+    // load
+    avatar.load(()=>{
+      avatar.baseMesh().position = new BABYLON.Vector3(instance.position.x, instance.position.y, instance.position.z);
+      avatar.baseMesh().rotationQuaternion = new BABYLON.Quaternion(instance.rotationQuaternion.x, instance.rotationQuaternion.y, instance.rotationQuaternion.z, instance.rotationQuaternion.w);
+      if (instance.scale) {
+        avatar.rootMesh.scaling = new BABYLON.Vector3(instance.scale.x, instance.scale.y, instance.scale.z);
+      }
+      avatar.setName(instance.name);
+      // TODO play animation
+    });
+  }
+
+  static loadAsset(url, instance) {
+    var vrObject = {
+      mesh: url,
+      position: instance.position,
+      rotation: instance.rotation,
+      scale: instance.scale
+    };
+    VRSPACEUI.assetLoader.loadObject(vrObject, mesh => {
+      mesh.position = new BABYLON.Vector3(instance.position.x, instance.position.y, instance.position.z);
+      mesh.rotation = new BABYLON.Vector3(instance.rotation.x, instance.rotation.y, instance.rotation.z);
+      if (instance.scale) {
+        mesh.scaling = new BABYLON.Vector3(instance.scale.x, instance.scale.y, instance.scale.z);
+      }
+    });
+  }
+
+  static loadAssets(assets, loadFunc) {
+    for (let url in assets) {
+      let instances = assets[url].instances;
+      if (!url.startsWith("/")) {
+        // relative url, make it relative to world script path
+        url = this.baseUrl + url;
+      }
+      instances.forEach(instance => loadFunc(url, instance));
+    }
+  }
+
   static async loadFile(engine, file = "scene.json") {
     let world = new World();
     world.engine = engine;
@@ -32,12 +77,12 @@ export class WorldLoader {
         worldInfo.lights.forEach(light => {
           this.loadComponent(light, world.scene);
         });
-        worldInfo.sceneMeshes.forEach(mesh=> {
+        worldInfo.sceneMeshes.forEach(mesh => {
           this.loadComponent(mesh, world.scene);
         });
         world.registerRenderLoop();
-        
-        VRSPACEUI.init(world.scene).then(()=>{
+
+        VRSPACEUI.init(world.scene).then(() => {
           world.scene.activeCamera.attachControl();
           world.camera = world.scene.activeCamera;
 
@@ -48,43 +93,20 @@ export class WorldLoader {
           if (worldInfo.terrain) {
             this.loadComponent(worldInfo.terrain.mesh, world.scene);
             this.loadComponent(worldInfo.terrain.sps, world.scene);
-          }          
+          }
 
           for (let portalName in worldInfo.portals) {
             let portalInfo = worldInfo.portals[portalName];
             console.log('Portal ' + portalName, portalInfo);
             let serverFolder = new ServerFolder(portalInfo.serverFolder.baseUrl, portalInfo.serverFolder.name, portalInfo.serverFolder.related);
             let portal = new Portal(world.scene, serverFolder);
-            portal.loadAt(portalInfo.x, portalInfo.y, portalInfo.z, portalInfo.angle).then(p=>p.enabled(portalInfo.enabled));
+            portal.loadAt(portalInfo.x, portalInfo.y, portalInfo.z, portalInfo.angle).then(p => p.enabled(portalInfo.enabled));
           }
-          for (let url in worldInfo.assets) {
-            let instances = worldInfo.assets[url].instances;
-            if (!url.startsWith("/")) {
-              // relative url, make it relative to world script path
-              url = this.baseUrl + url;
-            }
-            instances.forEach(instance => {
-              var vrObject = {
-                mesh: url,
-                position: instance.position,
-                rotation: instance.rotation,
-                scale: instance.scale
-              };
-              VRSPACEUI.assetLoader.loadObject(vrObject, mesh => {
-                mesh.position = new BABYLON.Vector3(instance.position.x, instance.position.y, instance.position.z);
-                mesh.rotation = new BABYLON.Vector3(instance.rotation.x, instance.rotation.y, instance.rotation.z);
-                if ( instance.scale ) {
-                  mesh.scaling = new BABYLON.Vector3(instance.scale.x, instance.scale.y, instance.scale.z);
-                } else {
-                  // TODO avatar size is dynamic
-                }
-              });
-            });
-          }
-          
+          this.loadAssets(worldInfo.assets, (url,asset) => this.loadAsset(url, asset));
+          this.loadAssets(worldInfo.avatars, (url,avatar) => this.loadAvatar(url, avatar, world.scene));
         });
-        
-        
+
+
       });
     });
     return world.scene;

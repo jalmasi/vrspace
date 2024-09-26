@@ -48,6 +48,8 @@ export class VideoAvatar extends Avatar {
       // used for collision detection (3rd person view)
       this.mesh.ellipsoid = new BABYLON.Vector3(this.radius, this.radius, this.radius);
 
+      this.mesh.avatar = this;
+      
       // glow layer may make the texture invisible, needd to turn of glow for the mesh
       if ( this.scene.effectLayers ) {
         this.scene.effectLayers.forEach( (layer) => {
@@ -55,7 +57,7 @@ export class VideoAvatar extends Avatar {
             layer.addExcludedMesh(this.mesh);
           }
         });
-      }     
+      }
       // display alt text before video texture loads:
       this.displayAlt();
     

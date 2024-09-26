@@ -1,10 +1,10 @@
-import {VRSPACEUI} from '../ui/vrspace-ui.js';
-import {VRHelper} from '../xr/vr-helper.js';
-import {ChatLog} from '../ui/widget/chat-log.js';
-import {WorldManager} from '../core/world-manager.js';
-import {AvatarController} from '../avatar/avatar-controller.js';
-import {VRSPACE} from '../client/vrspace.js';
-import {WorldListener} from './world-listener.js';
+import { VRSPACEUI } from '../ui/vrspace-ui.js';
+import { VRHelper } from '../xr/vr-helper.js';
+import { ChatLog } from '../ui/widget/chat-log.js';
+import { WorldManager } from '../core/world-manager.js';
+import { AvatarController } from '../avatar/avatar-controller.js';
+import { VRSPACE } from '../client/vrspace.js';
+import { WorldListener } from './world-listener.js';
 
 /**
 Basic world, intended to be overridden.
@@ -69,7 +69,7 @@ export class World {
     this.sceneMeshes = null;
     /** Terrain, optionally created in createTerrain() */
     this.terrain = null;
-    
+
     /** Handy reference to VRSpaceUI */
     this.VRSPACEUI = VRSPACEUI;
     /** Reference to worldManager, set by WorldManager once that user goes online */
@@ -78,7 +78,7 @@ export class World {
     this.avatarController = null;
     /**  Reference to own Avatar or VideoAvatar, set by AvatarController during initialization */
     this.avatar = null;
-    
+
     /** List of world listeners. 
     WorldManager executes enter(Welcome) method once user enters the world, after World.enter() method. 
     Methods added(VRObject) and removed(VRObject) are executed whenever scene changes.
@@ -87,18 +87,18 @@ export class World {
     this.floorMeshes = [];
     this.ground = null;
     // CHECKME: should floors be selectable?
-    this.selectionPredicates = [(mesh)=>{return this.getFloorMeshes().includes(mesh)}];
+    this.selectionPredicates = [(mesh) => { return this.getFloorMeshes().includes(mesh) }];
 
     // now override defaults
-    if ( params ) {
-      for ( var param in params ) {
+    if (params) {
+      for (var param in params) {
         this[param] = params[param];
       }
     }
-    
+
     World.lastInstance = this;
   }
-  
+
   /** Create, load and and show the world.
   Enables gravity and collisions, then executes createScene method, optionally creates load indicator,
   registers render loop, crates terrain, and finally, executes load method. Every method executed can be overridden.
@@ -116,21 +116,21 @@ export class World {
     // workaround for android chrome 120.0.6099.43 bug, see
     // https://forum.babylonjs.com/t/problems-on-chrome-mobile-since-december-7th-2023/46288/16
     engine.disableUniformBuffers = true
-    if ( name ) {
+    if (name) {
       this.name = name;
     }
     this.scene = scene;
-    if ( !this.baseUrl && baseUrl ) {
+    if (!this.baseUrl && baseUrl) {
       this.baseUrl = baseUrl;
     }
-    if ( !this.file && file ) {
+    if (!this.file && file) {
       this.file = file;
     }
     await this.createScene(engine);
     this.registerRenderLoop();
-    if ( ! this.onProgress ) {
+    if (!this.onProgress) {
       this.indicator = VRSPACEUI.loadProgressIndicator(this.scene, this.camera);
-      this.onProgress = (evt, name) => this.indicator.progress( evt, name )
+      this.onProgress = (evt, name) => this.indicator.progress(evt, name)
     } else {
       // make sure it's available for any and all operations (custom progress indicator may not have done it)
       VRSPACEUI.init(scene);
@@ -147,36 +147,36 @@ export class World {
   createCamera, attachControl, createLights, createShadows, createSkybox, createGround, createEffects, createPhysics.
   */
   async createScene(engine) {
-    if ( ! this.scene ) {
+    if (!this.scene) {
       this.scene = new BABYLON.Scene(engine);
     }
     // TODO dispose of old camera(s)
     var camera = await this.createCamera();
-    if ( camera ) {
+    if (camera) {
       this.camera = camera;
     }
-    if ( ! this.camera1p ) {
+    if (!this.camera1p) {
       this.camera1p = this.camera;
     }
     this.attachControl();
     // TODO dispose of old lights
     var light = await this.createLights();
-    if ( light ) {
+    if (light) {
       this.light = light;
     }
     // TODO dispose of old shadow generator
     var shadowGenerator = await this.createShadows();
-    if ( shadowGenerator ) {
+    if (shadowGenerator) {
       this.shadowGenerator = shadowGenerator;
     }
     // TODO dispose of old skybox
     var skyBox = await this.createSkyBox();
-    if ( skyBox ) {
+    if (skyBox) {
       this.skyBox = skyBox;
     }
     // TODO dispose of old ground
     var ground = await this.createGround();
-    if ( ground ) {
+    if (ground) {
       this.ground = ground;
     }
     await this.createEffects();
@@ -188,18 +188,18 @@ export class World {
    * camera (this.camera1p) if one is not set.
    */
   async createCamera() {
-    alert( 'Please override createCamera() method')
+    alert('Please override createCamera() method')
   }
   /** Optional, empty implementation, called from createScene. May return a Light */
-  async createLights() {}
+  async createLights() { }
   /** Optional, empty implementation, called from createScene. Should return a ShadowGenerator. */
-  async createShadows() {}
+  async createShadows() { }
   /** Optional, empty implementation, called from createScene. Should return a sky Box. */
-  async createSkyBox() {}
+  async createSkyBox() { }
   /** Optional, empty implementation, called from createScene. Should return a mesh. */
-  async createGround() {}
+  async createGround() { }
   /** Optional, empty implementation, called from createScene */
-  async createEffects() {};
+  async createEffects() { };
   /** Optional, called from createScene. Creates Havok physics engine and plugin, with this.scene.gravity.
    * Generally, to enable physics in the scene, just set gravity and call super.createPhysics().
    * Or to disable gravity, simply do not call super.
@@ -209,14 +209,14 @@ export class World {
       const havokInstance = await HavokPhysics();
       this.physicsPlugin = new BABYLON.HavokPlugin(true, havokInstance);
       this.scene.enablePhysics(this.scene.gravity, this.physicsPlugin);
-    } catch ( err ) {
+    } catch (err) {
       console.error("Physics initialization error", err);
     }
   };
   /** Optional, empty implementation, called from createScene */
-  async createTerrain() {}
+  async createTerrain() { }
   /** Optional, empty implementation, called from createScene */
-  async createUI() {}
+  async createUI() { }
   /** Attach the control to the camera, called from createScene. */
   attachControl() {
     this.camera.attachControl(this.canvas, true);
@@ -237,8 +237,8 @@ export class World {
   createChatlog() {
     this.chatLog = new ChatLog(this.scene);
     this.chatLog.show();
-    this.worldManager.addChangeListener( (obj, field, node) => this.remoteEvent(obj, field, node));
-    this.chatLog.input.addListener( text=>this.write(text) );
+    this.worldManager.addChangeListener((obj, field, node) => this.remoteEvent(obj, field, node));
+    this.chatLog.input.addListener(text => this.write(text));
     this.chatLog.input.virtualKeyboardEnabled = this.inXR();
     this.addSelectionPredicate((mesh) => this.chatLog.isSelectableMesh(mesh));
   }
@@ -264,18 +264,18 @@ export class World {
     // eyes at 1.6 m:
     camera.ellipsoidOffset = new BABYLON.Vector3(0, .2, 0);
     camera.checkCollisions = true;
-    
+
     camera.keysDown = [40, 83]; // down, S
     camera.keysLeft = [37, 65]; // left, A
     camera.keysRight = [39, 68]; // right, D
     camera.keysUp = [38, 87]; // up, W
     camera.keysUpward = [36, 33, 32]; // home, pgup, space
-    
+
     camera.touchAngularSensibility = 10000;
 
     return camera;
   }
-  
+
   /**
   Utility method, calls this.universalCamera with given parameters, and sets the camera speed function.
   Original Babylon.js camera speed function takes FPS into account, but does not mean anything really.
@@ -285,7 +285,7 @@ export class World {
   @param name optional camera name, default First Person Camera
    */
   firstPersonCamera(pos, name = "First Person Camera") {
-    let camera = this.universalCamera( pos, name );
+    let camera = this.universalCamera(pos, name);
     /*
     // debug existing func
     console.log(camera._computeLocalCameraSpeed);
@@ -294,9 +294,9 @@ export class World {
     }, 5000);
     */
     // this actually makes camera speed real
-    camera._computeLocalCameraSpeed = () => { return camera.speed * this.engine.getDeltaTime()*0.001};
+    camera._computeLocalCameraSpeed = () => { return camera.speed * this.engine.getDeltaTime() * 0.001 };
     this.camera1p = camera;
-    
+
     return camera;
   }
 
@@ -308,35 +308,35 @@ export class World {
    */
   thirdPersonCamera(camera1p = this.camera) {
     // CHECKME: use camera1p.rotation.y for alpha?
-    this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI/2, 1.5*Math.PI-camera1p.rotation.y, 3, camera1p.position, this.scene);
+    this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI / 2, 1.5 * Math.PI - camera1p.rotation.y, 3, camera1p.position, this.scene);
     //this.camera3p.maxZ = 1000;
     //this.camera3p.minZ = 0;
     this.camera3p.maxZ = this.camera1p.maxZ;
     this.camera3p.minZ = this.camera1p.minZ;
     this.camera3p.wheelPrecision = 100;
     this.camera3p.checkCollisions = true;
-    
+
     this.camera3p.lowerRadiusLimit = 0.5;
     this.camera3p.radius = 2;
     this.camera3p.upperRadiusLimit = 10;
 
     this.camera3p.checkCollisions = true;
-    this.camera3p.collisionRadius = new BABYLON.Vector3(0.1,0.1,0.1);
-    this.camera3p.beta = Math.PI/2;
-    
+    this.camera3p.collisionRadius = new BABYLON.Vector3(0.1, 0.1, 0.1);
+    this.camera3p.beta = Math.PI / 2;
+
     // disable panning, as it moves avatar/camera1:
     this.camera3p.panningSensibility = 0;
     // we can also check for
     // this.camera3p.inputs.attached.pointers.mousewheel
     // this.camera3p.inputs.attached.pointers.keyboard
-    if ( this.hasTouchScreen() ) {
+    if (this.hasTouchScreen()) {
       // assuming mobile
       this.camera3p.inputs.attached.pointers.pinchPrecision = 100;
     } else {
       // assuming PC, and we're moving using LMB
-      this.camera3p.inputs.attached.pointers.buttons = [1,2]; // disable LMB(0)
+      this.camera3p.inputs.attached.pointers.buttons = [1, 2]; // disable LMB(0)
     }
-    
+
     // gamepad support
     // https://forum.babylonjs.com/t/gamepad-controller/34409
     // this actually works only the first time
@@ -347,7 +347,7 @@ export class World {
     const oldAttach = this.gamepadInput.attachControl;
     this.gamepadInput.attachControl = () => {
       oldAttach;
-      if (!this.gamepadInput.gamepad && gamepadManager.gamepads.length ) {
+      if (!this.gamepadInput.gamepad && gamepadManager.gamepads.length) {
         this.gamepadInput.gamepad = gamepadManager.gamepads[0];
       }
     }
@@ -377,31 +377,31 @@ export class World {
       // zoom in and out with left up/down
       const buttonUp = this.gamepad.browserGamepad.buttons[12];
       const buttonDown = this.gamepad.browserGamepad.buttons[13];
-      
-      if ( buttonUp && buttonUp.pressed ) {
+
+      if (buttonUp && buttonUp.pressed) {
         const normalizedLY = 1 / this.gamepadInput.gamepadMoveSensibility;
         if (normalizedLY != 0 && Math.abs(normalizedLY) > 0.005) {
-            this.camera3p.inertialRadiusOffset += normalizedLY;
+          this.camera3p.inertialRadiusOffset += normalizedLY;
         }
       }
-      
-      if ( buttonDown && buttonDown.pressed ) {
+
+      if (buttonDown && buttonDown.pressed) {
         const normalizedLY = 1 / this.gamepadInput.gamepadMoveSensibility;
         if (normalizedLY != 0 && Math.abs(normalizedLY) > 0.005) {
-            this.camera3p.inertialRadiusOffset -= normalizedLY;
+          this.camera3p.inertialRadiusOffset -= normalizedLY;
         }
-      }      
-      
+      }
+
     }
-    
+
     gamepadManager.onGamepadConnectedObservable.add((gamepad, state) => {
-      if ( ! this.gamepad ) {
+      if (!this.gamepad) {
         this.gamepad = gamepad;
         this.camera3p.inputs.add(this.gamepadInput);
         //this.camera3p.inputs.attached.gamepad.gamepadAngularSensibility = 250;
         this.camera3p.inputs.addGamepad();
-        gamepad.onleftstickchanged( (stickValues) => {
-          if ( this.avatarController ) {
+        gamepad.onleftstickchanged((stickValues) => {
+          if (this.avatarController) {
             this.avatarController.processGamepadStick(stickValues);
           }
         });
@@ -410,7 +410,7 @@ export class World {
 
     return this.camera3p;
   }
-  
+
   hasTouchScreen() {
     return ('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
   }
@@ -418,28 +418,28 @@ export class World {
   Disposes of all objects returned by createLights, createCamera, createShadows, createSkybox
    */
   async dispose() {
-    if ( this.camera ) {
+    if (this.camera) {
       this.camera.dispose();
-      this.camera = null;    
+      this.camera = null;
     }
-    if ( this.camera3p ) {
+    if (this.camera3p) {
       this.camera3p.dispose();
-      this.camera3p = null;    
+      this.camera3p = null;
     }
-    if ( this.skyBox ) {
+    if (this.skyBox) {
       this.skyBox.dispose();
       this.skyBox.material.dispose();
-      this.skyBox = null;    
+      this.skyBox = null;
     }
-    if ( this.light ) {
+    if (this.light) {
       this.light.dispose();
       this.light = null;
     }
-    if ( this.shadowGenerator ) {
+    if (this.shadowGenerator) {
       this.shadowGenerator.dispose();
-      this.shadowGenerator = null;    
+      this.shadowGenerator = null;
     }
-    if ( this.renderLoop ) {
+    if (this.renderLoop) {
       this.engine.stopRenderLoop(this.renderLoop);
       this.renderLoop = null;
     }
@@ -455,26 +455,26 @@ export class World {
   @param activeHelper optional, if given both helpers, one that's currently active (e.g. passed while in VR or AR mode)
    */
   initXR(vrHelper, arHelper, activeHelper) {
-    if ( vrHelper ) {
+    if (vrHelper) {
       this.vrHelper = vrHelper;
     }
-    if ( ! this.vrHelper ) {
+    if (!this.vrHelper) {
       this.vrHelper = VRHelper.getInstance("immersive-vr");
     }
     this.vrHelper.initXR(this);
-    
-    if ( arHelper ) {
+
+    if (arHelper) {
       this.arHelper = arHelper;
     }
-    if ( ! this.arHelper ) {
+    if (!this.arHelper) {
       this.arHelper = VRHelper.getInstance("immersive-ar");
     }
     // this flag may not work due to asynchronous calls
-    if ( VRSPACEUI.canAR ) {
+    if (VRSPACEUI.canAR) {
       this.arHelper.initXR(this)
     }
-    
-    if ( activeHelper && activeHelper == arHelper ) {
+
+    if (activeHelper && activeHelper == arHelper) {
       this.xrHelper = this.arHelper;
     } else {
       this.xrHelper = this.vrHelper;
@@ -485,13 +485,13 @@ export class World {
   }
   /** Called by VR helper after entering XR mode. Default implementation enables virtual keyboard in ChatLog. */
   enterXR() {
-    if ( this.chatLog ) {
+    if (this.chatLog) {
       this.chatLog.input.virtualKeyboardEnabled = true;
     }
   }
   /** Called by VR helper after exiting XR. Default implementation turns off ChatLog virtual keyboard.*/
   exitXR() {
-    if ( this.chatLog ) {
+    if (this.chatLog) {
       this.chatLog.input.virtualKeyboardEnabled = false;
     }
   }
@@ -506,7 +506,7 @@ export class World {
    */
   isSelectableMesh(mesh) {
     let ret = VRSPACEUI.hud.isSelectableMesh(mesh);
-    this.selectionPredicates.forEach((p)=>{ret ||= p(mesh)});
+    this.selectionPredicates.forEach((p) => { ret ||= p(mesh) });
     return ret;
   }
 
@@ -515,55 +515,55 @@ export class World {
   Used for movement in XR.
    */
   getFloorMeshes() {
-    if ( this.floorMeshes && this.floorMeshes.length > 0 ) {
-      return this.floorMeshes;      
-    } else if ( this.ground ) {
-      return [ this.ground ];
+    if (this.floorMeshes && this.floorMeshes.length > 0) {
+      return this.floorMeshes;
+    } else if (this.ground) {
+      return [this.ground];
     }
     return [];
   }
-  
+
   /**
   Enables or disables collisions in the world. This includes floorMeshes, sceneMeshes, and also applying gravity to camera.
   @param state true or false
    */
   collisions(state) {
-    this._collisions( this.floorMeshes, this.collisionsEnabled && state );
-    this._collisions( this.sceneMeshes, this.collisionsEnabled && state );
+    this._collisions(this.floorMeshes, this.collisionsEnabled && state);
+    this._collisions(this.sceneMeshes, this.collisionsEnabled && state);
     this.camera.applyGravity = this.gravityEnabled && state;
     this.camera._needMoveForGravity = this.gravityEnabled && state;
   }
-  
+
   /**
   Utility method, enables or disables collisions on the given set of meshes.
   @param meshes array of meshes
   @param state true or false
    */
-  _collisions( meshes, state ) {
-    if ( meshes ) {
-      for ( var i=0; i<meshes.length; i++ ) {
-        this.setMeshCollisions( meshes[i], state );
+  _collisions(meshes, state) {
+    if (meshes) {
+      for (var i = 0; i < meshes.length; i++) {
+        this.setMeshCollisions(meshes[i], state);
       }
     }
   }
-  
+
   /**
   Enable or disable collisions for a mesh. Override to fine-tune collisions.
   @param mesh
   @param state
    */
   setMeshCollisions(mesh, state) {
-    mesh.checkCollisions = state;    
+    mesh.checkCollisions = state;
   }
-  
+
   /**
   Called on loading progress, executes whatever this.onProgress contains, by default LoadProgressListener.
   @param evt
   @param name
    */
-  loadProgress( evt, name ) {
-    if ( this.onProgress ) {
-      this.onProgress( evt, name );
+  loadProgress(evt, name) {
+    if (this.onProgress) {
+      this.onProgress(evt, name);
     }
   }
   /**
@@ -571,13 +571,13 @@ export class World {
   otherwise logs it to the console.
   @param exception whatever caused loading to fail
    */
-  loadFailed( exception ) {
+  loadFailed(exception) {
     if (this.onFailure) {
-      this.onFailure( exception );
+      this.onFailure(exception);
     } else {
-      console.log( "Error loading world "+this.name, exception);
+      console.log("Error loading world " + this.name, exception);
     }
-    if ( this.indicator ) {
+    if (this.indicator) {
       this.indicator.remove(this.name);
     }
   }
@@ -586,7 +586,7 @@ export class World {
   @param name
    */
   loadingStart(name) {
-    if ( this.indicator ) {
+    if (this.indicator) {
       this.indicator.add(name);
     }
   }
@@ -595,11 +595,11 @@ export class World {
   @param name
    */
   loadingStop(name) {
-    if ( this.indicator ) {
+    if (this.indicator) {
       this.indicator.remove(name);
     }
   }
-  
+
   /** Load the world, then execute given callback passing self as argument.
   Loads an AssetContainer from file specified by this.file, if any (by default scene.gltf), and adds it to the scene.
   Then loads all world objects specified in this.objectsFile or this.worldObjects, if any - file takes precedence.
@@ -612,48 +612,48 @@ export class World {
     this.loadingStart(this.name);
 
     var promises = [];
-    if ( this.file ) {
-      var scenePromise = VRSPACEUI.assetLoader.loadAsset( this.baseUrl+this.file,
+    if (this.file) {
+      var scenePromise = VRSPACEUI.assetLoader.loadAsset(this.baseUrl + this.file,
         // onSuccess:
-        (url, container, info ) => {
+        (url, container, info) => {
           this.sceneMeshes = container.meshes;
           this.container = container;
-  
+
           // Adds all elements to the scene
           var mesh = container.createRootMesh();
           mesh.name = this.name;
           container.addAllToScene();
-        
-          this.loaded( this.file, mesh );
-          
+
+          this.loaded(this.file, mesh);
+
         },
         // onError:
-        exception => this.loadFailed( exception ),
+        exception => this.loadFailed(exception),
         // onProgress:
         evt => this.loadProgress(evt, this.name)
       );
       promises.push(scenePromise);
     }
-    
-    if ( this.objectsFile ) {
-      var response = await fetch(this.baseUrl+this.objectsFile);
+
+    if (this.objectsFile) {
+      var response = await fetch(this.baseUrl + this.objectsFile);
       var json = response.json();
       this.worldObjects = JSON.parse(json);
     }
-    
-    if ( this.worldObjects ) {
+
+    if (this.worldObjects) {
       this.sceneMeshes = [];
-      for ( var url in this.worldObjects ) {
+      for (var url in this.worldObjects) {
         var instances = this.worldObjects[url].instances;
-        if ( !url.startsWith("/") ) {
+        if (!url.startsWith("/")) {
           // relative url, make it relative to world script path
-          url = this.baseUrl+url;
+          url = this.baseUrl + url;
         }
-        instances.forEach( (instance) => {
+        instances.forEach((instance) => {
           var objPromise = VRSPACEUI.assetLoader.loadAsset(url,
             // callback 
-            (loadedUrl, container,info,instances)=>{
-              if ( instances ) {
+            (loadedUrl, container, info, instances) => {
+              if (instances) {
                 var mesh = obj.instantiatedEntries.rootNodes[0];
                 // CHECKME: untested
                 var children = mesh.getChildMeshes();
@@ -662,25 +662,25 @@ export class World {
                 // Adds all elements to the scene
                 var mesh = container.createRootMesh();
                 var pos = loadedUrl.lastIndexOf('/');
-                if ( pos >= 0 ) {
-                  mesh.name = loadedUrl.substring(pos+1);
+                if (pos >= 0) {
+                  mesh.name = loadedUrl.substring(pos + 1);
                 }
                 container.addAllToScene();
                 this.sceneMeshes.push(...container.meshes);
               }
-              if ( instance.position ) {
+              if (instance.position) {
                 mesh.position = new BABYLON.Vector3(instance.position.x, instance.position.y, instance.position.z);
               }
-              if ( instance.rotation ) {
+              if (instance.rotation) {
                 mesh.rotation = new BABYLON.Vector3(instance.rotation.x, instance.rotation.y, instance.rotation.z);
               }
-              if ( instance.scale ) {
+              if (instance.scale) {
                 mesh.scaling = new BABYLON.Vector3(instance.scale.x, instance.scale.y, instance.scale.z);
               }
-              this.loaded( loadedUrl, mesh );
+              this.loaded(loadedUrl, mesh);
             },
             // onError:
-            exception => this.loadFailed( exception ),
+            exception => this.loadFailed(exception),
             // onProgress:
             evt => this.loadProgress(evt, url)
           );
@@ -688,20 +688,20 @@ export class World {
         });
       }
     }
-    
+
     Promise.all(promises).then(() => {
       VRSPACEUI.log("World loaded");
       this.loadingStop(this.name);
       this.collisions(this.collisionsEnabled);
-      if ( callback ) {
+      if (callback) {
         callback(this);
       }
       this.initXR();
     });
-    
+
     return this;
   }
-  
+
   /**
   Called after assets are loaded. By default calls initXR().
   Subclasses typically override this with some spatial manipulations, e.g. scaling the world.
@@ -709,16 +709,16 @@ export class World {
   @param file world file that has loaded
   @param mesh root mesh of the world
    */
-  loaded( file, mesh ) {
+  loaded(file, mesh) {
     //FIXME
     //this.initXR();
   }
-  
+
   /** Register render loop. */
   registerRenderLoop() {
     // Register a render loop to repeatedly render the scene
     this.renderLoop = () => {
-      if ( this.scene ) {
+      if (this.scene) {
         this.scene.render();
       } else {
         this.engine.stopRenderLoop(this.renderLoop);
@@ -733,24 +733,24 @@ export class World {
   @param file file name to load
    */
   async loadAsset(relativePath, file) {
-    return VRSPACEUI.assetLoader.loadAsset(this.assetPath(relativePath)+file);
+    return VRSPACEUI.assetLoader.loadAsset(this.assetPath(relativePath) + file);
   }
-  
+
   /**
   Utility method, returns baseUrl+relativePath
   @param relativePath path relative to current world directory
    */
   assetPath(relativePath) {
-    return this.baseUrl+relativePath;
+    return this.baseUrl + relativePath;
   }
-  
+
   /**
   Write some text to world chat. Usually text appears above avatar's head and/or in chat log,
   but this method only sends own 'wrote' event.
   @param text something to say
    */
   write(text) {
-    if ( this.worldManager && text ) {
+    if (this.worldManager && text) {
       this.worldManager.write(text);
     }
   }
@@ -761,13 +761,13 @@ export class World {
    * @param node root node in the scene that has received event, may be null
    */
   remoteEvent(obj, field, node) {
-    if ( 'wrote' === field && this.chatLog ) {
-      console.log(obj.id+' wrote '+obj.wrote);
+    if ('wrote' === field && this.chatLog) {
+      console.log(obj.id + ' wrote ' + obj.wrote);
       var name = obj.name;
-      if ( ! name ) {
-        name = 'u'+obj.id;
+      if (!name) {
+        name = 'u' + obj.id;
       }
-      this.chatLog.log(name,obj.wrote);
+      this.chatLog.log(name, obj.wrote);
     }
   }
   /**
@@ -786,17 +786,17 @@ export class World {
   /** Remove a selection predicate function */
   removeSelectionPredicate(p) {
     let pos = this.selectionPredicates.indexOf(p);
-    if ( pos > -1 ) {
-      this.selectionPredicates.splice(pos,1);
+    if (pos > -1) {
+      this.selectionPredicates.splice(pos, 1);
     }
   }
 
   /**
    * Activate first person camera (this.camera1p), if available.
    * Makes a call to AvatarController method that applies camera rotation and takes care of everything else.
-   */  
+   */
   firstPerson() {
-    if ( this.avatarController ) {
+    if (this.avatarController) {
       this.avatarController.firstPerson();
     }
   }
@@ -804,9 +804,9 @@ export class World {
   /**
    * Activate third person camera  (this.camera3p), if available.
    * Makes a call to AvatarController method that applies camera rotation and takes care of everything else.
-   */  
+   */
   thirdPerson() {
-    if ( this.avatarController ) {
+    if (this.avatarController) {
       this.avatarController.thirdPerson();
     }
   }
@@ -819,14 +819,14 @@ export class World {
   async enterWith(avatarUrl, userName) {
     this.worldManager = new WorldManager(this);
     //this.worldManager.debug = true;
-    this.worldManager.enterWith(avatarUrl,userName).then( avatar => {
-      avatar.load( () => {
-          this.avatarController = new AvatarController(this.worldManager, avatar);
-          this.worldManager.addMyChangeListener( changes => this.avatarController.processChanges(changes) );
-        });
+    this.worldManager.enterWith(avatarUrl, userName).then(avatar => {
+      avatar.load(() => {
+        this.avatarController = new AvatarController(this.worldManager, avatar);
+        this.worldManager.addMyChangeListener(changes => this.avatarController.processChanges(changes));
+      });
     });
   }
-  
+
   /**
    * Add a world listener to listen for world events
    * @param {WorldListener} worldListener 
@@ -837,11 +837,11 @@ export class World {
 
   /**
    * Remove a world listener
-   */  
+   */
   removeListener(worldListener) {
     VRSPACE.removeListener(this.worldListeners, worldListener);
   }
-  
+
   /**
    * Save the world:
    * - all dynamically loaded assets
@@ -866,64 +866,99 @@ export class World {
         gravityEnabled: this.gravityEnabled,
         physicsPlugin: this.physicsPlugin?.name
       },
-      portals: {}
+      portals: {},
+      avatars: {
+      }
     };
-    world.assets = VRSPACEUI.assetLoader.dump(true);
+    world.assets = VRSPACEUI.assetLoader.dump(true); // CHECKME include avatars or no?
     world.sceneMeshes = [];
-    if ( this.skyBox ) {
+    if (this.skyBox) {
       world.skyBox = BABYLON.SceneSerializer.SerializeMesh(this.skyBox);
     }
-    if ( this.room ) {
+    if (this.room) {
       world.room = true;
     }
-    if ( this.ground ) { // CHECKME: elseif?
+    if (this.ground) { // CHECKME: elseif?
       world.ground = BABYLON.SceneSerializer.SerializeMesh(this.ground);
     }
-    if ( this.camera1p ) {
+    if (this.camera1p) {
       world.camera1p = BABYLON.SceneSerializer.SerializeMesh(this.camera1p);
     }
-    if ( this.camera3p ) {
+    if (this.camera3p) {
       world.camera3p = BABYLON.SceneSerializer.SerializeMesh(this.camera3p);
     }
-    world.lights=[];
-    this.scene.lights.forEach(light=>{
+    world.lights = [];
+    this.scene.lights.forEach(light => {
       world.lights.push(BABYLON.SceneSerializer.SerializeMesh(light));
     });
-    if ( this.shadowGenerator ) {
+    if (this.shadowGenerator) {
       // FIXME must be custom
       world.shadowGenerator = BABYLON.SceneSerializer.SerializeMesh(this.shadowGenerator);
     }
-    if ( this.sceneMeshes ) {
-      this.sceneMeshes.forEach(mesh=>{
-        if ( !mesh.parent ) {
-          world.sceneMeshes.push(BABYLON.SceneSerializer.SerializeMesh(mesh,false,true));
+    if (this.sceneMeshes) {
+      this.sceneMeshes.forEach(mesh => {
+        if (!mesh.parent) {
+          world.sceneMeshes.push(BABYLON.SceneSerializer.SerializeMesh(mesh, false, true));
         }
       });
     }
-    this.scene.rootNodes.forEach( (node) => {
-      if ( node.name.startsWith('Portal:') ) {
-        let portal = node.Portal;
-        //let name = node.name.substring(node.name.indexOf(':')+1);
-        let name = portal.name;
-        world.portals[name] = {
-          serverFolder: portal.serverFolder,
-          x: node.position.x, 
-          y: node.position.y, 
-          z: node.position.z,
-          angle: portal.angle, 
-          enabled: portal.isEnabled
+    this.scene.rootNodes.forEach((node) => {
+      if (node.isEnabled()) {
+        // TODO: 
+        // treat avatars differently
+        // Buttons, UI elements
+        if (node.name.startsWith('Portal:')) {
+          let portal = node.Portal;
+          //let name = node.name.substring(node.name.indexOf(':')+1);
+          let name = portal.name;
+          world.portals[name] = {
+            serverFolder: portal.serverFolder,
+            x: node.position.x,
+            y: node.position.y,
+            z: node.position.z,
+            angle: portal.angle,
+            enabled: portal.isEnabled
+          }
+        } else if (typeof node.avatar != 'undefined') {
+          let url = node.avatar.getUrl();
+          console.log("Avatar: " + url);
+          if (node.avatar.video) {
+          } else if (node.avatar.humanoid) {
+            if (!world.avatars[url]) {
+              world.avatars[url] = {
+                info: VRSPACEUI.assetLoader.containers[url].info,
+                numberOfInstances: VRSPACEUI.assetLoader.containers[url].numberOfInstances,
+                instances: []
+              };
+            }
+            let pos = node.avatar.basePosition();
+            let rot = node.avatar.baseMesh().rotationQuaternion;
+            let scale = node.avatar.baseMesh().getChildren()[0].scaling;
+            let obj = {
+              name: node.avatar.name,
+              position: { x: pos.x, y: pos.y, z: pos.z },
+              rotationQuaternion: { x: rot.x, y: rot.y, z: rot.z, w: rot.w },
+              scale: { x: scale.x, y: scale.y, z: scale.z },
+              turnAround: node.avatar.turnAround,
+              activeAnimation: node.avatar.activeAnimation,
+              userHeight: node.avatar.userHeight
+            };
+            world.avatars[url].instances.push(obj);
+          } else {
+            // mesh avatar, load as any other mesh
+          }
         }
       }
     });
-    if ( this.terrain ) {
+    
+    if (this.terrain) {
       world.terrain = {
         mesh: BABYLON.SceneSerializer.SerializeMesh(this.terrain.mesh())
       }
-      if ( this.terrain.sps ) {
+      if (this.terrain.sps) {
         world.terrain.sps = BABYLON.SceneSerializer.SerializeMesh(this.terrain.sps.mesh);
       }
     }
-    // CHECKME UI?
     VRSPACEUI.saveFile(world.name + ".json", JSON.stringify(world));
   }
 }

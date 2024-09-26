@@ -215,9 +215,8 @@ export class AssetLoader {
   /** 
   Returns all assets currently loaded from the server, with spatial coordinates of all instances.
   Note that this does not return object loaded before joining the server, e.g. in world.js, user's own avatar, etc. 
-  @param {boolean} [all=false] dump all known assets (including avatars), or VRObject instances only
    */
-  dump(all=false) {
+  dump() {
     let dump = {};
     this.scene.rootNodes.forEach( (node) => {
       let url = node.name;
@@ -225,8 +224,7 @@ export class AssetLoader {
       if ( vrObject ) {
         url = vrObject.mesh;
       }
-      // CHECKME: do we want also to return user avatars? (starts with Client)
-      if ( (all || node.id.startsWith("VRObject")) && this.containers[url] ) {
+      if ( node.id.startsWith("VRObject") && this.containers[url] ) {
         if ( ! dump[url] ) {
           dump[url] = {
             info: this.containers[url].info,
@@ -234,18 +232,11 @@ export class AssetLoader {
             instances: []
           };
         }
-        let scale = vrObject.scale;
-        //if (!scale && node.getChildren()[0]?.scaling) {
-        if (node.name.indexOf('AvatarRoot:') >= 0) {
-          let avatar = node.getChildren()[0];
-          // Avatar dynamic sizing
-          scale = {x:avatar.scaling.x, y:avatar.scaling.y, z:avatar.scaling.z};
-        }
-        var obj = {
+        let obj = {
           id: vrObject.id,
           position: vrObject.position,
           rotation: vrObject.rotation,
-          scale: scale
+          scale: vrObject.scale
         };
         dump[url].instances.push(obj);
       }

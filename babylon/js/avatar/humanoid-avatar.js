@@ -1,5 +1,6 @@
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Avatar } from './avatar.js';
+import {ServerFolder} from '../core/server-folder.js';
 
 /**
 GLTF 3D Avatar.
@@ -8,6 +9,7 @@ Animation groups are also inspected and optionally modified.
 Optional fixes can be applied to an avatar, typically position of an avatar, or changing the animation.
  */
 export class HumanoidAvatar extends Avatar {
+  static notFound = []; // 404 cache used for avatar fix files
   /**
   @param scene
   @param folder ServerFolder with the content
@@ -531,6 +533,7 @@ export class HumanoidAvatar extends Avatar {
 
             // use skeleton and animationGroups from the instance
             this.parentMesh = instantiatedEntries.rootNodes[0];
+            this.parentMesh.avatar = this;
             this.rootMesh = this.parentMesh.getChildren()[0];
 
             // remove all children nodes cloned along
@@ -555,6 +558,7 @@ export class HumanoidAvatar extends Avatar {
             container.addAllToScene();
             try {
               this._processContainer(container,success);
+              this.parentMesh.avatar = this;
             } catch ( exception ) {
               VRSPACEUI.assetLoader.unloadAsset(this.getUrl());
               if ( failure ) {
@@ -1811,11 +1815,56 @@ export class HumanoidAvatar extends Avatar {
   changed() {
   }
 
+  /** Avatar base class method */
   basePosition() {
     return this.parentMesh.position;
   }
   
+  /** Avatar base class method */
   baseMesh() {
     return this.parentMesh;
+  }
+  
+  /**
+   * Create a HumanoidAvatar from given url. Does not load it though.
+   */
+  static async createFromUrl(scene, url) {
+    if ( url.startsWith('/') && VRSPACEUI.contentBase ) {
+      url = VRSPACEUI.contentBase+url;
+    }
+    var pos = url.lastIndexOf('/');
+    var path = url.substring(0,pos);
+    var file = url.substring(pos+1);
+    // FIXME really bad way to parse path and create ServerFolder
+    pos = path.lastIndexOf('/');
+    var baseUrl = path.substring(0,pos+1);
+    var dir = path.substring(pos+1);
+    
+    //find if fix file exist
+    var fix = baseUrl+dir+"-fixes.json"; // gltf fix - expected in top-level directory
+    if ( file.toLowerCase().endsWith('.glb')) {
+      // glb fixes - expected in the same directory
+      fix = url.substring(0,url.lastIndexOf('.'))+'-fixes.json';
+    }
+    if ( ! HumanoidAvatar.notFound.includes(fix)) {
+      // FIXME this await has to go away
+      await fetch(fix, {cache: 'no-cache'}).then(response => {
+        if ( ! response.ok ) {
+          HumanoidAvatar.notFound.push( fix );
+          fix = null;
+        }
+      }).catch(err=>{
+        // rather than not found we can get CORS error
+        HumanoidAvatar.notFound.push(fix);
+        fix = null;
+        console.log(err);
+      });
+    } else {
+      fix = null;
+    }
+    var folder = new ServerFolder( baseUrl, dir, fix );
+    let avatar = new HumanoidAvatar(scene, folder);
+    avatar.file = file;
+    return avatar;
   }
 }

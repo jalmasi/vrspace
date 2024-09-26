@@ -2,7 +2,6 @@ import {Client, VRSPACE} from '../client/vrspace.js';
 import {VRSPACEUI} from '../ui/vrspace-ui.js';
 import {HumanoidAvatar} from '../avatar/humanoid-avatar.js';
 import {VideoAvatar} from '../avatar/video-avatar.js';
-import {ServerFolder} from './server-folder.js';
 import {MeshAvatar} from '../avatar/mesh-avatar.js';
 import { BotController } from '../avatar/bot-controller.js';
 
@@ -94,7 +93,6 @@ export class WorldManager {
     /** Enable debug output */
     this.debug = false;
     this.world.worldManager = this;
-    this.notFound = []; // 404 cache used for avatar fix files
     VRSPACEUI.init(this.scene); // to ensure assetLoader is available
     WorldManager.instance = this;
   }
@@ -323,44 +321,8 @@ export class WorldManager {
    * @param url URL to load avatar from 
    */  
   async createAvatarFromUrl(url) {
-    // CHECKME: move this to asset loader?
-    if ( url.startsWith('/') && VRSPACEUI.contentBase ) {
-      url = VRSPACEUI.contentBase+url;
-    }
-    var pos = url.lastIndexOf('/');
-    var path = url.substring(0,pos);
-    var file = url.substring(pos+1);
-    // FIXME really bad way to parse path and create ServerFolder
-    pos = path.lastIndexOf('/');
-    var baseUrl = path.substring(0,pos+1);
-    var dir = path.substring(pos+1);
-    
-    //find if fix file exist
-    var fix = baseUrl+dir+"-fixes.json"; // gltf fix - expected in top-level directory
-    if ( file.toLowerCase().endsWith('.glb')) {
-      // glb fixes - expected in the same directory
-      fix = url.substring(0,url.lastIndexOf('.'))+'-fixes.json';
-    }
-    if ( ! this.notFound.includes(fix)) {
-      // FIXME this await has to go away
-      await fetch(fix, {cache: 'no-cache'}).then(response => {
-        if ( ! response.ok ) {
-          this.notFound.push( fix );
-          fix = null;
-        }
-      }).catch(err=>{
-        // rather than not found we can get CORS error
-        this.notFound.push(fix);
-        fix = null;
-        console.log(err);
-      });
-    } else {
-      fix = null;
-    }
-    var folder = new ServerFolder( baseUrl, dir, fix );
-    var avatar = new HumanoidAvatar(this.scene, folder);
+    let avatar = await HumanoidAvatar.createFromUrl(this.scene,url);
     avatar.animations = this.customAnimations;
-    avatar.file = file;
     avatar.fps = this.fps;
     avatar.generateAnimations = this.createAnimations;
     // GLTF characters are facing the user when loaded, turn it around
