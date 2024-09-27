@@ -855,7 +855,7 @@ export class World {
    * - UI?
    * - portal(s)?
    */
-  save() {
+  async save() {
     let world = {
       name: this.name,
       baseUrl: this.baseUrl,
@@ -868,7 +868,8 @@ export class World {
       },
       portals: {},
       avatars: {
-      }
+      },
+      videoAvatars: []
     };
     world.assets = VRSPACEUI.assetLoader.dump(true); // CHECKME include avatars or no?
     world.sceneMeshes = [];
@@ -902,7 +903,7 @@ export class World {
         }
       });
     }
-    this.scene.rootNodes.forEach((node) => {
+    for ( let node of this.scene.rootNodes ) {
       if (node.isEnabled()) {
         // TODO: 
         // treat avatars differently
@@ -923,6 +924,17 @@ export class World {
           let url = node.avatar.getUrl();
           console.log("Avatar: " + url);
           if (node.avatar.video) {
+            let pos = node.avatar.basePosition();
+            let obj = {
+              name: node.avatar.name,
+              autoStart: node.avatar.autoStart,
+              autoAttach: node.avatar.autoAttach,
+              position: { x: pos.x, y: pos.y, z: pos.z },
+              displaying: node.avatar.displaying,
+              altText: node.avatar.altText,
+              altImage: node.avatar.altImage
+            };
+            world.videoAvatars.push(obj);
           } else if (node.avatar.humanoid) {
             if (!world.avatars[url]) {
               world.avatars[url] = {
@@ -949,7 +961,7 @@ export class World {
           }
         }
       }
-    });
+    }
     
     if (this.terrain) {
       world.terrain = {

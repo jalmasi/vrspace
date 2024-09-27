@@ -4,6 +4,7 @@ import { Portal } from '../ui/world/portal.js';
 import { ServerFolder } from '../core/server-folder.js';
 import { LogoRoom } from '../ui/world/logo-room.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
+import { VideoAvatar } from '../avatar/video-avatar.js';
 
 export class WorldLoader {
   static loadComponent(component, scene) {
@@ -104,6 +105,16 @@ export class WorldLoader {
           }
           this.loadAssets(worldInfo.assets, (url,asset) => this.loadAsset(url, asset));
           this.loadAssets(worldInfo.avatars, (url,avatar) => this.loadAvatar(url, avatar, world.scene));
+          worldInfo.videoAvatars.forEach( videoAvatar => {
+            let video = new VideoAvatar(world.scene);
+            video.autoStart = videoAvatar.autoStart;
+            video.autoAttach = videoAvatar.autoAttach;
+            video.altText = videoAvatar.altText;
+            video.altImage = videoAvatar.altImage;
+            video.show();
+            video.mesh.parent = new BABYLON.TransformNode("Root of "+video.mesh.id, world.scene);
+            video.mesh.parent.position = new BABYLON.Vector3(videoAvatar.position.x,videoAvatar.position.y,videoAvatar.position.z);
+          });
         });
 
 

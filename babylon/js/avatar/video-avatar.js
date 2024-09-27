@@ -48,7 +48,7 @@ export class VideoAvatar extends Avatar {
       // used for collision detection (3rd person view)
       this.mesh.ellipsoid = new BABYLON.Vector3(this.radius, this.radius, this.radius);
 
-      this.mesh.avatar = this;
+      this.mesh.avatar = this; // CHECKME
       
       // glow layer may make the texture invisible, needd to turn of glow for the mesh
       if ( this.scene.effectLayers ) {
@@ -229,6 +229,10 @@ export class VideoAvatar extends Avatar {
   }
   
   basePosition() {
+    if ( this.mesh.parent ) {
+      // CHECKME this is used by avatarController and world serializer
+      return new BABYLON.Vector3(this.mesh.parent.position.x, this.mesh.parent.position.y, this.mesh.parent.position.z);
+    }
     return new BABYLON.Vector3(this.mesh.position.x, this.mesh.position.y-this.radius, this.mesh.position.z);
   }
 

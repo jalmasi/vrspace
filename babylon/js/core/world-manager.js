@@ -249,6 +249,7 @@ export class WorldManager {
     var parent = new BABYLON.TransformNode("Root of "+video.mesh.id, this.scene);
     video.mesh.parent = parent;
     parent.VRObject = obj;
+    parent.avatar = video; // CHECKME
           
     this.log("Added stream "+obj.id);
     
