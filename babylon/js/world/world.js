@@ -869,7 +869,8 @@ export class World {
       portals: {},
       avatars: {
       },
-      videoAvatars: []
+      videoAvatars: [],
+      meshAvatars: {}
     };
     world.assets = VRSPACEUI.assetLoader.dump(true); // CHECKME include avatars or no?
     world.sceneMeshes = [];
@@ -957,7 +958,22 @@ export class World {
             };
             world.avatars[url].instances.push(obj);
           } else {
-            // mesh avatar, load as any other mesh
+            // mesh avatar - TODO not tested
+            if (!world.meshAvatars[url]) {
+              world.meshAvatars[url] = {
+                info: VRSPACEUI.assetLoader.containers[url].info,
+                numberOfInstances: VRSPACEUI.assetLoader.containers[url].numberOfInstances,
+                instances: []
+              };
+            }
+            let pos = node.avatar.basePosition();
+            let rot = node.avatar.baseMesh.rotation;
+            let obj = {
+              name: node.avatar.name,
+              position: { x: pos.x, y: pos.y, z: pos.z },
+              rotation: { x: rot.x, y: rot.y, z: rot.z}
+            };
+            world.meshAvatars[url].instances.push(obj);
           }
         }
       }

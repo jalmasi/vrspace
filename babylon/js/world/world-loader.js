@@ -5,6 +5,7 @@ import { ServerFolder } from '../core/server-folder.js';
 import { LogoRoom } from '../ui/world/logo-room.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
+import { MeshAvatar } from '../avatar/mesh-avatar.js';
 
 export class WorldLoader {
   static loadComponent(component, scene) {
@@ -13,6 +14,21 @@ export class WorldLoader {
     }
   }
 
+  static async loadMesh(url, instance, scene) {
+    var vrObject = {
+      mesh: url,
+      name: instance.name,
+      position: instance.position,
+      rotation: instance.rotation
+    };
+    let avatar = new MeshAvatar(scene, vrObject);
+    VRSPACEUI.assetLoader.loadObject(vrObject, mesh => {
+      mesh.position = new BABYLON.Vector3(instance.position.x, instance.position.y, instance.position.z);
+      mesh.rotation = new BABYLON.Vector3(instance.rotation.x, instance.rotation.y, instance.rotation.z);
+      avatar.setName(instance.name);
+    });
+  }
+  
   static async loadAvatar(url, instance, scene) {
     let avatar = await HumanoidAvatar.createFromUrl(scene, url);
     avatar.userHeight = instance.userHeight;
@@ -105,6 +121,7 @@ export class WorldLoader {
           }
           this.loadAssets(worldInfo.assets, (url,asset) => this.loadAsset(url, asset));
           this.loadAssets(worldInfo.avatars, (url,avatar) => this.loadAvatar(url, avatar, world.scene));
+          this.loadAssets(worldInfo.meshAvatars, (url,asset) => this.loadMesh(url, asset, world.scene));
           worldInfo.videoAvatars.forEach( videoAvatar => {
             let video = new VideoAvatar(world.scene);
             video.autoStart = videoAvatar.autoStart;

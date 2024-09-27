@@ -464,6 +464,7 @@ export class WorldManager {
     this.loadMesh(obj, mesh=>{
       avatar.mesh = mesh;
       obj.avatar = avatar;
+      mesh.avatar = avatar;
       var bbox = avatar.baseMesh().getHierarchyBoundingVectors();
       this.log("Bounding box:");
       this.log(bbox);
