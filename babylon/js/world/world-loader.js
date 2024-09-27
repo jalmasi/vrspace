@@ -9,8 +9,12 @@ import { MeshAvatar } from '../avatar/mesh-avatar.js';
 
 export class WorldLoader {
   static loadComponent(component, scene) {
-    if (component) {
-      BABYLON.SceneLoader.Append("", 'data:' + JSON.stringify(component), scene);
+    try {
+      if (component) {
+        BABYLON.SceneLoader.Append("", 'data:' + JSON.stringify(component), scene);
+      }
+    } catch (ex) {
+      console.error("Error loading component ", component);
     }
   }
 
@@ -86,7 +90,6 @@ export class WorldLoader {
         world.objectsFile = worldInfo.objectsFile;
         world.gravityEnabled = worldInfo.gravityEnabled;
 
-        // TODO: https://doc.babylonjs.com/typedoc/classes/BABYLON.SceneLoader#ImportMesh
         this.loadComponent(worldInfo.skyBox, world.scene);
         this.loadComponent(worldInfo.ground, world.scene);
         this.loadComponent(worldInfo.camera1p, world.scene);
@@ -132,6 +135,8 @@ export class WorldLoader {
             video.mesh.parent = new BABYLON.TransformNode("Root of "+video.mesh.id, world.scene);
             video.mesh.parent.position = new BABYLON.Vector3(videoAvatar.position.x,videoAvatar.position.y,videoAvatar.position.z);
           });
+          
+          worldInfo.scriptedObjects.forEach(o=>this.loadComponent(o, world.scene));
         });
 
 

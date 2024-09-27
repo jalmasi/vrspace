@@ -21,6 +21,7 @@ export class RemoteWhiteboard extends BasicScript {
     if ( !this.isMine() ) {
       this.show();
     }
+    return this.whiteboard.group;
   }
   
   show() {

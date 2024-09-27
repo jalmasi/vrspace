@@ -529,8 +529,11 @@ export class WorldManager {
       this.notifyLoadListeners(obj, instance);
       
       var node = instance.init();
-      if ( node && obj.active ) {
-        obj.addListener((obj, changes) => this.changeObject(obj, changes, node));
+      if ( node ) {
+        node.VRObject = obj;
+        if ( obj.active ) {
+          obj.addListener((obj, changes) => this.changeObject(obj, changes, node));
+        }
       }
     });
   }

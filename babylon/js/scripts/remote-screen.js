@@ -9,7 +9,6 @@ import { ImageArea } from '../ui/widget/image-area.js';
  */
 export class RemoteScreen extends BasicScript {
   async init() {
-    super.init();
     console.log("Remote screen initializing", this.vrObject);
     //properties:{ screenName:screenName, clientId: client.id },
     //active:true,
@@ -18,6 +17,7 @@ export class RemoteScreen extends BasicScript {
       this.worldManager.mediaStreams.addStreamListener(this.vrObject.properties.clientId, mediaStream => this.playStream(mediaStream));
     }
     this.show();
+    return this.imageArea.group;
   }
 
   show() {
