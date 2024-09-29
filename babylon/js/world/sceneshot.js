@@ -7,7 +7,7 @@ import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
 import { MeshAvatar } from '../avatar/mesh-avatar.js';
 
-export class WorldLoader {
+export class Sceneshot {
   /**
    * Save the world:
    * - all dynamically loaded assets
@@ -21,8 +21,7 @@ export class WorldLoader {
    * - portal(s)
    * - TODO: UI?
    */
-  static async saveCurrentWorld() {
-    let world = World.lastInstance;
+  static async serializeWorld(world = World.lastInstance) {
     let worldInfo = {
       name: world.name,
       baseUrl: world.baseUrl,
@@ -179,9 +178,89 @@ export class WorldLoader {
         worldInfo.terrain.sps = BABYLON.SceneSerializer.SerializeMesh(world.terrain.sps.mesh);
       }
     }
+    return worldInfo;
+  }
+
+  static async saveJson(world) {
+    let worldInfo = await this.serializeWorld(world); 
     VRSPACEUI.saveFile(worldInfo.name + ".json", JSON.stringify(worldInfo));
   }
-  
+
+  static async saveHtml(world) {
+    let worldInfo = await this.serializeWorld(world); 
+    let json = JSON.stringify(worldInfo);
+    let html = `
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+    <head>
+      <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+      <meta content="utf-8" http-equiv="encoding">
+    <title>VRSpace:Sceneshot</title>
+    <style type="text/css">
+    html, body {
+      width: 100%;
+      height:100%;
+      margin: 0px;
+      padding: 0px;
+    }
+    canvas {
+      width: 100%;
+      height:96%;
+      padding-left: 0;
+      padding-right: 0;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    </style>
+    <script src="https://cdn.babylonjs.com/v6.49.0/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/v6.49.0/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/v6.49.0/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/v6.49.0/materialsLibrary/babylonjs.materials.min.js"></script>
+    <script src="https://cdn.babylonjs.com/v6.49.0/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+
+    <script src="./js/vrspace-min.js" type="module"></script>
+    </head>
+  <body>
+
+  <!-- canvas is not focusable by default, tabIndex does that -->
+  <canvas id="renderCanvas" touch-action="none" tabIndex=0></canvas>
+<script>
+
+var canvas = document.getElementById("renderCanvas"); // Get the canvas element
+// focus canvas so we get keyboard events, otherwise need to click on it first
+canvas.focus();
+var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var scene;
+`
+    html += 'var json =`';
+    html += json;
+    html += '`';
+    html += `
+import('./js/vrspace-min.js').then( (module) =>{
+  module.Sceneshot.loadString(engine, json).then(world=>scene=world.scene);
+});
+
+
+function debugOnOff() {
+  console.log("Debug: "+scene.debugLayer.isVisible());
+  if ( scene.debugLayer.isVisible() ) {
+    scene.debugLayer.hide();
+  } else {
+    scene.debugLayer.show();
+  }
+}
+
+</script>
+<div style="position:absolute;bottom:10px;right:50%;">
+  <button onClick="debugOnOff()">Debug</button>
+</div>
+
+</body>
+</html>
+`    
+    VRSPACEUI.saveFile(worldInfo.name + ".html", html);
+  }
+
   static loadComponent(component, scene) {
     try {
       if (component) {
@@ -220,7 +299,7 @@ export class WorldLoader {
       }
       avatar.setName(instance.name);
       if ( instance.activeAnimation ) {
-        avatar.startAnimation(instance.activeAnimation);
+        avatar.startAnimation(instance.activeAnimation, true);
       }
     });
   }
