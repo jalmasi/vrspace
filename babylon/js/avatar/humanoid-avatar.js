@@ -1828,7 +1828,7 @@ export class HumanoidAvatar extends Avatar {
   /**
    * Create a HumanoidAvatar from given url. Does not load it though.
    */
-  static async createFromUrl(scene, url) {
+  static async createFromUrl(scene, url, shadowGenerator) {
     if ( url.startsWith('/') && VRSPACEUI.contentBase ) {
       url = VRSPACEUI.contentBase+url;
     }
@@ -1863,7 +1863,7 @@ export class HumanoidAvatar extends Avatar {
       fix = null;
     }
     var folder = new ServerFolder( baseUrl, dir, fix );
-    let avatar = new HumanoidAvatar(scene, folder);
+    let avatar = new HumanoidAvatar(scene, folder, shadowGenerator);
     avatar.file = file;
     return avatar;
   }

@@ -891,12 +891,27 @@ export class World {
       world.camera3p = BABYLON.SceneSerializer.SerializeMesh(this.camera3p);
     }
     world.lights = [];
-    this.scene.lights.forEach(light => {
+    for ( let i = 0; i < this.scene.lights.length; i++ ) {
+      let light = this.scene.lights[i];
       world.lights.push(BABYLON.SceneSerializer.SerializeMesh(light));
-    });
+      if ( this.light === light ) {
+        world.light == i;
+      }
+    }
     if (this.shadowGenerator) {
-      // FIXME must be custom
-      world.shadowGenerator = BABYLON.SceneSerializer.SerializeMesh(this.shadowGenerator);
+      world.shadowGenerator = {
+        mapSize: this.shadowGenerator.mapSize,
+        useExponentialShadowMap: this.shadowGenerator.useExponentialShadowMap,
+        transparencyShadow: this.shadowGenerator.transparencyShadow
+        // blur etc?
+      }
+      for ( let i = 0; i < this.scene.lights.length; i++ ) {
+        let light = this.scene.lights[i];
+        if ( this.shadowGenerator.getLight() === light ) {
+          world.shadowGenerator.light = i;
+          break;
+        }
+      }
     }
     if (this.sceneMeshes) {
       this.sceneMeshes.forEach(mesh => {

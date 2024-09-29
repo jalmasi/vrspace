@@ -33,8 +33,8 @@ export class WorldLoader {
     });
   }
   
-  static async loadAvatar(url, instance, scene) {
-    let avatar = await HumanoidAvatar.createFromUrl(scene, url);
+  static async loadAvatar(url, instance, scene, shadowGenerator) {
+    let avatar = await HumanoidAvatar.createFromUrl(scene, url, shadowGenerator);
     avatar.userHeight = instance.userHeight;
     avatar.turnAround = instance.turnAround
     // load
@@ -94,9 +94,17 @@ export class WorldLoader {
         this.loadComponent(worldInfo.ground, world.scene);
         this.loadComponent(worldInfo.camera1p, world.scene);
         this.loadComponent(worldInfo.camera3p, world.scene);
-        worldInfo.lights.forEach(light => {
-          this.loadComponent(light, world.scene);
-        });
+        for ( let i = 0; i < worldInfo.lights.length; i++ ) {
+          this.loadComponent(worldInfo.lights[i], world.scene);
+          if ( i == worldInfo.light ) {
+            world.light = world.scene.lights[world.scene.lights.length-1];
+          }
+        }
+        if ( worldInfo.shadowGenerator ) {
+          world.shadowGenerator = new BABYLON.ShadowGenerator(worldInfo.shadowGenerator.mapSize, world.scene.lights[worldInfo.shadowGenerator.light]);
+          world.shadowGenerator.useExponentialShadowMap = worldInfo.shadowGenerator.useExponentialShadowMap;
+          world.shadowGenerator.transparencyShadow = worldInfo.shadowGenerator.useExponentialShadowMap;
+        }
         worldInfo.sceneMeshes.forEach(mesh => {
           this.loadComponent(mesh, world.scene);
         });
@@ -123,7 +131,7 @@ export class WorldLoader {
             portal.loadAt(portalInfo.x, portalInfo.y, portalInfo.z, portalInfo.angle).then(p => p.enabled(portalInfo.enabled));
           }
           this.loadAssets(worldInfo.assets, (url,asset) => this.loadAsset(url, asset));
-          this.loadAssets(worldInfo.avatars, (url,avatar) => this.loadAvatar(url, avatar, world.scene));
+          this.loadAssets(worldInfo.avatars, (url,avatar) => this.loadAvatar(url, avatar, world.scene, world.shadowGenerator));
           this.loadAssets(worldInfo.meshAvatars, (url,asset) => this.loadMesh(url, asset, world.scene));
           worldInfo.videoAvatars.forEach( videoAvatar => {
             let video = new VideoAvatar(world.scene);
