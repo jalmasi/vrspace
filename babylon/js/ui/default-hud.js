@@ -11,6 +11,7 @@ import { EmojiParticleSystem } from './world/emoji-particle-system.js';
 import { Screencast } from './world/screencast.js';
 import { Whiteboard } from './world/whiteboard.js';
 import { TextArea } from './widget/text-area.js';
+import { WorldLoader } from '../world/world-loader.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -535,6 +536,6 @@ export class DefaultHud {
   }
   
   save() {
-    World.lastInstance.save();
+    WorldLoader.saveCurrentWorld();
   }
 }
