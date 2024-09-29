@@ -217,8 +217,6 @@ export class Sceneshot {
     <script src="https://cdn.babylonjs.com/v6.49.0/gui/babylon.gui.min.js"></script>
     <script src="https://cdn.babylonjs.com/v6.49.0/materialsLibrary/babylonjs.materials.min.js"></script>
     <script src="https://cdn.babylonjs.com/v6.49.0/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-
-    <script src="./js/vrspace-min.js" type="module"></script>
     </head>
   <body>
 
@@ -235,8 +233,14 @@ var scene;
     html += 'var json =`';
     html += json;
     html += '`';
+    let scriptSrc = '/babylon/js/vrspace-min.js';
+    if ( window.location.href.indexOf('localhost') >= 0 ) {
+      console.warn('This document can not be loaded from filesystem, only from web server');
+    } else {
+      scriptSrc = window.location.origin + scriptSrc;
+    }
+    html += "\nimport('"+scriptSrc+"').then( (module) =>{";
     html += `
-import('./js/vrspace-min.js').then( (module) =>{
   module.Sceneshot.loadString(engine, json).then(world=>scene=world.scene);
 });
 
