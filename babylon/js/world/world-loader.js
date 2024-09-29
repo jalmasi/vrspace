@@ -108,6 +108,9 @@ export class WorldLoader {
         worldInfo.sceneMeshes.forEach(mesh => {
           this.loadComponent(mesh, world.scene);
         });
+        worldInfo.buttons.forEach(mesh => {
+          this.loadComponent(mesh, world.scene);
+        });
         world.registerRenderLoop();
 
         VRSPACEUI.init(world.scene).then(() => {

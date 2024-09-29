@@ -871,7 +871,8 @@ export class World {
       },
       videoAvatars: [],
       meshAvatars: {},
-      scriptedObjects: []
+      scriptedObjects: [],
+      buttons: []
     };
     world.assets = VRSPACEUI.assetLoader.dump(true); // CHECKME include avatars or no?
     world.sceneMeshes = [];
@@ -938,6 +939,8 @@ export class World {
               angle: portal.angle,
               enabled: portal.isEnabled
             }
+          } else if (node.name.startsWith('ButtonGroup:')) {
+            world.buttons.push(BABYLON.SceneSerializer.SerializeMesh(node, false, true));
           } else if (typeof node.avatar != 'undefined') {
             let url = node.avatar.getUrl();
             console.log("Avatar: " + url);
