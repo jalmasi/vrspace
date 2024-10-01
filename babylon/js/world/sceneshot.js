@@ -428,6 +428,7 @@ function debugOnOff() {
       });
       
       worldInfo.scriptedObjects.forEach(o=>this.loadComponent(o, world.scene));
+      world.initXR();
     });
     
     return world;
