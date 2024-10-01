@@ -273,9 +273,9 @@ function debugOnOff() {
         // skybox is serialized with relative urls
         // CHECKME this is likely to be the case with all textures
         // CHECKME better way to find content path?
-        let string = JSON.stringify(component);
-        string = string.replace("/content/", VRSPACEUI.contentBase+"/content/");
-        BABYLON.SceneLoader.Append("", 'data:' + string, scene);
+        let text = JSON.stringify(component);
+        let replaced = text.replaceAll("/content/", VRSPACEUI.contentBase+"/content/");
+        BABYLON.SceneLoader.Append("", 'data:' + replaced, scene);
       }
     } catch (ex) {
       console.error("Error loading component ", component);
