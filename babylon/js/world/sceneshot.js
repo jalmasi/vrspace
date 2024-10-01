@@ -403,7 +403,7 @@ function debugOnOff() {
       for (let portalName in worldInfo.portals) {
         let portalInfo = worldInfo.portals[portalName];
         console.log('Portal ' + portalName, portalInfo);
-        let serverFolder = new ServerFolder(portalInfo.serverFolder.baseUrl, portalInfo.serverFolder.name, portalInfo.serverFolder.related);
+        let serverFolder = new ServerFolder(VRSPACEUI.contentBase+portalInfo.serverFolder.baseUrl, portalInfo.serverFolder.name, portalInfo.serverFolder.related);
         let portal = new Portal(world.scene, serverFolder);
         portal.loadAt(portalInfo.x, portalInfo.y, portalInfo.z, portalInfo.angle).then(p => p.enabled(portalInfo.enabled));
       }
