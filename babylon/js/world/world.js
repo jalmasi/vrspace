@@ -647,6 +647,7 @@ export class World {
         var instances = this.worldObjects[url].instances;
         if (!url.startsWith("/")) {
           // relative url, make it relative to world script path
+          // CHECKME/FIXME: what about absolute ones starting with https://?
           url = this.baseUrl + url;
         }
         instances.forEach((instance) => {

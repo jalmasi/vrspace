@@ -124,6 +124,7 @@ export class Sceneshot {
                 worldInfo.avatars[url] = {
                   info: VRSPACEUI.assetLoader.containers[url].info,
                   numberOfInstances: VRSPACEUI.assetLoader.containers[url].numberOfInstances,
+                  animations: node.avatar.animations,
                   instances: []
                 };
               }
@@ -240,6 +241,7 @@ var scene;
       scriptSrc = window.location.origin + scriptSrc;
     }
     html += "\nimport('"+scriptSrc+"').then( (module) =>{";
+    html += "\n  module.VRSPACEUI.contentBase='"+window.location.origin+"';";
     html += `
   module.Sceneshot.loadString(engine, json).then(world=>scene=world.scene);
 });
@@ -290,10 +292,11 @@ function debugOnOff() {
     });
   }
   
-  static async loadAvatar(url, instance, scene, shadowGenerator) {
+  static async loadAvatar(url, asset, instance, scene, shadowGenerator) {
     let avatar = await HumanoidAvatar.createFromUrl(scene, url, shadowGenerator);
     avatar.userHeight = instance.userHeight;
     avatar.turnAround = instance.turnAround
+    avatar.animations = asset.animations;
     // load
     avatar.load(()=>{
       avatar.baseMesh().position = new BABYLON.Vector3(instance.position.x, instance.position.y, instance.position.z);
@@ -326,12 +329,13 @@ function debugOnOff() {
 
   static loadAssets(assets, loadFunc) {
     for (let url in assets) {
-      let instances = assets[url].instances;
-      if (!url.startsWith("/")) {
+      let asset = assets[url];
+      let instances = asset.instances;
+      if (!url.startsWith("/") && !url.startsWith("http")) {
         // relative url, make it relative to world script path
-        url = this.baseUrl + url;
+        url = VRSPACEUI.contentBase + url;
       }
-      instances.forEach(instance => loadFunc(url, instance));
+      instances.forEach(instance => loadFunc(url, asset, instance));
     }
   }
 
@@ -403,9 +407,9 @@ function debugOnOff() {
         let portal = new Portal(world.scene, serverFolder);
         portal.loadAt(portalInfo.x, portalInfo.y, portalInfo.z, portalInfo.angle).then(p => p.enabled(portalInfo.enabled));
       }
-      this.loadAssets(worldInfo.assets, (url,asset) => this.loadAsset(url, asset));
-      this.loadAssets(worldInfo.avatars, (url,avatar) => this.loadAvatar(url, avatar, world.scene, world.shadowGenerator));
-      this.loadAssets(worldInfo.meshAvatars, (url,asset) => this.loadMesh(url, asset, world.scene));
+      this.loadAssets(worldInfo.assets, (url,asset,instance) => this.loadAsset(url, instance));
+      this.loadAssets(worldInfo.avatars, (url,avatar,instance) => this.loadAvatar(url, avatar, instance, world.scene, world.shadowGenerator));
+      this.loadAssets(worldInfo.meshAvatars, (url,asset,instance) => this.loadMesh(url, instance, world.scene));
       worldInfo.videoAvatars.forEach( videoAvatar => {
         let video = new VideoAvatar(world.scene);
         video.autoStart = videoAvatar.autoStart;
