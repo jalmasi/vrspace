@@ -270,7 +270,12 @@ function debugOnOff() {
   static loadComponent(component, scene) {
     try {
       if (component) {
-        BABYLON.SceneLoader.Append("", 'data:' + JSON.stringify(component), scene);
+        // skybox is serialized with relative urls
+        // CHECKME this is likely to be the case with all textures
+        // CHECKME better way to find content path?
+        let string = JSON.stringify(component);
+        string = string.replace("/content/", VRSPACEUI.contentBase+"/content/");
+        BABYLON.SceneLoader.Append("", 'data:' + string, scene);
       }
     } catch (ex) {
       console.error("Error loading component ", component);
@@ -403,6 +408,7 @@ function debugOnOff() {
       for (let portalName in worldInfo.portals) {
         let portalInfo = worldInfo.portals[portalName];
         console.log('Portal ' + portalName, portalInfo);
+        // CHECKME: should we rather save this VRSPACEUI.contentBase with each portal url?
         let serverFolder = new ServerFolder(VRSPACEUI.contentBase+portalInfo.serverFolder.baseUrl, portalInfo.serverFolder.name, portalInfo.serverFolder.related);
         let portal = new Portal(world.scene, serverFolder);
         portal.loadAt(portalInfo.x, portalInfo.y, portalInfo.z, portalInfo.angle).then(p => p.enabled(portalInfo.enabled));
