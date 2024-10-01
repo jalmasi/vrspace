@@ -274,7 +274,7 @@ function debugOnOff() {
         // CHECKME this is likely to be the case with all textures
         // CHECKME better way to find content path?
         let text = JSON.stringify(component);
-        let replaced = text.replaceAll("/content/", VRSPACEUI.contentBase+"/content/");
+        let replaced = text.replaceAll('"/content/', '"'+VRSPACEUI.contentBase+'/content/');
         BABYLON.SceneLoader.Append("", 'data:' + replaced, scene);
       }
     } catch (ex) {
@@ -336,7 +336,7 @@ function debugOnOff() {
     for (let url in assets) {
       let asset = assets[url];
       let instances = asset.instances;
-      if (!url.startsWith("/") && !url.startsWith("http")) {
+      if (url.startsWith("/")) {
         // relative url, make it relative to world script path
         url = VRSPACEUI.contentBase + url;
       }
