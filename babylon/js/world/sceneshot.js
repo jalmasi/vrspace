@@ -7,6 +7,17 @@ import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
 import { MeshAvatar } from '../avatar/mesh-avatar.js';
 
+/**
+ * Save and load the scene with this class.
+ * 
+ * Addesses existing issues with babylon.js serialization:
+ * 1) technical: gltf serialization doesn't support transparency, json serialization fails with with js errors
+ * 2) generated json files may be huge
+ * 3) intelectual property violation - even with open source models, we must comply with the license
+ * 
+ * So we take mixed approach to serialize everything - some custom and some babylon. 
+ * Most important is not copying everything, use URL of the model whenever possible. 
+ */
 export class Sceneshot {
   /**
    * Save the world:
@@ -19,7 +30,8 @@ export class Sceneshot {
    * - shadow generator
    * - physics
    * - portal(s)
-   * - TODO: UI?
+   * TODO: make loading these elements optional.
+   * @return world object
    */
   static async serializeWorld(world = World.lastInstance) {
     let worldInfo = {
@@ -182,11 +194,21 @@ export class Sceneshot {
     return worldInfo;
   }
 
+  /**
+   * Serialize the world as json, and save the file.
+   * Calls serializeWorld, then VRSPACEUI.saveFile.
+   * @param {World} world 
+   */
   static async saveJson(world) {
     let worldInfo = await this.serializeWorld(world); 
     VRSPACEUI.saveFile(worldInfo.name + ".json", JSON.stringify(worldInfo));
   }
 
+  /**
+   * Serialize the world as json, generate html that creates the scene and loads json, and save the html file.
+   * Calls serializeWorld, then VRSPACEUI.saveFile.
+   * @param {World} world 
+   */
   static async saveHtml(world) {
     let worldInfo = await this.serializeWorld(world); 
     let json = JSON.stringify(worldInfo);
@@ -267,6 +289,10 @@ function debugOnOff() {
     VRSPACEUI.saveFile(worldInfo.name + ".html", html);
   }
 
+  /**
+   * Internal
+   * @private
+   */
   static loadComponent(component, scene) {
     try {
       if (component) {
@@ -282,6 +308,10 @@ function debugOnOff() {
     }
   }
 
+  /**
+   * Internal
+   * @private
+   */
   static async loadMesh(url, instance, scene) {
     var vrObject = {
       mesh: url,
@@ -297,6 +327,10 @@ function debugOnOff() {
     });
   }
   
+  /**
+   * Internal
+   * @private
+   */
   static async loadAvatar(url, asset, instance, scene, shadowGenerator) {
     let avatar = await HumanoidAvatar.createFromUrl(scene, url, shadowGenerator);
     avatar.userHeight = instance.userHeight;
@@ -316,6 +350,10 @@ function debugOnOff() {
     });
   }
 
+  /**
+   * Internal
+   * @private
+   */
   static loadAsset(url, instance) {
     var vrObject = {
       mesh: url,
@@ -332,6 +370,10 @@ function debugOnOff() {
     });
   }
 
+  /**
+   * Internal
+   * @private
+   */
   static loadAssets(assets, loadFunc) {
     for (let url in assets) {
       let asset = assets[url];
@@ -344,6 +386,11 @@ function debugOnOff() {
     }
   }
 
+  /**
+   * Load a world from a json file: fetch the file and call loadWorld
+   * @param engine babylon.js engine created elsewhere
+   * @param file file name, defaults to scene.json
+   */
   static async loadFile(engine, file = "scene.json") {
     let response = await fetch(file);
     let worldInfo = await response.json();
@@ -351,12 +398,41 @@ function debugOnOff() {
     return world;
   }
   
+  
+  /**
+   * Load a world from a json string: parse the string and call loadWorld
+   * @param engine babylon.js engine created elsewhere
+   * @param text json source
+   */
   static async loadString(engine, text) {
     let worldInfo = JSON.parse(text);
     let world = await this.loadWorld(engine,worldInfo); 
     return world;
   }
 
+  /**
+   * Load the world.
+   * Creates new World object, and the Scene then loads
+   * - sky box
+   * - ground
+   * - cameras
+   * - lights
+   * - shadow generator
+   * - scene meshes
+   * - button groups
+   * - logo room (that's only for avatar selection)
+   * - terrain
+   * - portals
+   * - general VRObjects (e.g. created by world editor)
+   * - humanoid avatars
+   * - mesh avatars
+   * - video avatars (without video obviously)
+   * - scripted objects
+   * So everything except HUD and forms.
+   * TODO: make loading these elements optional.
+   * @param engine babylon.js engine
+   * @param worldInfo serialized world object
+   */
   static async loadWorld(engine, worldInfo) {
     let world = new World();
     world.engine = engine;
