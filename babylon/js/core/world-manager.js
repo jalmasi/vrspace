@@ -487,6 +487,7 @@ export class WorldManager {
     }
     VRSPACEUI.assetLoader.loadObject(obj, (mesh) => {
       this.log("loaded "+obj.mesh);
+      mesh.VRObject = obj;
       
       var initialPosition = { position: {} };
       this.changeObject( obj, initialPosition );
