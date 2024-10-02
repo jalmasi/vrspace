@@ -1,6 +1,6 @@
 {
   "name": "@vrspace/babylonjs",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "vrspace.org babylonjs client",
   "type": "module",
   "main": "index.mjs",
