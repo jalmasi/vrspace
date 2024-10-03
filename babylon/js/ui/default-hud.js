@@ -12,6 +12,7 @@ import { Screencast } from './world/screencast.js';
 import { Whiteboard } from './world/whiteboard.js';
 import { TextArea } from './widget/text-area.js';
 import { Sceneshot } from '../world/sceneshot.js';
+import { VisibilitySensor } from '../world/visibility-sensor.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -45,6 +46,8 @@ export class DefaultHud {
       this.displayButtons = false;
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
+      this.settingsButton = this.hud.addButton("Tools", this.contentBase + "/content/icons/tools.png", () => this.tools());
+      this.settingsButton = this.hud.addButton("Games", this.contentBase + "/content/icons/gamepad.png", () => this.games());
       this.emojiButton = this.hud.addButton("Emoji", this.contentBase + "/content/icons/emoji.png", () => this.emojis());
       this.shareButton = this.hud.addButton("Share", this.contentBase + "/content/icons/share.png", () => this.share());
       this.hud.enableSpeech(true);
@@ -534,8 +537,26 @@ export class DefaultHud {
       }, 100);
     }
   }
-  
+ 
+  /**
+   * Save the current view of the world as HTML file.
+   */ 
   save() {
     Sceneshot.saveHtml();
+  }
+  
+  games() {
+    if ( this.visibilitySensor ) {
+      this.visibilitySensor.dispose();
+      this.visibilitySensor = null;
+      clearInterval(this.visibilityCheck);
+    } else {
+      this.visibilitySensor = new VisibilitySensor();
+      this.visibilityCheck = setInterval(      () => {
+        //let visible = this.visibilitySensor.getVisibleObjects();
+        let visible = this.visibilitySensor.getVisibleAvatars();
+        console.log(visible.length);
+      }, 1000/5);
+    }
   }
 }

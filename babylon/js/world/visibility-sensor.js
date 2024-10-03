@@ -1,32 +1,37 @@
+import { World } from "./world.js";
+import { VRSPACE } from "../client/vrspace.js";
+import { VRSPACEUI } from "../ui/vrspace-ui.js";
+
 export class VisibilitySensor {
-  constructor(world) {
+  constructor(world = World.lastInstance) {
     this.world = world;
     this.scene = world.scene;
   }
   
-  isVisible( target, confidence=1 ) {
+  dispose() {
+  }
+  
+  isVisible( target, confidence=1, offset=BABYLON.Vector3(0,0,0) ) {
+    //console.log("isVisible "+target.name+" confidence "+confidence+" offset "+offset);
     let ret = 0;
     let camera = this.scene.activeCamera;
     if (camera.isInFrustum(target)) {
       // center
-      if (this.isClosestMesh(camera, target.position)) {
+      if (this.isClosestMesh(camera, target, target.position.add(offset))) {
         ret++;
       }
       if ( ret < confidence ) {
         // bounding box - slow
         let bBox = target.getHierarchyBoundingVectors();
+        let height = bBox.max.y - bBox.min.y;
         let points = [
-          new BABYLON.Vector3(bBox.min.x, bBox.min.y, bBox.min.z),
-          new BABYLON.Vector3(bBox.min.x, bBox.min.y, bBox.max.z),
-          new BABYLON.Vector3(bBox.min.x, bBox.max.y, bBox.min.z),
-          new BABYLON.Vector3(bBox.min.x, bBox.max.y, bBox.max.z),
-          new BABYLON.Vector3(bBox.max.x, bBox.min.y, bBox.min.z),
-          new BABYLON.Vector3(bBox.max.x, bBox.min.y, bBox.max.z),
-          new BABYLON.Vector3(bBox.max.x, bBox.max.y, bBox.min.z),
-          new BABYLON.Vector3(bBox.max.x, bBox.max.y, bBox.max.z)
+          // TODO additional points to check
+          // we could use positions of head, shoulders, arms, legs etc here
+          // at the moment, just approximate the center
+          new BABYLON.Vector3(target.position.x, target.position.y+height*.5, target.position.z)
         ]
         for ( let i = 0; ret<confidence && i < points.length; i++ ) {
-          if (this.isClosestMesh(camera, point)) {
+          if (this.isClosestMesh(camera, target, points[i])) {
             ret++;
           }
         }
@@ -35,20 +40,21 @@ export class VisibilitySensor {
     return ret>=confidence;
   }
   
-  isClosestMesh(camera, point) {
-    // CHECKME: direction relative?
-    let direction = point; // - camera.position
-    // center
+  isClosestMesh(camera, mesh, point) {
+    let direction = point.subtract(camera.position).normalize();
     let ray = new BABYLON.Ray(camera.position,direction,camera.maxZ);
     let closest = this.scene.pickWithRay(ray);
-    // we may need to examine parents here, with VRSPACEUI.findRootNode(target)
-    return closest === target;
+    //if ( closest && closest.hit ) {
+      //console.log("Picked "+closest.pickedMesh.name+" root "+VRSPACEUI.findRootNode(closest.pickedMesh).name+ " at "+point+" distance "+closest.distance);
+    //}
+    return closest && closest.hit && (closest.pickedMesh === mesh || mesh === VRSPACEUI.findRootNode(closest.pickedMesh));
   }
   
   getVisibleAvatars(confidence=1) {
     let ret = [];
     for ( let vrObject of VRSPACE.getScene().values() ) {
-      if ( typeof vrObject.avatar != "undefined" && this.isVisible(vrObject.avatar.baseMesh(), confidence)) {
+      if ( typeof vrObject.avatar != "undefined" && this.isVisible(vrObject.avatar.baseMesh(), confidence, new BABYLON.Vector3(0,vrObject.avatar.userHeight*.5,0))) {
+        //console.log( "Visible: "+vrObject.id+" "+vrObject.avatar.name);
         ret.push(vrObject.avatar);
       }
     }
@@ -74,4 +80,5 @@ export class VisibilitySensor {
     });
     return ret;
   }
+  
 }
