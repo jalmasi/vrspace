@@ -114,7 +114,7 @@ public class VRObject extends Entity {
 
   @JsonIgnore
   @Transient
-  private ConcurrentHashMap<ID, VRObject> listeners;
+  private transient ConcurrentHashMap<ID, VRObject> listeners;
 
   public VRObject(World world) {
     setWorldId(world.getId());

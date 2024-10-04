@@ -167,6 +167,11 @@ public class WorldManager {
     return (VRObject) cache.get(id);
   }
 
+  @SuppressWarnings("unchecked")
+  public <T extends VRObject> T get(Class<T> cls, Long id) {
+    return (T) cache.get(new ID(cls, id));
+  }
+
   /**
    * Find some objects, in-memory operation on cache.
    * 

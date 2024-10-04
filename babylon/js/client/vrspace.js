@@ -262,6 +262,15 @@ export class VRFile extends VRObject {
   }
 }
 
+export class Game extends VRObject {
+  constructor() {
+    super();
+    this.className = 'Game';
+    this.name = null;
+    this.numberOfPlayers=0;
+  }
+}
+
 /**
 An event that happened to an object.
 @param obj VRObject instance
@@ -345,7 +354,7 @@ export class VRSpace {
     this.errorListeners = [];
     /** Listener to response to a command. */
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, Terrain, VRFile };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, Terrain, VRFile, Game };
     //this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {
@@ -574,7 +583,7 @@ export class VRSpace {
   Common code for createSharedObject and createScriptedObject
   @param command either Add or Share
   @param obj the new VRObject, containing all properties
-  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
+  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObject
   @returns Promise with the created VRObject instance
    */
   async _createSharedObject( command, obj, className ) {

@@ -12,7 +12,6 @@ import { Screencast } from './world/screencast.js';
 import { Whiteboard } from './world/whiteboard.js';
 import { TextArea } from './widget/text-area.js';
 import { Sceneshot } from '../world/sceneshot.js';
-import { VisibilitySensor } from '../world/visibility-sensor.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -546,17 +545,19 @@ export class DefaultHud {
   }
   
   games() {
-    if ( this.visibilitySensor ) {
-      this.visibilitySensor.dispose();
-      this.visibilitySensor = null;
-      clearInterval(this.visibilityCheck);
+    if ( this.hideAndSeek ) {
+      VRSPACE.deleteSharedObject(this.hideAndSeek);
+      delete this.hideAndSeek;
     } else {
-      this.visibilitySensor = new VisibilitySensor();
-      this.visibilityCheck = setInterval(      () => {
-        //let visible = this.visibilitySensor.getVisibleObjects();
-        let visible = this.visibilitySensor.getVisibleAvatars();
-        console.log(visible.length);
-      }, 1000/5);
+      VRSPACE.createScriptedObject({
+        name: "Hide and Seek",
+        properties: { clientId: VRSPACE.me.id },
+        active: true,
+        script: '/babylon/js/games/hide-and-seek.js'
+      }, "Game").then( obj => {
+        this.hideAndSeek = obj;
+        console.log("Created new VRObject", obj);
+      });
     }
   }
 }

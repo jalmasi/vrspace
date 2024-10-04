@@ -1,7 +1,5 @@
 package org.vrspace.server.dto;
 
-import java.util.Set;
-
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 
@@ -17,15 +15,15 @@ import lombok.NoArgsConstructor;
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 public class Share extends Add {
-  public static final Set<String> allowedScripts = Set.of("/babylon/js/scripts/remote-screen.js",
-      "/babylon/js/scripts/remote-whiteboard.js", "/babylon/js/scripts/shared-file.js",
-      "/babylon/js/scripts/shared-image.js");
+  public static final String allowedPath = "/babylon/js/";
 
   @Override
   public ClientResponse execute(WorldManager world, Client client) {
     // FIXME: must not be hardcoded
+    // CHECKME: seems pointless - why wouldn't malicious client simply use Add cmd
+    // instead?
     this.objects.forEach(o -> {
-      if (o.getScript() != null && !allowedScripts.contains(o.getScript())) {
+      if (o.getScript() != null && !o.getScript().startsWith(allowedPath)) {
         throw new SecurityException("Disallowed script path: " + o.getScript());
       }
     });

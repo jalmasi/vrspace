@@ -156,15 +156,9 @@ export class Form {
     return input;
   }
   /** Common code for submitButton() and textButton() */
-  setupButton(button, callback, params) {
+  setupButton(button, callback) {
     button.heightInPixels = this.heightInPixels;
     button.paddingLeft = "10px";
-    button.background = this.submitColor;
-    if ( params ) {
-      for(let c of Object.keys(params)) {
-        button[c] = params[c];
-      }
-    }
     let command = this.nameToCommand(button.name);
     if ( callback ) {
       if ( command ) {
@@ -179,18 +173,20 @@ export class Form {
   /**
    * Ceates and returns a named submit image-only Button.
    */
-  submitButton(name, callback, params) {
-    let button = BABYLON.GUI.Button.CreateImageOnlyButton(name, VRSPACEUI.contentBase+"/content/icons/play.png");
+  submitButton(name, callback, icon=VRSPACEUI.contentBase+"/content/icons/play.png") {
+    let button = BABYLON.GUI.Button.CreateImageOnlyButton(name, icon);
+    button.background = this.submitColor;
     button.widthInPixels = this.heightInPixels+10;
-    this.setupButton(button, callback, params);
+    this.setupButton(button, callback);
     return button;
   }
 
   /** Creates and returns button showing both text and image */
-  textButton(name, callback, params) {
-    let button = BABYLON.GUI.Button.CreateImageButton(name.toLowerCase(), name, VRSPACEUI.contentBase+"/content/icons/play.png");
+  textButton(name, callback, icon=VRSPACEUI.contentBase+"/content/icons/play.png", color=this.submitColor) {
+    let button = BABYLON.GUI.Button.CreateImageButton(name.toLowerCase(), name, icon);
+    button.background = color;
     button.widthInPixels = this.heightInPixels/2*name.length+10;
-    this.setupButton(button, callback, params);
+    this.setupButton(button, callback);
     return button;
   }
   /**
@@ -257,7 +253,7 @@ export class Form {
     if ( this.panel ) {
       this.panel.dispose();
     }
-    if ( this.plane) {
+    if ( this.plane ) {
       this.plane.dispose();
     }
     if ( this.texture ) {

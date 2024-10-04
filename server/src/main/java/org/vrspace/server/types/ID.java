@@ -28,6 +28,11 @@ public class ID {
     this.id = obj.getId();
   }
 
+  public <T extends Entity> ID(Class<T> cls, Long id) {
+    this.className = cls.getSimpleName();
+    this.id = id;
+  }
+
   public ID(Map<String, Long> map) {
     if (map.size() != 1) {
       throw new IllegalArgumentException(
