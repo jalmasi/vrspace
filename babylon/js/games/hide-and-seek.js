@@ -57,6 +57,8 @@ export class HideAndSeek extends BasicScript {
     this.seconds = 20;
     this.totalPlayers = vrObject.numberOfPlayers;
     this.invitePlayers();
+    this.seen = {};
+    this.players = [];
   }
   
   dispose() {
@@ -114,13 +116,35 @@ export class HideAndSeek extends BasicScript {
       } else {
         let user = VRSPACE.getScene().get(id.toString());
         if ( user ) {
-          console.log("TODO maintain list of players");
+          this.players.push(user.avatar.baseMesh());
         } else {
           console.error( id +" joined the game but is not in local scene");
         }
       }
     } else if ( changes.quit ) {
       this.totalPlayers--;
+      let id = new ID(changes.quit.className,changes.quit.id);
+      if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
+        console.log("that's me");
+      } else {
+        let user = VRSPACE.getScene().get(id.toString());
+        if ( user ) {
+          let pos = this.players.indexOf(user.avatar.baseMesh());
+          if ( pos > -1 ) {
+            this.players.splice(pos,1);
+          }
+        } else {
+          console.error( id +" quit the game but is not in local scene");
+        }
+      }
+    } else if ( changes.seen ) {
+      if ( changes.seen.className == VRSPACE.me.className && changes.seen.id == VRSPACE.me.id ) {
+        console.log("TODO I was seen");
+      } else {
+        console.log("Seen: "+changes.seen);
+      }
+    } else if ( changes.start ) {
+    } else if ( changes.end ) {
     }
     this.gameStatus.numberOfPlayers(this.totalPlayers);
   }
@@ -130,11 +154,20 @@ export class HideAndSeek extends BasicScript {
     // and then
     if ( this.isMine() ) {
       this.visibilityCheck = setInterval( () => {
-        let visible = this.visibilitySensor.getVisibleAvatars();
-        console.log(visible.length);
+        let visible = this.visibilitySensor.getVisibleOf(this.players);
+        if ( visible.length > 0 ) {
+          visible.forEach( (parentMesh) => {
+            let id = parentMesh.VRObject.className+" "+parentMesh.VRObject.id;
+            if ( ! this.seen[id]) {
+              this.seen[id] = parentMesh.VRObject;
+              VRSPACE.sendEvent(this.vrObject, {seen: {className: parentMesh.VRObject.className, id: parentMesh.VRObject.id} });
+            }
+          });
+        }
       }, 1000/this.fps);
       VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start"});
     }
+    // TODO range check, victory conditions check
   }
   
 }

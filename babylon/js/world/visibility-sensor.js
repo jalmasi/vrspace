@@ -11,7 +11,7 @@ export class VisibilitySensor {
   dispose() {
   }
   
-  isVisible( target, confidence=1, offset=BABYLON.Vector3(0,0,0) ) {
+  isVisible( target, confidence=1, offset=new BABYLON.Vector3(0,0,0) ) {
     //console.log("isVisible "+target.name+" confidence "+confidence+" offset "+offset);
     let ret = 0;
     let camera = this.scene.activeCamera;
