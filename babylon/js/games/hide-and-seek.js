@@ -55,8 +55,10 @@ export class HideAndSeek extends BasicScript {
     this.visibilitySensor = new VisibilitySensor();
     this.fps = 5;
     this.seconds = 20;
+    this.icon = VRSPACEUI.contentBase + "/content/emoji/cool.png";
     this.totalPlayers = vrObject.numberOfPlayers;
     this.invitePlayers();
+    this.markStartingPosition();
     this.seen = {};
     this.players = [];
   }
@@ -67,9 +69,70 @@ export class HideAndSeek extends BasicScript {
     if ( this.visibilityCheck ) {
       clearInterval(this.visibilityCheck);
     }
+    if ( this.particleSystem ) {
+      this.particleSystem.dispose();
+      this.particleSystem = null;
+      this.particleSource.dispose();
+      this.goal.dispose();
+      this.goalMaterial.dispose();
+    }
   }
   
   markStartingPosition() {
+    if ( BABYLON.GPUParticleSystem.IsSupported ) {
+      this.particleSystem = new BABYLON.GPUParticleSystem("GoalParticles", {capacity: 200}, this.scene);
+    } else {
+      this.particleSystem = new BABYLON.ParticleSystem("GoalParticles", 200, this.scene);
+    }
+    this.particleSystem.disposeOnStop = true;
+    this.particleSystem.particleTexture = new BABYLON.Texture(this.icon, this.scene);
+    this.particleSource = BABYLON.MeshBuilder.CreateSphere("particlePositon",{diameter: 0.1},this.scene);
+    this.particleSource.isVisible = false;
+
+    let pos = this.vrObject.position;
+    this.particleSource.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
+
+    this.particleSystem.emitter = this.particleSource;
+    this.particleSystem.addColorGradient(0, new BABYLON.Color4(.1, .1, .1, .5), new BABYLON.Color4(.2, .2, .2, .5));
+    this.particleSystem.addColorGradient(0.1, new BABYLON.Color4(1, 1, 1, 1), new BABYLON.Color4(0.9, 0.9, 0.9, 1));
+    this.particleSystem.addColorGradient(0.5, new BABYLON.Color4(.5, .5, .5, 1), new BABYLON.Color4(0.9, 0.9, 0.9, 1));
+    this.particleSystem.addColorGradient(1, new BABYLON.Color4(.1, .1, .1, .5), new BABYLON.Color4(.2, .2, .2, .5));
+
+    //this.particleSystem.color1 = new BABYLON.Color3(1, 1, 1);
+    //this.particleSystem.color2 = new BABYLON.Color3(0.8, 0.8, 0.8);
+    //this.particleSystem.colorDead = new BABYLON.Color3(0.1, 0.1, 0.1);
+    this.particleSystem.addSizeGradient(0, 0.05); //size at start of particle lifetime
+    this.particleSystem.addSizeGradient(.5, .3); //size at half lifetime
+    this.particleSystem.addSizeGradient(1, .1); //size at end of particle lifetime
+    // and they slow down over time
+    this.particleSystem.addVelocityGradient(0, 1);
+    this.particleSystem.addVelocityGradient(1, 0);
+    this.particleSystem.maxInitialRotation=Math.PI;
+    this.particleSystem.maxAngularSpeed=5*Math.PI;
+
+    this.particleSystem.minLifeTime = 3;
+    this.particleSystem.maxLifeTime = 4;
+
+    this.particleSystem.emitRate = 50;
+    
+    this.particleSystem.createSphereEmitter(0.5,1);
+    
+    this.particleSystem.minEmitPower = 0.1;
+    this.particleSystem.maxEmitPower = 1;
+    this.particleSystem.updateSpeed = 0.005;
+    this.particleSystem.gravity = new BABYLON.Vector3(0,-10,0);
+    
+    this.particleSystem.start();
+    
+    let animation = VRSPACEUI.createAnimation(this.particleSource, "position", 0.05);
+    VRSPACEUI.updateAnimation(animation,new BABYLON.Vector3(pos.x, pos.y, pos.z),new BABYLON.Vector3(pos.x, pos.y+20, pos.z));
+    
+    this.goal = BABYLON.MeshBuilder.CreateCylinder("Goal", {height:.2,diameter:3}, this.scene);
+    this.goal.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
+    this.goalMaterial = new BABYLON.StandardMaterial("GoalMaterial",this.scene);
+    this.goalMaterial.emissiveTexture = new BABYLON.Texture(this.icon, this.scene);
+    this.goalMaterial.disableLighting = true;
+    this.goal.material = this.goalMaterial;
   }
   
   invitePlayers() {
@@ -93,6 +156,13 @@ export class HideAndSeek extends BasicScript {
     this.gameStatus.numberOfPlayers(this.totalPlayers);
   }
   
+  closeGameStatus() {
+    if ( this.gameStatus ) {
+      this.gameStatus.dispose();
+      this.gameStatus = null;
+    }
+  }
+  
   joinGame(yes) {
     if ( yes ) {
       VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"join"});
@@ -110,6 +180,7 @@ export class HideAndSeek extends BasicScript {
     console.log("Remote changes for "+vrObject.id, changes);
     if ( changes.joined ) {
       this.totalPlayers++;
+      this.gameStatus.numberOfPlayers(this.totalPlayers);
       let id = new ID(changes.joined.className,changes.joined.id);
       if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
         console.log("that's me");
@@ -123,6 +194,7 @@ export class HideAndSeek extends BasicScript {
       }
     } else if ( changes.quit ) {
       this.totalPlayers--;
+      this.gameStatus.numberOfPlayers(this.totalPlayers);
       let id = new ID(changes.quit.className,changes.quit.id);
       if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
         console.log("that's me");
@@ -139,14 +211,16 @@ export class HideAndSeek extends BasicScript {
       }
     } else if ( changes.seen ) {
       if ( changes.seen.className == VRSPACE.me.className && changes.seen.id == VRSPACE.me.id ) {
-        console.log("TODO I was seen");
+        console.log("TODO I was seen, run to the goal area");
       } else {
         console.log("Seen: "+changes.seen);
       }
     } else if ( changes.start ) {
+      this.closeGameStatus();
+      console.log("TODO hide, sneak to the goal")
     } else if ( changes.end ) {
+      console.log("TODO game ended, who won?")
     }
-    this.gameStatus.numberOfPlayers(this.totalPlayers);
   }
  
   startGame() {
