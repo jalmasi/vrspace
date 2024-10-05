@@ -306,6 +306,10 @@ public class WorldManager {
     return o;
   }
 
+  public boolean isOwner(Client client, VRObject o) {
+    return db.findOwnership(client.getId(), o.getId()).isPresent();
+  }
+
   /**
    * Add objects to client's current position
    * 

@@ -20,22 +20,15 @@ class GameStatus extends Form {
     this.label = this.textBlock(this.text+"0");
     this.addControl(this.label);
     if ( this.isMine ) {
-      let startButton = this.textButton("Start", () => this.close(true));
+      let startButton = this.textButton("Start", () => this.callback(true));
       this.addControl(startButton);
     }
-    let quitButton = this.textButton("Quit", () => this.close(false), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
+    let quitButton = this.textButton("Quit", () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
     this.addControl(quitButton);
 
     VRSPACEUI.hud.showButtons(false);
     VRSPACEUI.hud.newRow();
     VRSPACEUI.hud.addForm(this,512,256);
-  }
-  
-  close(start) {
-    VRSPACEUI.hud.clearRow();
-    VRSPACEUI.hud.showButtons(true);
-    super.dispose();
-    this.callback(start);
   }
   
   numberOfPlayers(num) {
@@ -55,12 +48,16 @@ export class HideAndSeek extends BasicScript {
     this.visibilitySensor = new VisibilitySensor();
     this.fps = 5;
     this.seconds = 20;
-    this.icon = VRSPACEUI.contentBase + "/content/emoji/cool.png";
+    this.gameIcon = VRSPACEUI.contentBase + "/content/emoji/cool.png";
+    this.searchIcon = VRSPACEUI.contentBase + "/content/icons/search.png";
+    this.foundIcon = VRSPACEUI.contentBase + "/content/icons/eye.png";
     this.totalPlayers = vrObject.numberOfPlayers;
     this.invitePlayers();
     this.markStartingPosition();
     this.seen = {};
     this.players = [];
+    this.indicators = [];
+    this.materials = [];
   }
   
   dispose() {
@@ -76,6 +73,8 @@ export class HideAndSeek extends BasicScript {
       this.goal.dispose();
       this.goalMaterial.dispose();
     }
+    this.indicators.forEach( i => i.dispose());
+    this.materials.forEach( m => m.dispose());
   }
   
   markStartingPosition() {
@@ -85,7 +84,7 @@ export class HideAndSeek extends BasicScript {
       this.particleSystem = new BABYLON.ParticleSystem("GoalParticles", 200, this.scene);
     }
     this.particleSystem.disposeOnStop = true;
-    this.particleSystem.particleTexture = new BABYLON.Texture(this.icon, this.scene);
+    this.particleSystem.particleTexture = new BABYLON.Texture(this.gameIcon, this.scene);
     this.particleSource = BABYLON.MeshBuilder.CreateSphere("particlePositon",{diameter: 0.1},this.scene);
     this.particleSource.isVisible = false;
 
@@ -130,14 +129,14 @@ export class HideAndSeek extends BasicScript {
     this.goal = BABYLON.MeshBuilder.CreateCylinder("Goal", {height:.2,diameter:3}, this.scene);
     this.goal.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
     this.goalMaterial = new BABYLON.StandardMaterial("GoalMaterial",this.scene);
-    this.goalMaterial.emissiveTexture = new BABYLON.Texture(this.icon, this.scene);
+    this.goalMaterial.emissiveTexture = new BABYLON.Texture(this.gameIcon, this.scene);
     this.goalMaterial.disableLighting = true;
     this.goal.material = this.goalMaterial;
   }
   
   invitePlayers() {
     if ( this.isMine() ) {
-      this.showGameStatus();
+      this.joinGame(true);
     } else {
       let yesNo = new Dialogue("Join "+this.vrObject.name+" ?", (yes)=>this.joinGame(yes));
       yesNo.init();
@@ -145,19 +144,23 @@ export class HideAndSeek extends BasicScript {
   }
   
   showGameStatus() {
-    this.gameStatus = new GameStatus(this.isMine(), (start)=>{
-      if ( start ) {
-        this.startGame();
-      } else {
-        this.quitGame();
-      }
-    });
-    this.gameStatus.init();
-    this.gameStatus.numberOfPlayers(this.totalPlayers);
+    if ( ! this.gameStatus ) {
+      this.gameStatus = new GameStatus(this.isMine(), (start)=>{
+        if ( start ) {
+          this.startGame();
+        } else {
+          this.quitGame();
+        }
+      });
+      this.gameStatus.init();
+      this.gameStatus.numberOfPlayers(this.totalPlayers);
+    }
   }
   
   closeGameStatus() {
     if ( this.gameStatus ) {
+      VRSPACEUI.hud.clearRow();
+      VRSPACEUI.hud.showButtons(true);
       this.gameStatus.dispose();
       this.gameStatus = null;
     }
@@ -165,9 +168,9 @@ export class HideAndSeek extends BasicScript {
   
   joinGame(yes) {
     if ( yes ) {
+      this.showGameStatus();
       VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"join"});
       // TODO replace current HUD with in-game HUD
-      this.showGameStatus();
     }
   }
 
@@ -176,11 +179,34 @@ export class HideAndSeek extends BasicScript {
     // TODO replace in-game HUD with previous one
   }
   
+  addIndicator(baseMesh,icon) {
+    let indicator = BABYLON.MeshBuilder.CreatePlane("IndicatorIcon", {}, this.scene);
+    indicator.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
+    let material = new BABYLON.StandardMaterial("IndicatorMaterial",this.scene);
+    material.emissiveTexture = new BABYLON.Texture(icon, this.scene);
+    material.disableLighting = true;
+    material.alpha = 0;
+    material.alphaMode = BABYLON.Constants.ALPHA_ONEONE;
+    //material.backFaceCulling = false;
+    indicator.material = material;
+    indicator.position = new BABYLON.Vector3(0,2.5,0);
+    //indicator.rotation = new BABYLON.Vector3(Math.PI,0,0);
+    indicator.parent = baseMesh;
+    this.indicators.push(indicator);
+  }
+  
+  updateStatus() {
+    // may not be displayed before this player joins/after quit/etc
+    if ( this.gameStatus ) {
+      this.gameStatus.numberOfPlayers(this.totalPlayers);
+    }
+  }
+  
   remoteChange(vrObject, changes) {
     console.log("Remote changes for "+vrObject.id, changes);
     if ( changes.joined ) {
       this.totalPlayers++;
-      this.gameStatus.numberOfPlayers(this.totalPlayers);
+      this.updateStatus();
       let id = new ID(changes.joined.className,changes.joined.id);
       if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
         console.log("that's me");
@@ -194,7 +220,7 @@ export class HideAndSeek extends BasicScript {
       }
     } else if ( changes.quit ) {
       this.totalPlayers--;
-      this.gameStatus.numberOfPlayers(this.totalPlayers);
+      this.updateStatus();
       let id = new ID(changes.quit.className,changes.quit.id);
       if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
         console.log("that's me");
@@ -214,10 +240,18 @@ export class HideAndSeek extends BasicScript {
         console.log("TODO I was seen, run to the goal area");
       } else {
         console.log("Seen: "+changes.seen);
+        let seenAvatar = this.players.find(baseMesh => baseMesh.VRObject.id == changes.seen.id);
+        this.addIndicator( seenAvatar, this.foundIcon );
       }
     } else if ( changes.start ) {
       this.closeGameStatus();
       console.log("TODO hide, sneak to the goal")
+      // find owner, attach eye icon above the head
+      let ownerAvatar = this.players.find(baseMesh => baseMesh.VRObject.id == this.vrObject.properties.clientId);
+      if ( ownerAvatar ) {
+        // exists for all except game owner
+        this.addIndicator( ownerAvatar, this.searchIcon );
+      }
     } else if ( changes.end ) {
       console.log("TODO game ended, who won?")
     }

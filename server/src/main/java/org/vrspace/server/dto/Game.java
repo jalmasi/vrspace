@@ -21,8 +21,13 @@ public class Game implements Command {
       log.error("Client " + client + " wants to join non-existing game " + id);
     } else if ("join".equals(action)) {
       game.join(client);
-    } else if ("join".equals(action)) {
-      game.quit(client);
+    } else if ("quit".equals(action)) {
+      if (worldManager.isOwner(client, game)) {
+        log.info("Owner " + client + " has quit " + game);
+        worldManager.remove(client, game);
+      } else {
+        game.quit(client);
+      }
     } else if ("start".equals(action)) {
       game.start(client);
     } else if ("end".equals(action)) {

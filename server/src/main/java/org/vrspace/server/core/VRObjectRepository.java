@@ -183,6 +183,26 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   /**
    * WARNING this doesn't return full, useful owned VRObject - position and other
+   * members are missing - use getOwners instead
+   * 
+   * @param objectIdId
+   * @return list of all owners
+   */
+  @Query("MATCH (obj:VRObject)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
+      + " WHERE ID(obj) = $objectId RETURN o,owns,c,owned,obj")
+  List<Ownership> getOwnersOf(long objectId);
+
+  // CHECKME no test coverage
+  default List<Ownership> getOwners(long objectId) {
+    List<Ownership> ret = new ArrayList<>();
+    for (Ownership o : getOwnersOf(objectId)) {
+      ret.add(get(Ownership.class, o.getId()));
+    }
+    return ret;
+  }
+
+  /**
+   * WARNING this doesn't return full, useful owned VRObject - position and other
    * members are missing - use getOwnership instead
    */
   @Query("MATCH (obj:VRObject)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
