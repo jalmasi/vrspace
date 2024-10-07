@@ -66,6 +66,7 @@ export class HideAndSeek extends BasicScript {
   }
   
   dispose() {
+    this.closeGameStatus();
     this.visibilitySensor.dispose();
     this.visibilitySensor = null;
     if ( this.visibilityCheck ) {
@@ -78,7 +79,11 @@ export class HideAndSeek extends BasicScript {
       this.goal.dispose();
       this.goalMaterial.dispose();
     }
-    this.indicators.forEach( i => i.dispose());
+    this.indicators.forEach( i => {
+      i.parent.GameIndicator = null;
+      delete i.parent.GameIndicator;
+      i.dispose();
+    });
     this.materials.forEach( m => m.dispose());
   }
   
@@ -213,8 +218,15 @@ export class HideAndSeek extends BasicScript {
   }
   
   changePlayerIcon( playerEvent, icon, color ) {
-    let avatar = this.players.find(baseMesh => baseMesh.VRObject.id == playerEvent.id);
-    this.addIndicator( avatar, icon, color );
+    if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
+      // my avatar
+      this.addIndicator( this.world.avatar.baseMesh(), icon, color);
+    } else {
+      // someone else
+      let avatar = this.players.find(baseMesh => baseMesh.VRObject.id == playerEvent.id);
+      // CHECKME in some cases this avatar may not exist
+      this.addIndicator( avatar, icon, color );
+    }
   }
   
   remoteChange(vrObject, changes) {
@@ -251,35 +263,14 @@ export class HideAndSeek extends BasicScript {
         }
       }
     } else if ( changes.seen ) {
-      if ( changes.seen.className == VRSPACE.me.className && changes.seen.id == VRSPACE.me.id ) {
-        console.log("TODO I was seen, run to the goal area");
-      } else {
-        console.log("Seen: "+changes.seen);
-        this.changePlayerIcon(changes.seen, this.foundIcon);
-      }
+      this.changePlayerIcon(changes.seen, this.foundIcon);
     } else if ( changes.start ) {
       this.closeGameStatus();
-      console.log("TODO hide, sneak to the goal")
-      // find owner, attach eye icon above the head
-      let ownerAvatar = this.players.find(baseMesh => baseMesh.VRObject.id == this.vrObject.properties.clientId);
-      if ( ownerAvatar ) {
-        // exists for all except game owner
-        this.addIndicator( ownerAvatar, this.searchIcon );
-      }
+      this.changePlayerIcon(changes.start, this.searchIcon);
     } else if (changes.won) {
-      if ( changes.won.className == VRSPACE.me.className && changes.won.id == VRSPACE.me.id ) {
-        console.log("TODO I won");
-      } else {
-        console.log("Won: "+changes.won);
-        this.changePlayerIcon(changes.won, this.wonIcon, new BABYLON.Color4(0,1,0,1));
-      }
+      this.changePlayerIcon(changes.won, this.wonIcon, new BABYLON.Color4(0,1,0,1));
     } else if (changes.lost) {
-      if ( changes.lost.className == VRSPACE.me.className && changes.lost.id == VRSPACE.me.id ) {
-        console.log("TODO I lost");
-      } else {
-        console.log("Lost: "+changes.lost);
-        this.changePlayerIcon(changes.lost, this.lostIcon, new BABYLON.Color4(1,0,0,1));
-      }
+      this.changePlayerIcon(changes.lost, this.lostIcon, new BABYLON.Color4(1,0,0,1));
     } else if ( changes.end ) {
       console.log("TODO game ended, who won?")
     } else {

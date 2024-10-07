@@ -22,11 +22,10 @@ public class Game implements Command {
     } else if ("join".equals(action)) {
       game.join(client);
     } else if ("quit".equals(action)) {
+      game.quit(client);
       if (worldManager.isOwner(client, game)) {
         log.info("Owner " + client + " has quit " + game);
         worldManager.remove(client, game);
-      } else {
-        game.quit(client);
       }
     } else if ("start".equals(action)) {
       game.start(client);
