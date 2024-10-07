@@ -104,7 +104,7 @@ public class CommandTest {
     ClientRequest request = new ClientRequest(client, refresh);
     world.dispatch(request);
 
-    verify(scene, times(1)).setDirty();
+    verify(scene, times(1)).dirty();
     verify(scene, times(1)).update();
 
     refresh.setClear(true);

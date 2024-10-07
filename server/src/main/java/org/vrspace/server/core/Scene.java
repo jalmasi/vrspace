@@ -303,11 +303,12 @@ public class Scene {
    * @param obj
    */
   public void unpublish(VRObject obj) {
+    // CHECKME: test coverage?
     members.stream().filter(o -> o instanceof Client).forEach(o -> {
       Client c = (Client) o;
       if (c.getScene() != null) {
-        Remove remove = remove(new Remove(), c);
-        sendRemove(remove);
+        Remove remove = c.getScene().remove(new Remove(), obj);
+        c.getScene().sendRemove(remove);
       }
     });
   }
@@ -315,8 +316,9 @@ public class Scene {
   /**
    * Ensure the scene will be updated on next update() call.
    */
-  public void setDirty() {
+  public Scene dirty() {
     lastUpdate = 0;
+    return this;
   }
 
   /**
@@ -358,7 +360,7 @@ public class Scene {
         p.removeListener(client);
       });
       sendRemove(remove);
-      setDirty();
+      dirty();
     } catch (Throwable e) {
       log.error("Error during removal", e);
     }
@@ -415,11 +417,11 @@ public class Scene {
 
   public void addFilter(String name, Filter filter) {
     filters.put(name, filter);
-    setDirty();
+    dirty();
   }
 
   public void removeFilter(String name) {
     filters.remove(name);
-    setDirty();
+    dirty();
   }
 }

@@ -43,6 +43,8 @@ class GameStatus extends Form {
  * If seen, both players rush to the place where the game started, first one to arrive, scores.
  */
 export class HideAndSeek extends BasicScript {
+  static instance = null;
+  
   constructor( world, vrObject ) {
     super(world,vrObject);
     this.visibilitySensor = new VisibilitySensor();
@@ -63,9 +65,15 @@ export class HideAndSeek extends BasicScript {
     this.players = [];
     this.indicators = [];
     this.materials = [];
+    if ( HideAndSeek.instance ) {
+      throw "There can be only one";
+    } else {
+      HideAndSeek.instance = this;
+    }
   }
   
   dispose() {
+    console.log("disposing...");
     this.closeGameStatus();
     this.visibilitySensor.dispose();
     this.visibilitySensor = null;
@@ -84,7 +92,12 @@ export class HideAndSeek extends BasicScript {
       delete i.parent.GameIndicator;
       i.dispose();
     });
+    if ( this.joinDlg ) {
+      this.joinDlg.close();
+      this.joinDlg = null;
+    }
     this.materials.forEach( m => m.dispose());
+    HideAndSeek.instance = null;
   }
   
   markStartingPosition() {
@@ -145,8 +158,8 @@ export class HideAndSeek extends BasicScript {
     if ( this.isMine() ) {
       this.joinGame(true);
     } else {
-      let yesNo = new Dialogue("Join "+this.vrObject.name+" ?", (yes)=>this.joinGame(yes));
-      yesNo.init();
+      this.joinDlg = new Dialogue("Join "+this.vrObject.name+" ?", (yes)=>this.joinGame(yes));
+      this.joinDlg.init();
     }
   }
   
@@ -161,6 +174,17 @@ export class HideAndSeek extends BasicScript {
       });
       this.gameStatus.init();
       this.gameStatus.numberOfPlayers(this.totalPlayers);
+    }
+  }
+  
+  startRequested() {
+    let avatar = this.players.find(baseMesh => baseMesh.VRObject.id == VRSPACE.me.id);
+    if ( avatar ) {
+      // player has already joined
+      this.showGameStatus();
+    } else {
+      // player wants to join
+      this.invitePlayers();
     }
   }
   
@@ -216,7 +240,7 @@ export class HideAndSeek extends BasicScript {
       this.gameStatus.numberOfPlayers(this.totalPlayers);
     }
   }
-  
+
   changePlayerIcon( playerEvent, icon, color ) {
     if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
       // my avatar

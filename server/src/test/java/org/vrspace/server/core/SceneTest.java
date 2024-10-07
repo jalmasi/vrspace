@@ -110,7 +110,7 @@ public class SceneTest {
     verify(client, times(1)).sendMessage(any(Object.class));
 
     // update scene
-    scene.setDirty();
+    scene.dirty();
     scene.update();
 
     // verify client got remove message

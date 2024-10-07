@@ -21,7 +21,7 @@ public class Refresh implements Command {
       client.getScene().removeAll();
       client.getScene().loadPermanents();
     } else {
-      client.getScene().setDirty();
+      client.getScene().dirty();
     }
     // WorldManager does NOT execute scene.update() after each command
     client.getScene().update();
