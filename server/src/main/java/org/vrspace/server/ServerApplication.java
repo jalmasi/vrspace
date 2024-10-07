@@ -27,12 +27,13 @@ public class ServerApplication implements ServletContextListener {
 
   @Override
   public void contextDestroyed(ServletContextEvent context) {
+    log.info("VRSpace servlet context destroyed, stopping components");
     // stop the application when tomcat tells it to stop
     ctx.stop();
   }
 
   @Override
   public void contextInitialized(ServletContextEvent sce) {
-    log.info("VRSpace server context initialized, starting components");
+    log.info("VRSpace servlet context initialized, starting components");
   }
 }
