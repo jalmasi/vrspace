@@ -69,6 +69,7 @@ export class HideAndSeek extends BasicScript {
     this.players = [];
     this.indicators = [];
     this.materials = [];
+    console.log("Players already in the game:", this.vrObject.players );
     if ( HideAndSeek.instance ) {
       throw "There can be only one";
     } else {
@@ -207,6 +208,7 @@ export class HideAndSeek extends BasicScript {
       VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"join"});
       // TODO replace current HUD with in-game HUD
     }
+    this.joinDlg = null;
   }
 
   quitGame() {
@@ -332,24 +334,29 @@ export class HideAndSeek extends BasicScript {
     baseMesh.SoundSeek.dispose();
     delete baseMesh.SoundSeek;
   }
+
+  // requires player avatar to be already loaded - may not be safe for async usage
+  playerJoins(player) {
+    let id = new ID(player.className,player.id);
+    if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
+      console.log("that's me");
+    } else {
+      let user = VRSPACE.getScene().get(id.toString());
+      if ( user ) {
+        this.players.push(user.avatar.baseMesh());
+        this.attachSounds(user.avatar.baseMesh());
+      } else {
+        console.error( id +" joined the game but is not in local scene");
+      }
+    }
+  }  
   
   remoteChange(vrObject, changes) {
     console.log("Remote changes for "+vrObject.id, changes);
     if ( changes.joined ) {
       this.totalPlayers++;
       this.updateStatus();
-      let id = new ID(changes.joined.className,changes.joined.id);
-      if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
-        console.log("that's me");
-      } else {
-        let user = VRSPACE.getScene().get(id.toString());
-        if ( user ) {
-          this.players.push(user.avatar.baseMesh());
-          this.attachSounds(user.avatar.baseMesh());
-        } else {
-          console.error( id +" joined the game but is not in local scene");
-        }
-      }
+      this.playerJoins(changes.joined);
     } else if ( changes.quit ) {
       this.totalPlayers--;
       this.updateStatus();
@@ -357,6 +364,7 @@ export class HideAndSeek extends BasicScript {
       if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
         console.log("TODO that's me");
       } else {
+        // CHECKME this may fail if user has disconnected (avatar removed from the scene)
         let user = VRSPACE.getScene().get(id.toString());
         if ( user ) {
           let pos = this.players.indexOf(user.avatar.baseMesh());
@@ -372,6 +380,8 @@ export class HideAndSeek extends BasicScript {
       this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
     } else if ( changes.start ) {
       this.closeGameStatus();
+      // also add all players that joined the game before this instance was created
+      this.vrObject.players.forEach(player=>this.playerJoins(player));
       this.changePlayerStatus(changes.start, "SoundSeek", this.searchIcon);
     } else if (changes.won) {
       this.changePlayerStatus(changes.won, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
@@ -391,7 +401,6 @@ export class HideAndSeek extends BasicScript {
       this.visibilityCheck = setInterval( () => this.checkVisibility(), 1000/this.fps);
       VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start"});
     }
-    // TODO range check, victory conditions check
   }
   
   inGoalRange(pos) {

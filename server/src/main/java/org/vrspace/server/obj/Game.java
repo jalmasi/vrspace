@@ -2,16 +2,14 @@ package org.vrspace.server.obj;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.types.ID;
 import org.vrspace.server.types.Owned;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -42,9 +40,8 @@ public class Game extends VRObject {
   private String name;
   /** Current number of players */
   private int numberOfPlayers = 0;
-  @JsonIgnore
   @Transient
-  private transient ConcurrentMap<ID, Client> players = new ConcurrentHashMap<>();
+  private transient Set<ID> players = ConcurrentHashMap.newKeySet();
 
   /**
    * A client wants to join the game.
@@ -53,7 +50,7 @@ public class Game extends VRObject {
    */
   public void join(Client client) {
     client.addListener(this);
-    players.put(client.getObjectId(), client);
+    players.add(client.getObjectId());
     event("joined", client);
   }
 
