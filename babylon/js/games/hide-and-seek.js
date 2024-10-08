@@ -102,6 +102,7 @@ export class HideAndSeek extends BasicScript {
       this.joinDlg = null;
     }
     this.materials.forEach( m => m.dispose());
+    this.players.forEach(baseMesh=>this.detachSounds(baseMesh));
     HideAndSeek.instance = null;
   }
   
@@ -184,7 +185,7 @@ export class HideAndSeek extends BasicScript {
   
   startRequested() {
     let avatar = this.players.find(baseMesh => baseMesh.VRObject.id == VRSPACE.me.id);
-    if ( avatar ) {
+    if ( this.isMine() || avatar ) {
       // player has already joined
       this.showGameStatus();
     } else {
@@ -320,19 +321,19 @@ export class HideAndSeek extends BasicScript {
 
   }
   
+  removeSound(baseMesh, soundName) {
+    if ( typeof baseMesh[soundName] != "undefined") {
+      baseMesh[soundName].detachFromMesh();
+      baseMesh[soundName].dispose();
+      delete baseMesh[soundName];
+    }
+  }
   detachSounds(baseMesh) {
-    baseMesh.SoundFail.detachFromMesh();
-    baseMesh.SoundFail.dispose();
-    delete baseMesh.SoundFail;
-    baseMesh.SoundVictory.detachFromMesh();
-    baseMesh.SoundVictory.dispose();
-    delete baseMesh.SoundVictory;
-    baseMesh.SoundAlarm.detachFromMesh();
-    baseMesh.SoundAlarm.dispose();
-    delete baseMesh.SoundAlarm;
-    baseMesh.SoundSeek.detachFromMesh();
-    baseMesh.SoundSeek.dispose();
-    delete baseMesh.SoundSeek;
+    this.removeSound(baseMesh, "SoundVictory");
+    this.removeSound(baseMesh, "SoundAlarm");
+    this.removeSound(baseMesh, "SoundAlarm");
+    this.removeSound(baseMesh, "SoundSeek");
+    this.removeSound(baseMesh, "SoundPlaying");
   }
 
   // requires player avatar to be already loaded - may not be safe for async usage
