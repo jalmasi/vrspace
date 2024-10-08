@@ -56,6 +56,10 @@ export class HideAndSeek extends BasicScript {
     this.foundIcon = VRSPACEUI.contentBase + "/content/icons/eye.png";
     this.wonIcon = VRSPACEUI.contentBase + "/content/icons/tick.png";
     this.lostIcon = VRSPACEUI.contentBase + "/content/icons/close.png";
+    this.soundSeek = VRSPACEUI.contentBase + "/content/sound/sergeyionov__cr-water-sonar.wav";
+    this.soundFail = VRSPACEUI.contentBase + "/content/sound/kevinvg207__wrong-buzzer.wav";
+    this.soundVictory = VRSPACEUI.contentBase + "/content/sound/colorscrimsontears__fanfare-3-rpg.wav";
+    this.soundAlarm = VRSPACEUI.contentBase + "/content/sound/bowesy__alarm.wav";
     this.totalPlayers = vrObject.numberOfPlayers;
     this.invitePlayers();
     this.markStartingPosition();
@@ -241,16 +245,92 @@ export class HideAndSeek extends BasicScript {
     }
   }
 
-  changePlayerIcon( playerEvent, icon, color ) {
+  changePlayerStatus( playerEvent, soundName, icon, color ) {
     if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
       // my avatar
       this.addIndicator( this.world.avatar.baseMesh(), icon, color);
     } else {
       // someone else
-      let avatar = this.players.find(baseMesh => baseMesh.VRObject.id == playerEvent.id);
+      let avatarBase = this.players.find(baseMesh => baseMesh.VRObject.id == playerEvent.id);
       // CHECKME in some cases this avatar may not exist
-      this.addIndicator( avatar, icon, color );
+      this.addIndicator( avatarBase, icon, color );
+      if ( typeof avatarBase.SoundPlaying !== "undefined" ) {
+        avatarBase.SoundPlaying.stop();
+        delete avatarBase.SoundPlaying;
+      }
+      if ( soundName && avatarBase[soundName] ) {
+        avatarBase[soundName].play();
+        avatarBase.SoundPlaying = avatarBase[soundName];
+      }
     }
+  }
+  
+  attachSounds(baseMesh) {
+    let options = {
+      loop: false,
+      autoplay: false,
+      streaming: false,
+      panningModel: "linear",
+      maxDistance: 100,
+      spatialSound: true
+    }
+    let fail = new BABYLON.Sound(
+      "fail",
+      this.soundFail,
+      this.scene, 
+      null, // callback 
+      options
+    );
+    fail.attachToMesh(baseMesh);
+    baseMesh.SoundFail = fail;
+
+    let victory = new BABYLON.Sound(
+      "victory",
+      this.soundVictory,
+      this.scene, 
+      null, // callback 
+      options
+    );
+    victory.attachToMesh(baseMesh);
+    baseMesh.SoundVictory = victory;
+
+    options.loop = true;
+
+    let alarm = new BABYLON.Sound(
+      "alarm",
+      this.soundAlarm,
+      this.scene, 
+      null, // callback 
+      options
+    );
+    alarm.attachToMesh(baseMesh);
+    baseMesh.SoundAlarm = alarm;
+    
+    let seek = new BABYLON.Sound(
+      "alarm",
+      this.soundSeek,
+      this.scene, 
+      null, // callback 
+      options
+    );
+    seek.attachToMesh(baseMesh);
+    baseMesh.SoundSeek = seek;
+
+  }
+  
+  detachSounds(baseMesh) {
+    baseMesh.SoundFail.detachFromMesh();
+    baseMesh.SoundFail.dispose();
+    delete baseMesh.SoundFail;
+    baseMesh.SoundVictory.detachFromMesh();
+    baseMesh.SoundVictory.dispose();
+    delete baseMesh.SoundVictory;
+    baseMesh.SoundAlarm.detachFromMesh();
+    baseMesh.SoundAlarm.dispose();
+    delete baseMesh.SoundAlarm;
+    baseMesh.SoundSeek.detachFromMesh();
+    baseMesh.SoundSeek.dispose();
+    delete baseMesh.SoundSeek;
   }
   
   remoteChange(vrObject, changes) {
@@ -265,6 +345,7 @@ export class HideAndSeek extends BasicScript {
         let user = VRSPACE.getScene().get(id.toString());
         if ( user ) {
           this.players.push(user.avatar.baseMesh());
+          this.attachSounds(user.avatar.baseMesh());
         } else {
           console.error( id +" joined the game but is not in local scene");
         }
@@ -274,12 +355,13 @@ export class HideAndSeek extends BasicScript {
       this.updateStatus();
       let id = new ID(changes.quit.className,changes.quit.id);
       if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
-        console.log("that's me");
+        console.log("TODO that's me");
       } else {
         let user = VRSPACE.getScene().get(id.toString());
         if ( user ) {
           let pos = this.players.indexOf(user.avatar.baseMesh());
           if ( pos > -1 ) {
+            this.detachSounds(user.avatar.baseMesh());
             this.players.splice(pos,1);
           }
         } else {
@@ -287,14 +369,14 @@ export class HideAndSeek extends BasicScript {
         }
       }
     } else if ( changes.seen ) {
-      this.changePlayerIcon(changes.seen, this.foundIcon);
+      this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
     } else if ( changes.start ) {
       this.closeGameStatus();
-      this.changePlayerIcon(changes.start, this.searchIcon);
+      this.changePlayerStatus(changes.start, "SoundSeek", this.searchIcon);
     } else if (changes.won) {
-      this.changePlayerIcon(changes.won, this.wonIcon, new BABYLON.Color4(0,1,0,1));
+      this.changePlayerStatus(changes.won, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
     } else if (changes.lost) {
-      this.changePlayerIcon(changes.lost, this.lostIcon, new BABYLON.Color4(1,0,0,1));
+      this.changePlayerStatus(changes.lost, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
     } else if ( changes.end ) {
       console.log("TODO game ended, who won?")
     } else {

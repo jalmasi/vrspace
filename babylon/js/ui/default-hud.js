@@ -550,7 +550,7 @@ export class DefaultHud {
     if ( HideAndSeek.instance ) {
       // already exists
       HideAndSeek.instance.startRequested();
-    } else {
+    } else if (VRSPACE.me) {
       VRSPACE.createScriptedObject({
         name: "Hide and Seek",
         properties: { clientId: VRSPACE.me.id },
@@ -559,6 +559,8 @@ export class DefaultHud {
       }, "Game").then( obj => {
         console.log("Created new VRObject", obj);
       });
+    } else {
+      console.log("Attemting to start the game before entering a world");
     }
   }
 }
