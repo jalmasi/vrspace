@@ -59,7 +59,8 @@ class CountDown extends Form {
     this.createPanel();
     this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    this.label = this.textBlock(" "+this.count);
+    this.label = this.textBlock(" ");
+    this.update(this.count);
     this.label.width = "256px";
     this.label.height = "256px";
     this.label.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
@@ -67,10 +68,17 @@ class CountDown extends Form {
     this.addControl(this.label);
     VRSPACEUI.hud.showButtons(false);
     VRSPACEUI.hud.newRow();
-    VRSPACEUI.hud.addForm(this,256,512);
+    VRSPACEUI.hud.addForm(this,256,128);
+    this.plane.position.y += 0.1;
+    this.texture.background = "black";
   }
   update(count) {
-    this.label.text = " "+count;
+    // FIXME ugly way to justify right
+    if ( count >= 10 ) {
+      this.label.text = " "+count;
+    } else {
+      this.label.text = "  "+count;
+    }
   }
   dispose() {
     super.dispose();
@@ -428,6 +436,24 @@ export class HideAndSeek extends BasicScript {
       null,
       {loop: false, autoplay: false }
     );
+    
+    
+    if ( this.isMine() ) {
+      this.pipeline = new BABYLON.LensRenderingPipeline('lens', {
+        edge_blur: 1.0,
+        chromatic_aberration: 1.0,
+        distortion: 2.0,
+        dof_focus_distance: 0.5,
+        dof_aperture: 3.0,      // set this very high for tilt-shift effect
+        grain_amount: 1.0,
+        dof_pentagon: true,
+        dof_gain: 1.0,
+        dof_threshold: 1.0,
+        dof_darken: 0.35
+      }, this.scene, 1.0, this.scene.activeCamera);
+     
+    }
+    
     let countDown = setInterval( () => {
       if ( delay-- <= 0 ) {
         clearInterval(countDown);
@@ -435,6 +461,10 @@ export class HideAndSeek extends BasicScript {
         timerSound.dispose();
         tickSound.dispose();
         startSound.play();
+        if ( this.pipeline ) {
+          this.pipeline.dispose();
+          delete this.pipeline;
+        }
       } else {
         tickSound.play();
         countForm.update(delay);
