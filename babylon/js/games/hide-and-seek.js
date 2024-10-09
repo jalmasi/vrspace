@@ -14,6 +14,7 @@ class GameStatus extends Form {
     this.delayText = "Count";
     this.callback = callback;
     this.isMine = isMine;
+    this.gameStarted = false;
   }  
   
   init() {
@@ -22,7 +23,7 @@ class GameStatus extends Form {
     this.label = this.textBlock(this.text+"0");
     this.addControl(this.label);
     this.padding = 8;
-    if ( this.isMine ) {
+    if ( this.isMine && ! this.gameStarted) {
       this.sliderPanel = new HorizontalSliderPanel(.5,this.delayText,10,30,10);
       this.sliderPanel.decimals = 0;
       this.addControl(this.sliderPanel.panel);
@@ -40,8 +41,43 @@ class GameStatus extends Form {
   numberOfPlayers(num) {
     this.label.text = this.text+num;
   }
+  getDelay() {
+    if ( this.sliderPanel ) {
+      return this.sliderPanel.slider.value;
+    }
+    return 0;
+  }
 }
 
+class CountDown extends Form {
+  constructor(count) {
+    super();
+    this.fontSize = 128;
+    this.count = count;
+  }
+  init() {
+    this.createPanel();
+    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    this.label = this.textBlock(" "+this.count);
+    this.label.width = "256px";
+    this.label.height = "256px";
+    this.label.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    this.label.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    this.addControl(this.label);
+    VRSPACEUI.hud.showButtons(false);
+    VRSPACEUI.hud.newRow();
+    VRSPACEUI.hud.addForm(this,256,512);
+  }
+  update(count) {
+    this.label.text = " "+count;
+  }
+  dispose() {
+    super.dispose();
+    VRSPACEUI.hud.clearRow();
+    VRSPACEUI.hud.showButtons(true);
+  }
+}
 /**
  * Super original hide and seek game!
  * 
@@ -67,6 +103,7 @@ export class HideAndSeek extends BasicScript {
     this.soundVictory = VRSPACEUI.contentBase + "/content/sound/colorscrimsontears__fanfare-3-rpg.wav";
     this.soundAlarm = VRSPACEUI.contentBase + "/content/sound/bowesy__alarm.wav";
     this.totalPlayers = vrObject.numberOfPlayers;
+    this.gameStarted = false;
     this.invitePlayers();
     this.markStartingPosition();
     this.seen = {};
@@ -184,6 +221,7 @@ export class HideAndSeek extends BasicScript {
           this.quitGame();
         }
       });
+      this.gameStatus.gameStarted = this.gameStarted;
       this.gameStatus.init();
       this.gameStatus.numberOfPlayers(this.totalPlayers);
     }
@@ -201,12 +239,15 @@ export class HideAndSeek extends BasicScript {
   }
   
   closeGameStatus() {
+    let ret = 0;
     if ( this.gameStatus ) {
+      ret = this.gameStatus.getDelay();
       VRSPACEUI.hud.clearRow();
       VRSPACEUI.hud.showButtons(true);
       this.gameStatus.dispose();
       this.gameStatus = null;
     }
+    return ret;
   }
   
   joinGame(yes) {
@@ -356,7 +397,22 @@ export class HideAndSeek extends BasicScript {
         console.error( id +" joined the game but is not in local scene");
       }
     }
-  }  
+  }
+  
+  startCountDown(delay) {
+    let countForm = new CountDown(delay);
+    countForm.init();
+    
+    let countDown = setInterval( () => {
+      if ( delay-- <= 0 ) {
+        clearInterval(countDown);
+        countForm.dispose();
+      } else {
+        console.log(delay);
+        countForm.update(delay);
+      }
+    }, 1000);
+  }
   
   remoteChange(vrObject, changes) {
     console.log("Remote changes for "+vrObject.id, changes);
@@ -386,7 +442,9 @@ export class HideAndSeek extends BasicScript {
     } else if ( changes.seen ) {
       this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
     } else if ( changes.start ) {
-      this.closeGameStatus();
+      this.gameStarted = true;
+      let delay = this.closeGameStatus();
+      this.startCountDown(delay);
       // also add all players that joined the game before this instance was created
       this.vrObject.players.forEach(player=>this.playerJoins(player));
       this.changePlayerStatus(changes.start, "SoundSeek", this.searchIcon);
@@ -402,7 +460,6 @@ export class HideAndSeek extends BasicScript {
   }
  
   startGame() {
-    console.log("TODO: countdown");
     // and then
     if ( this.isMine() ) {
       this.visibilityCheck = setInterval( () => this.checkVisibility(), 1000/this.fps);
