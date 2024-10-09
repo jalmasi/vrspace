@@ -5,11 +5,13 @@ import { VRSPACE } from "../client/vrspace.js";
 import { ID } from "../client/vrspace.js";
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Form } from '../ui/widget/form.js';
+import { HorizontalSliderPanel } from "../ui/widget/slider-panel.js";
 
 class GameStatus extends Form {
   constructor(isMine, callback) {
     super();
     this.text = "Players joined: ";
+    this.delayText = "Count";
     this.callback = callback;
     this.isMine = isMine;
   }  
@@ -19,7 +21,11 @@ class GameStatus extends Form {
     this.createPanel();
     this.label = this.textBlock(this.text+"0");
     this.addControl(this.label);
+    this.padding = 8;
     if ( this.isMine ) {
+      this.sliderPanel = new HorizontalSliderPanel(.5,this.delayText,10,30,10);
+      this.sliderPanel.decimals = 0;
+      this.addControl(this.sliderPanel.panel);
       let startButton = this.textButton("Start", () => this.callback(true));
       this.addControl(startButton);
     }

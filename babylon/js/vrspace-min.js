@@ -35,6 +35,8 @@ export { WorldEditor } from "./ui/world/world-editor.js";
 
 export { Buttons } from "./ui/widget/buttons.js";
 export { ColorPickerPanel } from './ui/widget/colorpicker-panel.js';
+export { VerticalSliderPanel } from './ui/widget/slider-panel.js';
+export { HorizontalSliderPanel } from './ui/widget/slider-panel.js';
 export { Form } from "./ui/widget/form.js";
 export { LoginForm } from "./ui/widget/login-form.js";
 export { Label } from "./ui/widget/label.js";

@@ -19,6 +19,7 @@ export class Form {
     this.submitColor = "green";
     this.verticalPanel = false;
     this.inputWidth = 500;
+    this.padding = 0;
     this.keyboardRows = null;
     this.virtualKeyboardEnabled = true;
     this.speechInput = new SpeechInput();
@@ -158,7 +159,11 @@ export class Form {
   /** Common code for submitButton() and textButton() */
   setupButton(button, callback) {
     button.heightInPixels = this.heightInPixels;
+    // CHECKME: hardcoded padding?
     button.paddingLeft = "10px";
+    if ( this.padding ) {
+      button.setPaddingInPixels(this.padding);
+    }
     let command = this.nameToCommand(button.name);
     if ( callback ) {
       if ( command ) {

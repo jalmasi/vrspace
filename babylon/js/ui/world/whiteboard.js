@@ -1,6 +1,6 @@
 import { ImageArea } from "../widget/image-area.js";
 import { ColorPickerPanel } from '../widget/colorpicker-panel.js';
-import { SliderPanel } from '../widget/slider-panel.js';
+import { VerticalSliderPanel } from '../widget/slider-panel.js';
 import { WorldManager } from "../../core/world-manager.js";
 import { VRSPACE } from '../../client/vrspace.js';
 import { VRSPACEUI } from '../vrspace-ui.js';
@@ -67,7 +67,7 @@ export class Whiteboard extends ImageArea {
       this.sendEvent({ undo: {} });
     });
 
-    this.widthPanel = new SliderPanel(3, "Width", 1, 20, 1);
+    this.widthPanel = new VerticalSliderPanel(3, "Width", 1, 20, 1);
     this.widthPanel.plane.parent = this.handles.box;
     this.widthPanel.plane.position = new BABYLON.Vector3(43, 0, 0);
     this.widthPanel.slider.onValueChangedObservable.add(value => {
