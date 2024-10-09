@@ -439,6 +439,7 @@ export class HideAndSeek extends BasicScript {
     
     
     if ( this.isMine() ) {
+      this.scene.activeCamera.detachControl();
       this.pipeline = new BABYLON.LensRenderingPipeline('lens', {
         edge_blur: 1.0,
         chromatic_aberration: 1.0,
@@ -456,6 +457,7 @@ export class HideAndSeek extends BasicScript {
     
     let countDown = setInterval( () => {
       if ( delay-- <= 0 ) {
+        this.scene.activeCamera.attachControl();
         clearInterval(countDown);
         countForm.dispose();
         timerSound.dispose();
