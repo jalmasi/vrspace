@@ -93,6 +93,7 @@ export class HideAndSeek extends BasicScript {
     this.fps = 5;
     this.seconds = 20;
     this.goalRadius = 1.5;
+    this.delay = 10;
     this.gameIcon = VRSPACEUI.contentBase + "/content/emoji/cool.png";
     this.searchIcon = VRSPACEUI.contentBase + "/content/icons/search.png";
     this.foundIcon = VRSPACEUI.contentBase + "/content/icons/eye.png";
@@ -102,6 +103,9 @@ export class HideAndSeek extends BasicScript {
     this.soundFail = VRSPACEUI.contentBase + "/content/sound/kevinvg207__wrong-buzzer.wav";
     this.soundVictory = VRSPACEUI.contentBase + "/content/sound/colorscrimsontears__fanfare-3-rpg.wav";
     this.soundAlarm = VRSPACEUI.contentBase + "/content/sound/bowesy__alarm.wav";
+    this.soundClock = VRSPACEUI.contentBase + "/content/sound/deadrobotmusic__sprinkler-timer-loop.wav";
+    this.soundTick = VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav";
+    this.soundStart = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
     this.totalPlayers = vrObject.numberOfPlayers;
     this.gameStarted = false;
     this.invitePlayers();
@@ -402,13 +406,37 @@ export class HideAndSeek extends BasicScript {
   startCountDown(delay) {
     let countForm = new CountDown(delay);
     countForm.init();
-    
+    let timerSound = new BABYLON.Sound(
+      "clock",
+      this.soundClock,
+      this.scene,
+      null,
+      {loop: true, autoplay: true}
+    );
+    timerSound.play();
+    let tickSound = new BABYLON.Sound(
+      "clock",
+      this.soundTick,
+      this.scene,
+      null,
+      {loop: false, autoplay: true }
+    );
+    let startSound = new BABYLON.Sound(
+      "clock",
+      this.soundStart,
+      this.scene,
+      null,
+      {loop: false, autoplay: false }
+    );
     let countDown = setInterval( () => {
       if ( delay-- <= 0 ) {
         clearInterval(countDown);
         countForm.dispose();
+        timerSound.dispose();
+        tickSound.dispose();
+        startSound.play();
       } else {
-        console.log(delay);
+        tickSound.play();
         countForm.update(delay);
       }
     }, 1000);
@@ -441,10 +469,12 @@ export class HideAndSeek extends BasicScript {
       }
     } else if ( changes.seen ) {
       this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
+    } else if ( changes.delay ) {
+      this.delay = changes.delay;
     } else if ( changes.start ) {
       this.gameStarted = true;
-      let delay = this.closeGameStatus();
-      this.startCountDown(delay);
+      this.closeGameStatus();
+      this.startCountDown(this.delay);
       // also add all players that joined the game before this instance was created
       this.vrObject.players.forEach(player=>this.playerJoins(player));
       this.changePlayerStatus(changes.start, "SoundSeek", this.searchIcon);
@@ -463,7 +493,8 @@ export class HideAndSeek extends BasicScript {
     // and then
     if ( this.isMine() ) {
       this.visibilityCheck = setInterval( () => this.checkVisibility(), 1000/this.fps);
-      VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start"});
+      VRSPACE.sendEvent(this.vrObject, {delay: this.gameStatus.getDelay() });
+      VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start", });
     }
   }
   
