@@ -97,6 +97,7 @@ export class HideAndSeek extends BasicScript {
   
   constructor( world, vrObject ) {
     super(world,vrObject);
+    this.camera = this.scene.activeCamera;
     this.visibilitySensor = new VisibilitySensor();
     this.fps = 5;
     this.seconds = 20;
@@ -158,6 +159,7 @@ export class HideAndSeek extends BasicScript {
     }
     this.materials.forEach( m => m.dispose());
     this.players.forEach(baseMesh=>this.detachSounds(baseMesh));
+    this.detachSounds(VRSPACEUI.hud.root);
     HideAndSeek.instance = null;
   }
   
@@ -307,23 +309,27 @@ export class HideAndSeek extends BasicScript {
     }
   }
 
+  playSound( avatarBase, soundName ) {
+    if ( typeof avatarBase.SoundPlaying !== "undefined" ) {
+      avatarBase.SoundPlaying.stop();
+      delete avatarBase.SoundPlaying;
+    }
+    if ( soundName && avatarBase[soundName] ) {
+      avatarBase[soundName].play();
+      avatarBase.SoundPlaying = avatarBase[soundName];
+    }
+  }
   changePlayerStatus( playerEvent, soundName, icon, color ) {
     if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
       // my avatar
       this.addIndicator( this.world.avatar.baseMesh(), icon, color);
+      this.playSound( this.camera, soundName);
     } else {
       // someone else
       let avatarBase = this.players.find(baseMesh => baseMesh.VRObject.id == playerEvent.id);
       // CHECKME in some cases this avatar may not exist
       this.addIndicator( avatarBase, icon, color );
-      if ( typeof avatarBase.SoundPlaying !== "undefined" ) {
-        avatarBase.SoundPlaying.stop();
-        delete avatarBase.SoundPlaying;
-      }
-      if ( soundName && avatarBase[soundName] ) {
-        avatarBase[soundName].play();
-        avatarBase.SoundPlaying = avatarBase[soundName];
-      }
+      this.playSound( avatarBase, soundName);
     }
   }
   
@@ -387,6 +393,7 @@ export class HideAndSeek extends BasicScript {
       delete baseMesh[soundName];
     }
   }
+  
   detachSounds(baseMesh) {
     this.removeSound(baseMesh, "SoundVictory");
     this.removeSound(baseMesh, "SoundAlarm");
@@ -399,7 +406,7 @@ export class HideAndSeek extends BasicScript {
   playerJoins(player) {
     let id = new ID(player.className,player.id);
     if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
-      console.log("that's me");
+      this.attachSounds(VRSPACEUI.hud.root);
     } else {
       let user = VRSPACE.getScene().get(id.toString());
       if ( user ) {
@@ -439,25 +446,25 @@ export class HideAndSeek extends BasicScript {
     
     
     if ( this.isMine() ) {
-      this.scene.activeCamera.detachControl();
+      this.camera.detachControl();
       this.pipeline = new BABYLON.LensRenderingPipeline('lens', {
         edge_blur: 1.0,
         chromatic_aberration: 1.0,
         distortion: 2.0,
         dof_focus_distance: 0.5,
-        dof_aperture: 3.0,      // set this very high for tilt-shift effect
+        dof_aperture: 3.0,
         grain_amount: 1.0,
         dof_pentagon: true,
         dof_gain: 1.0,
         dof_threshold: 1.0,
         dof_darken: 0.35
-      }, this.scene, 1.0, this.scene.activeCamera);
+      }, this.scene, 1.0, this.camera);
      
     }
     
     let countDown = setInterval( () => {
       if ( delay-- <= 0 ) {
-        this.scene.activeCamera.attachControl();
+        this.camera.attachControl();
         clearInterval(countDown);
         countForm.dispose();
         timerSound.dispose();
@@ -492,7 +499,7 @@ export class HideAndSeek extends BasicScript {
         if ( user ) {
           let pos = this.players.indexOf(user.avatar.baseMesh());
           if ( pos > -1 ) {
-            this.detachSounds(user.avatar.baseMesh());
+            this.detachSounds(VRSPACEUI.hud.root);
             this.players.splice(pos,1);
           }
         } else {
@@ -560,7 +567,7 @@ export class HideAndSeek extends BasicScript {
       }
       // am I at the goal area?
       // FIXME this works only for 1st person camera
-      if ( this.inGoalRange(this.scene.activeCamera.position) ) {
+      if ( this.inGoalRange(this.camera.position) ) {
         let caught = 0;
         for ( let id in this.seen ) {
           if ( !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id) ) {
