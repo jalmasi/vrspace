@@ -43,7 +43,7 @@ export class VisibilitySensor {
   isClosestMesh(camera, mesh, point) {
     let direction = point.subtract(camera.position).normalize();
     let ray = new BABYLON.Ray(camera.position,direction,camera.maxZ);
-    let closest = this.scene.pickWithRay(ray);
+    let closest = this.scene.pickWithRay(ray, (test) => test.isVisible);
     //if ( closest && closest.hit ) {
       //console.log("Picked "+closest.pickedMesh.name+" root "+VRSPACEUI.findRootNode(closest.pickedMesh).name+ " at "+point+" distance "+closest.distance);
     //}
