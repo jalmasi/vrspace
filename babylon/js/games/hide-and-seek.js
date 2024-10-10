@@ -387,18 +387,21 @@ export class HideAndSeek extends BasicScript {
   }
   
   removeSound(baseMesh, soundName) {
+    // non-existing sound is fine, it may have been removed (user quit)
+    // or was never attached (SoundPlaying)
     if ( typeof baseMesh[soundName] != "undefined") {
+      //console.log("Removing sound "+soundName+" from ",baseMesh);
       baseMesh[soundName].detachFromMesh();
       baseMesh[soundName].dispose();
       delete baseMesh[soundName];
     } else {
-      console.error("Undefined sound "+soundName+" for ",baseMesh);
+      //console.error("Undefined sound "+soundName+" for ",baseMesh);
     }
   }
   
   detachSounds(baseMesh) {
     this.removeSound(baseMesh, "SoundVictory");
-    this.removeSound(baseMesh, "SoundAlarm");
+    this.removeSound(baseMesh, "SoundFail");
     this.removeSound(baseMesh, "SoundAlarm");
     this.removeSound(baseMesh, "SoundSeek");
     this.removeSound(baseMesh, "SoundPlaying");
@@ -494,14 +497,14 @@ export class HideAndSeek extends BasicScript {
       this.updateStatus();
       let id = new ID(changes.quit.className,changes.quit.id);
       if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
-        console.log("TODO that's me");
+        this.detachSounds(VRSPACEUI.hud.root);
       } else {
         // CHECKME this may fail if user has disconnected (avatar removed from the scene)
         let user = VRSPACE.getScene().get(id.toString());
         if ( user ) {
           let pos = this.players.indexOf(user.avatar.baseMesh());
           if ( pos > -1 ) {
-            this.detachSounds(VRSPACEUI.hud.root);
+            this.detachSounds(user.avatar.baseMesh());
             this.players.splice(pos,1);
           }
         } else {
