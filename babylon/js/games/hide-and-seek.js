@@ -50,10 +50,11 @@ class GameStatus extends Form {
 }
 
 class CountDown extends Form {
-  constructor(count) {
+  constructor(count, isMine) {
     super();
     this.fontSize = 128;
     this.count = count;
+    this.isMine = isMine;
   }
   init() {
     this.createPanel();
@@ -70,7 +71,9 @@ class CountDown extends Form {
     VRSPACEUI.hud.newRow();
     VRSPACEUI.hud.addForm(this,256,128);
     this.plane.position.y += 0.1;
-    this.texture.background = "black";
+    if ( this.isMine ) {
+      this.texture.background = "black";
+    }
   }
   update(count) {
     // FIXME ugly way to justify right
@@ -323,7 +326,7 @@ export class HideAndSeek extends BasicScript {
     if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
       // my avatar
       this.addIndicator( this.world.avatar.baseMesh(), icon, color);
-      this.playSound( this.camera, soundName);
+      //this.playSound(this.camera, soundName); // this can't be right
     } else {
       // someone else
       let avatarBase = this.players.find(baseMesh => baseMesh.VRObject.id == playerEvent.id);
@@ -424,7 +427,7 @@ export class HideAndSeek extends BasicScript {
   }
   
   startCountDown(delay) {
-    let countForm = new CountDown(delay);
+    let countForm = new CountDown(delay, this.isMine());
     countForm.init();
     let timerSound = new BABYLON.Sound(
       "clock",
