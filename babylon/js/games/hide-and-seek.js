@@ -478,9 +478,13 @@ export class HideAndSeek extends BasicScript {
         timerSound.dispose();
         tickSound.dispose();
         startSound.play();
+        this.gameStarted = true;
         if ( this.pipeline ) {
           this.pipeline.dispose();
           delete this.pipeline;
+        }
+        if ( this.isMine() ) {
+          VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start" });
         }
       } else {
         tickSound.play();
@@ -516,14 +520,14 @@ export class HideAndSeek extends BasicScript {
       }
     } else if ( changes.seen ) {
       this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
-    } else if ( changes.delay ) {
-      this.delay = changes.delay;
-    } else if ( changes.start ) {
-      this.gameStarted = true;
+    } else if ( changes.starting ) {
+      this.delay = changes.starting;
       this.closeGameStatus();
       this.startCountDown(this.delay);
       // also add all players that joined the game before this instance was created
       this.vrObject.players.forEach(player=>this.playerJoins(player));
+    } else if ( changes.start ) {
+      this.gameStarted = true;
       this.changePlayerStatus(changes.start, "SoundSeek", this.searchIcon);
     } else if (changes.won) {
       this.changePlayerStatus(changes.won, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
@@ -540,8 +544,7 @@ export class HideAndSeek extends BasicScript {
     // and then
     if ( this.isMine() ) {
       this.visibilityCheck = setInterval( () => this.checkVisibility(), 1000/this.fps);
-      VRSPACE.sendEvent(this.vrObject, {delay: this.gameStatus.getDelay() });
-      VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start", });
+      VRSPACE.sendEvent(this.vrObject, {starting: this.gameStatus.getDelay() });
     }
   }
   
