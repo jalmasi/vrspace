@@ -677,13 +677,13 @@ export class WorldManager {
     if ( this.mediaStreams ) {
       this.mediaStreams.removeClient(obj);
     }
-    VRSPACEUI.assetLoader.unloadObject(obj);
-    if ( obj.attachedScript ) {
-      obj.attachedScript.dispose();
-    }
     if ( obj.avatar ) {
-      obj.avatar.dispose();
+      obj.avatar.dispose(); // calls unloadObject
       obj.avatar = null;
+    } else if ( obj.attachedScript ) {
+      obj.attachedScript.dispose(); // SHOULD unload
+    } else {
+      VRSPACEUI.assetLoader.unloadObject(obj);
     }
     if ( obj.translate ) {
       obj.translate.dispose();

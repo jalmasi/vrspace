@@ -466,7 +466,7 @@ export class HideAndSeek extends BasicScript {
         dof_gain: 1.0,
         dof_threshold: 1.0,
         dof_darken: 0.35
-      }, this.scene, 1.0, this.camera);
+      }, this.scene, 1.0, this.scene.cameras);
      
     }
     
@@ -555,6 +555,13 @@ export class HideAndSeek extends BasicScript {
     return radius <= this.goalRadius;
   }
   
+  avatarPosition() {
+    if ( typeof this.world.camera3p !== "undefined" && this.scene.activeCamera == this.world.camera3p ) {
+      return this.world.avatar.baseMesh().position;
+    }
+    return this.scene.activeCamera.position;
+  }
+  
   checkVisibility() {
     let visible = this.visibilitySensor.getVisibleOf(this.players);
     if ( visible.length > 0 ) {
@@ -577,8 +584,7 @@ export class HideAndSeek extends BasicScript {
         }
       }
       // am I at the goal area?
-      // FIXME this works only for 1st person camera
-      if ( this.inGoalRange(this.camera.position) ) {
+      if ( this.inGoalRange(this.avatarPosition()) ) {
         let caught = 0;
         for ( let id in this.seen ) {
           if ( !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id) ) {
