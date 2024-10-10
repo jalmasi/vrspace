@@ -46,8 +46,8 @@ export class DefaultHud {
       this.displayButtons = false;
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
-      this.settingsButton = this.hud.addButton("Tools", this.contentBase + "/content/icons/tools.png", () => this.tools());
-      this.settingsButton = this.hud.addButton("Games", this.contentBase + "/content/icons/gamepad.png", () => this.games());
+      this.toolsButton = this.hud.addButton("Tools", this.contentBase + "/content/icons/tools.png", () => this.tools());
+      this.gamesButton = this.hud.addButton("Games", this.contentBase + "/content/icons/gamepad.png", () => this.games());
       this.emojiButton = this.hud.addButton("Emoji", this.contentBase + "/content/icons/emoji.png", () => this.emojis());
       this.shareButton = this.hud.addButton("Share", this.contentBase + "/content/icons/share.png", () => this.share());
       this.hud.enableSpeech(true);

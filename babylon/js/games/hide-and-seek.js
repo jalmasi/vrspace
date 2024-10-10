@@ -391,6 +391,8 @@ export class HideAndSeek extends BasicScript {
       baseMesh[soundName].detachFromMesh();
       baseMesh[soundName].dispose();
       delete baseMesh[soundName];
+    } else {
+      console.error("Undefined sound "+soundName+" for ",baseMesh);
     }
   }
   
