@@ -22,6 +22,8 @@ export class Form {
     this.padding = 0;
     this.keyboardRows = null;
     this.virtualKeyboardEnabled = true;
+    this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     this.speechInput = new SpeechInput();
     this.speechInput.addNoMatch((phrases)=>this.noMatch(phrases));
     this.inputFocusListener = null;
@@ -66,6 +68,8 @@ export class Form {
    */
   textBlock(text, params) {
     var block = new BABYLON.GUI.TextBlock();
+    block.horizontalAlignment = this.horizontalAlignment;
+    block.verticalAlignment = this.verticalAlignment;
     block.text = text;
     block.color = this.color;
     block.fontSize = this.fontSize;
@@ -158,6 +162,8 @@ export class Form {
   }
   /** Common code for submitButton() and textButton() */
   setupButton(button, callback) {
+    button.horizontalAlignment = this.horizontalAlignment;
+    button.verticalAlignment = this.verticalAlignment;
     button.heightInPixels = this.heightInPixels;
     // CHECKME: hardcoded padding?
     button.paddingLeft = "10px";
