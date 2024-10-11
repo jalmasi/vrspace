@@ -93,6 +93,18 @@ export class DefaultHud {
       this.speechButton.tooltipText = "Voice Commands";
       this.speech(this.state.speech);
 
+      this.hud.enableSpeech(true);
+    } else {
+      this.clearRow();
+    }
+  }
+
+  tools() {
+    this.displayButtons = !this.displayButtons;
+    if ( this.displayButtons ) {
+      this.hud.showButtons(false, this.settingsButton);
+      this.hud.newRow();
+
       this.saveButton = this.hud.addButton("Save", this.contentBase + "/content/icons/save.png", () => this.save(), false);
       this.saveButton.tooltipText = "Save&Download";
 
@@ -101,7 +113,9 @@ export class DefaultHud {
 
       this.helpButton = this.hud.addButton("Help", this.contentBase + "/content/icons/help.png", () => this.help());
       this.helpButton.tooltipText = "TODO";
+
       this.hud.enableSpeech(true);
+
     } else {
       this.clearRow();
     }
