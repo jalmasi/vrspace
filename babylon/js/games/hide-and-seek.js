@@ -550,6 +550,7 @@ export class HideAndSeek extends BasicScript {
         }
         if ( this.isMine() ) {
           VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start" });
+          this.visibilityCheck = setInterval( () => this.checkVisibility(), 1000/this.fps);
         }
       } else {
         tickSound.play();
@@ -612,7 +613,6 @@ export class HideAndSeek extends BasicScript {
   startGame() {
     // and then
     if ( this.isMine() ) {
-      this.visibilityCheck = setInterval( () => this.checkVisibility(), 1000/this.fps);
       VRSPACE.sendEvent(this.vrObject, {starting: this.gameStatus.getDelay() });
     }
   }
