@@ -188,7 +188,6 @@ export class HideAndSeek extends BasicScript {
   }
   
   dispose() {
-    console.log("disposing...");
     this.closeGameStatus();
     this.visibilitySensor.dispose();
     this.visibilitySensor = null;
@@ -294,15 +293,17 @@ export class HideAndSeek extends BasicScript {
       this.gameStatus.gameStarted = this.gameStarted;
       this.gameStatus.init();
       this.gameStatus.numberOfPlayers(this.totalPlayers);
-    } else if ( !this.scoreBoard ) {
-      this.scoreBoard = new ScoreBoard(this.seeker, this.winners, this.losers, (quit)=>{
-        this.closeGameStatus();
-        if ( quit ) {
-          this.quitGame();
-        }
-      });
-      this.scoreBoard.init();
+      return;
+    } else if ( this.scoreBoard ) {
+      this.scoreBoard.dispose();
     }
+    this.scoreBoard = new ScoreBoard(this.seeker, this.winners, this.losers, (quit)=>{
+      this.closeGameStatus();
+      if ( quit ) {
+        this.quitGame();
+      }
+    });
+    this.scoreBoard.init();
   }
   
   startRequested() {
@@ -570,6 +571,8 @@ export class HideAndSeek extends BasicScript {
       this.updateStatus();
       let id = new ID(changes.quit.className,changes.quit.id);
       if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
+        // I quit
+        this.closeGameStatus();
         this.detachSounds(VRSPACEUI.hud.root);
       } else {
         // CHECKME this may fail if user has disconnected (avatar removed from the scene)
@@ -599,10 +602,12 @@ export class HideAndSeek extends BasicScript {
       let id = changes.won.className+" "+changes.won.id;
       let player = this.changePlayerStatus(changes.won, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
       this.winners[id] = player;
+      this.showGameStatus();
     } else if (changes.lost) {
       let id = changes.lost.className+" "+changes.lost.id;
       let player = this.changePlayerStatus(changes.lost, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
       this.losers[id] = player;
+      this.showGameStatus();
     } else if ( changes.end ) {
       console.log("TODO game ended, who won?")
     } else {
