@@ -268,6 +268,7 @@ export class Game extends VRObject {
     this.className = 'Game';
     this.name = null;
     this.numberOfPlayers=0;
+    this.status=null;
     this.players=[];
   }
 }

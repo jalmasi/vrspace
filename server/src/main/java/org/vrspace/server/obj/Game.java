@@ -40,6 +40,7 @@ public class Game extends VRObject {
   private String name;
   /** Current number of players */
   private int numberOfPlayers = 0;
+  private String status;
   @Transient
   private transient Set<ID> players = ConcurrentHashMap.newKeySet();
 

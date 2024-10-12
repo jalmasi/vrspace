@@ -199,6 +199,7 @@ export class HideAndSeek extends BasicScript {
     this.soundTick = VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav";
     this.soundStart = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
     this.totalPlayers = vrObject.numberOfPlayers;
+    this.playing = false;
     this.gameStarted = false;
     this.invitePlayers();
     this.markStartingPosition();
@@ -305,7 +306,7 @@ export class HideAndSeek extends BasicScript {
   invitePlayers() {
     if ( this.isMine() ) {
       this.joinGame(true);
-    } else {
+    } else if ( this.vrObject.status != "started" ) {
       this.joinDlg = new Dialogue("Join "+this.vrObject.name+" ?", (yes)=>this.joinGame(yes));
       this.joinDlg.init();
     }
@@ -366,6 +367,7 @@ export class HideAndSeek extends BasicScript {
   }
   
   joinGame(yes) {
+    this.playing = yes;
     if ( yes ) {
       this.showGameStatus();
       VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"join"});
@@ -375,6 +377,7 @@ export class HideAndSeek extends BasicScript {
   }
 
   quitGame() {
+    this.playing = false;
     VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"quit"});
     // TODO replace in-game HUD with previous one
   }
@@ -528,7 +531,7 @@ export class HideAndSeek extends BasicScript {
     }
   }
   
-  startCountDown(delay) {
+  startCountDown(delay, chatLog) {
     let countForm = new CountDown(delay, this.isMine());
     countForm.init();
     let timerSound = new BABYLON.Sound(
@@ -556,6 +559,9 @@ export class HideAndSeek extends BasicScript {
     
     
     if ( this.isMine() ) {
+      if (chatLog) {
+        chatLog.group.setEnabled(false);
+      }
       this.camera.detachControl();
       this.pipeline = new BABYLON.LensRenderingPipeline('lens', {
         edge_blur: 1.0,
@@ -574,6 +580,9 @@ export class HideAndSeek extends BasicScript {
     
     let countDown = setInterval( () => {
       if ( delay-- <= 0 ) {
+        if (chatLog) {
+          chatLog.group.setEnabled(true);
+        }
         this.camera.attachControl();
         clearInterval(countDown);
         countForm.dispose();
@@ -623,44 +632,49 @@ export class HideAndSeek extends BasicScript {
           console.error( id +" quit the game but is not in local scene");
         }
       }
-    } else if (changes.seen) {
+    } else if (changes.seen && this.playing) {
       let id = changes.seen.className+" "+changes.seen.id;
       if ( ! this.seen.hasOwnProperty(id) ) {
         let player = this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
         this.seen[id] = player;
       }
     } else if ( changes.starting ) {
-      this.delay = changes.starting;
-      this.closeGameStatus();
-      this.startCountDown(this.delay);
-      // also add all players that joined the game before this instance was created
-      this.vrObject.players.forEach(player=>this.playerJoins(player));
-    } else if ( changes.start ) {
+      if ( this.playing ) {
+        this.closeGameStatus();
+        this.delay = changes.starting;
+        this.startCountDown(this.delay, this.world.chatLog);
+        // also add all players that joined the game before this instance was created
+        this.vrObject.players.forEach(player=>this.playerJoins(player));
+      } else if ( this.joinDlg ) {
+        this.joinDlg.close();
+        this.joinDlg = null;
+      }
+    } else if ( changes.start && this.playing) {
       this.gameStarted = true;
       this.seeker = this.changePlayerStatus(changes.start, "SoundSeek", this.searchIcon);
-    } else if (changes.won) {
+    } else if (changes.won && this.playing) {
       let id = changes.won.className+" "+changes.won.id;
       let player = this.changePlayerStatus(changes.won, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
       this.winners[id] = player;
       delete this.seen[id];
       this.showGameStatus();
-    } else if (changes.lost) {
+    } else if (changes.lost && this.playing) {
       let id = changes.lost.className+" "+changes.lost.id;
       let player = this.changePlayerStatus(changes.lost, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
       this.losers[id] = player;
       delete this.seen[id];
       this.showGameStatus();
-    } else if ( changes.end ) {
+    } else if ( changes.end && this.playing) {
       console.log("TODO game ended, who won?")
     } else {
-      console.error("Unknown notification: ", changes);
+      console.log("Unknown/ignored notification: ", changes);
     }
   }
  
   startGame() {
     // and then
     if ( this.isMine() ) {
-      VRSPACE.sendEvent(this.vrObject, {starting: this.gameStatus.getDelay() });
+      VRSPACE.sendEvent(this.vrObject, {status: "started", starting: this.gameStatus.getDelay() });
     }
   }
   
