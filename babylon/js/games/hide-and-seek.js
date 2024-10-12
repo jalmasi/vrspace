@@ -33,8 +33,6 @@ class GameStatus extends Form {
     let quitButton = this.textButton("Quit", () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
     this.addControl(quitButton);
 
-    VRSPACEUI.hud.showButtons(false);
-    VRSPACEUI.hud.newRow();
     VRSPACEUI.hud.addForm(this,512,256);
   }
   
@@ -50,11 +48,13 @@ class GameStatus extends Form {
 }
 
 class ScoreBoard extends Form {
-  constructor(seeker, winners, losers, callback) {
+  constructor(game, callback) {
     super();
-    this.seeker = seeker;
-    this.winners = winners;
-    this.losers = losers;
+    this.game = game;
+    this.seeker = game.seeker;
+    this.seen = game.seen;
+    this.winners = game.winners;
+    this.losers = game.losers;
     this.callback = callback;
   }
   
@@ -65,22 +65,35 @@ class ScoreBoard extends Form {
     this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.addControl(this.grid);
     
+    this.grid.addColumnDefinition(0.2);
     this.grid.addColumnDefinition(0.5);
-    this.grid.addColumnDefinition(0.5);
+    this.grid.addColumnDefinition(0.3);
 
     this.grid.addRowDefinition(this.heightInPixels, true);
-    this.grid.addControl(this.textBlock(this.playerName(this.seeker)), 0, 0);
-    let winnerScore = Object.keys(this.losers).length;
-    this.grid.addControl(this.textBlock(winnerScore), 0, 1);
 
-    let keys = Object.keys(this.winners);
-    let numPlayers = keys.length+1;
-    for ( let i = 0; i < keys.length; i++ ) {
-      this.grid.addRowDefinition(this.heightInPixels, true);
-      this.grid.addControl(this.textBlock(this.playerName(this.winners[keys[i]])), i+1, 0);
-      this.grid.addControl(this.textBlock("1"), i+1, 1);
-    }
+    let seekerScore = Object.keys(this.losers).length;
+    let seekerIcon = this.makeIcon("seekerIcon", this.game.searchIcon);
+    this.grid.addControl(seekerIcon, 0, 0);
+    this.grid.addControl(this.textBlock(this.playerName(this.seeker)), 0, 1);
+    this.grid.addControl(this.textBlock(seekerScore), 0, 2);
+
+    let winnerIcon = this.makeIcon("winnerIcon", this.game.wonIcon);
+    let loserIcon = this.makeIcon("winnerIcon", this.game.lostIcon);
+    let seenIcon = this.makeIcon("winnerIcon", this.game.foundIcon);
     
+    this.showPlayers(this.winners, 1, winnerIcon);
+    this.showPlayers(this.losers, 0, loserIcon);
+    this.showPlayers(this.seen , 0, seenIcon);
+    let otherPlayers = {};
+    this.game.players.forEach(player=>{
+      let id = player.getID().toString();
+      if ( !this.winners[id] && !this.losers[id] && !this.seen[id] && player != this.seeker) {
+        // not found yet
+        otherPlayers[id] = player;
+      }
+    });
+    this.showPlayers(otherPlayers, 0);
+        
     this.addControl(this.grid);
 
     this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
@@ -89,9 +102,26 @@ class ScoreBoard extends Form {
     let quitButton = this.textButton("Quit", () => this.callback(true), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
     this.addControl(quitButton);
     
-    VRSPACEUI.hud.showButtons(false);
-    VRSPACEUI.hud.newRow();
-    VRSPACEUI.hud.addForm(this,512,this.heightInPixels*(numPlayers+1));
+    VRSPACEUI.hud.addForm(this,512,this.heightInPixels*(this.grid.rowCount+1));
+  }
+
+  showPlayers(obj, score, icon) {
+    let keys = Object.keys(obj);
+    let rowCount = this.grid.rowCount;
+    for ( let i = 0; i < keys.length; i++ ) {
+      this.grid.addRowDefinition(this.heightInPixels, true);
+      if ( icon ) {
+        this.grid.addControl(icon, i+rowCount, 0);
+      }
+      this.grid.addControl(this.textBlock(this.playerName(obj[keys[i]])), i+rowCount, 1);
+      this.grid.addControl(this.textBlock(score), i+rowCount, 2);
+    }
+  }
+  
+  makeIcon(name, url) {
+    let ret = new BABYLON.GUI.Image(name, url);
+    ret.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+    return ret;
   }
   
   playerName(vrObject) {
@@ -213,7 +243,7 @@ export class HideAndSeek extends BasicScript {
       this.joinDlg = null;
     }
     this.materials.forEach( m => m.dispose());
-    this.players.forEach(baseMesh=>this.detachSounds(baseMesh));
+    this.players.forEach(client=>{client.avatar && this.detachSounds(client.avatar.baseMesh())});
     this.detachSounds(VRSPACEUI.hud.root);
     HideAndSeek.instance = null;
   }
@@ -283,6 +313,8 @@ export class HideAndSeek extends BasicScript {
   
   showGameStatus() {
     if ( ! this.gameStarted ) {
+      VRSPACEUI.hud.showButtons(false);
+      VRSPACEUI.hud.newRow();
       this.gameStatus = new GameStatus(this.isMine(), (start)=>{
         if ( start ) {
           this.startGame();
@@ -297,7 +329,9 @@ export class HideAndSeek extends BasicScript {
     } else if ( this.scoreBoard ) {
       this.scoreBoard.dispose();
     }
-    this.scoreBoard = new ScoreBoard(this.seeker, this.winners, this.losers, (quit)=>{
+    VRSPACEUI.hud.showButtons(false);
+    VRSPACEUI.hud.newRow();
+    this.scoreBoard = new ScoreBoard(this, (quit)=>{
       this.closeGameStatus();
       if ( quit ) {
         this.quitGame();
@@ -310,7 +344,7 @@ export class HideAndSeek extends BasicScript {
     if ( this.isMine() || this.gameStarted ) {
       // player has already joined
       this.showGameStatus();
-    } else {
+    } else if ( ! this.gameStarted ) {
       // player wants to join
       this.invitePlayers();
     }
@@ -394,11 +428,11 @@ export class HideAndSeek extends BasicScript {
       return VRSPACE.me;
     } else {
       // someone else
-      let avatarBase = this.players.find(baseMesh => baseMesh.VRObject.id == playerEvent.id);
+      let user = this.players.find(user => user.id == playerEvent.id);
       // CHECKME in some cases this avatar may not exist
-      this.addIndicator( avatarBase, icon, color );
-      this.playSound( avatarBase, soundName);
-      return avatarBase.VRObject;
+      this.addIndicator( user.avatar.baseMesh(), icon, color );
+      this.playSound( user.avatar.baseMesh(), soundName);
+      return user;
     }
   }
   
@@ -481,10 +515,12 @@ export class HideAndSeek extends BasicScript {
     let id = new ID(player.className,player.id);
     if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
       this.attachSounds(VRSPACEUI.hud.root);
+      // CHECKME: players list contains my avatar?
+      this.players.push(VRSPACE.me);
     } else {
       let user = VRSPACE.getScene().get(id.toString());
       if ( user ) {
-        this.players.push(user.avatar.baseMesh());
+        this.players.push(user);
         this.attachSounds(user.avatar.baseMesh());
       } else {
         console.error( id +" joined the game but is not in local scene");
@@ -578,7 +614,7 @@ export class HideAndSeek extends BasicScript {
         // CHECKME this may fail if user has disconnected (avatar removed from the scene)
         let user = VRSPACE.getScene().get(id.toString());
         if ( user ) {
-          let pos = this.players.indexOf(user.avatar.baseMesh());
+          let pos = this.players.indexOf(user);
           if ( pos > -1 ) {
             this.detachSounds(user.avatar.baseMesh());
             this.players.splice(pos,1);
@@ -587,8 +623,12 @@ export class HideAndSeek extends BasicScript {
           console.error( id +" quit the game but is not in local scene");
         }
       }
-    } else if ( changes.seen ) {
-      this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
+    } else if (changes.seen) {
+      let id = changes.seen.className+" "+changes.seen.id;
+      if ( ! this.seen.hasOwnProperty(id) ) {
+        let player = this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
+        this.seen[id] = player;
+      }
     } else if ( changes.starting ) {
       this.delay = changes.starting;
       this.closeGameStatus();
@@ -602,11 +642,13 @@ export class HideAndSeek extends BasicScript {
       let id = changes.won.className+" "+changes.won.id;
       let player = this.changePlayerStatus(changes.won, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
       this.winners[id] = player;
+      delete this.seen[id];
       this.showGameStatus();
     } else if (changes.lost) {
       let id = changes.lost.className+" "+changes.lost.id;
       let player = this.changePlayerStatus(changes.lost, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
       this.losers[id] = player;
+      delete this.seen[id];
       this.showGameStatus();
     } else if ( changes.end ) {
       console.log("TODO game ended, who won?")
@@ -637,14 +679,15 @@ export class HideAndSeek extends BasicScript {
   }
   
   checkVisibility() {
-    let visible = this.visibilitySensor.getVisibleOf(this.players);
+    let visible = this.visibilitySensor.getVisibleUsers(this.players);
     if ( visible.length > 0 ) {
       // anyone not seen before?
-      visible.forEach( (parentMesh) => {
-        let id = parentMesh.VRObject.className+" "+parentMesh.VRObject.id;
-        if ( ! this.seen[id]) {
-          this.seen[id] = parentMesh.VRObject;
-          VRSPACE.sendEvent(this.vrObject, {seen: {className: parentMesh.VRObject.className, id: parentMesh.VRObject.id} });
+      visible.forEach( (user) => {
+        let id = user.className+" "+user.id;
+        if ( ! this.seen.hasOwnProperty(id) && !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id)) {
+          let player = this.changePlayerStatus(user, "SoundAlarm", this.foundIcon);
+          this.seen[id] = player;
+          VRSPACE.sendEvent(this.vrObject, {seen: {className: user.className, id: user.id} });
         }
       });
       // anyone at the goal area?

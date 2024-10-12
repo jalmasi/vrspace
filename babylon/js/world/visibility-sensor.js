@@ -71,11 +71,21 @@ export class VisibilitySensor {
     return ret;
   }
   
-  getVisibleOf(list, confidence=1) {
+  getVisibleOf(nodeArray, confidence=1) {
     let ret = [];
-    list.forEach( (node) => {
+    nodeArray.forEach( (node) => {
       if ( this.isVisible(node, confidence)) {
         ret.push(node);
+      }
+    });
+    return ret;
+  }
+
+  getVisibleUsers(userArray, confidence=1) {
+    let ret = [];
+    userArray.forEach( (user) => {
+      if ( typeof user.avatar != "undefined" && this.isVisible(user.avatar.baseMesh(), confidence)) {
+        ret.push(user);
       }
     });
     return ret;
