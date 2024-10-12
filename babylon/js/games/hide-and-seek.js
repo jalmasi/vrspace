@@ -426,21 +426,6 @@ export class HideAndSeek extends BasicScript {
       avatarBase.SoundPlaying = avatarBase[soundName];
     }
   }
-  changePlayerStatus( playerEvent, soundName, icon, color ) {
-    if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
-      // my avatar
-      this.addIndicator( this.world.avatar.baseMesh(), icon, color);
-      //this.playSound(this.camera, soundName); // this can't be right
-      return VRSPACE.me;
-    } else {
-      // someone else
-      let user = this.players.find(user => user.id == playerEvent.id);
-      // CHECKME in some cases this avatar may not exist
-      this.addIndicator( user.avatar.baseMesh(), icon, color );
-      this.playSound( user.avatar.baseMesh(), soundName);
-      return user;
-    }
-  }
   
   attachSounds(baseMesh) {
     let options = {
@@ -607,6 +592,30 @@ export class HideAndSeek extends BasicScript {
       }
     }, 1000);
   }
+
+
+  changePlayerStatus( playerEvent, soundName, icon, color ) {
+    if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
+      // my avatar
+      this.addIndicator( this.world.avatar.baseMesh(), icon, color);
+      //this.playSound(this.camera, soundName); // this can't be right
+      return VRSPACE.me;
+    } else {
+      // someone else
+      let user = this.players.find(user => user.id == playerEvent.id);
+      // CHECKME in some cases this avatar may not exist
+      this.addIndicator( user.avatar.baseMesh(), icon, color );
+      this.playSound( user.avatar.baseMesh(), soundName);
+      return user;
+    }
+  }
+
+  updateGameStatus(id, playerEvent, stateObject, sound, icon, color) {
+    if ( ! stateObject.hasOwnProperty(id) ) {
+      let player = this.changePlayerStatus(playerEvent, sound, icon, color);
+      stateObject[id] = player;
+    }
+  }
   
   remoteChange(vrObject, changes) {
     console.log("Remote changes for "+vrObject.id, changes);
@@ -636,11 +645,7 @@ export class HideAndSeek extends BasicScript {
         }
       }
     } else if (changes.seen && this.playing) {
-      let id = changes.seen.className+" "+changes.seen.id;
-      if ( ! this.seen.hasOwnProperty(id) ) {
-        let player = this.changePlayerStatus(changes.seen, "SoundAlarm", this.foundIcon);
-        this.seen[id] = player;
-      }
+      this.updateStatus(changes.seen.className+" "+changes.seen.id, changes.seen, this.seen, "SoundAlarm", this.foundIcon);
     } else if ( changes.starting ) {
       if ( this.playing ) {
         this.closeGameStatus();
@@ -657,15 +662,13 @@ export class HideAndSeek extends BasicScript {
       this.seeker = this.changePlayerStatus(changes.start, "SoundSeek", this.searchIcon);
     } else if (changes.won && this.playing) {
       let id = changes.won.className+" "+changes.won.id;
-      let player = this.changePlayerStatus(changes.won, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
-      this.winners[id] = player;
+      this.updateGameStatus(id, changes.won, this.winners, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
       delete this.seen[id];
       this.showGameStatus();
       this.checkEnd()
     } else if (changes.lost && this.playing) {
       let id = changes.lost.className+" "+changes.lost.id;
-      let player = this.changePlayerStatus(changes.lost, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
-      this.losers[id] = player;
+      this.updateGameStatus(id, changes.lost, this.losers, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
       delete this.seen[id];
       this.showGameStatus();
       this.checkEnd()
@@ -720,8 +723,7 @@ export class HideAndSeek extends BasicScript {
       visible.forEach( (user) => {
         let id = user.className+" "+user.id;
         if ( ! this.seen.hasOwnProperty(id) && !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id)) {
-          let player = this.changePlayerStatus(user, "SoundAlarm", this.foundIcon);
-          this.seen[id] = player;
+          this.updateGameStatus(id, user, this.seen, "SoundAlarm", this.foundIcon);
           VRSPACE.sendEvent(this.vrObject, {seen: {className: user.className, id: user.id} });
         }
       });
@@ -732,17 +734,18 @@ export class HideAndSeek extends BasicScript {
           VRSPACE.sendEvent(this.vrObject, {won: {className: vrObject.className, id: vrObject.id} });
         }
       }
-      // am I at the goal area?
-      if ( this.inGoalRange(this.avatarPosition()) ) {
-        for ( let id in this.seen ) {
-          if ( !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id) ) {
-            let vrObject = this.seen[id];
-            VRSPACE.sendEvent(this.vrObject, {lost: {className: vrObject.className, id: vrObject.id} });
-         }
-        }
-      }
-      
     }
+    // am I at the goal area?
+    if ( this.inGoalRange(this.avatarPosition()) ) {
+      for ( let id in this.seen ) {
+        if ( !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id) ) {
+          let vrObject = this.seen[id];
+          this.updateGameStatus(id, vrObject, this.losers, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
+          VRSPACE.sendEvent(this.vrObject, {lost: {className: vrObject.className, id: vrObject.id} });
+       }
+      }
+    }
+    
   }
   
 }
