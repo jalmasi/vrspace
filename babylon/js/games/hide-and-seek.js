@@ -97,8 +97,10 @@ class ScoreBoard extends Form {
     this.addControl(this.grid);
 
     this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-    let closeButton = this.textButton("OK", () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/tick.png", "green");
-    this.addControl(closeButton);
+    if ( this.game.playing ) {
+      let closeButton = this.textButton("OK", () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/tick.png", "green");
+      this.addControl(closeButton);
+    }
     let quitButton = this.textButton("Quit", () => this.callback(true), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
     this.addControl(quitButton);
     
@@ -198,7 +200,9 @@ export class HideAndSeek extends BasicScript {
     this.soundClock = VRSPACEUI.contentBase + "/content/sound/deadrobotmusic__sprinkler-timer-loop.wav";
     this.soundTick = VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav";
     this.soundStart = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
+    this.soundEnd = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
     this.totalPlayers = vrObject.numberOfPlayers;
+    this.startTime = 0;
     this.playing = false;
     this.gameStarted = false;
     this.invitePlayers();
@@ -313,6 +317,7 @@ export class HideAndSeek extends BasicScript {
   }
   
   showGameStatus() {
+    this.closeGameStatus();
     if ( ! this.gameStarted ) {
       VRSPACEUI.hud.showButtons(false);
       VRSPACEUI.hud.newRow();
@@ -327,8 +332,6 @@ export class HideAndSeek extends BasicScript {
       this.gameStatus.init();
       this.gameStatus.numberOfPlayers(this.totalPlayers);
       return;
-    } else if ( this.scoreBoard ) {
-      this.scoreBoard.dispose();
     }
     VRSPACEUI.hud.showButtons(false);
     VRSPACEUI.hud.newRow();
@@ -550,7 +553,7 @@ export class HideAndSeek extends BasicScript {
       {loop: false, autoplay: true }
     );
     let startSound = new BABYLON.Sound(
-      "clock",
+      "gong",
       this.soundStart,
       this.scene,
       null,
@@ -658,14 +661,25 @@ export class HideAndSeek extends BasicScript {
       this.winners[id] = player;
       delete this.seen[id];
       this.showGameStatus();
+      this.checkEnd()
     } else if (changes.lost && this.playing) {
       let id = changes.lost.className+" "+changes.lost.id;
       let player = this.changePlayerStatus(changes.lost, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
       this.losers[id] = player;
       delete this.seen[id];
       this.showGameStatus();
+      this.checkEnd()
     } else if ( changes.end && this.playing) {
-      console.log("TODO game ended, who won?")
+      this.playing = false;
+      this.showGameStatus();
+      let endSound = new BABYLON.Sound(
+        "gong",
+        this.soundEnd,
+        this.scene,
+        null,
+        {loop: false, autoplay: true }
+      );
+      endSound.play();
     } else {
       console.log("Unknown/ignored notification: ", changes);
     }
@@ -674,6 +688,7 @@ export class HideAndSeek extends BasicScript {
   startGame() {
     // and then
     if ( this.isMine() ) {
+      this.startTime = Date.now();
       VRSPACE.sendEvent(this.vrObject, {status: "started", starting: this.gameStatus.getDelay() });
     }
   }
@@ -690,6 +705,12 @@ export class HideAndSeek extends BasicScript {
       return this.world.avatar.baseMesh().position;
     }
     return this.scene.activeCamera.position;
+  }
+ 
+  checkEnd() {
+    if ( this.isMine() && Object.keys(this.winners).length + Object.keys(this.losers).length + 1 == this.players.length ) {
+      VRSPACE.sendEvent(this.vrObject, {end: Date.now() - this.startTime });
+    }
   }
   
   checkVisibility() {
@@ -709,21 +730,15 @@ export class HideAndSeek extends BasicScript {
         let vrObject = this.seen[id];
         if ( !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id) && this.inGoalRange(vrObject.avatar.baseMesh().position) ) {
           VRSPACE.sendEvent(this.vrObject, {won: {className: vrObject.className, id: vrObject.id} });
-          console.log("TODO: check for game end")
         }
       }
       // am I at the goal area?
       if ( this.inGoalRange(this.avatarPosition()) ) {
-        let caught = 0;
         for ( let id in this.seen ) {
           if ( !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id) ) {
-            caught++;
             let vrObject = this.seen[id];
             VRSPACE.sendEvent(this.vrObject, {lost: {className: vrObject.className, id: vrObject.id} });
-          }
-        }
-        if ( caught > 0 ) {
-          console.log("TODO option to end the game");
+         }
         }
       }
       
