@@ -205,6 +205,7 @@ export class HideAndSeek extends BasicScript {
     this.startTime = 0;
     this.playing = false;
     this.gameStarted = false;
+    this.callback = null;
     this.invitePlayers();
     this.markStartingPosition();
     this.seeker = null;
@@ -383,6 +384,9 @@ export class HideAndSeek extends BasicScript {
     this.playing = false;
     VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"quit"});
     // TODO replace in-game HUD with previous one
+    if ( this.callback ) {
+      this.callback(false);
+    }
   }
   
   addIndicator(baseMesh,icon,color=new BABYLON.Color4(1,1,1,1)) {
@@ -506,8 +510,10 @@ export class HideAndSeek extends BasicScript {
     let id = new ID(player.className,player.id);
     if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
       this.attachSounds(VRSPACEUI.hud.root);
-      // CHECKME: players list contains my avatar?
       this.players.push(VRSPACE.me);
+      if ( this.callback ) {
+        this.callback(true);
+      }
     } else {
       let user = VRSPACE.getScene().get(id.toString());
       if ( user ) {
@@ -746,6 +752,27 @@ export class HideAndSeek extends BasicScript {
       }
     }
     
+  }
+ 
+  static createOrJoinInstance(callback) {
+    if ( HideAndSeek.instance ) {
+      // already exists
+      if ( ! HideAndSeek.instance.callback ) {
+        HideAndSeek.instance.callback = callback;
+      }
+      HideAndSeek.instance.startRequested();
+    } else if (VRSPACE.me) {
+      VRSPACE.createScriptedObject({
+        name: "Hide and Seek",
+        properties: { clientId: VRSPACE.me.id },
+        active: true,
+        script: '/babylon/js/games/hide-and-seek.js'
+      }, "Game").then( obj => {
+        console.log("Created new script ", obj);
+      });
+    } else {
+      console.error("Attemting to start the game before entering a world");
+    }
   }
   
 }

@@ -44,13 +44,19 @@ export class DefaultHud {
     if ( this.settingsButton && this.displayButtons ) {
       this.clearRow();
       this.displayButtons = false;
+      return;
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
       this.toolsButton = this.hud.addButton("Tools", this.contentBase + "/content/icons/tools.png", () => this.tools());
-      this.gamesButton = this.hud.addButton("Games", this.contentBase + "/content/icons/gamepad.png", () => this.games());
+      this.gamesButton = this.hud.addButton("Games", this.contentBase + "/content/icons/gamepad.png", () => this.games(), false);
       this.emojiButton = this.hud.addButton("Emoji", this.contentBase + "/content/icons/emoji.png", () => this.emojis());
       this.shareButton = this.hud.addButton("Share", this.contentBase + "/content/icons/share.png", () => this.share());
       this.hud.enableSpeech(true);
+    }
+    if ( this.isOnline() ) {
+      this.hud.markEnabled(this.gamesButton);
+    } else {
+      this.hud.markDisabled(this.gamesButton);
     }
   }
   
@@ -560,21 +566,32 @@ export class DefaultHud {
   }
   
   games() {
-    // TODO state management
-    if ( HideAndSeek.instance ) {
-      // already exists
-      HideAndSeek.instance.startRequested();
-    } else if (VRSPACE.me) {
-      VRSPACE.createScriptedObject({
-        name: "Hide and Seek",
-        properties: { clientId: VRSPACE.me.id },
-        active: true,
-        script: '/babylon/js/games/hide-and-seek.js'
-      }, "Game").then( obj => {
-        console.log("Created new VRObject", obj);
-      });
+    if ( ! this.isOnline() ) {
+      return;
+    }
+    this.displayButtons = !this.displayButtons;
+    if ( this.displayButtons ) {
+      this.hud.showButtons(false, this.gamesButton);
+      this.hud.newRow();
+      this.playHideButton = this.hud.addButton("Hide And Seek", this.contentBase + "/content/icons/eye.png", () => this.hideAndSeek(), false);
+      this.playTagButton = this.hud.addButton("Tag!", this.contentBase + "/content/icons/man-run.png", () => this.playTag(), false);
     } else {
-      console.log("Attemting to start the game before entering a world");
+      this.clearRow();
     }
   }
+  
+  hideAndSeek() {
+    // TODO state management
+    HideAndSeek.createOrJoinInstance((startStop)=>{
+      if ( startStop ) {
+        this.hud.markActive(this.playHideButton);
+      } else {
+        this.hud.markEnabled(this.playHideButton);
+      }
+    });
+  }
+  
+  playTag() {
+  }
+  
 }
