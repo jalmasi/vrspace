@@ -768,6 +768,10 @@ export class HideAndSeek extends BasicScript {
         active: true,
         script: '/babylon/js/games/hide-and-seek.js'
       }, "Game").then( obj => {
+        obj.addLoadListener((obj, loaded)=>{
+          //console.log("Game script loaded: ", obj);
+          obj.attachedScript.callback=callback;
+        });
         console.log("Created new script ", obj);
       });
     } else {

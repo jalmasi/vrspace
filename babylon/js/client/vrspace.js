@@ -84,7 +84,12 @@ export class VRObject {
     /** Custom properties of an object - shared transient object*/
     this.properties = null; 
     //this.children = []; // CHECKME
+    /** Event listeners. Typically world manager listens to changes, and moves objects around. */
     this.listeners = [];
+    /** Load listeners, functions that trigger after the mesh or script is loaded. Managed by WorldManager. CHECKME SoC */
+    this.loadListeners = [];
+    /** Internal, set by WorldManager after the mesh/script has loaded. */
+    this._isLoaded = false;
     /** Handy reference to VRSpace instance */
     this.VRSPACE = null;
     /** Server-side class name */
@@ -99,12 +104,32 @@ export class VRObject {
   }
 
   /**
+  Add a load listener function to the object. Triggers immediatelly if mesh/script has already loaded (_isLoaded is true).
+   */  
+  addLoadListener(listener) {
+    this.loadListeners.push(listener);
+    if ( this._isLoaded ) {
+      listener(this);
+    }
+  }
+
+  /**
   Remove the listener.
   */
   removeListener(listener) {
     var pos = this.listeners.indexOf(listener);
     if ( pos > -1 ) {
       this.listeners.splice(pos,1);
+    }
+  }
+
+  /**
+  Remove a load listener.
+  */
+  removeLoadListener(listener) {
+    var pos = this.loadListeners.indexOf(listener);
+    if ( pos > -1 ) {
+      this.loadListeners.splice(pos,1);
     }
   }
   
@@ -116,6 +141,12 @@ export class VRObject {
     for ( var i = 0; i < this.listeners.length; i++ ) {
       this.listeners[i](this,changes);
     }
+  }
+
+  /** Triggers all load listeners */
+  notifyLoadListeners() {
+    this._isLoaded = true;
+    this.loadListeners.forEach(l=>l(this));
   }
   
   /** Publish the object to the server. Can be used only on new objects. */

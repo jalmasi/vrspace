@@ -381,9 +381,11 @@ export class WorldManager {
     if ( this.loadCallback ) {
       this.loadCallback(obj, avatar);
     }
+    console.log("Listeners: "+obj.loadListeners.length);
+    obj.notifyLoadListeners(); // CHECKME SoC
     this.world.worldListeners.forEach(listener => {
       try {
-        if ( listener.loaded) {
+        if (listener.loaded) {
           listener.loaded(obj);
         }
       } catch ( error ) {
