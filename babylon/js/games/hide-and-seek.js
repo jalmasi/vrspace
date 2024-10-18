@@ -5,47 +5,8 @@ import { VRSPACE } from "../client/vrspace.js";
 import { ID } from "../client/vrspace.js";
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Form } from '../ui/widget/form.js';
-import { HorizontalSliderPanel } from "../ui/widget/slider-panel.js";
-
-class GameStatus extends Form {
-  constructor(isMine, callback) {
-    super();
-    this.text = "Players joined: ";
-    this.delayText = "Count";
-    this.callback = callback;
-    this.isMine = isMine;
-    this.gameStarted = false;
-  }  
-  
-  init() {
-    this.verticalPanel = true;
-    this.createPanel();
-    this.label = this.textBlock(this.text+"0");
-    this.addControl(this.label);
-    this.padding = 8;
-    if (this.isMine && ! this.gameStarted) {
-      this.sliderPanel = new HorizontalSliderPanel(.5,this.delayText,10,30,10);
-      this.sliderPanel.decimals = 0;
-      this.addControl(this.sliderPanel.panel);
-      let startButton = this.textButton("Start", () => this.callback(true));
-      this.addControl(startButton);
-    }
-    let quitButton = this.textButton("Quit", () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
-    this.addControl(quitButton);
-
-    VRSPACEUI.hud.addForm(this,512,256);
-  }
-  
-  numberOfPlayers(num) {
-    this.label.text = this.text+num;
-  }
-  getDelay() {
-    if ( this.sliderPanel ) {
-      return this.sliderPanel.slider.value;
-    }
-    return 0;
-  }
-}
+import { CountdownForm } from './countdown-form.js'
+import { GameStatusForm } from './game-status-form.js'
 
 class ScoreBoard extends Form {
   constructor(game, callback) {
@@ -78,8 +39,8 @@ class ScoreBoard extends Form {
     this.grid.addControl(this.textBlock(seekerScore), 0, 2);
 
     let winnerIcon = this.makeIcon("winnerIcon", this.game.wonIcon);
-    let loserIcon = this.makeIcon("winnerIcon", this.game.lostIcon);
-    let seenIcon = this.makeIcon("winnerIcon", this.game.foundIcon);
+    let loserIcon = this.makeIcon("loserIcon", this.game.lostIcon);
+    let seenIcon = this.makeIcon("seenIcon", this.game.foundIcon);
     
     this.showPlayers(this.winners, 1, winnerIcon);
     this.showPlayers(this.losers, 0, loserIcon);
@@ -131,43 +92,6 @@ class ScoreBoard extends Form {
       return vrObject.name;
     }
     return "Player "+vrObject.id;
-  }
-}
-
-class CountDown extends Form {
-  constructor(count, isMine) {
-    super();
-    this.fontSize = 128;
-    this.count = count;
-    this.isMine = isMine;
-  }
-  init() {
-    this.createPanel();
-    this.label = this.textBlock(" ");
-    this.update(this.count);
-    this.label.width = "256px";
-    this.label.height = "256px";
-    this.addControl(this.label);
-    VRSPACEUI.hud.showButtons(false);
-    VRSPACEUI.hud.newRow();
-    VRSPACEUI.hud.addForm(this,256,128);
-    this.plane.position.y += 0.1;
-    if ( this.isMine ) {
-      this.texture.background = "black";
-    }
-  }
-  update(count) {
-    // FIXME ugly way to justify right
-    if ( count >= 10 ) {
-      this.label.text = " "+count;
-    } else {
-      this.label.text = "  "+count;
-    }
-  }
-  dispose() {
-    super.dispose();
-    VRSPACEUI.hud.clearRow();
-    VRSPACEUI.hud.showButtons(true);
   }
 }
 
@@ -322,7 +246,7 @@ export class HideAndSeek extends BasicScript {
     if ( ! this.gameStarted ) {
       VRSPACEUI.hud.showButtons(false);
       VRSPACEUI.hud.newRow();
-      this.gameStatus = new GameStatus(this.isMine(), (start)=>{
+      this.gameStatus = new GameStatusForm(this.isMine(), (start)=>{
         if ( start ) {
           this.startGame();
         } else {
@@ -525,9 +449,12 @@ export class HideAndSeek extends BasicScript {
     }
   }
   
-  startCountDown(delay, chatLog) {
-    let countForm = new CountDown(delay, this.isMine());
+  startCountdown(delay, chatLog) {
+    let countForm = new CountdownForm(delay);
     countForm.init();
+    if ( this.isMine() ) {
+      countForm.texture.background = "black";
+    }
     let timerSound = new BABYLON.Sound(
       "clock",
       this.soundClock,
@@ -656,7 +583,7 @@ export class HideAndSeek extends BasicScript {
       if ( this.playing ) {
         this.closeGameStatus();
         this.delay = changes.starting;
-        this.startCountDown(this.delay, this.world.chatLog);
+        this.startCountdown(this.delay, this.world.chatLog);
         // also add all players that joined the game before this instance was created
         this.vrObject.players.forEach(player=>this.playerJoins(player));
       } else if ( this.joinDlg ) {
