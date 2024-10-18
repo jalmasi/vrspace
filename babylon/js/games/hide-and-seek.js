@@ -126,7 +126,6 @@ export class HideAndSeek extends BasicGame {
     this.totalPlayers = vrObject.numberOfPlayers;
     this.startTime = 0;
     this.gameStarted = false;
-    this.callback = null;
     this.invitePlayers();
     this.markStartingPosition();
     this.seeker = null;
@@ -259,23 +258,6 @@ export class HideAndSeek extends BasicGame {
       VRSPACEUI.hud.showButtons(true);
       this.scoreBoard.dispose();
       this.scoreBoard = null;
-    }
-  }
-  
-  joinGame(yes) {
-    this.playing = yes;
-    if ( yes ) {
-      this.showGameStatus();
-      VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"join"});
-    }
-    this.joinDlg = null;
-  }
-
-  quitGame() {
-    this.playing = false;
-    VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"quit"});
-    if ( this.callback ) {
-      this.callback(false);
     }
   }
   
@@ -443,7 +425,6 @@ export class HideAndSeek extends BasicGame {
       null,
       {loop: false, autoplay: false }
     );
-    
     
     if ( this.isMine() ) {
       if (chatLog) {

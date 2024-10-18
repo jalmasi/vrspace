@@ -13,6 +13,7 @@ import { Whiteboard } from './world/whiteboard.js';
 import { TextArea } from './widget/text-area.js';
 import { Sceneshot } from '../world/sceneshot.js';
 import { HideAndSeek } from '../games/hide-and-seek.js';
+import { GameTag } from '../games/game-tag.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -575,19 +576,28 @@ export class DefaultHud {
       this.hud.newRow();
       this.playHideButton = this.hud.addButton("Hide And Seek", this.contentBase + "/content/icons/eye.png", () => this.hideAndSeek(), false);
       this.playTagButton = this.hud.addButton("Tag!", this.contentBase + "/content/icons/man-run.png", () => this.playTag(), false);
+      this.checkAvailableGames();
     } else {
       this.clearRow();
     }
   }
+
+  checkAvailableGames() {
+    if ( HideAndSeek.instance && HideAndSeek.instance.playing) {
+      this.hud.markActive(this.playHideButton);
+      this.hud.markDisabled(this.playTagButton);
+    } else if ( GameTag.instance && HideAndSeek.instance.playing) {
+      this.hud.markDisabled(this.playHideButton);
+      this.hud.markActive(this.playTagButton);
+    } else {
+      this.hud.markEnabled(this.playHideButton);
+      this.hud.markEnabled(this.playTagButton);
+    }
+  }
   
   hideAndSeek() {
-    // TODO state management
     HideAndSeek.createOrJoinInstance((startStop)=>{
-      if ( startStop ) {
-        this.hud.markActive(this.playHideButton);
-      } else {
-        this.hud.markEnabled(this.playHideButton);
-      }
+      this.checkAvailableGames();
     });
   }
   

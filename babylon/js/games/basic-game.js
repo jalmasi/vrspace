@@ -4,14 +4,28 @@ import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Dialogue } from "../ui/widget/dialogue.js";
 import { GameStatusForm } from "./game-status-form.js";
 
+/**
+ * Base class for a simple multiuser game.
+ * Contains utility methods to create, join and quit the game, that open appropriate forms and dialogues.
+ */
 export class BasicGame extends BasicScript {
   constructor( world, vrObject ) {
     super(world,vrObject);
+    /** GameStatusForm, created and destroyed by show/close game status methods */
     this.gameStatus = null;
+    /** Dialogue, created and destroyed by invitePlayers/joinGame methods */
+    this.joinDlg = null;
+    /** Status flag, set in joinGame method */
     this.playing = false;
+    /** Callback executed with true/false when game starts/ends */
+    this.callback = null;
   }
 
+  /**
+   * Creates a new HUD row, and opens a new GameStatusForm to start or join the game.
+   */
   showGameStatus() {
+    this.closeGameStatus(); // just in case
     VRSPACEUI.hud.showButtons(false);
     VRSPACEUI.hud.newRow();
     this.gameStatus = new GameStatusForm(this.isMine(), (start)=>{
@@ -26,6 +40,9 @@ export class BasicGame extends BasicScript {
     this.gameStatus.numberOfPlayers(this.totalPlayers);
   }
 
+  /**
+   * Close GameStatusForm if currently open, and restore the HUD.
+   */
   closeGameStatus() {
     if ( this.gameStatus ) {
       VRSPACEUI.hud.clearRow();
@@ -35,6 +52,10 @@ export class BasicGame extends BasicScript {
     }
   }
   
+  /**
+   * Join the game - shows game status and sends game join command to the server.
+   * @param {boolean} yes  
+   */
   joinGame(yes) {
     this.playing = yes;
     if ( yes ) {
@@ -52,6 +73,10 @@ export class BasicGame extends BasicScript {
     }
   }
   
+  /**
+   * Typically the first thing to do. Game owner joins the game at once, everyone else gets the dialogue,
+   * that triggers this.joinGame() as callback. 
+   */
   invitePlayers() {
     if ( this.isMine() ) {
       this.joinGame(true);
@@ -61,6 +86,9 @@ export class BasicGame extends BasicScript {
     }
   }
 
+  /**
+   * Clean up dialogue and status form
+   */
   dispose() {
     if ( this.joinDlg ) {
       this.joinDlg.close();
