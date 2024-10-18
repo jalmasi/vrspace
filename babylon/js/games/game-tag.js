@@ -1,10 +1,22 @@
+import { BasicGame } from './basic-game.js';
+import { VRSPACE } from "../client/vrspace.js";
+
 /**
  * Tag has a lot of meanings and uses, class name contains Game to avoid confusion.
  * 
  * In the game of tag, players try to catch each other. Player caught becomes the hunter.
  */
-export class GameTag extends BasicScript {
- 
+export class GameTag extends BasicGame {
+  static instance = null;
+  
+  constructor( world, vrObject ) {
+    super(world,vrObject);
+  }
+
+  dispose() {
+    super.dispose();
+  }
+  
   static createOrJoinInstance(callback) {
     if ( GameTag.instance ) {
       // already exists

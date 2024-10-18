@@ -1,12 +1,10 @@
-import { BasicScript } from "../scripts/basic-script.js";
+import { BasicGame } from './basic-game.js';
 import { VisibilitySensor } from "../world/visibility-sensor.js";
-import { Dialogue } from "../ui/widget/dialogue.js";
 import { VRSPACE } from "../client/vrspace.js";
 import { ID } from "../client/vrspace.js";
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Form } from '../ui/widget/form.js';
 import { CountdownForm } from './countdown-form.js'
-import { GameStatusForm } from './game-status-form.js'
 
 class ScoreBoard extends Form {
   constructor(game, callback) {
@@ -101,7 +99,7 @@ class ScoreBoard extends Form {
  * Player that started the game needs to search for other players.
  * If seen, both players rush to the place where the game started, first one to arrive, scores.
  */
-export class HideAndSeek extends BasicScript {
+export class HideAndSeek extends BasicGame {
   static instance = null;
   
   constructor( world, vrObject ) {
@@ -127,7 +125,6 @@ export class HideAndSeek extends BasicScript {
     this.soundEnd = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
     this.totalPlayers = vrObject.numberOfPlayers;
     this.startTime = 0;
-    this.playing = false;
     this.gameStarted = false;
     this.callback = null;
     this.invitePlayers();
@@ -148,7 +145,7 @@ export class HideAndSeek extends BasicScript {
   }
   
   dispose() {
-    this.closeGameStatus();
+    super.dispose();
     this.visibilitySensor.dispose();
     this.visibilitySensor = null;
     if ( this.visibilityCheck ) {
@@ -168,10 +165,6 @@ export class HideAndSeek extends BasicScript {
       }
       i.dispose();
     });
-    if ( this.joinDlg ) {
-      this.joinDlg.close();
-      this.joinDlg = null;
-    }
     this.materials.forEach( m => m.dispose());
     this.players.forEach(client=>{client.avatar && this.detachSounds(client.avatar.baseMesh())});
     this.detachSounds(VRSPACEUI.hud.root);
@@ -232,30 +225,10 @@ export class HideAndSeek extends BasicScript {
     this.goal.material = this.goalMaterial;
   }
   
-  invitePlayers() {
-    if ( this.isMine() ) {
-      this.joinGame(true);
-    } else if ( this.vrObject.status != "started" ) {
-      this.joinDlg = new Dialogue("Join "+this.vrObject.name+" ?", (yes)=>this.joinGame(yes));
-      this.joinDlg.init();
-    }
-  }
-  
   showGameStatus() {
     this.closeGameStatus();
     if ( ! this.gameStarted ) {
-      VRSPACEUI.hud.showButtons(false);
-      VRSPACEUI.hud.newRow();
-      this.gameStatus = new GameStatusForm(this.isMine(), (start)=>{
-        if ( start ) {
-          this.startGame();
-        } else {
-          this.quitGame();
-        }
-      });
-      this.gameStatus.gameStarted = this.gameStarted;
-      this.gameStatus.init();
-      this.gameStatus.numberOfPlayers(this.totalPlayers);
+      super.showGameStatus();
       return;
     }
     VRSPACEUI.hud.showButtons(false);
@@ -280,12 +253,7 @@ export class HideAndSeek extends BasicScript {
   }
   
   closeGameStatus() {
-    if ( this.gameStatus ) {
-      VRSPACEUI.hud.clearRow();
-      VRSPACEUI.hud.showButtons(true);
-      this.gameStatus.dispose();
-      this.gameStatus = null;
-    }
+    super.closeGameStatus();
     if ( this.scoreBoard ) {
       VRSPACEUI.hud.clearRow();
       VRSPACEUI.hud.showButtons(true);
@@ -299,7 +267,6 @@ export class HideAndSeek extends BasicScript {
     if ( yes ) {
       this.showGameStatus();
       VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"join"});
-      // TODO replace current HUD with in-game HUD
     }
     this.joinDlg = null;
   }
@@ -307,7 +274,6 @@ export class HideAndSeek extends BasicScript {
   quitGame() {
     this.playing = false;
     VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"quit"});
-    // TODO replace in-game HUD with previous one
     if ( this.callback ) {
       this.callback(false);
     }
