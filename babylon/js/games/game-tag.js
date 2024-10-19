@@ -21,6 +21,7 @@ export class GameTag extends BasicGame {
     this.soundClock = VRSPACEUI.contentBase + "/content/sound/deadrobotmusic__sprinkler-timer-loop.wav";
     this.soundTick = VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav";
     this.soundStart = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
+    this.soundAlarm = VRSPACEUI.contentBase + "/content/sound/bowesy__alarm.wav";
     this.chaseIcon = VRSPACEUI.contentBase + "/content/icons/man-run.png";
     this.targetIcon = VRSPACEUI.contentBase + "/content/icons/target-aim.png";
     this.camera = this.scene.activeCamera;
@@ -118,27 +119,50 @@ export class GameTag extends BasicGame {
   checkGameState() {
   }
   
+  attachSounds(baseMesh) {
+    let options = {
+      loop: true,
+      autoplay: false,
+      streaming: false,
+      panningModel: "linear",
+      maxDistance: 100,
+      spatialSound: true
+    }
+    let alarm = new BABYLON.Sound(
+      "alarm",
+      this.soundAlarm,
+      this.scene, 
+      null, // callback 
+      options
+    );
+    alarm.attachToMesh(baseMesh);
+    baseMesh.SoundAlarm = alarm;
+  }
+  
   remoteChange(vrObject, changes) {
     console.log("Remote changes for "+vrObject.id, changes);
     if ( changes.joined ) {
       this.totalPlayers++;
       this.updateStatus();
+      this.playerJoins(changes.joined);
     } else if ( changes.quit ) {
       this.totalPlayers--;
       this.updateStatus();
+      this.playerQuits(changes.quit);
     } else if ( changes.starting ) {
       if ( this.playing ) {
         this.closeGameStatus();
         this.delay = changes.starting;
         this.startCountdown(this.delay, this.world.chatLog);
         // also add all players that joined the game before this instance was created
-        //this.vrObject.players.forEach(player=>this.playerJoins(player));
+        this.vrObject.players.forEach(player=>this.playerJoins(player));
       } else if ( this.joinDlg ) {
         this.joinDlg.close();
         this.joinDlg = null;
       }
-    } else if ( changes.start && this.playing) {
+    } else if ( changes.start && this.playing ) {
       this.gameStarted = true;
+      this.hunter = this.changePlayerStatus(changes.start, "SoundAlarm", this.chaseIcon);
     } else {
       console.log("Unknown/ignored notification: ", changes);
     }

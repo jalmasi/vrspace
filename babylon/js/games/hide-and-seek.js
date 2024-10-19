@@ -128,8 +128,6 @@ export class HideAndSeek extends BasicGame {
     this.seen = {};
     this.winners = {};
     this.losers = {};
-    this.players = [];
-    this.indicators = [];
     this.materials = [];
     console.log("Players already in the game:", this.vrObject.players );
     if ( HideAndSeek.instance ) {
@@ -250,41 +248,6 @@ export class HideAndSeek extends BasicGame {
     }
   }
   
-  addIndicator(baseMesh,icon,color=new BABYLON.Color4(1,1,1,1)) {
-    if ( typeof baseMesh.GameIndicator !== "undefined") {
-      //baseMesh.GameIndicator.material.emissiveTexture = new BABYLON.Texture(icon, this.scene);
-      baseMesh.GameIndicator.material.diffuseTexture = new BABYLON.Texture(icon, this.scene);
-    } else {
-      let indicator = BABYLON.MeshBuilder.CreatePlane("IndicatorIcon", {}, this.scene);
-      indicator.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
-      let material = new BABYLON.StandardMaterial("IndicatorMaterial",this.scene);
-      //material.emissiveTexture = new BABYLON.Texture(icon, this.scene);
-      material.diffuseTexture = new BABYLON.Texture(icon, this.scene);
-      material.disableLighting = true;
-      material.alpha = 0;
-      material.alphaMode = BABYLON.Constants.ALPHA_ONEONE;
-      //material.backFaceCulling = false;
-      indicator.material = material;
-      indicator.position = new BABYLON.Vector3(0,2.5,0);
-      //indicator.rotation = new BABYLON.Vector3(Math.PI,0,0);
-      indicator.parent = baseMesh;
-      baseMesh.GameIndicator = indicator;
-      this.indicators.push(indicator);
-    }
-    baseMesh.GameIndicator.material.emissiveColor = color;
-  }
-  
-  playSound( avatarBase, soundName ) {
-    if ( typeof avatarBase.SoundPlaying !== "undefined" ) {
-      avatarBase.SoundPlaying.stop();
-      delete avatarBase.SoundPlaying;
-    }
-    if ( soundName && avatarBase[soundName] ) {
-      avatarBase[soundName].play();
-      avatarBase.SoundPlaying = avatarBase[soundName];
-    }
-  }
-  
   attachSounds(baseMesh) {
     let options = {
       loop: false,
@@ -335,7 +298,6 @@ export class HideAndSeek extends BasicGame {
     );
     seek.attachToMesh(baseMesh);
     baseMesh.SoundSeek = seek;
-
   }
   
   removeSound(baseMesh, soundName) {
@@ -359,26 +321,6 @@ export class HideAndSeek extends BasicGame {
     this.removeSound(baseMesh, "SoundPlaying");
   }
 
-  // requires player avatar to be already loaded - may not be safe for async usage
-  playerJoins(player) {
-    let id = new ID(player.className,player.id);
-    if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
-      this.attachSounds(VRSPACEUI.hud.root);
-      this.players.push(VRSPACE.me);
-      if ( this.callback ) {
-        this.callback(true);
-      }
-    } else {
-      let user = VRSPACE.getScene().get(id.toString());
-      if ( user ) {
-        this.players.push(user);
-        this.attachSounds(user.avatar.baseMesh());
-      } else {
-        console.error( id +" joined the game but is not in local scene");
-      }
-    }
-  }
-  
   startCountdown(delay, chatLog) {
     let countForm = new CountdownForm(delay);
     countForm.init();
@@ -488,24 +430,7 @@ export class HideAndSeek extends BasicGame {
     } else if ( changes.quit ) {
       this.totalPlayers--;
       this.updateStatus();
-      let id = new ID(changes.quit.className,changes.quit.id);
-      if ( id.className == VRSPACE.me.className && id.id == VRSPACE.me.id ) {
-        // I quit
-        this.closeGameStatus();
-        this.detachSounds(VRSPACEUI.hud.root);
-      } else {
-        // CHECKME this may fail if user has disconnected (avatar removed from the scene)
-        let user = VRSPACE.getScene().get(id.toString());
-        if ( user ) {
-          let pos = this.players.indexOf(user);
-          if ( pos > -1 ) {
-            this.detachSounds(user.avatar.baseMesh());
-            this.players.splice(pos,1);
-          }
-        } else {
-          console.error( id +" quit the game but is not in local scene");
-        }
-      }
+      this.playerQuits(changes.quit);
     } else if (changes.seen && this.playing) {
       this.updateStatus(changes.seen.className+" "+changes.seen.id, changes.seen, this.seen, "SoundAlarm", this.foundIcon);
     } else if ( changes.starting ) {
@@ -557,13 +482,6 @@ export class HideAndSeek extends BasicGame {
     return radius <= this.goalRadius;
   }
   
-  avatarPosition() {
-    if ( typeof this.world.camera3p !== "undefined" && this.scene.activeCamera == this.world.camera3p ) {
-      return this.world.avatar.baseMesh().position;
-    }
-    return this.scene.activeCamera.position;
-  }
- 
   checkEnd() {
     if ( this.isMine() && Object.keys(this.winners).length + Object.keys(this.losers).length + 1 == this.players.length ) {
       VRSPACE.sendEvent(this.vrObject, {end: Date.now() - this.startTime });
