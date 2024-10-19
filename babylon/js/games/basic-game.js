@@ -15,6 +15,8 @@ import { GameStatusForm } from "./game-status-form.js";
 export class BasicGame extends BasicScript {
   constructor( world, vrObject ) {
     super(world,vrObject);
+    /** Object containing all URLs of all sounds */
+    this.sounds = {};
     /** GameStatusForm, created and destroyed by show/close game status methods */
     this.gameStatus = null;
     /** Dialogue, created and destroyed by invitePlayers/joinGame methods */
@@ -156,6 +158,15 @@ export class BasicGame extends BasicScript {
       this.joinDlg = null;
     }
     this.closeGameStatus();
+    this.indicators.forEach( i => {
+      if ( i.parent ) {
+        i.parent.GameIndicator = null;
+        delete i.parent.GameIndicator;
+      }
+      i.dispose();
+    });
+    this.players.forEach(client=>{client.avatar && this.detachSounds(client.avatar.baseMesh())});
+    this.detachSounds(VRSPACEUI.hud.root);
   }
 
   /**
@@ -168,7 +179,12 @@ export class BasicGame extends BasicScript {
     return this.scene.activeCamera.position;
   }
 
-  /** Helper method to attach an icon above the avatar */
+  /** 
+   * Helper method to attach an icon above the avatar.
+   * @param {Mesh} baseMesh avatar parent mesh
+   * @param {String} icon URL of the icon to attach
+   * @param {*} [color=new BABYLON.Color4(1,1,1,1)] optional color
+   */
   addIndicator(baseMesh,icon,color=new BABYLON.Color4(1,1,1,1)) {
     if ( typeof baseMesh.GameIndicator !== "undefined") {
       //baseMesh.GameIndicator.material.emissiveTexture = new BABYLON.Texture(icon, this.scene);
@@ -209,6 +225,9 @@ export class BasicGame extends BasicScript {
     }
   }
   
+  /**
+   * Play a sound attached to the avatar. Sets SoundPlaying member field of the avatar mesh.
+   */
   playSound( avatarBase, soundName ) {
     if ( typeof avatarBase.SoundPlaying !== "undefined" ) {
       avatarBase.SoundPlaying.stop();
@@ -220,6 +239,13 @@ export class BasicGame extends BasicScript {
     }
   }
 
+  /**
+   * Adds and indicator to an avatar, and optionally plays a sound.
+   * @param {Object} playerEvent object containing className and id of the player (can be User object)
+   * @param {String} soundName name of the sound, one of this.sound, passed to playSound
+   * @param {String} icon URL of the texture, passed to addIndicator
+   * @param {*} color passed to addIndicator
+   */
   changePlayerStatus( playerEvent, soundName, icon, color ) {
     if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
       // my avatar
@@ -244,9 +270,29 @@ export class BasicGame extends BasicScript {
   }
 
   /**
-   * Remove sounds from avatar mesh, called when player quits; this implementation does nothing.
+   * If the mesh contains field specified by soundName, detaches it, disposes, and deletes.
    */
-  removeSounds( avatarMesh ) {
+  removeSound(baseMesh, soundName) {
+    // non-existing sound is fine, it may have been removed (user quit)
+    // or was never attached (SoundPlaying)
+    if ( typeof baseMesh[soundName] != "undefined") {
+      //console.log("Removing sound "+soundName+" from ",baseMesh);
+      baseMesh[soundName].detachFromMesh();
+      baseMesh[soundName].dispose();
+      delete baseMesh[soundName];
+    } else {
+      //console.error("Undefined sound "+soundName+" for ",baseMesh);
+    }
+  }
+
+  /**
+   * Remove all sounds from avatar mesh, called when player quits.
+   * Iterates over all keys of this.sounds object, and calls removeSound for each.
+   */
+  detachSounds(avatarMesh) {
+    for ( let soundName in Object.keys(this.sounds) ) {
+      this.removeSound(avatarMesh, soundName);
+    }
   }
 
   /**

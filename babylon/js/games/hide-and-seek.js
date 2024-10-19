@@ -1,7 +1,6 @@
 import { BasicGame } from './basic-game.js';
 import { VisibilityHelper } from "../world/visibility-helper.js";
 import { VRSPACE } from "../client/vrspace.js";
-import { ID } from "../client/vrspace.js";
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Form } from '../ui/widget/form.js';
 import { CountdownForm } from './countdown-form.js'
@@ -113,14 +112,16 @@ export class HideAndSeek extends BasicGame {
     this.foundIcon = VRSPACEUI.contentBase + "/content/icons/eye.png";
     this.wonIcon = VRSPACEUI.contentBase + "/content/icons/tick.png";
     this.lostIcon = VRSPACEUI.contentBase + "/content/icons/close.png";
-    this.soundSeek = VRSPACEUI.contentBase + "/content/sound/sergeyionov__cr-water-sonar.wav";
-    this.soundFail = VRSPACEUI.contentBase + "/content/sound/kevinvg207__wrong-buzzer.wav";
-    this.soundVictory = VRSPACEUI.contentBase + "/content/sound/colorscrimsontears__fanfare-3-rpg.wav";
-    this.soundAlarm = VRSPACEUI.contentBase + "/content/sound/bowesy__alarm.wav";
-    this.soundClock = VRSPACEUI.contentBase + "/content/sound/deadrobotmusic__sprinkler-timer-loop.wav";
-    this.soundTick = VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav";
-    this.soundStart = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
-    this.soundEnd = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
+    this.sounds = {
+      soundSeek: VRSPACEUI.contentBase + "/content/sound/sergeyionov__cr-water-sonar.wav",
+      soundFail: VRSPACEUI.contentBase + "/content/sound/kevinvg207__wrong-buzzer.wav",
+      soundVictory: VRSPACEUI.contentBase + "/content/sound/colorscrimsontears__fanfare-3-rpg.wav",
+      soundAlarm: VRSPACEUI.contentBase + "/content/sound/bowesy__alarm.wav",
+      soundClock: VRSPACEUI.contentBase + "/content/sound/deadrobotmusic__sprinkler-timer-loop.wav",
+      soundTick: VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav",
+      soundStart: VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav",
+      soundEnd: VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav"
+    }
     this.gameStarted = false;
     this.invitePlayers();
     this.markStartingPosition();
@@ -151,16 +152,7 @@ export class HideAndSeek extends BasicGame {
       this.goal.dispose();
       this.goalMaterial.dispose();
     }
-    this.indicators.forEach( i => {
-      if ( i.parent ) {
-        i.parent.GameIndicator = null;
-        delete i.parent.GameIndicator;
-      }
-      i.dispose();
-    });
     this.materials.forEach( m => m.dispose());
-    this.players.forEach(client=>{client.avatar && this.detachSounds(client.avatar.baseMesh())});
-    this.detachSounds(VRSPACEUI.hud.root);
     HideAndSeek.instance = null;
     if ( this.callback ) {
       this.callback(false);
@@ -259,7 +251,7 @@ export class HideAndSeek extends BasicGame {
     }
     let fail = new BABYLON.Sound(
       "fail",
-      this.soundFail,
+      this.sounds.soundFail,
       this.scene, 
       null, // callback 
       options
@@ -269,7 +261,7 @@ export class HideAndSeek extends BasicGame {
 
     let victory = new BABYLON.Sound(
       "victory",
-      this.soundVictory,
+      this.sounds.soundVictory,
       this.scene, 
       null, // callback 
       options
@@ -281,7 +273,7 @@ export class HideAndSeek extends BasicGame {
 
     let alarm = new BABYLON.Sound(
       "alarm",
-      this.soundAlarm,
+      this.sounds.soundAlarm,
       this.scene, 
       null, // callback 
       options
@@ -291,7 +283,7 @@ export class HideAndSeek extends BasicGame {
     
     let seek = new BABYLON.Sound(
       "alarm",
-      this.soundSeek,
+      this.sounds.soundSeek,
       this.scene, 
       null, // callback 
       options
@@ -300,27 +292,6 @@ export class HideAndSeek extends BasicGame {
     baseMesh.SoundSeek = seek;
   }
   
-  removeSound(baseMesh, soundName) {
-    // non-existing sound is fine, it may have been removed (user quit)
-    // or was never attached (SoundPlaying)
-    if ( typeof baseMesh[soundName] != "undefined") {
-      //console.log("Removing sound "+soundName+" from ",baseMesh);
-      baseMesh[soundName].detachFromMesh();
-      baseMesh[soundName].dispose();
-      delete baseMesh[soundName];
-    } else {
-      //console.error("Undefined sound "+soundName+" for ",baseMesh);
-    }
-  }
-  
-  detachSounds(baseMesh) {
-    this.removeSound(baseMesh, "SoundVictory");
-    this.removeSound(baseMesh, "SoundFail");
-    this.removeSound(baseMesh, "SoundAlarm");
-    this.removeSound(baseMesh, "SoundSeek");
-    this.removeSound(baseMesh, "SoundPlaying");
-  }
-
   startCountdown(delay, chatLog) {
     let countForm = new CountdownForm(delay);
     countForm.init();
@@ -329,7 +300,7 @@ export class HideAndSeek extends BasicGame {
     }
     let timerSound = new BABYLON.Sound(
       "clock",
-      this.soundClock,
+      this.sounds.soundClock,
       this.scene,
       null,
       {loop: true, autoplay: true}
@@ -337,14 +308,14 @@ export class HideAndSeek extends BasicGame {
     timerSound.play();
     let tickSound = new BABYLON.Sound(
       "clock",
-      this.soundTick,
+      this.sounds.soundTick,
       this.scene,
       null,
       {loop: false, autoplay: true }
     );
     let startSound = new BABYLON.Sound(
       "gong",
-      this.soundStart,
+      this.sounds.soundStart,
       this.scene,
       null,
       {loop: false, autoplay: false }
@@ -398,22 +369,6 @@ export class HideAndSeek extends BasicGame {
   }
 
 
-  changePlayerStatus( playerEvent, soundName, icon, color ) {
-    if ( playerEvent.className == VRSPACE.me.className && playerEvent.id == VRSPACE.me.id ) {
-      // my avatar
-      this.addIndicator( this.world.avatar.baseMesh(), icon, color);
-      //this.playSound(this.camera, soundName); // this can't be right
-      return VRSPACE.me;
-    } else {
-      // someone else
-      let user = this.players.find(user => user.id == playerEvent.id);
-      // CHECKME in some cases this avatar may not exist
-      this.addIndicator( user.avatar.baseMesh(), icon, color );
-      this.playSound( user.avatar.baseMesh(), soundName);
-      return user;
-    }
-  }
-
   updateGameStatus(id, playerEvent, stateObject, sound, icon, color) {
     if ( ! stateObject.hasOwnProperty(id) ) {
       let player = this.changePlayerStatus(playerEvent, sound, icon, color);
@@ -464,7 +419,7 @@ export class HideAndSeek extends BasicGame {
       this.showGameStatus();
       let endSound = new BABYLON.Sound(
         "gong",
-        this.soundEnd,
+        this.sounds.soundEnd,
         this.scene,
         null,
         {loop: false, autoplay: true }

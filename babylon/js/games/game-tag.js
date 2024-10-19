@@ -18,10 +18,13 @@ export class GameTag extends BasicGame {
     this.delay = 3;
     this.minDelay = 1;
     this.maxDelay = 5;
-    this.soundClock = VRSPACEUI.contentBase + "/content/sound/deadrobotmusic__sprinkler-timer-loop.wav";
-    this.soundTick = VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav";
-    this.soundStart = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
-    this.soundAlarm = VRSPACEUI.contentBase + "/content/sound/bowesy__alarm.wav";
+    this.sounds = {
+      soundAlarm: VRSPACEUI.contentBase + "/content/sound/bowesy__alarm.wav",
+      soundClock: VRSPACEUI.contentBase + "/content/sound/deadrobotmusic__sprinkler-timer-loop.wav",
+      soundTick: VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav",
+      soundStart: VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav",
+      soundVictory: VRSPACEUI.contentBase + "/content/sound/colorscrimsontears__fanfare-3-rpg.wav"
+    }
     this.chaseIcon = VRSPACEUI.contentBase + "/content/icons/man-run.png";
     this.targetIcon = VRSPACEUI.contentBase + "/content/icons/target-aim.png";
     this.camera = this.scene.activeCamera;
@@ -71,7 +74,7 @@ export class GameTag extends BasicGame {
     countForm.init();
     let timerSound = new BABYLON.Sound(
       "clock",
-      this.soundClock,
+      this.sounds.soundClock,
       this.scene,
       null,
       {loop: true, autoplay: true}
@@ -79,14 +82,14 @@ export class GameTag extends BasicGame {
     timerSound.play();
     let tickSound = new BABYLON.Sound(
       "clock",
-      this.soundTick,
+      this.sounds.soundTick,
       this.scene,
       null,
       {loop: false, autoplay: true }
     );
     let startSound = new BABYLON.Sound(
       "gong",
-      this.soundStart,
+      this.sounds.soundStart,
       this.scene,
       null,
       {loop: false, autoplay: false }
@@ -130,7 +133,7 @@ export class GameTag extends BasicGame {
     }
     let alarm = new BABYLON.Sound(
       "alarm",
-      this.soundAlarm,
+      this.sounds.soundAlarm,
       this.scene, 
       null, // callback 
       options
