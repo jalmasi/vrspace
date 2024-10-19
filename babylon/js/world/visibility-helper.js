@@ -2,6 +2,9 @@ import { World } from "./world.js";
 import { VRSPACE } from "../client/vrspace.js";
 import { VRSPACEUI } from "../ui/vrspace-ui.js";
 
+/**
+ * Helper class, provides mesh visibility methods.
+ */
 export class VisibilityHelper {
   constructor(world = World.lastInstance) {
     this.world = world;
@@ -11,6 +14,14 @@ export class VisibilityHelper {
   dispose() {
   }
   
+  /**
+   * Returns true if target mesh is visible, performs least expensive checks first, then more expensive ones.
+   * It's supposed to test multiple points of the mesh, tests only one for the time being.
+   * Calls this.isClosestMesh to determine visibility.
+   * @param target babylonjs mesh to test for visibility
+   * @param {number} [confidence=1] minimum number of points required to be visible
+   * @param {Vector3} [offset=new BABYLON.Vector3(0,0,0)] offset to add to mesh position before testing 
+   */
   isVisible( target, confidence=1, offset=new BABYLON.Vector3(0,0,0) ) {
     //console.log("isVisible "+target.name+" confidence "+confidence+" offset "+offset);
     let ret = 0;
@@ -40,6 +51,10 @@ export class VisibilityHelper {
     return ret>=confidence;
   }
   
+  /**
+   * Casts a ray from the camera to the point, and returns true if the mesh is hit.
+   * Mesh may be root node of the scene, or any mesh in the scene. 
+   */
   isClosestMesh(camera, mesh, point) {
     let direction = point.subtract(camera.position).normalize();
     let ray = new BABYLON.Ray(camera.position,direction,camera.maxZ);
@@ -50,6 +65,9 @@ export class VisibilityHelper {
     return closest && closest.hit && (closest.pickedMesh === mesh || mesh === VRSPACEUI.findRootNode(closest.pickedMesh));
   }
   
+  /**
+   * Traverses VRObject scene, and returns visible avatars.
+   */
   getVisibleAvatars(confidence=1) {
     let ret = [];
     for ( let vrObject of VRSPACE.getScene().values() ) {
@@ -61,6 +79,9 @@ export class VisibilityHelper {
     return ret;
   }
   
+  /**
+   * Traverses scene root nodes, and returns visible objects.
+   */
   getVisibleObjects(confidence=1) {
     let ret = [];
     this.scene.rootNodes.forEach( (node) => {
@@ -70,7 +91,8 @@ export class VisibilityHelper {
     });
     return ret;
   }
-  
+
+  /** Traverses give babyolonjs node array, and returns visible nodes */  
   getVisibleOf(nodeArray, confidence=1) {
     let ret = [];
     nodeArray.forEach( (node) => {
@@ -81,6 +103,7 @@ export class VisibilityHelper {
     return ret;
   }
 
+  /** Traverses given User array, and returns array of visible User objects */
   getVisibleUsers(userArray, confidence=1) {
     let ret = [];
     userArray.forEach( (user) => {
