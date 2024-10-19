@@ -1,5 +1,7 @@
-import { BasicGame } from './basic-game.js';
 import { VRSPACE } from "../client/vrspace.js";
+import { VRSPACEUI } from '../ui/vrspace-ui.js';
+import { BasicGame } from './basic-game.js';
+import { CountdownForm } from './countdown-form.js'
 
 /**
  * Tag has a lot of meanings and uses, class name contains Game to avoid confusion.
@@ -16,6 +18,12 @@ export class GameTag extends BasicGame {
     this.delay = 3;
     this.minDelay = 1;
     this.maxDelay = 5;
+    this.soundClock = VRSPACEUI.contentBase + "/content/sound/deadrobotmusic__sprinkler-timer-loop.wav";
+    this.soundTick = VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav";
+    this.soundStart = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
+    this.chaseIcon = VRSPACEUI.contentBase + "/content/icons/man-run.png";
+    this.targetIcon = VRSPACEUI.contentBase + "/content/icons/target-aim.png";
+    this.camera = this.scene.activeCamera;
     this.invitePlayers();
     if ( GameTag.instance ) {
       throw "There can be only one";
@@ -27,6 +35,9 @@ export class GameTag extends BasicGame {
   dispose() {
     super.dispose();
     GameTag.instance = null;
+    if ( this.callback ) {
+      this.callback(false);
+    }
   }
   
   static createOrJoinInstance(callback) {
@@ -35,7 +46,7 @@ export class GameTag extends BasicGame {
       if ( ! GameTag.instance.callback ) {
         GameTag.instance.callback = callback;
       }
-      // TODO start
+      GameTag.instance.startRequested();
     } else if (VRSPACE.me) {
       VRSPACE.createScriptedObject({
         name: "Game of Tag",
@@ -54,6 +65,59 @@ export class GameTag extends BasicGame {
     }
   }
  
+  startCountdown(delay) {
+    let countForm = new CountdownForm(delay);
+    countForm.init();
+    let timerSound = new BABYLON.Sound(
+      "clock",
+      this.soundClock,
+      this.scene,
+      null,
+      {loop: true, autoplay: true}
+    );
+    timerSound.play();
+    let tickSound = new BABYLON.Sound(
+      "clock",
+      this.soundTick,
+      this.scene,
+      null,
+      {loop: false, autoplay: true }
+    );
+    let startSound = new BABYLON.Sound(
+      "gong",
+      this.soundStart,
+      this.scene,
+      null,
+      {loop: false, autoplay: false }
+    );
+    
+    if ( this.isMine() ) {
+      this.camera.detachControl();
+    }
+    
+    let countDown = setInterval( () => {
+      if ( delay-- <= 0 ) {
+        this.camera.attachControl();
+        clearInterval(countDown);
+        countForm.dispose();
+        timerSound.dispose();
+        tickSound.dispose();
+        startSound.play();
+        this.gameStarted = true;
+        if ( this.isMine() ) {
+          VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start" });
+          this.gameStateCheck = setInterval( () => this.checkGameState(), 1000/this.fps);
+        }
+      } else {
+        tickSound.play();
+        countForm.update(delay);
+      }
+    }, 1000);
+  }
+
+  checkGameState() {
+  }
+  
   remoteChange(vrObject, changes) {
     console.log("Remote changes for "+vrObject.id, changes);
     if ( changes.joined ) {
@@ -62,6 +126,21 @@ export class GameTag extends BasicGame {
     } else if ( changes.quit ) {
       this.totalPlayers--;
       this.updateStatus();
+    } else if ( changes.starting ) {
+      if ( this.playing ) {
+        this.closeGameStatus();
+        this.delay = changes.starting;
+        this.startCountdown(this.delay, this.world.chatLog);
+        // also add all players that joined the game before this instance was created
+        //this.vrObject.players.forEach(player=>this.playerJoins(player));
+      } else if ( this.joinDlg ) {
+        this.joinDlg.close();
+        this.joinDlg = null;
+      }
+    } else if ( changes.start && this.playing) {
+      this.gameStarted = true;
+    } else {
+      console.log("Unknown/ignored notification: ", changes);
     }
   }
 

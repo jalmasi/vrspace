@@ -164,6 +164,9 @@ export class HideAndSeek extends BasicGame {
     this.players.forEach(client=>{client.avatar && this.detachSounds(client.avatar.baseMesh())});
     this.detachSounds(VRSPACEUI.hud.root);
     HideAndSeek.instance = null;
+    if ( this.callback ) {
+      this.callback(false);
+    }
   }
   
   markStartingPosition() {
@@ -235,16 +238,6 @@ export class HideAndSeek extends BasicGame {
       }
     });
     this.scoreBoard.init();
-  }
-  
-  startRequested() {
-    if ( this.isMine() || this.gameStarted ) {
-      // player has already joined
-      this.showGameStatus();
-    } else if ( ! this.gameStarted ) {
-      // player wants to join
-      this.invitePlayers();
-    }
   }
   
   closeGameStatus() {

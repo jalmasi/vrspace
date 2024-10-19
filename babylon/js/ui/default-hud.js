@@ -583,10 +583,10 @@ export class DefaultHud {
   }
 
   checkAvailableGames() {
-    if ( HideAndSeek.instance && HideAndSeek.instance.playing) {
+    if ( HideAndSeek.instance ) {
       this.hud.markActive(this.playHideButton);
       this.hud.markDisabled(this.playTagButton);
-    } else if ( GameTag.instance && GameTag.instance.playing) {
+    } else if ( GameTag.instance ) {
       this.hud.markDisabled(this.playHideButton);
       this.hud.markActive(this.playTagButton);
     } else {
@@ -602,9 +602,9 @@ export class DefaultHud {
   }
   
   playTag() {
-  GameTag.createOrJoinInstance((startStop)=>{
-    this.checkAvailableGames();
-  });
+    GameTag.createOrJoinInstance((startStop)=>{
+      this.checkAvailableGames();
+    });
   }
   
 }

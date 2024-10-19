@@ -182,7 +182,12 @@ export class HUD {
     button.backMaterial.alpha = this.alpha;
     this.rescaleHUD();
     if ( onPointerDown ) {
-      button.onPointerDownObservable.add( (vector3WithInfo) => onPointerDown(button, vector3WithInfo) );
+      button.onPointerDownObservable.add( (vector3WithInfo) => {
+        // CHECKME: do we really want this check here?
+        if ( this.isEnabled(button) || this.isActive(button)) {
+          onPointerDown(button, vector3WithInfo) 
+        } 
+      });
     }
     if ( text ) {
       this.speechInput.addCommand(text, () => {
@@ -195,7 +200,8 @@ export class HUD {
 
   /** Activates given button, if it's visible */
   activateButton(button) {
-    if ( button.isVisible ) {
+    // CHECKME: do we really want this check here?
+    if ( button.isVisible && (this.isEnabled(button)||this.isActive(button)) ) {
       button.onPointerDownObservable.observers.forEach(observer=>observer.callback(button))
       button.onPointerUpObservable.observers.forEach(observer=>observer.callback(button))
     }
@@ -713,6 +719,14 @@ export class HUD {
     return button.backMaterial.albedoColor.r == this.colorEnabled.r
     && button.backMaterial.albedoColor.g == this.colorEnabled.g
     && button.backMaterial.albedoColor.b == this.colorEnabled.b;
+  }
+  /**
+   * Returns true if button color matches colorActive
+   */
+  isActive(button) {
+    return button.backMaterial.albedoColor.r == this.colorActive.r
+    && button.backMaterial.albedoColor.g == this.colorActive.g
+    && button.backMaterial.albedoColor.b == this.colorActive.b;
   }
   /**
    * Common code for markEnabled/Disabled/Active

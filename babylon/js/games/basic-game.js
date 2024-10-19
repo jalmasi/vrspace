@@ -20,6 +20,8 @@ export class BasicGame extends BasicScript {
     this.joinDlg = null;
     /** Status flag, set in joinGame method */
     this.playing = false;
+    /** Game status flag, supposed to be set on remote event */
+    this.gameStarted = false;
     /** Callback executed with true/false when game starts/ends */
     this.callback = null;
     /** Number of players at the moment of creation, copied from the shared object */
@@ -103,6 +105,9 @@ export class BasicGame extends BasicScript {
     this.joinDlg = null;
   }
 
+  /**
+   * Quit the game - sends the command to the server, optionally calls this.callback with false.
+   */
   quitGame() {
     this.playing = false;
     VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"quit"});
@@ -121,6 +126,20 @@ export class BasicGame extends BasicScript {
     } else if ( this.vrObject.status != "started" ) {
       this.joinDlg = new Dialogue("Join "+this.vrObject.name+" ?", (yes)=>this.joinGame(yes));
       this.joinDlg.init();
+    }
+  }
+
+  /**
+   * Calls either showGameStatus, or invitePlayers, as appropriate.
+   * Supposed to be executed on button click, if game instance already exists.
+   */
+  startRequested() {
+    if ( this.isMine() || this.gameStarted ) {
+      // player has already joined
+      this.showGameStatus();
+    } else if ( ! this.gameStarted ) {
+      // player wants to join
+      this.invitePlayers();
     }
   }
 
