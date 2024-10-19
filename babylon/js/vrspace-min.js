@@ -12,7 +12,7 @@ export { World } from "./world/world.js";
 export { WorldListener } from "./world/world-listener.js";
 export { UnityWorld } from "./world/unity-world.js";
 export { Sceneshot } from "./world/sceneshot.js";
-export { VisibilitySensor } from "./world/visibility-sensor.js";
+export { VisibilityHelper } from "./world/visibility-helper.js";
 
 export { VRSpaceUI, VRSPACEUI } from "./ui/vrspace-ui.js";
 export { HUD } from "./ui/hud.js";

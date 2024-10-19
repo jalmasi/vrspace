@@ -1,5 +1,5 @@
 import { BasicGame } from './basic-game.js';
-import { VisibilitySensor } from "../world/visibility-sensor.js";
+import { VisibilityHelper } from "../world/visibility-helper.js";
 import { VRSPACE } from "../client/vrspace.js";
 import { ID } from "../client/vrspace.js";
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
@@ -105,7 +105,7 @@ export class HideAndSeek extends BasicGame {
   constructor( world, vrObject ) {
     super(world,vrObject);
     this.camera = this.scene.activeCamera;
-    this.visibilitySensor = new VisibilitySensor();
+    this.visibilityHelper = new VisibilityHelper();
     this.fps = 5;
     this.seconds = 20;
     this.goalRadius = 1.5;
@@ -145,8 +145,8 @@ export class HideAndSeek extends BasicGame {
   
   dispose() {
     super.dispose();
-    this.visibilitySensor.dispose();
-    this.visibilitySensor = null;
+    this.visibilityHelper.dispose();
+    this.visibilityHelper = null;
     if ( this.visibilityCheck ) {
       clearInterval(this.visibilityCheck);
     }
@@ -597,7 +597,7 @@ export class HideAndSeek extends BasicGame {
   }
   
   checkVisibility() {
-    let visible = this.visibilitySensor.getVisibleUsers(this.players);
+    let visible = this.visibilityHelper.getVisibleUsers(this.players);
     if ( visible.length > 0 ) {
       // anyone not seen before?
       visible.forEach( (user) => {

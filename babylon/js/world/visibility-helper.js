@@ -2,7 +2,7 @@ import { World } from "./world.js";
 import { VRSPACE } from "../client/vrspace.js";
 import { VRSPACEUI } from "../ui/vrspace-ui.js";
 
-export class VisibilitySensor {
+export class VisibilityHelper {
   constructor(world = World.lastInstance) {
     this.world = world;
     this.scene = world.scene;
