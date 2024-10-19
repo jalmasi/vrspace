@@ -586,7 +586,7 @@ export class DefaultHud {
     if ( HideAndSeek.instance && HideAndSeek.instance.playing) {
       this.hud.markActive(this.playHideButton);
       this.hud.markDisabled(this.playTagButton);
-    } else if ( GameTag.instance && HideAndSeek.instance.playing) {
+    } else if ( GameTag.instance && GameTag.instance.playing) {
       this.hud.markDisabled(this.playHideButton);
       this.hud.markActive(this.playTagButton);
     } else {
@@ -602,6 +602,9 @@ export class DefaultHud {
   }
   
   playTag() {
+  GameTag.createOrJoinInstance((startStop)=>{
+    this.checkAvailableGames();
+  });
   }
   
 }

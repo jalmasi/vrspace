@@ -107,9 +107,7 @@ export class HideAndSeek extends BasicGame {
     this.camera = this.scene.activeCamera;
     this.visibilityHelper = new VisibilityHelper();
     this.fps = 5;
-    this.seconds = 20;
     this.goalRadius = 1.5;
-    this.delay = 10;
     this.gameIcon = VRSPACEUI.contentBase + "/content/emoji/cool.png";
     this.searchIcon = VRSPACEUI.contentBase + "/content/icons/search.png";
     this.foundIcon = VRSPACEUI.contentBase + "/content/icons/eye.png";
@@ -123,8 +121,6 @@ export class HideAndSeek extends BasicGame {
     this.soundTick = VRSPACEUI.contentBase + "/content/sound/fupicat__videogame-menu-highlight.wav";
     this.soundStart = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
     this.soundEnd = VRSPACEUI.contentBase + "/content/sound/ricardus__zildjian-4ft-gong.wav";
-    this.totalPlayers = vrObject.numberOfPlayers;
-    this.startTime = 0;
     this.gameStarted = false;
     this.invitePlayers();
     this.markStartingPosition();
@@ -285,13 +281,6 @@ export class HideAndSeek extends BasicGame {
     baseMesh.GameIndicator.material.emissiveColor = color;
   }
   
-  updateStatus() {
-    // may not be displayed before this player joins/after quit/etc
-    if ( this.gameStatus ) {
-      this.gameStatus.numberOfPlayers(this.totalPlayers);
-    }
-  }
-
   playSound( avatarBase, soundName ) {
     if ( typeof avatarBase.SoundPlaying !== "undefined" ) {
       avatarBase.SoundPlaying.stop();
@@ -568,14 +557,6 @@ export class HideAndSeek extends BasicGame {
     }
   }
  
-  startGame() {
-    // and then
-    if ( this.isMine() ) {
-      this.startTime = Date.now();
-      VRSPACE.sendEvent(this.vrObject, {status: "started", starting: this.gameStatus.getDelay() });
-    }
-  }
-  
   inGoalRange(pos) {
     let dx = pos.x - this.goal.position.x;
     let dz = pos.z - this.goal.position.z;

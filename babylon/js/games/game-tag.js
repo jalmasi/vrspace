@@ -11,16 +11,28 @@ export class GameTag extends BasicGame {
   
   constructor( world, vrObject ) {
     super(world,vrObject);
+    this.fps = 5;
+    this.goalRadius = .5;
+    this.delay = 3;
+    this.minDelay = 1;
+    this.maxDelay = 5;
+    this.invitePlayers();
+    if ( GameTag.instance ) {
+      throw "There can be only one";
+    } else {
+      GameTag.instance = this;
+    }
   }
 
   dispose() {
     super.dispose();
+    GameTag.instance = null;
   }
   
   static createOrJoinInstance(callback) {
     if ( GameTag.instance ) {
       // already exists
-      if ( ! HideAndSeek.instance.callback ) {
+      if ( ! GameTag.instance.callback ) {
         GameTag.instance.callback = callback;
       }
       // TODO start
@@ -42,4 +54,15 @@ export class GameTag extends BasicGame {
     }
   }
  
+  remoteChange(vrObject, changes) {
+    console.log("Remote changes for "+vrObject.id, changes);
+    if ( changes.joined ) {
+      this.totalPlayers++;
+      this.updateStatus();
+    } else if ( changes.quit ) {
+      this.totalPlayers--;
+      this.updateStatus();
+    }
+  }
+
 }

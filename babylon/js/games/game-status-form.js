@@ -16,11 +16,15 @@ export class GameStatusForm extends Form {
     this.delayText = "Count";
     this.delayMin = 10;
     this.delayMax = 30;
+    this.delay = this.delayMin;
     this.callback = callback;
     this.isMine = isMine;
     this.gameStarted = false;
   }  
   
+  /**
+   * Shows the form
+   */
   init() {
     this.verticalPanel = true;
     this.createPanel();
@@ -28,7 +32,7 @@ export class GameStatusForm extends Form {
     this.addControl(this.label);
     this.padding = 8;
     if (this.isMine && ! this.gameStarted) {
-      this.sliderPanel = new HorizontalSliderPanel(.5,this.delayText,this.delayMin,this.delayMax,this.delayMin);
+      this.sliderPanel = new HorizontalSliderPanel(.5,this.delayText,this.delayMin,this.delayMax,this.delay);
       this.sliderPanel.decimals = 0;
       this.addControl(this.sliderPanel.panel);
       let startButton = this.textButton("Start", () => this.callback(true));

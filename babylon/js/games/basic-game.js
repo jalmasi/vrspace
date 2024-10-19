@@ -7,6 +7,9 @@ import { GameStatusForm } from "./game-status-form.js";
 /**
  * Base class for a simple multiuser game.
  * Contains utility methods to create, join and quit the game, that open appropriate forms and dialogues.
+ * Whoever created the game owns it: only their browser executes all of game logic, 
+ * and is allowed to change game state by sending events to the game object.
+ * All players receive game all events, and execute the same presentation logic.
  */
 export class BasicGame extends BasicScript {
   constructor( world, vrObject ) {
@@ -19,6 +22,16 @@ export class BasicGame extends BasicScript {
     this.playing = false;
     /** Callback executed with true/false when game starts/ends */
     this.callback = null;
+    /** Number of players at the moment of creation, copied from the shared object */
+    this.totalPlayers = vrObject.numberOfPlayers;
+    /** Shared delay, set initially and updated once the game starts */
+    this.delay = 10;
+    /** Minumum delay, limits the slider */
+    this.minDelay = 10;
+    /** Maximum delay, limits the slider */
+    this.maxDelay = 30;
+    /** Start time in milliseconds, set once the game starts - owner only */
+    this.startTime = 0;
   }
 
   /**
@@ -35,11 +48,36 @@ export class BasicGame extends BasicScript {
         this.quitGame();
       }
     });
+    this.gameStatus.delayMin = this.minDelay;
+    this.gameStatus.delayMax = this.maxDelay;
+    this.gameStatus.delay = this.delay;
     this.gameStatus.gameStarted = this.gameStarted;
     this.gameStatus.init();
     this.gameStatus.numberOfPlayers(this.totalPlayers);
   }
 
+  /**
+   * Sets number of players in game status form, if currently open.
+   */
+  updateStatus() {
+    // may not be displayed before this player joins/after quit/etc
+    if ( this.gameStatus ) {
+      this.gameStatus.numberOfPlayers(this.totalPlayers);
+    }
+  }
+
+  
+  /**
+   * If the game is owned by current user, sends start event.
+   */
+  startGame() {
+    // and then
+    if ( this.isMine() ) {
+      this.startTime = Date.now();
+      VRSPACE.sendEvent(this.vrObject, {status: "started", starting: this.gameStatus.getDelay() });
+    }
+  }
+  
   /**
    * Close GameStatusForm if currently open, and restore the HUD.
    */
@@ -96,5 +134,14 @@ export class BasicGame extends BasicScript {
     }
     this.closeGameStatus();
   }
-  
+ 
+  /**
+   * Main method of the game. Receives all events that happen in the game, and is supposed to implement scene changes.
+   * @param {Game} vrObject game object
+   * @param {Object} changes custom game event
+   */
+  remoteChange(vrObject, changes) {
+    console.log("TODO Remote changes for "+vrObject.id, changes);
+  }
+   
 }
