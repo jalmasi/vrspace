@@ -14,7 +14,7 @@ export class GameTag extends BasicGame {
   constructor( world, vrObject ) {
     super(world,vrObject);
     this.fps = 5;
-    this.goalRadius = .5;
+    this.catchRadius = .5;
     this.delay = 3;
     this.minDelay = 1;
     this.maxDelay = 5;
@@ -28,6 +28,8 @@ export class GameTag extends BasicGame {
     this.chaseIcon = VRSPACEUI.contentBase + "/content/icons/man-run.png";
     this.targetIcon = VRSPACEUI.contentBase + "/content/icons/target-aim.png";
     this.camera = this.scene.activeCamera;
+    this.gameStateCheck = null;
+    this.counting = false;
     this.invitePlayers();
     if ( GameTag.instance ) {
       throw "There can be only one";
@@ -70,6 +72,7 @@ export class GameTag extends BasicGame {
   }
  
   startCountdown(delay) {
+    this.counting = true;
     let countForm = new CountdownForm(delay);
     countForm.init();
     let timerSound = new BABYLON.Sound(
@@ -95,12 +98,13 @@ export class GameTag extends BasicGame {
       {loop: false, autoplay: false }
     );
     
-    if ( this.isMine() ) {
+    if ( !this.hunter && this.isMine() || VRSPACE.me == this.hunter ) {
       this.camera.detachControl();
     }
     
     let countDown = setInterval( () => {
       if ( delay-- <= 0 ) {
+        this.counting = false;
         this.camera.attachControl();
         clearInterval(countDown);
         countForm.dispose();
@@ -108,7 +112,7 @@ export class GameTag extends BasicGame {
         tickSound.dispose();
         startSound.play();
         this.gameStarted = true;
-        if ( this.isMine() ) {
+        if ( this.isMine() && ! this.gameStateCheck) {
           VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start" });
           this.gameStateCheck = setInterval( () => this.checkGameState(), 1000/this.fps);
         }
@@ -119,7 +123,34 @@ export class GameTag extends BasicGame {
     }, 1000);
   }
 
+  inRange(pos,target,range) {
+    let dx = pos.x - target.x;
+    let dz = pos.z - target.z;
+    let radius = Math.sqrt( dx*dx + dz*dz );
+    let ret = radius <= range && Math.abs(pos.y - target.y) <= range;
+    //console.log("pos: "+pos+" target: "+target+" range: "+range+" radius: "+radius+" "+ret);
+    return ret;
+  }
+
+  playerPosition(player) {
+    if ( player == VRSPACE.me ) {
+      // does not have avatar, VRObject position may not be updated, may be in 3rd person view
+      return this.avatarPosition();
+    }
+    return player.position;
+  }
+  
   checkGameState() {
+    if ( this.counting ) {
+      return;
+    }
+    let caught = this.players.find(player=>{
+      return player!=this.hunter && this.inRange(this.playerPosition(this.hunter), this.playerPosition(player), this.catchRadius)
+    });
+    if ( caught ) {
+      this.counting = true;
+      VRSPACE.sendEvent(this.vrObject, {caught: {className: caught.className, id: caught.id} });
+    }
   }
   
   attachSounds(baseMesh) {
@@ -156,9 +187,9 @@ export class GameTag extends BasicGame {
       if ( this.playing ) {
         this.closeGameStatus();
         this.delay = changes.starting;
-        this.startCountdown(this.delay, this.world.chatLog);
         // also add all players that joined the game before this instance was created
         this.vrObject.players.forEach(player=>this.playerJoins(player));
+        this.startCountdown(this.delay);
       } else if ( this.joinDlg ) {
         this.joinDlg.close();
         this.joinDlg = null;
@@ -166,6 +197,14 @@ export class GameTag extends BasicGame {
     } else if ( changes.start && this.playing ) {
       this.gameStarted = true;
       this.hunter = this.changePlayerStatus(changes.start, "SoundAlarm", this.chaseIcon);
+      this.players.filter(player => player != this.hunter).forEach((player)=>{
+        this.changePlayerStatus(player, null, this.targetIcon);
+      });
+    } else if ( changes.caught && this.playing ) {
+      this.changePlayerStatus(this.hunter, null, this.targetIcon);
+      // hunter needs to be known before countdown (disables movement)
+      this.hunter = this.changePlayerStatus(changes.caught, "SoundAlarm", this.chaseIcon);
+      this.startCountdown(this.delay);
     } else {
       console.log("Unknown/ignored notification: ", changes);
     }

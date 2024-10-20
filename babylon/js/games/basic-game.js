@@ -176,7 +176,8 @@ export class BasicGame extends BasicScript {
     if ( typeof this.world.camera3p !== "undefined" && this.scene.activeCamera == this.world.camera3p ) {
       return this.world.avatar.baseMesh().position;
     }
-    return this.scene.activeCamera.position;
+    let camera = this.scene.activeCamera;
+    return new BABYLON.Vector3(camera.position.x,camera.position.y-2*camera.ellipsoid.y-camera.ellipsoidOffset.y,camera.position.z);
   }
 
   /** 
@@ -200,7 +201,7 @@ export class BasicGame extends BasicScript {
       material.alphaMode = BABYLON.Constants.ALPHA_ONEONE;
       //material.backFaceCulling = false;
       indicator.material = material;
-      indicator.position = new BABYLON.Vector3(0,2.5,0);
+      indicator.position = new BABYLON.Vector3(0,2.8,0);
       //indicator.rotation = new BABYLON.Vector3(Math.PI,0,0);
       indicator.parent = baseMesh;
       baseMesh.GameIndicator = indicator;
