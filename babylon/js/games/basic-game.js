@@ -150,7 +150,7 @@ export class BasicGame extends BasicScript {
   }
 
   /**
-   * Clean up dialogue and status form
+   * Clean up dialogue and status form, indicators, detach sounds
    */
   dispose() {
     if ( this.joinDlg ) {
@@ -165,7 +165,7 @@ export class BasicGame extends BasicScript {
       }
       i.dispose();
     });
-    this.players.forEach(client=>{client.avatar && this.detachSounds(client.avatar.baseMesh())});
+    this.players.filter(client=>client.avatar).forEach(client=>this.detachSounds(client.avatar.baseMesh()));
     this.detachSounds(VRSPACEUI.hud.root);
   }
 
@@ -291,7 +291,7 @@ export class BasicGame extends BasicScript {
    * Iterates over all keys of this.sounds object, and calls removeSound for each.
    */
   detachSounds(avatarMesh) {
-    for ( let soundName in Object.keys(this.sounds) ) {
+    for ( let soundName of Object.keys(this.sounds) ) {
       this.removeSound(avatarMesh, soundName);
     }
   }

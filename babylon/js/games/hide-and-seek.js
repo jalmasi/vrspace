@@ -257,7 +257,7 @@ export class HideAndSeek extends BasicGame {
       options
     );
     fail.attachToMesh(baseMesh);
-    baseMesh.SoundFail = fail;
+    baseMesh.soundFail = fail;
 
     let victory = new BABYLON.Sound(
       "victory",
@@ -267,7 +267,7 @@ export class HideAndSeek extends BasicGame {
       options
     );
     victory.attachToMesh(baseMesh);
-    baseMesh.SoundVictory = victory;
+    baseMesh.soundVictory = victory;
 
     options.loop = true;
 
@@ -279,7 +279,7 @@ export class HideAndSeek extends BasicGame {
       options
     );
     alarm.attachToMesh(baseMesh);
-    baseMesh.SoundAlarm = alarm;
+    baseMesh.soundAlarm = alarm;
     
     let seek = new BABYLON.Sound(
       "alarm",
@@ -289,7 +289,7 @@ export class HideAndSeek extends BasicGame {
       options
     );
     seek.attachToMesh(baseMesh);
-    baseMesh.SoundSeek = seek;
+    baseMesh.soundSeek = seek;
   }
   
   startCountdown(delay, chatLog) {
@@ -387,7 +387,7 @@ export class HideAndSeek extends BasicGame {
       this.updateStatus();
       this.playerQuits(changes.quit);
     } else if (changes.seen && this.playing) {
-      this.updateStatus(changes.seen.className+" "+changes.seen.id, changes.seen, this.seen, "SoundAlarm", this.foundIcon);
+      this.updateStatus(changes.seen.className+" "+changes.seen.id, changes.seen, this.seen, "soundAlarm", this.foundIcon);
     } else if ( changes.starting ) {
       if ( this.playing ) {
         this.closeGameStatus();
@@ -401,16 +401,16 @@ export class HideAndSeek extends BasicGame {
       }
     } else if ( changes.start && this.playing) {
       this.gameStarted = true;
-      this.seeker = this.changePlayerStatus(changes.start, "SoundSeek", this.searchIcon);
+      this.seeker = this.changePlayerStatus(changes.start, "soundSeek", this.searchIcon);
     } else if (changes.won && this.playing) {
       let id = changes.won.className+" "+changes.won.id;
-      this.updateGameStatus(id, changes.won, this.winners, "SoundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
+      this.updateGameStatus(id, changes.won, this.winners, "soundVictory", this.wonIcon, new BABYLON.Color4(0,1,0,1));
       delete this.seen[id];
       this.showGameStatus();
       this.checkEnd()
     } else if (changes.lost && this.playing) {
       let id = changes.lost.className+" "+changes.lost.id;
-      this.updateGameStatus(id, changes.lost, this.losers, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
+      this.updateGameStatus(id, changes.lost, this.losers, "soundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
       delete this.seen[id];
       this.showGameStatus();
       this.checkEnd()
@@ -450,7 +450,7 @@ export class HideAndSeek extends BasicGame {
       visible.forEach( (user) => {
         let id = user.className+" "+user.id;
         if ( ! this.seen.hasOwnProperty(id) && !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id)) {
-          this.updateGameStatus(id, user, this.seen, "SoundAlarm", this.foundIcon);
+          this.updateGameStatus(id, user, this.seen, "soundAlarm", this.foundIcon);
           VRSPACE.sendEvent(this.vrObject, {seen: {className: user.className, id: user.id} });
         }
       });
@@ -467,7 +467,7 @@ export class HideAndSeek extends BasicGame {
       for ( let id in this.seen ) {
         if ( !this.winners.hasOwnProperty(id) && !this.losers.hasOwnProperty(id) ) {
           let vrObject = this.seen[id];
-          this.updateGameStatus(id, vrObject, this.losers, "SoundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
+          this.updateGameStatus(id, vrObject, this.losers, "soundFail", this.lostIcon, new BABYLON.Color4(1,0,0,1));
           VRSPACE.sendEvent(this.vrObject, {lost: {className: vrObject.className, id: vrObject.id} });
        }
       }

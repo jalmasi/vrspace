@@ -170,7 +170,7 @@ export class GameTag extends BasicGame {
       options
     );
     alarm.attachToMesh(baseMesh);
-    baseMesh.SoundAlarm = alarm;
+    baseMesh.soundAlarm = alarm;
   }
   
   remoteChange(vrObject, changes) {
@@ -196,14 +196,14 @@ export class GameTag extends BasicGame {
       }
     } else if ( changes.start && this.playing ) {
       this.gameStarted = true;
-      this.hunter = this.changePlayerStatus(changes.start, "SoundAlarm", this.chaseIcon);
+      this.hunter = this.changePlayerStatus(changes.start, "soundAlarm", this.chaseIcon);
       this.players.filter(player => player != this.hunter).forEach((player)=>{
         this.changePlayerStatus(player, null, this.targetIcon);
       });
     } else if ( changes.caught && this.playing ) {
       this.changePlayerStatus(this.hunter, null, this.targetIcon);
       // hunter needs to be known before countdown (disables movement)
-      this.hunter = this.changePlayerStatus(changes.caught, "SoundAlarm", this.chaseIcon);
+      this.hunter = this.changePlayerStatus(changes.caught, "soundAlarm", this.chaseIcon);
       this.startCountdown(this.delay);
     } else {
       console.log("Unknown/ignored notification: ", changes);
