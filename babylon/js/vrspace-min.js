@@ -56,4 +56,10 @@ export { AvatarController } from "./avatar/avatar-controller.js";
 export { Terrain } from "./terrain/terrain.js";
 export { Desert } from "./terrain/terrain-desert.js";
 
+export { BasicGame } from "./games/basic-game.js"
+export { CountdownForm } from "./games/countdown-form.js"
+export { GameStatusForm } from "./games/game-status-form.js"
+export { HideAndSeek } from "./games/hide-and-seek.js";
+export { GameTag } from "./games/game-tag.js";
+
 export { AvatarSelection } from "../avatar-selection.js";
