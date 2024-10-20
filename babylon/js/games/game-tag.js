@@ -2,6 +2,52 @@ import { VRSPACE } from "../client/vrspace.js";
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { BasicGame } from './basic-game.js';
 import { CountdownForm } from './countdown-form.js'
+import { Form } from '../ui/widget/form.js';
+
+class Scoreboard extends Form {
+  constructor(players, callback) {
+    super();
+    this.players = players;
+    this.callback = callback;
+  }
+  
+  init() {
+    this.createPanel();
+    this.grid = new BABYLON.GUI.Grid();
+    this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.addControl(this.grid);
+    
+    this.grid.addColumnDefinition(0.7);
+    this.grid.addColumnDefinition(0.3);
+
+    this.players.forEach((player,index)=>{
+      let score = typeof player.tagScore == "undefined"?0:player.tagScore;
+      this.grid.addRowDefinition(this.heightInPixels, true);
+      this.grid.addControl(this.textBlock(this.playerName(player)), index, 0);
+      this.grid.addControl(this.textBlock(score), index, 1);
+    });
+
+    this.addControl(this.grid);
+
+    this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    //if ( this.game.playing ) {
+      let closeButton = this.textButton("OK", () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/tick.png", "green");
+      this.addControl(closeButton);
+    //}
+    let quitButton = this.textButton("Quit", () => this.callback(true), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
+    this.addControl(quitButton);
+    
+    VRSPACEUI.hud.addForm(this,512,this.heightInPixels*(this.grid.rowCount+1));
+  }
+
+  playerName(vrObject) {
+    if ( vrObject.name ) {
+      return vrObject.name;
+    }
+    return "Player "+vrObject.id;
+  }
+}
 
 /**
  * Tag has a lot of meanings and uses, class name contains Game to avoid confusion.
@@ -30,6 +76,7 @@ export class GameTag extends BasicGame {
     this.camera = this.scene.activeCamera;
     this.gameStateCheck = null;
     this.counting = false;
+    this.scoreboard = null;
     this.invitePlayers();
     if ( GameTag.instance ) {
       throw "There can be only one";
@@ -40,6 +87,7 @@ export class GameTag extends BasicGame {
 
   dispose() {
     super.dispose();
+    this.players.filter(player=>typeof player.tagScore != "undefined").forEach(player=>delete player.tagScore);
     GameTag.instance = null;
     if ( this.callback ) {
       this.callback(false);
@@ -172,6 +220,40 @@ export class GameTag extends BasicGame {
     alarm.attachToMesh(baseMesh);
     baseMesh.soundAlarm = alarm;
   }
+ 
+  showGameStatus() {
+    this.closeGameStatus();
+    if ( ! this.gameStarted ) {
+      super.showGameStatus();
+      return;
+    }
+    VRSPACEUI.hud.showButtons(false);
+    VRSPACEUI.hud.newRow();
+    this.scoreboard = new Scoreboard(this.players, (quit)=>{
+      this.closeGameStatus();
+      if ( quit ) {
+        this.quitGame();
+      }
+    });
+    this.scoreboard.init();
+  }
+
+  closeGameStatus() {
+    super.closeGameStatus();
+    if ( this.scoreboard ) {
+      VRSPACEUI.hud.clearRow();
+      VRSPACEUI.hud.showButtons(true);
+      this.scoreboard.dispose();
+      this.scoreboard = null;
+    }
+  }
+ 
+  increaseScore() {
+    if ( typeof this.hunter.tagScore == "undefined" ) {
+      this.hunter.tagScore = 0;
+    }
+    this.hunter.tagScore++;
+  }
   
   remoteChange(vrObject, changes) {
     console.log("Remote changes for "+vrObject.id, changes);
@@ -201,6 +283,7 @@ export class GameTag extends BasicGame {
         this.changePlayerStatus(player, null, this.targetIcon);
       });
     } else if ( changes.caught && this.playing ) {
+      this.increaseScore();
       this.changePlayerStatus(this.hunter, null, this.targetIcon);
       // hunter needs to be known before countdown (disables movement)
       this.hunter = this.changePlayerStatus(changes.caught, "soundAlarm", this.chaseIcon);
