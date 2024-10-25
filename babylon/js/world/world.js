@@ -412,8 +412,9 @@ export class World {
   }
 
   hasTouchScreen() {
-    return ('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
   }
+  
   /**
   Disposes of all objects returned by createLights, createCamera, createShadows, createSkybox
    */
