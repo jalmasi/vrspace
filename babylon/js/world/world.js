@@ -273,6 +273,47 @@ export class World {
 
     camera.touchAngularSensibility = 10000;
 
+    if ( this.hasTouchScreen() ) {
+      // mobiles: use screen orientation to control camera orientation 
+      
+      // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/Inputs/freeCameraDeviceOrientationInput.ts
+      let deviceOrientation = new BABYLON.FreeCameraDeviceOrientationInput();
+      deviceOrientation.angleOffset = 0;
+      deviceOrientation.angleInitial = 0;
+      deviceOrientation._deviceOrientation_original = deviceOrientation._deviceOrientation;
+
+      deviceOrientation._deviceOrientation = (evt) => {
+        if (!deviceOrientation.angleInitial && evt.alpha) {
+          deviceOrientation.angleInitial = evt.alpha;
+          console.log("Initial device orientation: "+evt.alpha+" "+evt.beta+" "+evt.gamma);
+        }
+        deviceOrientation._deviceOrientation_original(evt);
+      }
+
+      // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/targetCamera.ts#L260
+      camera.setTarget_original = camera.setTarget;
+      camera.setTarget = (vector) => {
+        camera.setTarget_original(vector);
+        deviceOrientation.angleOffset = camera.rotation.y/2/Math.PI*360;
+      }
+
+      deviceOrientation.checkInputs_original = deviceOrientation.checkInputs;
+      deviceOrientation.checkInputs = () => {
+        // https://developer.mozilla.org/en-US/docs/Web/API/DeviceOrientationEvent
+        // touch screen does not necessarily mean orientation info is available - do not mess up camera for these
+        if ( deviceOrientation.angleInitial ) {
+          deviceOrientation._alpha -= (deviceOrientation.angleInitial + deviceOrientation.angleOffset);
+          deviceOrientation.checkInputs_original();
+          deviceOrientation._alpha += (deviceOrientation.angleInitial + deviceOrientation.angleOffset);
+        } else {
+          deviceOrientation.checkInputs_original();
+        }
+      }
+
+      camera.inputs.add(deviceOrientation);
+      
+    }
+    
     return camera;
   }
 
@@ -307,7 +348,6 @@ export class World {
    * @returns created 3rd person ArcRotateCamera this.camera3p
    */
   thirdPersonCamera(camera1p = this.camera) {
-    // CHECKME: use camera1p.rotation.y for alpha?
     this.camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI / 2, 1.5 * Math.PI - camera1p.rotation.y, 3, camera1p.position, this.scene);
     //this.camera3p.maxZ = 1000;
     //this.camera3p.minZ = 0;
