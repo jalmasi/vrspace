@@ -88,7 +88,7 @@ export class Classroom extends World {
     // pPlane5_pantalla_0 - board
     // pCube30_blanco_0 - lecturer desk front
     // pCube78, pCube81 (transform), pCube78_puerta_0, pCube81_puerta_0 - doors
-    return this.screencast && this.screencast.screenShareMesh && mesh === this.screencast.screenShareMesh;
+    return (this.screencast && this.screencast.screenShareMesh && mesh === this.screencast.screenShareMesh)||super.isSelectableMesh(mesh);
   }
 
   setMeshCollisions(mesh, state) {

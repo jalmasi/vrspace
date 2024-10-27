@@ -543,7 +543,9 @@ export class World {
   enableBackground(enabled) {
   }
   /**
-  Used in mesh selection predicate in XR. Default implementation returns true for members of this.floorMeshes.
+  Used in mesh selection predicate in XR. 
+  Default implementation returns true for members of this.floorMeshes, and HUD elements.
+  Overriding this can easily have undesired consequences like unresponsive HUD.
    */
   isSelectableMesh(mesh) {
     let ret = VRSPACEUI.hud.isSelectableMesh(mesh);

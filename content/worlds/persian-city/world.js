@@ -37,10 +37,6 @@ export class PersianCity extends World {
     return light1;
   }
 
-  isSelectableMesh(mesh) {
-    return mesh.name == "ground";
-  }
-  
   getFloorMeshes() {
     return [ this.ground ];
   }
