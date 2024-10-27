@@ -227,7 +227,7 @@ export class BasicGame extends BasicScript {
   }
   
   /**
-   * Play a sound attached to the avatar. Sets SoundPlaying member field of the avatar mesh.
+   * Stops currently playing sound, and plays a sound attached to the avatar, if available. Sets SoundPlaying member field of the avatar mesh.
    */
   playSound( avatarBase, soundName ) {
     if ( typeof avatarBase.SoundPlaying !== "undefined" ) {
@@ -257,9 +257,7 @@ export class BasicGame extends BasicScript {
       let user = this.players.find(user => user.id == playerEvent.id);
       // CHECKME in some cases this avatar may not exist
       this.addIndicator( user.avatar.baseMesh(), icon, color );
-      if ( soundName ) {
-        this.playSound( user.avatar.baseMesh(), soundName);
-      }
+      this.playSound( user.avatar.baseMesh(), soundName);
       return user;
     }
   }
