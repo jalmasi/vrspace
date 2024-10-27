@@ -211,7 +211,7 @@ export class GameTag extends BasicGame {
       spatialSound: true
     }
     let alarm = new BABYLON.Sound(
-      "alarm",
+      "soundAlarm",
       this.sounds.soundAlarm,
       this.scene, 
       null, // callback 
