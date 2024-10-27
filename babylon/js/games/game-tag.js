@@ -74,6 +74,7 @@ export class GameTag extends BasicGame {
     this.chaseIcon = VRSPACEUI.contentBase + "/content/icons/man-run.png";
     this.targetIcon = VRSPACEUI.contentBase + "/content/icons/target-aim.png";
     this.camera = this.scene.activeCamera;
+    this.speed = this.camera.speed;
     this.gameStateCheck = null;
     this.counting = false;
     this.scoreboard = null;
@@ -87,6 +88,7 @@ export class GameTag extends BasicGame {
 
   dispose() {
     super.dispose();
+    this.camera.speed = this.speed;
     this.players.filter(player=>typeof player.tagScore != "undefined").forEach(player=>delete player.tagScore);
     GameTag.instance = null;
     if ( this.callback ) {
@@ -148,6 +150,9 @@ export class GameTag extends BasicGame {
     
     if ( !this.hunter && this.isMine() || VRSPACE.me == this.hunter ) {
       this.camera.detachControl();
+      this.camera.speed = this.speed * 1.2;
+    } else {
+      this.camera.speed = this.speed;
     }
     
     let countDown = setInterval( () => {
