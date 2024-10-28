@@ -160,11 +160,12 @@ export class HideAndSeek extends BasicGame {
   }
   
   markStartingPosition() {
-    if ( BABYLON.GPUParticleSystem.IsSupported ) {
-      this.particleSystem = new BABYLON.GPUParticleSystem("GoalParticles", {capacity: 200}, this.scene);
-    } else {
-      this.particleSystem = new BABYLON.ParticleSystem("GoalParticles", 200, this.scene);
-    }
+    //if ( BABYLON.GPUParticleSystem.IsSupported ) {
+      // hardware particles work differently on different devices 
+      //this.particleSystem = new BABYLON.GPUParticleSystem("GoalParticles", {capacity: 100}, this.scene);
+    //} else {
+      this.particleSystem = new BABYLON.ParticleSystem("GoalParticles", 100, this.scene);
+    //}
     this.particleSystem.disposeOnStop = true;
     this.particleSystem.particleTexture = new BABYLON.Texture(this.gameIcon, this.scene);
     this.particleSource = BABYLON.MeshBuilder.CreateSphere("particlePositon",{diameter: 0.1},this.scene);
@@ -296,9 +297,6 @@ export class HideAndSeek extends BasicGame {
   startCountdown(delay, chatLog) {
     let countForm = new CountdownForm(delay);
     countForm.init();
-    if ( this.isMine() ) {
-      countForm.texture.background = "black";
-    }
     let timerSound = new BABYLON.Sound(
       "clock",
       this.sounds.soundClock,
@@ -327,19 +325,11 @@ export class HideAndSeek extends BasicGame {
         chatLog.group.setEnabled(false);
       }
       this.camera.detachControl();
-      this.pipeline = new BABYLON.LensRenderingPipeline('lens', {
-        edge_blur: 1.0,
-        chromatic_aberration: 1.0,
-        distortion: 2.0,
-        dof_focus_distance: 0.5,
-        dof_aperture: 3.0,
-        grain_amount: 1.0,
-        dof_pentagon: true,
-        dof_gain: 1.0,
-        dof_threshold: 1.0,
-        dof_darken: 0.35
-      }, this.scene, 1.0, this.scene.cameras);
-     
+      this.curtain = BABYLON.MeshBuilder.CreatePlane("Curtain", {size:10}, this.scene);
+      this.curtain.position = new BABYLON.Vector3(0,0,1);
+      this.curtain.parent = this.camera;
+      this.curtain.material = new BABYLON.StandardMaterial("CurtainMaterial",this.scene);
+      this.curtain.material.diffuseColor=new BABYLON.Color4(0,0,0,0.9);
     }
     
     let countDown = setInterval( () => {
@@ -354,9 +344,9 @@ export class HideAndSeek extends BasicGame {
         tickSound.dispose();
         startSound.play();
         this.gameStarted = true;
-        if ( this.pipeline ) {
-          this.pipeline.dispose();
-          delete this.pipeline;
+        if ( this.curtain ) {
+          this.curtain.dispose();
+          delete this.curtain;
         }
         if ( this.isMine() ) {
           VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"start" });
