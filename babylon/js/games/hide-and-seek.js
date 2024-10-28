@@ -176,9 +176,10 @@ export class HideAndSeek extends BasicGame {
     this.particleSystem.emitter = this.particleSource;
     this.particleSystem.addColorGradient(0, new BABYLON.Color4(.1, .1, .1, .5), new BABYLON.Color4(.2, .2, .2, .5));
     this.particleSystem.addColorGradient(0.1, new BABYLON.Color4(1, 1, 1, 1), new BABYLON.Color4(0.9, 0.9, 0.9, 1));
-    this.particleSystem.addColorGradient(0.5, new BABYLON.Color4(.5, .5, .5, 1), new BABYLON.Color4(0.9, 0.9, 0.9, 1));
+    this.particleSystem.addColorGradient(0.9, new BABYLON.Color4(1, 1, 1, 1), new BABYLON.Color4(0.9, 0.9, 0.9, 1));
     this.particleSystem.addColorGradient(1, new BABYLON.Color4(.1, .1, .1, .5), new BABYLON.Color4(.2, .2, .2, .5));
-
+    this.particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+    
     this.particleSystem.addSizeGradient(0, 0.05); //size at start of particle lifetime
     this.particleSystem.addSizeGradient(.5, .3); //size at half lifetime
     this.particleSystem.addSizeGradient(1, .1); //size at end of particle lifetime
@@ -191,7 +192,7 @@ export class HideAndSeek extends BasicGame {
     this.particleSystem.minLifeTime = 3;
     this.particleSystem.maxLifeTime = 4;
 
-    this.particleSystem.emitRate = 50;
+    this.particleSystem.emitRate = 10;
     
     this.particleSystem.createSphereEmitter(0.5,1);
     

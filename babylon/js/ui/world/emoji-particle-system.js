@@ -1,7 +1,6 @@
 export class EmojiParticleSystem {
   constructor(scene) {
     this.scene = scene;
-    this.particleSystem = null;
     this.particleSource = null;
     this.particleSystem = null;
   }
@@ -36,6 +35,8 @@ export class EmojiParticleSystem {
     this.particleSystem.color1 = new BABYLON.Color4(1, 1, 1, 1.0);
     this.particleSystem.color2 = new BABYLON.Color4(1, 1, 1, 1.0);
     this.particleSystem.colorDead = new BABYLON.Color4(0.1, 0.1, 0.1, .5);
+    // important for XR experience:
+    this.particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
     // these make particles not disappear:
     //this.particleSystem.addColorGradient(0, new BABYLON.Color4(.2, .2, .2, 0.2), new BABYLON.Color4(.5, .5, .5, .5));
     //this.particleSystem.addColorGradient(0.2, new BABYLON.Color4(1, 1, 1, 1), new BABYLON.Color4(1, 1, 1, 1));
