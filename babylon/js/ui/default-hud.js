@@ -45,7 +45,6 @@ export class DefaultHud {
     if ( this.settingsButton && this.displayButtons ) {
       this.clearRow();
       this.displayButtons = false;
-      return;
     } else if (!this.settingsButton) {
       this.settingsButton = this.hud.addButton("Settings", this.contentBase + "/content/icons/settings.png", () => this.settings());
       this.toolsButton = this.hud.addButton("Tools", this.contentBase + "/content/icons/tools.png", () => this.tools());
