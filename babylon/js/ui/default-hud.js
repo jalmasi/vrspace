@@ -595,15 +595,19 @@ export class DefaultHud {
   }
   
   hideAndSeek() {
-    HideAndSeek.createOrJoinInstance((startStop)=>{
-      this.checkAvailableGames();
-    });
+    if ( ! HideAndSeek.instance && ! GameTag.instance ) {
+      HideAndSeek.createOrJoinInstance((startStop)=>{
+        this.checkAvailableGames();
+      });
+    }
   }
   
   playTag() {
-    GameTag.createOrJoinInstance((startStop)=>{
-      this.checkAvailableGames();
-    });
+    if ( ! HideAndSeek.instance && ! GameTag.instance ) {
+      GameTag.createOrJoinInstance((startStop)=>{
+        this.checkAvailableGames();
+      });
+    }
   }
   
 }

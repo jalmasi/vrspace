@@ -60,7 +60,7 @@ export class GameTag extends BasicGame {
   constructor( world, vrObject ) {
     super(world,vrObject);
     this.fps = 5;
-    this.catchRadius = .5;
+    this.catchRadius = 1;
     this.delay = 3;
     this.minDelay = 1;
     this.maxDelay = 5;
@@ -147,8 +147,10 @@ export class GameTag extends BasicGame {
       null,
       {loop: false, autoplay: false }
     );
-    
+
     if ( !this.hunter && this.isMine() || VRSPACE.me == this.hunter ) {
+      // FIXME: this only works for 1st person camera
+      // 3rd person camera never has control, avatar controller needs to be used instead    
       this.camera.detachControl();
       this.camera.speed = this.speed * 1.2;
     } else {
