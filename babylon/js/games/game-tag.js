@@ -149,9 +149,7 @@ export class GameTag extends BasicGame {
     );
 
     if ( !this.hunter && this.isMine() || VRSPACE.me == this.hunter ) {
-      // FIXME: this only works for 1st person camera
-      // 3rd person camera never has control, avatar controller needs to be used instead    
-      this.camera.detachControl();
+      this.enableMovement(false);
       this.camera.speed = this.speed * 1.2;
     } else {
       this.camera.speed = this.speed;
@@ -160,7 +158,7 @@ export class GameTag extends BasicGame {
     let countDown = setInterval( () => {
       if ( delay-- <= 0 ) {
         this.counting = false;
-        this.camera.attachControl();
+        this.enableMovement(true);
         clearInterval(countDown);
         countForm.dispose();
         timerSound.dispose();

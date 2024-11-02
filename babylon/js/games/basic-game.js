@@ -321,6 +321,23 @@ export class BasicGame extends BasicScript {
   }
 
   /**
+   * Enables or disables movement for any kind of camera.
+   */
+  enableMovement(enable) {
+    if ( this.world.inXR()) {
+      // TODO: disable/remove movement feature(s)
+    } else if ( this.scene.activeCamera == this.world.camera1p ) {
+      if ( enable ) {
+        this.camera.attachControl();
+      } else {
+        this.camera.detachControl();
+      }
+    } else if (this.scene.activeCamera == this.world.camera3p) {
+      this.world.avatarController.enableTracking(enable);
+    }
+  }
+  
+  /**
    * Helper method to be executed when a player quits the game, including the game owner.
    * Finds the player avatar and detaches attached sounds and indicator, then removes it from the player list.
    * If this player has quit, also closes the the game status.

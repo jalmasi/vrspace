@@ -595,7 +595,7 @@ export class DefaultHud {
   }
   
   hideAndSeek() {
-    if ( ! HideAndSeek.instance && ! GameTag.instance ) {
+    if ( ! GameTag.instance ) {
       HideAndSeek.createOrJoinInstance((startStop)=>{
         this.checkAvailableGames();
       });
@@ -603,7 +603,7 @@ export class DefaultHud {
   }
   
   playTag() {
-    if ( ! HideAndSeek.instance && ! GameTag.instance ) {
+    if ( ! HideAndSeek.instance ) {
       GameTag.createOrJoinInstance((startStop)=>{
         this.checkAvailableGames();
       });

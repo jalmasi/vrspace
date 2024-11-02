@@ -6,7 +6,7 @@ class AvatarMovement {
     this.world = avatarController.world;
     this.avatar = avatar;
     this.animation = animation;
-     // world manager mesh
+    // world manager mesh
     this.movementTracker = BABYLON.MeshBuilder.CreateSphere("avatar movement tracker", {diameter:0.1}, this.world.scene);
     this.movementTracker.isVisible = false;
     this.movementTracker.position = this.world.camera1p.position.clone();
@@ -337,8 +337,10 @@ export class AvatarController {
     // movement state variables and constants
     this.movement = new AvatarMovement(this, avatar, this.animation);
     this.movementHandler = () => this.movement.moveAvatar();
-    this.clickHandler = (pointerInfo) => this.handleClick(pointerInfo);
-    
+    this.clickHandler = null;
+
+    this.trackingEnabled = true;  
+  
     this.activeCamera = null;
     // CHECKME: unless we call firstPerson here, first call to thirdPerson turns camera wildly
     // and then firstPerson() hides the avatar, we have to reactivate it
@@ -408,11 +410,16 @@ export class AvatarController {
     }
   }
 
+  /** Internal used to safely detach control 
+   * @private
+   */
   deactivateCamera(camera = this.scene.activeCamera) {
     if ( !this.world.inXR() ) {
       camera.detachControl();
     }
   }
+  
+  /** Internal to safely attach control */
   activateCamera(camera) {
     if ( !this.world.inXR() ) {
       this.scene.activeCamera = camera;
@@ -431,6 +438,7 @@ export class AvatarController {
   }
   
   showAvatar() {
+    // CHECKME different kind of check?
     if ( this.avatar.parentMesh ) {
       this.avatar.parentMesh.setEnabled(true);
     } else {
@@ -439,8 +447,8 @@ export class AvatarController {
   }
   
   hideAvatar() {
+    // video avatar has no parentMesh - CHECKME different kind of check?
     if ( this.avatar.parentMesh ) {
-      // video avatar has no parentMesh
       this.avatar.parentMesh.setEnabled(false);
     } else {
       this.avatar.attachToCamera();
@@ -473,7 +481,7 @@ export class AvatarController {
     }
     this.deactivateCamera();
     this.showAvatar();
-    // video avatar has no parentMesh
+    // video avatar has no parentMesh CHECKME
     if ( this.avatar.parentMesh ) {
       // TODO XR camera position
       let camera = this.world.camera1p;
@@ -496,7 +504,8 @@ export class AvatarController {
     this.world.camera3p.computeWorldMatrix();
 
     this.scene.onKeyboardObservable.add(this.keyboardHandler);
-    this.scene.onPointerObservable.add(this.clickHandler);
+    //this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => this.handleClick(pointerInfo));
+    this.clickHandler = this.addObserver(this.scene.onPointerObservable, (pointerInfo) => this.handleClick(pointerInfo));
     this.scene.registerBeforeRender(this.movementHandler);
     
     this.movement.stopMovement();
@@ -504,6 +513,41 @@ export class AvatarController {
     this.worldManager.trackMesh(this.movement.movementTracker);
     
     this.activateCamera(this.world.camera3p);
+  }
+
+  addObserver(observable,observer) {
+    //console.log(observable.observers.length);
+    let ret = observable.add(observer);
+    //console.log(observable.observers.length);
+    return ret;
+  }
+
+  removeObserver(observable,observer) {
+    //console.log(observable.observers.length);
+    let ret = observable.remove(observer);
+    //console.log(observable.observers.length); // async!
+    return ret;
+  }
+  
+  enableTracking(enabled) {
+    if ( this.activeCamera == this.world.camera1p ) {
+      return;
+    }
+    // make sure not to register handler twice
+    if ( enabled && !this.trackingEnabled ) {
+      this.scene.onKeyboardObservable.add(this.keyboardHandler);
+      this.clickHandler = this.addObserver(this.scene.onPointerObservable, (pointerInfo) => this.handleClick(pointerInfo));
+      //this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => this.handleClick(pointerInfo));
+      this.scene.registerBeforeRender(this.movementHandler);
+      this.scene.activeCamera.attachControl();
+      this.trackingEnabled = true;
+    } else if (!enabled && this.trackingEnabled) {
+      this.scene.onKeyboardObservable.remove(this.keyboardHandler);
+      this.removeObserver(this.scene.onPointerObservable, this.clickHandler)
+      this.scene.unregisterBeforeRender(this.movementHandler);
+      this.scene.activeCamera.detachControl();
+      this.trackingEnabled = false;
+    }
   }
   
   /** Performs coordinate transformation and other bookkeeping required to switch from 3rd to 1st person camera. */
@@ -513,7 +557,8 @@ export class AvatarController {
     }
     this.deactivateCamera();
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
-    this.scene.onPointerObservable.remove( this.clickHandler );
+    this.removeObserver(this.scene.onPointerObservable,this.clickHandler);
+    //this.scene.onPointerObservable.remove(this.clickHandler);
     this.scene.unregisterBeforeRender(this.movementHandler);
     this.movement.stopTrackingCameraRotation();
 
@@ -634,7 +679,7 @@ export class AvatarController {
   /** Cleanup, CHECKME */
   dispose() {
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
-    this.scene.onPointerObservable.remove(this.clickHandler);
+    this.removeObserver(scene.onPointerObservable,this.clickHandler);
     this.scene.unregisterBeforeRender(this.movementHandler);
     this.movement.dispose();
   }

@@ -324,7 +324,7 @@ export class HideAndSeek extends BasicGame {
       if (chatLog) {
         chatLog.group.setEnabled(false);
       }
-      this.camera.detachControl();
+      this.enableMovement(false);
       this.curtain = BABYLON.MeshBuilder.CreatePlane("Curtain", {size:10}, this.scene);
       this.curtain.position = new BABYLON.Vector3(0,0,1);
       this.curtain.parent = this.camera;
@@ -337,7 +337,7 @@ export class HideAndSeek extends BasicGame {
         if (chatLog) {
           chatLog.group.setEnabled(true);
         }
-        this.camera.attachControl();
+        this.enableMovement(true);
         clearInterval(countDown);
         countForm.dispose();
         timerSound.dispose();
