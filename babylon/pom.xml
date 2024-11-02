@@ -95,8 +95,7 @@
                   <executable>jsdoc</executable>
                   <arguments>
                     <argument>-r</argument>
-                    <argument>js/ui</argument>
-                    <argument>js/client</argument>
+                    <argument>js</argument>
                     <argument>-d</argument>
                     <argument>jsdoc</argument>
                   </arguments>
