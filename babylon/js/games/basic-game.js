@@ -325,7 +325,12 @@ export class BasicGame extends BasicScript {
    */
   enableMovement(enable) {
     if ( this.world.inXR()) {
-      // TODO: disable/remove movement feature(s)
+      if ( enable ) {
+        this.world.xrHelper.enableMovement(this.movementMode);
+      } else {
+        this.movementMode = this.world.xrHelper.movementMode;
+        this.world.xrHelper.disableMovement();
+      }
     } else if ( this.scene.activeCamera == this.world.camera1p ) {
       if ( enable ) {
         this.camera.attachControl();

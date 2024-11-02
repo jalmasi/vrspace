@@ -37,6 +37,8 @@ export class VRHelper {
     this.teleporting = false;
     this.sessionMode = sessionMode;
     this.userHeight = 1.8;
+    /** or NONE, or SLIDE */
+    this.movementMode = "TELEPORT";
     console.log("New VRHelper "+sessionMode);
     if ( this.constructor.instances[sessionMode] ) {
       throw new Error("VRHelper "+sessionMode+" already exists");
@@ -869,6 +871,7 @@ export class VRHelper {
    * Disable sliding movement and enable teleportation.
    */
   enableTeleportation() {
+    this.movementMode = "TELEPORT";
     if ( this.world && this.world.hasXR ) {
       const featureManager = this.vrHelper.baseExperience.featuresManager;
       featureManager.disableFeature(BABYLON.WebXRFeatureName.MOVEMENT);
@@ -887,6 +890,7 @@ export class VRHelper {
    * mesh.moveWithCollisions(), then setting camera positon - much like AvatarMovement.moveAvatar().
    */
   enableSliding() {
+    this.movementMode = "SLIDE";
     if ( this.world && this.world.hasXR ) {
       const featureManager = this.vrHelper.baseExperience.featuresManager;
       featureManager.disableFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
@@ -904,5 +908,28 @@ export class VRHelper {
       });
     }
   }
-  
+
+  /**
+   * Disable both teleportation and sliding.
+   */  
+  disableMovement() {
+    this.movementMode = "NONE";
+    const featureManager = this.vrHelper.baseExperience.featuresManager;
+    featureManager.disableFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
+    featureManager.disableFeature(BABYLON.WebXRFeatureName.MOVEMENT);
+  }
+
+  /**
+   * Enable movement in given mode
+   * @param {string} mode TELEPORT or SLIDE 
+   */  
+  enableMovement(mode) {
+    if ( "SLIDE" == mode ) {
+      this.enableSliding();
+    } else if ( "TELEPORT" == mode ) {
+      this.enableTeleportation();
+    } else {
+      throw "Unknown movement mode: "+mode;
+    }
+  }
 }
