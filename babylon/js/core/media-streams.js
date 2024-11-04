@@ -16,9 +16,19 @@ export class MediaStreams {
   constructor(scene, htmlElementName) {
     if (MediaStreams.instance) {
       throw "MediaStreams already instantiated: " + instance;
-    }
+    }    
     MediaStreams.instance = this;
     this.scene = scene;
+    /** Default values for streaming sound, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions */
+    this.soundProperties = {
+      maxDistance: 50,
+      volume: 1,
+      panningModel: "equalpower", // or "HRTF"
+      distanceModel: "linear", // or inverse, or exponential
+      maxDistance: 50, // default 50, babylon default 100, used only when linear
+      rolloffFactor: 1, // default 1, used only when exponential
+      refDistance : 1 // default 1, used only when exponential
+    }
     // CHECKME null check that element?
     this.htmlElementName = htmlElementName;
     /** function to play video of a client */
@@ -59,6 +69,7 @@ export class MediaStreams {
 
   /**
   Start publishing local video/audio
+  FIXME opevidu implementation
   @param htmlElement needed only for local feedback (testing)
    */
   publish(htmlElementName) {
@@ -222,10 +233,10 @@ export class MediaStreams {
   Creates babylon Sound object from the stram with default parameters, and attaches it to the mesh (e.g. avatar).
   @param mesh babylon mesh to attach to
   @param mediaStream MediaStream to attach
-  @param options custom sound options, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions
+  @param options custom sound options, defaults to this.soundProperties, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions
   @returns created babylon Sound object, or null if stream contains no audio tracks
    */
-  attachAudioStream(mesh, mediaStream, options={}) {
+  attachAudioStream(mesh, mediaStream, options=this.soundProperties) {
     let audioTracks = mediaStream.getAudioTracks();
     if (audioTracks && audioTracks.length > 0) {
       //console.log("Attaching audio stream to mesh "+mesh.id, audioTracks[0]);
@@ -233,10 +244,7 @@ export class MediaStreams {
         loop: false,
         autoplay: true,
         spatialSound: true,
-        streaming: true,
-        distanceModel: "linear",
-        maxDistance: 50, // default 100, used only when linear
-        panningModel: "equalpower" // or "HRTF"
+        streaming: true
       }
       for(let p of Object.keys(options)) {
         properties[p] = options[p];
@@ -250,6 +258,11 @@ export class MediaStreams {
         properties
       );
       voice.attachToMesh(mesh);
+      // all sounds go here:
+      //console.log("Scene main sound track", scene.mainSoundTrack);
+      // not used:
+      //console.log("Scene sound tracks", scene.soundTracks);
+      //console.log("Scene sounds", scene.sounds);
       return voice;
     }
     return null;

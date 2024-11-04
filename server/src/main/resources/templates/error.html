@@ -27,6 +27,10 @@
     <p>
       <a href="/swagger-ui/index.html">/swagger-ui/index.html</a> OpenAPI user interface.
     </p>
+    <p th:if="${@environment.getProperty('openvidu.publicurl')}" th:with="openviduUrl=${@environment.getProperty('openvidu.publicurl')}">
+      To allow for sound/video streaming locally, accept self-signed certificate at
+      <a th:href="${openviduUrl}"><span th:text="${openviduUrl}"></span></a>
+    </p>
     </div>
   </body>
 </html>
