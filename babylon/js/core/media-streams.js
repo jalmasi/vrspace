@@ -257,9 +257,11 @@ export class MediaStreams {
         null, // callback 
         properties
       );
-      voice.attachToMesh(mesh);
+      voice.attachToMesh(mesh); // sets voice._connectedTransformNode = mesh
+      
       // all sounds go here:
-      //console.log("Scene main sound track", scene.mainSoundTrack);
+      console.log("Scene main sound track", scene.mainSoundTrack); // and scene.mainSoundTrack.soundColection array contains all sounds
+      
       // not used:
       //console.log("Scene sound tracks", scene.soundTracks);
       //console.log("Scene sounds", scene.sounds);

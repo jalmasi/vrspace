@@ -44,6 +44,7 @@ export { ChatLog } from './ui/widget/chat-log.js';
 export { ImageArea } from './ui/widget/image-area.js';
 export { TextArea } from './ui/widget/text-area.js';
 export { TextAreaInput } from './ui/widget/text-area-input.js';
+export { SoundMixer } from './ui/widget/sound-mixer.js';
 
 export { VRHelper } from "./xr/vr-helper.js";
 export { ARHelper } from "./xr/ar-helper.js";

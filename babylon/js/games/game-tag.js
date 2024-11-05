@@ -16,7 +16,6 @@ class Scoreboard extends Form {
     this.grid = new BABYLON.GUI.Grid();
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.addControl(this.grid);
     
     this.grid.addColumnDefinition(0.7);
     this.grid.addColumnDefinition(0.3);

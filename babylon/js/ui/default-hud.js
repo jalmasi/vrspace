@@ -14,6 +14,7 @@ import { TextArea } from './widget/text-area.js';
 import { Sceneshot } from '../world/sceneshot.js';
 import { HideAndSeek } from '../games/hide-and-seek.js';
 import { GameTag } from '../games/game-tag.js';
+import { SoundMixer } from './widget/sound-mixer.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -86,6 +87,9 @@ export class DefaultHud {
       this.avatarButton.isVisible = (this.avatar != null);
       this.avatarButton.tooltipText = "TODO";
       */
+
+      this.soundButton = this.hud.addButton("Sound", this.contentBase + "/content/icons/sound.png", () => this.soundMixer(), false);
+      this.soundButton.tooltipText = "Sound Mixer";
 
       this.micButton = this.hud.addButton("Microphone", this.contentBase + "/content/icons/microphone-off.png", () => this.toggleMic(), false);
       this.micButton.tooltipText = "Toggle Microphone";
@@ -609,5 +613,16 @@ export class DefaultHud {
       });
     }
   }
-  
+ 
+  soundMixer() {
+    if ( SoundMixer.instance ) {
+      SoundMixer.getInstance(this.scene).dispose();
+      VRSPACEUI.hud.clearRow();
+      VRSPACEUI.hud.showButtons(true);
+    } else {
+      VRSPACEUI.hud.showButtons(false, this.soundButton);
+      VRSPACEUI.hud.newRow();
+      SoundMixer.getInstance(this.scene).show();
+    }
+  }
 }
