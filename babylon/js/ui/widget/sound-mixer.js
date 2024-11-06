@@ -1,29 +1,40 @@
 import {Form} from './form.js';
+import {HorizontalSliderPanel} from './slider-panel.js';
 
 class MixerForm extends Form {
   init() {
     this.createPanel();
     this.grid = new BABYLON.GUI.Grid();
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 
-    this.grid.addColumnDefinition(0.3);
-    this.grid.addColumnDefinition(0.7);
+    this.grid.addColumnDefinition(0.5);
+    this.grid.addColumnDefinition(0.5);
 
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Avatar sounds"), 0, 0);
+    this.grid.addControl( this.slider(), 0, 1 );
     
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Spatial sounds"), 1, 0);
+    this.grid.addControl( this.slider(), 1, 1 );
     
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Other sounds"), 2, 0);
+    this.grid.addControl( this.slider(), 2, 1 );
 
     this.addControl(this.grid);
 
     // CHECKME: HUD?
-    VRSPACEUI.hud.addForm(this,1024,this.heightInPixels*(this.grid.rowCount+1));
+    VRSPACEUI.hud.addForm(this,768,this.heightInPixels*(this.grid.rowCount+1));
     //VRSPACEUI.hud.addForm(this,512,512);
+  }
+  
+  slider() {
+    let sliderPanel = new HorizontalSliderPanel("",1,100,100);
+    sliderPanel.panel.isVertical = true;
+    sliderPanel.setDecimals(0);
+    return sliderPanel.panel;
   }
 }
 

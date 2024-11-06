@@ -1,5 +1,5 @@
 import { Form } from '../ui/widget/form.js';
-import { HorizontalSliderPanel } from "../ui/widget/slider-panel.js";
+import { HorizontalSliderPlane } from "../ui/widget/slider-panel.js";
 
 /**
  * Simple form that allows players to join or quit the game, and game owner to set the delay and start the game.
@@ -32,7 +32,7 @@ export class GameStatusForm extends Form {
     this.addControl(this.label);
     this.padding = 8;
     if (this.isMine && ! this.gameStarted) {
-      this.sliderPanel = new HorizontalSliderPanel(.5,this.delayText,this.delayMin,this.delayMax,this.delay);
+      this.sliderPanel = new HorizontalSliderPlane(.5,this.delayText,this.delayMin,this.delayMax,this.delay);
       this.sliderPanel.decimals = 0;
       this.addControl(this.sliderPanel.panel);
       let startButton = this.textButton("Start", () => this.callback(true));

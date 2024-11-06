@@ -1,6 +1,6 @@
 import {SpeechInput} from '../core/speech-input.js';
 import { ColorPickerPanel } from './widget/colorpicker-panel.js';
-import { VerticalSliderPanel } from './widget/slider-panel.js';
+import { VerticalSliderPlane } from './widget/slider-panel.js';
 /**
 HUD stands for head-up display - a UI container mounted on users head.
 Typically we have some buttons around 50 cm front, 10-20 cm below line of sight.
@@ -392,7 +392,7 @@ export class HUD {
   addSlider(text="Value",min,max,value) {
     var width = this.makeRoomForMore();
 
-    let sliderPanel = new VerticalSliderPanel(0.07,text,min,max,value);
+    let sliderPanel = new VerticalSliderPlane(0.07,text,min,max,value);
 
     sliderPanel.plane.parent = this.rowRoot;
     //plane.position.z = 0.02;
