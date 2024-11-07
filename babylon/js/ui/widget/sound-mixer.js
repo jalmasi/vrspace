@@ -2,7 +2,16 @@ import {Form} from './form.js';
 import {HorizontalSliderPanel} from './slider-panel.js';
 
 class MixerForm extends Form {
-  init() {
+  constructor() {
+    super();
+    this.smallFontSize = this.fontSize/2;
+    this.smallHeightInPixels = this.heightInPixels/2;
+  }
+  init( sounds = {
+        avatar: [],
+        spatial: [],
+        other: []
+  }) {
     this.createPanel();
     this.grid = new BABYLON.GUI.Grid();
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
@@ -12,26 +21,48 @@ class MixerForm extends Form {
     this.grid.addColumnDefinition(0.5);
 
     this.grid.addRowDefinition(this.heightInPixels, true);
-    this.grid.addControl(this.textBlock("Avatar sounds"), 0, 0);
+    this.grid.addControl(this.textBlock("Main volume"), 0, 0);
     this.grid.addControl( this.slider(), 0, 1 );
-    
-    this.grid.addRowDefinition(this.heightInPixels, true);
-    this.grid.addControl(this.textBlock("Spatial sounds"), 1, 0);
-    this.grid.addControl( this.slider(), 1, 1 );
-    
-    this.grid.addRowDefinition(this.heightInPixels, true);
-    this.grid.addControl(this.textBlock("Other sounds"), 2, 0);
-    this.grid.addControl( this.slider(), 2, 1 );
 
+    this.grid.addRowDefinition(this.heightInPixels, true);
+    this.grid.addControl(this.textBlock("Avatars"), this.grid.rowCount, 0);
+    this.showSounds(sounds.avatar)
+    
+    this.grid.addRowDefinition(this.heightInPixels, true);
+    this.grid.addControl(this.textBlock("Spatial"), this.grid.rowCount, 0);
+    this.showSounds(sounds.spatial)
+
+    this.grid.addRowDefinition(this.heightInPixels, true);
+    this.grid.addControl(this.textBlock("Other"), this.grid.rowCount, 0);
+    this.showSounds(sounds.other)
+    
     this.addControl(this.grid);
 
     // CHECKME: HUD?
     VRSPACEUI.hud.addForm(this,768,this.heightInPixels*(this.grid.rowCount+1));
     //VRSPACEUI.hud.addForm(this,512,512);
   }
+
+  showSounds(list) {
+    let fontSize = this.fontSize;
+    let heightInPixels = this.heightInPixels;
+    this.fontSize = this.smallFontSize;
+    this.heightInPixels = this.smallHeightInPixels;
+    for ( let row = this.grid.rowCount, i=0; i < list.length; row++, i++ ) {
+      this.grid.addRowDefinition(this.heightInPixels, true);
+      this.grid.addControl(this.textBlock(list[i].name), row, 0);
+      this.grid.addControl( this.slider(), row, 1 );
+    }
+    this.fontSize = fontSize;
+    this.heightInPixels = heightInPixels;
+  }
   
-  slider() {
-    let sliderPanel = new HorizontalSliderPanel("",1,100,100);
+  slider(value=100) {
+    let sliderPanel = new HorizontalSliderPanel("",1,100,value);
+    sliderPanel.panel.height = "100%";
+    sliderPanel.slider.height = "50%";
+    sliderPanel.header.height = "50%";
+    sliderPanel.header.fontSizeInPixels = this.smallFontSize/2;
     sliderPanel.panel.isVertical = true;
     sliderPanel.setDecimals(0);
     return sliderPanel.panel;
@@ -96,7 +127,7 @@ export class SoundMixer {
       this.form = null;
     }
     this.form = new MixerForm();
-    this.form.init();   
+    this.form.init(sounds);
   }
  
   dispose() {
