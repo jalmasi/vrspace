@@ -204,6 +204,14 @@ export class Client extends VRObject {
     this.className = 'Client';
     this.hasAvatar = true;
   }
+  
+  /** Handy function, returns name if not null, else class and id */
+  getNameOrId() {
+    if ( this.name ) {
+      return this.name;
+    }
+    return this.className+" "+this.id;
+  }
 }
 
 /**

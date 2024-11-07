@@ -7,6 +7,7 @@ class MixerForm extends Form {
     this.smallFontSize = this.fontSize/2;
     this.smallHeightInPixels = this.heightInPixels/2;
   }
+  
   init( sounds = {
         avatar: [],
         spatial: [],
@@ -26,15 +27,15 @@ class MixerForm extends Form {
 
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Avatars"), this.grid.rowCount, 0);
-    this.showSounds(sounds.avatar)
+    this.showSounds(sounds.avatar);
     
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Spatial"), this.grid.rowCount, 0);
-    this.showSounds(sounds.spatial)
+    this.showSounds(sounds.spatial);
 
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Other"), this.grid.rowCount, 0);
-    this.showSounds(sounds.other)
+    this.showSounds(sounds.other);
     
     this.addControl(this.grid);
 
@@ -50,6 +51,7 @@ class MixerForm extends Form {
     this.heightInPixels = this.smallHeightInPixels;
     for ( let row = this.grid.rowCount, i=0; i < list.length; row++, i++ ) {
       this.grid.addRowDefinition(this.heightInPixels, true);
+      // CHECKME: sound names?
       this.grid.addControl(this.textBlock(list[i].name), row, 0);
       this.grid.addControl( this.slider(), row, 1 );
     }

@@ -249,9 +249,13 @@ export class MediaStreams {
       for(let p of Object.keys(options)) {
         properties[p] = options[p];
       }
-      
+
+      let name = "stream:"+mesh.name;
+      if ( typeof mesh.VRObject != "undefined" && typeof mesh.VRObject.getNameOrId == "function") {
+        name = "voice:"+mesh.VRObject.getNameOrId();
+      }
       let voice = new BABYLON.Sound(
-        "voice",
+        name,
         mediaStream,
         this.scene, 
         null, // callback 
@@ -260,7 +264,7 @@ export class MediaStreams {
       voice.attachToMesh(mesh); // sets voice._connectedTransformNode = mesh
       
       // all sounds go here:
-      console.log("Scene main sound track", scene.mainSoundTrack); // and scene.mainSoundTrack.soundColection array contains all sounds
+      console.log("Scene main sound track", scene.mainSoundTrack, mesh); // and scene.mainSoundTrack.soundColection array contains all sounds
       
       // not used:
       //console.log("Scene sound tracks", scene.soundTracks);
