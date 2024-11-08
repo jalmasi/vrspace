@@ -84,9 +84,14 @@ export class VRHelper {
         if (  xrHelper.enterExitUI.overlay.children[0] ) {
           if ("immersive-vr" == this.sessionMode) {
             xrHelper.enterExitUI.overlay.children[0].textContent="VR";
+            xrHelper.enterExitUI.overlay.style.cssText = xrHelper.enterExitUI.overlay.style.cssText
+            .replace("right: 20px;","right: 5px;")
+            .replace("bottom: 50px;", "bottom: 5px");
           } else if ("immersive-ar" == this.sessionMode) {
             xrHelper.enterExitUI.overlay.children[0].textContent="AR";
-            xrHelper.enterExitUI.overlay.style.cssText = xrHelper.enterExitUI.overlay.style.cssText.replace("right","left");
+            xrHelper.enterExitUI.overlay.style.cssText = xrHelper.enterExitUI.overlay.style.cssText
+            .replace("right: 20px;","left: 5px;")
+            .replace("bottom: 50px;", "bottom: 5px");
           }
         }
         
