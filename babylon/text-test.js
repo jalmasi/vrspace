@@ -1,4 +1,79 @@
-import { VRSPACEUI, World, TextArea, ChatLog, TextAreaInput } from './js/vrspace-min.js';
+import { VRSPACEUI, World, TextArea, FormArea, Form, ChatLog, TextAreaInput, HorizontalSliderPanel } from './js/vrspace-min.js';
+
+class GridForm extends Form {
+  constructor(scene) {
+    super();
+    this.scene = scene;
+    this.smallFontSize = this.fontSize/2;
+    this.smallHeightInPixels = this.heightInPixels/2;
+  }
+  
+  init( sounds = {
+        avatar: ["first","second"],
+        spatial: ["one","two","three"],
+        other: ["some"]
+  }) {
+    this.createPanel();
+    this.grid = new BABYLON.GUI.Grid();
+    this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+
+    this.grid.paddingLeft=10;
+    this.grid.paddingTop=10;
+    this.grid.addColumnDefinition(0.5);
+    this.grid.addColumnDefinition(0.5);
+
+    this.grid.addRowDefinition(this.heightInPixels, true);
+    this.grid.addControl(this.textBlock("Main volume"), 0, 0);
+    this.grid.addControl( this.slider(100,this.fontSize*0.7), 0, 1 );
+
+    this.grid.addRowDefinition(this.heightInPixels, true);
+    this.grid.addControl(this.textBlock("Avatars"), this.grid.rowCount, 0);
+    let distanceSlider = new HorizontalSliderPanel("Range",10,1000,100);
+    distanceSlider.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    distanceSlider.header.width = "110px";
+    distanceSlider.setDecimals(0);
+    this.grid.addControl( distanceSlider.panel, 1, 1 );
+    this.showSounds(sounds.avatar);
+    
+    this.grid.addRowDefinition(this.heightInPixels, true);
+    this.grid.addControl(this.textBlock("Spatial"), this.grid.rowCount, 0);
+    this.showSounds(sounds.spatial);
+
+    this.grid.addRowDefinition(this.heightInPixels, true);
+    this.grid.addControl(this.textBlock("Other"), this.grid.rowCount, 0);
+    this.showSounds(sounds.other);
+    
+    this.addControl(this.grid);
+  }
+
+  showSounds(list) {
+    let fontSize = this.fontSize;
+    let heightInPixels = this.heightInPixels;
+    this.fontSize = this.smallFontSize;
+    this.heightInPixels = this.smallHeightInPixels;
+    for ( let row = this.grid.rowCount, i=0; i < list.length; row++, i++ ) {
+      let sound = list[i];
+      this.grid.addRowDefinition(this.heightInPixels, true);
+      // CHECKME: sound names?
+      this.grid.addControl(this.textBlock(sound), row, 0);
+      this.grid.addControl( this.slider(), row, 1 );
+    }
+    this.fontSize = fontSize;
+    this.heightInPixels = heightInPixels;
+  }
+  
+  slider(value=100, fontSize=this.smallFontSize/2) {
+    let sliderPanel = new HorizontalSliderPanel("",1,100,value);
+    sliderPanel.panel.height = "100%";
+    sliderPanel.slider.height = "50%";
+    sliderPanel.header.height = "50%";
+    sliderPanel.header.fontSizeInPixels = fontSize;
+    //sliderPanel.panel.isVertical = true;
+    sliderPanel.setDecimals(0);
+    return sliderPanel.panel;
+  }
+}
 
 export class TextWorld extends World {
   async load(callback) {
@@ -143,11 +218,11 @@ export class TextWorld extends World {
     hudText.writeln("\nclick to attach to HUD");
     this.selectables.push(hudText);
 
-    let form = new TextAreaInput(hudText, "Chat", "A Label attached to TextArea");
-    form.inputPrefix = "ME";
-    form.addListener(text=>console.log(text));
-    form.init();
-    this.selectables.push(form);
+    let inputArea = new TextAreaInput(hudText, "Chat", "A Label attached to TextArea");
+    inputArea.inputPrefix = "ME";
+    inputArea.addListener(text=>console.log(text));
+    inputArea.init();
+    this.selectables.push(inputArea);
 
     hudText.onClick(e=>{
       if ( hudText.handles ) {
@@ -178,6 +253,15 @@ export class TextWorld extends World {
       hudText.title.setText(text);
       state ++;
     });
+
+
+    let form = new GridForm(this.scene);
+    form.init();
+    let formArea = new FormArea(this.scene, form);
+    formArea.size = 1;
+    formArea.position = new BABYLON.Vector3(0,2,0);
+    formArea.show(1024,512);
+    //formArea.attachToHud();
     
     this.initXR();
     this.hudText = hudText;

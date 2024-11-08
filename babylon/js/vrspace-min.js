@@ -43,6 +43,7 @@ export { Form } from "./ui/widget/form.js";
 export { LoginForm } from "./ui/widget/login-form.js";
 export { Label } from "./ui/widget/label.js";
 export { ChatLog } from './ui/widget/chat-log.js';
+export { FormArea } from './ui/widget/form-area.js';
 export { ImageArea } from './ui/widget/image-area.js';
 export { TextArea } from './ui/widget/text-area.js';
 export { TextAreaInput } from './ui/widget/text-area-input.js';
