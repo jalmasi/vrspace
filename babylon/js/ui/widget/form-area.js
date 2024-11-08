@@ -19,7 +19,7 @@ export class FormArea extends BaseArea {
     this.alpha = 0.7;
     this.color = new BABYLON.Color4(.2,.2,.3, this.alpha);
     this.size = .2;
-    this.position = new BABYLON.Vector3(-.08, 0, .5);
+    this.position = new BABYLON.Vector3(-.08, 0.2, .5);
     this.addHandles = true;
     this.addBackground = true;
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
