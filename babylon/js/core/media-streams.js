@@ -9,6 +9,17 @@ import { SessionData } from '../client/vrspace.js';
 export class MediaStreams {
   /** There can be only one */
   static instance;
+  static defaultDistance = 50;
+  /** Default values for streaming sound, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions */
+  static soundProperties = {
+    maxDistance: MediaStreams.defaultDistance,
+    volume: 1,
+    panningModel: "equalpower", // or "HRTF"
+    distanceModel: "linear", // or inverse, or exponential
+    maxDistance: 50, // default 50, babylon default 100, used only when linear
+    rolloffFactor: 1, // default 1, used only when exponential
+    refDistance : 1 // default 1, used only when exponential
+  }
   /**
   @param scene
   @param htmlElementName
@@ -19,17 +30,6 @@ export class MediaStreams {
     }    
     MediaStreams.instance = this;
     this.scene = scene;
-    this.defaultDistance = 50;
-    /** Default values for streaming sound, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions */
-    this.soundProperties = {
-      maxDistance: this.defaultDistance,
-      volume: 1,
-      panningModel: "equalpower", // or "HRTF"
-      distanceModel: "linear", // or inverse, or exponential
-      maxDistance: 50, // default 50, babylon default 100, used only when linear
-      rolloffFactor: 1, // default 1, used only when exponential
-      refDistance : 1 // default 1, used only when exponential
-    }
     // CHECKME null check that element?
     this.htmlElementName = htmlElementName;
     /** function to play video of a client */
@@ -234,10 +234,10 @@ export class MediaStreams {
   Creates babylon Sound object from the stram with default parameters, and attaches it to the mesh (e.g. avatar).
   @param mesh babylon mesh to attach to
   @param mediaStream MediaStream to attach
-  @param options custom sound options, defaults to this.soundProperties, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions
+  @param options custom sound options, defaults to soundProperties, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions
   @returns created babylon Sound object, or null if stream contains no audio tracks
    */
-  attachAudioStream(mesh, mediaStream, options=this.soundProperties) {
+  attachAudioStream(mesh, mediaStream, options=MediaStreams.soundProperties) {
     let audioTracks = mediaStream.getAudioTracks();
     if (audioTracks && audioTracks.length > 0) {
       //console.log("Attaching audio stream to mesh "+mesh.id, audioTracks[0]);

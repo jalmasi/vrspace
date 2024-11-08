@@ -1,5 +1,6 @@
 import {Form} from './form.js';
 import {HorizontalSliderPanel} from './slider-panel.js';
+import { MediaStreams } from '../../core/media-streams.js';
 
 class MixerForm extends Form {
   constructor(scene) {
@@ -30,6 +31,12 @@ class MixerForm extends Form {
 
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Avatars"), this.grid.rowCount, 0);
+    let distanceSlider = new HorizontalSliderPanel("Range",10,1000,MediaStreams.soundProperties.maxDistance);
+    distanceSlider.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    distanceSlider.header.width = "110px";
+    distanceSlider.setDecimals(0);
+    distanceSlider.slider.onValueChangedObservable.add(value=>MediaStreams.soundProperties.maxDistance=value);
+    this.grid.addControl( distanceSlider.panel, 1, 1 );
     this.showSounds(sounds.avatar);
     
     this.grid.addRowDefinition(this.heightInPixels, true);
