@@ -19,9 +19,10 @@ export class MediaStreams {
     }    
     MediaStreams.instance = this;
     this.scene = scene;
+    this.defaultDistance = 50;
     /** Default values for streaming sound, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions */
     this.soundProperties = {
-      maxDistance: 50,
+      maxDistance: this.defaultDistance,
       volume: 1,
       panningModel: "equalpower", // or "HRTF"
       distanceModel: "linear", // or inverse, or exponential

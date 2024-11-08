@@ -33,7 +33,7 @@ export class GameStatusForm extends Form {
     this.padding = 8;
     if (this.isMine && ! this.gameStarted) {
       this.sliderPanel = new HorizontalSliderPlane(.5,this.delayText,this.delayMin,this.delayMax,this.delay);
-      this.sliderPanel.decimals = 0;
+      this.sliderPanel.setDecimals(0);
       this.addControl(this.sliderPanel.panel);
       let startButton = this.textButton("Start", () => this.callback(true));
       this.addControl(startButton);

@@ -19,6 +19,8 @@ class MixerForm extends Form {
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 
+    this.grid.paddingLeft=10;
+    this.grid.paddingTop=10;
     this.grid.addColumnDefinition(0.5);
     this.grid.addColumnDefinition(0.5);
 
@@ -41,7 +43,8 @@ class MixerForm extends Form {
     this.addControl(this.grid);
 
     // CHECKME: HUD?
-    VRSPACEUI.hud.addForm(this,768,this.heightInPixels*4+this.smallHeightInPixels*(Math.max(this.grid.rowCount-3,1)));
+    let texture = VRSPACEUI.hud.addForm(this,768,this.heightInPixels*4+this.smallHeightInPixels*(Math.max(this.grid.rowCount-3,1)));
+    texture.background="#808080";
     //VRSPACEUI.hud.addForm(this,512,512);
   }
 
@@ -88,23 +91,7 @@ export class SoundMixer {
   }
   
   init() {
-    this.createPanel();
-    
-    this.label = this.textBlock(this.nameText);
-    this.label.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-    this.panel.addControl(this.label);
-
-    this.input = this.inputText('name');
-    this.input.onTextChangedObservable.add(()=>this.changeCallback(this.input.text))
-    this.input.onBlurObservable.add(()=>this.blurCallback())
-    this.panel.addControl(this.input);
-
-    this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));
-    this.speechInput.start();
-  }
-
-  show() {
-    let sounds = {
+    this.sounds = {
       avatar: [],
       spatial: [],
       other: []
@@ -114,25 +101,29 @@ export class SoundMixer {
         if ( typeof sound._connectedTransformNode.VRObject != "undefined") {
           // sound stream of an avatar
           console.log("Avatar sound: "+sound.name, sound);
-          sounds.avatar.push(sound);
+          this.sounds.avatar.push(sound);
         } else {
           // spatial sound not managed by the server
           console.log("Scene sound: "+sound.name, sound);
-          sounds.spatial.push(sound);
+          this.sounds.spatial.push(sound);
         }
       } else {
         // not a spatial sound
         console.log("Other sound: "+sound.name, sound);
-        sounds.other.push(sound);
+        this.sounds.other.push(sound);
       }
     });
-    console.log(sounds);
+    console.log(this.sounds);
+  }
+
+  show() {
     if ( this.form ) {
       this.form.dispose();
       this.form = null;
     }
+    this.init();
     this.form = new MixerForm(this.scene);
-    this.form.init(sounds);
+    this.form.init(this.sounds);
   }
  
   dispose() {
