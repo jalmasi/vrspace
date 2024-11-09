@@ -378,6 +378,7 @@ export class AvatarSelection extends World {
     await this.video.show();
     this.video.setName(this.userName);
   }
+  
   removeVideoAvatar() {
     this.hud.toggleWebcam(false);
     this.hud.videoAvatar = null;
@@ -482,6 +483,7 @@ export class AvatarSelection extends World {
       }
       this.checkValidName(); // conditionally enables portals
       this.hud.setAvatar(this.character);
+      this.hud.toggleWebcam(false);
     },
       // on error
       (exception) => {

@@ -219,7 +219,7 @@ export class DefaultHud {
     if ( this.avatarButton ) {
       this.avatarButton.isVisible = (avatar != null);
       // we can't stream to avatar anyway, not yet
-      this.webcamButton.isVisible = (avatar == null);
+      this.toggleWebcam(false);
     }
     this.avatar = avatar;
   }
@@ -309,16 +309,15 @@ export class DefaultHud {
     console.log("Webcam: "+enable);
     if ( videoAvatar ) {
       this.videoAvatar = videoAvatar;
+      this.hud.markEnabled(this.webcamButton);
     }
     this.state.webcam = enable;
     if ( this.webcamButton ) {
       // webcamButton may be created/destroyed any time
-      if ( this.avatar ) {
-        // no video streaming to the avatar
-        this.webcamButton.isVisible = false;
+      if ( !this.videoAvatar ) {
+        this.hud.markDisabled(this.webcamButton);
         return;
       }
-      this.webcamButton.isVisible = true;
       if (this.state.webcam) {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         if ( this.videoAvatar ) {
