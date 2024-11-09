@@ -20,8 +20,11 @@ rotation and scale for each object.
 export class World {
   /**
    * World instance that was created last.
+   * @type {World}
    */
   static lastInstance = null;
+  /** Should mobile device orientation control camera orientation, default false (cheap devices have bad sensors) */
+  static mobileOrientationEnabled = false;
   /**
   Constructor takes parems that allow to override default values.
   @param params object to override world defaults - all properties are copied to world properties
@@ -41,6 +44,8 @@ export class World {
     this.gravityEnabled = true;
     /** Wheter collisions are enabled, default true */
     this.collisionsEnabled = true;
+    /** Should mobile device orientation control camera orientation, defaults to static World.mobileOrientationEnabled */
+    this.mobileOrientationEnabled = World.mobileOrientationEnabled;
     /** Wheter collisions are enabled in XR, default true */
     this.collisionsEnabledInXR = false; // CHECKME I don't even remember why
     /** Progress indicator */
@@ -81,7 +86,8 @@ export class World {
 
     /** List of world listeners. 
     WorldManager executes enter(Welcome) method once user enters the world, after World.enter() method. 
-    Methods added(VRObject) and removed(VRObject) are executed whenever scene changes.
+    Methods added(VRObject) and removed(VRObject) are executed whenever the scene changes.
+    Method loaded(VRObject) is called once the asset loads.
     */
     this.worldListeners = [];
     this.floorMeshes = [];
@@ -249,7 +255,7 @@ export class World {
     return this.inVR || this.inAR;
   }
   /**
-  Utility method, creates a UniversalCamera and sets defaults: gravity, collisions, ellipsoid, keys.
+  Utility method, creates a UniversalCamera and sets defaults: gravity, collisions, ellipsoid, keys, mobile orientation.
   @param pos Vector3 to position camera at
   @param name optional camera name, default Universal Camera
    */
@@ -273,50 +279,63 @@ export class World {
 
     camera.touchAngularSensibility = 10000;
 
-    if ( this.hasTouchScreen() ) {
-      // mobiles: use screen orientation to control camera orientation 
-      
-      // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/Inputs/freeCameraDeviceOrientationInput.ts
-      let deviceOrientation = new BABYLON.FreeCameraDeviceOrientationInput();
-      deviceOrientation.angleOffset = 0;
-      deviceOrientation.angleInitial = 0;
-      deviceOrientation._deviceOrientation_original = deviceOrientation._deviceOrientation;
-
-      deviceOrientation._deviceOrientation = (evt) => {
-        if (!deviceOrientation.angleInitial && evt.alpha) {
-          deviceOrientation.angleInitial = evt.alpha;
-          console.log("Initial device orientation: "+evt.alpha+" "+evt.beta+" "+evt.gamma);
-        }
-        deviceOrientation._deviceOrientation_original(evt);
-      }
-
-      // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/targetCamera.ts#L260
-      camera.setTarget_original = camera.setTarget;
-      camera.setTarget = (vector) => {
-        camera.setTarget_original(vector);
-        deviceOrientation.angleOffset = camera.rotation.y/2/Math.PI*360;
-      }
-
-      deviceOrientation.checkInputs_original = deviceOrientation.checkInputs;
-      deviceOrientation.checkInputs = () => {
-        // https://developer.mozilla.org/en-US/docs/Web/API/DeviceOrientationEvent
-        // touch screen does not necessarily mean orientation info is available - do not mess up camera for these
-        if ( deviceOrientation.angleInitial ) {
-          deviceOrientation._alpha -= (deviceOrientation.angleInitial + deviceOrientation.angleOffset);
-          deviceOrientation.checkInputs_original();
-          deviceOrientation._alpha += (deviceOrientation.angleInitial + deviceOrientation.angleOffset);
-        } else {
-          deviceOrientation.checkInputs_original();
-        }
-      }
-
-      camera.inputs.add(deviceOrientation);
-      
+    if ( this.mobileOrientationEnabled && this.hasTouchScreen() ) {
+      this.enableMobileOrientation();
     }
     
     return camera;
   }
 
+  /**
+   * Mobiles: use screen orientation to control camera rotation.
+   * @param {boolean} [enabled=this.mobileOrientationEnabled] true = use screen orientation, false = drag to rotate
+   */
+  enableMobileOrientation(enabled=this.mobileOrientationEnabled) {
+    this.mobileOrientationEnabled = enabled;
+    if ( this.hasTouchScreen() && this.scene.activeCamera.getClassName() == "UniversalCamera" ) {
+      let camera = this.scene.activeCamera;
+      if ( this.mobileOrientationEnabled ) {
+        // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/Inputs/freeCameraDeviceOrientationInput.ts
+        let deviceOrientation = new BABYLON.FreeCameraDeviceOrientationInput();
+        deviceOrientation.angleOffset = 0;
+        deviceOrientation.angleInitial = 0;
+        deviceOrientation._deviceOrientation_original = deviceOrientation._deviceOrientation;
+  
+        deviceOrientation._deviceOrientation = (evt) => {
+          if (!deviceOrientation.angleInitial && evt.alpha) {
+            deviceOrientation.angleInitial = evt.alpha;
+            console.log("Initial device orientation: "+evt.alpha+" "+evt.beta+" "+evt.gamma);
+          }
+          deviceOrientation._deviceOrientation_original(evt);
+        }
+        deviceOrientation.angleOffset = camera.rotation.y/2/Math.PI*360;
+  
+        // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/targetCamera.ts#L260
+        camera.setTarget_original = camera.setTarget;
+        camera.setTarget = (vector) => {
+          camera.setTarget_original(vector);
+          deviceOrientation.angleOffset = camera.rotation.y/2/Math.PI*360;
+        }
+  
+        deviceOrientation.checkInputs_original = deviceOrientation.checkInputs;
+        deviceOrientation.checkInputs = () => {
+          // https://developer.mozilla.org/en-US/docs/Web/API/DeviceOrientationEvent
+          // touch screen does not necessarily mean orientation info is available - do not mess up camera for these
+          if ( deviceOrientation.angleInitial ) {
+            deviceOrientation._alpha -= (deviceOrientation.angleInitial + deviceOrientation.angleOffset);
+            deviceOrientation.checkInputs_original();
+            deviceOrientation._alpha += (deviceOrientation.angleInitial + deviceOrientation.angleOffset);
+          } else {
+            deviceOrientation.checkInputs_original();
+          }
+        }
+  
+        camera.inputs.add(deviceOrientation);
+      } else {
+        camera.inputs.removeByType("FreeCameraDeviceOrientationInput");
+      }
+    }
+  }
   /**
   Utility method, calls this.universalCamera with given parameters, and sets the camera speed function.
   Original Babylon.js camera speed function takes FPS into account, but does not mean anything really.

@@ -34,6 +34,7 @@ export class DefaultHud {
     this.portals = {};
     this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() };
     this.movementButton = null;
+    this.orientationButton = null;
     this.cameraButton = null;
     this.buttons = [];
     this.emojiParticleSystem = new EmojiParticleSystem(scene);
@@ -77,6 +78,7 @@ export class DefaultHud {
       this.hud.showButtons(false, this.settingsButton);
       this.hud.newRow();
 
+      this.showMobileControls();
       this.showCameraControls();
       // CHECKME: flying through everything, should not be enabled by default
       this.showXRMovementControls();
@@ -133,6 +135,10 @@ export class DefaultHud {
 
   clearRow() {
     this.hud.clearRow();
+    if ( this.orientationButton ) {
+      this.orientationButton.dispose();
+      this.orientationButton = null;
+    }
     if ( this.cameraButton ) {
       this.cameraButton.dispose();
       this.cameraButton = null;
@@ -234,6 +240,27 @@ export class DefaultHud {
       // add this button only once, to the first row along with settings button
       this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => {this.showWorldTemplates()});
     }
+  }
+  
+  showMobileControls() {
+    if ( World.lastInstance.hasTouchScreen() ) {
+      if ( ! this.orientationButton ) {
+        this.orientationButton = this.hud.addButton("Rotation", VRSPACEUI.contentBase+"/content/icons/rotate-hand.png", () => this.toggleOrientation());        
+      }
+      if ( World.lastInstance.mobileOrientationEnabled ) {
+        this.orientationButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/rotate-hand.png";
+        this.orientationButton.tooltipText = "3rd Person";
+      } else {
+        this.orientationButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/rotate-screen.png";
+        this.orientationButton.tooltipText = "1st Person";
+      }
+    }
+  }
+  
+  toggleOrientation() {
+    World.lastInstance.enableMobileOrientation(!World.lastInstance.mobileOrientationEnabled);
+    World.mobileOrientationEnabled = World.lastInstance.mobileOrientationEnabled;
+    this.showMobileControls();
   }
   
   showCameraControls() {
@@ -551,6 +578,9 @@ export class DefaultHud {
   /** World LoadListener interface */
   loaded(vrObject) {
     console.log("Loaded ",vrObject);
+    // FIXME this is going to resize any loaded object
+    // supposed to resize only one(s) loaded via file() method here
+    // CHECKME what happens with world editor then?
     if ( vrObject.container ) {
       setTimeout(() => {
         let rootMesh = vrObject.container.meshes[0];
