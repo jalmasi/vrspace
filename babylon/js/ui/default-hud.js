@@ -248,7 +248,7 @@ export class DefaultHud {
       if ( ! this.orientationButton ) {
         this.orientationButton = this.hud.addButton("Rotation", VRSPACEUI.contentBase+"/content/icons/rotate-hand.png", () => this.toggleOrientation());        
       }
-      if ( World.lastInstance.mobileOrientationEnabled ) {
+      if ( CameraHelper.lastInstance.mobileOrientationEnabled ) {
         this.orientationButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/rotate-hand.png";
         this.orientationButton.tooltipText = "3rd Person";
       } else {
