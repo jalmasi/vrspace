@@ -114,7 +114,7 @@ export class DefaultHud {
   tools() {
     this.displayButtons = !this.displayButtons;
     if ( this.displayButtons ) {
-      this.hud.showButtons(false, this.settingsButton);
+      this.hud.showButtons(false, this.toolsButton);
       this.hud.newRow();
 
       this.saveButton = this.hud.addButton("Save", this.contentBase + "/content/icons/save.png", () => this.save(), false);
