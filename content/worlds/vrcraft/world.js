@@ -59,6 +59,7 @@ export class WorldEditorExample extends World {
     this.terrain.init(this.scene);
     this.terrain.mesh().setEnabled(false);
     this.terrainEditor = new TerrainEditor(this);
+    this.skyboxSelector = new SkyboxSelector(this);
   }
   
   createUI() {
@@ -130,9 +131,6 @@ export class WorldEditorExample extends World {
     if ( this.editing ) {
       VRSPACEUI.hud.showButtons(!this.editing, button);
       VRSPACEUI.hud.newRow();
-      if ( ! this.skyboxSelector ) {
-        this.skyboxSelector = new SkyboxSelector(this);
-      }
       this.skyboxSelector.show();
       VRSPACEUI.hud.enableSpeech(true);
     } else {
