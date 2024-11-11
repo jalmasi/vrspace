@@ -258,7 +258,7 @@ export class DefaultHud {
   }
   
   toggleOrientation() {
-    World.lastInstance.enableMobileOrientation(!World.lastInstance.mobileOrientationEnabled);
+    World.lastInstance.cameraHelper.enableMobileOrientation(!World.lastInstance.mobileOrientationEnabled);
     World.mobileOrientationEnabled = World.lastInstance.mobileOrientationEnabled;
     this.showMobileControls();
   }
