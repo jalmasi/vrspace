@@ -53,5 +53,9 @@ export class Skybox {
   }
   
   dispose() {
+    if ( this.skybox ) {
+      this.skybox.dispose();
+    }
+    // CHECKME: scene environment texture is better left as it is
   }
 }

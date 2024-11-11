@@ -301,6 +301,16 @@ export class VRFile extends VRObject {
   }
 }
 
+export class Background extends VRObject {
+  constructor() {
+    super();
+    this.className = 'Background';
+    this.texture = null;
+    this.ambientIntensity = 0;
+  }
+}
+
+
 export class Game extends VRObject {
   constructor() {
     super();
@@ -395,7 +405,7 @@ export class VRSpace {
     this.errorListeners = [];
     /** Listener to response to a command. */
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, Terrain, VRFile, Game };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, Terrain, VRFile, Game, Background };
     //this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {

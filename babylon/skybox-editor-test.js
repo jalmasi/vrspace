@@ -47,10 +47,15 @@ export class SkyboxEditorExample extends World {
     this.initXR(this.vrHelper);
     this.skyboxSelector = new SkyboxSelector(this);
     this.skyboxSelector.show();
-    
+
     new WorldManager(this);
     //this.worldManager.debug = true; // multi-user debug info
     //this.worldManager.VRSPACE.debug = true; // network debug info
+    //this.worldManager.remoteLogging = true; // send javascript logs to server
+    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(
+      //() => this.worldEditor = new WorldEditor(this, this.fileInputElement)
+      this.initXR()
+    );
   }
   
 }

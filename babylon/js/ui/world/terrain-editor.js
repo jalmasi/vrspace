@@ -1,8 +1,12 @@
 import {VRSPACEUI} from '../vrspace-ui.js';
 import {WorldListener} from '../../world/world-listener.js';
+import {World} from '../../world/world.js';
 import {TextureSelector} from './texture-selector.js';
 
 export class TerrainEditor extends WorldListener {
+  /**
+   * @param {World} world 
+   */
   constructor(world) {
     super();
     this.world = world;
@@ -11,7 +15,7 @@ export class TerrainEditor extends WorldListener {
     this.heightIncrement=1;
     this.sharedTerrain = null;
     this.editing = false;
-    world.worldListeners.push(this);
+    world.addListener(this);
     this.textureSelector = new TextureSelector(this.scene, (img) => this.publishTexture(img));
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
@@ -19,13 +23,10 @@ export class TerrainEditor extends WorldListener {
   }
   /** Called by WorldManager when user enters the world */
   entered(welcome) {
-    console.log(welcome);
-    let terrainExists = false;
+    //console.log(welcome);
     if ( welcome.permanents ) {
-      console.log( "Permanents exists" );
       welcome.permanents.forEach( obj => {
         if (obj.Terrain) {
-          terrainExists = true;
           this.sharedTerrain = obj.Terrain;
           if ( obj.Terrain.points ) {
             obj.Terrain.points.forEach( p => {
@@ -48,10 +49,6 @@ export class TerrainEditor extends WorldListener {
         };
       });
     } 
-    if ( ! terrainExists) {
-      console.log("Creating new terrain");
-      this.createSharedTerrain();
-    }
   }
   
   added(added) {
@@ -82,20 +79,23 @@ export class TerrainEditor extends WorldListener {
   }
   
   createSharedTerrain() {
-    var object = {
-      permanent: true,
-      active:true,
-      specularColor:this.terrain.terrainMaterial.specularColor,
-      diffuseColor:this.terrain.terrainMaterial.diffuseColor,
-      emissiveColor:this.terrain.terrainMaterial.emissiveColor
-    };
-    this.world.worldManager.VRSPACE.createSharedObject(object, "Terrain").then(obj=>{
-      console.log("Created new Terrain", obj);
-      this.sharedTerrain = obj;
-    });
+    if ( ! this.sharedTerrain ) {
+      var object = {
+        permanent: true,
+        active:true,
+        specularColor:this.terrain.terrainMaterial.specularColor,
+        diffuseColor:this.terrain.terrainMaterial.diffuseColor,
+        emissiveColor:this.terrain.terrainMaterial.emissiveColor
+      };
+      this.world.worldManager.VRSPACE.createSharedObject(object, "Terrain").then(obj=>{
+        console.log("Created new Terrain", obj);
+        this.sharedTerrain = obj;
+      });
+    }
   }
   
   edit() {
+    this.createSharedTerrain();
     this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
       switch (pointerInfo.type) {
         case BABYLON.PointerEventTypes.POINTERDOWN:
@@ -205,7 +205,8 @@ export class TerrainEditor extends WorldListener {
   }
   dispose() {
     this.world.removeSelectionPredicate(this.selectionPredicate);
-    // TODO
+    this.world.removeListener(this);
+    // ..etc, CHECKME
   }
   isSelectableMesh(mesh) {
     // terrain is selectable only while editing
