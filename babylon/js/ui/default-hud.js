@@ -15,6 +15,7 @@ import { Sceneshot } from '../world/sceneshot.js';
 import { HideAndSeek } from '../games/hide-and-seek.js';
 import { GameTag } from '../games/game-tag.js';
 import { SoundMixer } from './widget/sound-mixer.js';
+import { CameraHelper } from '../world/camera-helper.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -258,8 +259,8 @@ export class DefaultHud {
   }
   
   toggleOrientation() {
-    World.lastInstance.cameraHelper.enableMobileOrientation(!World.lastInstance.mobileOrientationEnabled);
-    World.mobileOrientationEnabled = World.lastInstance.mobileOrientationEnabled;
+    CameraHelper.lastInstance.enableMobileOrientation(!CameraHelper.lastInstance.mobileOrientationEnabled);
+    CameraHelper.mobileOrientationEnabled = CameraHelper.lastInstance.mobileOrientationEnabled;
     this.showMobileControls();
   }
   
