@@ -25,8 +25,6 @@ export class Classroom extends World {
   }
   async createCamera() {
     //lecturer view
-    //this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, 0));
-    //this.camera.setTarget(new BABYLON.Vector3(0,2,10));
     this.camera = this.firstPersonCamera(new BABYLON.Vector3(-6, 2, 16));
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;

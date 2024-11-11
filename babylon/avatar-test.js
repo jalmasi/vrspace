@@ -21,7 +21,7 @@ export class Avatars extends World {
     this.camera.checkCollisions = true;
 
     let pos = new BABYLON.Vector3(0,1.8,-.2);
-    this.camera1p = this.universalCamera(pos, "1st Person Camera");
+    this.camera1p = this.firstPersonCamera(pos, "1st Person Camera");
     this.camera1p.setTarget(new BABYLON.Vector3(0,1.8,-10));
     this.thirdPersonCamera(this.camera1p);
     

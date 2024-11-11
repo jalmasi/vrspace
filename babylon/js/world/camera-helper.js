@@ -72,11 +72,11 @@ export class CameraHelper {
     // debug existing func
     console.log(camera._computeLocalCameraSpeed);
     setInterval(() => {
-      console.log("engine delta: "+this.engine.getDeltaTime()+" fps "+this.engine.getFps());
+      console.log("engine delta: "+this.world.engine.getDeltaTime()+" fps "+this.world.engine.getFps());
     }, 5000);
     */
     // this actually makes camera speed real
-    camera._computeLocalCameraSpeed = () => { return camera.speed * this.engine.getDeltaTime() * 0.001 };
+    camera._computeLocalCameraSpeed = () => { return camera.speed * this.world.engine.getDeltaTime() * 0.001 };
 
     return camera;
   }

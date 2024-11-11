@@ -254,28 +254,17 @@ export class World {
     return this.inVR || this.inAR;
   }
   /**
-  Utility method, creates a UniversalCamera and sets defaults: gravity, collisions, ellipsoid, keys, mobile orientation.
-  @param pos Vector3 to position camera at
-  @param name optional camera name, default Universal Camera
-   */
-  universalCamera(pos, name = "Universal Camera") {
-    return this.cameraHelper.universalCamera(pos,name);
-  }
-
-  /**
    * Creates first person camera and sets this.camera1p.
    * @see CameraHelper.firstPersonCamera
    */
   firstPersonCamera(pos, name = "First Person Camera") {
-    this.camera1p = this.cameraHelper.universalCamera(pos,name);
+    this.camera1p = this.cameraHelper.firstPersonCamera(pos,name);
     return this.camera1p;
   }
 
   /** 
-   * Utility method, creates 3rd person camera.
-   * Requires 1st person UniversalCamera already set, and sets rotation and direction based on it.
-   * @param camera1p 1st person UniversalCamera, defaults to this.camera
-   * @returns created 3rd person ArcRotateCamera this.camera3p
+   * Utility method, creates 3rd person camera and sets this.camera3p.
+   * @see CameraHelper.thirdPersonCamera
    */
   thirdPersonCamera(camera1p = this.camera) {
     this.camera3p = this.cameraHelper.thirdPersonCamera(camera1p);

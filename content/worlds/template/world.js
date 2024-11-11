@@ -17,8 +17,6 @@ export class WorldTemplate extends World {
   // MANDATORY: you must create at least one camera
   async createCamera() {
     // utility function to create UniversalCamera:
-    //this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -10));
-    // however, this one uses correct speed calculation:
     this.camera = this.firstPersonCamera(new BABYLON.Vector3(0, 2, -10));
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;

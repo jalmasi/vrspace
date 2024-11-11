@@ -84,7 +84,7 @@ export class AvatarSelection extends World {
   }
   async createCamera() {
     // Add a camera to the scene and attach it to the canvas
-    this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -5));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(0, 2, -5));
     this.camera.setTarget(new BABYLON.Vector3(0, 1.5, 0));
   }
   async createLights() {

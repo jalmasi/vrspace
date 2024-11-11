@@ -10,7 +10,7 @@ export class ImageAreaWorld extends World {
     }
   }
   async createCamera() {
-    this.camera = this.universalCamera(new BABYLON.Vector3(0, 2, -2));
+    this.camera = this.firstPersonCamera(new BABYLON.Vector3(0, 2, -2));
     this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
     this.camera.setTarget(new BABYLON.Vector3(0,2,0));
     this.camera.speed = .2;
