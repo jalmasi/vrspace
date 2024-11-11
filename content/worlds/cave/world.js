@@ -117,7 +117,7 @@ export class Cave extends World {
   
   entered(welcome) {
     super.entered(welcome);
-    if ( this.hasTouchScreen() ) {
+    if ( VRSPACEUI.hasTouchScreen() ) {
       this.worldManager.remoteLogging = true;
       console.log("Touchscreen detected, assuming mobile device, remote logging enabled");
     } else if (this.hasXR) {

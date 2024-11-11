@@ -279,7 +279,7 @@ export class World {
 
     camera.touchAngularSensibility = 10000;
 
-    if ( this.mobileOrientationEnabled && this.hasTouchScreen() ) {
+    if ( this.mobileOrientationEnabled && VRSPACEUI.hasTouchScreen() ) {
       this.enableMobileOrientation();
     }
     
@@ -292,7 +292,7 @@ export class World {
    */
   enableMobileOrientation(enabled=this.mobileOrientationEnabled) {
     this.mobileOrientationEnabled = enabled;
-    if ( this.hasTouchScreen() && this.scene.activeCamera.getClassName() == "UniversalCamera" ) {
+    if ( VRSPACEUI.hasTouchScreen() && this.scene.activeCamera.getClassName() == "UniversalCamera" ) {
       let camera = this.scene.activeCamera;
       if ( this.mobileOrientationEnabled ) {
         // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/Inputs/freeCameraDeviceOrientationInput.ts
@@ -388,7 +388,7 @@ export class World {
     // we can also check for
     // this.camera3p.inputs.attached.pointers.mousewheel
     // this.camera3p.inputs.attached.pointers.keyboard
-    if (this.hasTouchScreen()) {
+    if (VRSPACEUI.hasTouchScreen()) {
       // assuming mobile
       this.camera3p.inputs.attached.pointers.pinchPrecision = 100;
     } else {
@@ -470,10 +470,6 @@ export class World {
     return this.camera3p;
   }
 
-  hasTouchScreen() {
-    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
-  }
-  
   /**
   Disposes of all objects returned by createLights, createCamera, createShadows, createSkybox
    */

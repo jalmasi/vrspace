@@ -65,7 +65,7 @@ export class DefaultHud {
   streamingAvailable() {
     // TODO check server capabilities
     // screen sharing unavailable on mobiles
-    return this.isOnline() && ! WorldManager.instance.world.hasTouchScreen();
+    return this.isOnline() && ! VRSPACEUI.hasTouchScreen();
   }
   
   isOnline() {
@@ -243,7 +243,7 @@ export class DefaultHud {
   }
   
   showMobileControls() {
-    if ( World.lastInstance.hasTouchScreen() ) {
+    if ( VRSPACEUI.hasTouchScreen() ) {
       if ( ! this.orientationButton ) {
         this.orientationButton = this.hud.addButton("Rotation", VRSPACEUI.contentBase+"/content/icons/rotate-hand.png", () => this.toggleOrientation());        
       }
