@@ -41,15 +41,14 @@ export class SkyboxSelector {
     // TODO
   }
 
-  createSharedSkybox() {
+  async createSharedSkybox() {
     var object = {
       permanent: true,
       active: true
     };
-    this.world.worldManager.VRSPACE.createSharedObject(object, "Background").then(obj => {
-      console.log("Created new Skybox", obj);
-      this.sharedSkybox = obj;
-    });
+    let obj = await this.world.worldManager.VRSPACE.createSharedObject(object, "Background");
+    console.log("Created new Skybox", obj);
+    this.sharedSkybox = obj;
   }
 
   makeSkyBox(dir) {
@@ -97,13 +96,7 @@ export class SkyboxSelector {
                 var box = this.makeSkyBox(skyboxDir);
                 //box.position = new BABYLON.Vector3(skyboxes.size*2, 1, 0);
                 var button = new BABYLON.GUI.MeshButton3D(box.skybox, "pushButton-" + skyboxName);
-                button.onPointerDownObservable.add(() => {
-                  // TODO send event
-                  if (!this.sharedSkybox) {
-                    this.createSharedSkybox();
-                  }
-                  this.world.worldManager.VRSPACE.sendEvent(this.sharedSkybox, { texture: box.dir });
-                });
+                button.onPointerDownObservable.add(() => this.sendChange(box.dir));
                 this.boxes.push(box);
                 this.panel.addControl(button);
               }
@@ -113,6 +106,12 @@ export class SkyboxSelector {
       });
     });
 
+  }
+  async sendChange(dir) {
+    if (!this.sharedSkybox) {
+      await this.createSharedSkybox();
+    }
+    this.world.worldManager.VRSPACE.sendEvent(this.sharedSkybox, { texture: dir });
   }
 
   hide() {
