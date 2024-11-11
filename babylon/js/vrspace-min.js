@@ -14,6 +14,7 @@ export { UnityWorld } from "./world/unity-world.js";
 export { Sceneshot } from "./world/sceneshot.js";
 export { VisibilityHelper } from "./world/visibility-helper.js";
 export { CameraHelper } from "./world/camera-helper.js";
+export { Skybox } from "./world/skybox.js";
 
 export { VRSpaceUI, VRSPACEUI } from "./ui/vrspace-ui.js";
 export { HUD } from "./ui/hud.js";

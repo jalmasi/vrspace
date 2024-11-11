@@ -155,7 +155,6 @@ export class World {
     if (!this.scene) {
       this.scene = new BABYLON.Scene(engine);
     }
-    // TODO dispose of old camera(s)
     var camera = await this.createCamera();
     if (camera) {
       this.camera = camera;
@@ -164,22 +163,18 @@ export class World {
       this.camera1p = this.camera;
     }
     this.attachControl();
-    // TODO dispose of old lights
     var light = await this.createLights();
     if (light) {
       this.light = light;
     }
-    // TODO dispose of old shadow generator
     var shadowGenerator = await this.createShadows();
     if (shadowGenerator) {
       this.shadowGenerator = shadowGenerator;
     }
-    // TODO dispose of old skybox
     var skyBox = await this.createSkyBox();
     if (skyBox) {
       this.skyBox = skyBox;
     }
-    // TODO dispose of old ground
     var ground = await this.createGround();
     if (ground) {
       this.ground = ground;
@@ -289,7 +284,6 @@ export class World {
     }
     if (this.skyBox) {
       this.skyBox.dispose();
-      this.skyBox.material.dispose();
       this.skyBox = null;
     }
     if (this.light) {

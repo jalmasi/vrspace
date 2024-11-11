@@ -1,4 +1,4 @@
-import { World, Desert } from '../../../babylon/js/vrspace-min.js';
+import { World, Desert, Skybox } from '../../../babylon/js/vrspace-min.js';
 
 //collisions:
 //group296_sand_houses:lambert6_0 - ground
@@ -50,15 +50,7 @@ export class Aladinville extends World {
   }
   
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, this.scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/hw_sahara/sahara"), this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-    return skybox;
+    return new Skybox(this.scene, this.assetPath("../../skybox/hw_sahara/sahara")).create();
   }
 
   getFloorMeshes() {

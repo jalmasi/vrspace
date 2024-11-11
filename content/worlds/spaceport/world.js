@@ -1,4 +1,4 @@
-import { World } from '../../../babylon/js/vrspace-min.js';
+import { World, Skybox } from '../../../babylon/js/vrspace-min.js';
 
 export class Spaceport extends World {
 
@@ -28,16 +28,7 @@ export class Spaceport extends World {
   }
 
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, this.scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.assetPath("../../skybox/mp_orbital/orbital-element"), this.scene);
-    //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("skybox/horizon_4", this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-    return skybox;
+    return new Skybox(this.scene,this.assetPath("../../skybox/mp_orbital/orbital-element"), 0.25).create();
   }
 
   getFloorMeshes() {

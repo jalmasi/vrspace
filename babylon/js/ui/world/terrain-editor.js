@@ -20,10 +20,12 @@ export class TerrainEditor extends WorldListener {
   /** Called by WorldManager when user enters the world */
   entered(welcome) {
     console.log(welcome);
+    let terrainExists = false;
     if ( welcome.permanents ) {
-      console.log( "Terrain exists" );
+      console.log( "Permanents exists" );
       welcome.permanents.forEach( obj => {
         if (obj.Terrain) {
+          terrainExists = true;
           this.sharedTerrain = obj.Terrain;
           if ( obj.Terrain.points ) {
             obj.Terrain.points.forEach( p => {
@@ -45,7 +47,8 @@ export class TerrainEditor extends WorldListener {
           }
         };
       });
-    } else {
+    } 
+    if ( ! terrainExists) {
       console.log("Creating new terrain");
       this.createSharedTerrain();
     }

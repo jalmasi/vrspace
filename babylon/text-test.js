@@ -1,4 +1,4 @@
-import { VRSPACEUI, World, TextArea, FormArea, Form, ChatLog, TextAreaInput, HorizontalSliderPanel } from './js/vrspace-min.js';
+import { VRSPACEUI, World, TextArea, FormArea, Form, ChatLog, TextAreaInput, HorizontalSliderPanel, Skybox } from './js/vrspace-min.js';
 
 class GridForm extends Form {
   constructor(scene) {
@@ -118,15 +118,7 @@ export class TextWorld extends World {
   }
   
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, this.scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("/content/skybox/eso_milkyway/milkyway", this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-    return skybox;
+    return new Skybox(this.scene,"/content/skybox/eso_milkyway/milkyway");
   }
   
   testFontSize(pos, fontSize = 16, width = 512) {

@@ -1,4 +1,4 @@
-import { World, RecorderUI } from '../../../babylon/js/vrspace-min.js';
+import { World, RecorderUI, Skybox } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldTemplate extends World {
   // OPTIONAL:
@@ -54,15 +54,7 @@ export class WorldTemplate extends World {
   // OPTIONAL:
   // create a skybox
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, this.scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("https://www.babylonjs.com/assets/skybox/TropicalSunnyDay", this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-    return skybox;
+    return new Skybox(this.scene, "https://www.babylonjs.com/assets/skybox/TropicalSunnyDay").create();
   }
   
   // OPTIONAL, RECOMMENDED:

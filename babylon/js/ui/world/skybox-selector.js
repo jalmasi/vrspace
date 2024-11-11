@@ -1,3 +1,5 @@
+import { Skybox } from "../../world/skybox.js";
+
 export class SkyboxSelector {
   constructor(world) {
     this.world = world;
@@ -5,9 +7,34 @@ export class SkyboxSelector {
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
     world.addSelectionPredicate(this.selectionPredicate);
+    world.worldListeners.push(this);
   }
+
+  entered(welcome) {
+    console.log(welcome);
+    if ( welcome.permanents ) {
+      console.log( "Permanents exists" );
+    }
+  }
+
+  added(added) {
+    if ( added && added.className == "Skybox") {
+      console.log("Skybox added", added);
+      this.sharedSkybox = added;
+      added.addListener((obj,change)=>this.skyboxChanged(change));
+    }
+  }
+
+  skyboxChanged(change) {
+    // TODO
+  }    
   
   makeSkyBox( dir,name ) {
+    var skybox = new Skybox(this.scene, dir);
+    skybox.infiniteDistance = false;
+    skybox.size = 1;
+    skybox.create();
+    /*
     var skybox = BABYLON.Mesh.CreateBox("skyBox-"+name, 1, this.scene);
     var skyboxMaterial = new BABYLON.StandardMaterial("skyBox-"+name, this.scene);
     skyboxMaterial.backFaceCulling = false;
@@ -16,6 +43,7 @@ export class SkyboxSelector {
     //skybox.infiniteDistance = true;
     skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(dir, this.scene);
     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    */
     return skybox;
   }
   
@@ -55,9 +83,10 @@ export class SkyboxSelector {
                 skyboxes.add(skyboxDir);
                 var box = this.makeSkyBox(skyboxDir,skyboxName);
                 //box.position = new BABYLON.Vector3(skyboxes.size*2, 1, 0);
-                var button = new BABYLON.GUI.MeshButton3D(box, "pushButton-"+skyboxName);
+                var button = new BABYLON.GUI.MeshButton3D(box.skybox, "pushButton-"+skyboxName);
                 button.onPointerDownObservable.add(() => {
-                  this.world.skyBox.material.reflectionTexture = box.material.reflectionTexture;
+                  this.world.skyBox.setTexture(box.getTexture());
+                  // TODO send event
                 });
                 this.boxes.push(box);
                 this.panel.addControl(button);

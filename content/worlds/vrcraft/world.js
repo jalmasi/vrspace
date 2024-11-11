@@ -1,4 +1,4 @@
-import { World, VRSPACEUI, WorldManager, WorldEditor, Terrain, TerrainEditor, SkyboxSelector } from '../../../babylon/js/vrspace-min.js';
+import { World, VRSPACEUI, WorldManager, WorldEditor, Terrain, TerrainEditor, SkyboxSelector, Skybox } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldEditorExample extends World {
   constructor(params) {
@@ -47,15 +47,7 @@ export class WorldEditorExample extends World {
   }
   
   async createSkyBox() {
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 10000, this.scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(VRSPACEUI.contentBase+"/content/skybox/eso_milkyway/milkyway", this.scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-    return skybox;
+    return new Skybox(this.scene,VRSPACEUI.contentBase+"/content/skybox/eso_milkyway/milkyway").create();
   }
 
   async createTerrain() {

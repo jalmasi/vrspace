@@ -1,4 +1,4 @@
-import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, HumanoidAvatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud, ServerFolder } from './js/vrspace-min.js';
+import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, HumanoidAvatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud, ServerFolder, Skybox } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -54,6 +54,7 @@ export class AvatarSelection extends World {
     this.api = new VRSpaceAPI(VRSPACEUI.contentBase + "/vrspace/api");
     this.tokens = {};
   }
+  
   async createSkyBox() {
     if (this.backgroundPanorama) {
       var skybox = new BABYLON.PhotoDome("skyDome",
@@ -65,20 +66,9 @@ export class AvatarSelection extends World {
         this.scene
       );
     } else {
-      var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, this.scene);
+      var skybox = new Skybox(this.scene, this.backgroundDir(), 1);
       skybox.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-      var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
-      skyboxMaterial.backFaceCulling = false;
-      skyboxMaterial.disableLighting = true;
-      skybox.material = skyboxMaterial;
-      skybox.infiniteDistance = true;
-      skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
-      skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-      // CHECKME:
-      this.environmentTexture = new BABYLON.CubeTexture(this.backgroundDir(), this.scene);
-      this.environmentTexture.rotationY = Math.PI;
-      this.scene.environmentTexture = this.environmentTexture
-      this.scene.environmentIntensity = 1;
+      skybox.create();
     }
     return skybox;
   }
@@ -808,6 +798,7 @@ export class AvatarSelection extends World {
   enableBackground(enabled) {
     this.room.floorGroup.setEnabled(enabled);
   }
+  
   dispose() {
     super.dispose();
     this.hemisphere.dispose();
@@ -837,10 +828,6 @@ export class AvatarSelection extends World {
       //this.guiManager.dispose();
     }
     this.removeCharacterButtons();
-    if (this.environmentTexture) {
-      this.scene.environmentTexture = null;
-      this.environmentTexture.dispose();
-    }
     // CHECKME: this scene should be cleaned up, but when?
     //this.scene = null; // next call to render loop stops the current loop
   }
