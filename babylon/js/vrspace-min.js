@@ -20,6 +20,7 @@ export { VRSpaceUI, VRSPACEUI } from "./ui/vrspace-ui.js";
 export { HUD } from "./ui/hud.js";
 export { DefaultHud } from "./ui/default-hud.js";
 export { LoadProgressIndicator } from "./ui/load-progress-indicator.js";
+export { GamepadHelper } from "./ui/gamepad-helper.js";
 
 export { LogoRoom } from "./ui/world/logo-room.js";
 export { Portal } from "./ui/world/portal.js";

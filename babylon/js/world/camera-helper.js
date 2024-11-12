@@ -181,8 +181,8 @@ export class CameraHelper {
         //camera3p.inputs.attached.gamepad.gamepadAngularSensibility = 250;
         camera3p.inputs.addGamepad();
         gamepad.onleftstickchanged((stickValues) => {
-          if (this.avatarController) {
-            this.avatarController.processGamepadStick(stickValues);
+          if (this.world.avatarController) {
+            this.world.avatarController.processGamepadStick(stickValues);
           }
         });
       }

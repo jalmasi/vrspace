@@ -35,7 +35,9 @@ export class VRSpaceUI {
     this.fps = 5; // CHECKME: reasonable default fps
     /** Pointer to function, defaults to this.loadProgressIndiciatorFactory */
     this.loadProgressIndicator = (scene, camera) => this.loadProgressIndicatorFactory(scene, camera);
-    /** Head-up display */
+    /** Head-up display 
+     * @type {HUD} 
+     */
     this.hud = null;
     /** babylon GUI manager - multiple instances may cause issues with transparency */
     this.guiManager = null;
@@ -632,6 +634,9 @@ export class VRSpaceUI {
 // world scripts may be loaded from different contexts
 //export const VRSPACEUI = new VRSpaceUI();
 
+/**
+ * @type {VRSpaceUI}
+ */
 export let VRSPACEUI;
 
 if ( typeof window !== 'undefined' ) {
