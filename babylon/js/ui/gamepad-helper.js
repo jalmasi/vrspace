@@ -1,6 +1,9 @@
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { VRSPACE } from '../client/vrspace.js';
 
+/**
+ * Gamepad helper class used by HUD and VRHelper.
+ */
 export class GamepadHelper {
   /**
    * @type {GamepadHelper}
@@ -18,6 +21,11 @@ export class GamepadHelper {
     this.gamepadState = {};
     this.connectListeners = [];
     this.axisListeners = [];
+    this.triggerListeners = [];
+    this.hudLeft = [2,14];
+    this.hudRight = [1,15];
+    this.hudUp = [3,12];
+    this.hudDown = [0,13];
     this.trackGamepad();
   }
 
@@ -87,10 +95,12 @@ export class GamepadHelper {
       console.log("Gamepad disconnected ", e.gamepad.id);
       this.scene.unregisterBeforeRender(gamepadTracker);
       this.notifyListeners(this.connectListeners, false);
+      this.gamepad = null;
     });
 
     window.addEventListener("gamepadconnected", (e) => {
       console.log("Gamepad " + e.gamepad.index + " connected " + e.gamepad.id);
+      this.gamepad = e.gamepad;
       this.gamepadState = {
         index: e.gamepad.index,
         id: e.gamepad.id,
@@ -133,34 +143,37 @@ export class GamepadHelper {
       if (index == 8 || index == 6 || index == 7 || index == 4 || index == 5) {
         console.log('activate ' + index + ' scene: ' + (this.pickInfo != null));
         // select, triggers
-        if (VRSPACEUI.hud && VRSPACEUI.hud.canProcessGamepadEvent()) {
+        if (this.forwardToHud(index)) {
           // hud event takes precedence
           if (state) {
             // only process button down
             VRSPACEUI.hud.activate();
           }
-        } else if (this.pickInfo) {
-          // scene event
-          if (state) {
-            this.world.scene.simulatePointerDown(this.pickInfo);
-          } else {
-            this.world.scene.simulatePointerUp(this.pickInfo);
-          }
+        } else {
+          this.notifyListeners(this.triggerListeners,state);
         }
       } else if (state && VRSPACEUI.hud) {
-        if (index == 2 || index == 14) {
+        if (this.hudLeft.includes(index)) {
           VRSPACEUI.hud.left();
-        } else if (index == 1 || index == 15) {
+        } else if (this.hudRight.includes(index)) {
           VRSPACEUI.hud.right();
-        } else if (index == 0 || index == 13) {
+        } else if (this.hudDown.includes(index)) {
           VRSPACEUI.hud.down();
-        } else if (index == 3 || index == 12) {
+        } else if (this.hudUp.includes(index)) {
           VRSPACEUI.hud.up();
         }
       }
     } catch (error) {
       console.error("Error:", error.stack);
     }
+  }
+
+  /** Returns true if HUD can process gamepad event, i.e. a button or form is currently active.*/
+  forwardToHud(index) {
+    return VRSPACEUI.hud && 
+    VRSPACEUI.hud.activeControl && 
+    (VRSPACEUI.hud.activeControl.getClassName() == "HolographicButton"||VRSPACEUI.hud.activeControl.getClassName() == "Form") &&
+    (index == 8 || index == 9);
   }
 
   notifyListeners(listeners, event) {
@@ -183,5 +196,12 @@ export class GamepadHelper {
     VRSPACE.removeListener(this.connectListeners, callback);
   }
 
+  addTriggerListener(callback) {
+    VRSPACE.addListener(this.triggerListeners, callback);
+  }
+
+  removeTriggerListener(callback) {
+    VRSPACE.removeListener(this.triggerListeners, callback);
+  }
 
 }

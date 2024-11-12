@@ -1,4 +1,5 @@
 import { AvatarAnimation } from './avatar-animation.js';
+import { GamepadHelper } from '../ui/gamepad-helper.js';
 
 class AvatarMovement {
   constructor(avatarController, avatar, animation) {
@@ -126,7 +127,7 @@ class AvatarMovement {
   }
 
   stopMovement() {
-    console.log("Movement stopped");
+    //console.log("Movement stopped");
     this.stop();
     this.startAnimation(this.animation.idle());
     this.controller.sendAnimation(this.animation.idle().group, true);
@@ -479,6 +480,13 @@ export class AvatarController {
     if ( this.activeCamera == this.world.camera3p ) {
       return;
     }
+    // disable menu control with left up/down buttons
+    GamepadHelper.getInstance(this.world.scene).hudUp = [3];
+    GamepadHelper.getInstance(this.world.scene).hudDown = [0];
+    // also disable left/right for consistency
+    GamepadHelper.getInstance(this.world.scene).hudLeft = [2];
+    GamepadHelper.getInstance(this.world.scene).hudRight = [1];
+    
     this.deactivateCamera();
     this.showAvatar();
     // video avatar has no parentMesh CHECKME
@@ -555,7 +563,13 @@ export class AvatarController {
     if ( this.activeCamera == this.world.camera1p ) {
       return;
     }
-    this.deactivateCamera();
+    // re-enable menu control with left up/down buttons
+    GamepadHelper.getInstance(this.world.scene).hudLeft = [2,14];
+    GamepadHelper.getInstance(this.world.scene).hudRight = [1,15];
+    GamepadHelper.getInstance(this.world.scene).hudUp = [3,12];
+    GamepadHelper.getInstance(this.world.scene).hudDown = [0,13];
+
+        this.deactivateCamera();
     this.scene.onKeyboardObservable.remove(this.keyboardHandler);
     this.removeObserver(this.scene.onPointerObservable,this.clickHandler);
     //this.scene.onPointerObservable.remove(this.clickHandler);

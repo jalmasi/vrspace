@@ -174,17 +174,24 @@ export class CameraHelper {
 
     }
 
-    gamepadManager.onGamepadConnectedObservable.add((gamepad, state) => {
+    gamepadManager.onGamepadConnectedObservable.add(gamepad => {
       if (!this.gamepad) {
         this.gamepad = gamepad;
         camera3p.inputs.add(this.gamepadInput);
         //camera3p.inputs.attached.gamepad.gamepadAngularSensibility = 250;
-        camera3p.inputs.addGamepad();
+        //camera3p.inputs.addGamepad();
         gamepad.onleftstickchanged((stickValues) => {
           if (this.world.avatarController) {
             this.world.avatarController.processGamepadStick(stickValues);
           }
         });
+      }
+    });
+    
+    gamepadManager.onGamepadDisconnectedObservable.add(gamepad=>{
+      if ( this.gamepad ) {
+        this.gamepad = null;
+        camera3p.inputs.remove(this.gamepadInput);
       }
     });
 

@@ -282,12 +282,6 @@ export class HUD {
     this.setActiveControl(controls[index]);
     this.selectCurrent(index);
   }
-  /** Returns true if HUD can process gamepad event, i.e. a button or form is currently active. FIXME ugly hack used by VRHelper. */
-  canProcessGamepadEvent(index) {
-    return this.activeControl && 
-    (this.activeControl.getClassName() == "HolographicButton"||this.activeControl.getClassName() == "Form") &&
-    (index == 8 || index == 9);
-  }
   /**
    * Input delegate method, activates the current control (as if clicked on)
    */

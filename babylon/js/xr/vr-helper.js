@@ -286,10 +286,24 @@ export class VRHelper {
     //console.log("VRHelper initialized", this.vrHelper);
   }
 
+  gamepadTrigger(state) {
+    if (this.pickInfo) {
+      // scene event
+      if (state) {
+        this.world.scene.simulatePointerDown(this.pickInfo);
+      } else {
+        this.world.scene.simulatePointerUp(this.pickInfo);
+      }
+    }
+  }
+
   trackGamepad() {
     GamepadHelper.getInstance(this.world.scene).addConnectListener(connected => {
+      let triggerCallback = (state) => this.gamepadTrigger(state);
       if (connected) {
-        this.createPointer(); // FIXME
+        this.createPointer();
+        GamepadHelper.instance.addTriggerListener(triggerCallback);
+
         this.teleportTarget = new BABYLON.TransformNode("Teleport-target", this.scene);
         let teleportMesh = new BABYLON.MeshBuilder.CreatePlane("Teleport-mesh", { width: 1, height: 1 }, this.scene);
         teleportMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
@@ -302,6 +316,7 @@ export class VRHelper {
         this.teleportTarget.setEnabled(false);
       } else {
         this.clearPointer();
+        GamepadHelper.instance.removeTriggerListener(triggerCallback);
       }
     });
 
@@ -454,7 +469,7 @@ export class VRHelper {
       console.log('ERROR', error);
     }
   }
-  
+
   /**
    * Track thumbsticks on VR controllers. Thumbsticks are used for teleporatation by default,
    * so this may be useful when teleporation is disabled.
@@ -472,7 +487,7 @@ export class VRHelper {
       });
     }
   }
-  
+
   /**
    * Used internally to track squeeze buttons of VR controllers. Disables the teleporation if a button is pressed.
    * Calls squeeze listeners, passing the them the value (0-1) and side (left/right);  
@@ -492,7 +507,7 @@ export class VRHelper {
       }
     });
   }
-  
+
   /**
    * Adds given callback to the list of XR controller squeeze button consumer.
    * Consumer is passed value(0-1) and side (left/right) of the event. 
@@ -511,7 +526,7 @@ export class VRHelper {
       this.squeezeConsumers.splice(index, 1);
     }
   }
-  
+
   /**
    * Used internally to track triggers of VR controllers. Disables the teleporation if a trigger is pressed.
    * Calls trigger listeners, passing the them the value (0-1) and side (left/right);  
@@ -525,7 +540,7 @@ export class VRHelper {
     }
     this.triggerListeners.forEach(callback => { callback(component.value, side) });
   }
-  
+
   /**
    * Adds given callback to the list of XR controller trigger listeners
    * CHECKME: include gamepad trigger?
@@ -533,12 +548,12 @@ export class VRHelper {
   addTriggerListener(callback) {
     this.triggerListeners.push(callback);
   }
-  
+
   /** Remove trigger listener */
   removeTriggerListener(callback) {
     this.triggerListeners.splice(this.triggerListeners.indexOf(callback), 1);
   }
-  
+
   /**
    * Called after teleoportation to update non-VR world camera and dynamic terrain if needed
    */
@@ -666,6 +681,7 @@ export class VRHelper {
       this.world.trackXrDevices();
     }
   }
+
   /**
    * Start XR device tracking: prepare pointer ray and mesh, and register tracking function (trackXrDevices) to scene render loop.
    */
@@ -678,6 +694,7 @@ export class VRHelper {
       console.log("already tracking");
     }
   }
+
   /**
    * Stop XR device tracking: clean up
    */
