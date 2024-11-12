@@ -361,7 +361,10 @@ export class VRHelper {
    */
   changeRotation(angle) {
     if (this.camera()) {
-      this.camera().rotationQuaternion.multiplyInPlace(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, angle));
+      BABYLON.Quaternion.FromEulerAngles(0, angle, 0).multiplyToRef(
+        this.camera().rotationQuaternion,
+        this.camera().rotationQuaternion
+      );
     }
   }
 
