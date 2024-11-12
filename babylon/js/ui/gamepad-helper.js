@@ -2,7 +2,13 @@ import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { VRSPACE } from '../client/vrspace.js';
 
 /**
- * Gamepad helper class used by HUD and VRHelper.
+ * Gamepad helper class used by HUD and VRHelper, NOT used by 3rd person camera.
+ * Implementes UI control with gamepad: selecting and activating HUD buttons in and out of XR,
+ * and XR teleportation and interaction with scene. As gamepad is not standard XR controller, 
+ * and mobiles don't come with XR controller, this is the only option to interact with scene in mobile VR.
+ * Traverse through hud menus with gamepad buttons, left/right/up/down, either left or right hand.
+ * Activate current option with either trigger or up.
+ * To teleport and rotate in (mobile) XR, use thumbstick, and to interact, use trigger.
  */
 export class GamepadHelper {
   /**
@@ -30,7 +36,8 @@ export class GamepadHelper {
   }
 
   /**
-   * Main point of gamepad support. Once the browser emits gamepadconnected event,
+   * Main point of gamepad support, called from the constructor. 
+   * Once the browser emits gamepadconnected event,
    * installs tracker function into main rendering loop, to track states that
    * rotate the camera, teleport, and fire gamepad button events.
    */
