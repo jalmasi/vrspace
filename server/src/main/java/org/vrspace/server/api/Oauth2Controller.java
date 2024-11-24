@@ -2,7 +2,6 @@ package org.vrspace.server.api;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -153,8 +152,8 @@ public class Oauth2Controller extends ApiBase {
       MessageDigest digest = MessageDigest.getInstance("SHA3-256");
       final byte[] hashbytes = digest.digest(realName.getBytes(StandardCharsets.UTF_8));
       hashedName = Hex.encodeToString(hashbytes);
-    } catch (NoSuchAlgorithmException e) {
-      log.error("Can't has user name", e);
+    } catch (Exception e) {
+      log.error("Can't hash user name " + realName, e);
     }
     return authority + ":" + hashedName;
   }
