@@ -175,7 +175,7 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
    * the session is destroyed.
    */
   @Bean
-  ServletListenerRegistrationBean<HttpSessionListener> sessionListener() {
+  ServletListenerRegistrationBean<HttpSessionListener> httpSessionListener() {
     // https://stackoverflow.com/questions/32739957/httpsessionlistener-doesnt-work
     log.info("Servlet context initialized, installing web garbage collector");
     return new ServletListenerRegistrationBean<HttpSessionListener>(this);
