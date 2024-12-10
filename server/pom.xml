@@ -205,7 +205,14 @@
       <artifactId>httpclient5</artifactId>
       <version>5.2.1</version>
     </dependency>
-        
+
+    <!-- elastic search session listener(s)-->        
+    <dependency>
+      <groupId>co.elastic.clients</groupId>
+      <artifactId>elasticsearch-java</artifactId>
+      <version>8.16.1</version>
+    </dependency>
+    
   </dependencies>
 
   <distributionManagement>
