@@ -70,8 +70,8 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
     if (client == null) {
       throw new IllegalStateException("Uknown client for session " + session.getId());
     }
+    String payload = message.getPayload();
     try {
-      String payload = message.getPayload();
       ClientRequest req = mapper.readValue(payload, ClientRequest.class);
       req.setPayload(payload);
       log.debug("Request: " + req);
@@ -83,14 +83,14 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
           + message.getPayload(), e);
       client.sendMessage(error(e));
       close(session);
-      sessionListener.failure(client, message, e);
+      sessionListener.failure(client, payload, e);
     } catch (Exception e) {
-      log.error("Error processing message from client " + client.getId() + ":" + message.getPayload(), e);
+      log.error("Error processing message from client " + client.getId() + ":" + payload, e);
       client.sendMessage(error(e));
-      sessionListener.failure(client, message, e);
+      sessionListener.failure(client, payload, e);
     } catch (Throwable t) {
       log.error("FATAL error", t);
-      sessionListener.failure(client, message, t);
+      sessionListener.failure(client, payload, t);
     }
   }
 

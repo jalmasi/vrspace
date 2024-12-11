@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.TextMessage;
 import org.vrspace.server.core.CustomTypeIdResolver;
 import org.vrspace.server.core.SessionListener;
 import org.vrspace.server.dto.ClientRequest;
@@ -77,7 +76,8 @@ public class ElasticSearchSessionListener implements SessionListener {
   }
 
   @Override
-  public void failure(Client client, TextMessage message, Throwable error) {
+  public void failure(Client client, String message, Throwable error) {
+    send(new ESLogEntry(client, message, error));
   }
 
   @Override
