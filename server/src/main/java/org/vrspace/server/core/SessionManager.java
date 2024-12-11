@@ -83,14 +83,14 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
           + message.getPayload(), e);
       client.sendMessage(error(e));
       close(session);
-      sessionListener.failure(session, message, e);
+      sessionListener.failure(client, message, e);
     } catch (Exception e) {
       log.error("Error processing message from client " + client.getId() + ":" + message.getPayload(), e);
       client.sendMessage(error(e));
-      sessionListener.failure(session, message, e);
+      sessionListener.failure(client, message, e);
     } catch (Throwable t) {
       log.error("FATAL error", t);
-      sessionListener.failure(session, message, t);
+      sessionListener.failure(client, message, t);
     }
   }
 
