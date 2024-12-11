@@ -1,5 +1,6 @@
 package org.vrspace.server.connect;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -117,6 +118,7 @@ public class ElasticSearchSessionListener implements SessionListener {
   public class ESLogEntry {
     private Map<String, Object> changes;
     private LocalDateTime timestamp;
+    private long duration;
     private ID source;
     private ID client;
     private World world;
@@ -136,6 +138,7 @@ public class ElasticSearchSessionListener implements SessionListener {
     public ESLogEntry(VREvent event) {
       this.changes = event.getChanges();
       this.timestamp = event.getTimestamp();
+      this.duration = Duration.between(this.timestamp, LocalDateTime.now()).toMillis();
       if (event.getSource() != null) {
         this.source = event.getSource().getObjectId();
       }
