@@ -7,7 +7,9 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 import org.vrspace.server.config.BotConfig;
 import org.vrspace.server.config.BotConfig.BotProperties;
+import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Bot;
+import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,9 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
 
   @Autowired
   WorldManager worldManager;
+
+  @Autowired(required = false)
+  private SessionListener sessionListener;
 
   String world = "default";
 
@@ -113,6 +118,15 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
         log.error(bot + " failed to initialize, disabled", e);
         bot.setActive(false);
         continue;
+      }
+
+      // since a bot has no session, attach a listener to notify the session listener
+      if (sessionListener != null) {
+        bot.addListener(new VRObject() {
+          public void processEvent(VREvent event) {
+            sessionListener.event(event);
+          }
+        });
       }
 
       log.info("Intialized " + bot);

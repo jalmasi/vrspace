@@ -15,6 +15,7 @@ import org.vrspace.server.core.CustomTypeIdResolver;
 import org.vrspace.server.core.SessionListener;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Command;
+import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.World;
@@ -38,6 +39,10 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * ElasticSearch session listener forwards all events to an ES node,
+ * asynchronously.
+ */
 @Component
 @Slf4j
 @ConditionalOnProperty("org.vrspace.server.session-listener.es.url")
@@ -73,6 +78,11 @@ public class ElasticSearchSessionListener implements SessionListener {
   @Override
   public void success(ClientRequest request) {
     send(new ESLogEntry(request));
+  }
+
+  @Override
+  public void event(VREvent event) {
+    send(new ESLogEntry(event));
   }
 
   @Override
@@ -119,17 +129,21 @@ public class ElasticSearchSessionListener implements SessionListener {
     private String message;
 
     public ESLogEntry(ClientRequest request) {
-      this.changes = request.getChanges();
-      this.timestamp = request.getTimestamp();
-      if (request.getSource() != null) {
-        this.source = request.getSource().getObjectId();
-      }
-      if (request.getClient() != null) {
-        this.client = request.getClient().getObjectId();
-        this.world = request.getClient().getWorld();
-      }
-      this.ownership = request.getOwnership();
+      this((VREvent) request);
       this.command = request.getCommand();
+    }
+
+    public ESLogEntry(VREvent event) {
+      this.changes = event.getChanges();
+      this.timestamp = event.getTimestamp();
+      if (event.getSource() != null) {
+        this.source = event.getSource().getObjectId();
+      }
+      if (event.getClient() != null) {
+        this.client = event.getClient().getObjectId();
+        this.world = event.getClient().getWorld();
+      }
+      this.ownership = event.getOwnership();
     }
 
     public ESLogEntry(Client client, Boolean connect) {
