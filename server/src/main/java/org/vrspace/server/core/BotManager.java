@@ -28,13 +28,13 @@ import lombok.extern.slf4j.Slf4j;
 public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
   /** Configuration bean */
   @Autowired
-  BotConfig botConfig;
+  private BotConfig botConfig;
 
   @Autowired
-  WorldManager worldManager;
+  private WorldManager worldManager;
 
-  @Autowired(required = false)
-  private SessionListener sessionListener;
+  @Autowired
+  private SessionManager sessionManager; // FIXME
 
   String world = "default";
 
@@ -121,13 +121,11 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
       }
 
       // since a bot has no session, attach a listener to notify the session listener
-      if (sessionListener != null) {
-        bot.addListener(new VRObject() {
-          public void processEvent(VREvent event) {
-            sessionListener.event(event);
-          }
-        });
-      }
+      bot.addListener(new VRObject() {
+        public void processEvent(VREvent event) {
+          sessionManager.notifyListeners(event);
+        }
+      });
 
       log.info("Intialized " + bot);
     }

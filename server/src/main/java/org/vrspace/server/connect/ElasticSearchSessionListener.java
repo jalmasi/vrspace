@@ -2,8 +2,11 @@ package org.vrspace.server.connect;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.message.BasicHeader;
@@ -16,9 +19,11 @@ import org.vrspace.server.core.CustomTypeIdResolver;
 import org.vrspace.server.core.SessionListener;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Command;
+import org.vrspace.server.dto.Enter;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Ownership;
+import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 import org.vrspace.server.types.ID;
 
@@ -30,11 +35,13 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._helpers.bulk.BulkIngester;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -43,22 +50,29 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * ElasticSearch session listener forwards all events to an ES node,
  * asynchronously.
+ * 
+ * https://www.elastic.co/guide/en/elasticsearch/client/java-api-client/current/index.html
+ * 
+ * @author joe
+ *
  */
 @Component
 @Slf4j
 @ConditionalOnProperty("org.vrspace.server.session-listener.es.url")
 public class ElasticSearchSessionListener implements SessionListener {
+  /** URL of the elasticsearch server */
   @Value("${org.vrspace.server.session-listener.es.url}")
   private String url;
+  /** API key, usually generated in kibana */
   @Value("${org.vrspace.server.session-listener.es.key}")
   private String apiKey;
+  /** Index to write to */
   @Value("${org.vrspace.server.session-listener.es.index}")
   private String index;
   @Autowired
   ObjectMapper objectMapper;
 
-  private ElasticsearchAsyncClient asyncClient;
-  ElasticsearchClient esClient;
+  private BulkIngester<?> ingester;
 
   @PostConstruct
   public void setup() {
@@ -71,9 +85,42 @@ public class ElasticSearchSessionListener implements SessionListener {
     // Create the transport with a Jackson mapper
     ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper(objectMapper));
 
-    esClient = new ElasticsearchClient(transport);
+    ElasticsearchClient esClient = new ElasticsearchClient(transport);
     // Asynchronous non-blocking client
-    asyncClient = new ElasticsearchAsyncClient(transport);
+    ElasticsearchAsyncClient asyncClient = new ElasticsearchAsyncClient(transport);
+
+    ESLogEntry entry = new ESLogEntry();
+    entry.timestamp = LocalDateTime.now();
+    entry.duration = 0;
+    Client client = new Client(1L);
+    VRObject object = new VRObject(1L);
+    entry.source = new ID(object);
+    entry.client = new ID(client);
+    entry.world = new World();
+    entry.world.setName("Test world");
+    entry.world.setDefaultWorld(false);
+    entry.ownership = new Ownership(client, object);
+    Enter enter = new Enter();
+    enter.setWorld(entry.world.getName());
+    entry.command = enter;
+    entry.connect = true;
+    entry.error = new ESErrorMessage("VRSpace session connector starting up", new RuntimeException("Test exception"));
+    entry.changes = new HashMap<>();
+    entry.changes.put("url", "https://www.vrspace.org");
+
+    asyncClient.index(IndexRequest.of(i -> i.index(index).document(entry))).whenComplete((response, exception) -> {
+      if (exception != null) {
+        log.error("Indexing error: ", exception);
+      }
+    });
+
+    ingester = BulkIngester.of(b -> b.client(esClient).flushInterval(1, TimeUnit.SECONDS));
+  }
+
+  @PreDestroy
+  public void destroy() {
+    log.info("Session listener disconnecting from " + url);
+    ingester.close();
   }
 
   @Override
@@ -99,16 +146,35 @@ public class ElasticSearchSessionListener implements SessionListener {
   @Override
   public void logout(Client client) {
     send(new ESLogEntry(client, false));
+    ingester.flush();
   }
 
   private void send(ESLogEntry entry) {
     // asyncClient.index(IndexRequest.of(i -> i.index(index).withJson(new
     // StringReader(request.getPayload()))))
+    /*
     asyncClient.index(IndexRequest.of(i -> i.index(index).document(entry))).whenComplete((response, exception) -> {
       if (exception != null) {
         log.error("Indexing error: ", exception);
       }
     });
+    */
+    ingester.add(op -> op.index(i -> i.index(index).document(entry)));
+  }
+
+  @Data
+  @JsonInclude(Include.NON_EMPTY)
+  @ToString(callSuper = true)
+  public class ESErrorMessage {
+    private String message;
+    private String stackTrace;
+
+    public ESErrorMessage(String message, Throwable error) {
+      this.message = message;
+      if (error != null) {
+        this.stackTrace = ExceptionUtils.getStackTrace(error);
+      }
+    }
   }
 
   @Data
@@ -127,8 +193,7 @@ public class ElasticSearchSessionListener implements SessionListener {
     @JsonTypeIdResolver(CustomTypeIdResolver.class)
     private Command command;
     private Boolean connect;
-    private Throwable error;
-    private String message;
+    private ESErrorMessage error;
 
     public ESLogEntry(ClientRequest request) {
       this((VREvent) request);
@@ -152,14 +217,15 @@ public class ElasticSearchSessionListener implements SessionListener {
     public ESLogEntry(Client client, Boolean connect) {
       this.client = client.getObjectId();
       this.world = client.getWorld();
+      this.timestamp = LocalDateTime.now();
       this.connect = connect;
     }
 
     public ESLogEntry(Client client, String message, Throwable error) {
       this.client = client.getObjectId();
       this.world = client.getWorld();
-      this.message = message;
-      this.error = error;
+      this.timestamp = LocalDateTime.now();
+      this.error = new ESErrorMessage(message, error);
     }
   }
 }

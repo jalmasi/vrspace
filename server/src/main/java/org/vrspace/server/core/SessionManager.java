@@ -2,6 +2,7 @@ package org.vrspace.server.core;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -19,12 +20,12 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.vrspace.server.dto.ClientRequest;
+import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,22 +48,13 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
   private ScheduledExecutorService pingScheduler = Executors.newSingleThreadScheduledExecutor();
   private volatile ScheduledFuture<?> pingFuture;
 
-  private SessionListener sessionListener = new SessionListener() {
-  };
+  @Autowired
+  private List<SessionListener> sessionListeners;
 
   @Autowired
   private WorldManager worldManager;
   @Autowired
   private ObjectMapper mapper;
-  @Autowired(required = false)
-  private SessionListener configuredListener;
-
-  @PostConstruct
-  public void setup() {
-    if (configuredListener != null) {
-      sessionListener = configuredListener;
-    }
-  }
 
   @Override
   public void handleTextMessage(WebSocketSession session, TextMessage message) {
@@ -77,21 +69,25 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
       log.debug("Request: " + req);
       req.setClient(client);
       worldManager.dispatch(req);
-      sessionListener.success(req);
+      sessionListeners.forEach(l -> l.success(req));
     } catch (SessionException e) {
       log.error("Closing session due to fatal error processing message from client " + client.getId() + ":"
           + message.getPayload(), e);
       client.sendMessage(error(e));
       close(session);
-      sessionListener.failure(client, payload, e);
+      sessionListeners.forEach(l -> l.failure(client, payload, e));
     } catch (Exception e) {
       log.error("Error processing message from client " + client.getId() + ":" + payload, e);
       client.sendMessage(error(e));
-      sessionListener.failure(client, payload, e);
+      sessionListeners.forEach(l -> l.failure(client, payload, e));
     } catch (Throwable t) {
       log.error("FATAL error", t);
-      sessionListener.failure(client, payload, t);
+      sessionListeners.forEach(l -> l.failure(client, payload, t));
     }
+  }
+
+  public void notifyListeners(VREvent event) {
+    this.sessionListeners.forEach(l -> l.event(event));
   }
 
   private void close(WebSocketSession session) {
@@ -125,7 +121,7 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
       if (pingFuture == null) {
         pingFuture = pingScheduler.scheduleAtFixedRate(this, PING_PERIOD, PING_PERIOD, TimeUnit.MILLISECONDS);
       }
-      sessionListener.login(welcome.getClient());
+      sessionListeners.forEach(l -> l.login(welcome.getClient()));
     } catch (SecurityException se) {
       try {
         // this may be too verbose
@@ -166,7 +162,7 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
           + session.getRemoteAddress() + " user " + session.getPrincipal() + " reason " + status
           + " remaining sessions " + sessions.size());
       worldManager.logout(client);
-      sessionListener.logout(client);
+      sessionListeners.forEach(l -> l.logout(client));
     }
   }
 

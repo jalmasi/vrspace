@@ -6,27 +6,27 @@ import org.vrspace.server.obj.Client;
 
 /**
  * A session listener gets all events from all sessions, and can forward or
- * store them for e.g. analytics, observability etc. There can be only one
- * session listener, for performance reasons.
+ * store them for e.g. analytics, observability etc. Multiple session listeners
+ * can be configured, and SessionManager will happily forward each event to each
+ * of them, so they have to be very performant, or they could bring the server
+ * to crawl.
+ * 
+ * @author joe
+ *
  */
 public interface SessionListener {
   /** Successfully processed client request */
-  public default void success(ClientRequest request) {
-  }
+  public void success(ClientRequest request);
 
   /** Event generated on the server (e.g. by a bot) */
-  public default void event(VREvent event) {
-  }
+  public void event(VREvent event);
 
   /** Failed client request */
-  public default void failure(Client client, String message, Throwable error) {
-  }
+  public void failure(Client client, String message, Throwable error);
 
   /** A client has logged in */
-  public default void login(Client client) {
-  }
+  public void login(Client client);
 
   /** A client has logged out */
-  public default void logout(Client client) {
-  }
+  public void logout(Client client);
 }
