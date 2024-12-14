@@ -210,6 +210,8 @@ public class ElasticSearchSessionListener implements SessionListener {
       if (event.getClient() != null) {
         this.client = event.getClient().getObjectId();
         this.world = event.getClient().getWorld();
+      } else if (event.getSource() != null && event.getSource() instanceof Client) {
+        this.world = ((Client) event.getSource()).getWorld();
       }
       this.ownership = event.getOwnership();
     }

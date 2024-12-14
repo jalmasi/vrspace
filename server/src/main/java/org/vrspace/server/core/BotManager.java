@@ -88,8 +88,9 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
       log.debug(botName + " parameter map: " + props.getParameterMap());
       bot.setParameterMap(props.getParameterMap());
 
+      World world = null;
       if (props.getWorld() != null) {
-        World world = worldManager.getOrCreateWorld(props.getWorld());
+        world = worldManager.getOrCreateWorld(props.getWorld());
         bot.setWorldId(world.getId());
       }
 
@@ -119,6 +120,8 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
         bot.setActive(false);
         continue;
       }
+
+      bot.setWorld(world);
 
       // since a bot has no session, attach a listener to notify the session listener
       bot.addListener(new VRObject() {
