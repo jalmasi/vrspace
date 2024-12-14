@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 /**
  * A Bot is a Client that has no session. It does have own scene, and observes
@@ -49,14 +50,13 @@ public abstract class Bot extends User {
    */
   public abstract void selfTest() throws Exception;
 
-  public abstract String getResponse(Client c, String query);
+  public abstract Mono<String> getResponseAsync(Client c, String query);
 
   /**
    * Get response to something that a client "said", and write it
    */
   public void respondTo(Client c, String what) {
-    String response = getResponse(c, what);
-    write(response);
+    getResponseAsync(c, what).subscribe(response -> write(response));
   }
 
   /**

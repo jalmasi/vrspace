@@ -1,6 +1,7 @@
 package org.vrspace.server.core;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import org.vrspace.server.obj.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,13 +50,20 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
   private ScheduledExecutorService pingScheduler = Executors.newSingleThreadScheduledExecutor();
   private volatile ScheduledFuture<?> pingFuture;
 
-  @Autowired
+  @Autowired(required = false)
   private List<SessionListener> sessionListeners;
 
   @Autowired
   private WorldManager worldManager;
   @Autowired
   private ObjectMapper mapper;
+
+  @PostConstruct
+  public void setup() {
+    if (sessionListeners == null) {
+      sessionListeners = new ArrayList<>(0);
+    }
+  }
 
   @Override
   public void handleTextMessage(WebSocketSession session, TextMessage message) {

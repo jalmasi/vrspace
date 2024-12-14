@@ -1,22 +1,20 @@
 package org.vrspace.server.obj;
 
-import java.net.URI;
-import java.util.List;
-
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 /**
  * BotLibre integration point. Forwards user query to configured url, sets
@@ -32,9 +30,12 @@ import lombok.extern.slf4j.Slf4j;
 @Node
 public class BotLibre extends Bot {
 
+  // @JsonIgnore
+  // @Transient
+  // private RestTemplate restTemplate = new RestTemplate();
   @JsonIgnore
   @Transient
-  private RestTemplate restTemplate = new RestTemplate();
+  private WebClient webClient = WebClient.create();
 
   @Data
   @NoArgsConstructor
@@ -84,59 +85,35 @@ public class BotLibre extends Bot {
 
   @Override
   public void selfTest() throws Exception {
-    ResponseEntity<String> result = sendQuery(new Client(), "hello world");
-    if (result.getStatusCodeValue() == 200) {
-      String response = result.getBody();
-      log.debug(this + " initial response: " + response);
-    } else {
-      throw new IllegalStateException("Invalid response code: " + result.getStatusCodeValue());
-    }
-    List<String> contentType = result.getHeaders().get("Content-Type");
-    if (contentType.size() == 0) {
-      throw new IllegalStateException("Invalid response - no content type");
-    }
-    if (contentType.size() == 1) {
-      String cType = contentType.get(0);
-      log.debug("Response content type: " + cType);
-      if (!"application/json".equals(cType)) {
-        throw new IllegalStateException("Invalid response content type: " + contentType);
-      }
-    } else {
-      throw new IllegalStateException("Invalid response content type - size " + contentType.size() + " " + contentType);
-    }
-    log.debug(getResponse(new Client(), "hello again"));
-
+    log.debug(getResponseAsync(new Client(), "hello again").onErrorResume(e -> Mono.error(e)).block());
   }
 
   @Override
-  public String getResponse(Client client, String message) {
-    String ret = "";
-    try {
-      ResponseEntity<String> result = sendQuery(client, message);
-      Response response = getMapper().readValue(result.getBody(), Response.class);
-      ret = response.getMessage();
-      String conversationId = response.getConversation();
-      client.setToken(serviceId(), conversationId);
-    } catch (Exception e) {
-      log.error("Can't get response to: " + message, e);
-    }
-    return ret;
-  }
-
-  private ResponseEntity<String> sendQuery(Client client, String message) throws Exception {
+  public Mono<String> getResponseAsync(Client client, String message) {
     Query q = new Query();
     q.setApplication(getParameter("application"));
     q.setInstance(getParameter("instance"));
     q.setConversation(client.getToken(serviceId()));
     q.setMessage(message);
-
     log.debug(this + " request: " + q);
-    URI uri = new URI(getUrl());
-    String body = getMapper().writeValueAsString(q);
-    RequestEntity<String> requestEntity = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(body);
-    ResponseEntity<String> result = restTemplate.exchange(requestEntity, String.class);
-    log.debug(this + " response: " + result.getBody());
-    return result;
+    try {
+      return webClient.post().uri(getUrl()).contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(getMapper().writeValueAsString(q)).exchangeToMono(clientResponse -> {
+            if (clientResponse.statusCode().equals(HttpStatus.OK)) {
+              return clientResponse.bodyToMono(Response.class).map(response -> {
+                String ret = response.getMessage();
+                String conversationId = response.getConversation();
+                client.setToken(serviceId(), conversationId);
+                return ret;
+              });
+            } else {
+              return clientResponse.createException().flatMap(Mono::error);
+            }
+          });
+    } catch (JsonProcessingException e) {
+      log.error("Can't get response to: " + message, e);
+      return Mono.error(e);
+    }
   }
 
   private String serviceId() {
