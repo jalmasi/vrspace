@@ -2,6 +2,7 @@ package org.vrspace.server.connect;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +91,7 @@ public class ElasticSearchSessionListener implements SessionListener {
     ElasticsearchAsyncClient asyncClient = new ElasticsearchAsyncClient(transport);
 
     ESLogEntry entry = new ESLogEntry();
-    entry.timestamp = LocalDateTime.now();
+    entry.timestamp = LocalDateTime.now(ZoneId.of("UTC"));
     entry.duration = 0;
     Client client = new Client(1L);
     VRObject object = new VRObject(1L);
@@ -203,7 +204,7 @@ public class ElasticSearchSessionListener implements SessionListener {
     public ESLogEntry(VREvent event) {
       this.changes = event.getChanges();
       this.timestamp = event.getTimestamp();
-      this.duration = Duration.between(this.timestamp, LocalDateTime.now()).toMillis();
+      this.duration = Duration.between(this.timestamp, LocalDateTime.now(ZoneId.of("UTC"))).toMillis();
       if (event.getSource() != null) {
         this.source = event.getSource().getObjectId();
       }
@@ -219,14 +220,14 @@ public class ElasticSearchSessionListener implements SessionListener {
     public ESLogEntry(Client client, Boolean connect) {
       this.client = client.getObjectId();
       this.world = client.getWorld();
-      this.timestamp = LocalDateTime.now();
+      this.timestamp = LocalDateTime.now(ZoneId.of("UTC"));
       this.connect = connect;
     }
 
     public ESLogEntry(Client client, String message, Throwable error) {
       this.client = client.getObjectId();
       this.world = client.getWorld();
-      this.timestamp = LocalDateTime.now();
+      this.timestamp = LocalDateTime.now(ZoneId.of("UTC"));
       this.error = new ESErrorMessage(message, error);
     }
   }
