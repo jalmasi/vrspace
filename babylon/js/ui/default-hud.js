@@ -16,6 +16,7 @@ import { HideAndSeek } from '../games/hide-and-seek.js';
 import { GameTag } from '../games/game-tag.js';
 import { SoundMixer } from './widget/sound-mixer.js';
 import { CameraHelper } from '../world/camera-helper.js';
+import { ImageArea } from './widget/image-area.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -43,9 +44,9 @@ export class DefaultHud {
     this.whiteboard = null;
     this.creditArea = null;
   }
-  
+
   init() {
-    if ( this.settingsButton && this.displayButtons ) {
+    if (this.settingsButton && this.displayButtons) {
       this.clearRow();
       this.displayButtons = false;
     } else if (!this.settingsButton) {
@@ -54,28 +55,29 @@ export class DefaultHud {
       this.gamesButton = this.hud.addButton("Games", this.contentBase + "/content/icons/gamepad.png", () => this.games(), false);
       this.emojiButton = this.hud.addButton("Emoji", this.contentBase + "/content/icons/emoji.png", () => this.emojis());
       this.shareButton = this.hud.addButton("Share", this.contentBase + "/content/icons/share.png", () => this.share());
+      this.helpButton = this.hud.addButton("Help", this.contentBase + "/content/icons/help.png", () => this.help());
       this.hud.enableSpeech(true);
     }
-    if ( this.isOnline() ) {
+    if (this.isOnline()) {
       this.hud.markEnabled(this.gamesButton);
     } else {
       this.hud.markDisabled(this.gamesButton);
     }
   }
-  
+
   streamingAvailable() {
     // TODO check server capabilities
     // screen sharing unavailable on mobiles
-    return this.isOnline() && ! VRSPACEUI.hasTouchScreen();
+    return this.isOnline() && !VRSPACEUI.hasTouchScreen();
   }
-  
+
   isOnline() {
     return WorldManager.instance && WorldManager.instance.isOnline();
   }
-  
+
   settings() {
     this.displayButtons = !this.displayButtons;
-    if ( this.displayButtons ) {
+    if (this.displayButtons) {
       this.hud.showButtons(false, this.settingsButton);
       this.hud.newRow();
 
@@ -83,7 +85,7 @@ export class DefaultHud {
       this.showCameraControls();
       // CHECKME: flying through everything, should not be enabled by default
       this.showXRMovementControls();
-      
+
       /*
       // this is supposed to either change profile, or allow user to activate some avatar animation
       this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.changeAvatar());
@@ -114,7 +116,7 @@ export class DefaultHud {
 
   tools() {
     this.displayButtons = !this.displayButtons;
-    if ( this.displayButtons ) {
+    if (this.displayButtons) {
       this.hud.showButtons(false, this.toolsButton);
       this.hud.newRow();
 
@@ -123,9 +125,6 @@ export class DefaultHud {
 
       this.authorsButton = this.hud.addButton("Credits", this.contentBase + "/content/icons/copyleft.png", () => this.credits(), false);
       this.authorsButton.tooltipText = "Authors";
-
-      this.helpButton = this.hud.addButton("Help", this.contentBase + "/content/icons/help.png", () => this.help());
-      this.helpButton.tooltipText = "TODO";
 
       this.hud.enableSpeech(true);
 
@@ -136,19 +135,19 @@ export class DefaultHud {
 
   clearRow() {
     this.hud.clearRow();
-    if ( this.orientationButton ) {
+    if (this.orientationButton) {
       this.orientationButton.dispose();
       this.orientationButton = null;
     }
-    if ( this.cameraButton ) {
+    if (this.cameraButton) {
       this.cameraButton.dispose();
       this.cameraButton = null;
     }
-    if ( this.movementButton ) {
+    if (this.movementButton) {
       this.movementButton.dispose();
       this.movementButton = null;
     }
-    if ( this.screencastButton ) {
+    if (this.screencastButton) {
       this.screencastButton.dispose();
       this.whiteboardButton.dispose();
       this.fileButton.dispose();
@@ -156,32 +155,32 @@ export class DefaultHud {
       this.whiteboardButton = null;
       this.fileButton = null;
     }
-    if ( this.creditArea ) {
+    if (this.creditArea) {
       this.creditArea.dispose();
       this.creditArea = null;
     }
-    this.buttons.forEach(b=>b.dispose());
+    this.buttons.forEach(b => b.dispose());
     this.buttons = [];
-    this.hud.showButtons(true);    
+    this.hud.showButtons(true);
   }
-  
+
   emojis() {
     this.displayButtons = !this.displayButtons;
-    if ( this.displayButtons ) {
+    if (this.displayButtons) {
       this.hud.showButtons(false, this.emojiButton);
       this.hud.newRow();
       // FIXME: synchronize this
       VRSPACEUI.listDirectory(this.contentBase + "/content/emoji", emojis => {
         console.log(emojis);
-        emojis.forEach( url=>{
-          let sf=new ServerFile(url);
+        emojis.forEach(url => {
+          let sf = new ServerFile(url);
           // do not use full url here, use only path and file
           let button = this.hud.addButton(sf.baseName, sf.getPath(), () => this.playEmoji(sf.getPath()), false);
           button.backMaterial.alpha = 1;
           button.plateMaterial.disableLighting = true;
-          button.plateMaterial.emissiveColor = new BABYLON.Color3(0.3,0.3,0.3);
-          button.onPointerUpObservable.add( () => this.stopEmoji() );   
-          this.buttons.push(button);   
+          button.plateMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+          button.onPointerUpObservable.add(() => this.stopEmoji());
+          this.buttons.push(button);
         });
       });
     } else {
@@ -190,130 +189,130 @@ export class DefaultHud {
   }
 
   playEmoji(url) {
-    console.log("Playing emoji "+url);
-    
+    console.log("Playing emoji " + url);
+
     this.stopEmoji();
     if (this.isOnline()) {
       // online, bind to camera in 1st person and to avatar in 3rd person view
-      if ( WorldManager.instance.world.camera3p && this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
+      if (WorldManager.instance.world.camera3p && this.scene.activeCamera == WorldManager.instance.world.camera3p) {
         this.emojiParticleSystem.init(url, WorldManager.instance.world.avatarController.avatar).start();
       } else {
         this.emojiParticleSystem.init(url).start();
       }
       // start remote emoji here
-      WorldManager.instance.publishChanges( [{field:'emoji',value:url}] );
+      WorldManager.instance.publishChanges([{ field: 'emoji', value: url }]);
     } else if (this.avatar) {
       // offline, avatar chosen
       this.emojiParticleSystem.init(url, this.avatar, -5).start();
-    } else if ( this.videoAvatar) {
+    } else if (this.videoAvatar) {
       this.emojiParticleSystem.init(url, this.videoAvatar, -5).start();
     } else {
       // offline, no avatar yet
       this.emojiParticleSystem.init(url).start();
     }
   }
-  
+
   stopEmoji() {
     console.log("Stopping emoji");
     this.emojiParticleSystem.stop();
     // stop remote emoji here
     if (this.isOnline()) {
-      WorldManager.instance.publishChanges( [{field:'emoji',value:null}] );
+      WorldManager.instance.publishChanges([{ field: 'emoji', value: null }]);
     }
   }
-  
+
   setAvatar(avatar) {
-    if ( this.avatarButton ) {
+    if (this.avatarButton) {
       this.avatarButton.isVisible = (avatar != null);
       // we can't stream to avatar anyway, not yet
       this.toggleWebcam(false);
     }
     this.avatar = avatar;
   }
-  
+
   changeAvatar() {
     // TODO
   }
-  
-  setAuthenticated(arg=false) {
+
+  setAuthenticated(arg = false) {
     this.isAuthenticated = arg;
-    if ( !this.displayButtons  && this.isAuthenticated && ! this.worldButton) {
+    if (!this.displayButtons && this.isAuthenticated && !this.worldButton) {
       // add this button only once, to the first row along with settings button
-      this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => {this.showWorldTemplates()});
+      this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => { this.showWorldTemplates() });
     }
   }
-  
+
   showMobileControls() {
-    if ( VRSPACEUI.hasTouchScreen() ) {
-      if ( ! this.orientationButton ) {
-        this.orientationButton = this.hud.addButton("Rotation", VRSPACEUI.contentBase+"/content/icons/rotate-hand.png", () => this.toggleOrientation());        
+    if (VRSPACEUI.hasTouchScreen()) {
+      if (!this.orientationButton) {
+        this.orientationButton = this.hud.addButton("Rotation", VRSPACEUI.contentBase + "/content/icons/rotate-hand.png", () => this.toggleOrientation());
       }
-      if ( CameraHelper.lastInstance.mobileOrientationEnabled ) {
-        this.orientationButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/rotate-hand.png";
+      if (CameraHelper.lastInstance.mobileOrientationEnabled) {
+        this.orientationButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/rotate-hand.png";
         this.orientationButton.tooltipText = "3rd Person";
       } else {
-        this.orientationButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/rotate-screen.png";
+        this.orientationButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/rotate-screen.png";
         this.orientationButton.tooltipText = "1st Person";
       }
     }
   }
-  
+
   toggleOrientation() {
     CameraHelper.lastInstance.enableMobileOrientation(!CameraHelper.lastInstance.mobileOrientationEnabled);
     CameraHelper.mobileOrientationEnabled = CameraHelper.lastInstance.mobileOrientationEnabled;
     this.showMobileControls();
   }
-  
+
   showCameraControls() {
-    if ( WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p ) {
-      if ( ! this.cameraButton ) {
-        this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png", () => this.toggleCamera());        
+    if (WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p) {
+      if (!this.cameraButton) {
+        this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase + "/content/icons/camera-1st-person.png", () => this.toggleCamera());
       }
-      if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
-        this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-3rd-person.png";
+      if (this.scene.activeCamera == WorldManager.instance.world.camera1p) {
+        this.cameraButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/camera-3rd-person.png";
         this.cameraButton.tooltipText = "3rd Person";
-      } else if ( this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
-        this.cameraButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/camera-1st-person.png";
+      } else if (this.scene.activeCamera == WorldManager.instance.world.camera3p) {
+        this.cameraButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/camera-1st-person.png";
         this.cameraButton.tooltipText = "1st Person";
       }
     }
   }
-  
+
   toggleCamera() {
-    if ( WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p ) {
-      if ( this.scene.activeCamera == WorldManager.instance.world.camera1p ) {
+    if (WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p) {
+      if (this.scene.activeCamera == WorldManager.instance.world.camera1p) {
         WorldManager.instance.world.thirdPerson();
-      } else if ( this.scene.activeCamera == WorldManager.instance.world.camera3p ) {
+      } else if (this.scene.activeCamera == WorldManager.instance.world.camera3p) {
         WorldManager.instance.world.firstPerson();
       }
       this.showCameraControls();
     }
   }
-  
+
   showXRMovementControls() {
-    if ( this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
-      if ( ! this.movementButton ) {
-        this.movementButton = this.hud.addButton("Movement", VRSPACEUI.contentBase+"/content/icons/man-run.png.png", () => this.toggleXRMovement());
+    if (this.scene.activeCamera.getClassName() == 'WebXRCamera') {
+      if (!this.movementButton) {
+        this.movementButton = this.hud.addButton("Movement", VRSPACEUI.contentBase + "/content/icons/man-run.png.png", () => this.toggleXRMovement());
       }
-      if ( this.xrTeleport ) {
+      if (this.xrTeleport) {
         VRHelper.getInstance().enableTeleportation();
-        this.movementButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/man-run.png";
+        this.movementButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/man-run.png";
         this.movementButton.tooltipText = "Slide";
       } else {
         VRHelper.getInstance().enableSliding();
-        this.movementButton.imageUrl = VRSPACEUI.contentBase+"/content/icons/man-jump.png";
+        this.movementButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/man-jump.png";
         this.movementButton.tooltipText = "Teleport";
-      }    
+      }
     }
   }
-  
+
   toggleXRMovement() {
     this.xrTeleport = !this.xrTeleport;
     this.showXRMovementControls();
   }
-  
+
   displayMic() {
-    if ( MediaStreams.instance ) {
+    if (MediaStreams.instance) {
       this.state.mic = MediaStreams.instance.publishingAudio;
       if (this.state.mic) {
         this.micButton.imageUrl = this.contentBase + "/content/icons/microphone.png";
@@ -323,48 +322,48 @@ export class DefaultHud {
     } else {
       this.state.mic = false;
       this.hud.markDisabled(this.micButton);
-    }    
+    }
   }
 
-  toggleMic(enabled=!this.state.mic) {
-    if ( MediaStreams.instance ) {
+  toggleMic(enabled = !this.state.mic) {
+    if (MediaStreams.instance) {
       MediaStreams.instance.publishAudio(enabled);
       this.displayMic();
     }
   }
 
-  toggleWebcam(enable=!this.state.webcam, videoAvatar) {
-    console.log("Webcam: "+enable);
-    if ( videoAvatar ) {
+  toggleWebcam(enable = !this.state.webcam, videoAvatar) {
+    console.log("Webcam: " + enable);
+    if (videoAvatar) {
       this.videoAvatar = videoAvatar;
       this.hud.markEnabled(this.webcamButton);
     }
     this.state.webcam = enable;
-    if ( this.webcamButton ) {
+    if (this.webcamButton) {
       // webcamButton may be created/destroyed any time
-      if ( !this.videoAvatar ) {
+      if (!this.videoAvatar) {
         this.hud.markDisabled(this.webcamButton);
         return;
       }
       if (this.state.webcam) {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
-        if ( this.videoAvatar ) {
+        if (this.videoAvatar) {
           this.videoAvatar.displayVideo();
         }
       } else {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
-        if ( this.videoAvatar ) {
+        if (this.videoAvatar) {
           this.videoAvatar.displayAlt();
         }
       }
-      if ( MediaStreams.instance ) {
+      if (MediaStreams.instance) {
         MediaStreams.instance.publishVideo(enable);
       }
     }
   }
 
-  speech(enable=!this.state.speech) {
-    if ( SpeechInput.available() ) {
+  speech(enable = !this.state.speech) {
+    if (SpeechInput.available()) {
       this.state.speech = enable;
       SpeechInput.enabled = enable;
       this.hud.enableSpeech(enable);
@@ -380,69 +379,99 @@ export class DefaultHud {
 
   credits() {
     let assets = VRSPACEUI.assetLoader.assetInfos();
-    if ( this.creditArea ) {
+    if (this.creditArea) {
       this.hud.markEnabled(this.authorsButton, true);
       this.creditArea.dispose();
       this.creditArea = null;
       return;
     }
-    if ( Object.keys(assets).length > 0 ) {
+    if (Object.keys(assets).length > 0) {
       this.hud.markActive(this.authorsButton, true);
       this.creditArea = new TextArea(this.scene, "TouchTextArea");
-      let rows = Math.floor(Object.keys(assets).length / 4)+ 1;
+      let rows = Math.floor(Object.keys(assets).length / 4) + 1;
       this.creditArea.width = 1024;
-      this.creditArea.height = 512*rows;
+      this.creditArea.height = 512 * rows;
       this.creditArea.text = "Credits:";
       this.creditArea.attachToHud();
       this.creditArea.size = .5;
       this.creditArea.position = new BABYLON.Vector3(0, .2, .5);
       this.creditArea.show();
-      for ( let url in assets ) {
+      for (let url in assets) {
         this.creditArea.writeln();
         this.creditArea.writeln(url);
         let info = assets[url];
-        if ( info ) {
-          for ( let data in info ) {
-            this.creditArea.println(data+": "+info[data]);
+        if (info) {
+          for (let data in info) {
+            this.creditArea.println(data + ": " + info[data]);
           }
         } else {
           this.creditArea.writeln('No author information available');
         }
-      }    
+      }
     }
   }
-  
+
   help() {
-    // TODO
+    this.displayButtons = !this.displayButtons;
+    if (this.displayButtons) {
+      this.hud.showButtons(false, this.helpButton);
+      this.hud.newRow();
+      this.helpPCButton = this.hud.addButton("PC", this.contentBase + "/content/icons/device-pc.png", () => this.helpImage("help-pc.jpg"));
+      this.helpMobileButton = this.hud.addButton("Mobile", this.contentBase + "/content/icons/device-mobile.png", () => this.helpImage("help-mobile.jpg"));
+      this.helpGamepadButton = this.hud.addButton("Gamepad", this.contentBase + "/content/icons/gamepad.png", () => this.helpImage("help-gamepad.jpg"));
+      this.helpGamepadButton = this.hud.addButton("VR", this.contentBase + "/content/icons/device-goggles.png", () => this.helpImage("help-vr.jpg"));
+    } else {
+      if ( this.helpImageArea ) {
+        this.helpImageArea.dispose();
+        this.helpImageArea = null;
+      }
+      this.clearRow();
+      this.helpPCButton.dispose();
+      this.helpMobileButton.dispose();
+      //this.helpPCButton = null;
+    }
+  }
+
+  helpImage(file) {
+    if ( this.helpImageArea ) {
+      this.helpImageArea.dispose();
+    }
+    this.helpImageArea = new ImageArea(this.scene, "help image");
+    this.helpImageArea.width = 1024;
+    this.helpImageArea.height = 512;
+    this.helpImageArea.position = new BABYLON.Vector3(0,0.2,0.1);
+    this.helpImageArea.show();
+    this.helpImageArea.attachToHud();
+    this.helpImageArea.loadUrl(this.contentBase+"/content/images/"+file);
   }
   
   showWorldTemplates() {
     this.displayButtons = !this.displayButtons;
-    if ( this.displayButtons ) {
+    if (this.displayButtons) {
       this.hud.showButtons(false, this.worldButton);
       this.hud.newRow();
-      
+
       for (let name in this.portals) {
         let p = this.portals[name];
-        let button = this.hud.addButton(p.name, p.imageUrl, () => {this.createWorld(p)});
+        let button = this.hud.addButton(p.name, p.imageUrl, () => { this.createWorld(p) });
         this.buttons.push(button);
       }
     } else {
       this.clearRow();
     }
   }
-  
+
   async createWorld(portal) {
-    console.log("TODO: creating new world from "+portal.name);
-    const userName = this.avatar.name?this.avatar.name:this.videoAvatar.name;
-    const worldName = userName+"'s world";
+    console.log("TODO: creating new world from " + portal.name);
+    const userName = this.avatar.name ? this.avatar.name : this.videoAvatar.name;
+    const worldName = userName + "'s world";
     const token = await VRSpaceAPI.getInstance().createWorldFromTemplate(worldName, portal.name);
-    window.location.href = window.location.href+"?worldName="+worldName+"&worldToken="+token+"&worldThumbnail="+portal.name;
+    window.location.href = window.location.href + "?worldName=" + worldName + "&worldToken=" + token + "&worldThumbnail=" + portal.name;
   }
 
   share() {
     this.displayButtons = !this.displayButtons;
-    if ( this.displayButtons ) {
+    if (this.displayButtons) {
       this.hud.showButtons(false, this.shareButton);
       this.hud.newRow();
       this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
@@ -450,17 +479,17 @@ export class DefaultHud {
       this.imageButton = this.hud.addButton("Share image", this.contentBase + "/content/icons/sky.png", () => this.image(), false);
       this.fileButton = this.hud.addButton("Share file", this.contentBase + "/content/icons/file.png", () => this.file(), false);
       this.modelButton = this.hud.addButton("Share model", this.contentBase + "/content/icons/cube.png", () => this.model(), false);
-      if ( this.streamingAvailable() ) {
+      if (this.streamingAvailable()) {
         this.hud.markEnabled(this.screencastButton);
       } else {
         this.hud.markDisabled(this.screencastButton);
       }
-      if ( this.whiteboard ) {
+      if (this.whiteboard) {
         this.hud.markActive(this.whiteboardButton);
       } else {
         this.hud.markEnabled(this.whiteboardButton);
       }
-      if ( this.isOnline() ) {
+      if (this.isOnline()) {
         this.hud.markEnabled(this.fileButton);
         this.hud.markEnabled(this.imageButton);
         this.hud.markEnabled(this.modelButton);
@@ -469,22 +498,22 @@ export class DefaultHud {
         this.hud.markDisabled(this.imageButton);
         this.hud.markDisabled(this.modelButton);
       }
-      if ( this.isOnline() ) {
+      if (this.isOnline()) {
         WorldManager.instance.world.addListener(this);
       }
     } else {
-      if ( this.isOnline() ) {
+      if (this.isOnline()) {
         WorldManager.instance.world.removeListener(this);
       }
       this.clearRow();
     }
   }
-  
+
   shareScreen() {
-    if ( ! this.streamingAvailable() ) {
+    if (!this.streamingAvailable()) {
       return;
     }
-    if ( this.screencast ) {
+    if (this.screencast) {
       this.hud.markEnabled(this.screencastButton)
       this.screencast.dispose();
       this.screencast = null;
@@ -495,15 +524,15 @@ export class DefaultHud {
     let camera = this.scene.activeCamera;
     this.screencast = new Screencast(world);
     this.screencast.position = camera.position.add(camera.getForwardRay(1).direction);
-      // CHECKME: Web3d camera uses quaternion, some others may
-    if ( !camera.rotationQuaternion ) {
+    // CHECKME: Web3d camera uses quaternion, some others may
+    if (!camera.rotationQuaternion) {
       // assuming user is facing the audience, share is also facing the audience
-      this.screencast.rotation = new BABYLON.Vector3(0,camera.rotation.y+Math.PI,0);
+      this.screencast.rotation = new BABYLON.Vector3(0, camera.rotation.y + Math.PI, 0);
     }
     this.screencast.size = 1;
     this.screencast.callback = state => {
       // callback may be executed after screencast was disposed above 
-      if(!state && this.screencast) {
+      if (!state && this.screencast) {
         this.hud.markEnabled(this.screencastButton);
         this.screencast.dispose();
         this.screencast = null;
@@ -514,7 +543,7 @@ export class DefaultHud {
   }
 
   toggleWhiteboard() {
-    if ( this.whiteboard ) {
+    if (this.whiteboard) {
       this.hud.markEnabled(this.whiteboardButton)
       WorldManager.instance.world.removeListener(this.whiteboard);
       this.whiteboard.dispose();
@@ -522,7 +551,7 @@ export class DefaultHud {
       return;
     }
     let camera = this.scene.activeCamera;
-    this.whiteboard = new Whiteboard(this.scene, "Whiteboard-"+WorldManager.myId());
+    this.whiteboard = new Whiteboard(this.scene, "Whiteboard-" + WorldManager.myId());
     this.whiteboard.size = 1;
     this.whiteboard.position = camera.position.add(camera.getForwardRay(1).direction.scale(2));
     this.whiteboard.show();
@@ -531,43 +560,43 @@ export class DefaultHud {
       this.hud.markEnabled(this.whiteboardButton)
       this.whiteboard = null;
     }
-    if ( this.isOnline() ) {
+    if (this.isOnline()) {
       WorldManager.instance.world.addListener(this.whiteboard);
       this.whiteboard.startSharing();
     }
     World.lastInstance.addSelectionPredicate(this.whiteboard.selectionPredicate);
   }
-  
+
   image() {
     this.file(".jpg,.jpeg,.png");
   }
-  
+
   model() {
     this.file(".glb,.zip");
   }
-  
+
   file(accept) {
-    if ( ! this.isOnline() ) {
+    if (!this.isOnline()) {
       return;
     }
     let input = document.createElement("input");
     input.setAttribute('type', 'file');
-    input.setAttribute('style','display:none');
-    if ( accept ) {
+    input.setAttribute('style', 'display:none');
+    if (accept) {
       input.setAttribute('accept', accept);
     }
     document.body.appendChild(input);
-    input.addEventListener("change", ()=>this.upload(input), false);
-    input.addEventListener("cancel", ()=>this.upload(input), false);
+    input.addEventListener("change", () => this.upload(input), false);
+    input.addEventListener("cancel", () => this.upload(input), false);
     input.click();
   }
-  
+
   upload(input) {
     console.log("Files: ", input.files);
     // we load only one, but still
-    for ( let i = 0; i < input.files.length; i++) {
+    for (let i = 0; i < input.files.length; i++) {
       const file = input.files[i];
-      console.log("Uploading ",file);
+      console.log("Uploading ", file);
       let camera = this.scene.activeCamera;
       let pos = camera.position.add(camera.getForwardRay(1).direction);
 
@@ -575,14 +604,14 @@ export class DefaultHud {
     };
     document.body.removeChild(input);
   }
-  
+
   /** World LoadListener interface */
   loaded(vrObject) {
-    console.log("Loaded ",vrObject);
+    console.log("Loaded ", vrObject);
     // FIXME this is going to resize any loaded object
     // supposed to resize only one(s) loaded via file() method here
     // CHECKME what happens with world editor then?
-    if ( vrObject.container ) {
+    if (vrObject.container) {
       setTimeout(() => {
         let rootMesh = vrObject.container.meshes[0];
         var scale = 1 / WorldManager.instance.bBoxMax(rootMesh);
@@ -591,20 +620,20 @@ export class DefaultHud {
       }, 100);
     }
   }
- 
+
   /**
    * Save the current view of the world as HTML file.
-   */ 
+   */
   save() {
     Sceneshot.saveHtml();
   }
-  
+
   games() {
-    if ( ! this.isOnline() ) {
+    if (!this.isOnline()) {
       return;
     }
     this.displayButtons = !this.displayButtons;
-    if ( this.displayButtons ) {
+    if (this.displayButtons) {
       this.hud.showButtons(false, this.gamesButton);
       this.hud.newRow();
       this.playHideButton = this.hud.addButton("Hide And Seek", this.contentBase + "/content/icons/eye.png", () => this.hideAndSeek(), false);
@@ -616,10 +645,10 @@ export class DefaultHud {
   }
 
   checkAvailableGames() {
-    if ( HideAndSeek.instance ) {
+    if (HideAndSeek.instance) {
       this.hud.markActive(this.playHideButton);
       this.hud.markDisabled(this.playTagButton);
-    } else if ( GameTag.instance ) {
+    } else if (GameTag.instance) {
       this.hud.markDisabled(this.playHideButton);
       this.hud.markActive(this.playTagButton);
     } else {
@@ -627,25 +656,25 @@ export class DefaultHud {
       this.hud.markEnabled(this.playTagButton);
     }
   }
-  
+
   hideAndSeek() {
-    if ( ! GameTag.instance ) {
-      HideAndSeek.createOrJoinInstance((startStop)=>{
+    if (!GameTag.instance) {
+      HideAndSeek.createOrJoinInstance((startStop) => {
         this.checkAvailableGames();
       });
     }
   }
-  
+
   playTag() {
-    if ( ! HideAndSeek.instance ) {
-      GameTag.createOrJoinInstance((startStop)=>{
+    if (!HideAndSeek.instance) {
+      GameTag.createOrJoinInstance((startStop) => {
         this.checkAvailableGames();
       });
     }
   }
- 
+
   soundMixer() {
-    if ( SoundMixer.instance ) {
+    if (SoundMixer.instance) {
       SoundMixer.getInstance(this.scene).dispose();
       VRSPACEUI.hud.clearRow();
       VRSPACEUI.hud.showButtons(true);
