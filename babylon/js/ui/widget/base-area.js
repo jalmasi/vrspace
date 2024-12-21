@@ -55,12 +55,13 @@ export class BaseArea {
   
   /**
    * Detach from whatever attached to, i.e. drop it where you stand.
+   * @param {number} [offset=this.position.z] how far away from the camera to drop it, defaults to current z position (assuming it's attached to HUD or camera) 
    */
-  detach() {
+  detach(offset=this.position.z) {
     this.group.parent = null;
     let camera = this.scene.activeCamera;
     // just in front of camera:
-    this.group.position = camera.position.add(camera.getForwardRay(1).direction.scale(this.position.z));
+    this.group.position = camera.position.add(camera.getForwardRay(1).direction.scale(offset));
     this.attachedToCamera = false;
     this.attachedToHud = false;
     VRSPACEUI.hud.removeAttachment(this.areaPlane);

@@ -675,13 +675,17 @@ export class HUD {
    * However, mesh parent isn't changed, it has to be set by caller to hud root.
    */
   addAttachment(mesh) {
-    this.attachments.push(mesh);
+    if ( mesh ) {
+      this.attachments.push(mesh);
+    }
   }
   /** Detach an attached mesh. Parent is not changed here. */
   removeAttachment(mesh) {
-    let pos = this.attachments.indexOf(mesh);
-    if ( pos > -1 ) {
-      this.attachments.splice(pos,1);
+    if ( mesh ) {
+      let pos = this.attachments.indexOf(mesh);
+      if ( pos > -1 ) {
+        this.attachments.splice(pos,1);
+      }
     }
   }
 

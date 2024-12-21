@@ -437,11 +437,13 @@ export class DefaultHud {
       this.helpImageArea.dispose();
     }
     this.helpImageArea = new ImageArea(this.scene, "help image");
+    this.helpImageArea.size = 1;
     this.helpImageArea.width = 1024;
     this.helpImageArea.height = 512;
-    this.helpImageArea.position = new BABYLON.Vector3(0,0.2,0.1);
+    this.helpImageArea.position = new BABYLON.Vector3(0,.5,0);
+    this.helpImageArea.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
     this.helpImageArea.show();
-    this.helpImageArea.attachToHud();
+    this.helpImageArea.detach(2);
     this.helpImageArea.loadUrl(this.contentBase+"/content/images/"+file);
   }
   
