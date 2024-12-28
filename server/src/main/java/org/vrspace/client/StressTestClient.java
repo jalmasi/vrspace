@@ -10,7 +10,7 @@ import org.vrspace.server.obj.Point;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class StressTestClient {
-  private int maxClients = 20;
+  private int maxClients = 100;
   private int requestsPerSecondEach = 5;
   // private String world = "StressTest";
   private String world = "template";

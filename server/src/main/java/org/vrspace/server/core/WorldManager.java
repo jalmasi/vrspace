@@ -264,6 +264,7 @@ public class WorldManager {
     return ret;
   }
 
+  // FIXME: not thread-safe, Neo4J issue
   public Set<VRObject> getRange(Client client, Point from, Point to) {
     return updateCache(db.getRange(client.getWorldId(), from, to));
   }

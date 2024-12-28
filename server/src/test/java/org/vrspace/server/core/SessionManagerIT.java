@@ -438,7 +438,8 @@ public class SessionManagerIT {
     verify(session, times(2)).sendMessage(any(TextMessage.class));
     assertTrue(getMessage().contains("Unknown world"));
 
-    sendMessage("{\"command\":{\"Enter\":{\"world\":\"test\"}}}");
+    // must be unique name - some other test may have created it
+    sendMessage("{\"command\":{\"Enter\":{\"world\":\"nonExistingWorld\"}}}");
 
     verify(session, times(3)).sendMessage(any(TextMessage.class));
     assertTrue(getMessage().contains("Unknown world"));
