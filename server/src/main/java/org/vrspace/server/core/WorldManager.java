@@ -264,7 +264,17 @@ public class WorldManager {
     return ret;
   }
 
-  // FIXME: not thread-safe, Neo4J issue
+  // FIXME: not thread-safe, Spring and/or Neo4J issue
+  /*
+  org.springframework.dao.TransientDataAccessResourceException: 
+  Database elements (nodes, relationships, properties) were observed during query execution, 
+  but got deleted by an overlapping committed transaction before the query results could be serialised. 
+  The transaction might succeed if it is retried.; Error code 'Neo.TransientError.Transaction.Outdated'
+  Caused by: 
+  org.neo4j.driver.exceptions.TransientException: Database elements (nodes, relationships, properties) were observed during query execution, 
+  but got deleted by an overlapping committed transaction before the query results could be serialised. 
+  The transaction might succeed if it is retried.
+   */
   public Set<VRObject> getRange(Client client, Point from, Point to) {
     return updateCache(db.getRange(client.getWorldId(), from, to));
   }
@@ -578,7 +588,7 @@ public class WorldManager {
     }
   }
 
-  @Transactional
+  // @Transactional // CHECKME causes sync errors in getRange()
   public void dispatch(VREvent event) throws Exception {
     Client client = event.getClient();
     if (client == null) {

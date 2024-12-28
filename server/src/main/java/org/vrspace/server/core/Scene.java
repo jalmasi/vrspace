@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.springframework.dao.TransientDataAccessResourceException;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.SceneProperties;
@@ -91,17 +90,7 @@ public class Scene {
         // Check region
         Point p1 = new Point(client.getPosition()).minus(props.getRange());
         Point p2 = new Point(client.getPosition()).plus(props.getRange());
-        // CHECKME:
-        /*
-        // org.springframework.dao.TransientDataAccessResourceException: 
-        // Database elements (nodes, relationships, properties) were observed during query execution, 
-        // but got deleted by an overlapping committed transaction before the query results could be serialised. 
-        // The transaction might succeed if it is retried.; Error code 'Neo.TransientError.Transaction.Outdated'
-        // Caused by: 
-        // org.neo4j.driver.exceptions.TransientException: Database elements (nodes, relationships, properties) were observed during query execution, 
-        // but got deleted by an overlapping committed transaction before the query results could be serialised. 
-        // The transaction might succeed if it is retried.
-         */
+
         Set<VRObject> objects = world.getRange(client, p1, p2);
 
         Add add = new Add();
@@ -136,8 +125,6 @@ public class Scene {
         members = newScene;
         lastUpdate = System.currentTimeMillis();
       }
-    } catch (TransientDataAccessResourceException e) {
-      log.warn("This should fix itself ", e);
     } catch (Exception e) {
       log.error("Scene for " + client, e);
       throw (e);
