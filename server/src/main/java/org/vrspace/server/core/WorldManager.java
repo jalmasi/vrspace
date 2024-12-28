@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -191,6 +192,11 @@ public class WorldManager {
   }
 
   public World getWorld(String name) {
+    Optional<Entity> existing = cache.values().stream()
+        .filter(o -> o.getClass().equals(World.class) && ((World) o).getName().equals(name)).findFirst();
+    if (existing.isPresent()) {
+      return (World) existing.get();
+    }
     World ret = db.getWorldByName(name);
     return (World) updateCache(ret);
   }
@@ -208,6 +214,18 @@ public class WorldManager {
     return world;
   }
 
+  private synchronized World createWorld(String name) {
+    // double-check, once again in synchronized block
+    World world = getWorld(name);
+    if (world == null) {
+      log.info("Creating temporary world on demand: " + name);
+      world = new World(name);
+      world.setTemporaryWorld(true);
+      world = saveWorld(world);
+    }
+    return world;
+  }
+
   // TODO WorldFactory
   public World getOrCreateWorld(String name) {
     World world = getWorld(name);
@@ -216,10 +234,7 @@ public class WorldManager {
       // automatically created on-demand, and authenticated user creating a world
       // explicitly
       if (config.isCreateWorlds()) {
-        log.info("Creating temporary world on demand: " + name);
-        world = new World(name);
-        world.setTemporaryWorld(true);
-        world = saveWorld(world);
+        world = createWorld(name);
       } else {
         throw new IllegalArgumentException("Unknown world: " + name);
       }

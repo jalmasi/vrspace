@@ -42,6 +42,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   private List<Function<String, Void>> messageListeners = new ArrayList<>();
   private List<Function<Welcome, Void>> welcomeListeners = new ArrayList<>();
   private List<Function<VREvent, Void>> eventListeners = new ArrayList<>();
+  private List<Function<String, Void>> errorListeners = new ArrayList<>();
   private StringBuilder text = new StringBuilder();
   private CountDownLatch latch;
   private volatile Client client;
@@ -73,6 +74,12 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
     connectAndEnter(world, settings);
   }
 
+  /**
+   * Connect, set own parameters (e.g. avatar), then enter a world.
+   * 
+   * @param world  name of the world to enter
+   * @param params own properties to set before entering the world
+   */
   public void connectAndEnter(String world, Map<String, String> params) {
     connect().thenApply(ws -> {
       await();
@@ -113,6 +120,15 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
    */
   public VRSpaceClient addEventListener(Function<VREvent, Void> listener) {
     this.eventListeners.add(listener);
+    return this;
+  }
+
+  /**
+   * Add an error listener that is passed JSON error message received from the
+   * server.
+   */
+  public VRSpaceClient addErrorListener(Function<String, Void> listener) {
+    this.errorListeners.add(listener);
     return this;
   }
 
@@ -197,6 +213,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
           welcomeListeners.forEach(l -> l.apply(welcome));
         } else if (message.startsWith("{\"ERROR\"")) {
           errorCount++;
+          errorListeners.forEach(l -> l.apply(message));
         } else {
           VREvent event = mapper.readValue(message, VREvent.class);
           eventListeners.forEach(l -> l.apply(event));
