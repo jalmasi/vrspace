@@ -495,7 +495,7 @@ public class WorldManager {
     return ret;
   }
 
-  public void startSession(Client client) throws SessionException {
+  public synchronized void startSession(Client client) throws SessionException {
     if (StringUtils.isNotBlank(client.getName())) {
       // new client can't have the same name as existing one
       Client existing = getClientByName(client.getName());

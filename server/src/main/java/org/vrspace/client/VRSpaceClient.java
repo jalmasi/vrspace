@@ -74,6 +74,10 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
     connectAndEnter(world, settings);
   }
 
+  public void disconnect() {
+    this.ws.sendClose(WebSocket.NORMAL_CLOSURE, "bye");
+  }
+
   /**
    * Connect, set own parameters (e.g. avatar), then enter a world.
    * 
