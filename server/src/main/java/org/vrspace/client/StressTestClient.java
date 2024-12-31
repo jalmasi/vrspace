@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.ClientRequest;
@@ -20,8 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StressTestClient {
   private int maxClients = 100;
-  private long requestsPerSecondEach = 5;
-  private int runTime = 0;
+  private long requestsPerSecondEach = 25;
+  private int runSeconds = 20;
   // private String world = "StressTest";
   private String world = "template";
   private Double deltaX, deltaY, deltaZ = 0.1;
@@ -33,11 +35,15 @@ public class StressTestClient {
   private String avatarMesh = "/babylon/dolphin.glb";
   private List<VRSpaceClient> clients = new ArrayList<>(maxClients);
 
+  private Status status = new Status();
+
   private void start() throws Exception {
     ObjectMapper objectMapper = new JacksonConfig().objectMapper();
-    ScheduledExecutorService executor = Executors
-        .newScheduledThreadPool(Runtime.getRuntime().availableProcessors() / 2);
+    int threads = Runtime.getRuntime().availableProcessors() / 2;
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(threads);
 
+    ThreadPoolExecutor tmp = (ThreadPoolExecutor) executor;
+    log.info("Queue size: " + tmp.getQueue().size());
     for (int i = 0; i < maxClients; i++) {
       VRSpaceClient client = new VRSpaceClient(uri, objectMapper);
       String name = world + "-" + i;
@@ -46,19 +52,26 @@ public class StressTestClient {
       params.put("mesh", avatarMesh);
 
       client.addErrorListener(s -> {
+        status.errors.incrementAndGet();
         System.err.println(name + ": " + s);
         return null;
       });
       client.connectAndEnter(world, params);
-      executor.scheduleAtFixedRate(new Sender(client), 0, 1000 / requestsPerSecondEach, TimeUnit.MILLISECONDS);
+      client.addEventListener(e -> {
+        status.requestsReceived.incrementAndGet();
+        return null;
+      });
+      long period = 1000 / requestsPerSecondEach;
+      executor.scheduleAtFixedRate(new Sender(client), 1000, period, TimeUnit.MILLISECONDS);
     }
+    log.info("Queue size: " + tmp.getQueue().size());
 
-    if (runTime > 0) {
-      Thread.sleep(runTime * 1000);
+    if (runSeconds > 0) {
+      Thread.sleep(runSeconds * 1000);
       executor.shutdownNow();
       executor.awaitTermination(1, TimeUnit.SECONDS);
       this.clients.forEach(c -> c.disconnect());
-      log.info("Done");
+      log.info("Done, " + status);
       System.exit(0);
     }
   }
@@ -80,10 +93,21 @@ public class StressTestClient {
       req.addChange("position", "\"position\":{\"x\":" + randomPos(pos.getX()) + ",\"y\":" + randomPos(pos.getY())
           + ",\"z\":" + randomPos(pos.getZ()) + "}\"");
       client.send(req);
+      status.requestsSent.incrementAndGet();
     }
 
     private Double randomPos(double pos) {
       return pos + Math.random();
+    }
+  }
+
+  public class Status {
+    public AtomicInteger requestsSent = new AtomicInteger();
+    public AtomicInteger requestsReceived = new AtomicInteger();
+    public AtomicInteger errors = new AtomicInteger();
+
+    public String toString() {
+      return "Sent: " + requestsSent + " Received: " + requestsReceived + " Errors: " + errors;
     }
   }
 }

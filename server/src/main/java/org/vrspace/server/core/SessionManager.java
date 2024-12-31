@@ -43,6 +43,8 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
   // TODO: properties
   public static final int SEND_TIMEOUT = 1000;
   public static final int BUFFER_SIZE = 64 * 1024;
+  // enough for up to 1000 clients seeing each other:
+  // public static final int BUFFER_SIZE = 256 * 1024;
   public static final int PING_PERIOD = 10000;
 
   private ConcurrentHashMap<String, Client> sessions = new ConcurrentHashMap<String, Client>();

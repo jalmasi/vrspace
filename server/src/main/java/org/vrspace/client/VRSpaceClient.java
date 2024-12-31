@@ -49,7 +49,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   private int errorCount = 0;
   private ScheduledFuture<?> task;
   private String world = null;
-  private CompletableFuture<WebSocket> future;
+  private volatile CompletableFuture<WebSocket> future;
   private Map<String, String> settings = null;
   public static final long TIMEOUT = 5000;
   public static final long RETRY = 10000;
@@ -177,7 +177,8 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
     try {
       String text = mapper.writeValueAsString(req);
       log.debug("Sending " + text);
-      this.ws.sendText(text, true);
+      future.join();
+      future = this.ws.sendText(text, true);
     } catch (Exception e) {
       log.error("OOPS", e);
     }

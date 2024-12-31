@@ -495,6 +495,7 @@ public class WorldManager {
     return ret;
   }
 
+  // FIXME: synchronized fixes getRange() errors
   public synchronized void startSession(Client client) throws SessionException {
     if (StringUtils.isNotBlank(client.getName())) {
       // new client can't have the same name as existing one

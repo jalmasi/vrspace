@@ -154,9 +154,9 @@ public class Client extends VRObject {
       try {
         session.sendMessage(new TextMessage(json));
       } catch (IOException e) {
-        log.warn("Can't send message " + json + " to " + this.getObjectId() + ": " + e);
+        log.debug("Can't send message " + json + " to " + this.getObjectId() + ": " + e);
       } catch (IllegalStateException e) {
-        log.warn("Can't send message " + json + " to " + this.getObjectId() + ": " + e);
+        log.debug("Can't send message " + json + " to " + this.getObjectId() + ": " + e);
       }
     } else {
       log.debug("Session closed: " + session + ", message ignored: " + json);
