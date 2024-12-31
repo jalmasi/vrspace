@@ -179,6 +179,10 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
       log.debug("Sending " + text);
       future.join();
       future = this.ws.sendText(text, true);
+      future.exceptionally((err) -> {
+        log.error("Send error", err);
+        return ws;
+      });
     } catch (Exception e) {
       log.error("OOPS", e);
     }

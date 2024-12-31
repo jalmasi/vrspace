@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StressTestClient {
   private int maxClients = 100;
   private long requestsPerSecondEach = 25;
-  private int runSeconds = 20;
+  private int runSeconds = 60;
   // private String world = "StressTest";
   private String world = "template";
   private Double deltaX, deltaY, deltaZ = 0.1;
@@ -62,12 +62,13 @@ public class StressTestClient {
         return null;
       });
       long period = 1000 / requestsPerSecondEach;
-      executor.scheduleAtFixedRate(new Sender(client), 1000, period, TimeUnit.MILLISECONDS);
+      // CHECKME: initial delay?
+      executor.scheduleAtFixedRate(new Sender(client), 2000, period, TimeUnit.MILLISECONDS);
     }
     log.info("Queue size: " + tmp.getQueue().size());
 
     if (runSeconds > 0) {
-      Thread.sleep(runSeconds * 1000);
+      Thread.sleep(runSeconds * 1000 + 1000);
       executor.shutdownNow();
       executor.awaitTermination(1, TimeUnit.SECONDS);
       this.clients.forEach(c -> c.disconnect());
