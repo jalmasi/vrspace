@@ -722,6 +722,16 @@ export class VRSpace {
   }
 
   /**
+  Send a command to the server
+  @param command to execute
+  @param callback function that's called with command return value
+   */
+  callCommand( command, callback ) {
+    this.call('{"command":{"'+command+'":{}}}', callback);
+  }
+
+
+  /**
    * Set a client token e.g. required to enter a world
    * @param name token name
    * @param value token value

@@ -837,6 +837,8 @@ export class WorldManager {
       this.error = e;
     });
     return new Promise( (resolve, reject) => {
+      // TODO most of this code needs to go into VRSpace client.
+      // TODO it should use async rather than callback functions
       var afterEnter = (welcome) => {
         VRSPACE.removeWelcomeListener(afterEnter);
         this.entered(welcome);
@@ -872,13 +874,15 @@ export class WorldManager {
         }
         // FIXME for the time being, Enter first, then Session
         if ( this.world.name ) {
-          VRSPACE.addWelcomeListener(afterEnter);
+          VRSPACE.addWelcomeListener(welcome=>{
+            VRSPACE.callCommand("Session", ()=>afterEnter(welcome));
+          });
           VRSPACE.sendCommand("Enter",{world:this.world.name});
-          VRSPACE.sendCommand("Session");
         } else {
-          VRSPACE.sendCommand("Session");
-          this.entered(welcome)
-          resolve(welcome);
+          VRSPACE.callCommand("Session", ()=>{
+            this.entered(welcome)
+            resolve(welcome);
+          });
         }
       };
       if ( ! this.isOnline() ) {
