@@ -14,11 +14,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
+import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.Enter;
+import org.vrspace.server.dto.Remove;
+import org.vrspace.server.dto.SceneChange;
 import org.vrspace.server.dto.Session;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
@@ -39,17 +42,20 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   private ObjectMapper mapper;
   private URI uri;
   private WebSocket ws;
-  private List<Function<String, Void>> messageListeners = new ArrayList<>();
-  private List<Function<Welcome, Void>> welcomeListeners = new ArrayList<>();
-  private List<Function<VREvent, Void>> eventListeners = new ArrayList<>();
-  private List<Function<String, Void>> errorListeners = new ArrayList<>();
+  private List<Consumer<String>> messageListeners = new ArrayList<>();
+  private List<Consumer<Welcome>> welcomeListeners = new ArrayList<>();
+  private List<Consumer<VREvent>> eventListeners = new ArrayList<>();
+  private List<Consumer<SceneChange>> sceneListeners = new ArrayList<>();
+  private List<Consumer<String>> errorListeners = new ArrayList<>();
   private StringBuilder text = new StringBuilder();
-  private CountDownLatch latch;
+  private CountDownLatch welcomeLatch;
+  private CountDownLatch commandLatch;
   private volatile Client client;
   private int errorCount = 0;
-  private ScheduledFuture<?> task;
+  private ScheduledFuture<?> reconnect;
   private String world = null;
-  private volatile CompletableFuture<WebSocket> future;
+  private volatile CompletableFuture<WebSocket> connecting;
+  private volatile CompletableFuture<WebSocket> sending;
   private Map<String, String> settings = null;
   public static final long TIMEOUT = 5000;
   public static final long RETRY = 10000;
@@ -60,44 +66,25 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   }
 
   public CompletableFuture<WebSocket> connect() {
-    latch = new CountDownLatch(1);
-    future = new CompletableFuture<>();
-    this.task = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, RETRY, TimeUnit.MILLISECONDS);
-    return future;
+    welcomeLatch = new CountDownLatch(1);
+    connecting = new CompletableFuture<>();
+    this.reconnect = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, RETRY,
+        TimeUnit.MILLISECONDS);
+    return connecting;
   }
 
   public void startSession() {
+    commandLatch = new CountDownLatch(1);
     send(new Session());
+    await(commandLatch);
   }
 
   public void connectAndEnter(String world) {
-    connectAndEnter(world, settings);
+    connectAndEnterSync(world, settings);
   }
 
   public void disconnect() {
     this.ws.sendClose(WebSocket.NORMAL_CLOSURE, "bye");
-  }
-
-  /**
-   * Connect, set own parameters (e.g. avatar), then enter a world.
-   * 
-   * @param world  name of the world to enter
-   * @param params own properties to set before entering the world
-   */
-  public void connectAndEnter(String world, Map<String, String> params) {
-    connect().thenApply(ws -> {
-      await();
-      if (params != null) {
-        this.settings = params;
-        ClientRequest settings = new ClientRequest(getClient());
-        params.entrySet().forEach((e) -> settings.addChange(e.getKey(), e.getValue()));
-        send(settings);
-      }
-      enter(world);
-      await();
-      send(new Session());
-      return ws;
-    });
   }
 
   @Override
@@ -105,8 +92,8 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
     HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofMillis(TIMEOUT)).buildAsync(uri, this)
         .thenApply(ws -> {
           this.ws = ws;
-          this.task.cancel(true);
-          this.future.complete(ws);
+          this.reconnect.cancel(true);
+          this.connecting.complete(ws);
           return ws;
         }).handle((ws, exception) -> {
           if (exception != null) {
@@ -119,11 +106,67 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   }
 
   /**
-   * Add event listener to receive events from the server; an event is either a
-   * Command or change to a VRObject
+   * Connect, and then set own parameters (e.g. avatar), then enter a world. Does
+   * not block until the connection has been made, but returns immediately. Use
+   * case - stress testing.
+   * 
+   * @param world  name of the world to enter
+   * @param params own properties to set before entering the world
    */
-  public VRSpaceClient addEventListener(Function<VREvent, Void> listener) {
+  public void connectAndEnterAsync(String world, Map<String, String> params) {
+    connect().thenApply(ws -> {
+      await(welcomeLatch);
+      if (params != null) {
+        this.settings = params;
+        ClientRequest settings = new ClientRequest(getClient());
+        params.entrySet().forEach((e) -> settings.addChange(e.getKey(), e.getValue()));
+        send(settings);
+      }
+      enterSync(world);
+      startSession();
+      return ws;
+    });
+  }
+
+  /**
+   * Connect, set own parameters (e.g. avatar), then enter a world. Wait for
+   * connection and session to be set up, and then return. Typical use case when
+   * connecting to a server.
+   * 
+   * @param world  name of the world to enter
+   * @param params own properties to set before entering the world
+   */
+  public void connectAndEnterSync(String world, Map<String, String> params) {
+    try {
+      connect().get();
+      await(welcomeLatch);
+      if (params != null) {
+        this.settings = params;
+        ClientRequest settings = new ClientRequest(getClient());
+        params.entrySet().forEach((e) -> settings.addChange(e.getKey(), e.getValue()));
+        send(settings);
+      }
+      enterSync(world);
+      startSession();
+    } catch (Exception e) {
+      log.error("Can't connect", e);
+    }
+  }
+
+  /**
+   * Add event listener to receive events from the server (changes to VRObjects)
+   */
+  public VRSpaceClient addEventListener(Consumer<VREvent> listener) {
     this.eventListeners.add(listener);
+    return this;
+  }
+
+  /**
+   * Add scene listener that receives changes to the scene - Add and Remove
+   * commands.
+   */
+  public VRSpaceClient addSceneListener(Consumer<SceneChange> listener) {
+    this.sceneListeners.add(listener);
     return this;
   }
 
@@ -131,27 +174,29 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
    * Add an error listener that is passed JSON error message received from the
    * server.
    */
-  public VRSpaceClient addErrorListener(Function<String, Void> listener) {
+  public VRSpaceClient addErrorListener(Consumer<String> listener) {
     this.errorListeners.add(listener);
     return this;
   }
 
   /** Add a listener that receives all text messages from the server */
-  public VRSpaceClient addMessageListener(Function<String, Void> listener) {
+  public VRSpaceClient addMessageListener(Consumer<String> listener) {
     this.messageListeners.add(listener);
     return this;
   }
 
   /** Welcome messages are received after connecting and entering a world */
-  public VRSpaceClient addWelcomeListener(Function<Welcome, Void> listener) {
+  public VRSpaceClient addWelcomeListener(Consumer<Welcome> listener) {
     this.welcomeListeners.add(listener);
     return this;
   }
 
   /** Hack, awaits for welcome message */
-  public void await() {
+  public void await(CountDownLatch latch) {
     try {
+      long time = System.currentTimeMillis();
       latch.await();
+      log.debug("Waited " + (System.currentTimeMillis() - time) + " ms");
     } catch (InterruptedException e) {
       log.error("Unexpected interrupt: ", e);
     }
@@ -161,8 +206,16 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
     return this.client;
   }
 
-  /** Enter a world */
-  public void enter(String world) {
+  /** Enter a world, and wait for welcome */
+  public void enterSync(String world) {
+    welcomeLatch = new CountDownLatch(1);
+    send(new Enter(world));
+    await(welcomeLatch);
+    this.world = world;
+  }
+
+  /** Enter a world, do not wait for Welcome response */
+  public void enterAsync(String world) {
     send(new Enter(world));
     this.world = world;
   }
@@ -177,9 +230,11 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
     try {
       String text = mapper.writeValueAsString(req);
       log.debug("Sending " + text);
-      future.join();
-      future = this.ws.sendText(text, true);
-      future.exceptionally((err) -> {
+      if (sending != null) {
+        sending.join();
+      }
+      sending = this.ws.sendText(text, true);
+      sending.exceptionally((err) -> {
         log.error("Send error", err);
         return ws;
       });
@@ -210,7 +265,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
     text.append(data);
     if (last) {
       String message = text.toString();
-      messageListeners.forEach(l -> l.apply(message));
+      messageListeners.forEach(l -> l.accept(message));
       text = new StringBuilder();
       try {
         // TODO this should work with deserialization out of the box
@@ -218,14 +273,22 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
         if (message.startsWith("{\"Welcome\":{")) {
           Welcome welcome = mapper.readValue(message, Welcome.class);
           this.client = welcome.getClient();
-          latch.countDown();
-          welcomeListeners.forEach(l -> l.apply(welcome));
+          welcomeLatch.countDown();
+          welcomeListeners.forEach(l -> l.accept(welcome));
+        } else if (message.startsWith("{\"Add\":{\"")) {
+          Add add = mapper.readValue(message, Add.class);
+          sceneListeners.forEach(l -> l.accept(add));
+        } else if (message.startsWith("{\"Remove\":{\"")) {
+          Remove remove = mapper.readValue(message, Remove.class);
+          sceneListeners.forEach(l -> l.accept(remove));
+        } else if (message.startsWith("{\"response\":")) {
+          commandLatch.countDown();
         } else if (message.startsWith("{\"ERROR\"")) {
           errorCount++;
-          errorListeners.forEach(l -> l.apply(message));
+          errorListeners.forEach(l -> l.accept(message));
         } else {
           VREvent event = mapper.readValue(message, VREvent.class);
-          eventListeners.forEach(l -> l.apply(event));
+          eventListeners.forEach(l -> l.accept(event));
         }
       } catch (Exception e) {
         log.error("Message parsing or processing error", e);

@@ -205,7 +205,8 @@ public class Client extends VRObject {
    * Create client's scene, called by WorldManager during login process. Default
    * client doesn't have a scene.
    */
-  public void createScene(WorldManager wm) {
+  public int createScene(WorldManager wm) {
+    return 0;
   }
 
 }

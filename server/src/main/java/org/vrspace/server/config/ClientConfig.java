@@ -27,7 +27,7 @@ public class ClientConfig {
   VRSpaceClient connectToVRSpace() {
     URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
     VRSpaceClient client = new VRSpaceClient(uri, objectMapper);
-    client.connectAndEnter("galaxy", Map.of("url", serverConfig.getServerUrl(), "thumbnail",
+    client.connectAndEnterAsync("galaxy", Map.of("url", serverConfig.getServerUrl(), "thumbnail",
         serverConfig.getServerThumbnail(), "description", serverConfig.getServerDescripton()));
     return client;
   }

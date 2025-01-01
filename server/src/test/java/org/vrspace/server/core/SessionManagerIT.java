@@ -263,22 +263,23 @@ public class SessionManagerIT {
     String add = "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}}, {\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}}]}}}";
     sendMessage(add);
 
-    // response to add + scene update, called from Client.sendMessage()
-    verify(session, times(3)).sendMessage(any(TextMessage.class));
+    // response to session, response to add + scene update, called from
+    // Client.sendMessage()
+    verify(session, times(4)).sendMessage(any(TextMessage.class));
 
     // verify response to add command
     List<WebSocketMessage<?>> allValues = message.getAllValues();
     // make sure to ignore any PingMessage
     List<TextMessage> values = allValues.stream().filter(m -> TextMessage.class.isInstance(m)).map(m -> (TextMessage) m)
         .collect(Collectors.toList());
-    String addResponse = ((TextMessage) values.get(2)).getPayload();
+    String addResponse = ((TextMessage) values.get(3)).getPayload();
     ClientResponse rIds = mapper.readValue(addResponse, ClientResponse.class);
     @SuppressWarnings("unchecked")
     List<Map<String, Long>> ids = (List<Map<String, Long>>) rIds.getResponse();
     assertEquals(2, ids.size());
 
     // verify received add command as result of scene update
-    String sceneMessage = ((TextMessage) values.get(1)).getPayload();
+    String sceneMessage = ((TextMessage) values.get(2)).getPayload();
     Add addCommand = mapper.readValue(sceneMessage, Add.class);
     assertEquals(2, addCommand.getObjects().size());
 
@@ -311,7 +312,7 @@ public class SessionManagerIT {
     // verify that scene does not update
     testUser.getScene().update();
 
-    verify(session, times(3)).sendMessage(any(TextMessage.class));
+    verify(session, times(4)).sendMessage(any(TextMessage.class));
     assertEquals(2, testUser.getScene().size());
 
     // verify remove command
@@ -320,7 +321,7 @@ public class SessionManagerIT {
     sendMessage(remove);
 
     // verify response received
-    verify(session, times(4)).sendMessage(any(TextMessage.class));
+    verify(session, times(5)).sendMessage(any(TextMessage.class));
 
     // verify object removed from the database
     assertFalse(repo.findById(VRObject.class, ids.get(0).values().iterator().next()).isPresent());
@@ -332,7 +333,7 @@ public class SessionManagerIT {
     // verify scene members
     testUser.getScene().update();
 
-    verify(session, times(4)).sendMessage(any(TextMessage.class));
+    verify(session, times(5)).sendMessage(any(TextMessage.class));
     assertEquals(1, testUser.getScene().size());
     sceneMessage = getMessage();
 
@@ -371,19 +372,20 @@ public class SessionManagerIT {
     assertEquals(2, client.getScene().size());
     assertNotNull(client.getScene().get(user1.getObjectId()));
     assertNotNull(client.getScene().get(user2.getObjectId()));
-    verify(session, times(2)).sendMessage(any(TextMessage.class));
+    // response to session, response to add, scene update
+    verify(session, times(3)).sendMessage(any(TextMessage.class));
 
     user1.getScene().update();
     assertEquals(2, user1.getScene().size());
     assertNotNull(user1.getScene().get(client.getObjectId()));
     assertNotNull(user1.getScene().get(user2.getObjectId()));
-    verify(session1, times(2)).sendMessage(any(TextMessage.class));
+    verify(session1, times(3)).sendMessage(any(TextMessage.class));
 
     user2.getScene().update();
     assertEquals(2, user2.getScene().size());
     assertNotNull(user2.getScene().get(client.getObjectId()));
     assertNotNull(user2.getScene().get(user1.getObjectId()));
-    verify(session2, times(2)).sendMessage(any(TextMessage.class));
+    verify(session2, times(3)).sendMessage(any(TextMessage.class));
 
     assertEquals(2, user1.getListeners().size());
     assertEquals(2, user2.getListeners().size());
@@ -394,9 +396,9 @@ public class SessionManagerIT {
         + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     sendMessage(string);
 
-    verify(session, times(2)).sendMessage(any(TextMessage.class));
-    verify(session1, times(3)).sendMessage(any(TextMessage.class));
-    verify(session2, times(3)).sendMessage(any(TextMessage.class));
+    verify(session, times(3)).sendMessage(any(TextMessage.class));
+    verify(session1, times(4)).sendMessage(any(TextMessage.class));
+    verify(session2, times(4)).sendMessage(any(TextMessage.class));
 
     // verify that client's properties have changed in other scenes
     Point expected = new Point(3, 2, 1);
@@ -408,9 +410,9 @@ public class SessionManagerIT {
     String msg = "{\"object\":{\"User\":" + clientId
         + "},\"changes\":{\"properties\":{\"string\":\"string\",\"number\":123.45}}}";
     sendMessage(msg);
-    verify(session, times(2)).sendMessage(any(TextMessage.class));
-    verify(session1, times(4)).sendMessage(any(TextMessage.class));
-    verify(session2, times(4)).sendMessage(any(TextMessage.class));
+    verify(session, times(3)).sendMessage(any(TextMessage.class));
+    verify(session1, times(5)).sendMessage(any(TextMessage.class));
+    verify(session2, times(5)).sendMessage(any(TextMessage.class));
 
     assertNotNull(client.getProperties());
     assertEquals("string", client.getProperties().get("string"));
@@ -419,9 +421,9 @@ public class SessionManagerIT {
     // custom event, e.g. chat
     String text = "{\"object\":{\"User\":" + clientId + "},\"changes\":{\"wrote\":\"hi\"}}";
     sendMessage(text);
-    verify(session, times(2)).sendMessage(any(TextMessage.class));
-    verify(session1, times(5)).sendMessage(any(TextMessage.class));
-    verify(session2, times(5)).sendMessage(any(TextMessage.class));
+    verify(session, times(3)).sendMessage(any(TextMessage.class));
+    verify(session1, times(6)).sendMessage(any(TextMessage.class));
+    verify(session2, times(6)).sendMessage(any(TextMessage.class));
   }
 
   @Test

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,7 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 public class StressTestClient {
   private int maxClients = 100;
   private long requestsPerSecondEach = 25;
-  private int runSeconds = 60;
+  private long initialDelay = 2000;
+  private int runSeconds = 20;
   // private String world = "StressTest";
   private String world = "template";
   private Double deltaX, deltaY, deltaZ = 0.1;
@@ -42,8 +42,7 @@ public class StressTestClient {
     int threads = Runtime.getRuntime().availableProcessors() / 2;
     ScheduledExecutorService executor = Executors.newScheduledThreadPool(threads);
 
-    ThreadPoolExecutor tmp = (ThreadPoolExecutor) executor;
-    log.info("Queue size: " + tmp.getQueue().size());
+    // connect all clients first
     for (int i = 0; i < maxClients; i++) {
       VRSpaceClient client = new VRSpaceClient(uri, objectMapper);
       String name = world + "-" + i;
@@ -54,23 +53,23 @@ public class StressTestClient {
       client.addErrorListener(s -> {
         status.errors.incrementAndGet();
         System.err.println(name + ": " + s);
-        return null;
       });
-      client.connectAndEnter(world, params);
+      // client.connectAndEnterSync(world, params);
+      client.connectAndEnterAsync(world, params);
       client.addEventListener(e -> {
         status.requestsReceived.incrementAndGet();
-        return null;
       });
       long period = 1000 / requestsPerSecondEach;
       // CHECKME: initial delay?
-      executor.scheduleAtFixedRate(new Sender(client), 2000, period, TimeUnit.MILLISECONDS);
+      executor.scheduleAtFixedRate(new Sender(client), initialDelay, period, TimeUnit.MILLISECONDS);
     }
-    log.info("Queue size: " + tmp.getQueue().size());
 
     if (runSeconds > 0) {
-      Thread.sleep(runSeconds * 1000 + 1000);
+      Thread.sleep(runSeconds * 1000);
       executor.shutdownNow();
       executor.awaitTermination(1, TimeUnit.SECONDS);
+      // sleep some more, they still may be receiving
+      Thread.sleep(1000);
       this.clients.forEach(c -> c.disconnect());
       log.info("Done, " + status);
       System.exit(0);

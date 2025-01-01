@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-public class Remove implements Command {
+public class Remove implements SceneChange {
   /** List of objects identifiers (class name + id pairs) to remove */
   @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
   private List<Map<String, Long>> objects = new ArrayList<Map<String, Long>>();

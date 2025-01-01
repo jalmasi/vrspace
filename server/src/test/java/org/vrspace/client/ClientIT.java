@@ -29,9 +29,8 @@ public class ClientIT {
   @Test
   public void testConnect() throws Exception {
     VRSpaceClient client = connectToVRSpace();
-    client.connectAndEnter("galaxy", Map.of("url", serverConfig.getServerUrl(), "thumbnail",
+    client.connectAndEnterSync("galaxy", Map.of("url", serverConfig.getServerUrl(), "thumbnail",
         serverConfig.getServerThumbnail(), "description", serverConfig.getServerDescripton()));
-    Thread.sleep(1000);
     assertEquals(0, client.getErrorCount());
     Thread.sleep(1000 * 60 * 60);
   }
@@ -59,10 +58,9 @@ public class ClientIT {
     for (int i = 0; i < 10; i++) {
       VRSpaceClient client = connectToVRSpace();
       // client.connectAndEnter("galaxy");
-      client.connectAndEnter("galaxy",
+      client.connectAndEnterSync("galaxy",
           Map.of("url", serverConfig.getServerUrl(), "thumbnail", serverConfig.getServerThumbnail(), "description",
               serverConfig.getServerDescripton() + i, "available", "" + (Math.floorMod(i, 2) == 0)));
-      Thread.sleep(100);
     }
     Thread.sleep(1000 * 60 * 60);
   }

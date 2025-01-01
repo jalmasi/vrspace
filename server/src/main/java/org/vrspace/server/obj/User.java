@@ -49,13 +49,14 @@ public class User extends Client {
   }
 
   @Override
-  public void createScene(WorldManager wm) {
+  public int createScene(WorldManager wm) {
     // create scene, TODO: scene filters
     Scene scene = new Scene(wm, this);
     scene.addFilter("removeOfflineClients", Filter.removeOfflineClients());
     setScene(scene);
     scene.update();
     scene.publish(this);
+    return scene.size();
   }
 
 }
