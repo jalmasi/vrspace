@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 public class StressTestClient {
   private int maxClients = 100;
   private long requestsPerSecondEach = 5;
+  // give it a few seconds to ensure everybody is connected and ready before
+  // events start, or start right away to test concurrency of session startup
   private long initialDelay = 0;
   private int runSeconds = 0;
   // private String world = "StressTest";
@@ -57,12 +59,10 @@ public class StressTestClient {
         status.errors.incrementAndGet();
         System.err.println(name + ": " + s);
       });
-      if (initialDelay > 0) {
-        // only used to stress-test new connections
-        client.connectAndEnterAsync(world, params);
-      } else {
-        client.connectAndEnterSync(world, params);
-      }
+
+      // only used to stress-test new connections
+      // client.connectAndEnterAsync(world, params);
+      client.connectAndEnterSync(world, params);
       client.addEventListener(e -> {
         status.requestsReceived.incrementAndGet();
       });
