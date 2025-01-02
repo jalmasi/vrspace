@@ -9,7 +9,8 @@ Animation groups are also inspected and optionally modified.
 Optional fixes can be applied to an avatar, typically position of an avatar, or changing the animation.
  */
 export class HumanoidAvatar extends Avatar {
-  static notFound = []; // 404 cache used for avatar fix files
+  static notFound = [];  // 404 cache used for avatar fix files
+  static fixes = {}; // fix loading promises
   /**
   @param scene
   @param folder ServerFolder with the content
@@ -362,7 +363,7 @@ export class HumanoidAvatar extends Avatar {
    */
   async loadFixes() {
     this.log('Loading fixes from '+this.folder.relatedUrl());
-    if ( this.folder.related ) {
+    if ( this.folder.related && !HumanoidAvatar.notFound.includes(this.folder.relatedUrl())) {
       return fetch(this.folder.relatedUrl(), {cache: this.cache})
       .then(response => {
         if ( response.ok ) {
@@ -1825,6 +1826,32 @@ export class HumanoidAvatar extends Avatar {
     return this.parentMesh;
   }
   
+  static async findFixFile(fix) {
+    if ( ! HumanoidAvatar.fixes[fix] ) {
+      HumanoidAvatar.fixes[fix] = new Promise((resolve,reject) => {
+        if ( HumanoidAvatar.notFound.includes(fix)) {
+          resolve(null);
+        } else {
+          fetch(fix, {cache: 'no-cache'}).then(response => {
+            if ( response.ok ) {
+              resolve(fix);
+            } else {
+              console.log("Fix file not found: "+fix+" - "+response.status);
+              HumanoidAvatar.notFound.push( fix );
+              resolve(null);
+            }
+          }).catch(err=>{
+            // rather than not found we can get CORS error
+            HumanoidAvatar.notFound.push(fix);
+            console.log("Fix file not found: "+fix, err);
+            resolve(null);
+          });
+        }
+      });
+    }
+    return HumanoidAvatar.fixes[fix];
+  }
+  
   /**
    * Create a HumanoidAvatar from given url. Does not load it though.
    */
@@ -1846,22 +1873,7 @@ export class HumanoidAvatar extends Avatar {
       // glb fixes - expected in the same directory
       fix = url.substring(0,url.lastIndexOf('.'))+'-fixes.json';
     }
-    if ( ! HumanoidAvatar.notFound.includes(fix)) {
-      // FIXME this await has to go away
-      await fetch(fix, {cache: 'no-cache'}).then(response => {
-        if ( ! response.ok ) {
-          HumanoidAvatar.notFound.push( fix );
-          fix = null;
-        }
-      }).catch(err=>{
-        // rather than not found we can get CORS error
-        HumanoidAvatar.notFound.push(fix);
-        fix = null;
-        console.log(err);
-      });
-    } else {
-      fix = null;
-    }
+    fix = await HumanoidAvatar.findFixFile(fix);
     var folder = new ServerFolder( baseUrl, dir, fix );
     let avatar = new HumanoidAvatar(scene, folder, shadowGenerator);
     avatar.file = file;

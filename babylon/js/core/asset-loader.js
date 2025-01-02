@@ -136,7 +136,7 @@ export class AssetLoader {
           mesh.refreshBoundingInfo();
           mesh.id = obj.className+" "+obj.id;
     
-          console.log("Instantiated "+this.numberOfInstances+" of "+obj.mesh, obj);
+          console.log("Instantiated "+obj.mesh, obj);
     
           callback(mesh);
     

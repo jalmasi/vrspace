@@ -25,16 +25,16 @@ public class StressTestClient {
   private long initialDelay = 0;
   private int runSeconds = 0;
   // private String world = "StressTest";
-  // private String world = "template";
-  private String world = "galaxy";
+  private String world = "template";
+  // private String world = "galaxy";
   private Double deltaX, deltaY, deltaZ = 0.1;
   private Point spawnPoint = new Point(0, 0, 0);
   private Double spawnRadius = Double.valueOf(maxClients / 2);
   // requires valid cert:
   // private URI uri = URI.create("wss://localhost/vrspace/server");
   private URI uri = URI.create("ws://localhost:8080/vrspace/client");
-  // private String avatarMesh = "/babylon/dolphin.glb";
-  private String avatarMesh = "/content/char/female/gracy_lee/scene.gltf";
+  private String avatarMesh = "/babylon/dolphin.glb";
+  // private String avatarMesh = "/content/char/female/gracy_lee/scene.gltf";
   private List<VRSpaceClient> clients = new ArrayList<>(maxClients);
 
   private Status status = new Status();
@@ -51,6 +51,7 @@ public class StressTestClient {
       Map<String, String> params = new HashMap<>();
       params.put("name", name);
       params.put("mesh", avatarMesh);
+      params.put("humanoid", "false"); // with dolphin
 
       client.addErrorListener(s -> {
         status.errors.incrementAndGet();

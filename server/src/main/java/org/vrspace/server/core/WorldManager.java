@@ -589,7 +589,7 @@ public class WorldManager {
     }
   }
 
-  // @Transactional // CHECKME causes sync errors in getRange()
+  @Transactional
   public void dispatch(VREvent event) throws Exception {
     Client client = event.getClient();
     if (client == null) {

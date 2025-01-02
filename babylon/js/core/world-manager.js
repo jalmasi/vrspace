@@ -340,7 +340,7 @@ export class WorldManager {
    */
   async loadAvatar(obj) {
     this.log("loading avatar "+obj.mesh);
-    var avatar = await this.createAvatarFromUrl(obj.mesh);
+    let avatar = await this.createAvatarFromUrl(obj.mesh);
     avatar.userHeight = obj.userHeight;
     avatar.load( (avatar) => {
       obj.avatar = avatar;
@@ -370,11 +370,11 @@ export class WorldManager {
       }
       this.notifyLoadListeners(obj, avatar);
     }, (error) => {
+      // FIXME - this fallback is not safe when loading multiple instances at once
       console.log("Failed to load humanoid avatar, loading as mesh", error);
       obj.humanoid = false;
       this.loadMeshAvatar(obj);
-    }
-    );
+    });
   }
   
   notifyLoadListeners(obj, avatar) {
