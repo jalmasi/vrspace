@@ -25,7 +25,7 @@ export class MeshAvatar extends Avatar {
   }
 
   dispose() {
-    // no need to do anything - WorldManager calls unloadObject
+    VRSPACEUI.assetLoader.unloadObject(this.vrObject);
   }
 
 }
