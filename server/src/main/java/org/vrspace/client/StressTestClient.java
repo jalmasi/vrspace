@@ -21,18 +21,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StressTestClient {
   private int maxClients = 100;
-  private long requestsPerSecondEach = 25;
-  private long initialDelay = 2000;
-  private int runSeconds = 20;
+  private long requestsPerSecondEach = 5;
+  private long initialDelay = 0;
+  private int runSeconds = 0;
   // private String world = "StressTest";
-  private String world = "template";
+  // private String world = "template";
+  private String world = "galaxy";
   private Double deltaX, deltaY, deltaZ = 0.1;
   private Point spawnPoint = new Point(0, 0, 0);
-  private Double spawnRadius = 10.0;
+  private Double spawnRadius = Double.valueOf(maxClients / 2);
   // requires valid cert:
   // private URI uri = URI.create("wss://localhost/vrspace/server");
   private URI uri = URI.create("ws://localhost:8080/vrspace/client");
-  private String avatarMesh = "/babylon/dolphin.glb";
+  // private String avatarMesh = "/babylon/dolphin.glb";
+  private String avatarMesh = "/content/char/female/gracy_lee/scene.gltf";
   private List<VRSpaceClient> clients = new ArrayList<>(maxClients);
 
   private Status status = new Status();
@@ -54,11 +56,16 @@ public class StressTestClient {
         status.errors.incrementAndGet();
         System.err.println(name + ": " + s);
       });
-      // client.connectAndEnterSync(world, params);
-      client.connectAndEnterAsync(world, params);
+      if (initialDelay > 0) {
+        // only used to stress-test new connections
+        client.connectAndEnterAsync(world, params);
+      } else {
+        client.connectAndEnterSync(world, params);
+      }
       client.addEventListener(e -> {
         status.requestsReceived.incrementAndGet();
       });
+
       long period = 1000 / requestsPerSecondEach;
       // CHECKME: initial delay?
       executor.scheduleAtFixedRate(new Sender(client), initialDelay, period, TimeUnit.MILLISECONDS);
@@ -82,6 +89,8 @@ public class StressTestClient {
 
   public class Sender implements Runnable {
     private VRSpaceClient client;
+    private Point pos = new Point(spawnPoint.getX() + spawnRadius * Math.random(), spawnPoint.getY(),
+        spawnPoint.getZ() + spawnRadius * Math.random());
 
     public Sender(VRSpaceClient client) {
       this.client = client;
@@ -89,9 +98,8 @@ public class StressTestClient {
 
     public void run() {
       ClientRequest req = new ClientRequest(client.getClient());
-      Point pos = client.getClient().getPosition();
-      req.addChange("position", "\"position\":{\"x\":" + randomPos(pos.getX()) + ",\"y\":" + randomPos(pos.getY())
-          + ",\"z\":" + randomPos(pos.getZ()) + "}\"");
+      // Point pos = client.getClient().getPosition();
+      req.addChange("position", new Point(randomPos(pos.getX()), randomPos(pos.getY()), randomPos(pos.getZ())));
       client.send(req);
       status.requestsSent.incrementAndGet();
     }

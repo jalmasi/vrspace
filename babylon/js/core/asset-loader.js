@@ -31,9 +31,10 @@ class AssetSync {
           path = this.url.substring(0,pos+1);
           file = this.url.substring(pos+1);
         }
+        // CHECKME: what happens if this does not exist, or exists but fails to load?
         var plugin = BABYLON.SceneLoader.LoadAssetContainer(path, file, this.scene, (container) =>
           {
-            console.log("Loaded asset "+this.url);
+            console.log("Loaded asset "+this.url, container.meshes);
             //var root = container.createRootMesh();
             this.container = container;
             //container.addAllToScene();
