@@ -266,6 +266,7 @@ public class WorldManager {
 
   // FIXME: may not be thread-safe, seems like Spring and/or Neo4J issue
   /*
+  // this one is fixed by synchronizing login
   org.springframework.dao.TransientDataAccessResourceException: 
   Database elements (nodes, relationships, properties) were observed during query execution, 
   but got deleted by an overlapping committed transaction before the query results could be serialised. 
@@ -274,6 +275,16 @@ public class WorldManager {
   org.neo4j.driver.exceptions.TransientException: Database elements (nodes, relationships, properties) were observed during query execution, 
   but got deleted by an overlapping committed transaction before the query results could be serialised. 
   The transaction might succeed if it is retried.
+  
+  // another one, clearly high-concurrency issue:
+  org.springframework.dao.InvalidDataAccessResourceUsageException: Node with id 234 has been deleted in this transaction; Error code 'Neo.ClientError.Statement.EntityNotFound'
+  ...
+    at org.vrspace.server.core.VRObjectRepository.getRange(VRObjectRepository.java:79)
+  ...
+    at org.vrspace.server.core.WorldManager.getRange(WorldManager.java:279)
+    at org.vrspace.server.core.Scene.update(Scene.java:94)
+    at org.vrspace.server.core.WorldManager.dispatch(WorldManager.java:654)
+  Caused by: org.neo4j.driver.exceptions.ClientException: Node with id 234 has been deleted in this transaction
    */
   public Set<VRObject> getRange(Client client, Point from, Point to) {
     return updateCache(db.getRange(client.getWorldId(), from, to));

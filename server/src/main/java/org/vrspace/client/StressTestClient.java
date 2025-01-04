@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StressTestClient {
-  private int maxClients = 256;
+  private int maxClients = 100;
   private long requestsPerSecondEach = 5;
   // give it a few seconds to ensure everybody is connected and ready before
   // events start, or start right away to test concurrency of session startup
@@ -34,7 +34,7 @@ public class StressTestClient {
   private Point spawnPoint = new Point(0, 0, 0);
   private Double spawnRadius = Double.valueOf(maxClients / 2);
   // requires valid cert:
-  // private URI uri = URI.create("wss://localhost/vrspace/server");
+  // private URI uri = URI.create("wss://www.vrspace.org/vrspace/client");
   private URI uri = URI.create("ws://localhost:8080/vrspace/client");
   // private String avatarMesh = "/babylon/dolphin.glb";
   private String avatarMesh = "/content/char/female/gracy_lee/scene.gltf";
