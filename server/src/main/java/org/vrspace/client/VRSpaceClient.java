@@ -226,7 +226,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   }
 
   /** Send a request */
-  public void send(ClientRequest req) {
+  public String send(ClientRequest req) {
     try {
       String text = mapper.writeValueAsString(req);
       log.debug("Sending " + text);
@@ -238,8 +238,10 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
         log.error("Send error", err);
         return ws;
       });
+      return text;
     } catch (Exception e) {
       log.error("OOPS", e);
+      return "";
     }
   }
 
@@ -288,6 +290,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
           errorListeners.forEach(l -> l.accept(message));
         } else {
           VREvent event = mapper.readValue(message, VREvent.class);
+          event.setPayload(message);
           eventListeners.forEach(l -> l.accept(event));
         }
       } catch (Exception e) {

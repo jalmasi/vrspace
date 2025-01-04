@@ -56,6 +56,10 @@ public class Dispatcher {
       throw new IllegalArgumentException("Source of event is null");
     }
     VRObject source = event.getSource();
+    if (source.isDeleted()) {
+      // CHECKME should probably be warning
+      throw new IllegalArgumentException("Event for deleted object: " + event);
+    }
 
     // ownership check
     if (!event.isOwner()) {

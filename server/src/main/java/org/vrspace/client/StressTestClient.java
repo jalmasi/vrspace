@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.ClientRequest;
@@ -20,12 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StressTestClient {
-  private int maxClients = 100;
+  private int maxClients = 256;
   private long requestsPerSecondEach = 5;
   // give it a few seconds to ensure everybody is connected and ready before
   // events start, or start right away to test concurrency of session startup
   private long initialDelay = 0;
-  private int runSeconds = 0;
+  private int runSeconds = 60;
   // private String world = "StressTest";
   private String world = "template";
   // private String world = "galaxy";
@@ -35,8 +36,8 @@ public class StressTestClient {
   // requires valid cert:
   // private URI uri = URI.create("wss://localhost/vrspace/server");
   private URI uri = URI.create("ws://localhost:8080/vrspace/client");
-  private String avatarMesh = "/babylon/dolphin.glb";
-  // private String avatarMesh = "/content/char/female/gracy_lee/scene.gltf";
+  // private String avatarMesh = "/babylon/dolphin.glb";
+  private String avatarMesh = "/content/char/female/gracy_lee/scene.gltf";
   private List<VRSpaceClient> clients = new ArrayList<>(maxClients);
 
   private Status status = new Status();
@@ -53,7 +54,7 @@ public class StressTestClient {
       Map<String, String> params = new HashMap<>();
       params.put("name", name);
       params.put("mesh", avatarMesh);
-      params.put("humanoid", "false"); // with dolphin
+      // params.put("humanoid", "false"); // with dolphin
 
       client.addErrorListener(s -> {
         status.errors.incrementAndGet();
@@ -65,6 +66,7 @@ public class StressTestClient {
       client.connectAndEnterSync(world, params);
       client.addEventListener(e -> {
         status.requestsReceived.incrementAndGet();
+        status.bytesReceived.addAndGet(e.getPayload().length());
       });
 
       long period = 1000 / requestsPerSecondEach;
@@ -101,8 +103,9 @@ public class StressTestClient {
       ClientRequest req = new ClientRequest(client.getClient());
       // Point pos = client.getClient().getPosition();
       req.addChange("position", new Point(randomPos(pos.getX()), randomPos(pos.getY()), randomPos(pos.getZ())));
-      client.send(req);
+      String payload = client.send(req);
       status.requestsSent.incrementAndGet();
+      status.bytesSent.addAndGet(payload.length());
     }
 
     private Double randomPos(double pos) {
@@ -112,11 +115,14 @@ public class StressTestClient {
 
   public class Status {
     public AtomicInteger requestsSent = new AtomicInteger();
+    public AtomicLong bytesSent = new AtomicLong();
     public AtomicInteger requestsReceived = new AtomicInteger();
+    public AtomicLong bytesReceived = new AtomicLong();
     public AtomicInteger errors = new AtomicInteger();
 
     public String toString() {
-      return "Sent: " + requestsSent + " Received: " + requestsReceived + " Errors: " + errors;
+      return "Sent - requests: " + requestsSent + " bytes: " + bytesSent + " Received - requests: " + requestsReceived
+          + " bytes: " + bytesReceived + " Errors: " + errors;
     }
   }
 }

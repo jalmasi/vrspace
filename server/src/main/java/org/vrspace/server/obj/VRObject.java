@@ -86,6 +86,13 @@ public class VRObject extends Entity {
   private transient Boolean temporary;
 
   /**
+   * For a short while, a deleted object may remain in cache. It needs to be
+   * ignored for all purposes.
+   */
+  @Transient
+  private transient volatile boolean deleted;
+
+  /**
    * Whether an object is active (can send events). E.g. online users, robots.
    */
   // @JsonIgnore CHECKME: should we publish that?

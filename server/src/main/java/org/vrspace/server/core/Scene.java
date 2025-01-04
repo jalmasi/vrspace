@@ -387,7 +387,8 @@ public class Scene {
    * 
    */
   protected boolean isVisible(VRObject o) {
-    return !o.isPermanent() && !o.equals(client) && filters.values().stream().allMatch(f -> f.apply(o));
+    return !o.isDeleted() && !o.isPermanent() && !o.equals(client)
+        && filters.values().stream().allMatch(f -> f.apply(o));
   }
 
   /**

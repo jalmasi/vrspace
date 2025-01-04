@@ -372,6 +372,7 @@ public class WorldManager {
     // order matters:
     // if we remove it before is deleted, another client can load it just before
     // deletion
+    obj.setDeleted(true);
     client.getWriteBack().delete(obj);
     cache.remove(obj.getObjectId());
   }
