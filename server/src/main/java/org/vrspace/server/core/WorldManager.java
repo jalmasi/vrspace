@@ -528,7 +528,7 @@ public class WorldManager {
   }
 
   @Transactional
-  public void logout(Client client) {
+  public synchronized void logout(Client client) {
     sessionTracker.remove(client);
     exit(client);
     // delete guest client
