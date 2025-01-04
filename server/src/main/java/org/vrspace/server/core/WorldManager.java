@@ -369,8 +369,11 @@ public class WorldManager {
   }
 
   private void delete(Client client, VRObject obj) {
-    cache.remove(obj.getObjectId());
+    // order matters:
+    // if we remove it before is deleted, another client can load it just before
+    // deletion
     client.getWriteBack().delete(obj);
+    cache.remove(obj.getObjectId());
   }
 
   /**
