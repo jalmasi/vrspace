@@ -264,7 +264,7 @@ public class WorldManager {
     return ret;
   }
 
-  // FIXME: not thread-safe, Spring and/or Neo4J issue
+  // FIXME: may not be thread-safe, seems like Spring and/or Neo4J issue
   /*
   org.springframework.dao.TransientDataAccessResourceException: 
   Database elements (nodes, relationships, properties) were observed during query execution, 
@@ -286,11 +286,16 @@ public class WorldManager {
   private Set<VRObject> updateCache(Set<VRObject> objects) {
     HashSet<VRObject> ret = new HashSet<>();
     for (Entity o : objects) {
-      ret.add((VRObject) updateCache(o));
+      VRObject persisted = (VRObject) updateCache(o);
+      // o may have just been deleted
+      if (persisted != null) {
+        ret.add(persisted);
+      }
     }
     return ret;
   }
 
+  // may return null if the object has been deleted
   @SuppressWarnings("unchecked")
   private Entity updateCache(Entity o) {
     // CHECKME: should this be null safe?
@@ -301,9 +306,12 @@ public class WorldManager {
         return cached;
       } else {
         o = db.get(o.getClass(), o.getId());
-        // TODO: post-load operations
-        persistors.get(o.getClass()).postLoad(o);
-        cache.put(id, o);
+        // the object may have just been deleted
+        if (o != null) {
+          // TODO: post-load operations
+          persistors.get(o.getClass()).postLoad(o);
+          cache.put(id, o);
+        }
         return o;
       }
     }
