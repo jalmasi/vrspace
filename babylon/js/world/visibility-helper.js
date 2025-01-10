@@ -78,6 +78,13 @@ export class VisibilityHelper {
     }
     return ret;
   }
+
+  /**
+   * Traverses all VRObjects in the scene, and returns avatars out of active camera frustrum 
+   */
+  getAvatarsOutOfView() {
+    return VRSPACE.getScene().values().filter(vrObject=>vrObject.avatar != "undefined" && this.scene.activeCamera.isInFrustrum(vrObject.avatar.baseMesh()) );
+  }
   
   /**
    * Traverses scene root nodes, and returns visible objects.
