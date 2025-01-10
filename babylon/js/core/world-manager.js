@@ -13,6 +13,7 @@ Loads avatars of other users and maps network events to their avatars,
 including user video and audio streams.
  */
 export class WorldManager {
+  /** Current WorldManager instance @type {WorldManager} */
   static instance = null;
   /** Creates world manager with default values and connection, scene, camera listeners.
   @param world
@@ -441,7 +442,13 @@ export class WorldManager {
 
   /** Notify listeners of remote changes */
   notifyListeners(obj, field, node) {
-    this.changeListeners.forEach( (l) => l(obj,field,node) );
+    this.changeListeners.forEach( (l) => {
+      try {
+        l(obj,field,node) 
+      } catch ( e ) {
+        console.error(e);
+      }
+    });
   }
   
   /** Add a listener to own events */
@@ -803,7 +810,13 @@ export class WorldManager {
         VRSPACE.sendMyChanges(changes);
       }
       // TODO: try/catch
-      this.myChangeListeners.forEach( (listener) => listener(changes));
+      this.myChangeListeners.forEach( (listener) => {
+        try {
+          listener(changes);
+        } catch ( e) {
+          console.error(e);
+        }
+      });
     }
   }
   

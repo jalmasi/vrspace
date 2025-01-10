@@ -49,6 +49,7 @@ export class Avatar {
       }
     }
     this.emojiParticleSystem = null;
+    this.attachments={};
   }
 
   /** 
@@ -184,7 +185,20 @@ export class Avatar {
     return this.topPositionRelative().add(new BABYLON.Vector3(0,this.textOffset,0));
   }
   
+  attach(key,node) {
+    this.attachments[key]=node;
+  }
+  
+  detach(key) {
+    delete this.attachments[key];
+  }
+
+  containsKey(key) {
+    return this.attachments.hasOwnProperty(key);
+  }  
+  
   dispose() {
-    throw new Error("Implement this method");
+    Object.values(this.attachments).forEach(node=>node.dispose());
+    this.attachments = {};
   }
 }

@@ -69,6 +69,7 @@ export class VideoAvatar extends Avatar {
 
   /** dispose of everything */  
   dispose() {
+    super.dispose();
     if ( this.mesh.parent ) {
       this.mesh.parent.dispose();
     }

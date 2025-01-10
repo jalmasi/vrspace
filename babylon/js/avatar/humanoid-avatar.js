@@ -160,6 +160,7 @@ export class HumanoidAvatar extends Avatar {
 
   /** Dispose of everything */
   dispose() {
+    super.dispose();
     if ( this.character ) {
       VRSPACEUI.assetLoader.unloadAsset(this.getUrl(), this.instantiatedEntries);
       delete this.instantiatedEntries;

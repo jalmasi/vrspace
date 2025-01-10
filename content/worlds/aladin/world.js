@@ -1,4 +1,4 @@
-import { World, Desert, Skybox } from '../../../babylon/js/vrspace-min.js';
+import { World, Desert, Skybox, UserDirectionMonitor } from '../../../babylon/js/vrspace-min.js';
 
 //collisions:
 //group296_sand_houses:lambert6_0 - ground
@@ -88,6 +88,12 @@ export class Aladinville extends World {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
   }
   
+  async entered(welcome) {
+    super.entered(welcome);
+    this.dirMonitor= new UserDirectionMonitor();
+    this.dirMonitor.start();
+  }
+
   registerRenderLoop() {
     var scene = this.scene;
     var camera = this.camera;
