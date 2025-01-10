@@ -4,6 +4,7 @@ import {HumanoidAvatar} from '../avatar/humanoid-avatar.js';
 import {VideoAvatar} from '../avatar/video-avatar.js';
 import {MeshAvatar} from '../avatar/mesh-avatar.js';
 import { BotController } from '../avatar/bot-controller.js';
+import { World } from '../world/world.js'
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -21,7 +22,7 @@ export class WorldManager {
     if ( WorldManager.instance ) {
       throw "WorldManager already created";
     }
-    /** the world */
+    /** the world @type {World} */
     this.world = world;
     /** client tokens */
     this.tokens = null;
@@ -46,9 +47,14 @@ export class WorldManager {
     /** Change listeners receive changes applied to all shared objects */
     this.changeListeners = [];
     /** Optionally called after an avatar has loaded. Callback is passed VRObject and avatar object as parameters.
-    Avatar object can be either Avatar or VideoAvatar instance, or an AssetContainer.
-    */
+     * Avatar object can be either Avatar or VideoAvatar instance, or an AssetContainer.
+     * TODO this needs to go away, but is used in WorldEditor.
+     */
     this.loadCallback = null;
+    /** Called when loading fails, default null. 
+     * TODO used in WorldEditor, replace with WorldListener
+     */
+    this.loadErrorHandler = null;
     /** Avatar factory, default this.createAvatar */
     this.avatarFactory = this.createAvatar;
     /** Default position applied after an avatar loads */
@@ -56,7 +62,7 @@ export class WorldManager {
     /** Default rotation applied after an avatar loads */
     this.defaultRotation = new BABYLON.Vector3( 0, 0, 0 );
     /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
-    Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
+     * Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
      */
     this.remoteLogging = false;
     if ( ! this.scene.activeCamera ) {
@@ -85,8 +91,6 @@ export class WorldManager {
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     /** User height in real world, default 1.8 */
     this.userHeight = 1.8;
-    /** Called when loading fails, default null. */
-    this.loadErrorHandler = null;
     this.interval = null;
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));

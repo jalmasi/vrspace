@@ -69,6 +69,7 @@ export class WorldEditor {
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
+    // TODO replace this with WorldListener
     this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
     this.worldManager.loadErrorHandler = (object, exception) => this.loadingFailed(object, exception);
 
@@ -217,6 +218,8 @@ export class WorldEditor {
    * WorldManager error callback, installed by constructor.
    */
   loadingFailed(obj, exception) {
+    // TODO VRObject still may exists, remove it
+    // CHECKME maybe also mark this object as invalid
     VRSPACEUI.indicator.remove("Download");
   }
 
