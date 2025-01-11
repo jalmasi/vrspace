@@ -17,6 +17,7 @@ import { GameTag } from '../games/game-tag.js';
 import { SoundMixer } from './widget/sound-mixer.js';
 import { CameraHelper } from '../world/camera-helper.js';
 import { ImageArea } from './widget/image-area.js';
+import { UserDirectionMonitor } from './widget/user-direction-monitor.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -43,6 +44,7 @@ export class DefaultHud {
     this.screencast = null;
     this.whiteboard = null;
     this.creditArea = null;
+    this.userDirectionMonitor = null;
   }
 
   init() {
@@ -120,6 +122,14 @@ export class DefaultHud {
       this.hud.showButtons(false, this.toolsButton);
       this.hud.newRow();
 
+      this.compassButton = this.hud.addButton("Positions", this.contentBase + "/content/icons/location-indicator.png", () => this.compass(), false);
+      this.compassButton.tooltipText = "Show positions";
+      if ( !UserDirectionMonitor.isEnabled()) {
+        this.hud.markDisabled(this.compassButton, true);
+      } else if ( this.userDirectionMonitor ) {
+        this.hud.markActive(this.compassButton, true);
+      }
+
       this.saveButton = this.hud.addButton("Save", this.contentBase + "/content/icons/save.png", () => this.save(), false);
       this.saveButton.tooltipText = "Save&Download";
 
@@ -133,6 +143,19 @@ export class DefaultHud {
     }
   }
 
+  compass() {
+    if ( this.userDirectionMonitor ) {
+      this.userDirectionMonitor.dispose();
+      this.userDirectionMonitor = null;
+      this.hud.markEnabled(this.compassButton, true);
+    } else {
+      this.userDirectionMonitor = new UserDirectionMonitor();
+      this.userDirectionMonitor.start();
+      this.hud.markActive(this.compassButton,true);
+    }
+    
+  }
+  
   clearRow() {
     this.hud.clearRow();
     if (this.orientationButton) {

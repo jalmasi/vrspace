@@ -5,6 +5,7 @@ import { VRSPACE } from "../../client/vrspace.js";
 import { VRSPACEUI } from '../vrspace-ui.js';
 
 export class UserDirectionMonitor {
+  static enabled = true;
   constructor() {
     this.visibilityHelper = new VisibilityHelper();
     this.scene = this.visibilityHelper.scene;
@@ -16,6 +17,10 @@ export class UserDirectionMonitor {
     this.fps = 5;
     this.vertical = 0.15;
     this.autoHide = true;
+  }
+  
+  static isEnabled() {
+    return WorldManager.instance != null && UserDirectionMonitor.enabled;
   }
   
   start() {
@@ -32,9 +37,12 @@ export class UserDirectionMonitor {
     let avatars = this.visibilityHelper.getAvatarsOutOfView();
     avatars.forEach(avatar=>this.indicate(avatar));
   }
-  dispose() {
-  }
   
+  dispose() {
+    this.stop();
+    VRSPACE.getScene(vrObject=>typeof vrObject.avatar != "undefined").values().forEach(vrObject=>this.removeIndicator(vrObject.avatar));
+  }
+
   myChanges(changes) {
     if (changes.some(e=>e.field == "position" || e.field == "rotation") ) {
       this.examineAll();
@@ -96,4 +104,19 @@ export class UserDirectionMonitor {
       avatar.attachments.positionIndicator.position = destPos;
     }
   }
+  
+  /** @param {Avatar} avatar */
+  removeIndicator(avatar) {
+    if ( avatar.containsAttachment('positionIndicator')) {
+      if ( avatar.containsAttachment('positionIndicatorPosAnim')) {
+        avatar.attachments.positionIndicatorPosAnim.dispose();
+        avatar.attachments.positionIndicatorQuatAnim.dispose();
+        avatar.detach('positionIndicatorPosAnim');
+        avatar.detach('positionIndicatorQuatAnim');
+      }
+      avatar.attachments.positionIndicator.dispose();
+      avatar.detach('positionIndicator');
+    }
+  }
+  
 }

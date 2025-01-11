@@ -88,12 +88,6 @@ export class Aladinville extends World {
     //super.loaded(file, mesh); // FIXME: calling initXR() twice
   }
   
-  async entered(welcome) {
-    super.entered(welcome);
-    this.dirMonitor= new UserDirectionMonitor();
-    this.dirMonitor.start();
-  }
-
   registerRenderLoop() {
     var scene = this.scene;
     var camera = this.camera;
