@@ -18,6 +18,7 @@ import { SoundMixer } from './widget/sound-mixer.js';
 import { CameraHelper } from '../world/camera-helper.js';
 import { ImageArea } from './widget/image-area.js';
 import { UserDirectionMonitor } from './widget/user-direction-monitor.js';
+import { MiniMap } from './widget/mini-map.js';
 
 /**
  * Adds default holographic buttons to the HUD.
@@ -44,9 +45,14 @@ export class DefaultHud {
     this.screencast = null;
     this.whiteboard = null;
     this.creditArea = null;
+    this.miniMap = null;
   }
 
   init() {
+    if ( this.miniMap ) {
+      this.miniMap.dispose();
+      this.miniMap = null;
+    }
     if (this.settingsButton && this.displayButtons) {
       this.clearRow();
       this.displayButtons = false;
@@ -121,6 +127,12 @@ export class DefaultHud {
       this.hud.showButtons(false, this.toolsButton);
       this.hud.newRow();
 
+      this.minimapButton = this.hud.addButton("Mini map", this.contentBase + "/content/icons/map.png", () => this.toggleMiniMap(), false);
+      this.minimapButton.tooltipText = "Show mini map";
+      if ( this.miniMap ) {
+        this.hud.markActive(this.miniMap, true);
+      }
+      
       this.compassButton = this.hud.addButton("Positions", this.contentBase + "/content/icons/location-indicator.png", () => this.compass(), false);
       this.compassButton.tooltipText = "Show positions";
       if ( !UserDirectionMonitor.isEnabled()) {
@@ -150,7 +162,17 @@ export class DefaultHud {
       new UserDirectionMonitor().start();
       this.hud.markActive(this.compassButton,true);
     }
-    
+  }
+  
+  toggleMiniMap() {
+    if ( this.miniMap ) {
+      this.miniMap.dispose();
+      this.miniMap = null;
+      this.hud.markEnabled(this.minimapButton, true);
+    } else {
+      this.miniMap = new MiniMap(this.scene);
+      this.hud.markActive(this.minimapButton, true);
+    }
   }
   
   clearRow() {

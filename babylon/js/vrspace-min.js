@@ -52,6 +52,7 @@ export { TextArea } from './ui/widget/text-area.js';
 export { TextAreaInput } from './ui/widget/text-area-input.js';
 export { SoundMixer } from './ui/widget/sound-mixer.js';
 export { UserDirectionMonitor } from './ui/widget/user-direction-monitor.js';
+export { MiniMap } from './ui/widget/mini-map.js';
 
 export { VRHelper } from "./xr/vr-helper.js";
 export { ARHelper } from "./xr/ar-helper.js";

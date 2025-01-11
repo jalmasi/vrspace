@@ -68,12 +68,21 @@ export class HUD {
     window.addEventListener("resize", () => {
       this.rescaleHUD();
     });
+    this.ignoreCamera=null;
+    this.cameraIgnored=false;
     this.trackCamera();
   }
   /**
   Handles camera change events, typically while entering/exiting VR.
    */
   trackCamera() {
+    if ( this.scene.activeCamera == this.ignoreCamera ) {
+      this.cameraIgnored=true;
+      return;
+    } else if ( this.cameraIgnored ) {
+      this.cameraIgnored=false;
+      return;
+    }
     console.log("HUD tracking camera: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
     this.camera = this.scene.activeCamera;
     this.rescaleHUD();

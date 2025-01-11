@@ -70,12 +70,15 @@ export class Terrain {
     this.terrain.mesh.checkCollisions = this.checkCollisions;
 
     this.terrain.update(true);
+    /*
+    CHECKME why does this matter?
     this.scene.onActiveCameraChanged.add( () => {
       if ( this.scene.activeCamera ) {
-        console.log("Terain tracking new camera: "+this.scene.activeCamera.getClassName());
+        console.log("Terrain tracking new camera: "+this.scene.activeCamera.getClassName());
         this.terrain.camera = this.scene.activeCamera;
       }
     });
+    */
     this.terrain.mesh.setEnabled(this.enabled);
     console.log('Terrain created');
   }
