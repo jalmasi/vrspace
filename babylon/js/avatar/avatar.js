@@ -49,6 +49,7 @@ export class Avatar {
       }
     }
     this.emojiParticleSystem = null;
+    /** Custom nodes to be disposed when this avatar is disposed */
     this.attachments={};
   }
 
@@ -184,19 +185,25 @@ export class Avatar {
   textPositionRelative() {
     return this.topPositionRelative().add(new BABYLON.Vector3(0,this.textOffset,0));
   }
-  
-  attach(key,node) {
-    this.attachments[key]=node;
+ 
+  /** Add an attachment to the attachment object */ 
+  attach(name,node) {
+    this.attachments[name]=node;
   }
   
-  detach(key) {
-    delete this.attachments[key];
+  /** Delete an attachment, does not dispose */
+  detach(name) {
+    delete this.attachments[name];
   }
 
-  containsKey(key) {
-    return this.attachments.hasOwnProperty(key);
+  /**
+   * Shortcut for this.attachments.hasOwnProperty(name)
+   */
+  containsAttachment(name) {
+    return this.attachments.hasOwnProperty(name);
   }  
-  
+ 
+  /** Disposes of all attachments */ 
   dispose() {
     Object.values(this.attachments).forEach(node=>node.dispose());
     this.attachments = {};

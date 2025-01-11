@@ -15,6 +15,7 @@ export class UserDirectionMonitor {
     this.animate = true;
     this.fps = 5;
     this.vertical = 0.15;
+    this.autoHide = true;
   }
   
   start() {
@@ -55,12 +56,21 @@ export class UserDirectionMonitor {
    */
   indicate(avatar, animate) {
     let camera = this.scene.activeCamera;
+    
+    if ( this.autoHide && camera.isInFrustum(avatar.baseMesh()) ) {
+      // avatar is currently vidisible, hide the indicator if displayed  
+      if ( avatar.containsAttachment('positionIndicator')) {
+        avatar.attachments.positionIndicator.setEnabled(false);
+      }
+      return;
+    }
+    
     let cameraDirection = camera.getForwardRay(1).direction;
     let avatarDirection = avatar.basePosition().subtract(camera.position);
     var destRotation = new BABYLON.Matrix();
     BABYLON.Matrix.RotationAlignToRef(cameraDirection.normalizeToNew(), avatarDirection.normalizeToNew(), destRotation);
     var quat = BABYLON.Quaternion.FromRotationMatrix(destRotation);
-    if ( !avatar.containsKey('positionIndicator')) {
+    if ( !avatar.containsAttachment('positionIndicator')) {
       let positionIndicator = BABYLON.MeshBuilder.CreateCylinder("cone", {diameterTop:0, diameterBottom:0.01*this.distance, height: .2*this.distance, tessellation: 4}, this.scene);
       positionIndicator.parent = camera;
       positionIndicator.position = new BABYLON.Vector3(0,this.vertical,this.distance);
@@ -69,9 +79,10 @@ export class UserDirectionMonitor {
     let destQuat = quat.multiply(this.baseRotation)
     let aspectRatio = this.scene.getEngine().getAspectRatio(camera);
     let destPos = new BABYLON.Vector3(quat.y*aspectRatio/2.5*this.distance,this.vertical,this.distance);
-    
+        
+    avatar.attachments.positionIndicator.setEnabled(true);
     if ( animate ) {
-      if ( !avatar.containsKey('positionIndicatorPosAnim')) {
+      if ( !avatar.containsAttachment('positionIndicatorPosAnim')) {
         avatar.attachments.positionIndicatorPosAnim = VRSPACEUI.createAnimation(avatar.attachments.positionIndicator,"position",this.fps);
         avatar.attachments.positionIndicatorQuatAnim = VRSPACEUI.createQuaternionAnimation(avatar.attachments.positionIndicator,"rotationQuaternion",this.fps);
         avatar.attachments.positionIndicator.rotationQuaternion = destQuat;
