@@ -1,6 +1,6 @@
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Avatar } from './avatar.js';
-import {ServerFolder} from '../core/server-folder.js';
+import { ServerFolder } from '../core/server-folder.js';
 
 /**
 GLTF 3D Avatar.
@@ -23,7 +23,7 @@ export class HumanoidAvatar extends Avatar {
     /** ServerFolder with content path */
     this.folder = folder;
     /** File name, default scene.gltf */
-    this.file = folder.file?folder.file:"scene.gltf";
+    this.file = folder.file ? folder.file : "scene.gltf";
     /** Optional ShadowGenerator */
     this.shadowGenerator = shadowGenerator;
     /** Optional custom animations */
@@ -142,15 +142,15 @@ export class HumanoidAvatar extends Avatar {
     };
   };
 
-  log( anything ) {
-    if ( this.debug ) {
-      console.log( anything );
+  log(anything) {
+    if (this.debug) {
+      console.log(anything);
     }
   }
 
   boneProcessed(bone) {
-    if ( this.bonesProcessed.includes(bone.name) ) {
-      this.log("Already processed bone "+bone.name);
+    if (this.bonesProcessed.includes(bone.name)) {
+      this.log("Already processed bone " + bone.name);
     } else {
       this.bonesTotal++;
       this.bonesProcessed.push(bone.name);
@@ -161,28 +161,28 @@ export class HumanoidAvatar extends Avatar {
   /** Dispose of everything */
   dispose() {
     super.dispose();
-    if ( this.character ) {
+    if (this.character) {
       VRSPACEUI.assetLoader.unloadAsset(this.getUrl(), this.instantiatedEntries);
       delete this.instantiatedEntries;
       this.character = null;
       //delete this.character.avatar;
       //this.character.dispose();
     }
-    if ( this.debugViewer1 ) {
+    if (this.debugViewer1) {
       this.debugViewer1.dispose();
     }
-    if ( this.debugViewer2 ) {
+    if (this.debugViewer2) {
       this.debugViewer2.dispose();
     }
     // TODO also dispose of materials and textures (asset container)
   }
   // CHECKME this is called only from avatar-selection dispose()
   hide() {
-    if ( this.character && this.parentMesh ) {
+    if (this.character && this.parentMesh) {
       this.parentMesh.setEnabled(false);
       // CHECKME: turnAround for cloned character
       // has to be prepared for cloning
-      this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
+      this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));
     }
   }
   /** 
@@ -198,185 +198,185 @@ export class HumanoidAvatar extends Avatar {
 
   hasCustomAnimations() {
     // ReadyPlayerMe avatar:
-    for ( var i = 0; this.animations && i < this.character.meshes.length; i++ ) {
-      if ( this.character.meshes[i].name == 'Wolf3D_Avatar' ) {
-        console.log('RPM avatar detected at '+i);
+    for (var i = 0; this.animations && i < this.character.meshes.length; i++) {
+      if (this.character.meshes[i].name == 'Wolf3D_Avatar') {
+        console.log('RPM avatar detected at ' + i);
         return true;
       }
     }
     return false;
   }
-  
-  _processContainer( container, onSuccess ) {
-      this.character = container;
-      
-      var meshes = container.meshes;
-      this.rootMesh = meshes[0];
-      
-      if ( this.turnAround ) {
-        // GLTF characters are facing the user when loaded, turn it around
-        this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,Math.PI));
-      }
 
-      if (container.animationGroups && container.animationGroups.length > 0) {
-        container.animationGroups[0].stop();
-        this.animationBlending();
-      }
+  _processContainer(container, onSuccess) {
+    this.character = container;
 
-      var bbox = this.rootMesh.getHierarchyBoundingVectors();
-      this.log("Bounding box:");
-      this.log(bbox);
-      var scale = this.userHeight/(bbox.max.y-bbox.min.y);
-      this.log("Scaling: "+scale);
-      this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
-      this.recompute();
+    var meshes = container.meshes;
+    this.rootMesh = meshes[0];
 
-      this.castShadows( this.shadowGenerator );
+    if (this.turnAround) {
+      // GLTF characters are facing the user when loaded, turn it around
+      this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));
+    }
 
-      // try to place feet on the ground
-      // CHECKME is this really guaranteed to work in every time?
-      bbox = this.rootMesh.getHierarchyBoundingVectors();
-      this.groundLevel(-bbox.min.y);
-      // CHECKME we may want to store the value in case we want to apply it again
-      
-      if ( ! this.name ) {
-        this.name = this.folder.name;
-      }
-      this.parentMesh = container.createRootMesh();
-      this.parentMesh.name = "AvatarRoot:"+this.name;
-      this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
-      
-      // target of 3rd person camera
-      this.headPosition = BABYLON.MeshBuilder.CreateSphere("head position", {diameter:0.1}, this.scene);
-      this.headPosition.position = new BABYLON.Vector3(0,this.userHeight,0);
-      this.headPosition.parent = this.parentMesh;
-      this.headPosition.isVisible = false;
+    if (container.animationGroups && container.animationGroups.length > 0) {
+      container.animationGroups[0].stop();
+      this.animationBlending();
+    }
 
-      if ( container.skeletons && container.skeletons.length > 0 ) {
-        // CHECKME: should we process multiple skeletons?
-        this.skeleton = container.skeletons[0];
-        // hacking to get avatars working in babylon 5
-        // https://doc.babylonjs.com/features/featuresDeepDive/mesh/bonesSkeletons#sharing-skeletons-between-skinned-meshes
-        this.skinnedMesh = null;
-        meshes.find(m=>{
-          if ( m.skeleton = this.skeleton ) {
-            if ( ! this.skinnedMesh ) {
-              //console.log("Skinned mesh: "+m.name, m);
-              this.skinnedMesh = m;
-            }
+    var bbox = this.rootMesh.getHierarchyBoundingVectors();
+    this.log("Bounding box:");
+    this.log(bbox);
+    var scale = this.userHeight / (bbox.max.y - bbox.min.y);
+    this.log("Scaling: " + scale);
+    this.rootMesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+    this.recompute();
+
+    this.castShadows(this.shadowGenerator);
+
+    // try to place feet on the ground
+    // CHECKME is this really guaranteed to work in every time?
+    bbox = this.rootMesh.getHierarchyBoundingVectors();
+    this.groundLevel(-bbox.min.y);
+    // CHECKME we may want to store the value in case we want to apply it again
+
+    if (!this.name) {
+      this.name = this.folder.name;
+    }
+    this.parentMesh = container.createRootMesh();
+    this.parentMesh.name = "AvatarRoot:" + this.name;
+    this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
+
+    // target of 3rd person camera
+    this.headPosition = BABYLON.MeshBuilder.CreateSphere("head position", { diameter: 0.1 }, this.scene);
+    this.headPosition.position = new BABYLON.Vector3(0, this.userHeight, 0);
+    this.headPosition.parent = this.parentMesh;
+    this.headPosition.isVisible = false;
+
+    if (container.skeletons && container.skeletons.length > 0) {
+      // CHECKME: should we process multiple skeletons?
+      this.skeleton = container.skeletons[0];
+      // hacking to get avatars working in babylon 5
+      // https://doc.babylonjs.com/features/featuresDeepDive/mesh/bonesSkeletons#sharing-skeletons-between-skinned-meshes
+      this.skinnedMesh = null;
+      meshes.find(m => {
+        if (m.skeleton = this.skeleton) {
+          if (!this.skinnedMesh) {
+            //console.log("Skinned mesh: "+m.name, m);
+            this.skinnedMesh = m;
+          }
+        }
+      });
+
+      this.createBody();
+      //this.log("bones: "+bonesTotal+" "+bonesProcessed);
+
+      this.skeleton.computeAbsoluteTransforms();
+      // different ways to enforce calculation:
+      //this.skeleton.computeAbsoluteTransforms(true);
+      //this.rootMesh.computeWorldMatrix(true);
+      //this.scene.render();
+      this.skeleton.name = this.folder.name;
+
+      let bone0quat = this.skeleton.bones[0].getRotationQuaternion();
+      let bone1quat = this.skeleton.bones[0].getChildren()[0].getRotationQuaternion();
+      this.baseRotation = bone0quat.multiply(bone1quat);
+      console.log("Base rotation: " + bone0quat.toEulerAngles() + " " + bone1quat.toEulerAngles() + " " + this.baseRotation.toEulerAngles());
+
+      this.processBones(this.skeleton.bones);
+      this.log("Base head position: " + this.headPos());
+      this.initialHeadPos = this.headPos();
+      this.resize();
+
+      //this.log(this.body);
+      this.bonesProcessed.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+      this.calcLength(this.body.leftArm);
+      this.calcLength(this.body.rightArm);
+      this.calcLength(this.body.leftLeg);
+      this.calcLength(this.body.rightLeg);
+      this.extractInitialArmTransformation(this.body.leftArm);
+      this.extractInitialArmTransformation(this.body.rightArm);
+      this.extractInitialLegTransformation(this.body.leftLeg);
+      this.extractInitialLegTransformation(this.body.rightLeg);
+
+      this.body.processed = true;
+
+      if (this.debugViewier1 || this.debugViewer2) {
+        this.scene.registerBeforeRender(() => {
+          if (this.debugViewer1) {
+            this.debugViewer1.update();
+          }
+          if (this.debugViewer2) {
+            this.debugViewer2.update();
           }
         });
-
-        this.createBody();
-        //this.log("bones: "+bonesTotal+" "+bonesProcessed);
-
-        this.skeleton.computeAbsoluteTransforms();
-        // different ways to enforce calculation:
-        //this.skeleton.computeAbsoluteTransforms(true);
-        //this.rootMesh.computeWorldMatrix(true);
-        //this.scene.render();
-        this.skeleton.name = this.folder.name;
-
-        let bone0quat = this.skeleton.bones[0].getRotationQuaternion();
-        let bone1quat = this.skeleton.bones[0].getChildren()[0].getRotationQuaternion();
-        this.baseRotation = bone0quat.multiply(bone1quat);
-        console.log( "Base rotation: "+bone0quat.toEulerAngles()+" "+bone1quat.toEulerAngles()+" "+this.baseRotation.toEulerAngles());
-
-        this.processBones(this.skeleton.bones);
-        this.log( "Base head position: "+this.headPos() );
-        this.initialHeadPos = this.headPos();
-        this.resize();
-
-        //this.log(this.body);
-        this.bonesProcessed.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
-
-        this.calcLength(this.body.leftArm);
-        this.calcLength(this.body.rightArm);
-        this.calcLength(this.body.leftLeg);
-        this.calcLength(this.body.rightLeg);
-        this.extractInitialArmTransformation(this.body.leftArm);
-        this.extractInitialArmTransformation(this.body.rightArm);
-        this.extractInitialLegTransformation(this.body.leftLeg);
-        this.extractInitialLegTransformation(this.body.rightLeg);
-        
-        this.body.processed = true;
-
-        if ( this.debugViewier1 || this.debugViewer2 ) {
-          this.scene.registerBeforeRender(() => {
-              if (this.debugViewer1) {
-                this.debugViewer1.update();
-              }
-              if (this.debugViewer2) {
-                this.debugViewer2.update();
-              }
-          });
-        }
-      } else {
-        console.log("NOT an avatar - no skeletons");
       }
+    } else {
+      console.log("NOT an avatar - no skeletons");
+    }
 
-      //this.postProcess();
+    //this.postProcess();
 
-      container.avatar = this;
+    container.avatar = this;
 
-      console.log("Avatar loaded: "+this.name);
-      
-      if ( this.hasCustomAnimations()) {
-        // CHECKME: we may need to add these animations to AssetContainer animations list
-        var animCnt = 0;
-        var animationLoaded = () => {
-          if ( ++animCnt == this.animations.length ) {
-            console.log("All animations loaded");
-            if ( onSuccess ) {
-              onSuccess(this);
-            }
+    console.log("Avatar loaded: " + this.name);
+
+    if (this.hasCustomAnimations()) {
+      // CHECKME: we may need to add these animations to AssetContainer animations list
+      var animCnt = 0;
+      var animationLoaded = () => {
+        if (++animCnt == this.animations.length) {
+          console.log("All animations loaded");
+          if (onSuccess) {
+            onSuccess(this);
           }
         }
-        this.animations.forEach( a => this.loadAnimations(a, animationLoaded));
-      } else if ( onSuccess ) {
-        onSuccess(this);
       }
+      this.animations.forEach(a => this.loadAnimations(a, animationLoaded));
+    } else if (onSuccess) {
+      onSuccess(this);
+    }
   }
 
   /**
   Apply fixes after loading/instantiation
    */
   postProcess() {
-    if ( this.fixes ) {
-      if ( typeof this.fixes.standing !== 'undefined' ) {
+    if (this.fixes) {
+      if (typeof this.fixes.standing !== 'undefined') {
         // CHECKME not used since proper bounding box calculation
         // might be required in some special cases
-        this.log( "Applying fixes for: "+this.folder.name+" standing: "+this.fixes.standing);
+        this.log("Applying fixes for: " + this.folder.name + " standing: " + this.fixes.standing);
         this.groundLevel(this.fixes.standing);
         // CHECKME we may need to change textwriter position
       }
       this.disableNodes();
-      if ( typeof this.fixes.autoPlay !== 'undefined' ) {
+      if (typeof this.fixes.autoPlay !== 'undefined') {
         // start playing the animation
         this.startAnimation(this.fixes.autoPlay);
       }
     }
-    
+
   }
   /**
   Load fixes from json file in the same folder, with the same name, and suffix .fixes.
   Called from load().
    */
   async loadFixes() {
-    this.log('Loading fixes from '+this.folder.relatedUrl());
-    if ( this.folder.related && !HumanoidAvatar.notFound.includes(this.folder.relatedUrl())) {
-      return fetch(this.folder.relatedUrl(), {cache: this.cache})
-      .then(response => {
-        if ( response.ok ) {
-          response.json().then(json => {
-            this.fixes = json;
-            this.log( "Loaded fixes: " );
-            this.log( json );
-          });
-        } else {
-          console.log('Error loading fixes: ' + response.status);
-        }
-      });
+    this.log('Loading fixes from ' + this.folder.relatedUrl());
+    if (this.folder.related && !HumanoidAvatar.notFound.includes(this.folder.relatedUrl())) {
+      return fetch(this.folder.relatedUrl(), { cache: this.cache })
+        .then(response => {
+          if (response.ok) {
+            response.json().then(json => {
+              this.fixes = json;
+              this.log("Loaded fixes: ");
+              this.log(json);
+            });
+          } else {
+            console.log('Error loading fixes: ' + response.status);
+          }
+        });
     }
   }
 
@@ -384,25 +384,25 @@ export class HumanoidAvatar extends Avatar {
   Disable nodes marked in fixes file
    */
   disableNodes() {
-    if ( typeof this.fixes.nodesDisabled !== 'undefined' ) {
-      this.enableNodes( this.fixes.nodesDisabled, false );
+    if (typeof this.fixes.nodesDisabled !== 'undefined') {
+      this.enableNodes(this.fixes.nodesDisabled, false);
     }
   }
-  
+
   /**
   Enable/disable given nodes
   @param nodeIds array of node identifiers
   @param enable true/false
    */
-  enableNodes( nodeIds, enable ) {
-    this.character.getNodes().forEach( node => {
-      if ( nodeIds.includes(node.id)) {
-        this.log("Node "+node.id+" enabled: "+enable);
+  enableNodes(nodeIds, enable) {
+    this.character.getNodes().forEach(node => {
+      if (nodeIds.includes(node.id)) {
+        this.log("Node " + node.id + " enabled: " + enable);
         node.setEnabled(enable);
       }
     });
   }
-  
+
   /** 
   Slice an animation group
   @param group AnimationGroup to slice
@@ -410,21 +410,21 @@ export class HumanoidAvatar extends Avatar {
   @param endTime slice ending time
   @returns new AnimationGroup containing slice of original animations
   */
-  sliceGroup( group, startTime, endTime ) {
-    let newGroup = new BABYLON.AnimationGroup(group.name+":"+startTime+"-"+endTime);
+  sliceGroup(group, startTime, endTime) {
+    let newGroup = new BABYLON.AnimationGroup(group.name + ":" + startTime + "-" + endTime);
     let duration = group.getLength();
-    for ( let i = 0; i < group.targetedAnimations.length; i++ ) {
+    for (let i = 0; i < group.targetedAnimations.length; i++) {
       let animation = group.targetedAnimations[i].animation;
       let keys = animation.getKeys();
-      if ( keys.length > 0 ) {
+      if (keys.length > 0) {
         let first = keys[0].frame;
-        let last = keys[keys.length-1].frame;
-        let fps = (last-first)/duration
-        let start = startTime*fps;
-        let end = endTime*fps;
-        let slice = this.sliceAnimation( animation, start, end );
-        if ( slice.getKeys().length > 0 ) {
-          newGroup.addTargetedAnimation( slice, group.targetedAnimations[i].target );
+        let last = keys[keys.length - 1].frame;
+        let fps = (last - first) / duration
+        let start = startTime * fps;
+        let end = endTime * fps;
+        let slice = this.sliceAnimation(animation, start, end);
+        if (slice.getKeys().length > 0) {
+          newGroup.addTargetedAnimation(slice, group.targetedAnimations[i].target);
         }
       }
     }
@@ -441,10 +441,10 @@ export class HumanoidAvatar extends Avatar {
   sliceAnimation(animation, start, end) {
     var keys = animation.getKeys();
     var slice = [];
-    for ( var i = 0; i < keys.length; i++ ) {
+    for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
-      if ( key.frame >= start ) {
-        if ( key.frame <= end ) {
+      if (key.frame >= start) {
+        if (key.frame <= end) {
           slice.push(key);
         } else {
           break;
@@ -452,7 +452,7 @@ export class HumanoidAvatar extends Avatar {
       }
     }
     var ret = new BABYLON.Animation(animation.name, animation.targetProperty, animation.framePerSecond, animation.dataType, animation.loopMode, animation.enableBlending);
-    ret.setKeys( slice );
+    ret.setKeys(slice);
     return ret;
   }
 
@@ -463,39 +463,39 @@ export class HumanoidAvatar extends Avatar {
   getAnimationGroups(animationGroups = this.character.animationGroups) {
     if (!this.animationGroups) {
       var loopAnimations = true;
-      if ( this.fixes && typeof this.fixes.loopAnimations !== 'undefined' ) {
+      if (this.fixes && typeof this.fixes.loopAnimations !== 'undefined') {
         loopAnimations = this.fixes.loopAnimations;
       }
-      if ( this.fixes && this.fixes.animationGroups ) {
+      if (this.fixes && this.fixes.animationGroups) {
         this.animationGroups = [];
         // animation groups overriden; process animation groups and generate new ones
-        for ( var j = 0; j < this.fixes.animationGroups.length; j++ ) {
+        for (var j = 0; j < this.fixes.animationGroups.length; j++) {
           var override = this.fixes.animationGroups[j];
           // find source group
-          for ( var i = 0; i < animationGroups.length; i++ ) {
+          for (var i = 0; i < animationGroups.length; i++) {
             var group = animationGroups[i];
-            if ( group.name == override.source ) {
+            if (group.name == override.source) {
               var newGroup = group;
-              if ( override.start || override.end ) {
+              if (override.start || override.end) {
                 // now slice it and generate new group
-                newGroup = this.sliceGroup( group, override.start, override.end );
+                newGroup = this.sliceGroup(group, override.start, override.end);
               }
-              if ( override.name ) {
+              if (override.name) {
                 newGroup.name = override.name;
               }
-              if ( typeof override.loop !== 'undefined' ) {
+              if (typeof override.loop !== 'undefined') {
                 newGroup.loopAnimation = override.loop;
               } else {
                 newGroup.loopAnimation = loopAnimations;
               }
-              this.animationGroups.push( newGroup );
+              this.animationGroups.push(newGroup);
               break;
             }
           }
         }
       } else {
         this.animationGroups = animationGroups;
-        for ( var i=0; i<this.animationGroups.length; i++ ) {
+        for (var i = 0; i < this.animationGroups.length; i++) {
           this.animationGroups[i].loopAnimation = loopAnimations;
         }
       }
@@ -505,25 +505,25 @@ export class HumanoidAvatar extends Avatar {
 
   /** Returns file name of this avatar, consisting of folder name and scene file name */
   getUrl() {
-    return this.folder.url()+"/"+this.file;
+    return this.folder.url() + "/" + this.file;
   }
-  
+
   /**
   Loads the avatar.
   @param success callback to execute on success
   @param failure executed if loading fails
    */
   load(success, failure) {
-    this.loadFixes().then( () => {
-      this.log("loading from "+this.folder.url());
+    this.loadFixes().then(() => {
+      this.log("loading from " + this.folder.url());
       var plugin = VRSPACEUI.assetLoader.loadAsset(
         this.getUrl(),
         // onSuccess:
-        (loadedUrl, container, info, instantiatedEntries ) => {
+        (loadedUrl, container, info, instantiatedEntries) => {
           this.info = info
           // https://doc.babylonjs.com/typedoc/classes/babylon.assetcontainer
           // https://doc.babylonjs.com/typedoc/classes/babylon.instantiatedentries
-          if ( instantiatedEntries ) {
+          if (instantiatedEntries) {
             //console.log("CHECKME: avatar "+this.name+" already loaded", container.avatar);
             // copy body bones from processed avatar
             this.character = container;
@@ -540,40 +540,40 @@ export class HumanoidAvatar extends Avatar {
 
             // remove all children nodes cloned along
             // CHECKME this better be done while instantiating, can we pass a function?
-            while ( this.parentMesh.getChildren().length > 1 ) {
-              console.log("Disposing of cloned child "+this.parentMesh.getChildren()[1].name)
+            while (this.parentMesh.getChildren().length > 1) {
+              console.log("Disposing of cloned child " + this.parentMesh.getChildren()[1].name)
               this.parentMesh.getChildren()[1].dispose();
             }
 
             this.getAnimationGroups(instantiatedEntries.animationGroups);
             this.skeleton = instantiatedEntries.skeletons[0];
-            if ( this.returnToRest ) {
+            if (this.returnToRest) {
               this.standUp();
               this.skeleton.returnToRest();
             }
             this.parentMesh.rotationQuaternion = new BABYLON.Quaternion();
             this.instantiatedEntries = instantiatedEntries;
-            if ( success ) {
+            if (success) {
               success(this);
             }
           } else {
             container.addAllToScene();
             try {
-              this._processContainer(container,success);
+              this._processContainer(container, success);
               this.parentMesh.avatar = this;
-            } catch ( exception ) {
+            } catch (exception) {
               VRSPACEUI.assetLoader.unloadAsset(this.getUrl());
-              if ( failure ) {
+              if (failure) {
                 failure(exception);
               } else {
-                console.log("Error loading "+this.name,exception);
+                console.log("Error loading " + this.name, exception);
               }
             }
           }
           this.postProcess();
         },
-        (exception)=>{
-          if ( failure ) {
+        (exception) => {
+          if (failure) {
             failure(exception);
           } else {
             console.log(exception);
@@ -602,7 +602,7 @@ export class HumanoidAvatar extends Avatar {
   height() {
     return this.headPos().y - this.rootMesh.getAbsolutePosition().y;
   }
-  
+
   /** 
   Returns absolute value of vector, i.e. Math.abs() of every value
   @param vec Vector3 to get absolute
@@ -629,23 +629,23 @@ export class HumanoidAvatar extends Avatar {
   Look at given target. Head position is calculated without any bone limits.
   @param t target Vector3
    */
-  lookAt( t ) {
+  lookAt(t) {
     // calc target pos in coordinate system of head
     var totalPos = this.parentMesh.position.add(this.rootMesh.position);
     var totalRot = this.rootMesh.rotationQuaternion.multiply(this.parentMesh.rotationQuaternion);
-    var target = new BABYLON.Vector3( t.x, t.y+this.bodyTargetHeight(), t.z ).subtract(totalPos);
+    var target = new BABYLON.Vector3(t.x, t.y + this.bodyTargetHeight(), t.z).subtract(totalPos);
 
-    target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(totalRot),target);
+    target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(totalRot), target);
 
     // CHECKME: exact calculus?
     var targetVector = target.subtract(this.headPos()).add(totalPos);
     //var targetVector = target.subtract(this.headPos());
-    if ( this.headXAxisFix != -1 ) {
+    if (this.headXAxisFix != -1) {
       // FIX: neck and head opposite vertical orientation
       // businessman, robot, adventurer, unreal male, solus
       targetVector.y = -targetVector.y;
     }
-    targetVector.rotateByQuaternionToRef(this.headQuatInv,targetVector);
+    targetVector.rotateByQuaternionToRef(this.headQuatInv, targetVector);
     // this results in weird head positions, more natural-looking fix applied after
     //targetVector.rotateByQuaternionToRef(this.headQuat.multiply(this.neckQuatInv),targetVector);
 
@@ -654,7 +654,7 @@ export class HumanoidAvatar extends Avatar {
     BABYLON.Matrix.RotationAlignToRef(this.headTarget, targetVector.normalizeToNew(), rotationMatrix);
     var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
 
-    if ( this.headYAxisFix != 1 ) {
+    if (this.headYAxisFix != 1) {
       // FIX: neck and head opposite or under angle
       // boris, businessman, robot, adventurer, unreal male
       var fix = this.headQuat.multiply(this.neckQuatInv);
@@ -666,18 +666,18 @@ export class HumanoidAvatar extends Avatar {
 
   renderHeadRotation(quat) {
     let head = this.skeleton.bones[this.body.head];
-    if ( !this.generateAnimations ) {
+    if (!this.generateAnimations) {
       head.getTransformNode().rotationQuaternion = quat;
       return;
     }
-    if ( ! this.body.headAnimation ) {
+    if (!this.body.headAnimation) {
       this.body.headAnimation = VRSPACEUI.createQuaternionAnimation(head.getTransformNode(), "rotationQuaternion", this.fps);
     }
     VRSPACEUI.updateQuaternionAnimation(this.body.headAnimation, head.getTransformNode().rotationQuaternion.clone(), quat);
   }
   /** Debugging helper, draws a vector between given points */
   drawVector(from, to) {
-    BABYLON.MeshBuilder.CreateLines("vector-"+from+"-"+to, {points:[from,to]}, this.scene);
+    BABYLON.MeshBuilder.CreateLines("vector-" + from + "-" + to, { points: [from, to] }, this.scene);
   }
 
   /**
@@ -685,7 +685,7 @@ export class HumanoidAvatar extends Avatar {
   @param arm arm to move
   @param t target position
    */
-  reachFor( arm, t ) {
+  reachFor(arm, t) {
     var upperArm = this.skeleton.bones[arm.upper];
 
     //console.log("Parent pos: "+this.parentMesh.position+" root pos: "+this.rootMesh.position);
@@ -694,37 +694,37 @@ export class HumanoidAvatar extends Avatar {
     //var totalRot = this.rootMesh.rotationQuaternion.multiply(this.parentMesh.rotationQuaternion);
     var totalRot = this.parentMesh.rotationQuaternion;
     var rootQuatInv = BABYLON.Quaternion.Inverse(totalRot);
-    
+
     var armPos = this.getAbsolutePosition(upperArm);
     //console.log("Arm "+arm.side+" pos "+armPos);
-    
+
     var upperQuat = arm.upperQuat;
     var armVector = arm.armVector;
     var worldQuatInv = arm.worldQuatInv;
-    
+
     // calc target pos in coordinate system of character
-    var target = new BABYLON.Vector3(t.x, t.y+this.bodyTargetHeight(), t.z);
+    var target = new BABYLON.Vector3(t.x, t.y + this.bodyTargetHeight(), t.z);
     //var target = new BABYLON.Vector3(t.x, t.y, t.z).subtract(totalPos);
     // CHECKME: probable bug, possibly related to worldQuat
     //target.rotateByQuaternionToRef(rootQuatInv,target);
 
     // calc target vectors in local coordinate system of the arm
     var targetVector = target.subtract(armPos);
-    if ( this.instantiatedEntries ) {
+    if (this.instantiatedEntries) {
       // cloned characters are backwards
       targetVector.rotateByQuaternionToRef(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI), targetVector);
     }
     // TODO: multiply these quaternions some time earlier and only once
-    targetVector.rotateByQuaternionToRef(rootQuatInv,targetVector);
-    targetVector.rotateByQuaternionToRef(worldQuatInv,targetVector);
+    targetVector.rotateByQuaternionToRef(rootQuatInv, targetVector);
+    targetVector.rotateByQuaternionToRef(worldQuatInv, targetVector);
 
     //console.log("arm vector: "+armVector);
     //console.log("target vector: "+targetVector);
-    
+
     // vector pointing down in local space:
-    var downVector = new BABYLON.Vector3(0,-1,0);
+    var downVector = new BABYLON.Vector3(0, -1, 0);
     var downQuat = this.armDirectionLocal(arm, downVector);
-    armVector.rotateByQuaternionToRef(downQuat,downVector);
+    armVector.rotateByQuaternionToRef(downQuat, downVector);
     //this.drawVector(armPos, armPos.add(downVector));
 
     // inner angle of the arm (between body and elbow) is determined by VR controller angle
@@ -734,16 +734,16 @@ export class HumanoidAvatar extends Avatar {
     var pointerQuat = arm.pointerQuat.multiply(rootQuatInv);
 
     var pointerVector = new BABYLON.Vector3();
-    downVector.rotateByQuaternionToRef(pointerQuat,pointerVector);
+    downVector.rotateByQuaternionToRef(pointerQuat, pointerVector);
     //this.drawVector(armPos, armPos.add(pointerVector));
     // converted to local arm space:
     var sideVector = new BABYLON.Vector3();
-    pointerVector.rotateByQuaternionToRef(worldQuatInv,sideVector);
+    pointerVector.rotateByQuaternionToRef(worldQuatInv, sideVector);
 
     // rotation from current to side
     var sideRotation = new BABYLON.Matrix();
     BABYLON.Matrix.RotationAlignToRef(armVector.normalizeToNew(), sideVector.normalizeToNew(), sideRotation);
-    
+
     // rotation from side to target
     var targetRotation = new BABYLON.Matrix();
     BABYLON.Matrix.RotationAlignToRef(sideVector.normalizeToNew(), targetVector.normalizeToNew(), targetRotation);
@@ -762,12 +762,12 @@ export class HumanoidAvatar extends Avatar {
   /**
   Bend/stretch arm to a length
    */
-  bendArm( arm, targetVector ) {
+  bendArm(arm, targetVector) {
     var ret = true;
 
     var length = targetVector.length();
 
-    if ( length > arm.lowerLength + arm.upperLength ) {
+    if (length > arm.lowerLength + arm.upperLength) {
       length = arm.lowerLength + arm.upperLength
       ret = false;
     }
@@ -775,54 +775,54 @@ export class HumanoidAvatar extends Avatar {
     // simplified math by using same length for both bones
     // it's right angle, hypotenuse is bone
     // length/2 is sinus of half of elbow angle
-    var boneLength = (arm.lowerLength + arm.upperLength)/2;
-    var innerAngle = Math.asin(length/2/boneLength);
-    var shoulderAngle = -Math.PI/2+innerAngle;
-    var elbowAngle = shoulderAngle*2;
+    var boneLength = (arm.lowerLength + arm.upperLength) / 2;
+    var innerAngle = Math.asin(length / 2 / boneLength);
+    var shoulderAngle = -Math.PI / 2 + innerAngle;
+    var elbowAngle = shoulderAngle * 2;
 
     var normal = arm.armVector.normalizeToNew().cross(targetVector.normalizeToNew());
-    var fix = BABYLON.Quaternion.RotationAxis(normal,shoulderAngle);
+    var fix = BABYLON.Quaternion.RotationAxis(normal, shoulderAngle);
     arm.upperRot = arm.upperRot.multiply(fix);
 
-    arm.lowerRot = BABYLON.Quaternion.RotationAxis(normal,-elbowAngle);
+    arm.lowerRot = BABYLON.Quaternion.RotationAxis(normal, -elbowAngle);
     return ret;
   }
 
   /**
    * Move an arm or leg, optionally creates/updates arm animation depending on this.generateAnimations flag
    */
-  renderLimbRotation( limb ) {
+  renderLimbRotation(limb) {
     let upper = this.skeleton.bones[limb.upper];
     let lower = this.skeleton.bones[limb.lower];
-    if ( ! this.generateAnimations ) {
+    if (!this.generateAnimations) {
       upper.getTransformNode().rotationQuaternion = limb.upperRot;
       lower.getTransformNode().rotationQuaternion = limb.lowerRot;
       return;
     }
-    if ( !limb.animation ) {
-      let name = this.folder.name+'-'+limb.type+'-'+limb.side;
-      let group = new BABYLON.AnimationGroup(name+'Animation');
-      
-      let upperAnim = this._createLimbAnimation(name+"-upper");
-      let lowerAnim = this._createLimbAnimation(name+"-lower");
-      
+    if (!limb.animation) {
+      let name = this.folder.name + '-' + limb.type + '-' + limb.side;
+      let group = new BABYLON.AnimationGroup(name + 'Animation');
+
+      let upperAnim = this._createLimbAnimation(name + "-upper");
+      let lowerAnim = this._createLimbAnimation(name + "-lower");
+
       group.addTargetedAnimation(upperAnim, this.skeleton.bones[limb.upper].getTransformNode());
       group.addTargetedAnimation(lowerAnim, this.skeleton.bones[limb.lower].getTransformNode());
       limb.animation = group;
     }
     this._updateLimbAnimation(upper, limb.animation.targetedAnimations[0], limb.upperRot);
     this._updateLimbAnimation(lower, limb.animation.targetedAnimations[1], limb.lowerRot);
-    if ( limb.animation.isPlaying ) {
+    if (limb.animation.isPlaying) {
       limb.animation.stop();
     }
     limb.animation.play(false);
   }
-  
+
   _createLimbAnimation(name) {
     var anim = new BABYLON.Animation(name, 'rotationQuaternion', this.fps, BABYLON.Animation.ANIMATIONTYPE_QUATERNION, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-    var keys = []; 
-    keys.push({frame:0, value: 0});
-    keys.push({frame:1, value: 0});
+    var keys = [];
+    keys.push({ frame: 0, value: 0 });
+    keys.push({ frame: 1, value: 0 });
     anim.setKeys(keys);
     return anim;
   }
@@ -832,14 +832,14 @@ export class HumanoidAvatar extends Avatar {
   }
 
   legLength() {
-    return (this.body.leftLeg.upperLength + this.body.leftLeg.lowerLength + this.body.rightLeg.upperLength + this.body.rightLeg.lowerLength)/2;
+    return (this.body.leftLeg.upperLength + this.body.leftLeg.lowerLength + this.body.rightLeg.upperLength + this.body.rightLeg.lowerLength) / 2;
   }
 
   /**
   Set avatar position.
   @param pos postion
    */
-  setPosition( pos ) {
+  setPosition(pos) {
     this.parentMesh.position.x = pos.x;
     //this.groundLevel( pos.y ); // CHECKME
     this.parentMesh.position.y = pos.y;
@@ -850,7 +850,7 @@ export class HumanoidAvatar extends Avatar {
   Set avatar rotation
   @param quat Quaternion 
   */
-  setRotation( quat ) {
+  setRotation(quat) {
     // FIXME this should rotate parentMesh instead
     // but GLTF characters are facing the user when loaded
     this.parentMesh.rotationQuaternion = quat;
@@ -860,7 +860,7 @@ export class HumanoidAvatar extends Avatar {
   Sets the ground level
   @param y height of the ground at current position
    */
-  groundLevel( y ) {
+  groundLevel(y) {
     this.groundHeight = y;
     this.rootMesh.position.y = this.rootMesh.position.y + y;
   }
@@ -871,34 +871,34 @@ export class HumanoidAvatar extends Avatar {
   @param height current user height
    */
   trackHeight(height) {
-    if ( this.maxUserHeight && height != this.prevUserHeight ) {
-      var delta = height-this.prevUserHeight;
+    if (this.maxUserHeight && height != this.prevUserHeight) {
+      var delta = height - this.prevUserHeight;
       //this.trackDelay = 1000/this.fps;
       //var speed = delta/this.trackDelay*1000; // speed in m/s
-      var speed = delta*this.fps;
-      if ( this.jumping ) {
+      var speed = delta * this.fps;
+      if (this.jumping) {
         var delay = Date.now() - this.jumping;
-        if ( height <= this.maxUserHeight && delay > 300 ) {
+        if (height <= this.maxUserHeight && delay > 300) {
           this.standUp();
           this.jumping = null;
           this.log("jump stopped")
-        } else if ( delay > 500 ) {
+        } else if (delay > 500) {
           this.log("jump stopped - timeout")
           this.standUp();
           this.jumping = null;
         } else {
           this.jump(height - this.maxUserHeight);
         }
-      } else if ( height > this.maxUserHeight && Math.abs(speed) > 0.2 ) {
+      } else if (height > this.maxUserHeight && Math.abs(speed) > 0.2) {
         // CHECKME speed is not really important here
         this.jump(height - this.maxUserHeight);
         this.jumping = Date.now();
         this.log("jump starting")
       } else {
         // ignoring anything less than 1mm
-        if ( delta > 0.001 ) {
+        if (delta > 0.001) {
           this.rise(delta);
-        } else if ( delta < -0.001 ) {
+        } else if (delta < -0.001) {
           this.crouch(-delta);
         }
       }
@@ -913,7 +913,7 @@ export class HumanoidAvatar extends Avatar {
   Moves the avatar to given height above the ground
   @param height jump how high
    */
-  jump( height ) {
+  jump(height) {
     this.rootMesh.position.y = this.groundHeight + height;
     this.recompute();
     this.changed();
@@ -924,24 +924,24 @@ export class HumanoidAvatar extends Avatar {
    */
   standUp() {
     this.jump(0);
-    this.bendLeg( this.body.leftLeg, 10 );
-    this.bendLeg( this.body.rightLeg, 10 );
+    this.bendLeg(this.body.leftLeg, 10);
+    this.bendLeg(this.body.rightLeg, 10);
   }
 
   /**
   Rise a bit
   @param height rise how much
    */
-  rise( height ) {
-    if ( height < 0.001 ) {
+  rise(height) {
+    if (height < 0.001) {
       // ignoring anything less than 1mm
       return;
     }
 
-    var legLength = (this.body.leftLeg.length + this.body.rightLeg.length)/2;
-    var length = legLength+height;
-    this.bendLeg( this.body.leftLeg, length );
-    this.bendLeg( this.body.rightLeg, length );
+    var legLength = (this.body.leftLeg.length + this.body.rightLeg.length) / 2;
+    var length = legLength + height;
+    this.bendLeg(this.body.leftLeg, length);
+    this.bendLeg(this.body.rightLeg, length);
 
     this.renderBodyPosition(height);
     this.changed();
@@ -952,73 +952,73 @@ export class HumanoidAvatar extends Avatar {
    * depending on this.generateAnimations flag.
    */
   renderBodyPosition(height) {
-    if ( ! this.generateAnimations ) {
+    if (!this.generateAnimations) {
       this.rootMesh.position.y += height;
       return;
     }
-    
-    if ( !this.body.rootAnimation ) {
-      let name = this.folder.name+'-body';
-      let group = new BABYLON.AnimationGroup(name+'Animation');
-      
+
+    if (!this.body.rootAnimation) {
+      let name = this.folder.name + '-body';
+      let group = new BABYLON.AnimationGroup(name + 'Animation');
+
       let anim = new BABYLON.Animation(name, 'position.y', this.fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-      let keys = []; 
-      keys.push({frame:0, value: 0});
-      keys.push({frame:1, value: 0});
+      let keys = [];
+      keys.push({ frame: 0, value: 0 });
+      keys.push({ frame: 1, value: 0 });
       anim.setKeys(keys);
-      
+
       group.addTargetedAnimation(anim, this.rootMesh);
       this.body.rootAnimation = group;
     }
     this.body.rootAnimation.targetedAnimations[0].animation.getKeys()[0].value = this.rootMesh.position.y;
-    this.body.rootAnimation.targetedAnimations[0].animation.getKeys()[1].value = this.rootMesh.position.y+height;
+    this.body.rootAnimation.targetedAnimations[0].animation.getKeys()[1].value = this.rootMesh.position.y + height;
     this.body.rootAnimation.play(false);
   }
-  
+
   isBodyPositionChanging() {
     return this.body.rootAnimation && this.body.rootAnimation.isPlaying;
   }
 
   bodyTargetHeight() {
-    if ( this.isBodyPositionChanging() ) {
-      return this.rootMesh.position.y-this.body.rootAnimation.targetedAnimations[0].animation.getKeys()[1].value;
+    if (this.isBodyPositionChanging()) {
+      return this.rootMesh.position.y - this.body.rootAnimation.targetedAnimations[0].animation.getKeys()[1].value;
     }
     return 0;
-  }  
+  }
   /**
   Crouch a bit
   @param height how much
    */
-  crouch( height ) {
-    if ( height < 0.001 ) {
+  crouch(height) {
+    if (height < 0.001) {
       // ignoring anything less than 1mm
       return;
     }
 
-    var legLength = (this.body.leftLeg.length + this.body.rightLeg.length)/2;
-    if ( legLength - height < 0.1 ) {
+    var legLength = (this.body.leftLeg.length + this.body.rightLeg.length) / 2;
+    if (legLength - height < 0.1) {
       height = legLength - 0.1;
     }
-    var length = legLength-height;
+    var length = legLength - height;
 
-    this.bendLeg( this.body.leftLeg, length );
-    this.bendLeg( this.body.rightLeg, length );
+    this.bendLeg(this.body.leftLeg, length);
+    this.bendLeg(this.body.rightLeg, length);
 
     this.renderBodyPosition(-height);
     this.changed();
   }
 
-  extractInitialLegTransformation( leg ) {
+  extractInitialLegTransformation(leg) {
     var upper = this.skeleton.bones[leg.upper];
     var lower = this.skeleton.bones[leg.lower];
-    
+
     leg.worldQuat = BABYLON.Quaternion.FromRotationMatrix(upper.getTransformNode().getWorldMatrix().getRotationMatrix());
     leg.worldQuatInv = BABYLON.Quaternion.Inverse(leg.worldQuat);
     if (this.turnAround) {
       // network instances of characters are backwards
       leg.worldQuatInv.multiplyInPlace(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));
     }
-    
+
     leg.upperQuat = upper.getTransformNode().rotationQuaternion.clone();
     leg.upperQuatInv = BABYLON.Quaternion.Inverse(leg.upperQuat);
 
@@ -1027,27 +1027,27 @@ export class HumanoidAvatar extends Avatar {
 
     leg.upperRot = upper.getTransformNode().rotationQuaternion.clone();
     leg.lowerRot = lower.getTransformNode().rotationQuaternion.clone();
-    
+
     leg.upperNormal = new BABYLON.Vector3();
     leg.lowerNormal = new BABYLON.Vector3();
-    BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv,leg.upperNormal);
-    BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv.multiply(leg.lowerQuat),leg.lowerNormal);
+    BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv, leg.upperNormal);
+    BABYLON.Axis.X.rotateByQuaternionToRef(leg.worldQuatInv.multiply(leg.lowerQuat), leg.lowerNormal);
   }
-  
+
   /**
   Bend/stretch leg to a length
   @param leg
   @param length
    */
-  bendLeg( leg, length ) {
-    if ( length < 0 ) {
-      console.log("ERROR: can't bend leg to "+length);
+  bendLeg(leg, length) {
+    if (length < 0) {
+      console.log("ERROR: can't bend leg to " + length);
       return
     }
 
-    if ( length > leg.lowerLength + leg.upperLength ) {
+    if (length > leg.lowerLength + leg.upperLength) {
       length = leg.lowerLength + leg.upperLength;
-      if ( length == leg.length ) {
+      if (length == leg.length) {
         return;
       }
     }
@@ -1056,19 +1056,19 @@ export class HumanoidAvatar extends Avatar {
     // simplified math by using same length for both bones
     // it's right angle, hypotenuse is bone
     // length/2 is sinus of half of elbow angle
-    var boneLength = (leg.lowerLength + leg.upperLength)/2;
-    var innerAngle = Math.asin(length/2/boneLength);
-    var upperAngle = Math.PI/2-innerAngle;
-    var lowerAngle = -upperAngle*2;
+    var boneLength = (leg.lowerLength + leg.upperLength) / 2;
+    var innerAngle = Math.asin(length / 2 / boneLength);
+    var upperAngle = Math.PI / 2 - innerAngle;
+    var lowerAngle = -upperAngle * 2;
 
-    var upperQuat = BABYLON.Quaternion.RotationAxis(leg.upperNormal,upperAngle);
+    var upperQuat = BABYLON.Quaternion.RotationAxis(leg.upperNormal, upperAngle);
 
-    var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.lowerNormal,lowerAngle);
+    var lowerQuat = BABYLON.Quaternion.RotationAxis(leg.lowerNormal, lowerAngle);
 
     leg.upperRot = leg.upperQuat.multiply(upperQuat);
     leg.lowerRot = leg.lowerQuat.multiply(lowerQuat);
     this.renderLimbRotation(leg);
-    
+
     return length;
   }
 
@@ -1081,13 +1081,13 @@ export class HumanoidAvatar extends Avatar {
     var upper = this.skeleton.bones[limb.upper];
     var lower = this.skeleton.bones[limb.lower];
     limb.upperLength = this.getAbsolutePosition(upper).subtract(this.getAbsolutePosition(lower)).length();
-    if ( lower.children && lower.children[0] ) {
+    if (lower.children && lower.children[0]) {
       limb.lowerLength = this.getAbsolutePosition(lower).subtract(this.getAbsolutePosition(lower.children[0])).length();
     } else {
       limb.lowerLength = 0;
     }
-    limb.length = limb.upperLength+limb.lowerLength;
-    this.log("Length of "+upper.name+": "+limb.upperLength+", "+lower.name+": "+limb.lowerLength);
+    limb.length = limb.upperLength + limb.lowerLength;
+    this.log("Length of " + upper.name + ": " + limb.upperLength + ", " + lower.name + ": " + limb.lowerLength);
   }
 
   /** 
@@ -1095,10 +1095,10 @@ export class HumanoidAvatar extends Avatar {
   @param vector Vector3 to sum 
   */
   sum(vector) {
-    return vector.x+vector.y+vector.z;
+    return vector.x + vector.y + vector.z;
   }
 
-  extractInitialArmTransformation( arm ) {
+  extractInitialArmTransformation(arm) {
     var upperArm = this.skeleton.bones[arm.upper];
     var lowerArm = this.skeleton.bones[arm.lower];
 
@@ -1108,17 +1108,17 @@ export class HumanoidAvatar extends Avatar {
 
     var matrix = upperArm.getTransformNode().getWorldMatrix().getRotationMatrix();
     var worldQuat = BABYLON.Quaternion.FromRotationMatrix(matrix);
-    this.log("Arm angles: "+worldQuat.toEulerAngles());
+    this.log("Arm angles: " + worldQuat.toEulerAngles());
     var worldQuatInv = BABYLON.Quaternion.Inverse(worldQuat);
     arm.worldQuatInv = worldQuatInv;
     var upperQuat = upperArm.getTransformNode().rotationQuaternion;
     arm.upperQuat = upperQuat.clone();
     var armVector = elbowPos.subtract(armPos);
     //console.log("Arm vector: "+armVector);
-    armVector.rotateByQuaternionToRef(worldQuatInv,armVector);
+    armVector.rotateByQuaternionToRef(worldQuatInv, armVector);
     //console.log("Arm vector rotated: "+armVector);
     arm.armVector = armVector;
-    
+
     // need initial value to calc first movement
     arm.upperRot = BABYLON.Quaternion.FromRotationMatrix(upperArm.getRotationMatrix());
     arm.lowerRot = BABYLON.Quaternion.FromRotationMatrix(lowerArm.getRotationMatrix());
@@ -1129,10 +1129,10 @@ export class HumanoidAvatar extends Avatar {
    */
   armDirectionCharacter(arm, targetVector) {
     let rotated = new BABYLON.Vector3();
-    targetVector.rotateByQuaternionToRef(arm.worldQuatInv,rotated);
-    return this.armDirectionLocal(arm,rotated);
+    targetVector.rotateByQuaternionToRef(arm.worldQuatInv, rotated);
+    return this.armDirectionLocal(arm, rotated);
   }
-  
+
   /**
    * Point arm to given direction, in arm space
    */
@@ -1142,51 +1142,51 @@ export class HumanoidAvatar extends Avatar {
     BABYLON.Matrix.RotationAlignToRef(armVector.normalizeToNew(), targetVector.normalizeToNew(), targetRotation);
     var quat = BABYLON.Quaternion.FromRotationMatrix(targetRotation)
     // (near) parallel vectors still causing trouble
-    if ( isNaN(quat.x) || isNaN(quat.y) || isNaN(quat.z) || isNaN(quat.y) ) {
-      this.log("arm vector: "+armVector+"target vector: "+targetVector+" quat: "+quat+" rot: ");
+    if (isNaN(quat.x) || isNaN(quat.y) || isNaN(quat.z) || isNaN(quat.y)) {
+      this.log("arm vector: " + armVector + "target vector: " + targetVector + " quat: " + quat + " rot: ");
       this.log(targetRotation);
       // TODO: front axis, sign
-      quat = BABYLON.Quaternion.FromEulerAngles(0,0,Math.PI);
+      quat = BABYLON.Quaternion.FromEulerAngles(0, 0, Math.PI);
     }
     return quat;
   }
-  
+
   setPose(pose) {
-    if ( 'I' == pose ) {
-      let downVector = new BABYLON.Vector3(0,-1,0);
+    if ('I' == pose) {
+      let downVector = new BABYLON.Vector3(0, -1, 0);
       var leftQuat = this.armDirectionCharacter(this.body.leftArm, downVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
       this.renderLimbRotation(this.body.leftArm);
       var rightQuat = this.armDirectionCharacter(this.body.rightArm, downVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
       this.renderLimbRotation(this.body.rightArm);
-    } else if ( 'T' == pose ) {
-      let leftVector = new BABYLON.Vector3(-1,0,0);
+    } else if ('T' == pose) {
+      let leftVector = new BABYLON.Vector3(-1, 0, 0);
       var leftQuat = this.armDirectionCharacter(this.body.leftArm, leftVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
       this.renderLimbRotation(this.body.leftArm);
-      let rightVector = new BABYLON.Vector3(1,0,0);
+      let rightVector = new BABYLON.Vector3(1, 0, 0);
       var rightQuat = this.armDirectionCharacter(this.body.rightArm, rightVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
       this.renderLimbRotation(this.body.rightArm);
-    } else if ( 'A' == pose ) {
-      let leftVector = new BABYLON.Vector3(-1,-1,0);
+    } else if ('A' == pose) {
+      let leftVector = new BABYLON.Vector3(-1, -1, 0);
       var leftQuat = this.armDirectionCharacter(this.body.leftArm, leftVector);
       this.body.leftArm.upperRot = this.body.leftArm.upperQuat.multiply(leftQuat);
       this.renderLimbRotation(this.body.leftArm);
-      let rightVector = new BABYLON.Vector3(1,-1,0);
+      let rightVector = new BABYLON.Vector3(1, -1, 0);
       var rightQuat = this.armDirectionCharacter(this.body.rightArm, rightVector);
       this.body.rightArm.upperRot = this.body.rightArm.upperQuat.multiply(rightQuat);
       this.renderLimbRotation(this.body.rightArm);
     }
   }
-  
+
   getAbsolutePosition(bone) {
     //return bone.getPosition(BABYLON.Space.WORLD, this.skinnedMesh);
     bone.getTransformNode().computeWorldMatrix(true);
     return bone.getTransformNode().getAbsolutePosition();
   }
-  
+
   /**
   Converts rotation quaternion of a node to euler angles
   @param node
@@ -1195,7 +1195,7 @@ export class HumanoidAvatar extends Avatar {
   euler(node) {
     return node.rotationQuaternion.toEulerAngles();
   }
-  
+
   degrees(node) {
     var rot = euler(node);
     return toDegrees(rot);
@@ -1208,17 +1208,17 @@ export class HumanoidAvatar extends Avatar {
    */
   toDegrees(rot) {
     var ret = new BABYLON.Vector3();
-    ret.x = rot.x * 180/Math.PI;
-    ret.y = rot.y * 180/Math.PI;
-    ret.z = rot.z * 180/Math.PI;
+    ret.x = rot.x * 180 / Math.PI;
+    ret.y = rot.y * 180 / Math.PI;
+    ret.z = rot.z * 180 / Math.PI;
     return ret;
   }
 
   countBones(bones) {
-    if ( bones ) {
+    if (bones) {
       this.bonesDepth++;
-      for ( var i = 0; i < bones.length; i ++ ) {
-        if ( ! this.bonesProcessed.includes( bones[i].name )) {
+      for (var i = 0; i < bones.length; i++) {
+        if (!this.bonesProcessed.includes(bones[i].name)) {
           this.boneProcessed(bones[i]);
           this.processBones(bones[i].children);
         }
@@ -1226,19 +1226,19 @@ export class HumanoidAvatar extends Avatar {
     }
   }
   processBones(bones) {
-    if ( bones ) {
+    if (bones) {
       this.bonesDepth++;
-      for ( var i = 0; i < bones.length; i ++ ) {
-        if ( ! this.bonesProcessed.includes( bones[i].name )) {
+      for (var i = 0; i < bones.length; i++) {
+        if (!this.bonesProcessed.includes(bones[i].name)) {
           this.boneProcessed(bones[i]);
           var boneName = bones[i].name.toLowerCase();
-          if ( ! this.body.root && boneName.includes('rootjoint') ) {
+          if (!this.body.root && boneName.includes('rootjoint')) {
             this.body.root = i;
-            this.log("found root "+boneName+" at depth "+this.bonesDepth);
+            this.log("found root " + boneName + " at depth " + this.bonesDepth);
             this.processBones(bones[i].children);
-          } else if ( ! this.body.hips && this.isHipsName(boneName) && bones[i].children.length >= 3) {
+          } else if (!this.body.hips && this.isHipsName(boneName) && bones[i].children.length >= 3) {
             this.body.hips = i;
-            this.log("found hips "+boneName);
+            this.log("found hips " + boneName);
             this.processHips(bones[i].children);
           } else {
             this.processBones(bones[i].children);
@@ -1253,76 +1253,76 @@ export class HumanoidAvatar extends Avatar {
     return boneName.includes('pelvis') || boneName.includes('hip') || boneName.includes('spine') || boneName.includes('root');
   }
 
-  processHips( bones ) {
+  processHips(bones) {
     // FIXME cyberconnect: tail_02 recognised as left leg due to l_
     // hips have two legs and spine attached, possibly something else
     // TODO rewrite this to find most probable candidates for legs
-    for ( var i = 0; i < bones.length; i++ ) {
+    for (var i = 0; i < bones.length; i++) {
       var boneName = bones[i].name.toLowerCase();
-      if ( boneName.includes("spine") || boneName.includes("body") ) {
+      if (boneName.includes("spine") || boneName.includes("body")) {
         this.processSpine(bones[i]);
-      } else if ( boneName.includes( 'left' ) || this.isLegName(boneName, 'l', bones[i].children) ) {
+      } else if (boneName.includes('left') || this.isLegName(boneName, 'l', bones[i].children)) {
         // left leg/thigh/upLeg/upperLeg
         this.tryLeg(this.body.leftLeg, bones[i]);
-      } else if ( boneName.includes( 'right' ) || this.isLegName(boneName, 'r', bones[i].children)) {
+      } else if (boneName.includes('right') || this.isLegName(boneName, 'r', bones[i].children)) {
         // right leg/thigh/upLeg/upperLeg
         this.tryLeg(this.body.rightLeg, bones[i]);
-      } else if ( bones[i].children.length >= 3 && this.isHipsName(boneName) ) {
-        this.log("Don't know how to handle bone "+boneName+", assuming hips" );
+      } else if (bones[i].children.length >= 3 && this.isHipsName(boneName)) {
+        this.log("Don't know how to handle bone " + boneName + ", assuming hips");
         this.boneProcessed(bones[i]);
         this.processHips(bones[i].children);
-      } else if ( bones[i].children.length > 0 ) {
-        this.log("Don't know how to handle bone "+boneName+", assuming spine" );
+      } else if (bones[i].children.length > 0) {
+        this.log("Don't know how to handle bone " + boneName + ", assuming spine");
         this.processSpine(bones[i]);
       } else {
-        this.log("Don't know how to handle bone "+boneName );
+        this.log("Don't know how to handle bone " + boneName);
         this.boneProcessed(bones[i]);
       }
     }
   }
 
-  isLegName(boneName, lr, children ) {
-    return boneName.includes( lr+'leg' ) ||
-           boneName.includes( lr+'_leg' ) ||
-           boneName.includes( 'leg_'+lr ) ||
-           
-           boneName.includes(lr+' thigh') ||
-           boneName.includes(lr+'_thigh') ||
-           boneName.includes(lr+'thigh') ||
-           boneName.includes('thigh_'+lr) ||
-           boneName.includes('thigh.'+lr) ||
+  isLegName(boneName, lr, children) {
+    return boneName.includes(lr + 'leg') ||
+      boneName.includes(lr + '_leg') ||
+      boneName.includes('leg_' + lr) ||
 
-           boneName.includes(lr+'hip') 
-           // this attempts to catch legs with buttocks, e.g. spiderman
-           || ( children && children.length > 0 && children[0].children.length > 0  && this.isLegName(children[0].name.toLowerCase(),lr) )
+      boneName.includes(lr + ' thigh') ||
+      boneName.includes(lr + '_thigh') ||
+      boneName.includes(lr + 'thigh') ||
+      boneName.includes('thigh_' + lr) ||
+      boneName.includes('thigh.' + lr) ||
+
+      boneName.includes(lr + 'hip')
+      // this attempts to catch legs with buttocks, e.g. spiderman
+      || (children && children.length > 0 && children[0].children.length > 0 && this.isLegName(children[0].name.toLowerCase(), lr))
   }
 
-  tryLeg( leg, bone ) {
-    if ( bone.name.toLowerCase().includes( 'thigh' ) || bone.name.toLowerCase().includes( 'leg' )) {
+  tryLeg(leg, bone) {
+    if (bone.name.toLowerCase().includes('thigh') || bone.name.toLowerCase().includes('leg')) {
       this.processLeg(leg, bone);
     } else if (bone.children.length == 0 || bone.children.length == 1 && bone.children[0].children.length == 0) {
-      this.log("Ignoring bone "+bone.name);
+      this.log("Ignoring bone " + bone.name);
       this.boneProcessed(bone);
-    } else if (bone.children.length == 1 && bone.children[0].children.length == 1 && bone.children[0].children[0].children.length == 0 ) {
+    } else if (bone.children.length == 1 && bone.children[0].children.length == 1 && bone.children[0].children[0].children.length == 0) {
       // children depth 2, assume leg (missing foot?)
-      if ( leg.upper && leg.lower ) {
-        this.log( "Ignoring 1-joint leg "+bone.name );
+      if (leg.upper && leg.lower) {
+        this.log("Ignoring 1-joint leg " + bone.name);
         this.boneProcessed(bone);
       } else {
-        this.log( "Processing 1-joint leg "+bone.name );
+        this.log("Processing 1-joint leg " + bone.name);
         this.processLeg(leg, bone.children[0]);
       }
     } else {
       // butt?
-      this.log("Don't know how to handle leg "+bone.name+", trying children");
+      this.log("Don't know how to handle leg " + bone.name + ", trying children");
       this.boneProcessed(bone);
       this.processLeg(leg, bone.children[0]);
     }
   }
 
-  processLeg( leg, bone ) {
-    this.log("Processing leg "+bone.name);
-    if ( leg.upper && leg.lower ) {
+  processLeg(leg, bone) {
+    this.log("Processing leg " + bone.name);
+    if (leg.upper && leg.lower) {
       this.log("WARNING: leg already exists");
     }
     this.boneProcessed(bone);
@@ -1330,121 +1330,121 @@ export class HumanoidAvatar extends Avatar {
     bone = bone.children[0];
     this.boneProcessed(bone);
     leg.lower = this.skeleton.getBoneIndexByName(bone.name);
-    if ( bone.children && bone.children[0] ) {
+    if (bone.children && bone.children[0]) {
       // foot exists
       this.processFoot(leg, bone.children[0]);
     }
   }
 
-  processFoot( leg, bone ) {
+  processFoot(leg, bone) {
     //this.log("Processing foot "+bone.name);
     this.boneProcessed(bone);
     leg.foot.push(this.skeleton.getBoneIndexByName(bone.name));
-    if ( bone.children && bone.children.length == 1 ) {
-      this.processFoot( leg, bone.children[0] );
+    if (bone.children && bone.children.length == 1) {
+      this.processFoot(leg, bone.children[0]);
     }
   }
 
   processSpine(bone) {
-    if ( !bone ) {
+    if (!bone) {
       return;
     }
     //this.log("Processing spine "+bone.name);
     // spine has at least one bone, usually 2-3,
     this.boneProcessed(bone);
-    if ( bone.children.length == 1 ) {
+    if (bone.children.length == 1) {
       this.body.spine.push(this.skeleton.getBoneIndexByName(bone.name));
       this.processSpine(bone.children[0]);
-    } else if (bone.children.length >= 3 && this.hasHeadAndShoulders(bone) ) {
+    } else if (bone.children.length >= 3 && this.hasHeadAndShoulders(bone)) {
       // process shoulders and neck, other joints to be ignored
-      for ( var i = 0; i < bone.children.length; i++ ) {
+      for (var i = 0; i < bone.children.length; i++) {
         var boneName = bone.children[i].name.toLowerCase();
-        if ( boneName.includes( "neck" ) || boneName.includes("head") || (boneName.includes( "collar" ) && !boneName.includes( "bone" ) && !boneName.includes("lcollar") && !boneName.includes("rcollar")) ) {
-          if ( !boneName.includes("head") && bone.children[i].children.length > 2 ) {
-            this.log("Neck "+boneName+" of "+bone.name+" has "+bone.children[i].children.length+" children, assuming arms" );
-            this.processNeck( bone.children[i] );
-            this.processSpine( bone.children[i] );
-          } else if ( bone.name.toLowerCase().includes( "neck" ) && boneName.toLowerCase().includes("head") ) {
+        if (boneName.includes("neck") || boneName.includes("head") || (boneName.includes("collar") && !boneName.includes("bone") && !boneName.includes("lcollar") && !boneName.includes("rcollar"))) {
+          if (!boneName.includes("head") && bone.children[i].children.length > 2) {
+            this.log("Neck " + boneName + " of " + bone.name + " has " + bone.children[i].children.length + " children, assuming arms");
+            this.processNeck(bone.children[i]);
+            this.processSpine(bone.children[i]);
+          } else if (bone.name.toLowerCase().includes("neck") && boneName.toLowerCase().includes("head")) {
             this.log("Arms grow out from neck?!");
-            this.processNeck( bone );
+            this.processNeck(bone);
           } else {
-            this.processNeck( bone.children[i] );
+            this.processNeck(bone.children[i]);
           }
         } else if (this.isArm(bone.children[i], boneName)) {
-          if ( boneName.includes( "left" ) || this.isArmName(boneName, 'l') ) {
-            this.processArms( this.body.leftArm, bone.children[i] );
-          } else if ( boneName.includes( "right" ) || this.isArmName(boneName, 'r') ) {
-            this.processArms( this.body.rightArm, bone.children[i] );
+          if (boneName.includes("left") || this.isArmName(boneName, 'l')) {
+            this.processArms(this.body.leftArm, bone.children[i]);
+          } else if (boneName.includes("right") || this.isArmName(boneName, 'r')) {
+            this.processArms(this.body.rightArm, bone.children[i]);
           } else {
-            this.log("Don't know how to handle shoulder "+boneName);
+            this.log("Don't know how to handle shoulder " + boneName);
             this.boneProcessed(bone.children[i]);
           }
         } else {
-          this.log("Don't know how to handle bone "+boneName);
+          this.log("Don't know how to handle bone " + boneName);
         }
       }
-    } else if ( bone.name.toLowerCase().includes("breast")) {
+    } else if (bone.name.toLowerCase().includes("breast")) {
       this.countBones(bone.children);
     } else {
-      this.log("Not sure how to handle spine "+bone.name+", trying recursion");
+      this.log("Not sure how to handle spine " + bone.name + ", trying recursion");
       this.body.spine.push(this.skeleton.getBoneIndexByName(bone.name));
       this.processSpine(bone.children[0]);
     }
   }
 
   isArmName(boneName, lr) {
-    return boneName.includes( lr+'shoulder' ) ||
-           boneName.includes( lr+'clavicle' ) ||
-           boneName.includes( lr+'collar' ) ||
-           boneName.includes( lr+'arm' ) ||
-           boneName.includes( ' '+lr+' ' ) ||
-           boneName.includes( lr+"_" );
+    return boneName.includes(lr + 'shoulder') ||
+      boneName.includes(lr + 'clavicle') ||
+      boneName.includes(lr + 'collar') ||
+      boneName.includes(lr + 'arm') ||
+      boneName.includes(' ' + lr + ' ') ||
+      boneName.includes(lr + "_");
   }
 
-  isArm( bone, boneName ) {
+  isArm(bone, boneName) {
     //( ! boneName.includes("breast") && !boneName.includes("pistol")) {
-    if ( boneName.includes("shoulder") || boneName.includes("clavicle") ) {
+    if (boneName.includes("shoulder") || boneName.includes("clavicle")) {
       return true;
     }
-    return ( this.hasChildren(bone) && this.hasChildren(bone.children[0]) && this.hasChildren(bone.children[0].children[0]) )
+    return (this.hasChildren(bone) && this.hasChildren(bone.children[0]) && this.hasChildren(bone.children[0].children[0]))
   }
 
-  hasChildren( bone ) {
+  hasChildren(bone) {
     return bone.children && bone.children.length > 0;
   }
 
-  hasHeadAndShoulders( bone ) {
+  hasHeadAndShoulders(bone) {
     var count = 0;
-    for ( var i = 0; i < bone.children.length; i ++ ) {
-      if ( this.isHeadOrShoulder(bone.children[i]) ) {
+    for (var i = 0; i < bone.children.length; i++) {
+      if (this.isHeadOrShoulder(bone.children[i])) {
         count++;
       }
     }
-    this.log("Head and shoulders count: "+count+"/"+bone.children.length);
+    this.log("Head and shoulders count: " + count + "/" + bone.children.length);
     return count >= 3;
   }
 
-  isHeadOrShoulder( bone ) {
+  isHeadOrShoulder(bone) {
     var boneName = bone.name.toLowerCase();
     return boneName.includes('head') || boneName.includes('neck') ||
-    ((bone.children && bone.children.length > 0)
-      && ( boneName.includes('shoulder')
-        || boneName.includes( 'clavicle' )
-        || boneName.includes( 'collar' )
-        || boneName.includes( 'arm' )
-    ));
+      ((bone.children && bone.children.length > 0)
+        && (boneName.includes('shoulder')
+          || boneName.includes('clavicle')
+          || boneName.includes('collar')
+          || boneName.includes('arm')
+        ));
   }
 
-  processNeck( bone ) {
-    if ( this.body.neck && this.bonesProcessed.includes(bone.name) ) {
-      this.log("neck "+bone.name+" already processed: "+this.body.neck);
+  processNeck(bone) {
+    if (this.body.neck && this.bonesProcessed.includes(bone.name)) {
+      this.log("neck " + bone.name + " already processed: " + this.body.neck);
       return;
     }
-    this.log("processing neck "+bone.name+" children: "+bone.children.length);
+    this.log("processing neck " + bone.name + " children: " + bone.children.length);
     this.body.neck = this.skeleton.getBoneIndexByName(bone.name);
     this.boneProcessed(bone);
     var neck = bone;
-    if ( bone.children && bone.children.length > 0 ) {
+    if (bone.children && bone.children.length > 0) {
       bone = bone.children[0];
     } else {
       this.log("Missing head?!");
@@ -1454,12 +1454,12 @@ export class HumanoidAvatar extends Avatar {
 
     var refHead = new BABYLON.Vector3();
     // all the same, completelly useles
-    head.getDirectionToRef(BABYLON.Axis.Z,this.skinnedMesh,refHead);
+    head.getDirectionToRef(BABYLON.Axis.Z, this.skinnedMesh, refHead);
     this.roundVector(refHead);
     //this.log("RefZ head: "+refHead);
 
     var refNeck = new BABYLON.Vector3();
-    neck.getDirectionToRef(BABYLON.Axis.Z,this.skinnedMesh,refNeck);
+    neck.getDirectionToRef(BABYLON.Axis.Z, this.skinnedMesh, refNeck);
     this.roundVector(refNeck);
     //this.log("RefZ neck: "+refNeck);
 
@@ -1469,12 +1469,12 @@ export class HumanoidAvatar extends Avatar {
     this.headYAxisFix = refHead.z * refNeck.z;
 
     var refHead = new BABYLON.Vector3();
-    head.getDirectionToRef(BABYLON.Axis.X,this.skinnedMesh,refHead);
+    head.getDirectionToRef(BABYLON.Axis.X, this.skinnedMesh, refHead);
     this.roundVector(refHead);
     //this.log("RefX head: "+refHead);
 
     var refNeck = new BABYLON.Vector3();
-    neck.getDirectionToRef(BABYLON.Axis.X,this.skinnedMesh,refNeck);
+    neck.getDirectionToRef(BABYLON.Axis.X, this.skinnedMesh, refNeck);
     this.roundVector(refNeck);
     //this.log("RefX neck: "+refNeck);
 
@@ -1488,21 +1488,21 @@ export class HumanoidAvatar extends Avatar {
     this.neckQuat = BABYLON.Quaternion.FromRotationMatrix(neck.getTransformNode().getWorldMatrix().getRotationMatrix());
     this.neckQuatInv = BABYLON.Quaternion.Inverse(this.neckQuat);
 
-    var target = new BABYLON.Vector3(0,0,1);
-    target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(this.rootMesh.rotationQuaternion),target);
-    target.rotateByQuaternionToRef(this.headQuatInv,target);
+    var target = new BABYLON.Vector3(0, 0, 1);
+    target.rotateByQuaternionToRef(BABYLON.Quaternion.Inverse(this.rootMesh.rotationQuaternion), target);
+    target.rotateByQuaternionToRef(this.headQuatInv, target);
 
     this.headTarget = target.negate().normalizeToNew();
 
-    this.log("Head target: "+this.headTarget+" axisYFix "+this.headYAxisFix+" axisXFix "+this.headXAxisFix);
+    this.log("Head target: " + this.headTarget + " axisYFix " + this.headYAxisFix + " axisXFix " + this.headXAxisFix);
 
     this.boneProcessed(bone);
     //this.processBones(bone.children);
     this.countBones(bone.children);
   }
 
-  processArms( arm, bone ) {
-    this.log("Processing arm "+bone.name+" "+bone.getIndex()+" "+this.skeleton.getBoneIndexByName(bone.name));
+  processArms(arm, bone) {
+    this.log("Processing arm " + bone.name + " " + bone.getIndex() + " " + this.skeleton.getBoneIndexByName(bone.name));
     arm.shoulder = this.skeleton.getBoneIndexByName(bone.name);
     this.boneProcessed(bone);
     bone = bone.children[0];
@@ -1514,11 +1514,11 @@ export class HumanoidAvatar extends Avatar {
     bone = bone.children[0];
     arm.hand = this.skeleton.getBoneIndexByName(bone.name);
     this.boneProcessed(bone);
-    if ( bone.children ) {
-      if ( bone.children.length == 5 ) {
-        for ( var i = 0; i < bone.children.length; i++ ) {
+    if (bone.children) {
+      if (bone.children.length == 5) {
+        for (var i = 0; i < bone.children.length; i++) {
           var boneName = bone.children[i].name.toLowerCase();
-          if ( boneName.includes("index") || boneName.includes("point") ) {
+          if (boneName.includes("index") || boneName.includes("point")) {
             this.processFinger(arm.fingers.index, bone.children[i]);
           } else if (boneName.includes("middle")) {
             this.processFinger(arm.fingers.middle, bone.children[i]);
@@ -1529,22 +1529,22 @@ export class HumanoidAvatar extends Avatar {
           } else if (boneName.includes("thumb")) {
             this.processFinger(arm.fingers.thumb, bone.children[i]);
           } else {
-            this.log("Can't process finger "+boneName);
+            this.log("Can't process finger " + boneName);
             this.boneProcessed(bone.children[i]);
           }
         }
       } else {
-        this.log("Can't process fingers of "+bone.name+" length: "+bone.children.length);
+        this.log("Can't process fingers of " + bone.name + " length: " + bone.children.length);
       }
     }
   }
 
-  processFinger( finger, bone ) {
-    if ( bone ) {
+  processFinger(finger, bone) {
+    if (bone) {
       finger.push(this.skeleton.getBoneIndexByName(bone.name));
       this.boneProcessed(bone);
-      if ( bone.children && bone.children.length > 0 ) {
-        this.processFinger(finger,bone.children[0]);
+      if (bone.children && bone.children.length > 0) {
+        this.processFinger(finger, bone.children[0]);
       }
     }
   }
@@ -1552,85 +1552,85 @@ export class HumanoidAvatar extends Avatar {
   /**
   Load an animation group from an url
    */
-  loadAnimations( url, callback ) {
-    fetch(url, {cache: this.cache}).then( response => {
-      if ( response.ok ) {
+  loadAnimations(url, callback) {
+    fetch(url, { cache: this.cache }).then(response => {
+      if (response.ok) {
         response.json().then(group => {
           this.attachAnimations(group);
-          if ( callback ) {
-            callback( this );
+          if (callback) {
+            callback(this);
           }
         });
       } else {
-        console.log('Error loading animations from: ' +url+' - '+ response.status);
+        console.log('Error loading animations from: ' + url + ' - ' + response.status);
       }
     });
   }
-  
+
   /**
    * Enable or disable animation blending for all animation of all groups
    */
-  animationBlending( enable = true, speed = 0.05) {
+  animationBlending(enable = true, speed = 0.05) {
     this.character.animationGroups.forEach(animationGroup => {
       animationGroup.enableBlending = enable;
       animationGroup.blendingSpeed = speed;
-      
-      animationGroup.targetedAnimations.forEach( ta => {
+
+      animationGroup.targetedAnimations.forEach(ta => {
         ta.animation.enableBlending = enable;
         ta.animation.blendingSpeed = speed;
       });
-      
+
     });
   }
-  
+
   /**
   Create an animation group from given object and attach it to the character.
    */
-  attachAnimations( group ) {
-    this.log("Animation group:"+group.name, group);
+  attachAnimations(group) {
+    this.log("Animation group:" + group.name, group);
     var animationGroup = new BABYLON.AnimationGroup(group.name, this.scene);
-    group.animations.forEach( a => {
+    group.animations.forEach(a => {
       // CHECKME: fps
-      var animation = new BABYLON.Animation( a.animationName, a.propertyName, a.fps, a.dataType, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+      var animation = new BABYLON.Animation(a.animationName, a.propertyName, a.fps, a.dataType, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
       animation.enableBlending = true;
       animation.blendingSpeed = 0.1;
       var bone = this.skeleton.getBoneIndexByName(a.targetName);
-      if ( bone >= 0 ) {
+      if (bone >= 0) {
         var target = this.skeleton.bones[bone].getTransformNode();
       } else {
-        console.log("Missing target "+a.targetName);
+        console.log("Missing target " + a.targetName);
         return;
       }
       var keys = [];
-      if ( a.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3 ) {
-        a.keys.forEach( key => {
-          var k = {frame: key.frame, value:new BABYLON.Vector3(key.value.x, key.value.y, key.value.z)};
-          if ( key.interpolation ) {
+      if (a.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3) {
+        a.keys.forEach(key => {
+          var k = { frame: key.frame, value: new BABYLON.Vector3(key.value.x, key.value.y, key.value.z) };
+          if (key.interpolation) {
             k.interpolation = key.interpolation;
           }
-          keys.push( k );
+          keys.push(k);
         });
-      } else if ( a.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION ) {
-        a.keys.forEach( key => {
-          keys.push( {frame: key.frame, value:new BABYLON.Quaternion(key.value.x, key.value.y, key.value.z, key.value.w)} );
+      } else if (a.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION) {
+        a.keys.forEach(key => {
+          keys.push({ frame: key.frame, value: new BABYLON.Quaternion(key.value.x, key.value.y, key.value.z, key.value.w) });
         });
       } else {
         // ERROR
-        console.log("Unsupported datatype "+a.dataType);
+        console.log("Unsupported datatype " + a.dataType);
       }
       animation.setKeys(keys);
       animationGroup.addTargetedAnimation(animation, target);
     });
-    
+
     animationGroup.loopAnimation = true; // CHECKME
-    
+
     var groups = this.getAnimationGroups();
-    for ( var i = 0; i < groups.length; i++ ) {
-      if ( groups[i].name == animationGroup.name ) {
+    for (var i = 0; i < groups.length; i++) {
+      if (groups[i].name == animationGroup.name) {
         var old = groups[i];
-        console.log("old",old);
+        console.log("old", old);
         groups[i] = animationGroup;
-        if ( old.isPlaying ) {
+        if (old.isPlaying) {
           old.stop();
         }
         old.dispose();
@@ -1639,25 +1639,25 @@ export class HumanoidAvatar extends Avatar {
     }
     groups.push(animationGroup);
   }
-  
+
   /**
   Saves all animations in given animation group.
   Opens save file dialog.
    */
   saveAnimations(groupName) {
-    for ( var i = 0; i < this.character.animationGroups.length; i++ ) {
+    for (var i = 0; i < this.character.animationGroups.length; i++) {
       var animationGroup = this.character.animationGroups[i];
-      if ( animationGroup.name === groupName ) {
+      if (animationGroup.name === groupName) {
         var group = this.processAnimations(animationGroup);
         var json = JSON.stringify(group);
         this.attachAnimations(group);
-        VRSPACEUI.saveFile(animationGroup.name+'.json', json);
+        VRSPACEUI.saveFile(animationGroup.name + '.json', json);
         return;
       }
     }
-    console.log("No such animation group:"+groupName);
+    console.log("No such animation group:" + groupName);
   }
-  
+
   /**
   Processes all animation in an animation group.
   @returns object suitable for saving
@@ -1667,33 +1667,33 @@ export class HumanoidAvatar extends Avatar {
       name: animationGroup.name,
       animations: []
     };
-    animationGroup.targetedAnimations.forEach( ta => {
+    animationGroup.targetedAnimations.forEach(ta => {
       //console.log("animation: "+ta.animation.name+" target: "+ta.target.getClassName()+" "+ta.target.name+" type "+ta.animation.dataType+" property "+ta.animation.targetProperty);
       var animation = {
-        animationName:ta.animation.name,
+        animationName: ta.animation.name,
         fps: ta.animation.framePerSecond,
-        targetName:ta.target.name,
+        targetName: ta.target.name,
         propertyName: ta.animation.targetProperty,
         dataType: ta.animation.dataType,
         keys: []
       };
       var keys = ta.animation.getKeys();
       // position, rotation, scaling
-      if ( ta.animation.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3 ) {
-        keys.forEach( key => {
-          var k = {frame:key.frame, value:{x:key.value.x, y:key.value.y, z:key.value.z}};
-          if ( key.interpolation ) {
+      if (ta.animation.dataType == BABYLON.Animation.ANIMATIONTYPE_VECTOR3) {
+        keys.forEach(key => {
+          var k = { frame: key.frame, value: { x: key.value.x, y: key.value.y, z: key.value.z } };
+          if (key.interpolation) {
             k.interpolation = key.interpolation;
           }
           animation.keys.push(k);
         });
-      } else if ( ta.animation.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION ) {
-        keys.forEach( key => {
-          animation.keys.push({frame:key.frame, value:{x:key.value.x, y:key.value.y, z:key.value.z, w:key.value.w}});
+      } else if (ta.animation.dataType == BABYLON.Animation.ANIMATIONTYPE_QUATERNION) {
+        keys.forEach(key => {
+          animation.keys.push({ frame: key.frame, value: { x: key.value.x, y: key.value.y, z: key.value.z, w: key.value.w } });
         });
       } else {
         // ERROR
-        console.log("Error processing "+group.name+" = can't hanle type "+ta.animation.dataType)
+        console.log("Error processing " + group.name + " = can't hanle type " + ta.animation.dataType)
       }
       group.animations.push(animation);
     });
@@ -1703,12 +1703,12 @@ export class HumanoidAvatar extends Avatar {
   /**
    * Stop an animation. To allow for blending, just turns off looping rather than stopping it right away, unless forced.
    */
-  stopAnimation(animationName, force=false) {
-    for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
+  stopAnimation(animationName, force = false) {
+    for (var i = 0; i < this.getAnimationGroups().length; i++) {
       var group = this.getAnimationGroups()[i];
-      if ( (group.name == animationName || group.name == "Clone of "+animationName) && group.isPlaying ) {
+      if ((group.name == animationName || group.name == "Clone of " + animationName) && group.isPlaying) {
         group.loopAnimation = false;
-        if ( force ) {
+        if (force) {
           group.pause();
         }
         this.activeAnimation = null;
@@ -1716,7 +1716,7 @@ export class HumanoidAvatar extends Avatar {
       }
     }
   }
-  
+
   /**
   Start a given animation
   @param animationName animation to start
@@ -1725,21 +1725,21 @@ export class HumanoidAvatar extends Avatar {
    */
   startAnimation(animationName, loop, speedRatio) {
     var started = false; // to ensure we start only one animation
-    for ( var i = 0; i < this.getAnimationGroups().length; i++ ) {
+    for (var i = 0; i < this.getAnimationGroups().length; i++) {
       var group = this.getAnimationGroups()[i];
-      if ( (group.name == animationName || group.name == "Clone of "+animationName) && !started ) {
+      if ((group.name == animationName || group.name == "Clone of " + animationName) && !started) {
         started = true;
         //this.log("Animation group: "+animationName);
-        if ( !group.isPlaying ) {
-          if ( this.fixes ) {
-            if (typeof this.fixes.beforeAnimation !== 'undefined' ) {
-              this.log( "Applying fixes for: "+this.folder.name+" beforeAnimation: "+this.fixes.beforeAnimation);
-              this.groundLevel( this.fixes.beforeAnimation );
+        if (!group.isPlaying) {
+          if (this.fixes) {
+            if (typeof this.fixes.beforeAnimation !== 'undefined') {
+              this.log("Applying fixes for: " + this.folder.name + " beforeAnimation: " + this.fixes.beforeAnimation);
+              this.groundLevel(this.fixes.beforeAnimation);
             }
             this.disableNodes();
-            if (typeof this.fixes.before !== 'undefined' ) {
-              this.fixes.before.forEach( obj => {
-                if ( animationName == obj.animation && obj.enableNodes ) {
+            if (typeof this.fixes.before !== 'undefined') {
+              this.fixes.before.forEach(obj => {
+                if (animationName == obj.animation && obj.enableNodes) {
                   //console.log(obj);
                   this.enableNodes(obj.enableNodes, true);
                 }
@@ -1747,18 +1747,18 @@ export class HumanoidAvatar extends Avatar {
             }
           }
           this.jump(0);
-          if ( typeof loop != 'undefined') {
+          if (typeof loop != 'undefined') {
             group.loopAnimation = loop;
           }
-          if ( typeof speedRatio != 'undefined') {
-            group.speedRatio=speedRatio;
+          if (typeof speedRatio != 'undefined') {
+            group.speedRatio = speedRatio;
           }
           group.play(loop);
-          this.log("playing "+animationName+" loop:"+group.loopAnimation+" "+loop+" speed "+speedRatio);
+          this.log("playing " + animationName + " loop:" + group.loopAnimation + " " + loop + " speed " + speedRatio);
           this.log(group);
         }
         this.activeAnimation = animationName;
-      } else if ( group.isPlaying ) {
+      } else if (group.isPlaying) {
         // stop all other animations
         //this.log("paused other "+group.name);
         //group.reset(); // this disables blending
@@ -1772,15 +1772,15 @@ export class HumanoidAvatar extends Avatar {
   Adds or remove all avatar meshes to given ShadowGenerator.
   @param shadowGenerator removes shadows if null
    */
-  castShadows( shadowGenerator ) {
-    if ( this.character && this.character.meshes ) {
-      for ( var i = 0; i < this.character.meshes.length; i++ ) {
+  castShadows(shadowGenerator) {
+    if (this.character && this.character.meshes) {
+      for (var i = 0; i < this.character.meshes.length; i++) {
         if (shadowGenerator) {
           shadowGenerator.getShadowMap().renderList.push(this.character.meshes[i]);
-        } else if ( this.shadowGenerator ) {
+        } else if (this.shadowGenerator) {
           var index = this.shadowGenerator.getShadowMap().renderList.indexOf(this.character.meshes[i]);
-          if ( index >= 0 ) {
-            this.shadowGenerator.getShadowMap().renderList.splice(index,1);
+          if (index >= 0) {
+            this.shadowGenerator.getShadowMap().renderList.splice(index, 1);
           }
         }
       }
@@ -1795,7 +1795,7 @@ export class HumanoidAvatar extends Avatar {
   recompute() {
     //this.scene.render(false,true);
     this.rootMesh.computeWorldMatrix(true);
-    this.character.transformNodes.forEach( t => t.computeWorldMatrix());
+    this.character.transformNodes.forEach(t => t.computeWorldMatrix());
   }
   /**
   Resize the avatar taking into account userHeight and headPos.
@@ -1804,16 +1804,16 @@ export class HumanoidAvatar extends Avatar {
     this.recompute();
     var oldScale = this.rootMesh.scaling.y;
     var oldHeadPos = this.headPos();
-    var scale = oldScale*this.userHeight/oldHeadPos.y;
-    this.rootMesh.scaling = new BABYLON.Vector3(scale,scale,scale);
+    var scale = oldScale * this.userHeight / oldHeadPos.y;
+    this.rootMesh.scaling = new BABYLON.Vector3(scale, scale, scale);
     this.recompute();
     this.initialHeadPos = this.headPos();
-    this.log("Rescaling from "+oldScale+ " to "+scale+", head position from "+oldHeadPos+" to "+this.initialHeadPos);
+    this.log("Rescaling from " + oldScale + " to " + scale + ", head position from " + oldHeadPos + " to " + this.initialHeadPos);
     this.changed();
     return scale;
   }
 
-  /** TODO Called when avatar size/height changes, supposed move name/text above the head, notify listeners */ 
+  /** TODO Called when avatar size/height changes, supposed move name/text above the head, notify listeners */
   changed() {
   }
 
@@ -1821,30 +1821,30 @@ export class HumanoidAvatar extends Avatar {
   basePosition() {
     return this.parentMesh.position;
   }
-  
+
   /** Avatar base class method */
   baseMesh() {
     return this.parentMesh;
   }
-  
+
   static async findFixFile(fix) {
-    if ( ! HumanoidAvatar.fixes[fix] ) {
-      HumanoidAvatar.fixes[fix] = new Promise((resolve,reject) => {
-        if ( HumanoidAvatar.notFound.includes(fix)) {
+    if (!HumanoidAvatar.fixes[fix]) {
+      HumanoidAvatar.fixes[fix] = new Promise((resolve, reject) => {
+        if (HumanoidAvatar.notFound.includes(fix)) {
           resolve(null);
         } else {
-          fetch(fix, {cache: 'no-cache'}).then(response => {
-            if ( response.ok ) {
+          fetch(fix, { cache: 'no-cache' }).then(response => {
+            if (response.ok) {
               resolve(fix);
             } else {
-              console.log("Fix file not found: "+fix+" - "+response.status);
-              HumanoidAvatar.notFound.push( fix );
+              console.log("Fix file not found: " + fix + " - " + response.status);
+              HumanoidAvatar.notFound.push(fix);
               resolve(null);
             }
-          }).catch(err=>{
+          }).catch(err => {
             // rather than not found we can get CORS error
             HumanoidAvatar.notFound.push(fix);
-            console.log("Fix file not found: "+fix, err);
+            console.log("Fix file not found: " + fix, err);
             resolve(null);
           });
         }
@@ -1852,30 +1852,30 @@ export class HumanoidAvatar extends Avatar {
     }
     return HumanoidAvatar.fixes[fix];
   }
-  
+
   /**
    * Create a HumanoidAvatar from given url. Does not load it though.
    */
   static async createFromUrl(scene, url, shadowGenerator) {
-    if ( url.startsWith('/') && VRSPACEUI.contentBase ) {
-      url = VRSPACEUI.contentBase+url;
+    if (url.startsWith('/') && VRSPACEUI.contentBase) {
+      url = VRSPACEUI.contentBase + url;
     }
     var pos = url.lastIndexOf('/');
-    var path = url.substring(0,pos);
-    var file = url.substring(pos+1);
+    var path = url.substring(0, pos);
+    var file = url.substring(pos + 1);
     // FIXME really bad way to parse path and create ServerFolder
     pos = path.lastIndexOf('/');
-    var baseUrl = path.substring(0,pos+1);
-    var dir = path.substring(pos+1);
-    
+    var baseUrl = path.substring(0, pos + 1);
+    var dir = path.substring(pos + 1);
+
     //find if fix file exist
-    var fix = baseUrl+dir+"-fixes.json"; // gltf fix - expected in top-level directory
-    if ( file.toLowerCase().endsWith('.glb')) {
+    var fix = baseUrl + dir + "-fixes.json"; // gltf fix - expected in top-level directory
+    if (file.toLowerCase().endsWith('.glb')) {
       // glb fixes - expected in the same directory
-      fix = url.substring(0,url.lastIndexOf('.'))+'-fixes.json';
+      fix = url.substring(0, url.lastIndexOf('.')) + '-fixes.json';
     }
     fix = await HumanoidAvatar.findFixFile(fix);
-    var folder = new ServerFolder( baseUrl, dir, fix );
+    var folder = new ServerFolder(baseUrl, dir, fix);
     let avatar = new HumanoidAvatar(scene, folder, shadowGenerator);
     avatar.file = file;
     return avatar;
