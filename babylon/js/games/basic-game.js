@@ -4,6 +4,7 @@ import { ID } from "../client/vrspace.js";
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Dialogue } from "../ui/widget/dialogue.js";
 import { GameStatusForm } from "./game-status-form.js";
+import { UserDirectionMonitor } from "../ui/widget/user-direction-monitor.js";
 
 /**
  * Base class for a simple multiuser game.
@@ -107,6 +108,7 @@ export class BasicGame extends BasicScript {
     if ( yes ) {
       this.showGameStatus();
       VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"join"});
+      UserDirectionMonitor.disable();
     }
     this.joinDlg = null;
   }
@@ -117,6 +119,7 @@ export class BasicGame extends BasicScript {
   quitGame() {
     this.playing = false;
     VRSPACE.sendCommand("Game", {id: this.vrObject.id, action:"quit"});
+    UserDirectionMonitor.enable();
     if ( this.callback ) {
       this.callback(false);
     }

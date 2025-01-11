@@ -44,7 +44,6 @@ export class DefaultHud {
     this.screencast = null;
     this.whiteboard = null;
     this.creditArea = null;
-    this.userDirectionMonitor = null;
   }
 
   init() {
@@ -126,7 +125,7 @@ export class DefaultHud {
       this.compassButton.tooltipText = "Show positions";
       if ( !UserDirectionMonitor.isEnabled()) {
         this.hud.markDisabled(this.compassButton, true);
-      } else if ( this.userDirectionMonitor ) {
+      } else if ( UserDirectionMonitor.instance ) {
         this.hud.markActive(this.compassButton, true);
       }
 
@@ -144,13 +143,11 @@ export class DefaultHud {
   }
 
   compass() {
-    if ( this.userDirectionMonitor ) {
-      this.userDirectionMonitor.dispose();
-      this.userDirectionMonitor = null;
+    if ( UserDirectionMonitor.instance ) {
+      UserDirectionMonitor.instance.dispose();
       this.hud.markEnabled(this.compassButton, true);
     } else {
-      this.userDirectionMonitor = new UserDirectionMonitor();
-      this.userDirectionMonitor.start();
+      new UserDirectionMonitor().start();
       this.hud.markActive(this.compassButton,true);
     }
     

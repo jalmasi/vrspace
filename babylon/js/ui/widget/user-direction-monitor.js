@@ -6,7 +6,11 @@ import { VRSPACEUI } from '../vrspace-ui.js';
 
 export class UserDirectionMonitor {
   static enabled = true;
+  static instance = null;
   constructor() {
+    if ( UserDirectionMonitor.instance ) {
+      throw "there can be only one";
+    }
     this.visibilityHelper = new VisibilityHelper();
     this.scene = this.visibilityHelper.scene;
     this.myChangeListener = (changes) => this.myChanges(changes);
@@ -17,20 +21,40 @@ export class UserDirectionMonitor {
     this.fps = 5;
     this.vertical = 0.15;
     this.autoHide = true;
+    this.active = false;
+    UserDirectionMonitor.instance = this;
   }
   
   static isEnabled() {
     return WorldManager.instance != null && UserDirectionMonitor.enabled;
   }
   
-  start() {
-    WorldManager.instance.addMyChangeListener(this.myChangeListener);
-    WorldManager.instance.addChangeListener(this.remoteChangeListener);
-    this.animate = this.animate && WorldManager.instance.fps < 25;
+  static enable() {
+    UserDirectionMonitor.enabled = true;
   }
+
+  static disable() {
+    UserDirectionMonitor.enabled = false;
+    if ( UserDirectionMonitor.instance ) {
+      UserDirectionMonitor.instance.dispose();
+    }
+  }
+  
+  start() {
+    if ( ! this.active ) {
+      this.active = true;
+      WorldManager.instance.addMyChangeListener(this.myChangeListener);
+      WorldManager.instance.addChangeListener(this.remoteChangeListener);
+      this.animate = this.animate && WorldManager.instance.fps < 25;
+    }
+  }
+
   stop() {
-    WorldManager.instance.removeMyChangeListener(this.myChangeListener);
-    WorldManager.instance.removeChangeListener(this.remoteChangeListener);
+    if ( this.active ) {
+      WorldManager.instance.removeMyChangeListener(this.myChangeListener);
+      WorldManager.instance.removeChangeListener(this.remoteChangeListener);
+      this.active = false;
+    }
   }
 
   init() {
@@ -41,6 +65,7 @@ export class UserDirectionMonitor {
   dispose() {
     this.stop();
     VRSPACE.getScene(vrObject=>typeof vrObject.avatar != "undefined").values().forEach(vrObject=>this.removeIndicator(vrObject.avatar));
+    UserDirectionMonitor.instance = null;
   }
 
   myChanges(changes) {
