@@ -27,7 +27,7 @@ export class MiniMap {
     });    
   }
   setPosition(){
-    this.ground.position = new BABYLON.Vector3(.35*this.engine.getAspectRatio(this.scene.activeCamera),.5,.5);
+    this.ground.position = new BABYLON.Vector3(VRSPACEUI.hud.scaling()*.2*this.engine.getAspectRatio(this.scene.activeCamera)-0.05,-2*VRSPACEUI.hud.vertical(),0);
   }
   shot() {
     if (!this.capturing) {
