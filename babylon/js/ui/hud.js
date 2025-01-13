@@ -152,7 +152,9 @@ export class HUD {
       let requiredRatio = this.elements.length/10*2;
       this.scale = Math.min(this.scaling(), aspectRatio/requiredRatio);
     }
-    this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
+    // CHECKME: rescale everything attached the HUD root?
+    //this.root.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
+    this.rowRoot.scaling = new BABYLON.Vector3(this.scale,this.scale,1);
     //console.log("Aspect ratio: "+aspectRatio+" HUD scaling: "+this.scale+" controls "+this.getControls().length);
   }
   
