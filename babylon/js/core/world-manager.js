@@ -143,7 +143,7 @@ export class WorldManager {
     if (!camera) {
       camera = this.scene.activeCamera;
     }
-    if (camera) {
+    if (camera && this.camera != camera && camera != VRSPACEUI.hud.ignoreCamera) {
       this.log("Tracking camera " + camera.getClassName())
       this.camera = camera;
     }
