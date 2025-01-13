@@ -27,8 +27,8 @@ export class FloorRibbon {
     this.leftPath = [];
     this.rightPath = [];
     this.pathArray = [this.leftPath, this.rightPath];
-    this.left = BABYLON.MeshBuilder.CreateSphere("leftSphere", {diameter: 1}, scene);
-    this.right = BABYLON.MeshBuilder.CreateSphere("rightSphere", {diameter: 1}, scene);
+    this.left = BABYLON.MeshBuilder.CreateSphere("leftSphere", {diameter: 1}, this.scene);
+    this.right = BABYLON.MeshBuilder.CreateSphere("rightSphere", {diameter: 1}, this.scene);
     this.left.isVisible = false;
     this.right.isVisible = false;
     scene.onActiveCameraChanged.add( (s) => this.cameraChanged() );

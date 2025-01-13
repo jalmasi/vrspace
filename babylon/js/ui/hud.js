@@ -60,6 +60,8 @@ export class HUD {
     this.elements = [];
     this.controls = [];
     this.textures = [];
+    /** Root of all buttons and everything else attached to HUD */
+    // TODO introduce another node for rescaling
     this.root = new BABYLON.TransformNode("HUD");
     this.root.position = new BABYLON.Vector3(0,this.verticalWeb,this.distanceWeb);
     this.rowRoot = new BABYLON.TransformNode("HUD0");
