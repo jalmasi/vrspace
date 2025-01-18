@@ -1,5 +1,5 @@
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
-import { World } from './world.js';
+import { World } from '../world/world.js';
 
 /**
  * Helper class containing camera creation and manipulation methods used elsewhere.
@@ -15,11 +15,11 @@ export class CameraHelper {
   static mobileOrientationEnabled = false;
   
   /**
-   * @param {World} world 
+   * @param scene babylonjs scne 
    */
-  constructor(world) {
-    this.world = world;
-    /** Should mobile device orientation control camera orientation, defaults to static World.mobileOrientationEnabled */
+  constructor(scene) {
+    this.scene = scene;
+    /** Should mobile device orientation control camera orientation, defaults to static CameraHelper.mobileOrientationEnabled */
     this.mobileOrientationEnabled = CameraHelper.mobileOrientationEnabled;
     /** Set if used, 3rd person camera only */
     this.gamepadInput = null;
@@ -32,7 +32,7 @@ export class CameraHelper {
   @param name optional camera name, default Universal Camera
    */
   universalCamera(pos, name = "Universal Camera") {
-    let camera = new BABYLON.UniversalCamera(name, pos, this.world.scene);
+    let camera = new BABYLON.UniversalCamera(name, pos, this.scene);
     camera.maxZ = 100000;
     camera.minZ = 0;
     camera.applyGravity = true;
@@ -72,11 +72,11 @@ export class CameraHelper {
     // debug existing func
     console.log(camera._computeLocalCameraSpeed);
     setInterval(() => {
-      console.log("engine delta: "+this.world.engine.getDeltaTime()+" fps "+this.world.engine.getFps());
+      console.log("engine delta: "+this.scene.getEngine().getDeltaTime()+" fps "+this.scene.getEngine().getFps());
     }, 5000);
     */
     // this actually makes camera speed real
-    camera._computeLocalCameraSpeed = () => { return camera.speed * this.world.engine.getDeltaTime() * 0.001 };
+    camera._computeLocalCameraSpeed = () => { return camera.speed * this.scene.getEngine().getDeltaTime() * 0.001 };
 
     return camera;
   }
@@ -84,11 +84,14 @@ export class CameraHelper {
   /** 
    * Utility method, creates 3rd person camera.
    * Requires 1st person UniversalCamera already set, and sets rotation and direction based on it.
-   * @param camera1p 1st person UniversalCamera, defaults to this.world.camera
+   * @param camera1p 1st person UniversalCamera, defaults to current active camera
    * @returns created 3rd person ArcRotateCamera
    */
-  thirdPersonCamera(camera1p = this.world.camera) {
-    let camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI / 2, 1.5 * Math.PI - camera1p.rotation.y, 3, camera1p.position, this.world.scene);
+  thirdPersonCamera(camera1p = this.scene.activeCamera) {
+    if ( camera1p.getClassName() !== "UniversalCamera" ) {
+      throw "Need 1st person camera to create 3rd person camera";
+    }
+    let camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI / 2, 1.5 * Math.PI - camera1p.rotation.y, 3, camera1p.position, this.scene);
     //camera3p.maxZ = 1000;
     //camera3p.minZ = 0;
     camera3p.maxZ = camera1p.maxZ;
@@ -121,7 +124,7 @@ export class CameraHelper {
     // https://forum.babylonjs.com/t/gamepad-controller/34409
     // this actually works only the first time
     // select 1p then 3p cam again, and no gamepad input
-    const gamepadManager = this.world.scene.gamepadManager;
+    const gamepadManager = this.scene.gamepadManager;
     this.gamepadInput = new BABYLON.ArcRotateCameraGamepadInput();
     // so this is the workaround, also explained on the forum
     const oldAttach = this.gamepadInput.attachControl;
@@ -181,8 +184,8 @@ export class CameraHelper {
         //camera3p.inputs.attached.gamepad.gamepadAngularSensibility = 250;
         //camera3p.inputs.addGamepad();
         gamepad.onleftstickchanged((stickValues) => {
-          if (this.world.avatarController) {
-            this.world.avatarController.processGamepadStick(stickValues);
+          if (World.lastInstance.avatarController) {
+            World.lastInstance.avatarController.processGamepadStick(stickValues);
           }
         });
       }
@@ -204,8 +207,8 @@ export class CameraHelper {
    */
   enableMobileOrientation(enabled=this.mobileOrientationEnabled) {
     this.mobileOrientationEnabled = enabled;
-    if ( VRSPACEUI.hasTouchScreen() && this.world.scene.activeCamera.getClassName() == "UniversalCamera" ) {
-      let camera = this.world.scene.activeCamera;
+    if ( VRSPACEUI.hasTouchScreen() && this.scene.activeCamera.getClassName() == "UniversalCamera" ) {
+      let camera = this.scene.activeCamera;
       if ( this.mobileOrientationEnabled ) {
         // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/Inputs/freeCameraDeviceOrientationInput.ts
         let deviceOrientation = new BABYLON.FreeCameraDeviceOrientationInput();

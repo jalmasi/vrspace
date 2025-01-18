@@ -15,7 +15,7 @@ import { Sceneshot } from '../world/sceneshot.js';
 import { HideAndSeek } from '../games/hide-and-seek.js';
 import { GameTag } from '../games/game-tag.js';
 import { SoundMixer } from './widget/sound-mixer.js';
-import { CameraHelper } from '../world/camera-helper.js';
+import { CameraHelper } from '../core/camera-helper.js';
 import { ImageArea } from './widget/image-area.js';
 import { UserDirectionMonitor } from './widget/user-direction-monitor.js';
 import { MiniMap } from './widget/mini-map.js';
