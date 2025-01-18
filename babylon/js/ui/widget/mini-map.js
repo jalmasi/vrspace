@@ -25,9 +25,15 @@ export class MiniMap {
 
     this.surface = BABYLON.MeshBuilder.CreateDisc("MiniMap", { radius: .05 }, this.scene);
     this.surface.parent = VRSPACEUI.hud.root;
+    VRSPACEUI.hud.addAttachment(this.surface);
     this.surface.material = new BABYLON.StandardMaterial("screenshotMaterial");
     this.surface.material.disableLighting = true;
 
+    this.pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragPlaneNormal: new BABYLON.Vector3(0, 0, 1) });
+    //this.pointerDragBehavior.useObjectOrientationForDragging = false;
+    //this.pointerDragBehavior.updateDragPlane = false;
+    this.surface.addBehavior(this.pointerDragBehavior);
+    
     this.center = BABYLON.MeshBuilder.CreateSphere("MiniMapCenter", { diameter: 0.002 }, this.scene);
     this.center.material = new BABYLON.StandardMaterial("MiniMapCenterMaterial");
     this.center.material.emissiveColor = BABYLON.Color3.Yellow();
@@ -132,6 +138,7 @@ export class MiniMap {
 
   dispose() {
     this.scene.unregisterBeforeRender(this.movementHandler);
+    VRSPACEUI.hud.removeAttachment(this.surface);
     CameraHelper.getInstance(this.scene).ignoreCamera = null;
     this.surface.dispose();
     this.camera.dispose();

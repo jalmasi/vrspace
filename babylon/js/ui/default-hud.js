@@ -130,7 +130,7 @@ export class DefaultHud {
       this.minimapButton = this.hud.addButton("Mini map", this.contentBase + "/content/icons/map.png", () => this.toggleMiniMap(), false);
       this.minimapButton.tooltipText = "Show mini map";
       if ( this.miniMap ) {
-        this.hud.markActive(this.miniMap, true);
+        this.hud.markActive(this.minimapButton, true);
       }
       
       this.compassButton = this.hud.addButton("Positions", this.contentBase + "/content/icons/location-indicator.png", () => this.compass(), false);
@@ -289,7 +289,7 @@ export class DefaultHud {
       if (!this.orientationButton) {
         this.orientationButton = this.hud.addButton("Rotation", VRSPACEUI.contentBase + "/content/icons/rotate-hand.png", () => this.toggleOrientation());
       }
-      if (CameraHelper.lastInstance.mobileOrientationEnabled) {
+      if (CameraHelper.getInstance(this.scene).mobileOrientationEnabled) {
         this.orientationButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/rotate-hand.png";
         this.orientationButton.tooltipText = "3rd Person";
       } else {
@@ -300,8 +300,7 @@ export class DefaultHud {
   }
 
   toggleOrientation() {
-    CameraHelper.lastInstance.enableMobileOrientation(!CameraHelper.lastInstance.mobileOrientationEnabled);
-    CameraHelper.mobileOrientationEnabled = CameraHelper.lastInstance.mobileOrientationEnabled;
+    CameraHelper.getInstance(this.scene).enableMobileOrientation(!CameraHelper.getInstance(this.scene).mobileOrientationEnabled);
     this.showMobileControls();
   }
 

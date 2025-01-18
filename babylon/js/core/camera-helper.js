@@ -293,7 +293,6 @@ export class CameraHelper {
   }
 
   dispose() {
-    //CameraHelper.lastInstance = null; // for debug
     this.scene.onActiveCameraChanged.remove(this.cameraTracker)
     this.cameraListeners = [];
     // TODO gamepad inputs

@@ -713,7 +713,7 @@ export class AvatarSelection extends World {
         // TODO refactor this to WorldManager
         this.worldManager = new WorldManager(world);
         this.worldManager.tokens = this.tokens;
-        this.worldManager.customOptons = this.customOptions;
+        this.worldManager.customOptions = this.customOptions;
         this.worldManager.customAnimations = this.customAnimations;
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
