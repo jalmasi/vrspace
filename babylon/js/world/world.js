@@ -7,6 +7,7 @@ import { VRSPACE } from '../client/vrspace.js';
 import { WorldListener } from './world-listener.js';
 import { CameraHelper } from '../core/camera-helper.js';
 import { Terrain } from '../terrain/terrain.js';
+import { Skybox } from './skybox.js';
 
 /**
 Basic world, intended to be overridden.
@@ -62,9 +63,9 @@ export class World {
     this.inVR = false;
     /** WebXR capability indicator, set by VRHelper */
     this.hasXR = false;
-    /** VR helper */
+    /** VR helper @type { VRHelper }*/
     this.vrHelper = null;
-    /** AR helper */
+    /** AR helper @type { VRHelper }*/
     this.arHelper = null;
     /** Currently active VR/AR helper */
     this.xrHelper = null;
@@ -72,6 +73,8 @@ export class World {
     this.sceneMeshes = null;
     /** Terrain, optionally created in createTerrain() @type {Terrain} */
     this.terrain = null;
+    /** Skybox, optionally created in createSkybox() @type {Skybox} */
+    this.skyBox = null;
 
     /** Handy reference to VRSpaceUI */
     this.VRSPACEUI = VRSPACEUI;

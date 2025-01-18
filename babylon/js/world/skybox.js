@@ -52,6 +52,10 @@ export class Skybox {
     return this.skybox.material.reflectionTexture;
   }
   
+  setEnabled(enabled) {
+    this.skybox.setEnabled(enabled);
+  }
+  
   dispose() {
     if ( this.skybox ) {
       this.skybox.dispose();
