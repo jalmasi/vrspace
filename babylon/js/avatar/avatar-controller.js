@@ -25,6 +25,8 @@ class AvatarMovement {
       up: new BABYLON.Vector3(0, .5, 0),
       down: new BABYLON.Vector3(0, -1, 0)
     };
+    this.terrrainUpdateDistance = 10;
+    this.terrainUpdatedAt = new BABYLON.Vector3(0,0,0);
     this.stop();
     // we only track walk if the avatar can walk
     this.trackWalk = this.animation.canWalk();
@@ -60,10 +62,7 @@ class AvatarMovement {
       back: false,
       up: false
     }
-    if (this.world.terrain && this.world.camera1p) {
-      this.world.camera1p.update();
-      this.world.terrain.refresh();
-    }
+    this.updateTerrain();
   }
 
   startAnimation(animation) {
@@ -266,6 +265,10 @@ class AvatarMovement {
       var rotation = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, angle);
       direction.rotateByQuaternionToRef(rotation, direction);
       avatarMesh.moveWithCollisions(direction);
+      if ( avatarMesh.position.subtract(this.terrainUpdatedAt).length() > this.terrrainUpdateDistance ) {
+        this.terrainUpdatedAt = avatarMesh.position.clone();
+        this.updateTerrain();
+      }
     } else if (this.movingToTarget) {
       var xDist = Math.abs(avatarMesh.position.x - this.movementTarget.x);
       var zDist = Math.abs(avatarMesh.position.z - this.movementTarget.z);
@@ -295,6 +298,13 @@ class AvatarMovement {
     }
   }
 
+  updateTerrain() {
+    if (this.world.terrain && this.world.camera1p) {
+      this.world.camera1p.update();
+      this.world.terrain.refresh();
+    }
+  }
+  
   dispose() {
     this.stopTrackingCameraRotation();
     if (this.cameraAnimation) {
