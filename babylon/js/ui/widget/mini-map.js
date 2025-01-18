@@ -1,5 +1,6 @@
 import { VRSPACEUI } from "../vrspace-ui.js";
 import { World } from '../../world/world.js';
+import { CameraHelper } from "../../core/camera-helper.js";
 
 /**
  * MiniMap sets up a camera looking from above at current avatar position,
@@ -20,7 +21,7 @@ export class MiniMap {
     this.camera = new BABYLON.ArcRotateCamera("MiniMapCamera", -Math.PI / 2, 0, this.height, new BABYLON.Vector3(0, 0, 0), this.scene);
 
     // taking screenshot changes active camera, tell HUD to ignore the change    
-    VRSPACEUI.hud.ignoreCamera = this.camera;
+    CameraHelper.getInstance(this.scene).ignoreCamera = this.camera;
 
     this.surface = BABYLON.MeshBuilder.CreateDisc("MiniMap", { radius: .05 }, this.scene);
     this.surface.parent = VRSPACEUI.hud.root;
@@ -131,6 +132,7 @@ export class MiniMap {
 
   dispose() {
     this.scene.unregisterBeforeRender(this.movementHandler);
+    CameraHelper.getInstance(this.scene).ignoreCamera = null;
     this.surface.dispose();
     this.camera.dispose();
     window.removeEventListener("resize", this.windowResized);

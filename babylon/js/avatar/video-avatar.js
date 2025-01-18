@@ -1,4 +1,6 @@
 import { Avatar } from './avatar.js';
+import { CameraHelper } from '../core/camera-helper.js';
+
 /**
 A disc that shows video stream. Until streaming starts, altText is displayed on the cylinder.
 It can be extended, and new class provided to WorldManager factory.
@@ -197,7 +199,7 @@ export class VideoAvatar extends Avatar {
     }
     this.cameraChanged();
     this.attached = true;
-    this.scene.onActiveCameraChanged.add( this.cameraTracker );
+    CameraHelper.getInstance(this.scene).addCameraListener(this.cameraTracker);
   }
   
   /** Rescale own avatar and detach from camera */
@@ -207,7 +209,7 @@ export class VideoAvatar extends Avatar {
       this.mesh.position = this.camera.position; // CHECKME: must be the same
       console.log("Mesh position: "+this.mesh.position);
       this.mesh.scaling = new BABYLON.Vector3(1, 1, 1);
-      this.scene.onActiveCameraChanged.remove( this.cameraTracker );
+      CameraHelper.getInstance(this.scene).removeCameraListener(this.cameraTracker);
       this.mesh.parent = null;
       this.attached = false;
     }

@@ -5,6 +5,7 @@ import { VideoAvatar } from '../avatar/video-avatar.js';
 import { MeshAvatar } from '../avatar/mesh-avatar.js';
 import { BotController } from '../avatar/bot-controller.js';
 import { World } from '../world/world.js'
+import { CameraHelper } from './camera-helper.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -71,7 +72,7 @@ export class WorldManager {
     } else {
       this.trackCamera();
     }
-    this.scene.onActiveCameraChanged.add(() => { this.trackCamera() });
+    CameraHelper.getInstance(this.scene).addCameraListener(()=>this.trackCamera());
     this.VRSPACE = VRSPACE;
     /** Network frames per second, default 5 */
     this.fps = 5;
@@ -143,7 +144,7 @@ export class WorldManager {
     if (!camera) {
       camera = this.scene.activeCamera;
     }
-    if (camera && this.camera != camera && camera != VRSPACEUI.hud.ignoreCamera) {
+    if (camera && this.camera != camera) {
       this.log("Tracking camera " + camera.getClassName())
       this.camera = camera;
     }

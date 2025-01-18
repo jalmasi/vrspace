@@ -1,4 +1,5 @@
 import {VRSPACEUI} from '../vrspace-ui.js';
+import { CameraHelper } from '../../core/camera-helper.js';
 
 /** UI to create floors, see {@link https://www.youtube.com/watch?v=8RxToSgtoko|this youtube video}.
 Start recording, then edit, then save, either as js or json.
@@ -31,7 +32,7 @@ export class FloorRibbon {
     this.right = BABYLON.MeshBuilder.CreateSphere("rightSphere", {diameter: 1}, this.scene);
     this.left.isVisible = false;
     this.right.isVisible = false;
-    scene.onActiveCameraChanged.add( (s) => this.cameraChanged() );
+    CameraHelper.getInstance(this.scene).addCameraListener(()=>this.cameraChanged());
     this.recording = false;
     this.editing = false;
     this.resizing = false;

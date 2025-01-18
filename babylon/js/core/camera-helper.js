@@ -1,5 +1,6 @@
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { World } from '../world/world.js';
+import { VRSPACE } from '../client/vrspace.js'
 
 /**
  * Helper class containing camera creation and manipulation methods used elsewhere.
@@ -10,20 +11,51 @@ export class CameraHelper {
    *  
    * @type {CameraHelper} 
    */
-  static lastInstance;
+  static instance;
   /** Should mobile device orientation control camera orientation, default false (cheap devices have bad sensors) */
   static mobileOrientationEnabled = false;
-  
+
+  static getInstance(scene) {
+    if ( !CameraHelper.instance ) {
+      CameraHelper.instance = new CameraHelper(scene);
+    }
+    return CameraHelper.instance;
+  }
   /**
    * @param scene babylonjs scne 
    */
   constructor(scene) {
+    if (CameraHelper.instance) {
+      throw "There can be only one";
+    }
     this.scene = scene;
     /** Should mobile device orientation control camera orientation, defaults to static CameraHelper.mobileOrientationEnabled */
     this.mobileOrientationEnabled = CameraHelper.mobileOrientationEnabled;
     /** Set if used, 3rd person camera only */
     this.gamepadInput = null;
-    CameraHelper.lastInstance = this;
+    this.ignoreCamera = null;
+    this.cameraIgnored = false;
+    this.cameraListeners = [];
+    CameraHelper.instance = this;
+    this.cameraTracker = () => this.trackCamera();
+    scene.onActiveCameraChanged.add(this.cameraTracker);
+  }
+
+  trackCamera() {
+    if (this.scene.activeCamera == this.ignoreCamera) {
+      this.cameraIgnored = true;
+      return;
+    } else if (this.cameraIgnored) {
+      this.cameraIgnored = false;
+      return;
+    }
+    this.cameraListeners.forEach(listener => {
+      try {
+        listener(this.scene)
+      } catch (err) {
+        console.error(err);
+      }
+    });
   }
 
   /**
@@ -51,10 +83,10 @@ export class CameraHelper {
 
     camera.touchAngularSensibility = 10000;
 
-    if ( this.mobileOrientationEnabled && VRSPACEUI.hasTouchScreen() ) {
+    if (this.mobileOrientationEnabled && VRSPACEUI.hasTouchScreen()) {
       this.enableMobileOrientation();
     }
-    
+
     return camera;
   }
 
@@ -80,7 +112,7 @@ export class CameraHelper {
 
     return camera;
   }
- 
+
   /** 
    * Utility method, creates 3rd person camera.
    * Requires 1st person UniversalCamera already set, and sets rotation and direction based on it.
@@ -88,7 +120,7 @@ export class CameraHelper {
    * @returns created 3rd person ArcRotateCamera
    */
   thirdPersonCamera(camera1p = this.scene.activeCamera) {
-    if ( camera1p.getClassName() !== "UniversalCamera" ) {
+    if (camera1p.getClassName() !== "UniversalCamera") {
       throw "Need 1st person camera to create 3rd person camera";
     }
     let camera3p = new BABYLON.ArcRotateCamera("Third Person Camera", Math.PI / 2, 1.5 * Math.PI - camera1p.rotation.y, 3, camera1p.position, this.scene);
@@ -190,9 +222,9 @@ export class CameraHelper {
         });
       }
     });
-    
-    gamepadManager.onGamepadDisconnectedObservable.add(gamepad=>{
-      if ( this.gamepad ) {
+
+    gamepadManager.onGamepadDisconnectedObservable.add(gamepad => {
+      if (this.gamepad) {
         this.gamepad = null;
         camera3p.inputs.remove(this.gamepadInput);
       }
@@ -205,11 +237,11 @@ export class CameraHelper {
    * Mobiles: use screen orientation to control camera rotation.
    * @param {boolean} [enabled=this.mobileOrientationEnabled] true = use screen orientation, false = drag to rotate
    */
-  enableMobileOrientation(enabled=this.mobileOrientationEnabled) {
+  enableMobileOrientation(enabled = this.mobileOrientationEnabled) {
     this.mobileOrientationEnabled = enabled;
-    if ( VRSPACEUI.hasTouchScreen() && this.scene.activeCamera.getClassName() == "UniversalCamera" ) {
+    if (VRSPACEUI.hasTouchScreen() && this.scene.activeCamera.getClassName() == "UniversalCamera") {
       let camera = this.scene.activeCamera;
-      if ( this.mobileOrientationEnabled ) {
+      if (this.mobileOrientationEnabled) {
         // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/Inputs/freeCameraDeviceOrientationInput.ts
         let deviceOrientation = new BABYLON.FreeCameraDeviceOrientationInput();
         deviceOrientation.angleOffset = 0;
@@ -219,24 +251,24 @@ export class CameraHelper {
         deviceOrientation._deviceOrientation = (evt) => {
           if (!deviceOrientation.angleInitial && evt.alpha) {
             deviceOrientation.angleInitial = evt.alpha;
-            console.log("Initial device orientation: "+evt.alpha+" "+evt.beta+" "+evt.gamma);
+            console.log("Initial device orientation: " + evt.alpha + " " + evt.beta + " " + evt.gamma);
           }
           deviceOrientation._deviceOrientation_original(evt);
         }
-        deviceOrientation.angleOffset = camera.rotation.y/2/Math.PI*360;
+        deviceOrientation.angleOffset = camera.rotation.y / 2 / Math.PI * 360;
 
         // see https://github.com/BabylonJS/Babylon.js/blob/master/packages/dev/core/src/Cameras/targetCamera.ts#L260
         camera.setTarget_original = camera.setTarget;
         camera.setTarget = (vector) => {
           camera.setTarget_original(vector);
-          deviceOrientation.angleOffset = camera.rotation.y/2/Math.PI*360;
+          deviceOrientation.angleOffset = camera.rotation.y / 2 / Math.PI * 360;
         }
 
         deviceOrientation.checkInputs_original = deviceOrientation.checkInputs;
         deviceOrientation.checkInputs = () => {
           // https://developer.mozilla.org/en-US/docs/Web/API/DeviceOrientationEvent
           // touch screen does not necessarily mean orientation info is available - do not mess up camera for these
-          if ( deviceOrientation.angleInitial ) {
+          if (deviceOrientation.angleInitial) {
             deviceOrientation._alpha -= (deviceOrientation.angleInitial + deviceOrientation.angleOffset);
             deviceOrientation.checkInputs_original();
             deviceOrientation._alpha += (deviceOrientation.angleInitial + deviceOrientation.angleOffset);
@@ -252,8 +284,19 @@ export class CameraHelper {
     }
   }
 
+  addCameraListener(listener) {
+    VRSPACE.addListener(this.cameraListeners, listener);
+  }
+
+  removeCameraListener(listener) {
+    VRSPACE.removeListener(this.cameraListeners, listener);
+  }
+
   dispose() {
+    //CameraHelper.lastInstance = null; // for debug
+    this.scene.onActiveCameraChanged.remove(this.cameraTracker)
+    this.cameraListeners = [];
     // TODO gamepad inputs
   }
-  
+
 }

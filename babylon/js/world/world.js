@@ -49,8 +49,6 @@ export class World {
     this.indicator = null;
     /** Main world camera */
     this.camera = null;
-    /** CameraHelper created with World, initialized in createScene() @type {CameraHelper}*/
-    this.cameraHelper = null;
     /** First person camera, defaults to main camera */
     this.camera1p = null;
     /** Main 3rd person world camera */
@@ -155,7 +153,6 @@ export class World {
     if (!this.scene) {
       this.scene = new BABYLON.Scene(engine);
     }
-    this.cameraHelper = new CameraHelper(this.scene);
     var camera = await this.createCamera();
     if (camera) {
       this.camera = camera;
@@ -254,7 +251,7 @@ export class World {
    * @see CameraHelper.firstPersonCamera
    */
   firstPersonCamera(pos, name = "First Person Camera") {
-    this.camera1p = this.cameraHelper.firstPersonCamera(pos,name);
+    this.camera1p = CameraHelper.getInstance(this.scene).firstPersonCamera(pos,name);
     return this.camera1p;
   }
 
@@ -263,7 +260,7 @@ export class World {
    * @see CameraHelper.thirdPersonCamera
    */
   thirdPersonCamera(camera1p = this.camera) {
-    this.camera3p = this.cameraHelper.thirdPersonCamera(camera1p);
+    this.camera3p = CameraHelper.getInstance(this.scene).thirdPersonCamera(camera1p);
     return this.camera3p;
   }
 
@@ -278,10 +275,6 @@ export class World {
     if (this.camera3p) {
       this.camera3p.dispose();
       this.camera3p = null;
-    }
-    if ( this.cameraHelper ) {
-      this.cameraHelper.dispose();
-      this.cameraHelper = null;
     }
     if (this.skyBox) {
       this.skyBox.dispose();

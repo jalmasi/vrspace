@@ -1,4 +1,5 @@
 import {VRSPACEUI} from './vrspace-ui.js';
+import { CameraHelper } from '../core/camera-helper.js';
 
 /**
 Default progress indicator: rotating vrspace.org logo, 30 cm ahead, 5 cm below camera.
@@ -29,16 +30,16 @@ export class LoadProgressIndicator {
     VRSPACEUI.init(scene).then( (ui) => {
         indicator.mesh = ui.logo.clone("LoadingProgressIndicator");
         indicator.mesh.scaling.scaleInPlace(0.05);
-        indicator.attachTo( indicator.camera );
+        indicator.attachToCamera();
         indicator.zeroRotation = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X,-Math.PI/2);
         indicator.mesh.rotationQuaternion = indicator.zeroRotation;
         indicator.mesh.setEnabled(indicator.totalItems > indicator.currentItem);
         indicator.log("Loaded logo, current progress "+indicator.currentItem+"/"+indicator.totalItems);
     });
-    this.scene.onActiveCameraChanged.add( () => {
+    CameraHelper.getInstance(this.scene).addCameraListener( () => {
       if ( this.scene.activeCamera ) {
         //console.log("Camera changed: "+this.scene.activeCamera.getClassName());
-        this.attachTo(camera); // FIXME undefined
+        this.attachToCamera();
       }
     });
   }
@@ -47,7 +48,7 @@ export class LoadProgressIndicator {
     this.currentItem = 0;
     this.angle = Math.PI;
   }
-  attachTo(camera) { // FIXME not used
+  attachToCamera() {
     this.camera = this.scene.activeCamera;
     if ( this.mesh ) {
       this.mesh.parent = this.scene.activeCamera;
