@@ -71,7 +71,7 @@ export class HUD {
     window.addEventListener("resize", () => {
       this.rescaleHUD();
     });
-    CameraHelper.getInstance(this.scene).addCameraListener(()=>this.trackCamera());
+    CameraHelper.getInstance(this.scene).addCameraListener(() => this.trackCamera());
     this.trackCamera();
   }
   /**
@@ -680,7 +680,7 @@ export class HUD {
    * However, mesh parent isn't changed, it has to be set by caller to hud root.
    */
   addAttachment(mesh) {
-    if (mesh && this.attachments.indexOf(mesh) < 0 ) {
+    if (mesh && this.attachments.indexOf(mesh) < 0) {
       this.attachments.push(mesh);
     }
   }
