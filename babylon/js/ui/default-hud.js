@@ -236,8 +236,8 @@ export class DefaultHud {
     this.stopEmoji();
     if (this.isOnline()) {
       // online, bind to camera in 1st person and to avatar in 3rd person view
-      if (WorldManager.instance.world.camera3p && this.scene.activeCamera == WorldManager.instance.world.camera3p) {
-        this.emojiParticleSystem.init(url, WorldManager.instance.world.avatarController.avatar).start();
+      if (World.lastInstance.camera3p && this.scene.activeCamera == World.lastInstance.camera3p) {
+        this.emojiParticleSystem.init(url, World.lastInstance.avatarController.avatar).start();
       } else {
         this.emojiParticleSystem.init(url).start();
       }
@@ -285,7 +285,7 @@ export class DefaultHud {
   }
 
   showMobileControls() {
-    if (VRSPACEUI.hasTouchScreen()) {
+    if (VRSPACEUI.hasTouchScreen() && !World.lastInstance.inXR()) {
       if (!this.orientationButton) {
         this.orientationButton = this.hud.addButton("Rotation", VRSPACEUI.contentBase + "/content/icons/rotate-hand.png", () => this.toggleOrientation());
       }
@@ -305,14 +305,14 @@ export class DefaultHud {
   }
 
   showCameraControls() {
-    if (WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p) {
+    if (World.lastInstance.camera3p && World.lastInstance.camera1p) {
       if (!this.cameraButton) {
         this.cameraButton = this.hud.addButton("View", VRSPACEUI.contentBase + "/content/icons/camera-1st-person.png", () => this.toggleCamera());
       }
-      if (this.scene.activeCamera == WorldManager.instance.world.camera1p) {
+      if (this.scene.activeCamera == World.lastInstance.camera1p) {
         this.cameraButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/camera-3rd-person.png";
         this.cameraButton.tooltipText = "3rd Person";
-      } else if (this.scene.activeCamera == WorldManager.instance.world.camera3p) {
+      } else if (this.scene.activeCamera == World.lastInstance.camera3p) {
         this.cameraButton.imageUrl = VRSPACEUI.contentBase + "/content/icons/camera-1st-person.png";
         this.cameraButton.tooltipText = "1st Person";
       }
@@ -320,11 +320,11 @@ export class DefaultHud {
   }
 
   toggleCamera() {
-    if (WorldManager.instance && WorldManager.instance.world && WorldManager.instance.world.camera3p && WorldManager.instance.world.camera1p) {
-      if (this.scene.activeCamera == WorldManager.instance.world.camera1p) {
-        WorldManager.instance.world.thirdPerson();
-      } else if (this.scene.activeCamera == WorldManager.instance.world.camera3p) {
-        WorldManager.instance.world.firstPerson();
+    if (World.lastInstance.camera3p && World.lastInstance.camera1p) {
+      if (this.scene.activeCamera == World.lastInstance.camera1p) {
+        World.lastInstance.thirdPerson();
+      } else if (this.scene.activeCamera == World.lastInstance.camera3p) {
+        World.lastInstance.firstPerson();
       }
       this.showCameraControls();
     }
