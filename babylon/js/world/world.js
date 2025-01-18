@@ -6,6 +6,7 @@ import { AvatarController } from '../avatar/avatar-controller.js';
 import { VRSPACE } from '../client/vrspace.js';
 import { WorldListener } from './world-listener.js';
 import { CameraHelper } from '../core/camera-helper.js';
+import { Terrain } from '../terrain/terrain.js';
 
 /**
 Basic world, intended to be overridden.
@@ -69,7 +70,7 @@ export class World {
     this.xrHelper = null;
     /** Scene meshes, available once the world loads (in loaded, loadingStop, collisions methods) */
     this.sceneMeshes = null;
-    /** Terrain, optionally created in createTerrain() */
+    /** Terrain, optionally created in createTerrain() @type {Terrain} */
     this.terrain = null;
 
     /** Handy reference to VRSpaceUI */
