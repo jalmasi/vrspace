@@ -512,7 +512,7 @@ export class HUD {
     });
     this.textures.forEach(t => t.dispose());
 
-    this.attachments = [];
+    //this.attachments = []; // CHECKME attachments are not controls
     this.elements = [];
     this.controls = [];
     this.textures = [];
@@ -680,7 +680,7 @@ export class HUD {
    * However, mesh parent isn't changed, it has to be set by caller to hud root.
    */
   addAttachment(mesh) {
-    if (mesh) {
+    if (mesh && this.attachments.indexOf(mesh) < 0 ) {
       this.attachments.push(mesh);
     }
   }

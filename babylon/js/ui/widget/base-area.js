@@ -1,3 +1,5 @@
+import { ManipulationHandles } from "./manipulation-handles.js";
+
 /**
  * Base class common for TextArea and ImageArea, possibly more to come.
  * Provides methods to attach the area to HUD or camera, and common variables.
@@ -14,6 +16,7 @@ export class BaseArea {
     this.attachedToHud = false;
     this.attachedToCamera = false;
     this.areaPlane = null;
+    /** @type {ManipulationHandles} */
     this.handles = null;
     this.texture = null;
     this.material = null;

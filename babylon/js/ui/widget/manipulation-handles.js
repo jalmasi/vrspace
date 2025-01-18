@@ -1,5 +1,5 @@
 import { VRSPACEUI } from "../vrspace-ui.js";
-
+import { World } from "../../world/world.js";
 /**
  * Plane manipulation UI: adds handles around a plane, and installs pointer drag observable to the scene.
  * Top and bottom handles are used to move the plane around, with 6DOF.
@@ -72,7 +72,7 @@ export class ManipulationHandles {
     this.bottomHandle.material = this.material;
 
     if ( this.canMinimize ) {
-      //this.box = BABYLON.MeshBuilder.CreateBox("MinMaxBox",{size:1},this.scene);
+      // CHECKME 1 may be too small on mobiles
       this.box = BABYLON.MeshBuilder.CreatePlane("MinMaxButon", {width:1,height:1}, this.scene);
       this.box.scaling = new BABYLON.Vector3(handleWidth,handleWidth,this.height/100);
       this.box.position = new BABYLON.Vector3(-this.width/2-this.width/20, -this.height/2-this.height/20, 0);
@@ -150,10 +150,12 @@ export class ManipulationHandles {
   }
   
   createBehavior() {
-    if ( this.group.billboardMode == BABYLON.Mesh.BILLBOARDMODE_Y ) {
-      return new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
+    if (World.lastInstance.inXR()) {
+      return new BABYLON.SixDofDragBehavior();
     }
-    return new BABYLON.SixDofDragBehavior();
+    //if ( this.group.billboardMode == BABYLON.Mesh.BILLBOARDMODE_Y ) {
+    return new BABYLON.PointerDragBehavior({ dragPlaneNormal: new BABYLON.Vector3(0, 0, 1) });
+    //return new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
   }
   
   /**
