@@ -157,6 +157,9 @@ export class VRHelper {
               VRHelper.activeInstance = this;
               this.enableBackground(false);
               this.world.collisions(this.world.collisionsEnabledInXR);
+              // disable harmless warning on android:
+              //const featureManager = this.vrHelper.baseExperience.featuresManager;
+              //featureManager.disableFeature(BABYLON.WebXRFeatureName.HAND_TRACKING);
               break;
             case BABYLON.WebXRState.EXITING_XR:
               // CHECKME: this doesn't seem to be emitted?
