@@ -138,6 +138,7 @@ export class UserDirectionMonitor {
     var quat = BABYLON.Quaternion.FromRotationMatrix(destRotation);
     if (!avatar.containsAttachment('positionIndicator')) {
       let positionIndicator = BABYLON.MeshBuilder.CreateCylinder("cone", { diameterTop: 0, diameterBottom: 0.01 * this.distance, height: .2 * this.distance, tessellation: 4 }, this.scene);
+      positionIndicator.material = VRSPACEUI.uiMaterial;
       positionIndicator.parent = camera;
       positionIndicator.position = new BABYLON.Vector3(0, this.vertical, this.distance);
       avatar.attach('positionIndicator', positionIndicator);
