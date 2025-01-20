@@ -10,9 +10,12 @@ Main UI class, provides utility methods and basic UI elements.
 @class
  */
 export class VRSpaceUI {
-
+  static instance = null;
   /** Creates UI with default LoadProgressIndicator */
   constructor( ) {
+    if ( VRSpaceUI.instance ) {
+      throw "There can be only one";
+    }
     /** babylon scene*/
     this.scene = null;
     /** content base (prefix), default empty (same host) */
@@ -57,6 +60,9 @@ export class VRSpaceUI {
     this.VRSPACE = VRSPACE;
     /** reference to AssetLoader singleton */
     this.assetLoader = null;
+    /** UI Material, created from init, defaults to color 0.2,0.2,0.3, with 0.7 alpha */
+    this.uiMaterial = null;
+    VRSpaceUI.instance = this;
   }
 
   /** 
@@ -79,12 +85,19 @@ export class VRSpaceUI {
       this.canAR = await BABYLON.WebXRSessionManager.IsSessionSupportedAsync("immersive-ar");
       
       // TODO figure out location of script
-      var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoDir(),this.logoFile,this.scene);
-      this.logo = container.meshes[0];
-      for ( var i = 0; i < container.meshes; i++ ) {
-        container.meshes[i].checkCollisions = false;
-      }
-      this.logo.name = "VRSpace.org Logo";
+      if ( this.logoDir() && this.logoFile ) {
+        var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoDir(),this.logoFile,this.scene);
+        this.logo = container.meshes[0];
+        for ( var i = 0; i < container.meshes; i++ ) {
+          container.meshes[i].checkCollisions = false;
+        }
+        this.logo.name = "VRSpace.org Logo";
+      } 
+      
+      this.uiMaterial = new BABYLON.StandardMaterial("uiMaterial", this.scene);
+      this.uiMaterial.alpha = 0.7;
+      this.uiMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.3);
+      
       await this.loadPortal(scene);
       this.initialized = true;
     }
@@ -93,7 +106,7 @@ export class VRSpaceUI {
 
   /** Used in init, return logPath if exists, or default path to vrspace.org logo */
   logoDir() {
-    if ( this.logoPath ) {
+    if ( this.logoPath != null ) {
       return this.logoPath;
     }
     return this.contentBase+"/babylon/";
@@ -111,7 +124,7 @@ export class VRSpaceUI {
   @param camera
   @returns load progress indicator 
    */
-  loadProgressIndicatorFactory(scene, camera) {
+  async loadProgressIndicatorFactory(scene, camera) {
     if ( ! this.indicator ) {
       this.indicator = new LoadProgressIndicator(scene, camera);
     }

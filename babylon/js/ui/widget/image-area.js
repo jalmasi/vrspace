@@ -1,5 +1,6 @@
 import { ManipulationHandles } from "./manipulation-handles.js";
 import { BaseArea } from './base-area.js';
+import { VRSPACEUI } from "../vrspace-ui.js";
 
 /**
  * An area somewhere in space, like a screen, displaying a texture.
@@ -218,9 +219,12 @@ export class ImageArea extends BaseArea {
    */
   createHandles() {
     this.handles = new ManipulationHandles(this.areaPlane, this.size*this.ratio, this.size, this.scene);
+    this.handles.material = VRSPACEUI.uiMaterial;
+    /*
     this.handles.material = new BABYLON.StandardMaterial("TextAreaMaterial", this.scene);
     this.handles.material.alpha = 0.75;
     this.handles.material.diffuseColor = new BABYLON.Color3(.2,.2,.3);
+    */
     this.handles.canMinimize = this.canMinimize;
     this.handles.show();
     this.attachVolumeControl();

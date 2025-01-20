@@ -135,12 +135,12 @@ export class World {
     }
     await this.createScene(engine);
     this.registerRenderLoop();
+    // make sure it's available for any and all operations
+    await VRSPACEUI.init(this.scene);
     if (!this.onProgress) {
-      this.indicator = VRSPACEUI.loadProgressIndicator(this.scene, this.camera);
+      // CHECKME: replacing load progress indicator with custom one may load vrspace logo
+      this.indicator = await VRSPACEUI.loadProgressIndicator(this.scene, this.camera);
       this.onProgress = (evt, name) => this.indicator.progress(evt, name)
-    } else {
-      // make sure it's available for any and all operations (custom progress indicator may not have done it)
-      VRSPACEUI.init(scene);
     }
     this.createTerrain();
     this.createUI();

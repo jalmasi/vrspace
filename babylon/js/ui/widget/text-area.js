@@ -68,9 +68,12 @@ export class TextArea extends BaseArea {
     this.areaPlane.parent = this.group;
 
     if ( this.addBackground ) {
+      /*
       this.material = new BABYLON.StandardMaterial("TextAreaMaterial", this.scene);
       this.material.alpha = this.alpha;
       this.material.diffuseColor = new BABYLON.Color3(.2,.2,.3);
+      */
+      this.material = VRSPACEUI.uiMaterial;
     
       this.backgroundPlane = BABYLON.MeshBuilder.CreatePlane("BackgroundPlane", {width:this.size*this.ratio*1.05,height:this.size*1.05}, this.scene);
       this.backgroundPlane.position = new BABYLON.Vector3(0, 0, this.size/100);
