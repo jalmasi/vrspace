@@ -664,17 +664,69 @@ export class HUD {
     let ret = false;
     this.elements.forEach(e => {
       if (e.getClassName() == "HolographicButton") {
+        /*
         // also trying currently invisible buttons
         let visible = e.mesh.isVisible;
         ret |= e.mesh.intersectsMesh(mesh);
         e.mesh.isVisible = visible;
+        */
+        ret |= this.pointIsInside(e.mesh.absolutePosition, mesh);
       } else {
-        ret |= e.intersectsMesh(mesh);
+        //ret |= e.intersectsMesh(mesh);
+        ret |= this.pointIsInside(e.absolutePosition, mesh);
       }
     });
-    this.attachments.forEach(e => ret |= e.intersectsMesh(mesh));
+    //this.attachments.forEach(e => ret |= e.intersectsMesh(mesh));
+    this.attachments.forEach(e => ret |= this.pointIsInside(e.absolutePosition,mesh));
     return ret;
   }
+
+  // https://doc.babylonjs.com/toolsAndResources/utilities/IsInside
+  pointIsInside(point, mesh) {
+    let boundInfo = mesh.getHierarchyBoundingVectors(true);
+    let max = boundInfo.max;
+    let min = boundInfo.min;
+    if (point.x < min.x || point.x > max.x) {
+      return false;
+    }
+    if (point.y < min.y || point.y > max.y) {
+      return false;
+    }
+    if (point.z < min.z || point.z > max.z) {
+      return false;
+    }
+
+    return true;
+    /*
+    var diameter = 2 * boundInfo.boundingSphere.radius;
+    var pointFound = false;
+    var d = 0;
+    var hitCount = 0;
+    var gap = 0;
+    var distance = 0;
+    var ray = new BABYLON.Ray(BABYLON.Vector3.Zero(), BABYLON.Axis.X, diameter);;
+    var pickInfo;
+    var direction = point.clone();
+    var refPoint = point.clone();
+
+    hitCount = 0;
+    ray.origin = refPoint;
+    ray.direction = direction;
+    ray.distance = diameter;
+    pickInfo = ray.intersectsMesh(mesh);
+    while (pickInfo.hit) {
+      hitCount++;
+      pickInfo.pickedPoint.addToRef(direction.scale(0.00000001), refPoint);
+      ray.origin = refPoint;
+      pickInfo = ray.intersectsMesh(mesh);
+    }
+    if ((hitCount % 2) === 1) {
+      pointFound = true;
+    }
+    return pointFound;
+    */
+  };
+
   /**
    * Add an attachment mesh. It will be used for XR controller manipulation as other hud elements.
    * However, mesh parent isn't changed, it has to be set by caller to hud root.

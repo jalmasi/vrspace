@@ -170,7 +170,7 @@ export class AvatarLoader extends AvatarSelection {
     particleSystem.maxSize = 0.2;
     particleSystem.minEmitPower = 0.1;
     particleSystem.maxEmitPower = 0.3;
-    var fountain = BABYLON.Mesh.CreateBox("foutain", 0.1, scene);
+    var fountain = BABYLON.Mesh.CreateBox("fountain", 0.1, scene);
     fountain.visibility = 0;
     particleSystem.emitter = fountain;
 
