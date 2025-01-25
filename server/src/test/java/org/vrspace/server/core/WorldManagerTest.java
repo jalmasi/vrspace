@@ -140,7 +140,12 @@ public class WorldManagerTest {
     worldProperties.setType("World");
     worldConfig.getWorld().put("preconfigured", worldProperties);
     worldManager.worldConfig = worldConfig;
-    lenient().when(repo.getWorldByName(any())).thenReturn(null);
+    // updateCache() coverage, order matters:
+    lenient().when(repo.getWorldByName(ArgumentMatchers.anyString())).thenReturn(null);
+    World existingWorld = new World("existing world");
+    existingWorld.setId(1234L);
+    lenient().when(repo.getWorldByName(ArgumentMatchers.eq("existing world"))).thenReturn(existingWorld);
+    lenient().when(repo.get(ArgumentMatchers.eq(World.class), ArgumentMatchers.eq(1234L))).thenReturn(existingWorld);
 
     lenient().when(repo.getOwnership(anyLong(), anyLong())).thenReturn(null);
 
@@ -337,6 +342,10 @@ public class WorldManagerTest {
     assertThrows(IllegalArgumentException.class, () -> {
       worldManager.getOrCreateWorld("forbidden world");
     });
+
+    World existingWorld = worldManager.getOrCreateWorld("existing world");
+    assertTrue(existingWorld.getName().equals("existing world"));
+
   }
 
   @Test
