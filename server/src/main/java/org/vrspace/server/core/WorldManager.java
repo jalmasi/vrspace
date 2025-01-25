@@ -85,9 +85,9 @@ public class WorldManager {
   private Neo4jMappingContext mappingContext;
 
   @Autowired
-  private WorldConfig worldConfig;
+  protected WorldConfig worldConfig;
 
-  private Dispatcher dispatcher;
+  protected Dispatcher dispatcher;
 
   protected SessionTracker sessionTracker;
 
@@ -136,9 +136,9 @@ public class WorldManager {
       WorldProperties wp = worldConfig.getWorld().get(worldName);
       log.info("Configuring world: " + worldName);
       World world = getWorld(worldName);
-      if (world == null) {
-        log.info("World " + worldName + " to be created as " + wp);
-        try {
+      try {
+        if (world == null) {
+          log.info("World " + worldName + " to be created as " + wp);
           String className = wp.getType();
           if (!className.contains(".")) {
             // using default package
@@ -146,14 +146,14 @@ public class WorldManager {
           }
           Class<?> c = Class.forName(className);
           world = (World) c.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-          log.error("Error configuring world " + worldName, e);
+        } else {
+          log.info("World " + worldName + " already exists : " + world);
         }
-      } else {
-        log.info("World " + worldName + " already exists : " + world);
+        BeanUtils.copyProperties(wp, world);
+        db.save(world);
+      } catch (Exception e) {
+        log.error("Error configuring world " + worldName, e);
       }
-      BeanUtils.copyProperties(wp, world);
-      db.save(world);
     }
     log.info("WorldManager ready");
   }

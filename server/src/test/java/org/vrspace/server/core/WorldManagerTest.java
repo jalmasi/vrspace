@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -35,7 +36,11 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.config.WorldConfig;
+import org.vrspace.server.config.WorldConfig.WorldProperties;
+import org.vrspace.server.dto.ClientRequest;
+import org.vrspace.server.dto.Ping;
 import org.vrspace.server.dto.SceneProperties;
+import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Ownership;
@@ -57,8 +62,9 @@ public class WorldManagerTest {
   private ConcurrentWebSocketSessionDecorator anotherSession;
   @Mock
   private VRObjectRepository repo;
-  @Mock
-  private WorldConfig worldConfig;
+  // @Mock
+  private WorldConfig worldConfig = new WorldConfig();
+  private WorldProperties worldProperties = new WorldProperties();
   @Mock
   private StreamManager streamManager;
   @Mock
@@ -73,15 +79,46 @@ public class WorldManagerTest {
   @Captor
   private ArgumentCaptor<World> capturedWorld;
 
+  private Client mockGuestSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
+    Client client = new Client(clientName);
+    client.setSession(s);
+    client.setMapper(objectMapper);
+    client.setId(id++);
+    client.setGuest(true);
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put(ClientFactory.CLIENT_NAME_ATTRIBUTE, clientName);
+    lenient().when(s.getAttributes()).thenReturn(attributes);
+
+    lenient().when(repo.getClientByName(ArgumentMatchers.eq(clientName), any())).thenReturn(client);
+
+    return client;
+  }
+
+  private Client mockAuthorizedSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
+    Client client = mockGuestSession(clientName, s);
+    client.setSession(s);
+    client.setMapper(objectMapper);
+    client.setGuest(false);
+    lenient().when(s.getPrincipal()).thenReturn(new Principal() {
+      @Override
+      public String getName() {
+        return clientName;
+      }
+    });
+    return client;
+  }
+
   @BeforeEach
   public void setUp() {
     worldManager.config = config;
     worldManager.jackson = objectMapper;
     worldManager.clientFactory = new DefaultClientFactory();
+
     lenient().when(repo.getPermanents(any(Long.class))).thenReturn(new HashSet<VRObject>());
+
     World world = new World("test");
     world.setId(0L);
-    lenient().when(repo.save(any(World.class))).thenReturn(world);
+    lenient().when(repo.save(any(World.class))).thenAnswer(i -> i.getArguments()[0]);
     lenient().when(repo.save(any(VRObject.class))).then(i -> {
       VRObject o = i.getArgument(0, VRObject.class);
       if (o.getId() == null) {
@@ -95,6 +132,18 @@ public class WorldManagerTest {
     });
     lenient().when(repo.getOwned(anyLong())).thenReturn(owned);
     // doNothing().when(repo).delete(any(VRObject.class));
+    lenient().when(session.isOpen()).thenReturn(true);
+    lenient().when(anotherSession.isOpen()).thenReturn(true);
+
+    // this is to get some createWorlds() coverage:
+    worldProperties.setName("preconfigured");
+    worldProperties.setType("World");
+    worldConfig.getWorld().put("preconfigured", worldProperties);
+    worldManager.worldConfig = worldConfig;
+    lenient().when(repo.getWorldByName(any())).thenReturn(null);
+
+    lenient().when(repo.getOwnership(anyLong(), anyLong())).thenReturn(null);
+
     worldManager.init();
   }
 
@@ -236,31 +285,6 @@ public class WorldManagerTest {
     assertEquals(world, capturedWorld.getValue());
   }
 
-  private Client mockGuestSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
-    Client client = new Client(clientName);
-    client.setId(id++);
-    client.setGuest(true);
-    Map<String, Object> attributes = new HashMap<>();
-    attributes.put(ClientFactory.CLIENT_NAME_ATTRIBUTE, clientName);
-    lenient().when(s.getAttributes()).thenReturn(attributes);
-
-    lenient().when(repo.getClientByName(ArgumentMatchers.eq(clientName), any())).thenReturn(client);
-
-    return client;
-  }
-
-  private Client mockAuthorizedSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
-    Client client = mockGuestSession(clientName, s);
-    client.setGuest(false);
-    lenient().when(s.getPrincipal()).thenReturn(new Principal() {
-      @Override
-      public String getName() {
-        return clientName;
-      }
-    });
-    return client;
-  }
-
   @Test
   public void testPrivateWorld() {
     mockAuthorizedSession("owner", session);
@@ -301,4 +325,61 @@ public class WorldManagerTest {
     assertNull(world.getToken());
   }
 
+  @Test
+  public void testGetOrCreateWorld() {
+    World world = worldManager.getOrCreateWorld("a new world");
+    assertTrue(world.isTemporaryWorld());
+
+    World sameWorld = worldManager.getOrCreateWorld("a new world");
+    assertTrue(world == sameWorld);
+
+    worldManager.config.setCreateWorlds(false);
+    assertThrows(IllegalArgumentException.class, () -> {
+      worldManager.getOrCreateWorld("forbidden world");
+    });
+  }
+
+  @Test
+  public void testDispatch() throws Exception {
+    // event without source throws
+    assertThrows(IllegalArgumentException.class, () -> worldManager.dispatch(new VREvent(new VRObject(), null)));
+
+    Client client = mockGuestSession("guest", session);
+
+    // command that returns result
+    VREvent command = new ClientRequest(client, new Ping());
+    worldManager.dispatch(command);
+    verify(session, times(1)).sendMessage(any(TextMessage.class));
+
+    // we're not testing dispatcher here so mock it
+    worldManager.dispatcher = mock(Dispatcher.class);
+
+    // client changes own property
+    VREvent ownEvent = new VREvent(client, client);
+    worldManager.dispatch(ownEvent);
+    verify(worldManager.dispatcher, times(1)).dispatch(ownEvent);
+
+    // client changes own property
+    VRObject obj = new VRObject(123L);
+    VREvent objectEvent = new VREvent(obj, client);
+    // client has no scene:
+    assertThrows(UnsupportedOperationException.class, () -> worldManager.dispatch(objectEvent));
+
+    Scene scene = mock(Scene.class);
+    client.setScene(scene);
+    // unknown object:
+    assertThrows(UnsupportedOperationException.class, () -> worldManager.dispatch(objectEvent));
+
+    // cached object
+    worldManager.cache.put(obj.getObjectId(), obj);
+    worldManager.dispatch(objectEvent);
+    verify(worldManager.dispatcher, times(1)).dispatch(objectEvent);
+
+    // object in the scene
+    worldManager.cache.remove(obj.getObjectId());
+    lenient().when(scene.get(any())).thenReturn(obj);
+    worldManager.dispatch(objectEvent);
+    verify(worldManager.dispatcher, times(2)).dispatch(objectEvent);
+
+  }
 }
