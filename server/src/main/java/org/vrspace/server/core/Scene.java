@@ -4,12 +4,10 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Remove;
@@ -32,7 +30,7 @@ public class Scene {
   private Point oldPos = new Point();
 
   private Set<VRObject> members = newScene(); // non-permanent objects
-  private Set<VRObject> permanents; // permanent objects
+  protected Set<VRObject> permanents; // permanent objects, used in tests
   private HashMap<ID, VRObject> allObjects = new HashMap<ID, VRObject>(); // all objects in the world
 
   private WorldManager world;
@@ -269,6 +267,23 @@ public class Scene {
   }
 
   /**
+   * Unpublish an object: WorldManager deletes all temporary owned objects when
+   * guest client exits, but they also need to be removed from all scenes.
+   * 
+   * @param obj
+   */
+  public void unpublish(VRObject obj) {
+    remove(new Remove(), obj);
+    members.stream().filter(o -> o instanceof Client).forEach(o -> {
+      Client c = (Client) o;
+      if (c.getScene() != null) {
+        Remove remove = c.getScene().remove(new Remove(), obj);
+        c.getScene().sendRemove(remove);
+      }
+    });
+  }
+
+  /**
    * Notification that a client has logged out - removes it from the scene and
    * sends Remove message.
    * 
@@ -283,33 +298,16 @@ public class Scene {
   }
 
   /**
-   * Unpublish this client - notifies all clients in the range that it has logged
+   * Logout this client - notifies all clients in the range that it has logged
    * out.
    * 
    * @see #logout(Client)
    */
-  public void unpublish() {
+  public void logout() {
     members.stream().filter(o -> o instanceof Client).forEach(o -> {
       Client c = (Client) o;
       if (c.getScene() != null) {
         c.getScene().logout(client);
-      }
-    });
-  }
-
-  /**
-   * Unpublish an object: WorldManager deletes all temporary owned objects when
-   * guest client exits, but they also need to be removed from all scenes.
-   * 
-   * @param obj
-   */
-  public void unpublish(VRObject obj) {
-    // CHECKME: test coverage?
-    members.stream().filter(o -> o instanceof Client).forEach(o -> {
-      Client c = (Client) o;
-      if (c.getScene() != null) {
-        Remove remove = c.getScene().remove(new Remove(), obj);
-        c.getScene().sendRemove(remove);
       }
     });
   }
@@ -392,7 +390,7 @@ public class Scene {
   }
 
   /**
-   * Retrieve an object in the scene FIXME used only in tests?
+   * Retrieve an object in the scene
    */
   public VRObject get(ID id) {
     return allObjects.get(id);
@@ -407,14 +405,6 @@ public class Scene {
     Optional<VRObject> closestMember = members.stream()
         .min(Comparator.comparing(t -> t.getPosition().getDistance(x, y, z)));
     return closestMember.get();
-  }
-
-  /**
-   * Returns transforms within the range Does not return permanent objects TODO:
-   * check bounding boxes
-   */
-  public List<VRObject> get(double x, double y, double z, double range) {
-    return members.stream().filter(t -> t.getPosition().isInRange(x, y, z, range)).collect(Collectors.toList());
   }
 
   public void addFilter(String name, Filter filter) {

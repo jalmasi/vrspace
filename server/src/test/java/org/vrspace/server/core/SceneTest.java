@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -39,6 +41,8 @@ public class SceneTest {
   @Mock
   Client client;
 
+  SceneProperties sceneProperties = new SceneProperties();
+
   ArgumentCaptor<?> message = ArgumentCaptor.forClass(Object.class);
 
   Set<VRObject> transforms = new HashSet<VRObject>();
@@ -52,9 +56,8 @@ public class SceneTest {
     permanents.add(new VRObject(101L, new VRObject(12L)));
     permanents.add(new VRObject(202L));
 
-    SceneProperties props = new SceneProperties();
     Point pos = new Point();
-    lenient().when(client.getSceneProperties()).thenReturn(props);
+    lenient().when(client.getSceneProperties()).thenReturn(sceneProperties);
     lenient().when(client.getPosition()).thenReturn(pos);
     lenient().when(world.getRange(any(Client.class), any(Point.class), any(Point.class))).thenReturn(transforms);
     lenient().when(world.getPermanents(any(Client.class))).thenReturn(permanents);
@@ -209,4 +212,112 @@ public class SceneTest {
     scene.update();
     assertEquals(2, scene.size());
   }
+
+  @Test
+  public void testOfferSingle() throws Exception {
+    Scene scene = new Scene(world, client);
+    scene.update();
+    assertEquals(2, scene.size());
+    assertEquals(2, scene.permanents.size());
+
+    VRObject permanent = new VRObject(10L);
+    permanent.setPermanent(true);
+    scene.offer(permanent);
+    assertEquals(2, scene.size());
+    assertEquals(3, scene.permanents.size());
+
+    // object without position
+    VRObject noPos = new VRObject(11L);
+    scene.offer(noPos);
+    assertEquals(3, scene.size());
+
+    // object with position in range
+    VRObject withPos = new VRObject(12L);
+    withPos.setPosition(
+        new Point(sceneProperties.getRange() - .1, sceneProperties.getRange() - .1, sceneProperties.getRange() - .1));
+    scene.offer(withPos);
+    assertEquals(4, scene.size());
+
+    // object with position out of range
+    VRObject outOfRange = new VRObject(13L);
+    outOfRange.setPosition(
+        new Point(sceneProperties.getRange() + .1, sceneProperties.getRange() + .1, sceneProperties.getRange() + .1));
+    scene.offer(outOfRange);
+    assertEquals(4, scene.size());
+
+  }
+
+  @Test
+  public void testOfferCollection() throws Exception {
+    Scene scene = new Scene(world, client);
+    scene.update();
+    assertEquals(2, scene.size());
+    assertEquals(2, scene.permanents.size());
+
+    VRObject permanent = new VRObject(10L);
+    permanent.setPermanent(true);
+    // object without position
+    VRObject noPos = new VRObject(11L);
+
+    // object with position in range
+    VRObject withPos = new VRObject(12L);
+    withPos.setPosition(
+        new Point(sceneProperties.getRange() - .1, sceneProperties.getRange() - .1, sceneProperties.getRange() - .1));
+
+    // object with position out of range
+    VRObject outOfRange = new VRObject(13L);
+    outOfRange.setPosition(
+        new Point(sceneProperties.getRange() + .1, sceneProperties.getRange() + .1, sceneProperties.getRange() + .1));
+
+    scene.offer(List.of(permanent, noPos, withPos, outOfRange));
+    assertEquals(4, scene.size());
+    assertEquals(3, scene.permanents.size());
+  }
+
+  @Test
+  public void testPublish() throws Exception {
+    Scene scene = new Scene(world, client);
+    scene.update();
+    assertEquals(2, scene.size());
+
+    Client c2 = spy(new Client());
+    lenient().doNothing().when(c2).sendMessage(any());
+    c2.setSceneProperties(sceneProperties);
+    c2.setPosition(new Point());
+    c2.setScene(new Scene(world, c2));
+    c2.getScene().update();
+    assertEquals(2, scene.size());
+
+    // clients see each other
+    scene.offer(c2);
+    assertEquals(3, scene.size());
+    c2.getScene().offer(client);
+    assertEquals(3, c2.getScene().size());
+
+    VRObject newOne = new VRObject(123L);
+    scene.publish(newOne);
+    // and newly published object is in both scenes
+    assertEquals(4, scene.size());
+    assertEquals(4, c2.getScene().size());
+
+    // the same with collection
+    VRObject anotherNew = new VRObject(1234L);
+    scene.publishAll(List.of(anotherNew));
+    assertEquals(5, scene.size());
+    assertEquals(5, c2.getScene().size());
+
+    // unpublish, confirm removed from both scenes
+    scene.unpublish(anotherNew);
+    assertEquals(4, scene.size());
+    assertEquals(4, c2.getScene().size());
+
+    scene.unpublish(List.of(newOne));
+    assertEquals(3, scene.size());
+    assertEquals(3, c2.getScene().size());
+
+    scene.logout();
+    assertEquals(2, c2.getScene().size());
+
+  }
+
 }

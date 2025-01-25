@@ -588,7 +588,7 @@ public class WorldManager {
     // scene cleanup
     if (client.getScene() != null) {
       // remove client from all scenes
-      client.getScene().unpublish();
+      client.getScene().logout();
       // clear the scene to stop receiving events
       client.getScene().removeAll();
     }
