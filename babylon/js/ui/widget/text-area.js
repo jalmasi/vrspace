@@ -174,8 +174,8 @@ export class TextArea extends BaseArea {
   /**
    * Detach from whatever attached to, i.e. drop it where you stand.
    */
-  detach() {
-    super.detach();
+  detach(offset) {
+    super.detach(offset);
     VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
   }
   /**

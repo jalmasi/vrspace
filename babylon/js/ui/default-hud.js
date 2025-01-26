@@ -428,15 +428,17 @@ export class DefaultHud {
     }
     if (Object.keys(assets).length > 0) {
       this.hud.markActive(this.authorsButton, true);
-      this.creditArea = new TextArea(this.scene, "TouchTextArea");
+      this.creditArea = new TextArea(this.scene, "CreditsTextArea");
       let rows = Math.floor(Object.keys(assets).length / 4) + 1;
       this.creditArea.width = 1024;
       this.creditArea.height = 512 * rows;
       this.creditArea.text = "Credits:";
       this.creditArea.attachToHud();
-      this.creditArea.size = .5;
+      this.creditArea.size = 1;
       this.creditArea.position = new BABYLON.Vector3(0, .2, .5);
       this.creditArea.show();
+      this.creditArea.detach(2);
+      this.creditArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
       for (let url in assets) {
         this.creditArea.writeln();
         this.creditArea.writeln(url);
