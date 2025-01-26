@@ -6,7 +6,7 @@ import { WorldManager } from '../vrspace-min.js';
 class AvatarMovement {
   constructor(avatarController, avatar, animation) {
     this.controller = avatarController;
-    /** @type {World}} */
+    /** @type {World} */
     this.world = avatarController.world;
     this.avatar = avatar;
     this.animation = animation;
