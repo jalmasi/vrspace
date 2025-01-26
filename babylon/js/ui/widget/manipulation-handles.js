@@ -60,13 +60,13 @@ export class ManipulationHandles {
     this.rightHandle.material = this.material;
   
     this.topHandle = BABYLON.MeshBuilder.CreateSphere("topHandle",{segments:this.segments},this.scene);
-    this.topHandle.scaling = new BABYLON.Vector3(this.height,handleWidth,handleWidth);
+    this.topHandle.scaling = new BABYLON.Vector3(this.width,handleWidth,handleWidth);
     this.topHandle.position = new BABYLON.Vector3(0, this.height/2+this.height/20, 0);
     this.topHandle.parent = this.group;
     this.topHandle.material = this.material;
   
     this.bottomHandle = BABYLON.MeshBuilder.CreateSphere("bottomHandle",{segments:this.segments},this.scene);
-    this.bottomHandle.scaling = new BABYLON.Vector3(this.height,handleWidth,handleWidth);
+    this.bottomHandle.scaling = new BABYLON.Vector3(this.width,handleWidth,handleWidth);
     this.bottomHandle.position = new BABYLON.Vector3(0, -this.height/2-this.height/20, 0);
     this.bottomHandle.parent = this.group;
     this.bottomHandle.material = this.material;
