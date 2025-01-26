@@ -97,6 +97,7 @@ export class VRSpaceUI {
       this.uiMaterial = new BABYLON.StandardMaterial("uiMaterial", this.scene);
       this.uiMaterial.alpha = 0.7;
       this.uiMaterial.diffuseColor = new BABYLON.Color3(.2,.2,.3);
+      this.uiMaterial.specularColor = new BABYLON.Color3(.05,.05,.05);
       
       await this.loadPortal(scene);
       this.initialized = true;
