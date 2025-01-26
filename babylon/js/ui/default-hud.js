@@ -519,9 +519,10 @@ export class DefaultHud {
       this.hud.newRow();
       this.screencastButton = this.hud.addButton("Share screen", this.contentBase + "/content/icons/share-screen.png", () => this.shareScreen(), false);
       this.whiteboardButton = this.hud.addButton("Whiteboard", this.contentBase + "/content/icons/whiteboard.png", () => this.toggleWhiteboard(), false);
-      this.imageButton = this.hud.addButton("Share image", this.contentBase + "/content/icons/sky.png", () => this.image(), false);
-      this.fileButton = this.hud.addButton("Share file", this.contentBase + "/content/icons/file.png", () => this.file(), false);
-      this.modelButton = this.hud.addButton("Share model", this.contentBase + "/content/icons/cube.png", () => this.model(), false);
+      this.imageButton = this.hud.addButton("Share image", this.contentBase + "/content/icons/sky.png", () => this.shareImage(), false);
+      this.videoButton = this.hud.addButton("Share video", this.contentBase + "/content/icons/video.png", () => this.shareVideo(), false);
+      this.fileButton = this.hud.addButton("Share file", this.contentBase + "/content/icons/file.png", () => this.shareFile(), false);
+      this.modelButton = this.hud.addButton("Share model", this.contentBase + "/content/icons/cube.png", () => this.shareModel(), false);
       if (this.streamingAvailable()) {
         this.hud.markEnabled(this.screencastButton);
       } else {
@@ -535,10 +536,12 @@ export class DefaultHud {
       if (this.isOnline()) {
         this.hud.markEnabled(this.fileButton);
         this.hud.markEnabled(this.imageButton);
+        this.hud.markEnabled(this.videoButton);
         this.hud.markEnabled(this.modelButton);
       } else {
         this.hud.markDisabled(this.fileButton);
         this.hud.markDisabled(this.imageButton);
+        this.hud.markDisabled(this.videoButton);
         this.hud.markDisabled(this.modelButton);
       }
       if (this.isOnline()) {
@@ -610,15 +613,19 @@ export class DefaultHud {
     World.lastInstance.addSelectionPredicate(this.whiteboard.selectionPredicate);
   }
 
-  image() {
-    this.file(".jpg,.jpeg,.png");
+  shareImage() {
+    this.shareFile(".jpg,.jpeg,.png");
   }
 
-  model() {
-    this.file(".glb,.zip");
+  shareVideo() {
+    this.shareFile(".mp4,.webm,.ogv");
   }
 
-  file(accept) {
+  shareModel() {
+    this.shareFile(".glb,.zip");
+  }
+
+  shareFile(accept) {
     if (!this.isOnline()) {
       return;
     }

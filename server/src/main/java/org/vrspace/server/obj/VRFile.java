@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class VRFile extends VRObject {
   public static final String FILE_SCRIPT = "/babylon/js/scripts/shared-file.js";
   public static final String IMAGE_SCRIPT = "/babylon/js/scripts/shared-image.js";
+  public static final String VIDEO_SCRIPT = "/babylon/js/scripts/shared-video.js";
 
   @JsonMerge
   @Setter(AccessLevel.NONE)
@@ -36,10 +37,13 @@ public class VRFile extends VRObject {
 
   public void setContent(Content content) {
     this.content = content;
-    if (content != null && content.getContentType() != null && content.getContentType().contains("image/")) {
-      setScript(IMAGE_SCRIPT);
-    } else {
-      setScript(FILE_SCRIPT);
+    if (content != null && content.getContentType() != null) {
+      if (content.getContentType().contains("image/")) {
+        setScript(IMAGE_SCRIPT);
+      } else if (content.getContentType().equals("video/mp4") || content.getContentType().equals("video/ogg")
+          || content.getContentType().equals("video/webm")) {
+        setScript(VIDEO_SCRIPT);
+      }
     }
   }
 }
