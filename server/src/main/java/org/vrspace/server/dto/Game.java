@@ -27,7 +27,6 @@ public class Game implements Command {
         log.info("Owner " + client + " has quit " + game);
         client.getScene().unpublish(game);
         worldManager.remove(client, game);
-        client.getScene().dirty().update();
       }
     } else if ("start".equals(action)) {
       game.start(client);

@@ -244,7 +244,7 @@ public class Scene {
   }
 
   /**
-   * Remove objects and notify all clients they are removed.
+   * Remove objects from all scenes and notify all clients they are removed.
    * 
    * @param objects
    */
@@ -253,6 +253,8 @@ public class Scene {
     for (VRObject obj : objects) {
       remove(remove, obj);
     }
+    sendRemove(remove);
+
     members.stream().filter(o -> o instanceof Client).forEach(o -> {
       Client c = (Client) o;
       if (c.getScene() != null) {
@@ -263,17 +265,17 @@ public class Scene {
         c.getScene().sendRemove(r);
       }
     });
-    sendRemove(remove);
   }
 
   /**
-   * Unpublish an object: WorldManager deletes all temporary owned objects when
-   * guest client exits, but they also need to be removed from all scenes.
+   * Unpublish an object: remove it from own scene, and scenes of all clients in
+   * the scene. WorldManager deletes all temporary owned objects when guest client
+   * exits, but they also need to be removed from all scenes.
    * 
    * @param obj
    */
   public void unpublish(VRObject obj) {
-    remove(new Remove(), obj);
+    sendRemove(remove(new Remove(), obj));
     members.stream().filter(o -> o instanceof Client).forEach(o -> {
       Client c = (Client) o;
       if (c.getScene() != null) {
