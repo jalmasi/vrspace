@@ -117,7 +117,7 @@ export class ImageArea extends BaseArea {
     this.material.diffuseTexture = texture;
     this.texture = texture;
     this.fullyVisible();
-    this.resizeArea(texture.getSize().width, texture.getSize().height);
+    texture.onLoadObservable.add(() => this.resizeArea(texture.getSize().width, texture.getSize().height));
   }
 
   /**
@@ -159,7 +159,7 @@ export class ImageArea extends BaseArea {
     }
     console.log(texture.video.videoWidth+"x"+texture.video.videoHeight);
     // resize the plane
-    texture.video.onresize = (event) => {
+    texture.video.onresize = () => {
       this.resizeArea(texture.video.videoWidth,texture.video.videoHeight);
     }
   }
