@@ -641,7 +641,10 @@ export class AvatarSelection extends World {
           //console.log(stat);
           if (this.portals[stat.worldName]) {
             if (stat.activeUsers > 0) {
-              this.portals[stat.worldName].setTitle('Users: ' + stat.activeUsers + '/' + stat.totalUsers);
+              // apparently some youtuber said he could not even enter the space due to users 1/1
+              // not that he tried, but this can be confusing, so
+              //this.portals[stat.worldName].setTitle('Users: ' + stat.activeUsers + '/' + stat.totalUsers);
+              this.portals[stat.worldName].setTitle('Users: ' + stat.activeUsers);
             } else {
               this.portals[stat.worldName].setTitle(null);
             }
