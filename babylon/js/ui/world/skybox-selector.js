@@ -97,7 +97,7 @@ export class SkyboxSelector {
                 //box.position = new BABYLON.Vector3(skyboxes.size*2, 1, 0);
                 var button = new BABYLON.GUI.MeshButton3D(box.skybox, "pushButton-" + skyboxName);
                 button.onPointerDownObservable.add(() => this.sendChange(box.dir));
-                this.boxes.push(box);
+                this.boxes.push(box.skybox);
                 this.panel.addControl(button);
               }
             }

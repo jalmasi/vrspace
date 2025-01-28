@@ -637,7 +637,10 @@ export class World {
    * Add a selection predicate. It takes a mesh and returns true if it can be selected by the pointer.
    */
   addSelectionPredicate(p) {
-    this.selectionPredicates.push(p);
+    let pos = this.selectionPredicates.indexOf(p);
+    if (pos == -1) {
+      this.selectionPredicates.push(p);
+    }
   }
   /** Remove a selection predicate function */
   removeSelectionPredicate(p) {
