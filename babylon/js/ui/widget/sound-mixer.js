@@ -139,8 +139,10 @@ export class SoundMixer {
     form.init(this.sounds);
     this.form = new FormArea(this.scene, form);
     this.form.size = .5;
-    this.form.show(form.textureWidth,form.textureHeight);
+    this.form.show(form.textureWidth, form.textureHeight);
     this.form.attachToHud();
+    this.form.detach(2);
+    this.form.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
   }
 
   dispose() {
@@ -151,6 +153,10 @@ export class SoundMixer {
     SoundMixer.instance = null;
   }
 
+  /**
+   * Returns the sound mixer instance, creates a new one if needed.
+   * @returns { SoundMixer }
+   */
   static getInstance(scene) {
     if (!SoundMixer.instance) {
       SoundMixer.instance = new SoundMixer(scene);

@@ -7,7 +7,7 @@ import { VRSPACE } from '../client/vrspace.js';
 import { SessionData } from '../client/vrspace.js';
 
 export class MediaStreams {
-  /** There can be only one */
+  /** There can be only one @type { MediaStreams }*/
   static instance;
   static defaultDistance = 50;
   /** Default values for streaming sound, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions */
@@ -126,8 +126,8 @@ export class MediaStreams {
    */
   publishAudio(enabled) {
     if (this.publisher) {
-      console.log("Publishing audio: " + enabled);
       this.publisher.publishAudio(enabled);
+      console.log("Publishing audio: " + enabled+" stream audio: "+this.publisher.stream.audioActive);
       this.publishingAudio = enabled;
     }
   }

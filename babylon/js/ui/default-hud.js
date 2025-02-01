@@ -36,7 +36,7 @@ export class DefaultHud {
     this.xrMovementChangeEnabled = true;
     this.xrTeleport = true;
     this.portals = {};
-    this.state = { mic: false, webcam: false, speech: SpeechInput.isEnabled() };
+    this.state = { webcam: false, speech: SpeechInput.isEnabled() };
     this.movementButton = null;
     this.orientationButton = null;
     this.cameraButton = null;
@@ -354,19 +354,17 @@ export class DefaultHud {
 
   displayMic() {
     if (MediaStreams.instance) {
-      this.state.mic = MediaStreams.instance.publishingAudio;
-      if (this.state.mic) {
+      if (MediaStreams.instance.publishingAudio) {
         this.micButton.imageUrl = this.contentBase + "/content/icons/microphone.png";
       } else {
         this.micButton.imageUrl = this.contentBase + "/content/icons/microphone-off.png";
       }
     } else {
-      this.state.mic = false;
       this.hud.markDisabled(this.micButton);
     }
   }
 
-  toggleMic(enabled = !this.state.mic) {
+  toggleMic(enabled = !MediaStreams.instance.publishingAudio) {
     if (MediaStreams.instance) {
       MediaStreams.instance.publishAudio(enabled);
       this.displayMic();
