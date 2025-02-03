@@ -12,7 +12,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
 @Data
 @JsonInclude(Include.NON_EMPTY)
@@ -20,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-@Slf4j
 public class VRFile extends VRObject {
   public static final String FILE_SCRIPT = "/babylon/js/scripts/shared-file.js";
   public static final String IMAGE_SCRIPT = "/babylon/js/scripts/shared-image.js";

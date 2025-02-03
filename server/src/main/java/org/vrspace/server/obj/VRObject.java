@@ -90,6 +90,7 @@ public class VRObject extends Entity {
    * ignored for all purposes.
    */
   @Transient
+  @JsonIgnore
   private transient volatile boolean deleted;
 
   /**

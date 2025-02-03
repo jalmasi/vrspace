@@ -20,6 +20,7 @@ import org.vrspace.server.obj.ContentCategory;
 import org.vrspace.server.obj.Embedded;
 import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.GltfModel;
+import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.TerrainPoint;
@@ -186,7 +187,6 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
    * WARNING this doesn't return full, useful owned Entity - position and other
    * members are missing - use getOwners instead
    * 
-   * @param objectIdId
    * @return list of all owners
    */
   @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
@@ -231,6 +231,12 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   List<UserGroup> listUserGroups(long clientId);
 
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId RETURN c")
-  List<Client> listGroupMembers(long groupId);
+  List<Client> listGroupClients(long groupId);
+
+  @Query("MATCH (gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId RETURN gm")
+  List<GroupMember> listGroupMembers(long groupId);
+
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ID(c)=$clientId RETURN gm")
+  Optional<GroupMember> findGroupMember(long groupId, long clientId);
 
 }

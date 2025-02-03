@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Set client a client token, e.g. to enter a private world
@@ -18,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-@Slf4j
 public class SetToken implements Command {
   private String name;
   private String value;
