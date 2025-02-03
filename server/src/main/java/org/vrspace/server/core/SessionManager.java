@@ -12,6 +12,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
@@ -58,6 +59,7 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
   @Autowired
   private WorldManager worldManager;
   @Autowired
+  @Qualifier("privateMapper")
   private ObjectMapper mapper;
 
   @PostConstruct

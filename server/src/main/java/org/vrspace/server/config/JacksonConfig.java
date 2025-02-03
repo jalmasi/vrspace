@@ -42,13 +42,15 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 public class JacksonConfig {
   private Pattern htmlTag = Pattern.compile("<.+?>");
 
-  @Bean
+  /**
+   * By default, fields that are annotated as @Private will not be serialized.
+   */
+  @Bean("objectMapper")
   public ObjectMapper objectMapper() {
     ObjectMapper ret = objectMapperBuilder().build();
     // process and add all subclasses of VRObject
     ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
 
-    // by default, nothing annotated as Private will be serialized
     ret.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
       private static final long serialVersionUID = 1L;
 
@@ -57,6 +59,19 @@ public class JacksonConfig {
         return super.hasIgnoreMarker(m) || m.hasAnnotation(Private.class);
       }
     });
+
+    return ret;
+  }
+
+  /**
+   * Private mapper also serializes @Private fields, so that a client can see own
+   * private properties.
+   */
+  @Bean("privateMapper")
+  public ObjectMapper privateMapper() {
+    ObjectMapper ret = objectMapperBuilder().build();
+    // process and add all subclasses of VRObject
+    ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
 
     return ret;
   }
@@ -74,8 +89,10 @@ public class JacksonConfig {
 
     // JSON date/time proper format:
     builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    // this disables custom events
+    // this disables custom events, useful for debugging only
     // builder.featuresToEnable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    // may be useful for debugging
+    // builder.featuresToEnable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);
     JavaTimeModule module = new JavaTimeModule();
     module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));

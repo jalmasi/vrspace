@@ -8,12 +8,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.vrspace.server.config.JacksonConfig;
 import org.vrspace.server.dto.Add;
@@ -28,6 +30,7 @@ import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.RemoteServer;
 import org.vrspace.server.obj.Terrain;
 import org.vrspace.server.obj.TerrainPoint;
+import org.vrspace.server.obj.UserData;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.ID;
 
@@ -37,7 +40,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JsonTest {
 
   @Autowired
+  @Qualifier("objectMapper")
   private ObjectMapper mapper;
+  @Autowired
+  @Qualifier("privateMapper")
+  private ObjectMapper privateMapper;
 
   @Test
   public void testObject() throws Exception {
@@ -95,6 +102,18 @@ public class JsonTest {
   }
 
   @Test
+  public void testUserData() throws Exception {
+    Client c = new Client();
+    c.setSceneProperties(new SceneProperties());
+    c.setName("client");
+
+    c.setUserData(List.of(new UserData("key1", "value1"), new UserData("key2", "value2")));
+    testConversion(c);
+
+    testConversion(c, true, privateMapper);
+  }
+
+  @Test
   public void testAdd() throws Exception {
     Add add = new Add(new VRObject(1L, new VRObject(2L)), new VRObject(3L, new VRObject(4L)));
     testConversion(add);
@@ -129,7 +148,7 @@ public class JsonTest {
     VREvent ev = new ClientRequest(new VRObject(1L));
     ev.addChange("field1", "value1");
     ev.addChange("field2", 5);
-    testConversion(ev, false); // source is not set during deserialization
+    testConversion(ev, false, mapper); // source is not set during deserialization
   }
 
   @Test
@@ -144,7 +163,7 @@ public class JsonTest {
     map.put("two", "two");
     ev.addChange("field4", map);
     // CHECKME: how do we transfer objects then?
-    testConversion(ev, false);
+    testConversion(ev, false, mapper);
   }
 
   @Test
@@ -172,7 +191,7 @@ public class JsonTest {
     ev.addChange("field4", map);
     Echo echo = new Echo(ev);
     // event.equals() workaround:
-    testConversion(echo, false);
+    testConversion(echo, false, mapper);
   }
 
   private void println(Object whatever) {
@@ -180,15 +199,15 @@ public class JsonTest {
   }
 
   private <T> T testConversion(T obj) throws Exception {
-    return testConversion(obj, true);
+    return testConversion(obj, true, mapper);
   }
 
-  private <T> T testConversion(T obj, boolean resultEquals) throws Exception {
-    String json = mapper.writeValueAsString(obj);
+  private <T> T testConversion(T obj, boolean resultEquals, ObjectMapper objectMapper) throws Exception {
+    String json = objectMapper.writeValueAsString(obj);
     println(json);
     @SuppressWarnings("unchecked")
-    T res = (T) mapper.readValue(json, obj.getClass());
-    String jsonRes = mapper.writeValueAsString(res);
+    T res = (T) objectMapper.readValue(json, obj.getClass());
+    String jsonRes = objectMapper.writeValueAsString(res);
     println(jsonRes);
 
     assertEquals(json, jsonRes);

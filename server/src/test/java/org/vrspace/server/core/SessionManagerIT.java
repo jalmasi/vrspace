@@ -29,6 +29,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
@@ -72,6 +73,7 @@ public class SessionManagerIT {
   private ArgumentCaptor<WebSocketMessage<?>> message;
 
   @Autowired
+  @Qualifier("objectMapper")
   private ObjectMapper mapper;
 
   private User testUser;
@@ -250,6 +252,21 @@ public class SessionManagerIT {
     assertEquals(3, testUser.getPosition().getX(), 0.01);
     assertEquals(2, testUser.getPosition().getY(), 0.01);
     assertEquals(1, testUser.getPosition().getZ(), 0.01);
+  }
+
+  @Test
+  public void testChangePrivateProperty() throws Exception {
+    Long clientId = login();
+
+    String string = "{\"object\":{\"User\":" + clientId
+        + "},\"changes\":{\"userData\":[{\"key\":\"key1\",\"value\":\"value1\"},{\"key\":\"key2\",\"value\":\"value2\"}]}}";
+    System.err.println(string);
+    sendMessage(string);
+
+    System.err.println(testUser.getUserData());
+
+    assertNotNull(testUser.getPosition());
+    assertEquals(2, testUser.getUserData().size());
   }
 
   @Test

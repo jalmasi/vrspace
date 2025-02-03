@@ -116,7 +116,7 @@ public class VRObject extends Entity {
   @Relationship(type = "CURRENT_ANIMATION", direction = Relationship.Direction.OUTGOING)
   private Animation animation;
 
-  /** Custom object properties */
+  /** Custom transient object properties */
   @Transient
   private transient Map<String, Object> properties;
 

@@ -10,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class SanitationTest {
 
   @Autowired
+  @Qualifier("objectMapper")
   ObjectMapper jackson;
 
   @Mock

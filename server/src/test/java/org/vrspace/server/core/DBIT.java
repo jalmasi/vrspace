@@ -3,6 +3,7 @@ package org.vrspace.server.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -35,6 +36,7 @@ import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.Terrain;
 import org.vrspace.server.obj.User;
+import org.vrspace.server.obj.UserData;
 import org.vrspace.server.obj.UserGroup;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
@@ -373,6 +375,7 @@ public class DBIT {
   @Test
   @Transactional
   public void testObjectProperties() {
+    // properties are transient, we just need to ensure they are not overridden
     VRObject obj = new VRObject();
     Map<String, Object> properties = new HashMap<>();
     properties.put("string", "string");
@@ -382,6 +385,36 @@ public class DBIT {
     obj = repo.save(obj);
     System.err.println(obj);
     assertEquals(properties, obj.getProperties());
+  }
+
+  @Test
+  @Transactional
+  public void testUserData() {
+    Client c = new Client();
+    List<UserData> properties = List.of(new UserData("key1", "value1"), new UserData("key2", "value2"));
+    c.setUserData(properties);
+    c = repo.save(c);
+    List<UserData> savedData = c.getUserData();
+    System.err.println(savedData);
+    assertEquals(properties, savedData);
+
+    long id1 = savedData.get(0).getId();
+    long id2 = savedData.get(0).getId();
+
+    List<UserData> changedData = List.of(new UserData("key1", "value1"));
+    c.setUserData(changedData);
+    c = repo.save(c);
+    System.err.println(c.getUserData());
+    assertEquals(changedData, c.getUserData());
+
+    long id3 = c.getUserData().get(0).getId();
+
+    assertNotNull(repo.get(UserData.class, id3));
+
+    // FIXME: garbage collection
+    assertNull(repo.get(UserData.class, id1));
+    assertNull(repo.get(UserData.class, id2));
+
   }
 
   @Test

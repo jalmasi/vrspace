@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -55,6 +56,7 @@ public class EventRecorderTest {
   private ArgumentCaptor<WebSocketMessage<?>> message;
 
   @Autowired
+  @Qualifier("objectMapper")
   ObjectMapper mapper;
 
   Set<VRObject> transforms = new HashSet<VRObject>();

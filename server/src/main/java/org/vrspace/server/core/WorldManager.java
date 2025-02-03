@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.http.HttpHeaders;
@@ -41,7 +42,6 @@ import org.vrspace.server.obj.World;
 import org.vrspace.server.types.ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import io.openvidu.java.client.OpenViduException;
@@ -69,10 +69,13 @@ public class WorldManager {
   protected SceneProperties sceneProperties; // used in tests
 
   @Autowired
+  @Qualifier("objectMapper")
   protected ObjectMapper jackson;
   // private mapper also serializes fields annotated with Private annotation, i.e.
   // ignores custom annotations
   // this allows Client to read own properties that aren't exposed to others
+  @Autowired
+  @Qualifier("privateMapper")
   private ObjectMapper privateJackson;
 
   @Autowired
@@ -101,8 +104,6 @@ public class WorldManager {
 
   @PostConstruct
   public void init() {
-    this.privateJackson = this.jackson.copy();
-    this.privateJackson.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
     this.dispatcher = new Dispatcher(this.privateJackson);
     this.sessionTracker = new SessionTracker(this.config);
     for (Class<?> c : ClassUtil.findSubclasses(PersistenceManager.class)) {
