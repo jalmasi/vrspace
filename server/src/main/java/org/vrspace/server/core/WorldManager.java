@@ -569,7 +569,7 @@ public class WorldManager {
     client.notifyListeners(ev);
 
     // temporary objects cleanup
-    List<Ownership> owned = db.getOwned(client.getId());
+    List<Ownership> owned = db.listOwnedObjects(client.getId());
     // CHECKME: this needs to be refactored, maybe into client.unpublish()
     for (Ownership ownership : owned) {
       // CHECKME getOwned seems to return shallow copy!?

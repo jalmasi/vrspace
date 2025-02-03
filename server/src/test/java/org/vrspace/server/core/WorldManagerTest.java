@@ -130,7 +130,7 @@ public class WorldManagerTest {
       owned.add(i.getArgument(0, Ownership.class));
       return i.getArgument(0, Ownership.class);
     });
-    lenient().when(repo.getOwned(anyLong())).thenReturn(owned);
+    lenient().when(repo.listOwnedObjects(anyLong())).thenReturn(owned);
     // doNothing().when(repo).delete(any(VRObject.class));
     lenient().when(session.isOpen()).thenReturn(true);
     lenient().when(anotherSession.isOpen()).thenReturn(true);

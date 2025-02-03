@@ -23,6 +23,7 @@ import org.vrspace.server.obj.GltfModel;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.TerrainPoint;
+import org.vrspace.server.obj.UserGroup;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
@@ -164,35 +165,34 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   /**
    * WARNING this doesn't return full, useful owned VRObject - position and other
-   * members are missing - use getOwned instead
+   * members are missing - use listOwnedObjects instead
    * 
    * @param clientId
    * @return list of all ownerships
    */
   @Query("MATCH (obj:VRObject)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE ID(c) = $clientId RETURN o,owns,c,owned,obj")
-  List<Ownership> getOwnerships(long clientId);
+  List<Ownership> getOwnedObjects(long clientId);
 
-  default List<Ownership> getOwned(long ownerId) {
+  default List<Ownership> listOwnedObjects(long ownerId) {
     List<Ownership> ret = new ArrayList<>();
-    for (Ownership o : getOwnerships(ownerId)) {
+    for (Ownership o : getOwnedObjects(ownerId)) {
       ret.add(get(Ownership.class, o.getId()));
     }
     return ret;
   }
 
   /**
-   * WARNING this doesn't return full, useful owned VRObject - position and other
+   * WARNING this doesn't return full, useful owned Entity - position and other
    * members are missing - use getOwners instead
    * 
    * @param objectIdId
    * @return list of all owners
    */
-  @Query("MATCH (obj:VRObject)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
+  @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE ID(obj) = $objectId RETURN o,owns,c,owned,obj")
   List<Ownership> getOwnersOf(long objectId);
 
-  // CHECKME no test coverage
   default List<Ownership> getOwners(long objectId) {
     List<Ownership> ret = new ArrayList<>();
     for (Ownership o : getOwnersOf(objectId)) {
@@ -202,10 +202,10 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   }
 
   /**
-   * WARNING this doesn't return full, useful owned VRObject - position and other
-   * members are missing - use getOwnership instead
+   * WARNING this doesn't return full, useful owned Entity - e.g. VRObject
+   * position and other members are missing - use getOwnership instead
    */
-  @Query("MATCH (obj:VRObject)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
+  @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE ID(c) = $ownerId AND ID(obj) = $ownedId RETURN o,owns,c,owned,obj")
   Optional<Ownership> findOwnership(long ownerId, long ownedId);
 
@@ -222,5 +222,15 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   @Query("MATCH (tp:TerrainPoint)-[r:IS_POINT_OF]->(t:Terrain) WHERE ID(t)=$terrainId and tp.index=$index RETURN tp")
   TerrainPoint getTerrainPoint(Long terrainId, Long index);
+
+  @Query("MATCH (obj:UserGroup)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
+      + " WHERE ID(c) = $clientId RETURN o,owns,c,owned,obj")
+  List<UserGroup> listOwnedGroups(long clientId);
+
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId RETURN ug")
+  List<UserGroup> listUserGroups(long clientId);
+
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId RETURN c")
+  List<Client> listGroupMembers(long groupId);
 
 }

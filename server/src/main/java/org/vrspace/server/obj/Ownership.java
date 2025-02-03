@@ -19,5 +19,5 @@ public class Ownership extends Entity {
   @Relationship(type = "IS_OWNER", direction = Relationship.Direction.OUTGOING)
   private Client owner;
   @Relationship(type = "IS_OWNED", direction = Relationship.Direction.OUTGOING)
-  private VRObject owned;
+  private Entity owned;
 }

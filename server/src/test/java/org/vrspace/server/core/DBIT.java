@@ -26,13 +26,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.WorldStatus;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.EventRecorder;
+import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.PersistentEvent;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.Terrain;
 import org.vrspace.server.obj.User;
+import org.vrspace.server.obj.UserGroup;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
@@ -630,7 +633,7 @@ public class DBIT {
 
   @Test
   @Transactional
-  public void testOwnership() {
+  public void testOwnedObjects() {
     // client owns an object:
     Client c1 = new Client();
     c1 = repo.save(c1);
@@ -646,14 +649,15 @@ public class DBIT {
     // confirm owned object persist along with client:
     Client result = repo.getClient(c1.getId());
     System.err.println(result);
-    System.err.println(repo.getOwnerships(result.getId()));
-    VRObject owned = repo.getOwned(result.getId()).iterator().next().getOwned();
+    System.err.println(repo.getOwnedObjects(result.getId()));
+    Entity owned = repo.listOwnedObjects(result.getId()).iterator().next().getOwned();
     System.err.println(owned);
     assertEquals(o1, owned);
+    VRObject ownedObject = (VRObject) owned;
     // ensure deep copy is returned
-    assertEquals(o1.getPosition(), owned.getPosition());
-    assertEquals(o1.getRotation(), owned.getRotation());
-    assertEquals(o1.getScale(), owned.getScale());
+    assertEquals(o1.getPosition(), ownedObject.getPosition());
+    assertEquals(o1.getRotation(), ownedObject.getRotation());
+    assertEquals(o1.getScale(), ownedObject.getScale());
 
     // change the object:
     o1.getPosition().setX(11);
@@ -665,11 +669,15 @@ public class DBIT {
     Ownership newOwnership = repo.getOwnership(result.getId(), o1.getId());
     System.err.println(newOwnership);
     // ensure the the changes took:
-    VRObject newOwned = newOwnership.getOwned();
+    VRObject newOwned = (VRObject) newOwnership.getOwned();
     assertEquals(o1, newOwned);
     assertEquals(o1.getPosition(), newOwned.getPosition());
     assertEquals(o1.getRotation(), newOwned.getRotation());
     assertEquals(o1.getScale(), newOwned.getScale());
+
+    // confirm owners
+    Ownership owner = repo.getOwnersOf(o1.getId()).iterator().next();
+    assertEquals(owner.getOwner(), c1);
   }
 
   @Test
@@ -727,5 +735,103 @@ public class DBIT {
     Set<VRObject> range = repo.getRange(world.getId(), new Point(0, 0, 0), new Point(10, 10, 10));
     assertEquals(1, range.size());
     assertEquals(EventRecorder.class, range.iterator().next().getClass());
+  }
+
+  @Test
+  @Transactional
+  public void testOwnedGroups() {
+    // client owns an object:
+    Client c1 = new Client();
+    c1 = repo.save(c1);
+
+    UserGroup g1 = new UserGroup("my group");
+    repo.save(g1);
+    Ownership ownership = new Ownership(c1, g1);
+    ownership = repo.save(ownership);
+    System.err.println(ownership);
+
+    // confirm owned group is persisted:
+    Client result = repo.getClient(c1.getId());
+    System.err.println(result);
+    List<UserGroup> groups = repo.listOwnedGroups(result.getId());
+    System.err.println(groups);
+    Entity owned = groups.iterator().next();
+    System.err.println(owned);
+    assertEquals(g1, owned);
+
+    UserGroup ownedObject = (UserGroup) owned;
+    // ensure deep copy is returned
+    assertEquals(g1.getName(), ownedObject.getName());
+
+    // change the object:
+    g1.setName("changed name");
+    g1 = repo.save(g1);
+    System.err.println(g1);
+
+    Ownership newOwnership = repo.getOwnership(result.getId(), g1.getId());
+    System.err.println(newOwnership);
+    // ensure the the changes took:
+    UserGroup newOwned = (UserGroup) newOwnership.getOwned();
+    assertEquals(g1, newOwned);
+    assertEquals(g1.getName(), newOwned.getName());
+    // confirm owners
+    Ownership owner = repo.getOwnersOf(g1.getId()).iterator().next();
+    assertEquals(owner.getOwner(), c1);
+  }
+
+  @Test
+  @Transactional
+  public void testGroupMembership() {
+    Client c1 = new Client();
+    c1 = repo.save(c1);
+    Client c2 = new Client();
+    c2 = repo.save(c2);
+    Client c3 = new Client();
+    c3 = repo.save(c3);
+
+    UserGroup g1 = new UserGroup("group1");
+    repo.save(g1);
+    UserGroup g2 = new UserGroup("group2");
+    repo.save(g2);
+    UserGroup g3 = new UserGroup("group3");
+    repo.save(g3);
+    UserGroup g4 = new UserGroup("group4");
+    repo.save(g4);
+
+    GroupMember m11 = new GroupMember(g1, c1);
+    m11 = repo.save(m11);
+    GroupMember m12 = new GroupMember(g1, c2);
+    m12 = repo.save(m12);
+    GroupMember m21 = new GroupMember(g2, c1);
+    m21 = repo.save(m21);
+    GroupMember m32 = new GroupMember(g3, c2);
+    m32 = repo.save(m32);
+
+    // g1 contains c1 and c2
+    List<Client> g1m = repo.listGroupMembers(g1.getId());
+    assertEquals(2, g1m.size());
+    assertTrue(g1m.contains(c1));
+    assertTrue(g1m.contains(c2));
+    // g2 contains only c1
+    List<Client> g2m = repo.listGroupMembers(g2.getId());
+    assertEquals(1, g2m.size());
+    assertTrue(g2m.contains(c1));
+    // g3 contains only c2
+    List<Client> g3m = repo.listGroupMembers(g3.getId());
+    assertEquals(1, g3m.size());
+    assertTrue(g3m.contains(c2));
+    // g4 has no members
+    List<Client> g4m = repo.listGroupMembers(g4.getId());
+    assertEquals(0, g4m.size());
+    // c1 is member of g1 and g2
+    List<UserGroup> c1g = repo.listUserGroups(c1.getId());
+    assertEquals(2, c1g.size());
+    assertTrue(c1g.contains(g1));
+    assertTrue(c1g.contains(g2));
+    // c2 is member of g1 and g3
+    List<UserGroup> c2g = repo.listUserGroups(c2.getId());
+    assertEquals(2, c2g.size());
+    assertTrue(c2g.contains(g1));
+    assertTrue(c2g.contains(g3));
   }
 }
