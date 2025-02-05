@@ -37,6 +37,7 @@ import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.RemoteServer;
 import org.vrspace.server.obj.User;
+import org.vrspace.server.obj.UserGroup;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 import org.vrspace.server.types.ID;
@@ -91,6 +92,8 @@ public class WorldManager {
   protected WorldConfig worldConfig;
 
   protected Dispatcher dispatcher;
+
+  private GroupManager groupManager = new GroupManager(this, db);
 
   protected SessionTracker sessionTracker;
 
@@ -575,7 +578,10 @@ public class WorldManager {
     for (Ownership ownership : owned) {
       // CHECKME getOwned seems to return shallow copy!?
       VRObject ownedObject = get(ownership.getOwned().getObjectId());
-      if (ownedObject.isTemporary() || client.isGuest()) {
+      if (ownedObject == null && client.isGuest()) {
+        // Group owned by guest client
+        groupManager.deleteGroup(client, (UserGroup) ownership.getOwned());
+      } else if (ownedObject.isTemporary() || client.isGuest()) {
         if (client.getScene() != null) {
           client.getScene().unpublish(ownedObject);
         }
@@ -675,5 +681,23 @@ public class WorldManager {
    */
   public StreamManager getStreamManager() {
     return this.streamManager;
+  }
+
+  /**
+   * CHECKME Commands need access to GroupManager
+   * 
+   * @return GroupManager
+   */
+  public GroupManager getGroupManager() {
+    return this.groupManager;
+  }
+
+  /**
+   * CHECKME Commands need access to database
+   * 
+   * @return VRObjectRepository
+   */
+  public VRObjectRepository getDb() {
+    return db;
   }
 }

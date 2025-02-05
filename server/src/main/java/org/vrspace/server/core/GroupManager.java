@@ -1,8 +1,5 @@
 package org.vrspace.server.core;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.GroupMessage;
 import org.vrspace.server.obj.Client;
@@ -18,14 +15,15 @@ import lombok.extern.slf4j.Slf4j;
  * @author joe
  *
  */
-@Component
-@DependsOn({ "database" })
 @Slf4j
 public class GroupManager {
-  @Autowired
   private VRObjectRepository db;
-  @Autowired
   private WorldManager worldManager;
+
+  public GroupManager(WorldManager worldManager, VRObjectRepository db) {
+    this.worldManager = worldManager;
+    this.db = db;
+  }
 
   @Transactional
   public UserGroup createGroup(Client client, UserGroup group) {

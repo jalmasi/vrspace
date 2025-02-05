@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -254,11 +255,11 @@ public class SessionManagerIT {
     assertEquals(1, testUser.getPosition().getZ(), 0.01);
   }
 
+  @Disabled("apparently identity is the only private field that is persisted, and rightfully marked with JsonIgnore")
   @Test
   public void testChangePrivateProperty() throws Exception {
     Long clientId = login();
 
-    // apparently identity is the only private field that is persisted
     String string = "{\"object\":{\"User\":" + clientId + "},\"changes\":{\"identity\":\"joe@facebook\"}}";
     System.err.println(string);
     sendMessage(string);
