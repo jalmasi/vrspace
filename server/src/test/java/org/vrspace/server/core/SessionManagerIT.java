@@ -258,15 +258,14 @@ public class SessionManagerIT {
   public void testChangePrivateProperty() throws Exception {
     Long clientId = login();
 
-    String string = "{\"object\":{\"User\":" + clientId
-        + "},\"changes\":{\"userData\":[{\"key\":\"key1\",\"value\":\"value1\"},{\"key\":\"key2\",\"value\":\"value2\"}]}}";
+    // apparently identity is the only private field that is persisted
+    String string = "{\"object\":{\"User\":" + clientId + "},\"changes\":{\"identity\":\"joe@facebook\"}}";
     System.err.println(string);
     sendMessage(string);
 
-    System.err.println(testUser.getUserData());
+    System.err.println(testUser.getIdentity());
 
-    assertNotNull(testUser.getPosition());
-    assertEquals(2, testUser.getUserData().size());
+    assertNotNull(testUser.getIdentity());
   }
 
   @Test

@@ -2,12 +2,10 @@ package org.vrspace.server.obj;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.core.Scene;
@@ -20,7 +18,6 @@ import org.vrspace.server.types.Owned;
 import org.vrspace.server.types.Private;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonMerge;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Data;
@@ -70,14 +67,6 @@ public class Client extends VRObject {
   @Private
   @JsonIgnore
   private String identity;
-  /**
-   * Custom user data to be persisted.
-   */
-  @JsonMerge
-  @Private
-  @Relationship(type = "USER_DATA", direction = Relationship.Direction.OUTGOING)
-  private List<UserData> userData;
-
   /**
    * Tokens used to access video/audio streaming servers, identify conversations
    * with chatbots etc. Transient, never stored to the database.

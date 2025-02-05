@@ -24,6 +24,7 @@ import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.TerrainPoint;
+import org.vrspace.server.obj.UserData;
 import org.vrspace.server.obj.UserGroup;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
@@ -98,6 +99,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
     try {
       deleteMembers(o.getClass(), o);
       o.dispose();
+      listUserData(o.getId()).forEach(data -> delete(data));
     } catch (Exception e) {
       log.error("Cannot delete members of " + o.getClass().getSimpleName() + " " + o.getId(), e);
     }
@@ -238,5 +240,11 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ID(c)=$clientId RETURN gm")
   Optional<GroupMember> findGroupMember(long groupId, long clientId);
+
+  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId RETURN ud")
+  List<UserData> listUserData(long objectId);
+
+  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId AND ud.key=$key RETURN ud")
+  Optional<UserData> findUserData(long objectId, String key);
 
 }

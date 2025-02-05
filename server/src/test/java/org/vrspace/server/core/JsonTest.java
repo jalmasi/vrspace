@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,7 +29,6 @@ import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.RemoteServer;
 import org.vrspace.server.obj.Terrain;
 import org.vrspace.server.obj.TerrainPoint;
-import org.vrspace.server.obj.UserData;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.ID;
 
@@ -99,18 +97,6 @@ public class JsonTest {
     properties.put("float", 1.2);
     c.setProperties(properties);
     testConversion(c);
-  }
-
-  @Test
-  public void testUserData() throws Exception {
-    Client c = new Client();
-    c.setSceneProperties(new SceneProperties());
-    c.setName("client");
-
-    c.setUserData(List.of(new UserData("key1", "value1"), new UserData("key2", "value2")));
-    testConversion(c);
-
-    testConversion(c, true, privateMapper);
   }
 
   @Test

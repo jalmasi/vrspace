@@ -391,29 +391,26 @@ public class DBIT {
   @Transactional
   public void testUserData() {
     Client c = new Client();
-    List<UserData> properties = List.of(new UserData("key1", "value1"), new UserData("key2", "value2"));
-    c.setUserData(properties);
     c = repo.save(c);
-    List<UserData> savedData = c.getUserData();
-    System.err.println(savedData);
-    assertEquals(properties, savedData);
 
-    long id1 = savedData.get(0).getId();
-    long id2 = savedData.get(0).getId();
+    UserData data1 = repo.save(new UserData(c, "key1", "value1"));
+    UserData data2 = repo.save(new UserData(c, "key2", "value2"));
 
-    List<UserData> changedData = List.of(new UserData("key1", "value1"));
-    c.setUserData(changedData);
-    c = repo.save(c);
-    System.err.println(c.getUserData());
-    assertEquals(changedData, c.getUserData());
+    List<UserData> saved = repo.listUserData(c.getId());
 
-    long id3 = c.getUserData().get(0).getId();
+    assertEquals(2, saved.size());
+    assertTrue(saved.contains(data1));
+    assertTrue(saved.contains(data2));
 
-    assertNotNull(repo.get(UserData.class, id3));
+    UserData first = repo.findUserData(c.getId(), "key1").get();
+    assertEquals("key1", first.getKey());
+    assertEquals("value1", first.getValue());
 
-    // FIXME: garbage collection
-    assertNull(repo.get(UserData.class, id1));
-    assertNull(repo.get(UserData.class, id2));
+    repo.delete(c);
+
+    // garbage collection
+    assertNull(repo.get(UserData.class, data1.getId()));
+    assertNull(repo.get(UserData.class, data2.getId()));
 
   }
 
