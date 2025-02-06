@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command to set/clear/get/list UserData of a Client.
@@ -23,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-@Slf4j
 public class Data implements Command {
   /** list/get/set/clear */
   private String action;

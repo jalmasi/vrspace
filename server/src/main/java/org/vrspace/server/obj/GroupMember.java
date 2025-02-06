@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
@@ -21,9 +23,18 @@ import lombok.ToString;
 @Node
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 public class GroupMember extends Entity {
   @Relationship(type = "IS_MEMBER_OF", direction = Relationship.Direction.OUTGOING)
+  @NonNull
   private UserGroup group;
   @Relationship(type = "MEMBER_CLIENT", direction = Relationship.Direction.OUTGOING)
+  @NonNull
   private Client client;
+  private String pendingInvite;
+  private String pendingRequest;
+
+  public boolean joined() {
+    return pendingInvite == null && pendingRequest == null;
+  }
 }

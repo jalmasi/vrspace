@@ -7,10 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
- * Group of users
+ * Group of users.
  * 
  * @author joe
  *
@@ -22,6 +24,9 @@ import lombok.ToString;
 @Owned
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 public class UserGroup extends Entity {
+  @NonNull
   private String name;
+  private boolean isPrivate;
 }
