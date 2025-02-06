@@ -92,9 +92,7 @@ public class WorldManager {
   protected WorldConfig worldConfig;
 
   protected Dispatcher dispatcher;
-
-  private GroupManager groupManager = new GroupManager(this, db);
-
+  private GroupManager groupManager;
   protected SessionTracker sessionTracker;
 
   // used in tests
@@ -107,6 +105,7 @@ public class WorldManager {
 
   @PostConstruct
   public void init() {
+    this.groupManager = new GroupManager(this, db);
     this.dispatcher = new Dispatcher(this.privateJackson);
     this.sessionTracker = new SessionTracker(this.config);
     for (Class<?> c : ClassUtil.findSubclasses(PersistenceManager.class)) {

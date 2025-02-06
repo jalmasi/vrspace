@@ -93,7 +93,7 @@ public class GroupManager {
    * @param member
    */
   public void ask(UserGroup group, Client member) {
-    if (db.findGroupMember(group.getId(), member.getId()).isEmpty()) {
+    if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already joining group " + group.getId());
     }
     GroupMember gm = new GroupMember(group, member, null, UUID.randomUUID().toString());
@@ -107,14 +107,17 @@ public class GroupManager {
    * @param member
    */
   public void allow(UserGroup group, Client member) {
-    db.findGroupMember(group.getId(), member.getId()).ifPresent(invited -> {
-      if (invited.getPendingRequest() == null) {
-        throw new IllegalArgumentException("Not invited client: " + member.getId());
+    Optional<GroupMember> invited = db.findGroupMember(group.getId(), member.getId());
+    if (invited.isPresent()) {
+      GroupMember gm = db.get(GroupMember.class, invited.get().getId());
+      if (gm.getPendingRequest() == null) {
+        throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
-      invited.setPendingRequest(null);
-      db.save(invited);
-    });
-
+      gm.setPendingRequest(null);
+      db.save(gm);
+    } else {
+      throw new IllegalArgumentException("Not invited client: " + member.getId());
+    }
   }
 
   /**
