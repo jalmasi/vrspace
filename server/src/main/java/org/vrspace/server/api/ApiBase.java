@@ -17,4 +17,8 @@ public abstract class ApiBase {
     return (String) session.getAttribute(clientFactory.clientNameAttribute());
   }
 
+  public static boolean isAuthenticated(HttpSession session, ClientFactory clientFactory) {
+    return currentUserName(session, clientFactory) != null;
+  }
+
 }

@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpSession;
 public class ClientControllerBase extends ApiBase {
   @Autowired
   WorldManager worldManager;
+  @Autowired
+  private ClientFactory clientFactory;
 
   protected Client findClient(HttpSession session) {
     Long clientId = (Long) session.getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
@@ -22,4 +24,7 @@ public class ClientControllerBase extends ApiBase {
     return client;
   }
 
+  protected boolean isAuthenticated(HttpSession session) {
+    return isAuthenticated(session, clientFactory);
+  }
 }

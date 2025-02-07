@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,15 +20,9 @@ import org.vrspace.server.obj.UserGroup;
 public class GroupManagerIT {
 
   @Autowired
-  private WorldManager worldManager;
   private VRObjectRepository db;
+  @Autowired
   private GroupManager gm;
-
-  @BeforeEach
-  public void setup() {
-    db = worldManager.getDb();
-    gm = worldManager.getGroupManager();
-  }
 
   @Test
   @Transactional

@@ -1,7 +1,6 @@
 package org.vrspace.server.core;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -12,6 +11,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,10 +30,13 @@ public class GroupManagerTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  private VRObjectRepository repo = mock(VRObjectRepository.class);
-  private WorldManager worldManager = mock(WorldManager.class);
+  @Mock
+  private VRObjectRepository repo;
+  @Mock
+  private WorldManager worldManager;
 
-  private GroupManager gm = new GroupManager(worldManager, repo);
+  @InjectMocks
+  private GroupManager gm;
 
   // too complicated to set up in integration test
   @Test

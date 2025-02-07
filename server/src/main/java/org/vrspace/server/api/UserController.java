@@ -65,7 +65,7 @@ public class UserController extends ApiBase {
    */
   @GetMapping("/authenticated")
   public boolean authenticated(HttpSession session) {
-    return userName(session) != null;
+    return isAuthenticated(session, clientFactory);
   }
 
   /**

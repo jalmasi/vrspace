@@ -105,7 +105,7 @@ public class WorldManager {
 
   @PostConstruct
   public void init() {
-    this.groupManager = new GroupManager(this, db);
+    // this.groupManager = new GroupManager(this, db);
     this.dispatcher = new Dispatcher(this.privateJackson);
     this.sessionTracker = new SessionTracker(this.config);
     for (Class<?> c : ClassUtil.findSubclasses(PersistenceManager.class)) {
