@@ -59,11 +59,11 @@ public class GroupManager {
    * @param group
    * @param member
    */
-  public void invite(UserGroup group, Client member) {
+  public void invite(UserGroup group, Client member, Client owner) {
     if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already member of group " + group.getId());
     }
-    if (group.isPrivate() && db.findOwnership(member.getId(), group.getId()).isEmpty()) {
+    if (group.isPrivate() && (owner == null || db.findOwnership(owner.getId(), group.getId()).isEmpty())) {
       throw new IllegalArgumentException("Only group owners can invite members");
     }
     GroupMember gm = new GroupMember(group, member, UUID.randomUUID().toString(), null);
@@ -109,7 +109,7 @@ public class GroupManager {
   public void allow(UserGroup group, Client member) {
     Optional<GroupMember> invited = db.findGroupMember(group.getId(), member.getId());
     if (invited.isPresent()) {
-      GroupMember gm = db.get(GroupMember.class, invited.get().getId());
+      GroupMember gm = invited.get();
       if (gm.getPendingRequest() == null) {
         throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
@@ -153,7 +153,7 @@ public class GroupManager {
    */
   public void kick(UserGroup group, Client member, Client owner) {
     if (!group.isPrivate()) {
-      throw new IllegalArgumentException("Can't kick members fro public groups");
+      throw new IllegalArgumentException("Can't kick members from public groups");
     }
     if (db.findOwnership(owner.getId(), group.getId()).isEmpty()) {
       throw new IllegalArgumentException("Only group owners can kick members");

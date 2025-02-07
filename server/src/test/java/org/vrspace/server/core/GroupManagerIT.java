@@ -1,5 +1,8 @@
 package org.vrspace.server.core;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,7 +33,28 @@ public class GroupManagerIT {
 
   @Test
   @Transactional
-  public void testPublicJoin() {
+  public void testCreateDeleteListShow() {
+    Client c1 = db.save(new Client());
+    UserGroup group = gm.createGroup(c1, new UserGroup("test"));
+
+    assertThrows(IllegalArgumentException.class, () -> gm.createGroup(c1, new UserGroup("test")));
+
+    assertTrue(db.listGroupClients(group.getId()).contains(c1));
+    assertTrue(db.listUserGroups(c1.getId()).contains(group));
+    assertTrue(db.listOwnedGroups(c1.getId()).contains(group));
+    assertTrue(db.findOwnership(c1.getId(), group.getId()).isPresent());
+
+    gm.deleteGroup(c1, group);
+
+    assertFalse(db.listGroupClients(group.getId()).contains(c1));
+    assertFalse(db.listUserGroups(c1.getId()).contains(group));
+    assertFalse(db.listOwnedGroups(c1.getId()).contains(group));
+    assertFalse(db.findOwnership(c1.getId(), group.getId()).isPresent());
+  }
+
+  @Test
+  @Transactional
+  public void testPublicJoinLeave() {
     Client c1 = db.save(new Client());
 
     UserGroup group = gm.createGroup(c1, new UserGroup("test"));
@@ -40,11 +64,18 @@ public class GroupManagerIT {
 
     assertTrue(db.listGroupClients(group.getId()).contains(c1));
     assertTrue(db.listGroupClients(group.getId()).contains(c2));
+
+    assertThrows(IllegalArgumentException.class, () -> gm.kick(group, c2, c1));
+    gm.leave(group, c2);
+
+    assertTrue(db.listGroupClients(group.getId()).contains(c1));
+    assertFalse(db.listGroupClients(group.getId()).contains(c2));
+
   }
 
   @Test
   @Transactional
-  public void testPrivateJoin() {
+  public void testPrivateJoinKick() {
     Client c1 = db.save(new Client());
 
     UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
@@ -62,5 +93,55 @@ public class GroupManagerIT {
     gm.allow(group, c2);
 
     assertTrue(db.listGroupClients(group.getId()).contains(c2));
+
+    assertThrows(IllegalArgumentException.class, () -> gm.kick(group, c2, c2));
+    gm.kick(group, c2, c1);
+
+    assertFalse(db.listGroupClients(group.getId()).contains(c2));
   }
+
+  @Test
+  @Transactional
+  public void testPublicInvite() {
+    Client c1 = db.save(new Client());
+
+    UserGroup group = gm.createGroup(c1, new UserGroup("test"));
+
+    Client c2 = db.save(new Client());
+    gm.invite(group, c2, null);
+
+    assertTrue(db.listGroupClients(group.getId()).contains(c1));
+    assertTrue(db.listGroupClients(group.getId()).contains(c2));
+
+    assertNotNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+
+    gm.accept(group, c2);
+
+    assertNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+  }
+
+  @Test
+  @Transactional
+  public void testPrivateInvite() {
+    Client c1 = db.save(new Client());
+
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
+
+    Client c2 = db.save(new Client());
+
+    assertThrows(IllegalArgumentException.class, () -> gm.invite(group, c2, null));
+    assertThrows(IllegalArgumentException.class, () -> gm.accept(group, c2));
+
+    gm.invite(group, c2, c1);
+
+    assertTrue(db.listGroupClients(group.getId()).contains(c1));
+    assertTrue(db.listGroupClients(group.getId()).contains(c2));
+
+    assertNotNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+
+    gm.accept(group, c2);
+
+    assertNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+  }
+
 }

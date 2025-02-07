@@ -1,10 +1,6 @@
 package org.vrspace.server.core;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -13,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,21 +34,7 @@ public class GroupManagerTest {
 
   private GroupManager gm = new GroupManager(worldManager, repo);
 
-  @Test
-  public void testCreate() {
-    Client c1 = new Client(1L);
-    UserGroup group = new UserGroup("test");
-
-    when(repo.findGroup(anyLong(), anyString())).thenAnswer(i -> Optional.empty());
-    when(repo.save(any())).thenAnswer(i -> i.getArguments()[0]);
-
-    gm.createGroup(c1, group);
-
-    when(repo.findGroup(anyLong(), eq("test"))).thenAnswer(i -> Optional.of(group));
-
-    assertThrows(IllegalArgumentException.class, () -> gm.createGroup(c1, new UserGroup("test")));
-  }
-
+  // too complicated to set up in integration test
   @Test
   public void testWrite() {
     Client c1 = spy(new Client(1L));

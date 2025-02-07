@@ -57,7 +57,7 @@ public class Group implements Command {
     } else if ("invite".equals(action)) {
       UserGroup group = getGroup(db, client.getId(), name);
       Client member = getClient(db, clientId);
-      gm.invite(group, member);
+      gm.invite(group, member, client);
     } else if ("invite".equals(action)) {
       UserGroup group = getGroup(db, client.getId(), name);
       gm.ask(group, client);

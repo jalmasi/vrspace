@@ -235,10 +235,10 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId RETURN c")
   List<Client> listGroupClients(long groupId);
 
-  @Query("MATCH (gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId RETURN gm")
+  @Query("MATCH (gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId RETURN gm, r, ug")
   List<GroupMember> listGroupMembers(long groupId);
 
-  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ID(c)=$clientId RETURN gm")
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ID(c)=$clientId RETURN gm, c, mc, r, ug")
   Optional<GroupMember> findGroupMember(long groupId, long clientId);
 
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId AND ug.name=$groupName RETURN ug")
@@ -247,10 +247,10 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE AND ug.name=$groupName RETURN ug")
   Optional<UserGroup> findGroup(String groupName);
 
-  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId RETURN ud")
+  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId RETURN ud, r, o")
   List<UserData> listUserData(long objectId);
 
-  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId AND ud.key=$key RETURN ud")
+  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId AND ud.key=$key RETURN ud, r, o")
   Optional<UserData> findUserData(long objectId, String key);
 
 }
