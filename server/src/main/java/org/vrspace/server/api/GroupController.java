@@ -69,7 +69,7 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
-   * Show all users belonging to a group
+   * Show all members of a group.
    */
   @GetMapping("/{groupId}/show")
   public List<Client> show(@PathVariable long groupId, HttpSession session) {
@@ -89,7 +89,8 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
-   * Invite a user a private group. Only group owner(s) can invite users.
+   * Invite a user a private group. Only group owner(s) can invite users. Invited
+   * users have to accept invitation.
    * 
    * @param groupId  Group to invite to
    * @param clientId Client to invite
@@ -102,7 +103,7 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
-   * Ask to join a private group.
+   * Ask to join a private group. Group owner needs to allow new members to join.
    */
   @PostMapping("/{groupId}/ask")
   public void ask(@PathVariable long groupId, HttpSession session) {
@@ -122,7 +123,8 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
-   * Allow user to join a private group. Only group owner(s) can do that.
+   * Allow a user (who asked) to join a private group. Only group owner(s) can do
+   * that.
    * 
    * @param groupId  Group to join
    * @param clientId Client that asked to join
@@ -135,7 +137,7 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
-   * Leave a group
+   * Leave a group. Group owners can not leave.
    */
   @PostMapping("/{groupId}/leave")
   public void leave(@PathVariable long groupId, HttpSession session) {
