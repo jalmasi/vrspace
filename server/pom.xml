@@ -87,7 +87,8 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <optional>true</optional>
+      <version>1.18.36</version>
+      <!-- <scope>provided</scope> -->
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -117,7 +118,13 @@
         <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         <version>2.6.0</version>
     </dependency>
-
+    <!--To Use code comments as Swagger description library -->
+    <dependency>
+      <groupId>com.github.therapi</groupId>
+      <artifactId>therapi-runtime-javadoc</artifactId>
+      <version>0.15.0</version>
+    </dependency>
+  
     <!-- Neo4j -->
     <dependency>
       <groupId>org.springframework.data</groupId>
@@ -251,11 +258,11 @@
               <attach>true</attach>
             </configuration>
             <executions>
-                <execution>
-                    <goals>
-                        <goal>repackage</goal>
-                    </goals>
-                </execution>
+              <execution>
+                <goals>
+                  <goal>repackage</goal>
+                </goals>
+              </execution>
             </executions>            
           </plugin>
 
@@ -269,6 +276,20 @@
               <compilerArgs>
                 <arg>-parameters</arg>
               </compilerArgs>
+              <!--To Use code comments as Swagger description Plugin
+              -->
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>com.github.therapi</groupId>
+                  <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+                  <version>0.15.0</version>
+                </path>
+                <path>
+                  <groupId>org.projectlombok</groupId>
+                  <artifactId>lombok</artifactId>
+                  <version>1.18.36</version>
+                </path>
+              </annotationProcessorPaths>
             </configuration>
           </plugin>
 
@@ -410,7 +431,7 @@
           <plugin>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-maven-plugin</artifactId>
-            <version>1.18.20.0</version>
+            <version>1.18.36</version>
             <executions>
               <execution>
                 <phase>generate-sources</phase>
