@@ -2,12 +2,14 @@ package org.vrspace.server.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,6 +70,12 @@ public class GroupControllerIT {
 
   }
 
+  @AfterEach
+  public void cleanup() {
+    repo.delete(client1);
+    repo.delete(client2);
+  }
+
   @Test
   public void testCreateListJoinShowLeaveDelete() throws Exception {
     // client1 creates a public group
@@ -83,8 +91,8 @@ public class GroupControllerIT {
     List<UserGroup> groupList = getList(listResult, UserGroup.class);
     assertEquals(1, groupList.size());
 
-    MvcResult showResult1 = mockMvc.perform(get(ENDPOINT + "/show").session(session1)).andExpect(status().isOk())
-        .andReturn();
+    MvcResult showResult1 = mockMvc.perform(get(ENDPOINT + "/{groupId}/show", group.getId()).session(session1))
+        .andExpect(status().isOk()).andReturn();
     List<Client> clientList1 = getList(showResult1, Client.class);
     assertEquals(1, clientList1.size());
 
@@ -98,10 +106,41 @@ public class GroupControllerIT {
     MvcResult joined2 = mockMvc.perform(get(ENDPOINT).session(session2)).andExpect(status().isOk()).andReturn();
     assertEquals(1, getList(joined2, UserGroup.class).size());
 
-    MvcResult showResult2 = mockMvc.perform(get(ENDPOINT + "/show").session(session2)).andExpect(status().isOk())
-        .andReturn();
+    MvcResult showResult2 = mockMvc.perform(get(ENDPOINT + "/{groupId}/show", group.getId()).session(session2))
+        .andExpect(status().isOk()).andReturn();
     List<Client> clientList2 = getList(showResult2, Client.class);
-    assertEquals(1, clientList2.size());
+    assertEquals(2, clientList2.size());
+
+    // client 1 can't leave, client 2 can't delete
+    mockMvc.perform(post(ENDPOINT + "/{groupId}/leave", group.getId()).session(session1))
+        .andExpect(status().isUnprocessableEntity()).andReturn();
+    mockMvc.perform(delete(ENDPOINT + "/{groupId}", group.getId()).session(session2)).andExpect(status().isForbidden())
+        .andReturn();
+
+    // client 2 leaves
+    mockMvc.perform(post(ENDPOINT + "/{groupId}/leave", group.getId()).session(session2)).andExpect(status().isOk())
+        .andReturn();
+
+    MvcResult left = mockMvc.perform(get(ENDPOINT).session(session2)).andExpect(status().isOk()).andReturn();
+    assertEquals(0, getList(left, UserGroup.class).size());
+
+    mockMvc.perform(get(ENDPOINT + "/{groupId}/show", group.getId()).session(session2)).andExpect(status().isNotFound())
+        .andReturn();
+
+    MvcResult showLeft = mockMvc.perform(get(ENDPOINT + "/{groupId}/show", group.getId()).session(session1))
+        .andExpect(status().isOk()).andReturn();
+    List<Client> clientList3 = getList(showLeft, Client.class);
+    assertEquals(1, clientList3.size());
+
+    // delete
+    mockMvc.perform(delete(ENDPOINT + "/{groupId}", group.getId()).session(session1)).andExpect(status().isOk())
+        .andReturn();
+
+    MvcResult deleted = mockMvc.perform(get(ENDPOINT).session(session1)).andExpect(status().isOk()).andReturn();
+    assertEquals(0, getList(deleted, UserGroup.class).size());
+
+    mockMvc.perform(get(ENDPOINT + "/{groupId}/show", group.getId()).session(session1)).andExpect(status().isNotFound())
+        .andReturn();
 
   }
 

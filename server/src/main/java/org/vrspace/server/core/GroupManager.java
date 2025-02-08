@@ -236,7 +236,7 @@ public class GroupManager {
   public UserGroup getGroup(Client client, String name) {
     Optional<UserGroup> group = db.findGroup(client.getId(), name);
     if (group.isEmpty()) {
-      throw new IllegalArgumentException("Non-existing group: " + name);
+      throw new NotFoundException("Non-existing group: " + name + " clientId:" + client.getId());
     }
     return group.get();
   }
@@ -244,7 +244,7 @@ public class GroupManager {
   public UserGroup getGroup(Client client, long groupId) {
     Optional<UserGroup> group = db.findGroup(client.getId(), groupId);
     if (group.isEmpty()) {
-      throw new IllegalArgumentException("Non-existing group: " + groupId);
+      throw new NotFoundException("Non-existing group: " + groupId + " clientId:" + client.getId());
     }
     return group.get();
   }
@@ -252,7 +252,7 @@ public class GroupManager {
   public UserGroup getGroup(long groupId) {
     UserGroup group = db.get(UserGroup.class, groupId);
     if (group == null) {
-      throw new IllegalArgumentException("Non-existing group: " + groupId);
+      throw new NotFoundException("Non-existing group: " + groupId);
     }
     return group;
   }
@@ -260,7 +260,7 @@ public class GroupManager {
   private Client getClient(long clientId) {
     Client client = db.getClient(clientId);
     if (client == null) {
-      throw new IllegalArgumentException("Non-existing client: " + clientId);
+      throw new NotFoundException("Non-existing client: " + clientId);
     }
     return client;
   }

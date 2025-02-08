@@ -4,12 +4,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.vrspace.server.core.NotFoundException;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,7 +27,7 @@ public class ApiExceptionResolver extends ResponseEntityExceptionHandler {
     // String responseBody = ex.getMessage();
     // return json string:
     ErrorMessage responseBody = new ErrorMessage(ex.getMessage());
-    return handleExceptionInternal(ex, responseBody, new HttpHeaders(), HttpStatus.PRECONDITION_REQUIRED, request);
+    return logAndHandle(ex, responseBody, new HttpHeaders(), HttpStatus.CONFLICT, request);
   }
 
   @ExceptionHandler(value = { SecurityException.class })
@@ -34,14 +36,26 @@ public class ApiExceptionResolver extends ResponseEntityExceptionHandler {
     // String responseBody = ex.getMessage();
     // return json string:
     ErrorMessage responseBody = new ErrorMessage(ex.getMessage());
-    return handleExceptionInternal(ex, responseBody, new HttpHeaders(), HttpStatus.FORBIDDEN, request);
+    return logAndHandle(ex, responseBody, new HttpHeaders(), HttpStatus.FORBIDDEN, request);
+  }
+
+  @ExceptionHandler(value = { IllegalArgumentException.class })
+  protected ResponseEntity<Object> handleArgument(IllegalArgumentException ex, WebRequest request) {
+    ErrorMessage responseBody = new ErrorMessage(ex.getMessage());
+    return logAndHandle(ex, responseBody, new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, request);
+  }
+
+  @ExceptionHandler(value = { NotFoundException.class })
+  protected ResponseEntity<Object> handleArgument(NotFoundException ex, WebRequest request) {
+    ErrorMessage responseBody = new ErrorMessage(ex.getMessage());
+    return logAndHandle(ex, responseBody, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
   }
 
   @Override
   protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
       HttpStatusCode status, WebRequest request) {
     log.warn("No handler found: " + status + " " + request + " - " + ex);
-    return handleExceptionInternal(ex, null, headers, status, request);
+    return logAndHandle(ex, null, headers, status, request);
   }
 
   @Override
@@ -49,12 +63,18 @@ public class ApiExceptionResolver extends ResponseEntityExceptionHandler {
       HttpStatusCode status, WebRequest request) {
     log.warn("No resource found: " + status + " " + request + " - " + ex);
 
-    return handleExceptionInternal(ex, null, headers, status, request);
+    return logAndHandle(ex, null, headers, status, request);
   }
 
   @Data
   @AllArgsConstructor
   public class ErrorMessage {
     private String message;
+  }
+
+  private ResponseEntity<Object> logAndHandle(Exception ex, @Nullable Object body, HttpHeaders headers,
+      HttpStatusCode statusCode, WebRequest request) {
+    log.error("Request error " + request, ex);
+    return handleExceptionInternal(ex, body, headers, statusCode, request);
   }
 }
