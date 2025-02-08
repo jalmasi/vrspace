@@ -28,6 +28,7 @@ public class GroupManagerIT {
   @Transactional
   public void testCreateDeleteListShow() {
     Client c1 = db.save(new Client());
+    Client c2 = db.save(new Client());
     UserGroup group = gm.createGroup(c1, new UserGroup("test"));
 
     assertThrows(IllegalArgumentException.class, () -> gm.createGroup(c1, new UserGroup("test")));
@@ -37,6 +38,7 @@ public class GroupManagerIT {
     assertTrue(db.listOwnedGroups(c1.getId()).contains(group));
     assertTrue(db.findOwnership(c1.getId(), group.getId()).isPresent());
 
+    assertThrows(SecurityException.class, () -> gm.deleteGroup(c2, group));
     gm.deleteGroup(c1, group);
 
     assertFalse(db.listGroupClients(group.getId()).contains(c1));
@@ -76,14 +78,15 @@ public class GroupManagerIT {
     Client c2 = db.save(new Client());
 
     assertThrows(IllegalArgumentException.class, () -> gm.join(group, c2));
-    assertThrows(IllegalArgumentException.class, () -> gm.allow(group, c2));
+    assertThrows(IllegalArgumentException.class, () -> gm.allow(group, c2, c1));
 
     gm.ask(group, c2);
     assertTrue(db.listGroupClients(group.getId()).contains(c2));
 
     assertThrows(IllegalArgumentException.class, () -> gm.ask(group, c2));
 
-    gm.allow(group, c2);
+    assertThrows(IllegalArgumentException.class, () -> gm.allow(group, c2, c2));
+    gm.allow(group, c2, c1);
 
     assertTrue(db.listGroupClients(group.getId()).contains(c2));
 

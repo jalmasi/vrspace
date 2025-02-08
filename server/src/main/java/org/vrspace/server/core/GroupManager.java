@@ -1,5 +1,6 @@
 package org.vrspace.server.core;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,6 +35,11 @@ public class GroupManager {
   private WorldManager worldManager;
 
   @Transactional
+  public List<UserGroup> listGroups(Client client) {
+    return db.listUserGroups(client.getId());
+  }
+
+  @Transactional
   public UserGroup createGroup(Client client, UserGroup group) {
     if (db.findGroup(client.getId(), group.getName()).isPresent()) {
       throw new IllegalArgumentException("Client already belongs to group " + group.getName());
@@ -46,13 +52,22 @@ public class GroupManager {
 
   @Transactional
   public void deleteGroup(Client client, UserGroup group) {
-    group = db.get(UserGroup.class, group.getId());
-    if (group != null) {
-      // delete memberships
-      db.listGroupMembers(group.getId()).forEach(groupMember -> db.delete(groupMember));
-      // delete ownership(s)
-      db.getOwnersOf(group.getId()).forEach(ownership -> db.delete(ownership));
+    if (db.getOwnership(client.getId(), group.getId()) == null) {
+      throw new SecurityException("Not an owner");
     }
+    // delete memberships
+    db.listGroupMembers(group.getId()).forEach(groupMember -> db.delete(groupMember));
+    // delete ownership(s)
+    db.getOwnersOf(group.getId()).forEach(ownership -> db.delete(ownership));
+  }
+
+  @Transactional
+  public List<Client> show(UserGroup group) {
+    return db.listGroupClients(group.getId());
+  }
+
+  public void invite(UserGroup group, Long memberId, Client owner) {
+    invite(group, getClient(memberId), owner);
   }
 
   /**
@@ -102,13 +117,20 @@ public class GroupManager {
     db.save(gm);
   }
 
+  public void allow(UserGroup group, Long memberId, Client owner) {
+    allow(group, owner, getClient(memberId));
+  }
+
   /**
    * Allow a client who asked to join a private group
    * 
    * @param group
    * @param member
    */
-  public void allow(UserGroup group, Client member) {
+  public void allow(UserGroup group, Client member, Client owner) {
+    if (db.findOwnership(owner.getId(), group.getId()).isEmpty()) {
+      throw new IllegalArgumentException("Only group owners can allow members");
+    }
     Optional<GroupMember> invited = db.findGroupMember(group.getId(), member.getId());
     if (invited.isPresent()) {
       GroupMember gm = invited.get();
@@ -145,6 +167,15 @@ public class GroupManager {
    */
   public void leave(UserGroup group, Client member) {
     this.removeMember(group, member);
+  }
+
+  public void kick(UserGroup group, long memberId, Client owner) {
+    Optional<GroupMember> member = db.findGroupMember(group.getId(), memberId);
+    if (member.isEmpty()) {
+      throw new IllegalArgumentException("Group does not contain client: " + memberId);
+    } else {
+      kick(group, member.get().getClient(), owner);
+    }
   }
 
   /**
@@ -198,4 +229,37 @@ public class GroupManager {
           }
         });
   }
+
+  public UserGroup getGroup(Client client, String name) {
+    Optional<UserGroup> group = db.findGroup(client.getId(), name);
+    if (group.isEmpty()) {
+      throw new IllegalArgumentException("Non-existing group: " + name);
+    }
+    return group.get();
+  }
+
+  public UserGroup getGroup(Client client, long groupId) {
+    Optional<UserGroup> group = db.findGroup(client.getId(), groupId);
+    if (group.isEmpty()) {
+      throw new IllegalArgumentException("Non-existing group: " + groupId);
+    }
+    return group.get();
+  }
+
+  public UserGroup getGroup(long groupId) {
+    UserGroup group = db.get(UserGroup.class, groupId);
+    if (group == null) {
+      throw new IllegalArgumentException("Non-existing group: " + groupId);
+    }
+    return group;
+  }
+
+  private Client getClient(long clientId) {
+    Client client = db.getClient(clientId);
+    if (client == null) {
+      throw new IllegalArgumentException("Non-existing client: " + clientId);
+    }
+    return client;
+  }
+
 }
