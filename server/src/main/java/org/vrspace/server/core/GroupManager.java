@@ -166,6 +166,9 @@ public class GroupManager {
    * @param member
    */
   public void leave(UserGroup group, Client member) {
+    if (db.findOwnership(member.getId(), group.getId()).isPresent()) {
+      throw new IllegalArgumentException("Group owners can not leave their groups");
+    }
     this.removeMember(group, member);
   }
 

@@ -4,11 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.GroupManager;
 import org.vrspace.server.obj.Client;
@@ -47,7 +51,8 @@ public class GroupController extends ClientControllerBase {
    * @param name      Group name
    * @param isPrivate Create a private group? Defaults to false.
    */
-  @PostMapping
+  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
   public UserGroup create(String name, Optional<Boolean> isPrivate, HttpSession session) {
     Client client = getAuthorisedClient(session);
     return groupManager.createGroup(client, new UserGroup(name, isPrivate.isPresent() && isPrivate.get()));
@@ -57,7 +62,7 @@ public class GroupController extends ClientControllerBase {
    * Delete a group. A group can only be deleted by the owner(s).
    */
   @DeleteMapping("/{groupId}")
-  public void delete(long groupId, HttpSession session) {
+  public void delete(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     groupManager.deleteGroup(client, group);
@@ -67,7 +72,7 @@ public class GroupController extends ClientControllerBase {
    * Show all users belonging to a group
    */
   @GetMapping("/{groupId}/show")
-  public List<Client> show(long groupId, HttpSession session) {
+  public List<Client> show(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     return groupManager.show(group);
@@ -77,7 +82,7 @@ public class GroupController extends ClientControllerBase {
    * Join a public group.
    */
   @PostMapping("/{groupId}/join")
-  public void join(long groupId, HttpSession session) {
+  public void join(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(groupId);
     groupManager.join(group, client);
@@ -90,7 +95,7 @@ public class GroupController extends ClientControllerBase {
    * @param clientId Client to invite
    */
   @PostMapping("/{groupId}/invite")
-  public void invite(long groupId, Long clientId, HttpSession session) {
+  public void invite(@PathVariable long groupId, Long clientId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     groupManager.invite(group, clientId, client);
@@ -100,7 +105,7 @@ public class GroupController extends ClientControllerBase {
    * Ask to join a private group.
    */
   @PostMapping("/{groupId}/ask")
-  public void ask(long groupId, HttpSession session) {
+  public void ask(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     groupManager.ask(group, client);
@@ -110,7 +115,7 @@ public class GroupController extends ClientControllerBase {
    * Accept invitation to a private group.
    */
   @PostMapping("/{groupId}/accept")
-  public void accept(long groupId, HttpSession session) {
+  public void accept(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     groupManager.accept(group, client);
@@ -123,7 +128,7 @@ public class GroupController extends ClientControllerBase {
    * @param clientId Client that asked to join
    */
   @PostMapping("/{groupId}/allow")
-  public void allow(long groupId, long clientId, HttpSession session) {
+  public void allow(@PathVariable long groupId, long clientId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     groupManager.allow(group, clientId, client);
@@ -133,7 +138,7 @@ public class GroupController extends ClientControllerBase {
    * Leave a group
    */
   @PostMapping("/{groupId}/leave")
-  public void leave(long groupId, HttpSession session) {
+  public void leave(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     groupManager.leave(group, client);
@@ -146,7 +151,7 @@ public class GroupController extends ClientControllerBase {
    * @param clientId Whom to kick
    */
   @PostMapping("/{groupId}/kick")
-  public void kick(long groupId, long clientId, HttpSession session) {
+  public void kick(@PathVariable long groupId, long clientId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     groupManager.kick(group, clientId, client);
@@ -159,7 +164,7 @@ public class GroupController extends ClientControllerBase {
    * @param text    The message
    */
   @PostMapping("/{groupId}/write")
-  public void write(long groupId, @RequestBody String text, HttpSession session) {
+  public void write(@PathVariable long groupId, @RequestBody String text, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     groupManager.write(client, group, text);

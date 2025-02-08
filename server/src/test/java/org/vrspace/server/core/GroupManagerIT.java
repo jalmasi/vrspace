@@ -53,6 +53,7 @@ public class GroupManagerIT {
     Client c1 = db.save(new Client());
 
     UserGroup group = gm.createGroup(c1, new UserGroup("test"));
+    assertThrows(IllegalArgumentException.class, () -> gm.leave(group, c1));
 
     Client c2 = db.save(new Client());
     gm.join(group, c2);
