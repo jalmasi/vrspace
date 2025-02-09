@@ -2,7 +2,6 @@ package org.vrspace.server.core;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -83,7 +82,7 @@ public class GroupManager {
     if (group.isPrivate() && (owner == null || db.findOwnership(owner.getId(), group.getId()).isEmpty())) {
       throw new IllegalArgumentException("Only group owners can invite members");
     }
-    GroupMember gm = new GroupMember(group, member, UUID.randomUUID().toString(), null);
+    GroupMember gm = new GroupMember(group, member).invite();
     db.save(gm);
   }
 
@@ -98,8 +97,7 @@ public class GroupManager {
     if (existingMember.isEmpty() || existingMember.get().getPendingInvite() == null) {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }
-    GroupMember updatedMember = existingMember.get();
-    updatedMember.setPendingInvite(null);
+    GroupMember updatedMember = existingMember.get().accepted();
     db.save(updatedMember);
   }
 
@@ -113,7 +111,7 @@ public class GroupManager {
     if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already joining group " + group.getId());
     }
-    GroupMember gm = new GroupMember(group, member, null, UUID.randomUUID().toString());
+    GroupMember gm = new GroupMember(group, member).request();
     db.save(gm);
   }
 
@@ -137,8 +135,7 @@ public class GroupManager {
       if (gm.getPendingRequest() == null) {
         throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
-      gm.setPendingRequest(null);
-      db.save(gm);
+      db.save(gm.accepted());
     } else {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }
@@ -192,9 +189,33 @@ public class GroupManager {
       throw new IllegalArgumentException("Can't kick members from public groups");
     }
     if (db.findOwnership(owner.getId(), group.getId()).isEmpty()) {
-      throw new IllegalArgumentException("Only group owners can kick members");
+      throw new SecurityException("Only group owners can kick members");
     }
     removeMember(group, member);
+  }
+
+  /**
+   * Group owner can list all pending join requests
+   * 
+   * @param group
+   * @param member
+   * @return
+   */
+  public List<GroupMember> pendingRequests(UserGroup group, Client member) {
+    if (db.findOwnership(member.getId(), group.getId()).isEmpty()) {
+      throw new SecurityException("Only group owners can list pending requets");
+    }
+    return db.listPendingRequests(group.getId());
+  }
+
+  /**
+   * Any user can list their own pending invitations
+   * 
+   * @param member
+   * @return
+   */
+  public List<GroupMember> pendingInvitations(Client member) {
+    return db.listPendingInvitations(member.getId());
   }
 
   private void addMember(UserGroup group, Client member) {
@@ -217,20 +238,22 @@ public class GroupManager {
 
   public void write(Client sender, UserGroup group, String text) {
     GroupMessage message = new GroupMessage(sender, group, text);
-    db.listGroupMembers(group.getId()).stream().filter(member -> member.joined()).map(member -> member.getClient())
-        .forEach(client -> {
-          // CHECKME: client.isActive() should to the trick
-          // but we need a reference to live client instance to send the message
-          Client cachedClient = (Client) worldManager.get(client.getObjectId());
-          if (cachedClient == null) {
-            // TODO client is offline
-            log.debug("Message for offline client:" + client);
-          } else {
-            // online client, forward message
-            // FIXME this serializes the message all over again for each recipient
-            client.sendMessage(message);
-          }
-        });
+    if (db.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
+      throw new SecurityException("Only members can post to groups");
+    }
+    db.listGroupClients(group.getId()).forEach(client -> {
+      // CHECKME: client.isActive() should to the trick
+      // but we need a reference to live client instance to send the message
+      Client cachedClient = (Client) worldManager.get(client.getObjectId());
+      if (cachedClient == null) {
+        // TODO client is offline
+        log.debug("Message for offline client:" + client);
+      } else {
+        // online client, forward message
+        // FIXME this serializes the message all over again for each recipient
+        client.sendMessage(message);
+      }
+    });
   }
 
   public UserGroup getGroup(Client client, String name) {

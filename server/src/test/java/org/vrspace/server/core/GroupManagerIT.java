@@ -1,5 +1,6 @@
 package org.vrspace.server.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -82,16 +83,18 @@ public class GroupManagerIT {
     assertThrows(IllegalArgumentException.class, () -> gm.allow(group, c2, c1));
 
     gm.ask(group, c2);
-    assertTrue(db.listGroupClients(group.getId()).contains(c2));
+    assertFalse(db.listGroupClients(group.getId()).contains(c2));
+    assertEquals(1, db.listPendingRequests(group.getId()).size());
 
     assertThrows(IllegalArgumentException.class, () -> gm.ask(group, c2));
-
     assertThrows(IllegalArgumentException.class, () -> gm.allow(group, c2, c2));
+
     gm.allow(group, c2, c1);
 
     assertTrue(db.listGroupClients(group.getId()).contains(c2));
+    assertEquals(0, db.listPendingRequests(group.getId()).size());
 
-    assertThrows(IllegalArgumentException.class, () -> gm.kick(group, c2, c2));
+    assertThrows(SecurityException.class, () -> gm.kick(group, c2, c2));
     gm.kick(group, c2, c1);
 
     assertFalse(db.listGroupClients(group.getId()).contains(c2));
@@ -108,13 +111,17 @@ public class GroupManagerIT {
     gm.invite(group, c2, null);
 
     assertTrue(db.listGroupClients(group.getId()).contains(c1));
-    assertTrue(db.listGroupClients(group.getId()).contains(c2));
+    assertFalse(db.listGroupClients(group.getId()).contains(c2));
 
     assertNotNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+    assertEquals(1, db.listPendingInvitations(c2.getId()).size());
+    assertEquals(group, db.listPendingInvitations(c2.getId()).get(0).getGroup());
 
     gm.accept(group, c2);
 
+    assertTrue(db.listGroupClients(group.getId()).contains(c2));
     assertNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+    assertEquals(0, db.listPendingInvitations(c2.getId()).size());
   }
 
   @Test
@@ -132,13 +139,16 @@ public class GroupManagerIT {
     gm.invite(group, c2, c1);
 
     assertTrue(db.listGroupClients(group.getId()).contains(c1));
-    assertTrue(db.listGroupClients(group.getId()).contains(c2));
+    assertFalse(db.listGroupClients(group.getId()).contains(c2));
 
     assertNotNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+    assertEquals(1, db.listPendingInvitations(c2.getId()).size());
+    assertEquals(group, db.listPendingInvitations(c2.getId()).get(0).getGroup());
 
     gm.accept(group, c2);
 
     assertNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+    assertTrue(db.listGroupClients(group.getId()).contains(c2));
   }
 
 }

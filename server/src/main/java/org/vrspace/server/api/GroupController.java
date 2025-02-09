@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.GroupManager;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.UserGroup;
 
 import jakarta.servlet.http.HttpSession;
@@ -108,7 +109,7 @@ public class GroupController extends ClientControllerBase {
   @PostMapping("/{groupId}/ask")
   public void ask(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
-    UserGroup group = groupManager.getGroup(client, groupId);
+    UserGroup group = groupManager.getGroup(groupId);
     groupManager.ask(group, client);
   }
 
@@ -137,7 +138,8 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
-   * Leave a group. Group owners can not leave.
+   * Leave a group. Group owners can not leave. Also used to reject invitation to
+   * join the group.
    */
   @PostMapping("/{groupId}/leave")
   public void leave(@PathVariable long groupId, HttpSession session) {
@@ -147,7 +149,8 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
-   * Kick a user from a group. Only group owner(s) can do that.
+   * Kick a user from a group. Only group owner(s) can do that. Also used to
+   * reject request to join.
    * 
    * @param groupId  Where to kick from
    * @param clientId Whom to kick
@@ -169,7 +172,32 @@ public class GroupController extends ClientControllerBase {
   public void write(@PathVariable long groupId, @RequestBody String text, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    // FIXME sanitize text
     groupManager.write(client, group, text);
+  }
+
+  /**
+   * List pending requests to join the group. Only group owners can do that.
+   * 
+   * @param groupId
+   */
+  @GetMapping("/{groupId}/requests")
+  public List<GroupMember> listRequests(@PathVariable long groupId, HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    UserGroup group = groupManager.getGroup(client, groupId);
+    return groupManager.pendingRequests(group, client);
+  }
+
+  /**
+   * List pending invitations to groups for the current user.
+   * 
+   * @param session
+   * @return
+   */
+  @GetMapping("/invitations")
+  public List<UserGroup> listInvites(HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    return groupManager.pendingInvitations(client).stream().map(ug -> ug.getGroup()).toList();
   }
 
   protected Client getAuthorisedClient(HttpSession session) {
