@@ -95,7 +95,7 @@ export class DefaultHud {
 
       /*
       // this is supposed to either change profile, or allow user to activate some avatar animation
-      this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.changeAvatar());
+      this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/user-avatar.png", () => this.changeAvatar());
       this.avatarButton.isVisible = (this.avatar != null);
       this.avatarButton.tooltipText = "TODO";
       */
@@ -279,8 +279,9 @@ export class DefaultHud {
   setAuthenticated(arg = false) {
     this.isAuthenticated = arg;
     if (!this.displayButtons && this.isAuthenticated && !this.worldButton) {
-      // add this button only once, to the first row along with settings button
+      // add these buttons only once, to the first row along with settings button
       this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => { this.showWorldTemplates() });
+      this.groupsButton = this.hud.addButton("Groups", this.contentBase + "/content/icons/user-group.png", () => { this.groups() });
     }
   }
 
