@@ -124,7 +124,7 @@
       <artifactId>therapi-runtime-javadoc</artifactId>
       <version>0.15.0</version>
     </dependency>
-  
+
     <!-- Neo4j -->
     <dependency>
       <groupId>org.springframework.data</groupId>
@@ -422,9 +422,13 @@
         </plugins>
       </build>
     </profile>
-
+    
     <profile>
-      <!-- generate javadoc, e.g. for web site -->
+      <!-- 
+        generate javadoc, e.g. for web site
+        use along with the main profile, e.g.
+        mvn clean install -P build,docs 
+      -->
       <id>docs</id>
       <build>
         <plugins>
@@ -513,7 +517,10 @@
     </profile>
 
     <profile>
-      <!-- publish the release to nexus and maven central -->
+      <!-- 
+      publish the release to nexus and maven central 
+      mvn deploy -P publish
+      -->
       <id>publish</id>
       <build>
         <plugins>

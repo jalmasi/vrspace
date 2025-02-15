@@ -16,7 +16,8 @@ export class VRSpaceAPI {
       worlds: this.base + "/worlds",
       user: this.base + "/user",
       oauth2: this.base + "/oauth2",
-      files: this.base+'/files'
+      files: this.base+'/files',
+      groups: this.base+'/groups'
     }
   }
 
