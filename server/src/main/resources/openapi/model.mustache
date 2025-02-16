@@ -1,0 +1,28 @@
+{{>licenseInfo}}
+import {ApiClient} from '../ApiClient.js';
+{{#imports}}import { {{import}} } from './{{import}}.js';
+{{/imports}}
+{{#models}}
+{{#model}}
+{{#isEnum}}
+{{>partial_model_enum_class}}
+{{/isEnum}}
+{{^isEnum}}
+{{#oneOf}}
+{{#-first}}
+{{>partial_model_oneof}}
+{{/-first}}
+{{/oneOf}}
+{{^oneOf}}
+{{#anyOf}}
+{{#-first}}
+// TODO: add anyof model support
+{{/-first}}
+{{/anyOf}}
+{{^anyOf}}
+{{>partial_model_generic}}
+{{/anyOf}}
+{{/oneOf}}
+{{/isEnum}}
+{{/model}}
+{{/models}}
