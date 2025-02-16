@@ -18,7 +18,7 @@ import {ApiClient} from '../ApiClient.js';
  * @module model/UserGroup
  * @version v0
  */
-class UserGroup {
+export class UserGroup {
     /**
      * Constructs a new <code>UserGroup</code>.
      * Group of users.

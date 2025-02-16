@@ -18,7 +18,7 @@ import {ApiClient} from '../ApiClient.js';
  * @module model/SceneProperties
  * @version v0
  */
-class SceneProperties {
+export class SceneProperties {
     /**
      * Constructs a new <code>SceneProperties</code>.
      * Scene properties that determine how far user sees, how often scene is  refreshed, etc. This is a component to be injected, and used as factory when  constructing Scene for every client.

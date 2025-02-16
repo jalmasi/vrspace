@@ -21,7 +21,7 @@ import { LoginResponse } from '../model/LoginResponse.js';
 * @module api/SketchfabControllerApi
 * @version v0
 */
-export default class SketchfabControllerApi {
+export class SketchfabControllerApi {
 
     /**
     * Constructs a new SketchfabControllerApi. 

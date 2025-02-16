@@ -18,7 +18,7 @@ import {ApiClient} from '../ApiClient.js';
  * @module model/UploadRequest
  * @version v0
  */
-class UploadRequest {
+export class UploadRequest {
     /**
      * Constructs a new <code>UploadRequest</code>.
      * @alias module:model/UploadRequest

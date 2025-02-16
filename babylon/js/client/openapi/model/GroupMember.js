@@ -20,7 +20,7 @@ import { UserGroup } from './UserGroup.js';
  * @module model/GroupMember
  * @version v0
  */
-class GroupMember {
+export class GroupMember {
     /**
      * Constructs a new <code>GroupMember</code>.
      * Represents a membership of a user in a group

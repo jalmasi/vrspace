@@ -19,7 +19,7 @@ import {ApiClient} from "../ApiClient.js";
 * @module api/Oauth2ControllerApi
 * @version v0
 */
-export default class Oauth2ControllerApi {
+export class Oauth2ControllerApi {
 
     /**
     * Constructs a new Oauth2ControllerApi. 

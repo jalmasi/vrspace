@@ -18,7 +18,7 @@ import {ApiClient} from '../ApiClient.js';
  * @module model/Animation
  * @version v0
  */
-class Animation {
+export class Animation {
     /**
      * Constructs a new <code>Animation</code>.
      * A shared animation, embedded into VRObject. TODO more shared properties to  come.

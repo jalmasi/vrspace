@@ -18,7 +18,7 @@ import {ApiClient} from '../ApiClient.js';
  * @module model/LoginResponse
  * @version v0
  */
-class LoginResponse {
+export class LoginResponse {
     /**
      * Constructs a new <code>LoginResponse</code>.
      * @alias module:model/LoginResponse

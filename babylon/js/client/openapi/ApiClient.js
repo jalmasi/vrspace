@@ -12,7 +12,6 @@
  */
 
 
-import superagent from "superagent";
 
 /**
 * @module ApiClient
@@ -26,7 +25,7 @@ import superagent from "superagent";
 * @alias module:ApiClient
 * @class
 */
-class ApiClient {
+export class ApiClient {
     /**
      * The base URL against which to resolve every API call's (relative) path.
      * Overrides the default value set in spec file if present
@@ -68,14 +67,6 @@ class ApiClient {
          * @default false
          */
         this.enableCookies = false;
-
-        /*
-         * Used to save and return cookies in a node.js (non-browser) setting,
-         * if this.enableCookies is set to true.
-         */
-        if (typeof window === 'undefined') {
-          this.agent = new superagent.agent();
-        }
 
         /*
          * Allow user to override superagent agent
@@ -461,12 +452,7 @@ class ApiClient {
 
         // Attach previously saved cookies, if enabled
         if (this.enableCookies){
-            if (typeof window === 'undefined') {
-                this.agent._attachCookies(request);
-            }
-            else {
-                request.withCredentials();
-            }
+          request.withCredentials();
         }
 
         return new Promise((resolve, reject) => {
@@ -485,10 +471,6 @@ class ApiClient {
                 } else {
                     try {
                         var data = this.deserialize(response, returnType);
-                        if (this.enableCookies && typeof window === 'undefined'){
-                            this.agent._saveCookies(response);
-                        }
-
                         resolve({data, response});
                     } catch (err) {
                         reject(err);

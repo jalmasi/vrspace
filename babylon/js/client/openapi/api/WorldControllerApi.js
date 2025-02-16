@@ -21,7 +21,7 @@ import { WorldStatus } from '../model/WorldStatus.js';
 * @module api/WorldControllerApi
 * @version v0
 */
-export default class WorldControllerApi {
+export class WorldControllerApi {
 
     /**
     * Constructs a new WorldControllerApi. 

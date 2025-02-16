@@ -20,7 +20,7 @@ import { Client } from '../model/Client.js';
 * @module api/UserControllerApi
 * @version v0
 */
-export default class UserControllerApi {
+export class UserControllerApi {
 
     /**
     * Constructs a new UserControllerApi. 

@@ -687,7 +687,7 @@
                   <generateApiTests>false</generateApiTests>
                   <generateApiDocumentation>false</generateApiDocumentation>
                   <!-- 
-                  openapi moustache templates customized to generate javascript that works in the browser (functional imports) 
+                  openapi moustache templates customized to generate javascript that works in the browser (functional imports, superagent removal) 
                   fetch templates:
                   npm install @openapitools/openapi-generator-cli -g
                   openapi-generator author template -g javascript 

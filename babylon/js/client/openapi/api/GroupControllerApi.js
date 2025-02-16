@@ -22,7 +22,7 @@ import { UserGroup } from '../model/UserGroup.js';
 * @module api/GroupControllerApi
 * @version v0
 */
-export default class GroupControllerApi {
+export class GroupControllerApi {
 
     /**
     * Constructs a new GroupControllerApi. 

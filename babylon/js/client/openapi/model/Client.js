@@ -23,7 +23,7 @@ import { VRObject } from './VRObject.js';
  * @module model/Client
  * @version v0
  */
-class Client {
+export class Client {
     /**
      * Constructs a new <code>Client</code>.
      * Basic client class, adds user-related properties and business logic to  VRObject.

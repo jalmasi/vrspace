@@ -19,7 +19,7 @@ import {ApiClient} from "../ApiClient.js";
 * @module api/SeleniumControllerApi
 * @version v0
 */
-export default class SeleniumControllerApi {
+export class SeleniumControllerApi {
 
     /**
     * Constructs a new SeleniumControllerApi. 

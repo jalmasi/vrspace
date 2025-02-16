@@ -21,7 +21,7 @@ import { Rotation } from './Rotation.js';
  * @module model/VRObject
  * @version v0
  */
-class VRObject {
+export class VRObject {
     /**
      * Constructs a new <code>VRObject</code>.
      * Basic VR Object encapsulates minimal spatial and other properties.

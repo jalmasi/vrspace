@@ -19,7 +19,7 @@ import {ApiClient} from "../ApiClient.js";
 * @module api/TextureControllerApi
 * @version v0
 */
-export default class TextureControllerApi {
+export class TextureControllerApi {
 
     /**
     * Constructs a new TextureControllerApi. 

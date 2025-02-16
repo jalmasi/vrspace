@@ -1,3 +1,5 @@
+import { ApiClient } from './openapi/ApiClient.js';
+import { GroupControllerApi } from './openapi/api/GroupControllerApi.js';
 /**
  * Class to execute REST API calls, singleton.
  * By default, we're making API calls to the same server that serves the content.
@@ -12,12 +14,13 @@ export class VRSpaceAPI {
   constructor(apiBase = "/vrspace/api") {
     this.base = apiBase;
     VRSpaceAPI.instance = this;
+    this.apiClient = new ApiClient(this.base);
     this.endpoint = {
       worlds: this.base + "/worlds",
       user: this.base + "/user",
       oauth2: this.base + "/oauth2",
       files: this.base+'/files',
-      groups: this.base+'/groups'
+      groups: new GroupControllerApi(this.apiClient)
     }
   }
 

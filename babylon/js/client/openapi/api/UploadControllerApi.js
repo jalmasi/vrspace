@@ -20,7 +20,7 @@ import { UploadRequest } from '../model/UploadRequest.js';
 * @module api/UploadControllerApi
 * @version v0
 */
-export default class UploadControllerApi {
+export class UploadControllerApi {
 
     /**
     * Constructs a new UploadControllerApi. 

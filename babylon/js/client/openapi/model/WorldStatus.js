@@ -18,7 +18,7 @@ import {ApiClient} from '../ApiClient.js';
  * @module model/WorldStatus
  * @version v0
  */
-class WorldStatus {
+export class WorldStatus {
     /**
      * Constructs a new <code>WorldStatus</code>.
      * @alias module:model/WorldStatus
