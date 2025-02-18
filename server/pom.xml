@@ -120,8 +120,7 @@
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>2.6.0</version>
     </dependency>
-    <!--To
-    Use code comments as Swagger description library -->
+    <!--To Use code comments as Swagger description library -->
     <dependency>
       <groupId>com.github.therapi</groupId>
       <artifactId>therapi-runtime-javadoc</artifactId>

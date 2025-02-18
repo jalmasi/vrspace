@@ -87,7 +87,7 @@ export class GroupControllerApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -127,7 +127,7 @@ export class GroupControllerApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -292,7 +292,7 @@ export class GroupControllerApi {
 
     /**
      * Invite a user a private group.
-     * Invite a user a private group. Only group owner(s) can invite users. Invited  users have to accept invitation.
+     * Invite a user a private group. Only group owner(s) can invite users. Invited   users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -332,7 +332,7 @@ export class GroupControllerApi {
 
     /**
      * Invite a user a private group.
-     * Invite a user a private group. Only group owner(s) can invite users. Invited  users have to accept invitation.
+     * Invite a user a private group. Only group owner(s) can invite users. Invited   users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -395,7 +395,7 @@ export class GroupControllerApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -435,7 +435,7 @@ export class GroupControllerApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -450,7 +450,7 @@ export class GroupControllerApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -484,53 +484,12 @@ export class GroupControllerApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     leave(groupId) {
       return this.leaveWithHttpInfo(groupId)
-        .then(function(response_and_data) {
-          return response_and_data.data;
-        });
-    }
-
-
-    /**
-     * List all user groups the user belongs to.
-     * List all user groups the user belongs to.
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<module:model/UserGroup>} and HTTP response
-     */
-    list2WithHttpInfo() {
-      let postBody = null;
-
-      let pathParams = {
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
-
-      let authNames = [];
-      let contentTypes = [];
-      let accepts = ['*/*'];
-      let returnType = [UserGroup];
-      return this.apiClient.callApi(
-        '/vrspace/api/groups', 'GET',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null
-      );
-    }
-
-    /**
-     * List all user groups the user belongs to.
-     * List all user groups the user belongs to.
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<module:model/UserGroup>}
-     */
-    list2() {
-      return this.list2WithHttpInfo()
         .then(function(response_and_data) {
           return response_and_data.data;
         });
@@ -572,6 +531,47 @@ export class GroupControllerApi {
      */
     listInvites() {
       return this.listInvitesWithHttpInfo()
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * List all user groups the user belongs to.
+     * List all user groups the user belongs to.
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<module:model/UserGroup>} and HTTP response
+     */
+    listMyGroupsWithHttpInfo() {
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = [UserGroup];
+      return this.apiClient.callApi(
+        '/vrspace/api/groups', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * List all user groups the user belongs to.
+     * List all user groups the user belongs to.
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<module:model/UserGroup>}
+     */
+    listMyGroups() {
+      return this.listMyGroupsWithHttpInfo()
         .then(function(response_and_data) {
           return response_and_data.data;
         });

@@ -41,7 +41,7 @@ public class GroupController extends ClientControllerBase {
    * List all user groups the user belongs to.
    */
   @GetMapping
-  public List<UserGroup> list(HttpSession session) {
+  public List<UserGroup> listMyGroups(HttpSession session) {
     Client client = getAuthorisedClient(session);
     return groupManager.listGroups(client);
   }

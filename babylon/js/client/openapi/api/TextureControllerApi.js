@@ -39,7 +39,7 @@ export class TextureControllerApi {
      * List all jpg and png files in content directory hierarchy
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<String>} and HTTP response
      */
-    list1WithHttpInfo() {
+    listTexturesWithHttpInfo() {
       let postBody = null;
 
       let pathParams = {
@@ -67,8 +67,8 @@ export class TextureControllerApi {
      * List all jpg and png files in content directory hierarchy
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<String>}
      */
-    list1() {
-      return this.list1WithHttpInfo()
+    listTextures() {
+      return this.listTexturesWithHttpInfo()
         .then(function(response_and_data) {
           return response_and_data.data;
         });
@@ -81,11 +81,11 @@ export class TextureControllerApi {
      * @param {String} pattern 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<String>} and HTTP response
      */
-    searchWithHttpInfo(pattern) {
+    searchTexturesWithHttpInfo(pattern) {
       let postBody = null;
       // verify the required parameter 'pattern' is set
       if (pattern === undefined || pattern === null) {
-        throw new Error("Missing the required parameter 'pattern' when calling search");
+        throw new Error("Missing the required parameter 'pattern' when calling searchTextures");
       }
 
       let pathParams = {
@@ -115,8 +115,8 @@ export class TextureControllerApi {
      * @param {String} pattern 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<String>}
      */
-    search(pattern) {
-      return this.searchWithHttpInfo(pattern)
+    searchTextures(pattern) {
+      return this.searchTexturesWithHttpInfo(pattern)
         .then(function(response_and_data) {
           return response_and_data.data;
         });

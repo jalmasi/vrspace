@@ -86,7 +86,7 @@ public class SketchfabController extends ApiBase {
    * authorise there. Saves the referrer for later use in callback.
    */
   @GetMapping("/login")
-  public LoginResponse login(HttpServletRequest request) {
+  public LoginResponse sketchfabLogin(HttpServletRequest request) {
     this.referrer = request.getHeader(HttpHeaders.REFERER);
     // CHECKME: return entire url or better structured response?
     LoginResponse ret = new LoginResponse("https://sketchfab.com/oauth2/authorize/?response_type=code&client_id="
@@ -104,7 +104,7 @@ public class SketchfabController extends ApiBase {
    * @return
    */
   @GetMapping("/oauth2")
-  public ResponseEntity<String> callback(String code) {
+  public ResponseEntity<String> sketchfabCallback(String code) {
     log.info("Login code " + code);
 
     MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
