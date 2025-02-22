@@ -22,7 +22,7 @@ export class UserGroup {
     /**
      * Constructs a new <code>UserGroup</code>.
      * Group of users.
-     * @alias module:model/UserGroup
+     * @alias UserGroup
      */
     constructor() { 
         
@@ -41,8 +41,8 @@ export class UserGroup {
      * Constructs a <code>UserGroup</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/UserGroup} obj Optional instance to populate.
-     * @return {module:model/UserGroup} The populated <code>UserGroup</code> instance.
+     * @param {UserGroup} obj Optional instance to populate.
+     * @return {UserGroup} The populated <code>UserGroup</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

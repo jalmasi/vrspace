@@ -21,7 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class LoginResponse {
     /**
      * Constructs a new <code>LoginResponse</code>.
-     * @alias module:model/LoginResponse
+     * @alias LoginResponse
      */
     constructor() { 
         
@@ -40,8 +40,8 @@ export class LoginResponse {
      * Constructs a <code>LoginResponse</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/LoginResponse} obj Optional instance to populate.
-     * @return {module:model/LoginResponse} The populated <code>LoginResponse</code> instance.
+     * @param {LoginResponse} obj Optional instance to populate.
+     * @return {LoginResponse} The populated <code>LoginResponse</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

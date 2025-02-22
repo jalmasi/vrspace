@@ -37,7 +37,7 @@ export class TextureControllerApi {
     /**
      * List all jpg and png files in content directory hierarchy
      * List all jpg and png files in content directory hierarchy
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<String>} and HTTP response
+     * @return {Promise< Array.<String> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<String>} and HTTP response
      */
     listTexturesWithHttpInfo() {
       let postBody = null;
@@ -65,7 +65,7 @@ export class TextureControllerApi {
     /**
      * List all jpg and png files in content directory hierarchy
      * List all jpg and png files in content directory hierarchy
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<String>}
+     * @return {Promise< Array.<String> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<String>}
      */
     listTextures() {
       return this.listTexturesWithHttpInfo()
@@ -79,7 +79,7 @@ export class TextureControllerApi {
      * Search textures that contain given substring
      * Search textures that contain given substring
      * @param {String} pattern 
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<String>} and HTTP response
+     * @return {Promise< Array.<String> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<String>} and HTTP response
      */
     searchTexturesWithHttpInfo(pattern) {
       let postBody = null;
@@ -113,7 +113,7 @@ export class TextureControllerApi {
      * Search textures that contain given substring
      * Search textures that contain given substring
      * @param {String} pattern 
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<String>}
+     * @return {Promise< Array.<String> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<String>}
      */
     searchTextures(pattern) {
       return this.searchTexturesWithHttpInfo(pattern)

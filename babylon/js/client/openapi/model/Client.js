@@ -27,7 +27,7 @@ export class Client {
     /**
      * Constructs a new <code>Client</code>.
      * Basic client class, adds user-related properties and business logic to   VRObject.
-     * @alias module:model/Client
+     * @alias Client
      */
     constructor() { 
         
@@ -46,8 +46,8 @@ export class Client {
      * Constructs a <code>Client</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/Client} obj Optional instance to populate.
-     * @return {module:model/Client} The populated <code>Client</code> instance.
+     * @param {Client} obj Optional instance to populate.
+     * @return {Client} The populated <code>Client</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {
@@ -168,22 +168,22 @@ export class Client {
 Client.prototype['id'] = undefined;
 
 /**
- * @member {Array.<module:model/VRObject>} children
+ * @member {Array.<VRObject>} children
  */
 Client.prototype['children'] = undefined;
 
 /**
- * @member {module:model/Point} position
+ * @member {Point} position
  */
 Client.prototype['position'] = undefined;
 
 /**
- * @member {module:model/Rotation} rotation
+ * @member {Rotation} rotation
  */
 Client.prototype['rotation'] = undefined;
 
 /**
- * @member {module:model/Point} scale
+ * @member {Point} scale
  */
 Client.prototype['scale'] = undefined;
 
@@ -212,7 +212,7 @@ Client.prototype['mesh'] = undefined;
 Client.prototype['script'] = undefined;
 
 /**
- * @member {module:model/Animation} animation
+ * @member {Animation} animation
  */
 Client.prototype['animation'] = undefined;
 
@@ -223,7 +223,7 @@ Client.prototype['animation'] = undefined;
 Client.prototype['name'] = undefined;
 
 /**
- * @member {module:model/SceneProperties} sceneProperties
+ * @member {SceneProperties} sceneProperties
  */
 Client.prototype['sceneProperties'] = undefined;
 

@@ -40,7 +40,7 @@ export class Oauth2ControllerApi {
      * @param {String} name Login name of the user, local
      * @param {String} provider Oauth2 authentication provider id , as registered in                   properties file (e.g. github, facebook, google)
      * @param {String} avatar Optional avatar URI, used only when creating a new user
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     afterAuthenticationWithHttpInfo(name, provider, avatar) {
       let postBody = null;
@@ -86,7 +86,7 @@ export class Oauth2ControllerApi {
      * @param {String} name Login name of the user, local
      * @param {String} provider Oauth2 authentication provider id , as registered in                   properties file (e.g. github, facebook, google)
      * @param {String} avatar Optional avatar URI, used only when creating a new user
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     afterAuthentication(name, provider, avatar) {
       return this.afterAuthenticationWithHttpInfo(name, provider, avatar)
@@ -99,7 +99,7 @@ export class Oauth2ControllerApi {
     /**
      * List of OAuth2 registered authentication providers.
      * List of OAuth2 registered authentication providers.
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Object.<String, {String: String}>} and HTTP response
+     * @return {Promise< Object.<String, {String: String}> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Object.<String, {String: String}>} and HTTP response
      */
     providersWithHttpInfo() {
       let postBody = null;
@@ -127,7 +127,7 @@ export class Oauth2ControllerApi {
     /**
      * List of OAuth2 registered authentication providers.
      * List of OAuth2 registered authentication providers.
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Object.<String, {String: String}>}
+     * @return {Promise< Object.<String, {String: String}> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Object.<String, {String: String}>}
      */
     providers() {
       return this.providersWithHttpInfo()
@@ -140,7 +140,7 @@ export class Oauth2ControllerApi {
     /**
      * First step in Oauth2 Authentication is to obtain valid authentication   provider id.
      * First step in Oauth2 Authentication is to obtain valid authentication   provider id. This is never called directly though, the browser is redirected   here from the login page. Obtains the provider id from the original request   and sends browser redirect.
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     setProviderWithHttpInfo() {
       let postBody = null;
@@ -168,7 +168,7 @@ export class Oauth2ControllerApi {
     /**
      * First step in Oauth2 Authentication is to obtain valid authentication   provider id.
      * First step in Oauth2 Authentication is to obtain valid authentication   provider id. This is never called directly though, the browser is redirected   here from the login page. Obtains the provider id from the original request   and sends browser redirect.
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     setProvider() {
       return this.setProviderWithHttpInfo()

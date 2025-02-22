@@ -38,7 +38,7 @@ export class UserControllerApi {
     /**
      * Check if the user is already authenticated
      * Check if the user is already authenticated
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
+     * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
      */
     authenticatedWithHttpInfo() {
       let postBody = null;
@@ -66,7 +66,7 @@ export class UserControllerApi {
     /**
      * Check if the user is already authenticated
      * Check if the user is already authenticated
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
+     * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
      */
     authenticated() {
       return this.authenticatedWithHttpInfo()
@@ -80,7 +80,7 @@ export class UserControllerApi {
      * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
      * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
      * @param {String} name user name to verify
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
+     * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
      */
     checkNameWithHttpInfo(name) {
       let postBody = null;
@@ -114,7 +114,7 @@ export class UserControllerApi {
      * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
      * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
      * @param {String} name user name to verify
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
+     * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
      */
     checkName(name) {
       return this.checkNameWithHttpInfo(name)
@@ -127,7 +127,7 @@ export class UserControllerApi {
     /**
      * Returns current user name
      * Returns current user name
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     userNameWithHttpInfo() {
       let postBody = null;
@@ -155,7 +155,7 @@ export class UserControllerApi {
     /**
      * Returns current user name
      * Returns current user name
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     userName() {
       return this.userNameWithHttpInfo()
@@ -168,7 +168,7 @@ export class UserControllerApi {
     /**
      * Returns current user object
      * Returns current user object
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link module:model/Client} and HTTP response
+     * @return {Promise< Client >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Client} and HTTP response
      */
     userObjectWithHttpInfo() {
       let postBody = null;
@@ -196,7 +196,7 @@ export class UserControllerApi {
     /**
      * Returns current user object
      * Returns current user object
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/Client}
+     * @return {Promise< Client >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Client}
      */
     userObject() {
       return this.userObjectWithHttpInfo()

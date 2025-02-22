@@ -22,7 +22,7 @@ export class Rotation {
     /**
      * Constructs a new <code>Rotation</code>.
      * Rotation of an can be represented either by 3 or 4 coordinates (euler angles,   quaternions), the server will store and distribute it either way.
-     * @alias module:model/Rotation
+     * @alias Rotation
      */
     constructor() { 
         
@@ -41,8 +41,8 @@ export class Rotation {
      * Constructs a <code>Rotation</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/Rotation} obj Optional instance to populate.
-     * @return {module:model/Rotation} The populated <code>Rotation</code> instance.
+     * @param {Rotation} obj Optional instance to populate.
+     * @return {Rotation} The populated <code>Rotation</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

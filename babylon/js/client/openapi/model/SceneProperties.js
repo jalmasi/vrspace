@@ -22,7 +22,7 @@ export class SceneProperties {
     /**
      * Constructs a new <code>SceneProperties</code>.
      * Scene properties that determine how far user sees, how often scene is   refreshed, etc. This is a component to be injected, and used as factory when   constructing Scene for every client.
-     * @alias module:model/SceneProperties
+     * @alias SceneProperties
      */
     constructor() { 
         
@@ -41,8 +41,8 @@ export class SceneProperties {
      * Constructs a <code>SceneProperties</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/SceneProperties} obj Optional instance to populate.
-     * @return {module:model/SceneProperties} The populated <code>SceneProperties</code> instance.
+     * @param {SceneProperties} obj Optional instance to populate.
+     * @return {SceneProperties} The populated <code>SceneProperties</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

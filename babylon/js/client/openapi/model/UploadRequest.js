@@ -21,7 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class UploadRequest {
     /**
      * Constructs a new <code>UploadRequest</code>.
-     * @alias module:model/UploadRequest
+     * @alias UploadRequest
      * @param fileData {File} 
      */
     constructor(fileData) { 
@@ -42,8 +42,8 @@ export class UploadRequest {
      * Constructs a <code>UploadRequest</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/UploadRequest} obj Optional instance to populate.
-     * @return {module:model/UploadRequest} The populated <code>UploadRequest</code> instance.
+     * @param {UploadRequest} obj Optional instance to populate.
+     * @return {UploadRequest} The populated <code>UploadRequest</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

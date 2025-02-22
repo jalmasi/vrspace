@@ -43,7 +43,7 @@ export class WorldControllerApi {
      * @param {String} templateWorldName optional world template to use
      * @param {Boolean} isPublic optional flag to create public or private world,                            default false
      * @param {Boolean} isTemporary optional flag to create a temporary world, default                            true
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     createWorldWithHttpInfo(worldName, templateWorldName, isPublic, isTemporary) {
       let postBody = null;
@@ -95,7 +95,7 @@ export class WorldControllerApi {
      * @param {String} templateWorldName optional world template to use
      * @param {Boolean} isPublic optional flag to create public or private world,                            default false
      * @param {Boolean} isTemporary optional flag to create a temporary world, default                            true
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     createWorld(worldName, templateWorldName, isPublic, isTemporary) {
       return this.createWorldWithHttpInfo(worldName, templateWorldName, isPublic, isTemporary)
@@ -106,7 +106,7 @@ export class WorldControllerApi {
 
 
     /**
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<module:model/World>} and HTTP response
+     * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<World>} and HTTP response
      */
     listWithHttpInfo() {
       let postBody = null;
@@ -132,7 +132,7 @@ export class WorldControllerApi {
     }
 
     /**
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<module:model/World>}
+     * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<World>}
      */
     list() {
       return this.listWithHttpInfo()
@@ -143,7 +143,7 @@ export class WorldControllerApi {
 
 
     /**
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<module:model/WorldStatus>} and HTTP response
+     * @return {Promise< Array.<WorldStatus> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<WorldStatus>} and HTTP response
      */
     usersWithHttpInfo() {
       let postBody = null;
@@ -169,7 +169,7 @@ export class WorldControllerApi {
     }
 
     /**
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<module:model/WorldStatus>}
+     * @return {Promise< Array.<WorldStatus> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<WorldStatus>}
      */
     users() {
       return this.usersWithHttpInfo()

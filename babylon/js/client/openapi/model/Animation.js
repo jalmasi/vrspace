@@ -22,7 +22,7 @@ export class Animation {
     /**
      * Constructs a new <code>Animation</code>.
      * A shared animation, embedded into VRObject. TODO more shared properties to   come.
-     * @alias module:model/Animation
+     * @alias Animation
      */
     constructor() { 
         
@@ -41,8 +41,8 @@ export class Animation {
      * Constructs a <code>Animation</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/Animation} obj Optional instance to populate.
-     * @return {module:model/Animation} The populated <code>Animation</code> instance.
+     * @param {Animation} obj Optional instance to populate.
+     * @return {Animation} The populated <code>Animation</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

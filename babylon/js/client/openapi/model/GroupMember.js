@@ -24,7 +24,7 @@ export class GroupMember {
     /**
      * Constructs a new <code>GroupMember</code>.
      * Represents a membership of a user in a group
-     * @alias module:model/GroupMember
+     * @alias GroupMember
      */
     constructor() { 
         
@@ -43,8 +43,8 @@ export class GroupMember {
      * Constructs a <code>GroupMember</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/GroupMember} obj Optional instance to populate.
-     * @return {module:model/GroupMember} The populated <code>GroupMember</code> instance.
+     * @param {GroupMember} obj Optional instance to populate.
+     * @return {GroupMember} The populated <code>GroupMember</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {
@@ -109,12 +109,12 @@ export class GroupMember {
 GroupMember.prototype['id'] = undefined;
 
 /**
- * @member {module:model/UserGroup} group
+ * @member {UserGroup} group
  */
 GroupMember.prototype['group'] = undefined;
 
 /**
- * @member {module:model/Client} client
+ * @member {Client} client
  */
 GroupMember.prototype['client'] = undefined;
 

@@ -77,85 +77,85 @@ export {
 
     /**
      * The Animation model constructor.
-     * @property {module:model/Animation}
+     * @property {Animation}
      */
     Animation,
 
     /**
      * The Client model constructor.
-     * @property {module:model/Client}
+     * @property {Client}
      */
     Client,
 
     /**
      * The ContentCategory model constructor.
-     * @property {module:model/ContentCategory}
+     * @property {ContentCategory}
      */
     ContentCategory,
 
     /**
      * The GltfModel model constructor.
-     * @property {module:model/GltfModel}
+     * @property {GltfModel}
      */
     GltfModel,
 
     /**
      * The GroupMember model constructor.
-     * @property {module:model/GroupMember}
+     * @property {GroupMember}
      */
     GroupMember,
 
     /**
      * The LoginResponse model constructor.
-     * @property {module:model/LoginResponse}
+     * @property {LoginResponse}
      */
     LoginResponse,
 
     /**
      * The Point model constructor.
-     * @property {module:model/Point}
+     * @property {Point}
      */
     Point,
 
     /**
      * The Rotation model constructor.
-     * @property {module:model/Rotation}
+     * @property {Rotation}
      */
     Rotation,
 
     /**
      * The SceneProperties model constructor.
-     * @property {module:model/SceneProperties}
+     * @property {SceneProperties}
      */
     SceneProperties,
 
     /**
      * The UploadRequest model constructor.
-     * @property {module:model/UploadRequest}
+     * @property {UploadRequest}
      */
     UploadRequest,
 
     /**
      * The UserGroup model constructor.
-     * @property {module:model/UserGroup}
+     * @property {UserGroup}
      */
     UserGroup,
 
     /**
      * The VRObject model constructor.
-     * @property {module:model/VRObject}
+     * @property {VRObject}
      */
     VRObject,
 
     /**
      * The World model constructor.
-     * @property {module:model/World}
+     * @property {World}
      */
     World,
 
     /**
      * The WorldStatus model constructor.
-     * @property {module:model/WorldStatus}
+     * @property {WorldStatus}
      */
     WorldStatus,
 

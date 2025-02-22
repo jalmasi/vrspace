@@ -22,7 +22,7 @@ export class World {
     /**
      * Constructs a new <code>World</code>.
      * VRObject container, contains isolated parts of space, like chat room. One   default world is created on startup, others are typically created on demand,   after Enter command is issued.
-     * @alias module:model/World
+     * @alias World
      */
     constructor() { 
         
@@ -41,8 +41,8 @@ export class World {
      * Constructs a <code>World</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/World} obj Optional instance to populate.
-     * @return {module:model/World} The populated <code>World</code> instance.
+     * @param {World} obj Optional instance to populate.
+     * @return {World} The populated <code>World</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

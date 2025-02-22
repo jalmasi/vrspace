@@ -22,7 +22,7 @@ export class ContentCategory {
     /**
      * Constructs a new <code>ContentCategory</code>.
      * A custom category of content.
-     * @alias module:model/ContentCategory
+     * @alias ContentCategory
      */
     constructor() { 
         
@@ -41,8 +41,8 @@ export class ContentCategory {
      * Constructs a <code>ContentCategory</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/ContentCategory} obj Optional instance to populate.
-     * @return {module:model/ContentCategory} The populated <code>ContentCategory</code> instance.
+     * @param {ContentCategory} obj Optional instance to populate.
+     * @return {ContentCategory} The populated <code>ContentCategory</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

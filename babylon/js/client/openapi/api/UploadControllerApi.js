@@ -45,8 +45,8 @@ export class UploadControllerApi {
      * @param {Number} rotY 
      * @param {Number} rotZ 
      * @param {Object} opts Optional parameters
-     * @param {module:model/UploadRequest} [uploadRequest] 
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @param {UploadRequest} [uploadRequest] 
+     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     uploadWithHttpInfo(fileName, contentType, x, y, z, rotX, rotY, rotZ, opts) {
       opts = opts || {};
@@ -122,8 +122,8 @@ export class UploadControllerApi {
      * @param {Number} rotY 
      * @param {Number} rotZ 
      * @param {Object} opts Optional parameters
-     * @param {module:model/UploadRequest} opts.uploadRequest 
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
+     * @param {UploadRequest} opts.uploadRequest 
+     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
      */
     upload(fileName, contentType, x, y, z, rotX, rotY, rotZ, opts) {
       return this.uploadWithHttpInfo(fileName, contentType, x, y, z, rotX, rotY, rotZ, opts)

@@ -704,6 +704,33 @@
           </plugin>
           
           <plugin>
+            <groupId>com.google.code.maven-replacer-plugin</groupId>
+            <artifactId>replacer</artifactId>
+            <version>1.5.2</version>
+            <executions>
+              <execution>
+                <id>fix-javadoc-types</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>replace</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <basedir>${project.build.directory}/generated-sources/openapi/src/</basedir>
+              <includes>
+                <include>**/*.js</include>
+              </includes>
+              <replacements>
+                <replacement>
+                  <token>module:model/</token>
+                  <value></value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </plugin>
+
+          <plugin>
             <artifactId>maven-resources-plugin</artifactId>
             <version>3.3.1</version>
             <executions>

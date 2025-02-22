@@ -21,7 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class WorldStatus {
     /**
      * Constructs a new <code>WorldStatus</code>.
-     * @alias module:model/WorldStatus
+     * @alias WorldStatus
      */
     constructor() { 
         
@@ -40,8 +40,8 @@ export class WorldStatus {
      * Constructs a <code>WorldStatus</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/WorldStatus} obj Optional instance to populate.
-     * @return {module:model/WorldStatus} The populated <code>WorldStatus</code> instance.
+     * @param {WorldStatus} obj Optional instance to populate.
+     * @return {WorldStatus} The populated <code>WorldStatus</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {

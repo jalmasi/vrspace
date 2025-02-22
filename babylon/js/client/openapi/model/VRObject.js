@@ -25,7 +25,7 @@ export class VRObject {
     /**
      * Constructs a new <code>VRObject</code>.
      * Basic VR Object encapsulates minimal spatial and other properties.
-     * @alias module:model/VRObject
+     * @alias VRObject
      */
     constructor() { 
         
@@ -44,8 +44,8 @@ export class VRObject {
      * Constructs a <code>VRObject</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/VRObject} obj Optional instance to populate.
-     * @return {module:model/VRObject} The populated <code>VRObject</code> instance.
+     * @param {VRObject} obj Optional instance to populate.
+     * @return {VRObject} The populated <code>VRObject</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {
@@ -133,17 +133,17 @@ export class VRObject {
 VRObject.prototype['id'] = undefined;
 
 /**
- * @member {module:model/Point} position
+ * @member {Point} position
  */
 VRObject.prototype['position'] = undefined;
 
 /**
- * @member {module:model/Rotation} rotation
+ * @member {Rotation} rotation
  */
 VRObject.prototype['rotation'] = undefined;
 
 /**
- * @member {module:model/Point} scale
+ * @member {Point} scale
  */
 VRObject.prototype['scale'] = undefined;
 
@@ -172,7 +172,7 @@ VRObject.prototype['mesh'] = undefined;
 VRObject.prototype['script'] = undefined;
 
 /**
- * @member {module:model/Animation} animation
+ * @member {Animation} animation
  */
 VRObject.prototype['animation'] = undefined;
 

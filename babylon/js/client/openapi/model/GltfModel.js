@@ -23,7 +23,7 @@ export class GltfModel {
     /**
      * Constructs a new <code>GltfModel</code>.
      * A 3D Model in GLTF format. Adds unique id, uri and other properties to   Content class. Based on sketchfab models.
-     * @alias module:model/GltfModel
+     * @alias GltfModel
      */
     constructor() { 
         
@@ -42,8 +42,8 @@ export class GltfModel {
      * Constructs a <code>GltfModel</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/GltfModel} obj Optional instance to populate.
-     * @return {module:model/GltfModel} The populated <code>GltfModel</code> instance.
+     * @param {GltfModel} obj Optional instance to populate.
+     * @return {GltfModel} The populated <code>GltfModel</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {
@@ -193,7 +193,7 @@ GltfModel.prototype['license'] = undefined;
 GltfModel.prototype['author'] = undefined;
 
 /**
- * @member {Array.<module:model/ContentCategory>} categories
+ * @member {Array.<ContentCategory>} categories
  */
 GltfModel.prototype['categories'] = undefined;
 
