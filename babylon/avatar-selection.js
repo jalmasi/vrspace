@@ -121,7 +121,7 @@ export class AvatarSelection extends World {
     // position the form just in front of avatar
     // make room for virtual keyboard, and resize/mirror buttons
     if (this.enableLogin) {
-      this.loginForm.position = new BABYLON.Vector3(.25, .6, -1);
+      this.loginForm.position = new BABYLON.Vector3(.25, .8, -1);
       this.loginForm.init(); // starts speech recognition
     }
     // testing various REST calls here

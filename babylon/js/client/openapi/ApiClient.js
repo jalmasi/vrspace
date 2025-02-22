@@ -12,6 +12,7 @@
  */
 
 
+//import superagent from "superagent";
 
 /**
 * @module ApiClient
@@ -67,6 +68,14 @@ export class ApiClient {
          * @default false
          */
         this.enableCookies = false;
+
+        /*
+         * Used to save and return cookies in a node.js (non-browser) setting,
+         * if this.enableCookies is set to true.
+         */
+        if (typeof window === 'undefined') {
+          this.agent = new superagent.agent();
+        }
 
         /*
          * Allow user to override superagent agent
@@ -452,7 +461,12 @@ export class ApiClient {
 
         // Attach previously saved cookies, if enabled
         if (this.enableCookies){
-          request.withCredentials();
+            if (typeof window === 'undefined') {
+                this.agent._attachCookies(request);
+            }
+            else {
+                request.withCredentials();
+            }
         }
 
         return new Promise((resolve, reject) => {
@@ -471,6 +485,10 @@ export class ApiClient {
                 } else {
                     try {
                         var data = this.deserialize(response, returnType);
+                        if (this.enableCookies && typeof window === 'undefined'){
+                            this.agent._saveCookies(response);
+                        }
+
                         resolve({data, response});
                     } catch (err) {
                         reject(err);

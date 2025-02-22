@@ -38,11 +38,11 @@ export class WorldControllerApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {String} worldName world name of created world, must be unique
      * @param {String} templateWorldName optional world template to use
-     * @param {Boolean} isPublic optional flag to create public or private world,                           default false
-     * @param {Boolean} isTemporary optional flag to create a temporary world, default                           true
+     * @param {Boolean} isPublic optional flag to create public or private world,                            default false
+     * @param {Boolean} isTemporary optional flag to create a temporary world, default                            true
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     createWorldWithHttpInfo(worldName, templateWorldName, isPublic, isTemporary) {
@@ -90,11 +90,11 @@ export class WorldControllerApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {String} worldName world name of created world, must be unique
      * @param {String} templateWorldName optional world template to use
-     * @param {Boolean} isPublic optional flag to create public or private world,                           default false
-     * @param {Boolean} isTemporary optional flag to create a temporary world, default                           true
+     * @param {Boolean} isPublic optional flag to create public or private world,                            default false
+     * @param {Boolean} isTemporary optional flag to create a temporary world, default                            true
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     createWorld(worldName, templateWorldName, isPublic, isTemporary) {

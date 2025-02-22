@@ -19,7 +19,7 @@ import { CameraHelper } from '../core/camera-helper.js';
 import { ImageArea } from './widget/image-area.js';
 import { UserDirectionMonitor } from './widget/user-direction-monitor.js';
 import { MiniMap } from './widget/mini-map.js';
-
+import { GroupsUI } from './groups-ui.js';
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -46,6 +46,7 @@ export class DefaultHud {
     this.whiteboard = null;
     this.creditArea = null;
     this.miniMap = null;
+    this.groupsUI = null;
   }
 
   init() {
@@ -734,5 +735,15 @@ export class DefaultHud {
       VRSPACEUI.hud.newRow();
       SoundMixer.getInstance(this.scene).show();
     }
+  }
+  
+  groups() {
+    if ( this.groupsUI ) {
+      this.groupsUI.dispose();
+      this.groupsUI = null;
+    } else {
+      this.groupsUI = new GroupsUI(this.scene);
+      this.groupsUI.show(this.groupsButton);
+   }
   }
 }
