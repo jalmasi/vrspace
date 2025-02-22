@@ -47,6 +47,15 @@ export class ApiClient {
         this.authentications = {
         }
 
+	/**
+         * The default HTTP headers to be included for all API calls.
+         * @type {Array.<String>}
+         * @default {}
+         */
+        this.defaultHeaders = {
+            'User-Agent': 'OpenAPI-Generator/v0/Javascript'
+        };
+
         /**
          * The default HTTP timeout for all API calls.
          * @type {Number}

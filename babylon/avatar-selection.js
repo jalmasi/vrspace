@@ -51,7 +51,7 @@ export class AvatarSelection extends World {
     this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000 / this.fps;
-    this.api = new VRSpaceAPI(VRSPACEUI.contentBase + "/vrspace/api");
+    this.api = VRSpaceAPI.getInstance(VRSPACEUI.contentBase);
     this.tokens = {};
   }
   

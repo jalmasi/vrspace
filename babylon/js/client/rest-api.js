@@ -11,10 +11,10 @@ export class VRSpaceAPI {
   /**
    * @param apiBase Base URL for all API endpoint, defaults to /vrspace/api
    */
-  constructor(apiBase = "/vrspace/api") {
-    this.base = apiBase;
+  constructor(apiBase = "", apiPath = "/vrspace/api") {
+    this.base = apiBase+apiPath;
     VRSpaceAPI.instance = this;
-    this.apiClient = new ApiClient(this.base);
+    this.apiClient = new ApiClient(apiBase);
     this.endpoint = {
       worlds: this.base + "/worlds",
       user: this.base + "/user",
@@ -27,9 +27,9 @@ export class VRSpaceAPI {
   /**
    * Returns VRSpaceAPI instance, creates one if required.
    */
-  static getInstance(apiBase) {
+  static getInstance(apiBase, apiPath) {
     if ( !VRSpaceAPI.instance ) {
-      new VRSpaceAPI(apiBase);
+      new VRSpaceAPI(apiBase, apiPath);
     }
     return VRSpaceAPI.instance;
   }

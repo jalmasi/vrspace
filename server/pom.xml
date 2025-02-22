@@ -685,16 +685,18 @@
                   <generateModelDocumentation>false</generateModelDocumentation>
                   <generateApiTests>false</generateApiTests>
                   <generateApiDocumentation>false</generateApiDocumentation>
+                  <templateDirectory>${project.basedir}/src/main/resources/openapi</templateDirectory>
                   <!-- 
-                  openapi moustache templates customized to generate javascript that works in the browser (functional imports, superagent removal) 
+                  openapi moustache templates customized to generate javascript that works in the browser (functional imports) 
                   fetch templates:
                   npm install @openapitools/openapi-generator-cli -g
                   openapi-generator-cli author template -g javascript 
                   -->
-                  <templateDirectory>${project.basedir}/src/main/resources/openapi</templateDirectory>
                   <configOptions>
+                    <!-- js gen -->
                     <usePromises>true</usePromises>
-                    <skipDefaultUserAgent>true</skipDefaultUserAgent>
+                    <!-- FIXME true results in error -->
+                    <skipDefaultUserAgent>false</skipDefaultUserAgent>
                   </configOptions>
                 </configuration>
               </execution>
