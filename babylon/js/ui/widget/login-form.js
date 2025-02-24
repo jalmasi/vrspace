@@ -11,7 +11,6 @@ class NameForm extends Form {
     this.background = "white";
     //this.nameText = "                     Name:"; // babylon 4
     this.nameText = "      Name:"; // babylon 5,6
-    this.radios = {};
   }
   init() {
     this.createPanel();

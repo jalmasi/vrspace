@@ -131,7 +131,7 @@ GroupMember.prototype['pendingInvite'] = undefined;
 GroupMember.prototype['pendingRequest'] = undefined;
 
 /**
- * Time stamp of last membership update, be it invite, request, or joining the   group
+ * Time stamp of last membership update, be it invite, request, or joining the  group
  * @member {Date} lastUpdate
  */
 GroupMember.prototype['lastUpdate'] = undefined;

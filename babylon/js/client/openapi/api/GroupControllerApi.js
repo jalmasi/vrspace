@@ -87,7 +87,7 @@ export class GroupControllerApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -127,7 +127,7 @@ export class GroupControllerApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
@@ -241,7 +241,7 @@ export class GroupControllerApi {
      * Create a group.
      * @param {String} name Group name
      * @param {Object} opts Optional parameters
-     * @param {Boolean} [isPrivate] Create a private group? Defaults to false.
+     * @param {Boolean} [isPublic] 
      * @return {Promise< UserGroup >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link UserGroup} and HTTP response
      */
     createWithHttpInfo(name, opts) {
@@ -256,7 +256,7 @@ export class GroupControllerApi {
       };
       let queryParams = {
         'name': name,
-        'isPrivate': opts['isPrivate']
+        'isPublic': opts['isPublic']
       };
       let headerParams = {
       };
@@ -279,7 +279,7 @@ export class GroupControllerApi {
      * Create a group.
      * @param {String} name Group name
      * @param {Object} opts Optional parameters
-     * @param {Boolean} opts.isPrivate Create a private group? Defaults to false.
+     * @param {Boolean} opts.isPublic 
      * @return {Promise< UserGroup >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link UserGroup}
      */
     create(name, opts) {
@@ -292,7 +292,7 @@ export class GroupControllerApi {
 
     /**
      * Invite a user a private group.
-     * Invite a user a private group. Only group owner(s) can invite users. Invited   users have to accept invitation.
+     * Invite a user a private group. Only group owner(s) can invite users. Invited  users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -332,7 +332,7 @@ export class GroupControllerApi {
 
     /**
      * Invite a user a private group.
-     * Invite a user a private group. Only group owner(s) can invite users. Invited   users have to accept invitation.
+     * Invite a user a private group. Only group owner(s) can invite users. Invited  users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
@@ -395,7 +395,7 @@ export class GroupControllerApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -435,7 +435,7 @@ export class GroupControllerApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
@@ -450,7 +450,7 @@ export class GroupControllerApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
      * @param {Number} groupId 
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -484,7 +484,7 @@ export class GroupControllerApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
      * @param {Number} groupId 
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
      */

@@ -605,6 +605,9 @@ public class WorldManager {
       streamManager.disconnect(client, world.getName());
     } catch (OpenViduException e) {
       log.error("Error disconnecting client " + client + " from streaming session", e);
+    } catch (Exception e) {
+      // CHECKME: a rare NPE
+      log.error("Internal error", e);
     }
     // remove client from the world
     client.setWorld(null);

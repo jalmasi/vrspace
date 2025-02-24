@@ -54,9 +54,9 @@ public class GroupController extends ClientControllerBase {
    */
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  public UserGroup create(String name, Optional<Boolean> isPrivate, HttpSession session) {
+  public UserGroup create(String name, Optional<Boolean> isPublic, HttpSession session) {
     Client client = getAuthorisedClient(session);
-    return groupManager.createGroup(client, new UserGroup(name, isPrivate.isPresent() && isPrivate.get()));
+    return groupManager.createGroup(client, new UserGroup(name, isPublic.isPresent() && isPublic.get()));
   }
 
   /**

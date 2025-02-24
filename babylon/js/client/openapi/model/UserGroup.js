@@ -54,6 +54,9 @@ export class UserGroup {
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
             }
+            if (data.hasOwnProperty('public')) {
+                obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
+            }
             if (data.hasOwnProperty('private')) {
                 obj['private'] = ApiClient.convertToType(data['private'], 'Boolean');
             }
@@ -89,6 +92,11 @@ UserGroup.prototype['id'] = undefined;
  * @member {String} name
  */
 UserGroup.prototype['name'] = undefined;
+
+/**
+ * @member {Boolean} public
+ */
+UserGroup.prototype['public'] = undefined;
 
 /**
  * @member {Boolean} private

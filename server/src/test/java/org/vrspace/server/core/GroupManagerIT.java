@@ -53,7 +53,7 @@ public class GroupManagerIT {
   public void testPublicJoinLeave() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test"));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
     assertThrows(IllegalArgumentException.class, () -> gm.leave(group, c1));
 
     Client c2 = db.save(new Client());
@@ -75,7 +75,7 @@ public class GroupManagerIT {
   public void testPrivateJoinKick() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", false));
 
     Client c2 = db.save(new Client());
 
@@ -105,7 +105,7 @@ public class GroupManagerIT {
   public void testPublicInvite() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test"));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
 
     Client c2 = db.save(new Client());
     gm.invite(group, c2, null);
@@ -129,7 +129,7 @@ public class GroupManagerIT {
   public void testPrivateInvite() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", false));
 
     Client c2 = db.save(new Client());
 

@@ -85,7 +85,8 @@ public class GroupControllerIT {
     MvcResult emptyResult1 = mockMvc.perform(get(ENDPOINT).session(session1)).andExpect(status().isOk()).andReturn();
     assertEquals(0, getList(emptyResult1, UserGroup.class).size());
 
-    MvcResult createResult = mockMvc.perform(post(ENDPOINT).session(session1).param("name", "testGroup"))
+    MvcResult createResult = mockMvc
+        .perform(post(ENDPOINT).session(session1).param("name", "testGroup").param("isPublic", "true"))
         .andExpect(status().isCreated()).andReturn();
     UserGroup group = getObject(createResult, UserGroup.class);
     assertNotNull(group);

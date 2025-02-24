@@ -166,7 +166,7 @@ VRObject.prototype['active'] = undefined;
 VRObject.prototype['mesh'] = undefined;
 
 /**
- * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
+ * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
  * @member {String} script
  */
 VRObject.prototype['script'] = undefined;

@@ -28,5 +28,9 @@ import lombok.ToString;
 public class UserGroup extends Entity {
   @NonNull
   private String name;
-  private boolean isPrivate;
+  private boolean isPublic;
+
+  public boolean isPrivate() {
+    return !isPublic();
+  }
 }
