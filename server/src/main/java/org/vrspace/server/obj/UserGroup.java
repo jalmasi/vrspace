@@ -3,6 +3,8 @@ package org.vrspace.server.obj;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.types.Owned;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,6 +32,7 @@ public class UserGroup extends Entity {
   private String name;
   private boolean isPublic;
 
+  @JsonIgnore
   public boolean isPrivate() {
     return !isPublic();
   }

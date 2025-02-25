@@ -77,12 +77,6 @@ class ScoreBoard extends Form {
     }
   }
   
-  makeIcon(name, url) {
-    let ret = new BABYLON.GUI.Image(name, url);
-    ret.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
-    return ret;
-  }
-  
   playerName(vrObject) {
     if ( vrObject.name ) {
       return vrObject.name;

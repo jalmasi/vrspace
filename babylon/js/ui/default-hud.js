@@ -54,6 +54,10 @@ export class DefaultHud {
       this.miniMap.dispose();
       this.miniMap = null;
     }
+    if ( this.groupsUI ) {
+      this.groupsUI.dispose();
+      this.groupsUI = null;
+    }
     if (this.settingsButton && this.displayButtons) {
       this.clearRow();
       this.displayButtons = false;
@@ -738,8 +742,9 @@ export class DefaultHud {
   }
   
   groups() {
+    this.displayButtons = !this.displayButtons;
     if ( this.groupsUI ) {
-      this.groupsUI.dispose();
+      this.groupsUI.hide();
       this.groupsUI = null;
     } else {
       this.groupsUI = new GroupsUI(this.scene);

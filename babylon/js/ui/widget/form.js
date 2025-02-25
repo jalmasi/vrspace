@@ -200,6 +200,13 @@ export class Form {
     this.setupButton(button, callback);
     return button;
   }
+  
+  makeIcon(name, url) {
+    let ret = new BABYLON.GUI.Image(name, url);
+    ret.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+    return ret;
+  }
+
   /**
    * Creates and returns a VirtualKeyboard, bound to given AdvancedDynamicTexture.
    * A form can only have one keyboard, shared by all InputText elements. 
