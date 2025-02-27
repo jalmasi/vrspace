@@ -39,6 +39,11 @@ public class GroupManager {
   }
 
   @Transactional
+  public List<UserGroup> listOwnedGroups(Client client) {
+    return db.listOwnedGroups(client.getId());
+  }
+
+  @Transactional
   public UserGroup createGroup(Client client, UserGroup group) {
     if (db.findGroup(client.getId(), group.getName()).isPresent()) {
       throw new IllegalArgumentException("Client already belongs to group " + group.getName());

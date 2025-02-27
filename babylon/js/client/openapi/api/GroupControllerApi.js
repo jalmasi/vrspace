@@ -538,8 +538,8 @@ export class GroupControllerApi {
 
 
     /**
-     * List all user groups the user belongs to.
-     * List all user groups the user belongs to.
+     * List all user groups the user is member of.
+     * List all user groups the user is member of.
      * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<UserGroup>} and HTTP response
      */
     listMyGroupsWithHttpInfo() {
@@ -566,12 +566,53 @@ export class GroupControllerApi {
     }
 
     /**
-     * List all user groups the user belongs to.
-     * List all user groups the user belongs to.
+     * List all user groups the user is member of.
+     * List all user groups the user is member of.
      * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<UserGroup>}
      */
     listMyGroups() {
       return this.listMyGroupsWithHttpInfo()
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * List all user groups the user owns.
+     * List all user groups the user owns.
+     * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<UserGroup>} and HTTP response
+     */
+    listOwnedGroupsWithHttpInfo() {
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = [UserGroup];
+      return this.apiClient.callApi(
+        '/vrspace/api/groups/owned', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * List all user groups the user owns.
+     * List all user groups the user owns.
+     * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<UserGroup>}
+     */
+    listOwnedGroups() {
+      return this.listOwnedGroupsWithHttpInfo()
         .then(function(response_and_data) {
           return response_and_data.data;
         });

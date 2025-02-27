@@ -38,12 +38,21 @@ public class GroupController extends ClientControllerBase {
   GroupManager groupManager;
 
   /**
-   * List all user groups the user belongs to.
+   * List all user groups the user is member of.
    */
   @GetMapping
   public List<UserGroup> listMyGroups(HttpSession session) {
     Client client = getAuthorisedClient(session);
     return groupManager.listGroups(client);
+  }
+
+  /**
+   * List all user groups the user owns.
+   */
+  @GetMapping("/owned")
+  public List<UserGroup> listOwnedGroups(HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    return groupManager.listOwnedGroups(client);
   }
 
   /**

@@ -48,11 +48,17 @@ class CreateGroupForm extends Form {
 }
 
 class ListGroupsForm extends Form {
-  constructor(groups, privateIcon) {
+  constructor(groups, privateIcon, leaveGroupIcon, groupSettingIcon) {
     super();
     /** @type { [UserGroup]} */
     this.groups = groups;
     this.privateIcon = privateIcon;
+    this.leaveGroupIcon = leaveGroupIcon;
+    this.groupSettingIcon = groupSettingIcon;
+    this.activeRow = null;
+    this.activeButton = null;
+    this.pointerTracker = null;
+    this.style = null;
   }
   init() {
     this.createPanel();
@@ -60,25 +66,91 @@ class ListGroupsForm extends Form {
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 
-    this.grid.paddingLeft = 10;
-    this.grid.paddingTop = 10;
+    this.grid.paddingLeftInPixels = 10;
+    this.grid.paddingTopInPixels = 10;
+    this.grid.paddingBottomInPixels = 10;
+    
+    this.grid.isPointerBlocker = true;
+    this.grid.onPointerEnterObservable.add((vec)=>this.pointerEnter());
+    this.grid.onPointerOutObservable.add((vec)=>this.pointerOut());
+    this.grid.onPointerClickObservable.add((vec)=>this.pointerClick());
 
     this.grid.addColumnDefinition(0.1);
-    this.grid.addColumnDefinition(0.9);
+    this.grid.addColumnDefinition(0.1);
+    this.grid.addColumnDefinition(0.7);
+    this.grid.addColumnDefinition(0.1);
 
     this.groups.forEach((group, index) => {
       this.grid.addRowDefinition(this.heightInPixels, true);
+      let indexLabel = this.textBlock(index);
+      indexLabel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      this.grid.addControl(indexLabel, index, 0);
       if (!group.public) {
         let privateImage = this.makeIcon("private", this.privateIcon);
-        this.grid.addControl(privateImage, index, 0);
+        this.grid.addControl(privateImage, index, 1);
       }
-      this.grid.addControl(this.textBlock(group.name), index, 1);
+      this.grid.addControl(this.textBlock(group.name), index, 2);
+      let button;
+      if ( group.isOwned ) {
+        button = this.submitButton("settings", ()=>this.groupSettings(), this.groupSettingIcon);
+      } else {
+        button = this.submitButton("leave", ()=>this.groupLeave(), this.leaveGroupIcon);
+      }
+      button.isVisible = false;
+      this.grid.addControl(button, index, 3);
     });
 
     this.panel.addControl(this.grid);
 
     this.textureWidth = 768;
-    this.textureHeight = this.heightInPixels * 4 + this.heightInPixels * (Math.max(this.grid.rowCount - 3, 1));
+    this.textureHeight = this.heightInPixels * (Math.max(this.grid.rowCount, 1))+this.grid.paddingTopInPixels+this.grid.paddingBottomInPixels;
+  }
+  pointerEvent(vec) {
+    let row = Math.floor((vec.y - this.grid.paddingTopInPixels)/this.heightInPixels);
+    if ( row !== this.activeRow ) {
+      this.activeRow = row;
+      if ( this.activeButton ) {
+        this.activeButton.isVisible = false;
+      }
+      if ( this.activeText ) {
+        this.activeText.fontStyle = null;
+      }
+      this.activeButton = this.grid.getChildrenAt(row,3)[0];
+      this.activeButton.isVisible = true;
+      this.activeText = this.grid.getChildrenAt(row,2)[0];
+      this.activeText.fontStyle = "bold";
+    }
+  }
+  pointerOut() {
+    console.log("pointer out");
+    if ( this.activeButton ) {
+      this.activeButton.isVisible = false;
+      this.activeButton = null;
+    }
+    if ( this.activeText ) {
+      this.activeText.fontStyle = null;
+      this.activeText = null;
+    }
+    this.grid.onPointerMoveObservable.remove(this.pointerTracker);
+    this.activeRow = null;
+    this.pointerTracker = null;
+  }
+  pointerEnter() {
+    // for reasons unknown, babylon may not send pointer out event
+    // so we have to double check here just in case
+    if ( ! this.pointerTracker ) {
+      console.log("pointer in");
+      this.pointerTracker = this.grid.onPointerMoveObservable.add((vec)=>this.pointerEvent(vec));
+    }
+  }
+  pointerClick() {
+    console.log("TODO read messages of: "+this.activeRow);
+  }
+  groupLeave() {
+    console.log("TODO leave group: "+this.activeRow);
+  }
+  groupSettings() {
+    console.log("TODO group settings: "+this.activeRow);
   }
 }
 
@@ -125,9 +197,20 @@ export class GroupsUI {
       this.hud.markEnabled(this.listGroupsButton);
     } else {
       this.hud.markActive(this.listGroupsButton);
-      this.groupApi.listMyGroups().then(res => {
-        console.log(res);
-        let form = new ListGroupsForm(res, this.contentBase + "/content/icons/private-message.png");
+      Promise.all([this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups()])
+      .then(results => {
+        let myGroups = results[0];
+        let ownedGroups = results[1];
+        myGroups.forEach(g=>g.isOwned = ownedGroups.some(e=>e.id == g.id));
+
+        console.log(myGroups);
+        
+        let form = new ListGroupsForm(
+          myGroups, 
+          this.contentBase + "/content/icons/private-message.png", 
+          this.contentBase + "/content/icons/user-group-minus.png", 
+          this.contentBase + "/content/icons/user-group-settings.png"
+        );
         form.init();
 
         this.listGroupsForm = new FormArea(this.scene, form);
