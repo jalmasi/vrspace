@@ -51,7 +51,7 @@ export class Form {
    * Returns new StackPanel with 1 height and width and aligned to center both vertically and horizontally
    */
   createPanel() {
-    this.panel = new BABYLON.GUI.StackPanel();
+    this.panel = new BABYLON.GUI.StackPanel('StackPanel:'+(this.verticalPanel?'vertical':'horizontal'));
     this.panel.isVertical = this.verticalPanel;
     this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
@@ -67,7 +67,7 @@ export class Form {
    * Creates and returns a textblock with given text 
    */
   textBlock(text, params) {
-    var block = new BABYLON.GUI.TextBlock();
+    var block = new BABYLON.GUI.TextBlock('TextBlock:'+text);
     block.horizontalAlignment = this.horizontalAlignment;
     block.verticalAlignment = this.verticalAlignment;
     block.text = text;
@@ -114,14 +114,14 @@ export class Form {
    * Creates and returns a named Checkbox
    */
   checkbox(name, params) {
-    var checkbox = new BABYLON.GUI.Checkbox();
+    var checkbox = new BABYLON.GUI.Checkbox('Checkbox:'+name);
     return this._common(checkbox, name, params);
   }
   /**
    * Creates and returns a named RadioButton
    */
   radio(name, params) {
-    var radioButton= new BABYLON.GUI.RadioButton();
+    var radioButton= new BABYLON.GUI.RadioButton('radio:'+name);
     return this._common(radioButton, name, params);
   }
   /**
@@ -130,7 +130,7 @@ export class Form {
    * @param params optional object to override InputText field values
    */
   inputText(name, params) {
-    let input = new BABYLON.GUI.InputText(name);
+    let input = new BABYLON.GUI.InputText('InputText:'+name);
     input.widthInPixels = this.inputWidth;
     input.heightInPixels = this.heightInPixels;
     input.fontSizeInPixels = this.fontSize;

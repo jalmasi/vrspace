@@ -55,6 +55,15 @@ public class GroupManager {
   }
 
   @Transactional
+  public UserGroup updateGroup(Client client, UserGroup group) {
+    if (db.getOwnership(client.getId(), group.getId()) == null) {
+      throw new SecurityException("Not an owner");
+    }
+    group = db.save(group);
+    return group;
+  }
+
+  @Transactional
   public void deleteGroup(Client client, UserGroup group) {
     if (db.getOwnership(client.getId(), group.getId()) == null) {
       throw new SecurityException("Not an owner");

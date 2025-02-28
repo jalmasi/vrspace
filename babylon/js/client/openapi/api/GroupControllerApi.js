@@ -716,6 +716,53 @@ export class GroupControllerApi {
 
 
     /**
+     * Update a group.
+     * Update a group.
+     * @param {UserGroup} userGroup updated group
+     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     */
+    updateWithHttpInfo(userGroup) {
+      let postBody = userGroup;
+      // verify the required parameter 'userGroup' is set
+      if (userGroup === undefined || userGroup === null) {
+        throw new Error("Missing the required parameter 'userGroup' when calling update");
+      }
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = ['application/json'];
+      let accepts = [];
+      let returnType = null;
+      return this.apiClient.callApi(
+        '/vrspace/api/groups', 'PUT',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Update a group.
+     * Update a group.
+     * @param {UserGroup} userGroup updated group
+     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     */
+    update(userGroup) {
+      return this.updateWithHttpInfo(userGroup)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
      * Write something to a group.
      * Write something to a group.
      * @param {Number} groupId The group

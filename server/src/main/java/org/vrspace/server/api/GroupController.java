@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.GroupManager;
@@ -41,7 +43,7 @@ public class GroupController extends ClientControllerBase {
    * List all user groups the user is member of.
    */
   @GetMapping
-  public List<UserGroup> listMyGroups(HttpSession session) {
+  public @ResponseBody List<UserGroup> listMyGroups(HttpSession session) {
     Client client = getAuthorisedClient(session);
     return groupManager.listGroups(client);
   }
@@ -50,7 +52,7 @@ public class GroupController extends ClientControllerBase {
    * List all user groups the user owns.
    */
   @GetMapping("/owned")
-  public List<UserGroup> listOwnedGroups(HttpSession session) {
+  public @ResponseBody List<UserGroup> listOwnedGroups(HttpSession session) {
     Client client = getAuthorisedClient(session);
     return groupManager.listOwnedGroups(client);
   }
@@ -66,6 +68,17 @@ public class GroupController extends ClientControllerBase {
   public UserGroup create(String name, Optional<Boolean> isPublic, HttpSession session) {
     Client client = getAuthorisedClient(session);
     return groupManager.createGroup(client, new UserGroup(name, isPublic.isPresent() && isPublic.get()));
+  }
+
+  /**
+   * Update a group.
+   * 
+   * @param group updated group
+   */
+  @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  public void update(@RequestBody UserGroup group, HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    groupManager.updateGroup(client, group);
   }
 
   /**
