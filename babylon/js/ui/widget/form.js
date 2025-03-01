@@ -17,6 +17,7 @@ export class Form {
     this.background = "black";
     this.selected = "yellow";
     this.submitColor = "green";
+    this.cancelColor = "red";
     this.verticalPanel = false;
     this.inputWidth = 500;
     this.padding = 0;

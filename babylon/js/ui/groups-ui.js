@@ -4,6 +4,7 @@ import { GroupControllerApi } from '../client/openapi/api/GroupControllerApi.js'
 import { Form } from './widget/form.js';
 import { UserGroup } from '../client/openapi/model/UserGroup.js';
 import { FormArea } from './widget/form-area.js';
+import { Dialogue } from "./widget/dialogue.js";
 
 class CreateGroupForm extends Form {
   constructor(callback) {
@@ -53,6 +54,8 @@ class GroupSettingsForm extends Form {
     this.group = group;
     this.nameText = "Name:";
     this.publicText = "Public:";
+    this.submitText = "Submit";
+    this.cancelText = "Cancel";
     this.close = close;
   }
   init() {
@@ -74,9 +77,9 @@ class GroupSettingsForm extends Form {
     this.panel2.height = "128px";
     this.panel2.paddingLeft="30%";
     
-    let yesButton = this.textButton(" Submit ", () => this.close(true), VRSPACEUI.contentBase+"/content/icons/tick.png");
+    let yesButton = this.textButton(this.submitText, () => this.close(true), VRSPACEUI.contentBase+"/content/icons/tick.png");
     this.addControl(yesButton);
-    let noButton = this.textButton(" Cancel ", () => this.close(false), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
+    let noButton = this.textButton(this.cancelText, () => this.close(false), VRSPACEUI.contentBase+"/content/icons/close.png", this.cancelColor);
     this.addControl(noButton);
     
     this.verticalPanel = true;
@@ -87,7 +90,7 @@ class GroupSettingsForm extends Form {
 }
 
 class ListGroupsForm extends Form {
-  constructor(groups, scene, privateIcon, leaveGroupIcon, groupSettingIcon) {
+  constructor(groups, scene, privateIcon, leaveGroupIcon, groupSettingIcon, groupDeleteIcon, groupDeleteCallback) {
     super();
     /** @type { [UserGroup]} */
     this.groups = groups;
@@ -95,6 +98,8 @@ class ListGroupsForm extends Form {
     this.privateIcon = privateIcon;
     this.leaveGroupIcon = leaveGroupIcon;
     this.groupSettingIcon = groupSettingIcon;
+    this.groupDeleteIcon = groupDeleteIcon;
+    this.groupDeleteCallback = groupDeleteCallback;
     /** @type {GroupControllerApi} */
     this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
     
@@ -122,7 +127,8 @@ class ListGroupsForm extends Form {
 
     this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.1);
-    this.grid.addColumnDefinition(0.7);
+    this.grid.addColumnDefinition(0.6);
+    this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.1);
 
     this.groups.forEach((group, index) => {
@@ -142,6 +148,10 @@ class ListGroupsForm extends Form {
       }
       button.isVisible = false;
       this.grid.addControl(button, index, 3);
+      let deleteButton = this.submitButton("delete", ()=>this.groupDeleteCallback(group), this.groupDeleteIcon);
+      deleteButton.background = this.cancelColor; 
+      this.grid.addControl(deleteButton, index, 4);
+      deleteButton.isVisible = false;
     });
 
     this.panel.addControl(this.grid);
@@ -153,23 +163,23 @@ class ListGroupsForm extends Form {
     let row = Math.floor((vec.y - this.grid.paddingTopInPixels)/this.heightInPixels);
     if ( row !== this.activeRow ) {
       this.activeRow = row;
-      if ( this.activeButton ) {
-        this.activeButton.isVisible = false;
+      if ( this.activeButtons ) {
+        this.activeButtons.forEach(button=>button.isVisible = false);
       }
       if ( this.activeText ) {
         this.activeText.fontStyle = null;
       }
-      this.activeButton = this.grid.getChildrenAt(row,3)[0];
-      this.activeButton.isVisible = true;
+      this.activeButtons = [this.grid.getChildrenAt(row,3)[0],this.grid.getChildrenAt(row,4)[0]];
+      this.activeButtons.forEach(button=>button.isVisible = true);
       this.activeText = this.grid.getChildrenAt(row,2)[0];
       this.activeText.fontStyle = "bold";
     }
   }
   pointerOut() {
     console.log("pointer out");
-    if ( this.activeButton ) {
-      this.activeButton.isVisible = false;
-      this.activeButton = null;
+    if ( this.activeButtons ) {
+      this.activeButtons.forEach(button=>button.isVisible = false);
+      this.activeButtons = null;
     }
     if ( this.activeText ) {
       this.activeText.fontStyle = null;
@@ -283,7 +293,9 @@ export class GroupsUI {
           this.scene,
           this.contentBase + "/content/icons/private-message.png", 
           this.contentBase + "/content/icons/user-group-minus.png", 
-          this.contentBase + "/content/icons/user-group-settings.png"
+          this.contentBase + "/content/icons/user-group-settings.png",
+          this.contentBase + "/content/icons/delete.png",
+          group=>this.groupDelete(group)
         );
         form.init();
 
@@ -295,6 +307,18 @@ export class GroupsUI {
         this.listGroupsForm.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
       });
     }
+  }
+
+  groupDelete(group) {
+    let dialogue = new Dialogue("Delete "+group.name+" ?", (yes)=>{
+      if ( yes ) {
+        this.groupApi.callDelete(group.id).then(()=>{
+          this.listUI();
+          this.listUI();
+        });
+      }
+    });
+    dialogue.init();
   }
 
   createUI() {
@@ -313,6 +337,10 @@ export class GroupsUI {
           this.createGroupForm = null;
           VRSPACEUI.hud.clearRow();
           VRSPACEUI.hud.showButtons(true);
+          if ( this.listGroupsForm ) {
+            this.listUI();
+            this.listUI();
+          }
         });
       });
       this.createGroupForm.init();
