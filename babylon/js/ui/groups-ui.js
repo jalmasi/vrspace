@@ -90,7 +90,7 @@ class GroupSettingsForm extends Form {
 }
 
 class ListGroupsForm extends Form {
-  constructor(groups, scene, privateIcon, leaveGroupIcon, groupSettingIcon, groupDeleteIcon, groupDeleteCallback) {
+  constructor(groups, scene, privateIcon, leaveGroupIcon, groupSettingIcon, groupInviteIcon, groupDeleteIcon, groupDeleteCallback) {
     super();
     /** @type { [UserGroup]} */
     this.groups = groups;
@@ -98,6 +98,7 @@ class ListGroupsForm extends Form {
     this.privateIcon = privateIcon;
     this.leaveGroupIcon = leaveGroupIcon;
     this.groupSettingIcon = groupSettingIcon;
+    this.groupInviteIcon = groupInviteIcon;
     this.groupDeleteIcon = groupDeleteIcon;
     this.groupDeleteCallback = groupDeleteCallback;
     /** @type {GroupControllerApi} */
@@ -127,7 +128,8 @@ class ListGroupsForm extends Form {
 
     this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.1);
-    this.grid.addColumnDefinition(0.6);
+    this.grid.addColumnDefinition(0.5);
+    this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.1);
 
@@ -147,10 +149,14 @@ class ListGroupsForm extends Form {
         button = this.submitButton("leave", ()=>this.groupLeave(), this.leaveGroupIcon);
       }
       button.isVisible = false;
+      button.background = this.background;
       this.grid.addControl(button, index, 3);
+      let inviteButton = this.submitButton("invite", ()=>this.groupInvite(group), this.groupInviteIcon);
+      this.grid.addControl(inviteButton, index, 4);
+      inviteButton.isVisible = false;
       let deleteButton = this.submitButton("delete", ()=>this.groupDeleteCallback(group), this.groupDeleteIcon);
       deleteButton.background = this.cancelColor; 
-      this.grid.addControl(deleteButton, index, 4);
+      this.grid.addControl(deleteButton, index, 5);
       deleteButton.isVisible = false;
     });
 
@@ -169,8 +175,14 @@ class ListGroupsForm extends Form {
       if ( this.activeText ) {
         this.activeText.fontStyle = null;
       }
-      this.activeButtons = [this.grid.getChildrenAt(row,3)[0],this.grid.getChildrenAt(row,4)[0]];
-      this.activeButtons.forEach(button=>button.isVisible = true);
+      let group = this.groups[row];
+      let button = this.grid.getChildrenAt(row,3)[0];
+      let inviteButton = this.grid.getChildrenAt(row,4)[0];
+      let deleteButton = this.grid.getChildrenAt(row,5)[0];
+      button.isVisible = true;
+      inviteButton.isVisible = (group.isOwned || group.public);
+      deleteButton.isVisible = group.isOwned;
+      this.activeButtons = [button,inviteButton,deleteButton];
       this.activeText = this.grid.getChildrenAt(row,2)[0];
       this.activeText.fontStyle = "bold";
     }
@@ -294,6 +306,7 @@ export class GroupsUI {
           this.contentBase + "/content/icons/private-message.png", 
           this.contentBase + "/content/icons/user-group-minus.png", 
           this.contentBase + "/content/icons/user-group-settings.png",
+          this.contentBase + "/content/icons/user-group-plus.png", 
           this.contentBase + "/content/icons/delete.png",
           group=>this.groupDelete(group)
         );
