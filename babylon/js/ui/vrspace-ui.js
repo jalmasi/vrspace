@@ -1,5 +1,5 @@
 import {VRSPACE} from '../client/vrspace.js';
-import {ScriptLoader} from '../core/script-loader.js';
+import {ScriptLoader} from '../client/script-loader.js';
 import {AssetLoader} from '../core/asset-loader.js';
 import {LoadProgressIndicator} from './load-progress-indicator.js';
 import {HUD} from './hud.js';
@@ -562,25 +562,6 @@ export class VRSpaceUI {
     }
   }
   
-  /** 
-  Utility method - load a script and append it to document head
-  @param urls array containing URLs of scripts
-  @param parallel optionally load in parallel
-  */
-  async loadScriptsToDocument(urls, parallel) {
-    if ( Array.isArray(urls) ) {
-      urls.forEach((url) => this.addScript(url));
-    } else {
-      this.addScript(urls);
-    }
-    return this.scriptLoader.load(parallel);
-  }
-  addScript(url) {
-    if ( url.startsWith('/') && this.contentBase ) {
-      url = this.contentBase+url;
-    }
-    this.scriptLoader.add(url);
-  }
   /**
   Utility method - returns the top parent node in hierarchy
    */

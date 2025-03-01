@@ -9,10 +9,12 @@ import java.util.regex.Pattern;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.vrspace.server.core.ClassUtil;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.Private;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,7 +45,8 @@ public class JacksonConfig {
   private Pattern htmlTag = Pattern.compile("<.+?>");
 
   /**
-   * By default, fields that are annotated as @Private will not be serialized.
+   * ObjectMapper for serialization over web sockets. By default, fields that are
+   * annotated as @Private will not be serialized.
    */
   @Bean("objectMapper")
   public ObjectMapper objectMapper() {
@@ -64,8 +67,8 @@ public class JacksonConfig {
   }
 
   /**
-   * Private mapper also serializes @Private fields, so that a client can see own
-   * private properties.
+   * Private mapper is same as objectMapper, but also serializes @Private fields,
+   * so that a client can see own private properties.
    */
   @Bean("privateMapper")
   public ObjectMapper privateMapper() {
@@ -74,6 +77,27 @@ public class JacksonConfig {
     ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
 
     return ret;
+  }
+
+  /**
+   * REST API uses normal serialization, ignores @JsonTypeInfo annotation of
+   * VRObject.
+   */
+  @Bean
+  public MappingJackson2HttpMessageConverter jsonMessageConverter() {
+    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+    // side effect of using this mapper is user can't see own private fields.
+    // switching between the two might be done like explained in
+    // https://medium.com/@jacobcrosbie1/setting-a-custom-object-mapper-for-rest-controller-in-spring-boot-2874bd897df1
+    ObjectMapper mapper = objectMapper();
+    // trick taken from
+    // https://stackoverflow.com/questions/54708772/jackson-suppress-jsontypeinfo-at-serialisation-time
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+    class NoTypes {
+    }
+    mapper.addMixIn(VRObject.class, NoTypes.class);
+    converter.setObjectMapper(mapper);
+    return converter;
   }
 
   @Bean

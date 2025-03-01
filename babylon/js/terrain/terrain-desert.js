@@ -1,5 +1,6 @@
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Terrain } from './terrain.js';
+import { ScriptLoader } from '../client/script-loader.js';
 
 /**
 Dynamic terrain - desert
@@ -25,7 +26,7 @@ export class Desert extends Terrain {
     world.indicator.add("../../plants/bush/");
     world.indicator.add("../../plants/hand_painted_bush/");
 
-    VRSPACEUI.loadScriptsToDocument([ 
+    ScriptLoader.getInstance(VRSPACEUI.contentBase).loadScriptsToDocument([ 
       VRSPACEUI.contentBase+"/babylon/js/lib/perlin.js",
       "https://cdn.rawgit.com/BabylonJS/Extensions/master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"
     ]).then(() => {

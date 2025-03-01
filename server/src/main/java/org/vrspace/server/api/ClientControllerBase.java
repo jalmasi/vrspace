@@ -11,7 +11,7 @@ public class ClientControllerBase extends ApiBase {
   @Autowired
   WorldManager worldManager;
   @Autowired
-  private ClientFactory clientFactory;
+  ClientFactory clientFactory;
 
   protected Client findClient(HttpSession session) {
     Long clientId = (Long) session.getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);

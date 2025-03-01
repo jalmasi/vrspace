@@ -20,8 +20,8 @@ class NameForm extends Form {
     this.panel.addControl(this.label);
 
     this.input = this.inputText('name');
-    this.input.onTextChangedObservable.add(()=>this.changeCallback(this.input.text))
-    this.input.onBlurObservable.add(()=>this.blurCallback())
+    this.input.onTextChangedObservable.add(()=>this.changeCallback(this.input.text));
+    this.input.onBlurObservable.add(()=>this.blurCallback());
     this.panel.addControl(this.input);
 
     this.speechInput.addNoMatch((phrases)=>console.log('no match:',phrases));

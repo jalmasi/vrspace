@@ -14,6 +14,7 @@
 
 import {ApiClient} from "../ApiClient.js";
 import { Client } from '../model/Client.js';
+import { User } from '../model/User.js';
 
 /**
 * UserController service.
@@ -36,6 +37,8 @@ export class UserControllerApi {
 
 
     /**
+     * Check if the user is already authenticated
+     * Check if the user is already authenticated
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
      */
     authenticatedWithHttpInfo() {
@@ -62,6 +65,8 @@ export class UserControllerApi {
     }
 
     /**
+     * Check if the user is already authenticated
+     * Check if the user is already authenticated
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
      */
     authenticated() {
@@ -73,7 +78,9 @@ export class UserControllerApi {
 
 
     /**
-     * @param {String} name 
+     * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
+     * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
+     * @param {String} name user name to verify
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
      */
     checkNameWithHttpInfo(name) {
@@ -105,7 +112,9 @@ export class UserControllerApi {
     }
 
     /**
-     * @param {String} name 
+     * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
+     * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
+     * @param {String} name user name to verify
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
      */
     checkName(name) {
@@ -117,6 +126,56 @@ export class UserControllerApi {
 
 
     /**
+     * Find user by name.
+     * Find user by name. Only available to users currently connected.
+     * @param {String} name User name, case sensitive, exact match
+     * @return {Promise< Client >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Client} and HTTP response
+     */
+    findWithHttpInfo(name) {
+      let postBody = null;
+      // verify the required parameter 'name' is set
+      if (name === undefined || name === null) {
+        throw new Error("Missing the required parameter 'name' when calling find");
+      }
+
+      let pathParams = {
+      };
+      let queryParams = {
+        'name': name
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = Client;
+      return this.apiClient.callApi(
+        '/vrspace/api/user/find', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Find user by name.
+     * Find user by name. Only available to users currently connected.
+     * @param {String} name User name, case sensitive, exact match
+     * @return {Promise< Client >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Client}
+     */
+    find(name) {
+      return this.findWithHttpInfo(name)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * Returns current user name
+     * Returns current user name
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     userNameWithHttpInfo() {
@@ -143,6 +202,8 @@ export class UserControllerApi {
     }
 
     /**
+     * Returns current user name
+     * Returns current user name
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     userName() {
@@ -154,7 +215,9 @@ export class UserControllerApi {
 
 
     /**
-     * @return {Promise< Client >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Client} and HTTP response
+     * Returns current user object
+     * Returns current user object
+     * @return {Promise< User >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link User} and HTTP response
      */
     userObjectWithHttpInfo() {
       let postBody = null;
@@ -171,7 +234,7 @@ export class UserControllerApi {
       let authNames = [];
       let contentTypes = [];
       let accepts = ['*/*'];
-      let returnType = Client;
+      let returnType = User;
       return this.apiClient.callApi(
         '/vrspace/api/user/object', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
@@ -180,7 +243,9 @@ export class UserControllerApi {
     }
 
     /**
-     * @return {Promise< Client >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Client}
+     * Returns current user object
+     * Returns current user object
+     * @return {Promise< User >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link User}
      */
     userObject() {
       return this.userObjectWithHttpInfo()

@@ -1,13 +1,16 @@
 package org.vrspace.server.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.config.ServerConfig;
-import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.User;
 
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 
@@ -25,12 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @Slf4j
 @RequestMapping(UserController.PATH)
-public class UserController extends ApiBase {
+public class UserController extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/user";
   @Autowired
   private VRObjectRepository db;
-  @Autowired
-  private ClientFactory clientFactory;
   @Autowired
   private ServerConfig config;
 
@@ -65,7 +66,7 @@ public class UserController extends ApiBase {
    */
   @GetMapping("/authenticated")
   public boolean authenticated(HttpSession session) {
-    return isAuthenticated(session, clientFactory);
+    return isAuthenticated(session);
   }
 
   /**
@@ -83,15 +84,37 @@ public class UserController extends ApiBase {
    * Returns current user object
    * 
    * @param session
-   * @return current user Client object, or null if user is not authenticated
+   * @return current user object, or null if user is not authenticated, or not
+   *         instance of User
    */
   @GetMapping("/object")
-  public Client userObject(HttpSession session) {
+  public @ResponseBody User userObject(HttpSession session) {
     String currentName = currentUserName(session, clientFactory);
     if (currentName != null) {
-      return db.getClientByName(currentName);
+      Client ret = db.getClientByName(currentName);
+      if (ret instanceof User) {
+        return (User) ret;
+      }
     }
     return null;
+  }
+
+  /**
+   * Find user by name. Only available to users currently connected.
+   * 
+   * @param name    User name, case sensitive, exact match
+   * @param session
+   * @return Client object
+   */
+  @GetMapping("/find")
+  public @ResponseBody ResponseEntity<Client> find(String name, HttpSession session) {
+    // stop if user is not connected:
+    findClient(session);
+    Client client = db.getClientByName(name);
+    if (client == null) {
+      return new ResponseEntity<Client>(HttpStatusCode.valueOf(404));
+    }
+    return new ResponseEntity<Client>(client, HttpStatusCode.valueOf(200));
   }
 
 }

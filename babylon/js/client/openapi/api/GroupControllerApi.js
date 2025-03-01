@@ -291,8 +291,8 @@ export class GroupControllerApi {
 
 
     /**
-     * Invite a user a private group.
-     * Invite a user a private group. Only group owner(s) can invite users. Invited   users have to accept invitation.
+     * Invite a user to a group.
+     * Invite a user to a group. Only group owner(s) can invite users to private   groups. Invited users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -331,8 +331,8 @@ export class GroupControllerApi {
     }
 
     /**
-     * Invite a user a private group.
-     * Invite a user a private group. Only group owner(s) can invite users. Invited   users have to accept invitation.
+     * Invite a user to a group.
+     * Invite a user to a group. Only group owner(s) can invite users to private   groups. Invited users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}

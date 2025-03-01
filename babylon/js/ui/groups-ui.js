@@ -89,6 +89,43 @@ class GroupSettingsForm extends Form {
   }
 }
 
+class GroupInviteForm extends Form {
+  constructor(group, callback) {
+    super();
+    this.group = group;
+    this.callback = callback;
+    this.userApi = VRSpaceAPI.getInstance().endpoint.user;
+    this.text = "Select user, or type name:"
+    this.submitText = "Invite";
+    this.cancelText = "Cancel";
+    this.clientId = null;
+  }
+  init() {
+    this.createPanel();
+    this.addControl(this.textBlock(this.text)); 
+    this.nameInput = this.inputText('name');
+    //this.nameInput.onTextChangedObservable.add(()=>this.checkName());
+    this.nameInput.onBlurObservable.add(()=>this.checkName());
+    this.addControl(this.nameInput);
+    this.yesButton = this.textButton(this.submitText, () => this.callback(true, this.clientId), VRSPACEUI.contentBase+"/content/icons/tick.png");
+    this.addControl(this.yesButton);
+    this.yesButton.isVisible = false;
+    let noButton = this.textButton(this.cancelText, () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/close.png", this.cancelColor);
+    this.addControl(noButton);
+  }
+  checkName() {
+    this.userApi.find(this.nameInput.text).then(client=>{
+      this.clientId = client.id;
+      this.nameInput.color = this.color;
+      this.yesButton.isVisible = true;
+    }).catch(reason=>{
+      console.log(reason);
+      this.nameInput.color = this.cancelColor;
+      this.yesButton.isVisible = false;
+    });
+  }
+}
+
 class ListGroupsForm extends Form {
   constructor(groups, scene, privateIcon, leaveGroupIcon, groupSettingIcon, groupInviteIcon, groupDeleteIcon, groupDeleteCallback) {
     super();
@@ -110,6 +147,9 @@ class ListGroupsForm extends Form {
     this.style = null;
     /** @type {GroupSettingsForm} */
     this.settingsForm = null;
+    /** @type {GroupInviteForm} */
+    this.inviteForm = null;
+    this.trackPointer = true;
   }
   init() {
     this.createPanel();
@@ -166,6 +206,9 @@ class ListGroupsForm extends Form {
     this.textureHeight = this.heightInPixels * (Math.max(this.grid.rowCount, 1))+this.grid.paddingTopInPixels+this.grid.paddingBottomInPixels;
   }
   pointerEvent(vec) {
+    if ( !this.trackPointer ) {
+      return;
+    }
     let row = Math.floor((vec.y - this.grid.paddingTopInPixels)/this.heightInPixels);
     if ( row !== this.activeRow ) {
       this.activeRow = row;
@@ -245,7 +288,26 @@ class ListGroupsForm extends Form {
     this.settingsArea.attachToHud();
     this.settingsArea.detach(1);
     this.settingsArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
-    
+  }
+  groupInvite(group) {
+    VRSPACEUI.hud.showButtons(false);
+    VRSPACEUI.hud.newRow();
+    this.inviteForm = new GroupInviteForm(group, (ok,userId)=>{
+      if ( ok ) {
+        this.groupApi.invite(group.id,userId);
+      }
+      VRSPACEUI.hud.clearRow();
+      VRSPACEUI.hud.showButtons(true);
+      this.trackPointer = true;
+    });
+    this.inviteForm.init();
+    if (VRSPACEUI.hud.inXR()) {
+      let texture = VRSPACEUI.hud.addForm(this.inviteForm, 1536, 512);
+      this.inviteForm.keyboard(texture);
+    } else {
+      VRSPACEUI.hud.addForm(this.inviteForm, 1536, 64);
+    }
+    this.trackPointer = false;
   }
 }
 
@@ -262,13 +324,20 @@ export class GroupsUI {
     this.createGroupForm = null;
     /** @type {FormArea} */
     this.listGroupsForm = null;
-    VRSPACEUI.loadScriptsToDocument(this.contentBase + '/babylon/js/client/openapi/superagent.js');
   }
 
   dispose() {
     this.listGroupsButton.dispose();
     this.createGroupsButton.dispose();
     this.groupsInvitesButton.dispose();
+    if ( this.createGroupForm ) {
+      this.createGroupForm.dispose();
+      this.createGroupForm = null;
+    }
+    if ( this.listGroupsForm ) {
+      this.listGroupsForm.dispose();
+      this.listGroupsForm = null;
+    }
   }
 
   show(button) {

@@ -1,5 +1,7 @@
 import { ApiClient } from './openapi/ApiClient.js';
 import { GroupControllerApi } from './openapi/api/GroupControllerApi.js';
+import { UserControllerApi } from './openapi/api/UserControllerApi.js';
+import { ScriptLoader } from './script-loader.js';
 /**
  * Class to execute REST API calls, singleton.
  * By default, we're making API calls to the same server that serves the content.
@@ -17,15 +19,19 @@ export class VRSpaceAPI {
     this.apiClient = new ApiClient(apiBase);
     this.endpoint = {
       worlds: this.base + "/worlds",
-      user: this.base + "/user",
       oauth2: this.base + "/oauth2",
       files: this.base+'/files',
+      /** @type {UserControllerApi} */
+      user: new UserControllerApi(this.apiClient),
+      /** @type {GroupControllerApi} */
       groups: new GroupControllerApi(this.apiClient)
     }
+    ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');
   }
 
   /**
    * Returns VRSpaceAPI instance, creates one if required.
+   * @returns {VRSpaceAPI}
    */
   static getInstance(apiBase, apiPath) {
     if ( !VRSpaceAPI.instance ) {
@@ -40,8 +46,9 @@ export class VRSpaceAPI {
    * @returns true if user name is available
    */
   async verifyName(name) {
-    var validName = await this.getText(this.endpoint.user + "/available?name=" + name);
-    return validName === "true";
+    return await this.endpoint.user.checkName(name);
+    //var validName = await this.getText(this.endpoint.user + "/available?name=" + name);
+    //return validName === "true";
   }
 
   /**
@@ -49,18 +56,20 @@ export class VRSpaceAPI {
    * @returns current user name, or null if user is anonymous (not logged in yet)
    */
   async getUserName() {
-    var loginName = await this.getText(this.endpoint.user + "/name");
-    console.log("User name: " + loginName);
-    return loginName;
+    return await this.endpoint.user.userName();
+    //var loginName = await this.getText(this.endpoint.user + "/name");
+    //console.log("User name: " + loginName);
+    //return loginName;
   }
 
   /**
    * Returns true if the user is authanticated
    */
   async getAuthenticated() {
-    var isAuthenticated = await this.getText(this.endpoint.user + "/authenticated");
-    console.log("User is authenticated: " + isAuthenticated);
-    return 'true' === isAuthenticated;
+    return await this.endpoint.user.authenticated();
+    //var isAuthenticated = await this.getText(this.endpoint.user + "/authenticated");
+    //console.log("User is authenticated: " + isAuthenticated);
+    //return 'true' === isAuthenticated;
   }
 
   /**
@@ -87,12 +96,17 @@ export class VRSpaceAPI {
    * Returns User object of the current user, or null for anonymous users
    */
   async getUserObject() {
+    let userObject = await this.endpoint.user.userObject();
+    console.log("User object ", userObject);
+    return userObject;
+    /*
     var userObject = await this.getJson(this.endpoint.user + "/object");
     console.log("User object ", userObject);
     if (userObject) {
       return userObject.User;
     }
     return null;
+    */
   }
 
   /**

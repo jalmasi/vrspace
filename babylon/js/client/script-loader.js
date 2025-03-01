@@ -2,11 +2,20 @@
 Script loader
  */
 export class ScriptLoader {
-  constructor() {
+  static instance = null;
+  constructor(contentBase) {
     // script url, loaded false/true
     this.scripts = {};
+    this.contentBase = contentBase;
   }
-  
+
+  static getInstance(contentBase) {
+    if ( !ScriptLoader.instance ) {
+      ScriptLoader.instance = new ScriptLoader(contentBase);
+    }
+    return ScriptLoader.instance;
+  }
+
   /** 
   Add a script to load path
   @param script url to load the script from
@@ -50,5 +59,27 @@ export class ScriptLoader {
       }
     });
   }
+  
+  /** 
+  Utility method - load a script and append it to document head
+  @param urls array containing URLs of scripts
+  @param parallel optionally load in parallel
+  */
+  async loadScriptsToDocument(urls, parallel) {
+    if ( Array.isArray(urls) ) {
+      urls.forEach((url) => this.addScript(url));
+    } else {
+      this.addScript(urls);
+    }
+    return this.load(parallel);
+  }
+  
+  addScript(url) {
+    if ( url.startsWith('/') && this.contentBase ) {
+      url = this.contentBase+url;
+    }
+    this.add(url);
+  }
+  
 }
 

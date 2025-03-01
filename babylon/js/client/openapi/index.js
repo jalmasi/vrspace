@@ -20,9 +20,11 @@ import GltfModel from './model/GltfModel';
 import GroupMember from './model/GroupMember';
 import LoginResponse from './model/LoginResponse';
 import Point from './model/Point';
+import Quaternion from './model/Quaternion';
 import Rotation from './model/Rotation';
 import SceneProperties from './model/SceneProperties';
 import UploadRequest from './model/UploadRequest';
+import User from './model/User';
 import UserGroup from './model/UserGroup';
 import VRObject from './model/VRObject';
 import World from './model/World';
@@ -118,6 +120,12 @@ export {
     Point,
 
     /**
+     * The Quaternion model constructor.
+     * @property {Quaternion}
+     */
+    Quaternion,
+
+    /**
      * The Rotation model constructor.
      * @property {Rotation}
      */
@@ -134,6 +142,12 @@ export {
      * @property {UploadRequest}
      */
     UploadRequest,
+
+    /**
+     * The User model constructor.
+     * @property {User}
+     */
+    User,
 
     /**
      * The UserGroup model constructor.

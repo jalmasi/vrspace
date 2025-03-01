@@ -1,4 +1,5 @@
 import {VRSPACEUI} from '../ui/vrspace-ui.js';
+import { ScriptLoader } from '../client/script-loader.js';
 
 /**
  * 3D Text writer, based on https://doc.babylonjs.com/extensions/meshWriter
@@ -26,7 +27,7 @@ export class TextWriter {
   }
   async _initWriter() {
     if ( ! this.Writer ) {
-      await VRSPACEUI.loadScriptsToDocument([ 
+      await ScriptLoader.getInstance(VRSPACEUI.contentBase).loadScriptsToDocument([ 
         "/babylon/js/lib/meshwriter.min.js"
       ]);
       this.Writer = BABYLON.MeshWriter(this.scene, this.writerProperties);
