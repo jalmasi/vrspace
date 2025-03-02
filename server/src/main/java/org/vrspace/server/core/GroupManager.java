@@ -98,6 +98,15 @@ public class GroupManager {
     }
     GroupMember gm = new GroupMember(group, member).invite(owner.getId());
     db.save(gm);
+    Client cachedClient = (Client) worldManager.get(member.getObjectId());
+    if (cachedClient == null) {
+      // TODO client is offline
+      log.debug("Invite for offline client:" + member);
+    } else {
+      // online client, forward message
+      // FIXME this serializes the message all over again for each recipient
+      member.sendMessage(gm);
+    }
   }
 
   /**

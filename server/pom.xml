@@ -695,8 +695,8 @@
                   <configOptions>
                     <!-- js gen -->
                     <usePromises>true</usePromises>
-                    <!-- FIXME true results in error -->
-                    <skipDefaultUserAgent>false</skipDefaultUserAgent>
+                    <!-- DefaultUserAgent setting causes errors in chrome -->
+                    <skipDefaultUserAgent>true</skipDefaultUserAgent>
                   </configOptions>
                 </configuration>
               </execution>

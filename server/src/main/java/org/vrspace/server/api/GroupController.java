@@ -125,7 +125,7 @@ public class GroupController extends ClientControllerBase {
   public void invite(@PathVariable long groupId, Long clientId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
-    log.debug("Group invite, user: " + client + " group: " + group);
+    log.debug("Group invite, user: " + client + " group: " + group + " invited: " + clientId);
     groupManager.invite(group, clientId, client);
   }
 

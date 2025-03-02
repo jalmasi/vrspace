@@ -21,7 +21,6 @@ import {ApiClient} from '../ApiClient.js';
 export class Point {
     /**
      * Constructs a new <code>Point</code>.
-     * A point (3D coordinate) in space. Embedded in VRObject during serialization,  does not exist on its own.
      * @alias Point
      */
     constructor() { 

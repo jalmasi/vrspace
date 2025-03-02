@@ -35,8 +35,6 @@ export class SeleniumControllerApi {
 
 
     /**
-     * TODO this needs to be moved in general capabilities controller
-     * TODO this needs to be moved in general capabilities controller
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
      */
     availableWithHttpInfo() {
@@ -63,8 +61,6 @@ export class SeleniumControllerApi {
     }
 
     /**
-     * TODO this needs to be moved in general capabilities controller
-     * TODO this needs to be moved in general capabilities controller
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
      */
     available() {
@@ -76,8 +72,6 @@ export class SeleniumControllerApi {
 
 
     /**
-     * Navigate back
-     * Navigate back
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Blob} and HTTP response
      */
     backWithHttpInfo() {
@@ -104,8 +98,6 @@ export class SeleniumControllerApi {
     }
 
     /**
-     * Navigate back
-     * Navigate back
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Blob}
      */
     back() {
@@ -117,10 +109,8 @@ export class SeleniumControllerApi {
 
 
     /**
-     * Click on a pixel on the screen.
-     * Click on a pixel on the screen. This may do nothing or anything, including  opening a new tab.
-     * @param {Number} x position from left
-     * @param {Number} y position from top
+     * @param {Number} x 
+     * @param {Number} y 
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Blob} and HTTP response
      */
     clickWithHttpInfo(x, y) {
@@ -157,10 +147,8 @@ export class SeleniumControllerApi {
     }
 
     /**
-     * Click on a pixel on the screen.
-     * Click on a pixel on the screen. This may do nothing or anything, including  opening a new tab.
-     * @param {Number} x position from left
-     * @param {Number} y position from top
+     * @param {Number} x 
+     * @param {Number} y 
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Blob}
      */
     click(x, y) {
@@ -172,8 +160,6 @@ export class SeleniumControllerApi {
 
 
     /**
-     * Close the browser window/tab.
-     * Close the browser window/tab. Returns to previous tab if any, or returns no  content (http 204 status).
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Blob} and HTTP response
      */
     closeWithHttpInfo() {
@@ -200,8 +186,6 @@ export class SeleniumControllerApi {
     }
 
     /**
-     * Close the browser window/tab.
-     * Close the browser window/tab. Returns to previous tab if any, or returns no  content (http 204 status).
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Blob}
      */
     close() {
@@ -257,8 +241,6 @@ export class SeleniumControllerApi {
 
 
     /**
-     * Navigate forward
-     * Navigate forward
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Blob} and HTTP response
      */
     forwardWithHttpInfo() {
@@ -285,8 +267,6 @@ export class SeleniumControllerApi {
     }
 
     /**
-     * Navigate forward
-     * Navigate forward
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Blob}
      */
     forward() {
@@ -298,9 +278,7 @@ export class SeleniumControllerApi {
 
 
     /**
-     * Get a web page
-     * Get a web page
-     * @param {String} url web page to browse to
+     * @param {String} url 
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Blob} and HTTP response
      */
     getWithHttpInfo(url) {
@@ -332,9 +310,7 @@ export class SeleniumControllerApi {
     }
 
     /**
-     * Get a web page
-     * Get a web page
-     * @param {String} url web page to browse to
+     * @param {String} url 
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Blob}
      */
     get(url) {
@@ -346,8 +322,6 @@ export class SeleniumControllerApi {
 
 
     /**
-     * Quit current browser
-     * Quit current browser
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     quitWithHttpInfo() {
@@ -374,8 +348,6 @@ export class SeleniumControllerApi {
     }
 
     /**
-     * Quit current browser
-     * Quit current browser
      * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
      */
     quit() {
@@ -387,9 +359,7 @@ export class SeleniumControllerApi {
 
 
     /**
-     * Scroll up or down by given number of pixels.
-     * Scroll up or down by given number of pixels.
-     * @param {Number} pixels positive down, or negative up
+     * @param {Number} pixels 
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Blob} and HTTP response
      */
     scrollWithHttpInfo(pixels) {
@@ -421,9 +391,7 @@ export class SeleniumControllerApi {
     }
 
     /**
-     * Scroll up or down by given number of pixels.
-     * Scroll up or down by given number of pixels.
-     * @param {Number} pixels positive down, or negative up
+     * @param {Number} pixels 
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Blob}
      */
     scroll(pixels) {

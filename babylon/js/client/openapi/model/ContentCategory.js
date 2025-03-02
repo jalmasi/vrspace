@@ -21,7 +21,6 @@ import {ApiClient} from '../ApiClient.js';
 export class ContentCategory {
     /**
      * Constructs a new <code>ContentCategory</code>.
-     * A custom category of content.
      * @alias ContentCategory
      */
     constructor() { 
