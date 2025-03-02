@@ -22,6 +22,7 @@ import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.UserGroup;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Manipulate user groups. All of these operations require a session with a
@@ -33,6 +34,7 @@ import jakarta.servlet.http.HttpSession;
  */
 @RestController
 @RequestMapping(GroupController.PATH)
+@Slf4j
 public class GroupController extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/groups";
 
@@ -108,6 +110,7 @@ public class GroupController extends ClientControllerBase {
   public void join(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(groupId);
+    log.debug("Group join, user: " + client + " group: " + group);
     groupManager.join(group, client);
   }
 
@@ -122,6 +125,7 @@ public class GroupController extends ClientControllerBase {
   public void invite(@PathVariable long groupId, Long clientId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group invite, user: " + client + " group: " + group);
     groupManager.invite(group, clientId, client);
   }
 
@@ -132,6 +136,7 @@ public class GroupController extends ClientControllerBase {
   public void ask(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(groupId);
+    log.debug("Group ask, user: " + client + " group: " + group);
     groupManager.ask(group, client);
   }
 
@@ -142,6 +147,7 @@ public class GroupController extends ClientControllerBase {
   public void accept(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group accept, user: " + client + " group: " + group);
     groupManager.accept(group, client);
   }
 
@@ -156,6 +162,7 @@ public class GroupController extends ClientControllerBase {
   public void allow(@PathVariable long groupId, long clientId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group allow, user: " + client + " group: " + group);
     groupManager.allow(group, clientId, client);
   }
 
@@ -167,6 +174,7 @@ public class GroupController extends ClientControllerBase {
   public void leave(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group leave, user: " + client + " group: " + group);
     groupManager.leave(group, client);
   }
 
@@ -181,6 +189,7 @@ public class GroupController extends ClientControllerBase {
   public void kick(@PathVariable long groupId, long clientId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group kick, user: " + client + " group: " + group);
     groupManager.kick(group, clientId, client);
   }
 

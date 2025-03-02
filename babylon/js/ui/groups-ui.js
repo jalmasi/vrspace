@@ -90,8 +90,9 @@ class GroupSettingsForm extends Form {
 }
 
 class GroupInviteForm extends Form {
-  constructor(group, callback) {
+  constructor(scene, group, callback) {
     super();
+    this.scene = scene;
     this.group = group;
     this.callback = callback;
     this.userApi = VRSpaceAPI.getInstance().endpoint.user;
@@ -112,6 +113,15 @@ class GroupInviteForm extends Form {
     this.yesButton.isVisible = false;
     let noButton = this.textButton(this.cancelText, () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/close.png", this.cancelColor);
     this.addControl(noButton);
+    this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
+      if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN && pointerInfo.pickInfo.hit) {
+        let rootNode = VRSPACEUI.findRootNode(pointerInfo.pickInfo.pickedMesh);
+        if ( rootNode.VRObject && rootNode.VRObject.avatar && rootNode.VRObject.name ) {
+          this.nameInput.text = rootNode.VRObject.name;
+          this.checkName();
+        }
+      }
+    });
   }
   checkName() {
     this.userApi.find(this.nameInput.text).then(client=>{
@@ -123,6 +133,10 @@ class GroupInviteForm extends Form {
       this.nameInput.color = this.cancelColor;
       this.yesButton.isVisible = false;
     });
+  }
+  dispose() {
+    super.dispose();
+    this.scene.onPointerObservable.remove(this.clickHandler);
   }
 }
 
@@ -292,7 +306,7 @@ class ListGroupsForm extends Form {
   groupInvite(group) {
     VRSPACEUI.hud.showButtons(false);
     VRSPACEUI.hud.newRow();
-    this.inviteForm = new GroupInviteForm(group, (ok,userId)=>{
+    this.inviteForm = new GroupInviteForm(this.scene, group, (ok,userId)=>{
       if ( ok ) {
         this.groupApi.invite(group.id,userId);
       }
