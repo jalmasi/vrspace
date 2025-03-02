@@ -613,11 +613,13 @@ public class WorldManager {
     client.setWorld(null);
     client = save(client);
     // and notify the world
-    world.exit(client, this);
-    // remove temporary world after last client disconnects
-    if (world.isTemporaryWorld() && db.countUsers(world.getId()) == 0) {
-      log.info("Deleting temporary world " + world.getId() + " " + world.getName());
-      deleteWorld(world);
+    if (world != null) {
+      world.exit(client, this);
+      // remove temporary world after last client disconnects
+      if (world.isTemporaryWorld() && db.countUsers(world.getId()) == 0) {
+        log.info("Deleting temporary world " + world.getId() + " " + world.getName());
+        deleteWorld(world);
+      }
     }
   }
 
