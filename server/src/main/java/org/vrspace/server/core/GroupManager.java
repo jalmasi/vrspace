@@ -96,7 +96,7 @@ public class GroupManager {
     if (group.isPrivate() && (owner == null || db.findOwnership(owner.getId(), group.getId()).isEmpty())) {
       throw new IllegalArgumentException("Only group owners can invite members");
     }
-    GroupMember gm = new GroupMember(group, member).invite();
+    GroupMember gm = new GroupMember(group, member).invite(owner.getId());
     db.save(gm);
   }
 
@@ -111,7 +111,7 @@ public class GroupManager {
     if (existingMember.isEmpty() || existingMember.get().getPendingInvite() == null) {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }
-    GroupMember updatedMember = existingMember.get().accepted();
+    GroupMember updatedMember = existingMember.get().accept();
     db.save(updatedMember);
   }
 
@@ -149,7 +149,7 @@ public class GroupManager {
       if (gm.getPendingRequest() == null) {
         throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
-      db.save(gm.accepted());
+      db.save(gm.allow(owner.getId()));
     } else {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }

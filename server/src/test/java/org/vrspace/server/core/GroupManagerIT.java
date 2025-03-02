@@ -108,7 +108,7 @@ public class GroupManagerIT {
     UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
 
     Client c2 = db.save(new Client());
-    gm.invite(group, c2, null);
+    gm.invite(group, c2, c1);
 
     assertTrue(db.listGroupClients(group.getId()).contains(c1));
     assertFalse(db.listGroupClients(group.getId()).contains(c2));

@@ -41,6 +41,12 @@ public class GroupMember extends Entity {
   /** Pending request to join, if any */
   private String pendingRequest;
   /**
+   * Id of the client that invited/approved (sponsored) the member; may be null,
+   * or point to non-existing client, or maybe even recycled id of client that was
+   * deleted and another took the place. Thus, valid only short term.
+   */
+  private Long sponsorId;
+  /**
    * Time stamp of last membership update, be it invite, request, or joining the
    * group
    */
@@ -53,11 +59,13 @@ public class GroupMember extends Entity {
   /**
    * Set pendingInvite to random UUID, update the timestamp.
    * 
+   * @param clientId id of the client that sends the invite
    * @return this
    */
-  public GroupMember invite() {
+  public GroupMember invite(Long clientId) {
     setPendingInvite(UUID.randomUUID().toString());
     setLastUpdate(Instant.now());
+    setSponsorId(clientId);
     return this;
   }
 
@@ -77,10 +85,30 @@ public class GroupMember extends Entity {
    * 
    * @return this
    */
-  public GroupMember accepted() {
+  private GroupMember accepted() {
     setPendingInvite(null);
     setPendingRequest(null);
     setLastUpdate(Instant.now());
     return this;
+  }
+
+  /**
+   * Accept the invitation to the group.
+   * 
+   * @return this
+   */
+  public GroupMember accept() {
+    return accepted();
+  }
+
+  /**
+   * Allow a member that asked to join into the group
+   * 
+   * @param clientId id of the client that accepted the membership request
+   * @return this
+   */
+  public GroupMember allow(Long clientId) {
+    setSponsorId(clientId);
+    return accepted();
   }
 }

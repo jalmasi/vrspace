@@ -65,6 +65,9 @@ export class GroupMember {
             if (data.hasOwnProperty('pendingRequest')) {
                 obj['pendingRequest'] = ApiClient.convertToType(data['pendingRequest'], 'String');
             }
+            if (data.hasOwnProperty('sponsorId')) {
+                obj['sponsorId'] = ApiClient.convertToType(data['sponsorId'], 'Number');
+            }
             if (data.hasOwnProperty('lastUpdate')) {
                 obj['lastUpdate'] = ApiClient.convertToType(data['lastUpdate'], 'Date');
             }
@@ -131,7 +134,13 @@ GroupMember.prototype['pendingInvite'] = undefined;
 GroupMember.prototype['pendingRequest'] = undefined;
 
 /**
- * Time stamp of last membership update, be it invite, request, or joining the   group
+ * Id of the client that invited/approved (sponsored) the member; may be null,  or point to non-existing client, or maybe even recycled id of client that was  deleted and another took the place. Thus, valid only short term.
+ * @member {Number} sponsorId
+ */
+GroupMember.prototype['sponsorId'] = undefined;
+
+/**
+ * Time stamp of last membership update, be it invite, request, or joining the  group
  * @member {Date} lastUpdate
  */
 GroupMember.prototype['lastUpdate'] = undefined;
