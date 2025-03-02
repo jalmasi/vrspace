@@ -1,4 +1,5 @@
 import { ManipulationHandles } from "./manipulation-handles.js";
+import { VRSPACEUI } from "../vrspace-ui.js";
 
 /**
  * Base class common for TextArea and ImageArea, possibly more to come.

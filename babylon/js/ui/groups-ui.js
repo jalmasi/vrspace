@@ -5,6 +5,7 @@ import { Form } from './widget/form.js';
 import { UserGroup } from '../client/openapi/model/UserGroup.js';
 import { FormArea } from './widget/form-area.js';
 import { Dialogue } from "./widget/dialogue.js";
+import { World } from './../world/world.js';
 
 class CreateGroupForm extends Form {
   constructor(callback) {
@@ -163,6 +164,7 @@ class ListGroupsForm extends Form {
     this.settingsForm = null;
     /** @type {GroupInviteForm} */
     this.inviteForm = null;
+    this.selectionPredicate = mesh => mesh == this.plane;
     
   }
   init() {
@@ -177,6 +179,7 @@ class ListGroupsForm extends Form {
     
     /* 
     // GUI pointer observables work in mozilla, not in chrome
+    // CHECKME may just require selection predicate
     this.grid.isPointerBlocker = true;
     this.grid.onPointerEnterObservable.add(()=>this.pointerEnter());
     this.grid.onPointerOutObservable.add(()=>this.pointerOut());
@@ -199,7 +202,7 @@ class ListGroupsForm extends Form {
         this.pointerOut();
       }
     });
-
+    World.lastInstance.addSelectionPredicate(this.selectionPredicate);
     
     this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.1);
@@ -335,6 +338,7 @@ class ListGroupsForm extends Form {
   }
   dispose() {
     super.dispose();
+    World.lastInstance.removeSelectionPredicate(this.selectionPredicate);
     if ( this.pointerTracker ) {
       this.scene.onPointerObservable.remove(this.pointerTracker);
     }

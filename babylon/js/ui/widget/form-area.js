@@ -32,8 +32,8 @@ export class FormArea extends BaseArea {
     this.ratio = textureWidth/textureHeight;
     this.group.position = this.position;
 
-    this.form.createPlane(this.size, textureWidth, textureHeight);
-    this.form.plane.parent = this.group;
+    this.areaPlane = this.form.createPlane(this.size, textureWidth, textureHeight);
+    this.areaPlane.parent = this.group;
 
     if ( this.addBackground ) {
       this.form.texture.background = this.color.toHexString();    
