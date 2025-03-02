@@ -8,8 +8,8 @@ import java.util.regex.Pattern;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.vrspace.server.core.ClassUtil;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.Private;
@@ -68,7 +68,7 @@ public class JacksonConfig {
 
   /**
    * Private mapper is same as objectMapper, but also serializes @Private fields,
-   * so that a client can see own private properties.
+   * so that a client can access own private properties over web sockets.
    */
   @Bean("privateMapper")
   public ObjectMapper privateMapper() {
@@ -80,24 +80,33 @@ public class JacksonConfig {
   }
 
   /**
-   * REST API uses normal serialization, ignores @JsonTypeInfo annotation of
-   * VRObject.
+   * Primary mapper is the same as objectMapper, but ignores @JsonTypeInfo
+   * annotation of VRObject. Annotated as Primary to make REST controllers used it
+   * for serialization.
    */
-  @Bean
-  public MappingJackson2HttpMessageConverter jsonMessageConverter() {
-    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-    // side effect of using this mapper is user can't see own private fields.
-    // switching between the two might be done like explained in
-    // https://medium.com/@jacobcrosbie1/setting-a-custom-object-mapper-for-rest-controller-in-spring-boot-2874bd897df1
-    ObjectMapper mapper = objectMapper();
+  @Primary
+  @Bean("restMapper")
+  public ObjectMapper restMapper() {
+    ObjectMapper ret = objectMapperBuilder().build();
     // trick taken from
     // https://stackoverflow.com/questions/54708772/jackson-suppress-jsontypeinfo-at-serialisation-time
     @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
     class NoTypes {
     }
-    mapper.addMixIn(VRObject.class, NoTypes.class);
-    converter.setObjectMapper(mapper);
-    return converter;
+    ret.addMixIn(VRObject.class, NoTypes.class);
+    // process and add all subclasses of VRObject
+    ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
+
+    ret.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      public boolean hasIgnoreMarker(final AnnotatedMember m) {
+        return super.hasIgnoreMarker(m) || m.hasAnnotation(Private.class);
+      }
+    });
+
+    return ret;
   }
 
   @Bean

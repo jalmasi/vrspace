@@ -17,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
@@ -46,7 +45,7 @@ public class GroupControllerIT {
   private MockMvc mockMvc;
 
   @Autowired
-  @Qualifier("objectMapper")
+  // we use restMapper here, since it is primary
   private ObjectMapper objectMapper;
   @Autowired
   private WebApplicationContext webApplicationContext;
