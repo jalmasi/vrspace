@@ -163,7 +163,7 @@ class ListGroupsForm extends Form {
     this.settingsForm = null;
     /** @type {GroupInviteForm} */
     this.inviteForm = null;
-    this.trackPointer = true;
+    
   }
   init() {
     this.createPanel();
@@ -175,11 +175,32 @@ class ListGroupsForm extends Form {
     this.grid.paddingTopInPixels = 10;
     this.grid.paddingBottomInPixels = 10;
     
+    /* 
+    // GUI pointer observables work in mozilla, not in chrome
     this.grid.isPointerBlocker = true;
     this.grid.onPointerEnterObservable.add(()=>this.pointerEnter());
     this.grid.onPointerOutObservable.add(()=>this.pointerOut());
     this.grid.onPointerClickObservable.add(()=>this.pointerClick());
+    // so, use scene facilities instead
+     */
+    this.pointerTracker = this.scene.onPointerObservable.add((pointerInfo) => {
+      if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
+        if ( pointerInfo.pickInfo.pickedMesh == this.plane ) {
+          if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERMOVE) {
+            let row = Math.floor((1-pointerInfo.pickInfo.getTextureCoordinates().y)*this.groups.length);
+            this.pointerEvent(row);
+          } else if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN) {
+            this.pointerClick();
+          }
+        } else {
+          this.pointerOut();
+        }
+      } else {
+        this.pointerOut();
+      }
+    });
 
+    
     this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.5);
@@ -219,11 +240,7 @@ class ListGroupsForm extends Form {
     this.textureWidth = 768;
     this.textureHeight = this.heightInPixels * (Math.max(this.grid.rowCount, 1))+this.grid.paddingTopInPixels+this.grid.paddingBottomInPixels;
   }
-  pointerEvent(vec) {
-    if ( !this.trackPointer ) {
-      return;
-    }
-    let row = Math.floor((vec.y - this.grid.paddingTopInPixels)/this.heightInPixels);
+  pointerEvent(row) {
     if ( row !== this.activeRow ) {
       this.activeRow = row;
       if ( this.activeButtons ) {
@@ -245,25 +262,18 @@ class ListGroupsForm extends Form {
     }
   }
   pointerOut() {
-    console.log("pointer out");
-    if ( this.activeButtons ) {
-      this.activeButtons.forEach(button=>button.isVisible = false);
-      this.activeButtons = null;
-    }
-    if ( this.activeText ) {
-      this.activeText.fontStyle = null;
-      this.activeText = null;
-    }
-    this.grid.onPointerMoveObservable.remove(this.pointerTracker);
-    this.activeRow = null;
-    this.pointerTracker = null;
-  }
-  pointerEnter() {
-    // for reasons unknown, babylon may not send pointer out event
-    // so we have to double check here just in case
-    if ( ! this.pointerTracker ) {
-      console.log("pointer in");
-      this.pointerTracker = this.grid.onPointerMoveObservable.add((vec)=>this.pointerEvent(vec));
+    if ( this.activeRow != null ) {
+      console.log("pointer out");
+      if ( this.activeButtons ) {
+        this.activeButtons.forEach(button=>button.isVisible = false);
+        this.activeButtons = null;
+      }
+      if ( this.activeText ) {
+        this.activeText.fontStyle = null;
+        this.activeText = null;
+      }
+      this.grid.onPointerMoveObservable.remove(this.pointerTracker);
+      this.activeRow = null;
     }
   }
   pointerClick() {
@@ -322,6 +332,12 @@ class ListGroupsForm extends Form {
       VRSPACEUI.hud.addForm(this.inviteForm, 1536, 64);
     }
     this.trackPointer = false;
+  }
+  dispose() {
+    super.dispose();
+    if ( this.pointerTracker ) {
+      this.scene.onPointerObservable.remove(this.pointerTracker);
+    }
   }
 }
 
