@@ -107,7 +107,7 @@ public class GroupManager {
     } else {
       // online client, forward message
       // FIXME this serializes the message all over again for each recipient
-      member.sendMessage(gm);
+      cachedClient.sendMessage(gm);
     }
   }
 
@@ -288,7 +288,7 @@ public class GroupManager {
       } else {
         // online client, forward message
         // FIXME this serializes the message all over again for each recipient
-        client.sendMessage(message);
+        cachedClient.sendMessage(message);
       }
     });
   }

@@ -936,7 +936,7 @@ export class VRSpace {
         callback(obj);
       }
     } else {
-      this.log("ERROR: unknown message type");
+      console.error("ERROR: unknown message type", message);
     }
   }
   
