@@ -163,7 +163,7 @@ class InviteInfoForm extends Form {
   }
 }
 class ListGroupsForm extends Form {
-  constructor(scene, invites, groups, privateIcon, leaveGroupIcon, groupSettingIcon, groupInviteIcon, groupInfoIcon, groupAcceptIcon, groupDeleteIcon, groupDeleteCallback) {
+  constructor(scene, invites, groups, privateIcon, leaveGroupIcon, groupSettingIcon, groupInviteIcon, groupInfoIcon, groupAcceptIcon, groupDeleteIcon, groupDeleteCallback, refreshCallback) {
     super();
     this.scene = scene;
     /** @type { [GroupMember]} */
@@ -180,6 +180,7 @@ class ListGroupsForm extends Form {
     this.groupAcceptIcon = groupAcceptIcon;
     this.groupDeleteIcon = groupDeleteIcon;
     this.groupDeleteCallback = groupDeleteCallback;
+    this.refreshCallback = refreshCallback;
     /** @type {GroupControllerApi} */
     this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
     
@@ -252,10 +253,10 @@ class ListGroupsForm extends Form {
       //infoButton.isVisible = false;
       infoButton.background = this.background;
       this.grid.addControl(infoButton, index, 3);
-      let acceptButton = this.submitButton("accept", ()=>this.groupAccept(invite), this.groupAcceptIcon);
+      let acceptButton = this.submitButton("accept", ()=>this.inviteAccept(invite), this.groupAcceptIcon);
       this.grid.addControl(acceptButton, index, 4);
       //acceptButton.isVisible = false;
-      let rejectButton = this.submitButton("reject", ()=>this.groupReject(invite), this.groupDeleteIcon);
+      let rejectButton = this.submitButton("reject", ()=>this.inviteReject(invite), this.groupDeleteIcon);
       rejectButton.background = this.cancelColor; 
       this.grid.addControl(rejectButton, index, 5);
       //rejectButton.isVisible = false;
@@ -277,7 +278,7 @@ class ListGroupsForm extends Form {
       if ( group.isOwned ) {
         button = this.submitButton("settings", ()=>this.groupSettings(), this.groupSettingIcon);
       } else {
-        button = this.submitButton("leave", ()=>this.groupLeave(), this.leaveGroupIcon);
+        button = this.submitButton("leave", ()=>this.groupLeave(group), this.leaveGroupIcon);
       }
       button.isVisible = false;
       button.background = this.background;
@@ -344,9 +345,9 @@ class ListGroupsForm extends Form {
   inviteInfo(invite) {
     let inviteForm = new InviteInfoForm(invite, accepted=>{
       if ( accepted ) {
-        console.log("TODO accept invitation");
+        this.inviteAccept(invite);
       } else {
-        console.log("TODO reject invitation");
+        this.inviteReject(invite);
       }
       VRSPACEUI.hud.clearRow();
       VRSPACEUI.hud.showButtons(true);
@@ -356,11 +357,20 @@ class ListGroupsForm extends Form {
     VRSPACEUI.hud.newRow();
     VRSPACEUI.hud.addForm(inviteForm, 1024, 64);
   }
+  async inviteAccept(invite) {
+    await this.groupApi.accept(invite.group.id)
+    this.refreshCallback();
+  }
+  async inviteReject(invite) {
+    await this.groupApi.leave(invite.group.id)
+    this.refreshCallback();
+  }
   pointerClick() {
     console.log("TODO read messages of: "+this.activeRow);
   }
-  groupLeave() {
-    console.log("TODO leave group: "+this.activeRow);
+  async groupLeave(group) {
+    await this.groupApi.leave(group.id)
+    this.refreshCallback();
   }
   groupSettings() {
     if ( this.settingsForm != null ) {
@@ -492,7 +502,8 @@ export class GroupsUI {
           this.contentBase + "/content/icons/user-group-info.png", 
           this.contentBase + "/content/icons/tick.png",
           this.contentBase + "/content/icons/delete.png",
-          group=>this.groupDelete(group)
+          group=>this.groupDelete(group),
+          () => this.refreshList()
         );
         form.init();
 
@@ -510,14 +521,18 @@ export class GroupsUI {
     let dialogue = new Dialogue("Delete "+group.name+" ?", (yes)=>{
       if ( yes ) {
         this.groupApi.callDelete(group.id).then(()=>{
-          this.listUI();
-          this.listUI();
+          this.refreshList();
         });
       }
     });
     dialogue.init();
   }
 
+  refreshList() {
+    this.listUI();
+    this.listUI();
+  }
+  
   createUI() {
     if (this.createGroupForm) {
       this.createGroupForm.dispose();

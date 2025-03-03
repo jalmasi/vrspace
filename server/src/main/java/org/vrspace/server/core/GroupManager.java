@@ -79,6 +79,7 @@ public class GroupManager {
     return db.listGroupClients(group.getId());
   }
 
+  @Transactional
   public void invite(UserGroup group, Long memberId, Client owner) {
     invite(group, getClient(memberId), owner);
   }
@@ -89,6 +90,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void invite(UserGroup group, Client member, Client owner) {
     if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already member of group " + group.getId());
@@ -115,6 +117,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void accept(UserGroup group, Client member) {
     Optional<GroupMember> existingMember = db.findGroupMember(group.getId(), member.getId());
     if (existingMember.isEmpty() || existingMember.get().getPendingInvite() == null) {
@@ -130,6 +133,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void ask(UserGroup group, Client member) {
     if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already joining group " + group.getId());
@@ -138,6 +142,7 @@ public class GroupManager {
     db.save(gm);
   }
 
+  @Transactional
   public void allow(UserGroup group, Long memberId, Client owner) {
     allow(group, owner, getClient(memberId));
   }
@@ -148,6 +153,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void allow(UserGroup group, Client member, Client owner) {
     if (db.findOwnership(owner.getId(), group.getId()).isEmpty()) {
       throw new IllegalArgumentException("Only group owners can allow members");
@@ -170,6 +176,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void join(UserGroup group, Client member) {
     if (group.isPrivate()) {
       throw new IllegalArgumentException("Ask to join a private group");
@@ -185,6 +192,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void leave(UserGroup group, Client member) {
     if (db.findOwnership(member.getId(), group.getId()).isPresent()) {
       throw new IllegalArgumentException("Group owners can not leave their groups");
@@ -192,6 +200,7 @@ public class GroupManager {
     this.removeMember(group, member);
   }
 
+  @Transactional
   public void kick(UserGroup group, long memberId, Client owner) {
     Optional<GroupMember> member = db.findGroupMember(group.getId(), memberId);
     if (member.isEmpty()) {
@@ -207,6 +216,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void kick(UserGroup group, Client member, Client owner) {
     if (!group.isPrivate()) {
       throw new IllegalArgumentException("Can't kick members from public groups");
@@ -224,6 +234,7 @@ public class GroupManager {
    * @param member
    * @return
    */
+  @Transactional
   public List<GroupMember> pendingRequests(UserGroup group, Client member) {
     if (db.findOwnership(member.getId(), group.getId()).isEmpty()) {
       throw new SecurityException("Only group owners can list pending requets");
@@ -237,6 +248,7 @@ public class GroupManager {
    * @param member
    * @return
    */
+  @Transactional
   public List<GroupMember> pendingInvitations(Client member) {
     return db.listPendingInvitations(member.getId());
   }
@@ -250,11 +262,13 @@ public class GroupManager {
     db.findGroupMember(group.getId(), member.getId()).ifPresent(groupMember -> db.delete(groupMember));
   }
 
+  @Transactional
   public void addOwner(UserGroup group, Client owner) {
     Ownership ownership = new Ownership(owner, group);
     db.save(ownership);
   }
 
+  @Transactional
   public void removeOwner(UserGroup group, Client owner) {
     db.findOwnership(owner.getId(), group.getId()).ifPresent(ownership -> db.delete(ownership));
   }
@@ -279,6 +293,7 @@ public class GroupManager {
     });
   }
 
+  @Transactional
   public UserGroup getGroup(Client client, String name) {
     Optional<UserGroup> group = db.findGroup(client.getId(), name);
     if (group.isEmpty()) {
@@ -287,6 +302,7 @@ public class GroupManager {
     return group.get();
   }
 
+  @Transactional
   public UserGroup getGroup(Client client, long groupId) {
     Optional<UserGroup> group = db.findGroup(client.getId(), groupId);
     if (group.isEmpty()) {
@@ -295,6 +311,7 @@ public class GroupManager {
     return group.get();
   }
 
+  @Transactional
   public UserGroup getGroup(long groupId) {
     UserGroup group = db.get(UserGroup.class, groupId);
     if (group == null) {

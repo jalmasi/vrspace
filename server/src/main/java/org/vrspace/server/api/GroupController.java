@@ -47,6 +47,7 @@ public class GroupController extends ClientControllerBase {
   @GetMapping
   public @ResponseBody List<UserGroup> listMyGroups(HttpSession session) {
     Client client = getAuthorisedClient(session);
+    log.debug("Group list, user: " + client);
     return groupManager.listGroups(client);
   }
 
@@ -56,6 +57,7 @@ public class GroupController extends ClientControllerBase {
   @GetMapping("/owned")
   public @ResponseBody List<UserGroup> listOwnedGroups(HttpSession session) {
     Client client = getAuthorisedClient(session);
+    log.debug("Group list, owner: " + client);
     return groupManager.listOwnedGroups(client);
   }
 
@@ -69,6 +71,7 @@ public class GroupController extends ClientControllerBase {
   @ResponseStatus(HttpStatus.CREATED)
   public UserGroup create(String name, Optional<Boolean> isPublic, HttpSession session) {
     Client client = getAuthorisedClient(session);
+    log.debug("Group create, user: " + client + " group: " + name + " public: " + isPublic);
     return groupManager.createGroup(client, new UserGroup(name, isPublic.isPresent() && isPublic.get()));
   }
 
@@ -80,6 +83,7 @@ public class GroupController extends ClientControllerBase {
   @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public void update(@RequestBody UserGroup group, HttpSession session) {
     Client client = getAuthorisedClient(session);
+    log.debug("Group update, user: " + client + " group: " + group);
     groupManager.updateGroup(client, group);
   }
 
@@ -90,6 +94,7 @@ public class GroupController extends ClientControllerBase {
   public void delete(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group delete, user: " + client + " group: " + group);
     groupManager.deleteGroup(client, group);
   }
 
@@ -100,6 +105,7 @@ public class GroupController extends ClientControllerBase {
   public List<Client> show(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group show, user: " + client + " group: " + group);
     return groupManager.show(group);
   }
 
