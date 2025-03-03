@@ -223,12 +223,11 @@ public class GroupController extends ClientControllerBase {
    * List pending invitations to groups for the current user.
    * 
    * @param session
-   * @return
    */
   @GetMapping("/invitations")
-  public List<UserGroup> listInvites(HttpSession session) {
+  public List<GroupMember> listInvites(HttpSession session) {
     Client client = getAuthorisedClient(session);
-    return groupManager.pendingInvitations(client).stream().map(ug -> ug.getGroup()).toList();
+    return groupManager.pendingInvitations(client);
   }
 
   protected Client getAuthorisedClient(HttpSession session) {

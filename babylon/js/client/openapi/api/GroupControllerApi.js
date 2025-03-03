@@ -499,7 +499,7 @@ export class GroupControllerApi {
     /**
      * List pending invitations to groups for the current user.
      * List pending invitations to groups for the current user.
-     * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<UserGroup>} and HTTP response
+     * @return {Promise< Array.<GroupMember> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<GroupMember>} and HTTP response
      */
     listInvitesWithHttpInfo() {
       let postBody = null;
@@ -516,7 +516,7 @@ export class GroupControllerApi {
       let authNames = [];
       let contentTypes = [];
       let accepts = ['*/*'];
-      let returnType = [UserGroup];
+      let returnType = [GroupMember];
       return this.apiClient.callApi(
         '/vrspace/api/groups/invitations', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
@@ -527,7 +527,7 @@ export class GroupControllerApi {
     /**
      * List pending invitations to groups for the current user.
      * List pending invitations to groups for the current user.
-     * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<UserGroup>}
+     * @return {Promise< Array.<GroupMember> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<GroupMember>}
      */
     listInvites() {
       return this.listInvitesWithHttpInfo()

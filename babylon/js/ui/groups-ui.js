@@ -3,6 +3,7 @@ import { VRSpaceAPI } from '../client/rest-api.js';
 import { GroupControllerApi } from '../client/openapi/api/GroupControllerApi.js';
 import { Form } from './widget/form.js';
 import { UserGroup } from '../client/openapi/model/UserGroup.js';
+import { GroupMember } from '../client/openapi/model/GroupMember.js';
 import { FormArea } from './widget/form-area.js';
 import { Dialogue } from "./widget/dialogue.js";
 import { World } from './../world/world.js';
@@ -142,15 +143,21 @@ class GroupInviteForm extends Form {
 }
 
 class ListGroupsForm extends Form {
-  constructor(groups, scene, privateIcon, leaveGroupIcon, groupSettingIcon, groupInviteIcon, groupDeleteIcon, groupDeleteCallback) {
+  constructor(scene, invites, groups, privateIcon, leaveGroupIcon, groupSettingIcon, groupInviteIcon, groupInfoIcon, groupAcceptIcon, groupDeleteIcon, groupDeleteCallback) {
     super();
+    this.scene = scene;
+    /** @type { [GroupMember]} */
+    this.invites = invites;
     /** @type { [UserGroup]} */
     this.groups = groups;
-    this.scene = scene;
+    /** @type { [UserGroup]} */
+    this.table = Array(this.invites.length+this.groups.length);
     this.privateIcon = privateIcon;
     this.leaveGroupIcon = leaveGroupIcon;
     this.groupSettingIcon = groupSettingIcon;
     this.groupInviteIcon = groupInviteIcon;
+    this.groupInfoIcon = groupInfoIcon;
+    this.groupAcceptIcon = groupAcceptIcon;
     this.groupDeleteIcon = groupDeleteIcon;
     this.groupDeleteCallback = groupDeleteCallback;
     /** @type {GroupControllerApi} */
@@ -176,7 +183,7 @@ class ListGroupsForm extends Form {
     this.grid.paddingLeftInPixels = 10;
     this.grid.paddingTopInPixels = 10;
     this.grid.paddingBottomInPixels = 10;
-    
+
     /* 
     // GUI pointer observables work in mozilla, not in chrome
     // CHECKME may just require selection predicate
@@ -190,7 +197,7 @@ class ListGroupsForm extends Form {
       if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
         if ( pointerInfo.pickInfo.pickedMesh == this.plane ) {
           if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERMOVE) {
-            let row = Math.floor((1-pointerInfo.pickInfo.getTextureCoordinates().y)*this.groups.length);
+            let row = Math.floor((1-pointerInfo.pickInfo.getTextureCoordinates().y)*(this.table.length));
             this.pointerEvent(row);
           } else if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN) {
             this.pointerClick();
@@ -211,7 +218,33 @@ class ListGroupsForm extends Form {
     this.grid.addColumnDefinition(0.1);
     this.grid.addColumnDefinition(0.1);
 
-    this.groups.forEach((group, index) => {
+    let index = 0;
+    this.invites.forEach(invite => {
+      this.grid.addRowDefinition(this.heightInPixels, true);
+      let indexLabel = this.textBlock(index+1);
+      indexLabel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      this.grid.addControl(indexLabel, index, 0);
+      let privateImage = this.makeIcon("private", this.privateIcon);
+      this.grid.addControl(privateImage, index, 1);
+      privateImage.isVisible = !invite.group.public;
+      this.grid.addControl(this.textBlock(invite.group.name), index, 2);
+      let infoButton = this.submitButton("info", ()=>this.groupInfo(invite), this.groupInfoIcon);
+      infoButton.isVisible = false;
+      infoButton.background = this.background;
+      this.grid.addControl(infoButton, index, 3);
+      let acceptButton = this.submitButton("accept", ()=>this.groupAccept(invite), this.groupAcceptIcon);
+      this.grid.addControl(acceptButton, index, 4);
+      acceptButton.isVisible = false;
+      let rejectButton = this.submitButton("reject", ()=>this.groupReject(invite), this.groupDeleteIcon);
+      rejectButton.background = this.cancelColor; 
+      this.grid.addControl(rejectButton, index, 5);
+      rejectButton.isVisible = false;
+      
+      this.table[index] = invite.group;
+      this.table[index].isInvite = true;
+      index++;
+    });
+    this.groups.forEach(group => {
       this.grid.addRowDefinition(this.heightInPixels, true);
       let indexLabel = this.textBlock(index+1);
       indexLabel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
@@ -236,6 +269,9 @@ class ListGroupsForm extends Form {
       deleteButton.background = this.cancelColor; 
       this.grid.addControl(deleteButton, index, 5);
       deleteButton.isVisible = false;
+      
+      this.table[index] = group;
+      index++;
     });
 
     this.panel.addControl(this.grid);
@@ -252,13 +288,13 @@ class ListGroupsForm extends Form {
       if ( this.activeText ) {
         this.activeText.fontStyle = null;
       }
-      let group = this.groups[row];
+      let group = this.table[row];
       let button = this.grid.getChildrenAt(row,3)[0];
       let inviteButton = this.grid.getChildrenAt(row,4)[0];
       let deleteButton = this.grid.getChildrenAt(row,5)[0];
       button.isVisible = true;
-      inviteButton.isVisible = (group.isOwned || group.public);
-      deleteButton.isVisible = group.isOwned;
+      inviteButton.isVisible = (group.isOwned || group.public || group.isInvite);
+      deleteButton.isVisible = group.isOwned || group.isInvite ;
       this.activeButtons = [button,inviteButton,deleteButton];
       this.activeText = this.grid.getChildrenAt(row,2)[0];
       this.activeText.fontStyle = "bold";
@@ -395,21 +431,25 @@ export class GroupsUI {
       this.hud.markEnabled(this.listGroupsButton);
     } else {
       this.hud.markActive(this.listGroupsButton);
-      Promise.all([this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups()])
+      Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups()])
       .then(results => {
-        let myGroups = results[0];
-        let ownedGroups = results[1];
+        let invites = results[0];
+        let myGroups = results[1];
+        let ownedGroups = results[2];
         myGroups.forEach(g=>g.isOwned = ownedGroups.some(e=>e.id == g.id));
 
-        console.log(myGroups);
+        console.log(invites, myGroups);
         
         let form = new ListGroupsForm(
-          myGroups, 
           this.scene,
+          invites,
+          myGroups, 
           this.contentBase + "/content/icons/private-message.png", 
           this.contentBase + "/content/icons/user-group-minus.png", 
           this.contentBase + "/content/icons/user-group-settings.png",
           this.contentBase + "/content/icons/user-group-plus.png", 
+          this.contentBase + "/content/icons/user-group-info.png", 
+          this.contentBase + "/content/icons/tick.png",
           this.contentBase + "/content/icons/delete.png",
           group=>this.groupDelete(group)
         );

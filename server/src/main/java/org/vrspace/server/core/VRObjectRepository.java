@@ -230,7 +230,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
       + " WHERE ID(c) = $clientId RETURN o,owns,c,owned,obj")
   List<UserGroup> listOwnedGroups(long clientId);
 
-  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId RETURN ug")
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId AND gm.pendingInvite IS NULL AND gm.pendingRequest IS NULL RETURN ug")
   List<UserGroup> listUserGroups(long clientId);
 
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId AND gm.pendingRequest IS NULL AND gm.pendingInvite IS NULL RETURN c")
