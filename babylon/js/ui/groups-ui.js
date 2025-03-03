@@ -155,7 +155,7 @@ class InviteInfoForm extends Form {
   }
   init() {
     this.createPanel();
-    this.addControl(this.textBlock(this.groupText+" "+this.invite.group.name+" "+this.memberText+" "+this.invite.client.name)); 
+    this.addControl(this.textBlock(this.groupText+" "+this.invite.group.name+" "+this.memberText+" "+this.invite.sponsor.name)); 
     let yesButton = this.textButton(this.acceptText, () => this.callback(true), VRSPACEUI.contentBase+"/content/icons/tick.png");
     this.addControl(yesButton);
     let noButton = this.textButton(this.cancelText, () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/close.png", this.cancelColor);

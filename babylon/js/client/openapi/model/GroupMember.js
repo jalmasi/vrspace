@@ -23,6 +23,7 @@ import { UserGroup } from './UserGroup.js';
 export class GroupMember {
     /**
      * Constructs a new <code>GroupMember</code>.
+     * Represents a membership of a user in a group
      * @alias GroupMember
      */
     constructor() { 
@@ -64,8 +65,8 @@ export class GroupMember {
             if (data.hasOwnProperty('pendingRequest')) {
                 obj['pendingRequest'] = ApiClient.convertToType(data['pendingRequest'], 'String');
             }
-            if (data.hasOwnProperty('sponsorId')) {
-                obj['sponsorId'] = ApiClient.convertToType(data['sponsorId'], 'Number');
+            if (data.hasOwnProperty('sponsor')) {
+                obj['sponsor'] = Client.constructFromObject(data['sponsor']);
             }
             if (data.hasOwnProperty('lastUpdate')) {
                 obj['lastUpdate'] = ApiClient.convertToType(data['lastUpdate'], 'Date');
@@ -96,6 +97,10 @@ export class GroupMember {
         if (data['pendingRequest'] && !(typeof data['pendingRequest'] === 'string' || data['pendingRequest'] instanceof String)) {
             throw new Error("Expected the field `pendingRequest` to be a primitive type in the JSON string but got " + data['pendingRequest']);
         }
+        // validate the optional field `sponsor`
+        if (data['sponsor']) { // data not null
+          Client.validateJSON(data['sponsor']);
+        }
 
         return true;
     }
@@ -121,21 +126,24 @@ GroupMember.prototype['group'] = undefined;
 GroupMember.prototype['client'] = undefined;
 
 /**
+ * Pending invitation, if any
  * @member {String} pendingInvite
  */
 GroupMember.prototype['pendingInvite'] = undefined;
 
 /**
+ * Pending request to join, if any
  * @member {String} pendingRequest
  */
 GroupMember.prototype['pendingRequest'] = undefined;
 
 /**
- * @member {Number} sponsorId
+ * @member {Client} sponsor
  */
-GroupMember.prototype['sponsorId'] = undefined;
+GroupMember.prototype['sponsor'] = undefined;
 
 /**
+ * Time stamp of last membership update, be it invite, request, or joining the   group
  * @member {Date} lastUpdate
  */
 GroupMember.prototype['lastUpdate'] = undefined;

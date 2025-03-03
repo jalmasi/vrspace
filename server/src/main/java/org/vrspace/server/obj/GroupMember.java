@@ -41,11 +41,11 @@ public class GroupMember extends Entity {
   /** Pending request to join, if any */
   private String pendingRequest;
   /**
-   * Id of the client that invited/approved (sponsored) the member; may be null,
-   * or point to non-existing client, or maybe even recycled id of client that was
-   * deleted and another took the place. Thus, valid only short term.
+   * The client that invited/approved (sponsored) the member; may be null, or
+   * maybe point to non-existing client. Thus, valid only short term.
    */
-  private Long sponsorId;
+  @Relationship(type = "SPONSOR_CLIENT", direction = Relationship.Direction.OUTGOING)
+  private Client sponsor;
   /**
    * Time stamp of last membership update, be it invite, request, or joining the
    * group
@@ -59,13 +59,13 @@ public class GroupMember extends Entity {
   /**
    * Set pendingInvite to random UUID, update the timestamp.
    * 
-   * @param clientId id of the client that sends the invite
+   * @param sponsor the client that sends the invite
    * @return this
    */
-  public GroupMember invite(Long clientId) {
+  public GroupMember invite(Client sponsor) {
     setPendingInvite(UUID.randomUUID().toString());
     setLastUpdate(Instant.now());
-    setSponsorId(clientId);
+    setSponsor(sponsor);
     return this;
   }
 
@@ -89,6 +89,8 @@ public class GroupMember extends Entity {
     setPendingInvite(null);
     setPendingRequest(null);
     setLastUpdate(Instant.now());
+    // CHECKME: relation to sponsor may cause referential integrity issues
+    // setSponsor(null);
     return this;
   }
 
@@ -104,11 +106,11 @@ public class GroupMember extends Entity {
   /**
    * Allow a member that asked to join into the group
    * 
-   * @param clientId id of the client that accepted the membership request
+   * @param sponsor the client that accepted the membership request
    * @return this
    */
-  public GroupMember allow(Long clientId) {
-    setSponsorId(clientId);
+  public GroupMember allow(Client sponsor) {
+    setSponsor(sponsor);
     return accepted();
   }
 }

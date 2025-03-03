@@ -98,7 +98,7 @@ public class GroupManager {
     if (group.isPrivate() && (owner == null || db.findOwnership(owner.getId(), group.getId()).isEmpty())) {
       throw new IllegalArgumentException("Only group owners can invite members");
     }
-    GroupMember gm = new GroupMember(group, member).invite(owner.getId());
+    GroupMember gm = new GroupMember(group, member).invite(owner);
     db.save(gm);
     Client cachedClient = (Client) worldManager.get(member.getObjectId());
     if (cachedClient == null) {
@@ -164,7 +164,7 @@ public class GroupManager {
       if (gm.getPendingRequest() == null) {
         throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
-      db.save(gm.allow(owner.getId()));
+      db.save(gm.allow(owner));
     } else {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }

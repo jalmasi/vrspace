@@ -222,6 +222,7 @@ public class GroupController extends ClientControllerBase {
   public List<GroupMember> listRequests(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group requests, user: " + client + " group: " + group);
     return groupManager.pendingRequests(group, client);
   }
 
@@ -233,6 +234,7 @@ public class GroupController extends ClientControllerBase {
   @GetMapping("/invitations")
   public List<GroupMember> listInvites(HttpSession session) {
     Client client = getAuthorisedClient(session);
+    log.debug("Group invites, user: " + client);
     return groupManager.pendingInvitations(client);
   }
 
