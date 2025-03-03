@@ -142,6 +142,26 @@ class GroupInviteForm extends Form {
   }
 }
 
+class InviteInfoForm extends Form {
+  constructor(invite, callback) {
+    super();
+    /** @type {GroupMember} */
+    this.invite = invite;
+    this.callback = callback;
+    this.groupText = "Invited to group";
+    this.memberText = "by";
+    this.acceptText = "Join";
+    this.cancelText = "Reject";
+  }
+  init() {
+    this.createPanel();
+    this.addControl(this.textBlock(this.groupText+" "+this.invite.group.name+" "+this.memberText+" "+this.invite.client.name)); 
+    let yesButton = this.textButton(this.acceptText, () => this.callback(true), VRSPACEUI.contentBase+"/content/icons/tick.png");
+    this.addControl(yesButton);
+    let noButton = this.textButton(this.cancelText, () => this.callback(false), VRSPACEUI.contentBase+"/content/icons/close.png", this.cancelColor);
+    this.addControl(noButton);
+  }
+}
 class ListGroupsForm extends Form {
   constructor(scene, invites, groups, privateIcon, leaveGroupIcon, groupSettingIcon, groupInviteIcon, groupInfoIcon, groupAcceptIcon, groupDeleteIcon, groupDeleteCallback) {
     super();
@@ -228,17 +248,17 @@ class ListGroupsForm extends Form {
       this.grid.addControl(privateImage, index, 1);
       privateImage.isVisible = !invite.group.public;
       this.grid.addControl(this.textBlock(invite.group.name), index, 2);
-      let infoButton = this.submitButton("info", ()=>this.groupInfo(invite), this.groupInfoIcon);
-      infoButton.isVisible = false;
+      let infoButton = this.submitButton("info", ()=>this.inviteInfo(invite), this.groupInfoIcon);
+      //infoButton.isVisible = false;
       infoButton.background = this.background;
       this.grid.addControl(infoButton, index, 3);
       let acceptButton = this.submitButton("accept", ()=>this.groupAccept(invite), this.groupAcceptIcon);
       this.grid.addControl(acceptButton, index, 4);
-      acceptButton.isVisible = false;
+      //acceptButton.isVisible = false;
       let rejectButton = this.submitButton("reject", ()=>this.groupReject(invite), this.groupDeleteIcon);
       rejectButton.background = this.cancelColor; 
       this.grid.addControl(rejectButton, index, 5);
-      rejectButton.isVisible = false;
+      //rejectButton.isVisible = false;
       
       this.table[index] = invite.group;
       this.table[index].isInvite = true;
@@ -284,11 +304,17 @@ class ListGroupsForm extends Form {
       this.activeRow = row;
       if ( this.activeButtons ) {
         this.activeButtons.forEach(button=>button.isVisible = false);
+        this.activeButtons = null;
       }
       if ( this.activeText ) {
         this.activeText.fontStyle = null;
+        this.activeText = null;
       }
       let group = this.table[row];
+      if ( group.isInvite ) {
+        // not changing anything for invites
+        return;
+      }
       let button = this.grid.getChildrenAt(row,3)[0];
       let inviteButton = this.grid.getChildrenAt(row,4)[0];
       let deleteButton = this.grid.getChildrenAt(row,5)[0];
@@ -314,6 +340,21 @@ class ListGroupsForm extends Form {
       this.grid.onPointerMoveObservable.remove(this.pointerTracker);
       this.activeRow = null;
     }
+  }
+  inviteInfo(invite) {
+    let inviteForm = new InviteInfoForm(invite, accepted=>{
+      if ( accepted ) {
+        console.log("TODO accept invitation");
+      } else {
+        console.log("TODO reject invitation");
+      }
+      VRSPACEUI.hud.clearRow();
+      VRSPACEUI.hud.showButtons(true);
+    });
+    inviteForm.init();
+    VRSPACEUI.hud.showButtons(false);
+    VRSPACEUI.hud.newRow();
+    VRSPACEUI.hud.addForm(inviteForm, 1024, 64);
   }
   pointerClick() {
     console.log("TODO read messages of: "+this.activeRow);
