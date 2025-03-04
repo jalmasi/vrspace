@@ -174,11 +174,12 @@ public class GroupControllerIT {
 
     MvcResult invitesResult = mockMvc.perform(get(ENDPOINT + "/invitations").session(session2))
         .andExpect(status().isOk()).andReturn();
-    List<UserGroup> invites = objectMapper.readValue(getResult(invitesResult), new TypeReference<List<UserGroup>>() {
-    });
+    List<GroupMember> invites = objectMapper.readValue(getResult(invitesResult),
+        new TypeReference<List<GroupMember>>() {
+        });
     assertEquals(1, invites.size());
-    assertEquals(group.getId(), invites.get(0).getId());
-    assertTrue(invites.get(0).isPrivate());
+    assertEquals(group.getId(), invites.get(0).getGroup().getId());
+    assertTrue(invites.get(0).getGroup().isPrivate());
 
     mockMvc.perform(post(ENDPOINT + "/{groupId}/accept", group.getId()).session(session2).param("clientId",
         client2.getId().toString())).andExpect(status().isOk()).andReturn();
