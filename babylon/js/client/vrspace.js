@@ -365,7 +365,7 @@ export class SceneEvent {
 /**
  * Streaming session data, used to match the client avatar or other mesh to the video/audio stream.
  */
-export class SessionData{
+export class SessionData {
   /**
    * @param {String} json string representation of this object (passed along connection as user data) 
    */
@@ -380,6 +380,49 @@ export class SessionData{
       this[key] = value;
       return value;
     });
+  }
+}
+
+export class UserGroup {
+  constructor() {
+    this.id = null;
+    this.name = null;
+    this.isPublic = null;    
+  }
+}
+
+export class GroupMember {
+  constructor() {
+    this.id = null;
+    /** @type {UserGroup} */
+    this.userGroup = null;
+    /** @type {Client} */
+    this.client = null;
+    this.pendingInvite = null;
+    this.pendingRequest = null;
+    /** @type {Client} */
+    this.sponsor = null;
+    this.lastUpdate = null;
+  }
+}
+
+export class GroupMessage {
+  constructor() {
+    /** @type {Client} */
+    this.from = null;
+    /** @type {UserGroup} */
+    this.group = null;
+    this.message = null;
+  }
+}
+
+/** Notification from a UserGroup */
+export class GroupEvent {
+  constructor() {
+    /** @type {GroupMessage} */
+    this.message = null;
+    /** @type {GroupMember} */
+    this.invite = null;
   }
 }
 
@@ -403,6 +446,7 @@ export class VRSpace {
     this.sceneListeners = [];
     this.welcomeListeners = [];
     this.errorListeners = [];
+    this.groupListeners = [];
     /** Listener to response to a command. */
     this.responseListener = null;
     this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, Terrain, VRFile, Game, Background };
@@ -417,7 +461,8 @@ export class VRSpace {
       Remove:message=>this.handleRemove(message.Remove),
       ERROR:message=>this.handleError(message.ERROR),
       Welcome:message=>this.handleWelcome(message.Welcome),
-      response:message=>this.handleResponse(message.response)
+      response:message=>this.handleResponse(message.response),
+      GroupEvent:message=>this.handleGroupEvent(message)
     }
   }
   
@@ -432,6 +477,7 @@ export class VRSpace {
     if ( typeof callback == 'function' || typeof callback == 'object') {
       array.push(callback);
     }
+    return callback;
   }
   
   /* Used internally to remove a listener */  
@@ -447,12 +493,12 @@ export class VRSpace {
   Callback is passed boolean argument indicating connection state.
    */
   addConnectionListener(callback) {
-    this.addListener( this.connectionListeners, callback);
+    return this.addListener( this.connectionListeners, callback);
   }
   
   /** Add a data listener that receives everything from the server (JSON string argument) */
   addDataListener(callback) {
-    this.addListener( this.dataListeners, callback);
+    return this.addListener( this.dataListeners, callback);
   }
   
   /** 
@@ -460,7 +506,7 @@ export class VRSpace {
   Scene listeners receive SceneEvent argument for each change. 
   */
   addSceneListener(callback) {
-    this.addListener( this.sceneListeners, callback );
+    return this.addListener( this.sceneListeners, callback );
   }
 
   /** 
@@ -475,7 +521,7 @@ export class VRSpace {
   The listener receives Welcome object.
   */
   addWelcomeListener(callback) {
-    this.addListener( this.welcomeListeners, callback);
+    return this.addListener( this.welcomeListeners, callback);
   }
   
   /** 
@@ -491,9 +537,34 @@ export class VRSpace {
   Error listener is passed the string containing the server error message, e.g. java exception.
   */
   addErrorListener(callback) {
-    this.addListener( this.errorListeners, callback);
+    return this.addListener( this.errorListeners, callback);
   }
 
+  /** 
+  Remove error listener
+  @param callback listener to remove 
+  */
+  removeErrorListener(callback) {
+    this.removeListener( this.errorListeners, callback);
+  }
+
+  /** 
+  Add a Welcome listener, notified when entering a world. 
+  The listener receives Welcome object.
+  */
+  addGroupListener(callback) {
+    return this.addListener( this.groupListeners, callback);
+  }
+
+  /** 
+  Remove welcome listener
+  @param callback listener to remove 
+  */
+  removeGroupListener(callback) {
+    this.removeListener( this.groupListeners, callback);
+  }
+
+  
   /**
   Return the current scene, optionally filtered
   @param filter string to match current members, usually class name, or function that takes VRObject as argument
@@ -891,10 +962,14 @@ export class VRSpace {
     this.log("Received: "+message);
     let obj = JSON.parse(message);
     let handlerName = Object.keys(obj)[0];
-    if ( Object.hasOwn(this.messageHandlers,handlerName) ) {
-      this.messageHandlers[handlerName](obj);
-    } else {
-      console.error("ERROR: unknown message type", message);
+    try {
+      if ( Object.hasOwn(this.messageHandlers,handlerName) ) {
+        this.messageHandlers[handlerName](obj);
+      } else {
+        console.error("ERROR: unknown message type", message);
+      }
+    } catch (exception) {
+      console.error("ERROR processing message ", message, exception);
     }
   }
 
@@ -967,6 +1042,14 @@ export class VRSpace {
       this.responseListener = null;
       callback(response);
     }
+  }
+  
+  /**
+   * Handle a group event, simply forward the event to all groupListeners.
+   * @param {GroupEvent} event 
+   */
+  handleGroupEvent(event) {
+    this.groupListeners.forEach(l=>l(event));
   }
 
   /**

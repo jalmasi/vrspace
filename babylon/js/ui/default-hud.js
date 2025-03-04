@@ -1,4 +1,4 @@
-import { VRSPACE } from '../client/vrspace.js';
+import { VRSPACE, GroupEvent } from '../client/vrspace.js';
 import { VRSPACEUI } from './vrspace-ui.js';
 import { MediaStreams } from '../core/media-streams.js';
 import { SpeechInput } from '../core/speech-input.js';
@@ -47,6 +47,7 @@ export class DefaultHud {
     this.creditArea = null;
     this.miniMap = null;
     this.groupsUI = null;
+    this.groupListener = VRSPACE.addGroupListener(event=>this.groupEvent(event));
   }
 
   init() {
@@ -750,5 +751,10 @@ export class DefaultHud {
       this.groupsUI = new GroupsUI(this.scene);
       this.groupsUI.show(this.groupsButton);
    }
+  }
+ 
+  /** @param {GroupEvent} event  */ 
+  groupEvent(event) {
+    console.log("Group event", event);
   }
 }

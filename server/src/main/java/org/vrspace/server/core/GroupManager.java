@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.vrspace.server.dto.GroupEvent;
 import org.vrspace.server.dto.GroupMessage;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.GroupMember;
@@ -107,7 +108,7 @@ public class GroupManager {
     } else {
       // online client, forward message
       // FIXME this serializes the message all over again for each recipient
-      cachedClient.sendMessage(gm);
+      cachedClient.sendMessage(GroupEvent.invite(gm));
     }
   }
 
@@ -288,7 +289,7 @@ public class GroupManager {
       } else {
         // online client, forward message
         // FIXME this serializes the message all over again for each recipient
-        cachedClient.sendMessage(message);
+        cachedClient.sendMessage(GroupEvent.message(message));
       }
     });
   }
