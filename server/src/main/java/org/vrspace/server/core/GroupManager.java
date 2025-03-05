@@ -327,14 +327,29 @@ public class GroupManager {
     return group;
   }
 
-  public List<UserGroup> unread(Client client) {
+  @Transactional
+  public List<UserGroup> unreadGroups(Client client) {
     List<GroupMember> groups = db.listGroupMemberships(client.getId());
     groups.forEach((gm) -> {
       UserGroup group = gm.getGroup();
-      int unread = db.messageCount(group.getId(), gm.getLastRead());
+      int unread = db.unreadMessageCount(group.getId(), gm.getLastRead());
       group.setUnread(unread);
     });
     return groups.stream().map(gm -> gm.getGroup()).filter(g -> g.getUnread() > 0).collect(Collectors.toList());
+  }
+
+  @Transactional
+  public List<GroupMessage> unreadMessages(Client client, UserGroup group) {
+    Instant now = Instant.now();
+    Optional<GroupMember> gm = db.findGroupMember(group.getId(), client.getId());
+    if (gm.isEmpty()) {
+      throw new NotFoundException("Not a member group: " + group.getId() + " clientId:" + client.getId());
+    }
+    GroupMember member = gm.get();
+    Instant lastRead = member.getLastRead();
+    member.setLastRead(now);
+    db.save(member);
+    return db.messagesSince(group.getId(), lastRead);
   }
 
   private Client getClient(long clientId) {

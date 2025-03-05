@@ -22,6 +22,7 @@ import org.vrspace.server.obj.Embedded;
 import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.GltfModel;
 import org.vrspace.server.obj.GroupMember;
+import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.TerrainPoint;
@@ -268,6 +269,9 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   List<GroupMember> listPendingInvitations(long clientId);
 
   @Query("MATCH (msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return count(msg)")
-  Integer messageCount(long groupId, Instant since);
+  Integer unreadMessageCount(long groupId, Instant since);
+
+  @Query("MATCH (msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return msg")
+  List<GroupMessage> messagesSince(long groupId, Instant since);
 
 }

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.UserGroup;
 
 @SpringBootTest
@@ -167,9 +168,17 @@ public class GroupManagerIT {
     gm.join(group1, c2);
     gm.join(group2, c2);
 
-    List<UserGroup> unread = gm.unread(c2);
+    List<UserGroup> unreadGroups = gm.unreadGroups(c2);
 
-    assertEquals(1, unread.size());
-    assertEquals(1, unread.iterator().next().getUnread());
+    assertEquals(1, unreadGroups.size());
+    assertEquals(1, unreadGroups.iterator().next().getUnread());
+
+    List<GroupMessage> unreadMessages = gm.unreadMessages(c2, group1);
+
+    assertEquals(1, unreadMessages.size());
+
+    unreadMessages = gm.unreadMessages(c2, group1);
+
+    assertEquals(0, unreadMessages.size());
   }
 }
