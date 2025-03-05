@@ -51,6 +51,7 @@ public class GroupMember extends Entity {
    * group
    */
   private Instant lastUpdate = Instant.now();
+  private Instant lastRead;
 
   public boolean joined() {
     return pendingInvite == null && pendingRequest == null;

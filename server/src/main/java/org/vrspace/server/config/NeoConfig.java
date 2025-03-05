@@ -108,6 +108,8 @@ public class NeoConfig {
     // "CREATE CONSTRAINT ownership IF NOT EXISTS on (o:Ownership) ASSERT
     // (o.owner,o.owned) IS UNIQUE");
     graphDb.executeTransactionally("CREATE INDEX ownership IF NOT EXISTS FOR (o:Ownership) ON (o.owner,o.owned)");
+    graphDb.executeTransactionally(
+        "CREATE INDEX messageTimestamp IF NOT EXISTS FOR (gm:GroupMessage) ON (gm.userGroup,gm.timestamp)");
   }
 
   @PreDestroy
