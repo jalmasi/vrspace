@@ -1,5 +1,6 @@
 package org.vrspace.server.core;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -279,7 +280,7 @@ public class GroupManager {
     if (db.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
       throw new SecurityException("Only members can post to groups");
     }
-    GroupMessage message = db.save(new GroupMessage(sender, group, text));
+    GroupMessage message = db.save(new GroupMessage(sender, group, text, Instant.now()));
     db.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message

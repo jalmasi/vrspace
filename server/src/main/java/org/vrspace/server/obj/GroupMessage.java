@@ -35,5 +35,6 @@ public class GroupMessage extends Entity {
   private UserGroup group;
   @NonNull
   private String content;
+  @NonNull
   private Instant timestamp;
 }
