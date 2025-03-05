@@ -3,6 +3,7 @@ package org.vrspace.server.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -233,6 +234,9 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId AND gm.pendingInvite IS NULL AND gm.pendingRequest IS NULL RETURN ug")
   List<UserGroup> listUserGroups(long clientId);
 
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId AND gm.pendingInvite IS NULL AND gm.pendingRequest IS NULL RETURN gm, r, ug")
+  List<GroupMember> listGroupMemberships(long clientId);
+
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId AND gm.pendingRequest IS NULL AND gm.pendingInvite IS NULL RETURN c")
   List<Client> listGroupClients(long groupId);
 
@@ -262,5 +266,8 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup), (s:Client)<-[sc:SPONSOR_CLIENT]-(gm:GroupMember) WHERE ID(c)=$clientId AND gm.pendingInvite IS NOT NULL RETURN gm, c, mc, r, ug, sc, s")
   List<GroupMember> listPendingInvitations(long clientId);
+
+  @Query("MATCH (msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return count(msg)")
+  Integer messageCount(long groupId, Instant since);
 
 }

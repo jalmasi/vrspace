@@ -3,9 +3,11 @@ package org.vrspace.server.core;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.GroupEvent;
@@ -34,6 +36,8 @@ public class GroupManager {
   private VRObjectRepository db;
   @Autowired
   private WorldManager worldManager;
+  @Autowired
+  private Neo4jClient neo4jClient;
 
   @Transactional
   public List<UserGroup> listGroups(Client client) {
@@ -321,6 +325,16 @@ public class GroupManager {
       throw new NotFoundException("Non-existing group: " + groupId);
     }
     return group;
+  }
+
+  public List<UserGroup> unread(Client client) {
+    List<GroupMember> groups = db.listGroupMemberships(client.getId());
+    groups.forEach((gm) -> {
+      UserGroup group = gm.getGroup();
+      int unread = db.messageCount(group.getId(), gm.getLastRead());
+      group.setUnread(unread);
+    });
+    return groups.stream().map(gm -> gm.getGroup()).filter(g -> g.getUnread() > 0).collect(Collectors.toList());
   }
 
   private Client getClient(long clientId) {

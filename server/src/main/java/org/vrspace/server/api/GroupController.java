@@ -238,6 +238,21 @@ public class GroupController extends ClientControllerBase {
     return groupManager.pendingInvitations(client);
   }
 
+  @GetMapping("/unread")
+  public List<UserGroup> listUnreadGroups(@PathVariable long groupId, HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    log.debug("Unread groups, user: " + client);
+    return groupManager.unread(client);
+  }
+
+  @GetMapping("/{groupId}/unread")
+  public List<GroupMember> listUnreadMessages(@PathVariable long groupId, HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Group requests, user: " + client + " group: " + group);
+    return groupManager.pendingRequests(group, client);
+  }
+
   protected Client getAuthorisedClient(HttpSession session) {
     if (!isAuthenticated(session)) {
       throw new SecurityException("Anonymous user");
