@@ -47,6 +47,7 @@ export class DefaultHud {
     this.creditArea = null;
     this.miniMap = null;
     this.groupsUI = null;
+    this.groupEventCount = 0;
     this.groupListener = VRSPACE.addGroupListener(event=>this.groupEvent(event));
   }
 
@@ -744,6 +745,8 @@ export class DefaultHud {
   
   groups() {
     this.displayButtons = !this.displayButtons;
+    this.groupEventCount=0;
+    this.groupsButton.text = "Groups";
     if ( this.groupsUI ) {
       this.groupsUI.hide();
       this.groupsUI = null;
@@ -756,5 +759,13 @@ export class DefaultHud {
   /** @param {GroupEvent} event  */ 
   groupEvent(event) {
     console.log("Group event", event);
+    if ( !this.displayButtons ) {
+      this.groupEventCount++;
+      this.groupsButton.text = "Groups:"+this.groupEventCount;
+      this.groupsButton.pointerEnterAnimation();
+      setTimeout(()=>{
+        if ( !this.displayButtons) this.groupsButton.pointerOutAnimation()
+      },500);
+    }
   }
 }

@@ -397,10 +397,10 @@ class ListGroupsForm extends Form {
     this.settingsForm.init();
     
     this.settingsArea = new FormArea(this.scene, this.settingsForm);
-    this.settingsArea.size = .25;
+    this.settingsArea.size = .2;
     this.settingsArea.show(1024,256);
     this.settingsArea.attachToHud();
-    this.settingsArea.detach(1);
+    this.settingsArea.detach(.8);
     this.settingsArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
   }
   groupInvite(group) {
@@ -508,10 +508,10 @@ export class GroupsUI {
         form.init();
 
         this.listGroupsForm = new FormArea(this.scene, form);
-        this.listGroupsForm.size = .5;
+        this.listGroupsForm.size = .1;
         this.listGroupsForm.show(form.textureWidth, form.textureHeight);
         this.listGroupsForm.attachToHud();
-        this.listGroupsForm.detach(2);
+        this.listGroupsForm.detach(1);
         this.listGroupsForm.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
       });
     }
