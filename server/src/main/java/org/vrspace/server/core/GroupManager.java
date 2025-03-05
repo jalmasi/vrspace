@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.GroupEvent;
-import org.vrspace.server.dto.GroupMessage;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.GroupMember;
+import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.UserGroup;
 
@@ -274,11 +274,12 @@ public class GroupManager {
     db.findOwnership(owner.getId(), group.getId()).ifPresent(ownership -> db.delete(ownership));
   }
 
+  @Transactional
   public void write(Client sender, UserGroup group, String text) {
-    GroupMessage message = new GroupMessage(sender, group, text);
     if (db.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
       throw new SecurityException("Only members can post to groups");
     }
+    GroupMessage message = db.save(new GroupMessage(sender, group, text));
     db.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message

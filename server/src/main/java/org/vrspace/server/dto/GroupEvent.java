@@ -1,6 +1,7 @@
 package org.vrspace.server.dto;
 
 import org.vrspace.server.obj.GroupMember;
+import org.vrspace.server.obj.GroupMessage;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
