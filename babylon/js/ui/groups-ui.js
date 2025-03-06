@@ -183,6 +183,8 @@ class ListGroupsForm extends Form {
     this.groupDeleteIcon = groupDeleteIcon;
     this.groupDeleteCallback = groupDeleteCallback;
     this.refreshCallback = refreshCallback;
+    this.stackVertical = false;
+    this.stackHorizontal = true;
     /** @type {GroupControllerApi} */
     this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
     
@@ -373,8 +375,24 @@ class ListGroupsForm extends Form {
     
     if ( typeof group.chatlog == "undefined") {
       group.chatlog = new ChatLog(this.scene, group.name, "ChatLog:"+group.name);
+      group.chatlog.canClose = true;
+      group.chatlog.minimizeTitle = false;
+      group.chatlog.minimizeInput = true;
+      group.chatlog.onClose = () => {
+        group.chatlog.dispose();
+        VRSPACE.removeGroupListener(group.groupListener);
+        //World.lastInstance.removeSelectionPredicate(group.chatlogSelection);
+        delete group.chatlog;
+      }
+      if ( this.stackVertical ) {
+        group.chatlog.verticalAnchor = group.chatlog.verticalAnchor + 0.05 * (ChatLog.instanceCount-1); 
+      }
+      if ( this.stackHorizontal ) {
+        group.chatlog.baseAnchor = group.chatlog.baseAnchor + 0.25 * (ChatLog.instanceCount-1);
+      } 
       group.chatlog.show();
-      group.chatlogSelection = World.lastInstance.addSelectionPredicate((mesh) => this.chatLog.isSelectableMesh(mesh));
+      //group.chatlogSelection = World.lastInstance.addSelectionPredicate((mesh) => group.chatLog.isSelectableMesh(mesh));
+      group.chatlog.input.autoWrite = false;
       group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
       group.chatlog.input.addListener(text => {
         // TODO send a group message message
@@ -383,12 +401,12 @@ class ListGroupsForm extends Form {
 
       this.groupApi.listUnreadMessages(group.id).then(messages=>{
         messages.forEach(message=>{
-          group.chatlog.log(message.from.User.name, message.content);
+          group.chatlog.log(message.from.name, message.content);
         });
       });
 
       group.groupListener = VRSPACE.addGroupListener(event=>{
-        if ( event.message ) {
+        if ( event.message && group.id == event.message.group.id) {
           group.chatlog.log(event.message.from.User.name, event.message.content);
         }
       });

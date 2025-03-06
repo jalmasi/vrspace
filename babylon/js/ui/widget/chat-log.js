@@ -104,6 +104,7 @@ class LinkStack {
  * By default alligned to left side of the screen.
  */
 export class ChatLog extends TextArea {
+  static instanceCount = 0;
   constructor(scene, title, name="ChatLog") {
     super(scene, name, title);
     this.input = new TextAreaInput(this, "Say", title);
@@ -111,12 +112,16 @@ export class ChatLog extends TextArea {
     this.input.showNoMatch = false;
     this.inputPrefix = "ME";
     this.showLinks = true;
+    this.minimizeInput = false;
+    this.minimizeTitle = true;
     this.size = .3;
     this.baseAnchor = -.4;
+    this.verticalAnchor = -.1;
     //this.baseAnchor = 0;
     this.anchor = this.baseAnchor;
     this.leftSide();
     this.linkStack = new LinkStack(this.scene, this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
+    ChatLog.instanceCount++;
   }
   /**
    * Show both TextArea and TextAreaInput, and attach to HUD.
@@ -127,7 +132,21 @@ export class ChatLog extends TextArea {
     // order matters: InputArea.init() shows the title, so call hide after
     this.input.init();
     if ( this.handles ) {
-      this.handles.dontMinimize.push(this.input.plane);
+      if ( !this.minimizeInput ) {
+        this.handles.dontMinimize.push(this.input.plane);
+      }
+      if ( this.title && !this.minimizeTitle ) {
+        this.handles.dontMinimize.push(this.title.textPlane);
+        // reposition the title
+        this.handles.onMinMax = (minimized) => {
+          if ( minimized ) {
+            this.title.position.y = -1.2 * this.size/2 + this.title.height/2;
+          } else {
+            // CHECKME: copied from TextArea.showTitle:
+            this.title.position.y = 1.2 * this.size/2 + this.title.height/2;
+          }
+        };
+      }
     }
     this.hide(true);
     this.attachToHud();
@@ -166,7 +185,7 @@ export class ChatLog extends TextArea {
    */
   moveToAnchor() {
     //this.position = new BABYLON.Vector3(this.anchor, this.size/2-.025, 0);
-    this.position = new BABYLON.Vector3(this.anchor, this.size/2-.1, 0.2);
+    this.position = new BABYLON.Vector3(this.anchor, this.size/2+this.verticalAnchor, 0.2);
     this.group.position = this.position;
   }
   /**
@@ -211,6 +230,7 @@ export class ChatLog extends TextArea {
     this.input.dispose();
     super.dispose();
     this.linkStack.dispose();
+    ChatLog.instanceCount--;
   }
   /** XR pointer selection support */
   isSelectableMesh(mesh) {

@@ -26,18 +26,23 @@ export class ManipulationHandles {
     this.scene = scene;
     this.segments = 8;
     this.canMinimize = true;
+    this.canClose = false;
+    this.onClose = null;
     this.minimized = false;
     this.dontMinimize = [];
     this.sizeCallback = null;
     this.positionCallback = null;
-    
+
     this.selectedMaterial = new BABYLON.StandardMaterial("selectedMaterial", this.scene);
     this.selectedMaterial.alpha = this.material.alpha;
-    this.selectedMaterial.diffuseColor = new BABYLON.Color3(.2,.5,.2);
-  
+    this.selectedMaterial.diffuseColor = new BABYLON.Color3(.2, .5, .2);
+
     this.alertMaterial = new BABYLON.StandardMaterial("alertMaterial", this.scene);
     this.alertMaterial.alpha = this.material.alpha;
     this.alertMaterial.diffuseColor = new BABYLON.Color3(.3, 0, 0);
+    /** minimization button TODO rename */
+    this.box = null;
+    this.closeButton = null;
     /** Callback on area minimized/maximized, passed a minimized/hidden flag */
     this.onMinMax = null;
   }
@@ -46,57 +51,68 @@ export class ManipulationHandles {
    * Left and right handle resize, and top and bottom move it, optional box disables/reenables everything.
    */
   show() {
-    let handleWidth = this.height/25;
-    this.leftHandle = BABYLON.MeshBuilder.CreateSphere("leftHandle",{segments:this.segments},this.scene);
-    this.leftHandle.scaling = new BABYLON.Vector3(handleWidth,this.height,handleWidth);
-    this.leftHandle.position = new BABYLON.Vector3(-this.width/2-this.width/20, 0, 0);
+    let handleWidth = this.height / 25;
+    this.leftHandle = BABYLON.MeshBuilder.CreateSphere("leftHandle", { segments: this.segments }, this.scene);
+    this.leftHandle.scaling = new BABYLON.Vector3(handleWidth, this.height, handleWidth);
+    this.leftHandle.position = new BABYLON.Vector3(-this.width / 2 - this.width / 20, 0, 0);
     this.leftHandle.parent = this.group;
     this.leftHandle.material = this.material;
-  
-    this.rightHandle = BABYLON.MeshBuilder.CreateSphere("rightHandle",{segments:this.segments},this.scene);
-    this.rightHandle.scaling = new BABYLON.Vector3(handleWidth,this.height,handleWidth);
-    this.rightHandle.position = new BABYLON.Vector3(this.width/2+this.width/20, 0, 0);
+
+    this.rightHandle = BABYLON.MeshBuilder.CreateSphere("rightHandle", { segments: this.segments }, this.scene);
+    this.rightHandle.scaling = new BABYLON.Vector3(handleWidth, this.height, handleWidth);
+    this.rightHandle.position = new BABYLON.Vector3(this.width / 2 + this.width / 20, 0, 0);
     this.rightHandle.parent = this.group;
     this.rightHandle.material = this.material;
-  
-    this.topHandle = BABYLON.MeshBuilder.CreateSphere("topHandle",{segments:this.segments},this.scene);
-    this.topHandle.scaling = new BABYLON.Vector3(this.width,handleWidth,handleWidth);
-    this.topHandle.position = new BABYLON.Vector3(0, this.height/2+this.height/20, 0);
+
+    this.topHandle = BABYLON.MeshBuilder.CreateSphere("topHandle", { segments: this.segments }, this.scene);
+    this.topHandle.scaling = new BABYLON.Vector3(this.width, handleWidth, handleWidth);
+    this.topHandle.position = new BABYLON.Vector3(0, this.height / 2 + this.height / 20, 0);
     this.topHandle.parent = this.group;
     this.topHandle.material = this.material;
-  
-    this.bottomHandle = BABYLON.MeshBuilder.CreateSphere("bottomHandle",{segments:this.segments},this.scene);
-    this.bottomHandle.scaling = new BABYLON.Vector3(this.width,handleWidth,handleWidth);
-    this.bottomHandle.position = new BABYLON.Vector3(0, -this.height/2-this.height/20, 0);
+
+    this.bottomHandle = BABYLON.MeshBuilder.CreateSphere("bottomHandle", { segments: this.segments }, this.scene);
+    this.bottomHandle.scaling = new BABYLON.Vector3(this.width, handleWidth, handleWidth);
+    this.bottomHandle.position = new BABYLON.Vector3(0, -this.height / 2 - this.height / 20, 0);
     this.bottomHandle.parent = this.group;
     this.bottomHandle.material = this.material;
 
-    if ( this.canMinimize ) {
+    if (this.canMinimize) {
       // CHECKME 1 may be too small on mobiles
-      this.box = BABYLON.MeshBuilder.CreatePlane("MinMaxButon", {width:1,height:1}, this.scene);
-      this.box.scaling = new BABYLON.Vector3(handleWidth,handleWidth,this.height/100);
-      this.box.position = new BABYLON.Vector3(-this.width/2-this.width/20, -this.height/2-this.height/20, 0);
+      this.box = BABYLON.MeshBuilder.CreatePlane("MinMaxButon", { width: 1, height: 1 }, this.scene);
+      this.box.scaling = new BABYLON.Vector3(handleWidth, handleWidth, this.height / 100);
+      this.box.position = new BABYLON.Vector3(-this.width / 2 - this.width / 20, -this.height / 2 - this.height / 20, 0);
       this.box.parent = this.group;
       this.box.material = this.material.clone();
-      this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/minimize.png", this.scene);
+      this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase + "/content/icons/minimize.png", this.scene);
       this.box.material.diffuseTexture.hasAlpha = true;
       this.box.material.emissiveColor = BABYLON.Color3.White();
+    }
+    if (this.canClose) {
+      this.closeButton = BABYLON.MeshBuilder.CreatePlane("MinMaxButon", { width: 1, height: 1 }, this.scene);
+      this.closeButton.scaling = new BABYLON.Vector3(handleWidth, handleWidth, this.height / 100);
+      this.closeButton.position = new BABYLON.Vector3(this.width / 2 + this.width / 20, -this.height / 2 - this.height / 20, 0);
+      this.closeButton.parent = this.group;
+      this.closeButton.material = this.material.clone();
+      this.closeButton.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase + "/content/icons/close.png", this.scene);
+      this.closeButton.material.diffuseTexture.hasAlpha = true;
+      this.closeButton.material.emissiveColor = BABYLON.Color3.White();
+
     }
 
     this.bottomHandle.opposite = this.topHandle;
     this.topHandle.opposite = this.bottomHandle;
     this.leftHandle.opposite = this.rightHandle;
     this.rightHandle.opposite = this.leftHandle;
-  
-    this.handles = [ this.leftHandle, this.topHandle, this.rightHandle, this.bottomHandle ];
+
+    this.handles = [this.leftHandle, this.topHandle, this.rightHandle, this.bottomHandle];
 
     this.resizeHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN ) {
+      if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN) {
         //if ( pointerInfo.pickInfo.hit && this.handles.includes(pointerInfo.pickInfo.pickedMesh) ) {
-        if ( pointerInfo.pickInfo.hit ) {
+        if (pointerInfo.pickInfo.hit) {
           if (pointerInfo.pickInfo.pickedMesh == this.bottomHandle || pointerInfo.pickInfo.pickedMesh == this.topHandle) {
             // moving around
-            if ( ! this.behavior ) {
+            if (!this.behavior) {
               this.behavior = this.createBehavior();
               // does not work if group.parent is camera
               this.group.addBehavior(this.behavior);
@@ -105,40 +121,44 @@ export class ManipulationHandles {
             }
           } else if (pointerInfo.pickInfo.pickedMesh == this.leftHandle || pointerInfo.pickInfo.pickedMesh == this.rightHandle) {
             // scaling
-            if ( ! this.selectedHandle ) {
+            if (!this.selectedHandle) {
               this.selectedHandle = pointerInfo.pickInfo.pickedMesh;
               this.point = pointerInfo.pickInfo.pickedPoint;
               pointerInfo.pickInfo.pickedMesh.material = this.selectedMaterial;
             }
-          } else if ( pointerInfo.pickInfo.pickedMesh == this.box ) {
+          } else if (pointerInfo.pickInfo.pickedMesh == this.box) {
             // minimizing/maximizing (hiding/showing)
             this.hide(!this.minimized);
+          } else if (pointerInfo.pickInfo.pickedMesh == this.closeButton) {
+            if (this.onClose) {
+              this.onClose();
+            }
           }
-        } else if ( this.selectedHandle) {
+        } else if (this.selectedHandle) {
           this.selectedHandle.material = this.material;
           this.selectedHandle = null;
-          if ( this.behavior ) {
+          if (this.behavior) {
             this.group.removeBehavior(this.behavior);
             this.behavior = null;
           }
         }
       }
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP && this.selectedHandle) {
-        if ( pointerInfo.pickInfo.hit && (pointerInfo.pickInfo.pickedMesh == this.leftHandle || pointerInfo.pickInfo.pickedMesh == this.rightHandle) ) {
+      if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP && this.selectedHandle) {
+        if (pointerInfo.pickInfo.hit && (pointerInfo.pickInfo.pickedMesh == this.leftHandle || pointerInfo.pickInfo.pickedMesh == this.rightHandle)) {
           let diff = pointerInfo.pickInfo.pickedPoint.y - this.point.y;
-          let scale = (this.height + diff)/this.height;
+          let scale = (this.height + diff) / this.height;
           this.group.scaling = this.group.scaling.scale(scale);
-          if ( this.sizeCallback ) {
+          if (this.sizeCallback) {
             this.sizeCallback(this.group.scaling);
           }
         }
-        if ( this.selectedHandle ) {
+        if (this.selectedHandle) {
           this.selectedHandle.material = this.material;
           this.selectedHandle = null;
-          if ( this.behavior ) {
+          if (this.behavior) {
             this.group.removeBehavior(this.behavior);
             this.behavior = null;
-            if ( this.positionCallback ) {
+            if (this.positionCallback) {
               this.positionCallback(this.group.position, this.group.rotationQuaternion.toEulerAngles());
               //this.positionCallback(this.group.position, this.group.rotationQuaternion);
             }
@@ -146,9 +166,9 @@ export class ManipulationHandles {
         }
       }
     });
-    
+
   }
-  
+
   createBehavior() {
     if (World.lastInstance.inXR()) {
       return new BABYLON.SixDofDragBehavior();
@@ -157,26 +177,26 @@ export class ManipulationHandles {
     return new BABYLON.PointerDragBehavior({ dragPlaneNormal: new BABYLON.Vector3(0, 0, 1) });
     //return new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
   }
-  
+
   /**
    * Minimize or maximize (hide or show all children of this.group)
    * @param flag boolean indicating whether to hide or show children
    */
   hide(flag) {
-    if ( this.canMinimize ) {
+    if (this.canMinimize) {
       //console.log("Hiding handles: "+flag);
-      this.group.getChildMeshes().forEach( h => {
-        if ( h !== this.box && !this.dontMinimize.includes(h)) {
+      this.group.getChildMeshes().forEach(h => {
+        if (h !== this.box && !this.dontMinimize.includes(h)) {
           h.setEnabled(!flag);
         }
       });
       this.minimized = flag;
-      if ( this.minimized ) {
-        this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/maximize.png", this.scene);
+      if (this.minimized) {
+        this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase + "/content/icons/maximize.png", this.scene);
       } else {
-        this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/icons/minimize.png", this.scene);
+        this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase + "/content/icons/minimize.png", this.scene);
       }
-      if ( this.onMinMax ) {
+      if (this.onMinMax) {
         this.onMinMax(this.minimized);
       }
     }
@@ -186,11 +206,14 @@ export class ManipulationHandles {
    */
   dispose() {
     this.scene.onPointerObservable.remove(this.resizeHandler);
-    this.handles.forEach(h=>h.dispose());
-    if ( this.box ) {
+    this.handles.forEach(h => h.dispose());
+    if (this.box) {
       this.box.dispose();
+    }
+    if (this.closeButton) {
+      this.closeButton.dispose();
     }
     this.selectedMaterial.dispose();
     this.alertMaterial.dispose();
- } 
+  }
 }

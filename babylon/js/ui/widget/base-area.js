@@ -13,6 +13,8 @@ export class BaseArea {
     this.position = BABYLON.Vector3.ZERO; // OVERRIDE!
     this.addHandles = true;
     this.canMinimize = true;
+    this.canClose = false;
+    this.onClose = null;
     this.group = new BABYLON.TransformNode(name, this.scene);
     this.attachedToHud = false;
     this.attachedToCamera = false;
@@ -20,6 +22,7 @@ export class BaseArea {
     /** @type {ManipulationHandles} */
     this.handles = null;
     this.texture = null;
+    /** Subclasses dispose of material, if they create it */
     this.material = null;
     this.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
   }
@@ -98,9 +101,6 @@ export class BaseArea {
     this.removeHandles();
     if ( this.areaPlane ) {
       this.areaPlane.dispose();
-    }
-    if ( this.material ) {
-      this.material.dispose();
     }
   }
 }
