@@ -404,6 +404,7 @@ class ListGroupsForm extends Form {
       group.chatlog.canClose = true;
       group.chatlog.minimizeTitle = false;
       group.chatlog.minimizeInput = true;
+      group.chatlog.autoHide = false;
       group.chatlog.onClose = () => {
         group.chatlog.dispose();
         VRSPACE.removeGroupListener(group.groupListener);

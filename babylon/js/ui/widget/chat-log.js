@@ -105,8 +105,26 @@ class LinkStack {
  */
 export class ChatLog extends TextArea {
   static instanceCount = 0;
+  static instances = {}
+  static instanceId(name, title) {
+    return name+":"+title;
+  }
+  static findInstance(title, name="ChatLog") {
+    if ( ChatLog.instances.hasOwnProperty(ChatLog.instanceId(name,title)) ) {
+      return ChatLog.instances[ChatLog.instanceId(name,title)];
+    }
+  }
+  static getInstance(scene, title, name="ChatLog") {
+    if ( ChatLog.instances.hasOwnProperty(ChatLog.instanceId(name,title)) ) {
+      return ChatLog.instances[ChatLog.instanceId(name,title)];
+    }
+    return new ChatLog(scene, title, name);
+  }
   constructor(scene, title, name="ChatLog") {
     super(scene, name, title);
+    if ( ChatLog.instances.hasOwnProperty(this.instanceId()) ) {
+      throw "Instance already exists: "+this.instanceId();
+    }
     this.input = new TextAreaInput(this, "Say", title);
     this.input.submitName = "send";
     this.input.showNoMatch = false;
@@ -114,6 +132,7 @@ export class ChatLog extends TextArea {
     this.showLinks = true;
     this.minimizeInput = false;
     this.minimizeTitle = true;
+    this.autoHide = true;
     this.size = .3;
     this.baseAnchor = -.4;
     this.verticalAnchor = -.1;
@@ -122,6 +141,10 @@ export class ChatLog extends TextArea {
     this.leftSide();
     this.linkStack = new LinkStack(this.scene, this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
     ChatLog.instanceCount++;
+    ChatLog.instances[this.instanceId()] = this;
+  }
+  instanceId() {
+    return this.name+":"+this.titleText;
   }
   /**
    * Show both TextArea and TextAreaInput, and attach to HUD.
@@ -148,7 +171,7 @@ export class ChatLog extends TextArea {
         };
       }
     }
-    this.hide(true);
+    this.hide(this.autoHide);
     this.attachToHud();
     this.handleResize();
     this.resizeHandler = () => this.handleResize();
@@ -230,6 +253,7 @@ export class ChatLog extends TextArea {
     this.input.dispose();
     super.dispose();
     this.linkStack.dispose();
+    delete ChatLog.instances[this.instanceId()];
     ChatLog.instanceCount--;
   }
   /** XR pointer selection support */
