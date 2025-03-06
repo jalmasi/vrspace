@@ -551,6 +551,7 @@ export class VRSpace {
   /** 
   Add a group listener, notified when entering a world. 
   The listener receives Welcome object.
+  @param {function(GroupEvent)} callback 
   */
   addGroupListener(callback) {
     return this.addListener( this.groupListeners, callback);

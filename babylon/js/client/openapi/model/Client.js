@@ -88,17 +88,17 @@ export class Client {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('temporary')) {
-                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            }
+            if (data.hasOwnProperty('temporary')) {
+                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
             }
         }
         return obj;
@@ -222,24 +222,24 @@ Client.prototype['name'] = undefined;
 Client.prototype['sceneProperties'] = undefined;
 
 /**
- * @member {Object.<String, String>} tokens
- */
-Client.prototype['tokens'] = undefined;
-
-/**
  * @member {Number} userHeight
  */
 Client.prototype['userHeight'] = undefined;
 
 /**
- * @member {Boolean} temporary
+ * @member {Object.<String, String>} tokens
  */
-Client.prototype['temporary'] = undefined;
+Client.prototype['tokens'] = undefined;
 
 /**
  * @member {Object.<String, Object>} properties
  */
 Client.prototype['properties'] = undefined;
+
+/**
+ * @member {Boolean} temporary
+ */
+Client.prototype['temporary'] = undefined;
 
 
 

@@ -240,7 +240,7 @@ public class GroupController extends ClientControllerBase {
   }
 
   @GetMapping("/unread")
-  public List<UserGroup> listUnreadGroups(@PathVariable long groupId, HttpSession session) {
+  public List<UserGroup> listUnreadGroups(HttpSession session) {
     Client client = getAuthorisedClient(session);
     log.debug("Unread groups, user: " + client);
     return groupManager.unreadGroups(client);

@@ -197,7 +197,9 @@ class ListGroupsForm extends Form {
     /** @type {GroupInviteForm} */
     this.inviteForm = null;
     this.selectionPredicate = mesh => mesh == this.plane;
+    this.groupEventListener = null;
   }
+  
   init() {
     this.createPanel();
     this.grid = new BABYLON.GUI.Grid();
@@ -235,12 +237,13 @@ class ListGroupsForm extends Form {
     });
     World.lastInstance.addSelectionPredicate(this.selectionPredicate);
     
-    this.grid.addColumnDefinition(0.1);
-    this.grid.addColumnDefinition(0.1);
-    this.grid.addColumnDefinition(0.5);
-    this.grid.addColumnDefinition(0.1);
-    this.grid.addColumnDefinition(0.1);
-    this.grid.addColumnDefinition(0.1);
+    this.grid.addColumnDefinition(0.05);
+    this.grid.addColumnDefinition(0.05);
+    this.grid.addColumnDefinition(0.7);
+    this.grid.addColumnDefinition(0.05);
+    this.grid.addColumnDefinition(0.05);
+    this.grid.addColumnDefinition(0.05);
+    this.grid.addColumnDefinition(0.05);
 
     let index = 0;
     this.invites.forEach(invite => {
@@ -255,28 +258,35 @@ class ListGroupsForm extends Form {
       let infoButton = this.submitButton("info", ()=>this.inviteInfo(invite), this.groupInfoIcon);
       //infoButton.isVisible = false;
       infoButton.background = this.background;
-      this.grid.addControl(infoButton, index, 3);
+      this.grid.addControl(infoButton, index, 4);
       let acceptButton = this.submitButton("accept", ()=>this.inviteAccept(invite), this.groupAcceptIcon);
-      this.grid.addControl(acceptButton, index, 4);
+      this.grid.addControl(acceptButton, index, 5);
       //acceptButton.isVisible = false;
       let rejectButton = this.submitButton("reject", ()=>this.inviteReject(invite), this.groupDeleteIcon);
       rejectButton.background = this.cancelColor; 
-      this.grid.addControl(rejectButton, index, 5);
+      this.grid.addControl(rejectButton, index, 6);
       //rejectButton.isVisible = false;
       
       this.table[index] = invite.group;
       this.table[index].isInvite = true;
       index++;
     });
+    
     this.groups.forEach(group => {
       this.grid.addRowDefinition(this.heightInPixels, true);
+      
       let indexLabel = this.textBlock(index+1);
       indexLabel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
       this.grid.addControl(indexLabel, index, 0);
+      
       let privateImage = this.makeIcon("private", this.privateIcon);
       this.grid.addControl(privateImage, index, 1);
       privateImage.isVisible = !group.public;
+      
       this.grid.addControl(this.textBlock(group.name), index, 2);
+      
+      this.grid.addControl(this.textBlock(group.unread), index, 3);
+      
       let button;
       if ( group.isOwned ) {
         button = this.submitButton("settings", ()=>this.groupSettings(), this.groupSettingIcon);
@@ -285,13 +295,15 @@ class ListGroupsForm extends Form {
       }
       button.isVisible = false;
       button.background = this.background;
-      this.grid.addControl(button, index, 3);
+      this.grid.addControl(button, index, 4);
+      
       let inviteButton = this.submitButton("invite", ()=>this.groupInvite(group), this.groupInviteIcon);
-      this.grid.addControl(inviteButton, index, 4);
+      this.grid.addControl(inviteButton, index, 5);
+      
       inviteButton.isVisible = false;
       let deleteButton = this.submitButton("delete", ()=>this.groupDeleteCallback(group), this.groupDeleteIcon);
       deleteButton.background = this.cancelColor; 
-      this.grid.addControl(deleteButton, index, 5);
+      this.grid.addControl(deleteButton, index, 6);
       deleteButton.isVisible = false;
       
       this.table[index] = group;
@@ -300,8 +312,22 @@ class ListGroupsForm extends Form {
 
     this.panel.addControl(this.grid);
 
-    this.textureWidth = 768;
+    this.textureWidth = 1280;
     this.textureHeight = this.heightInPixels * (Math.max(this.grid.rowCount, 1))+this.grid.paddingTopInPixels+this.grid.paddingBottomInPixels;
+    
+    this.groupEventListener = VRSPACE.addGroupListener(event=>{
+      if ( event.message ) {
+        let groupIndex = this.groups.findIndex(group => group.id == event.message.group.id);
+        if ( groupIndex >= 0 ) {
+          this.groups[groupIndex].unread++;
+          let row = groupIndex + this.invites.length;
+          this.grid.getChildrenAt(row,3)[0].text = this.groups[groupIndex].unread; 
+        }
+      } else if ( event.invite ) {
+        // CHECKME: what to do with invites?
+        this.groups.find(group => group.id == event.invite.userGroup.id);
+      }
+    });
   }
   pointerEvent(row) {
     if ( row !== this.activeRow ) {
@@ -319,9 +345,9 @@ class ListGroupsForm extends Form {
         // not changing anything for invites
         return;
       }
-      let button = this.grid.getChildrenAt(row,3)[0];
-      let inviteButton = this.grid.getChildrenAt(row,4)[0];
-      let deleteButton = this.grid.getChildrenAt(row,5)[0];
+      let button = this.grid.getChildrenAt(row,4)[0];
+      let inviteButton = this.grid.getChildrenAt(row,5)[0];
+      let deleteButton = this.grid.getChildrenAt(row,6)[0];
       button.isVisible = true;
       inviteButton.isVisible = (group.isOwned || group.public || group.isInvite);
       deleteButton.isVisible = group.isOwned || group.isInvite ;
@@ -472,6 +498,11 @@ class ListGroupsForm extends Form {
     World.lastInstance.removeSelectionPredicate(this.selectionPredicate);
     if ( this.pointerTracker ) {
       this.scene.onPointerObservable.remove(this.pointerTracker);
+      this.pointerTracker = null
+    }
+    if ( this.groupEventListener ) {
+      VRSPACE.removeGroupListener(this.groupEventListener);
+      this.groupEventListener = null;
     }
   }
 }
@@ -526,12 +557,15 @@ export class GroupsUI {
       this.hud.markEnabled(this.listGroupsButton);
     } else {
       this.hud.markActive(this.listGroupsButton);
-      Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups()])
+      Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups(), this.groupApi.listUnreadGroups()])
       .then(results => {
         let invites = results[0];
         let myGroups = results[1];
         let ownedGroups = results[2];
+        let unreadGroups = results[3];
+        
         myGroups.forEach(g=>g.isOwned = ownedGroups.some(e=>e.id == g.id));
+        myGroups.forEach(g=>g.unread = unreadGroups.find(e=>e.id == g.id)?.unread || "");
 
         console.log(invites, myGroups);
         
