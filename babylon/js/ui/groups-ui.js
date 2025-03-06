@@ -1,3 +1,4 @@
+import { VRSPACE } from './../client/vrspace.js';
 import { VRSPACEUI } from './vrspace-ui.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
 import { GroupControllerApi } from '../client/openapi/api/GroupControllerApi.js';
@@ -7,6 +8,7 @@ import { GroupMember } from '../client/openapi/model/GroupMember.js';
 import { FormArea } from './widget/form-area.js';
 import { Dialogue } from "./widget/dialogue.js";
 import { World } from './../world/world.js';
+import { ChatLog } from './widget/chat-log.js';
 
 class CreateGroupForm extends Form {
   constructor(callback) {
@@ -193,7 +195,6 @@ class ListGroupsForm extends Form {
     /** @type {GroupInviteForm} */
     this.inviteForm = null;
     this.selectionPredicate = mesh => mesh == this.plane;
-    
   }
   init() {
     this.createPanel();
@@ -366,7 +367,32 @@ class ListGroupsForm extends Form {
     this.refreshCallback();
   }
   pointerClick() {
-    console.log("TODO read messages of: "+this.activeRow);
+    let group = this.groups[this.activeRow];
+    // TODO check group.isInvite
+    console.log("read messages of: "+group.isInvite,group);
+    
+    if ( typeof group.chatlog == "undefined") {
+      group.chatlog = new ChatLog(this.scene, group.name, "ChatLog:"+group.name);
+      group.chatlog.show();
+      group.chatlogSelection = World.lastInstance.addSelectionPredicate((mesh) => this.chatLog.isSelectableMesh(mesh));
+      group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
+      group.chatlog.input.addListener(text => {
+        // TODO send a group message message
+        this.groupApi.write(group.id,text);
+      });
+
+      this.groupApi.listUnreadMessages(group.id).then(messages=>{
+        messages.forEach(message=>{
+          group.chatlog.log(message.from.User.name, message.content);
+        });
+      });
+
+      group.groupListener = VRSPACE.addGroupListener(event=>{
+        if ( event.message ) {
+          group.chatlog.log(event.message.from.User.name, event.message.content);
+        }
+      });
+    }
   }
   async groupLeave(group) {
     await this.groupApi.leave(group.id)

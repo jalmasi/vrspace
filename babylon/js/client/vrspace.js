@@ -549,7 +549,7 @@ export class VRSpace {
   }
 
   /** 
-  Add a Welcome listener, notified when entering a world. 
+  Add a group listener, notified when entering a world. 
   The listener receives Welcome object.
   */
   addGroupListener(callback) {
@@ -557,7 +557,7 @@ export class VRSpace {
   }
 
   /** 
-  Remove welcome listener
+  Remove group listener
   @param callback listener to remove 
   */
   removeGroupListener(callback) {
@@ -1049,7 +1049,7 @@ export class VRSpace {
    * @param {GroupEvent} event 
    */
   handleGroupEvent(event) {
-    this.groupListeners.forEach(l=>l(event));
+    this.groupListeners.forEach(l=>l(event.GroupEvent));
   }
 
   /**

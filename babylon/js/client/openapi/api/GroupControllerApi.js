@@ -15,6 +15,7 @@
 import {ApiClient} from "../ApiClient.js";
 import { Client } from '../model/Client.js';
 import { GroupMember } from '../model/GroupMember.js';
+import { GroupMessage } from '../model/GroupMessage.js';
 import { UserGroup } from '../model/UserGroup.js';
 
 /**
@@ -661,6 +662,87 @@ export class GroupControllerApi {
      */
     listRequests(groupId) {
       return this.listRequestsWithHttpInfo(groupId)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<UserGroup>} and HTTP response
+     */
+    listUnreadGroupsWithHttpInfo() {
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = [UserGroup];
+      return this.apiClient.callApi(
+        '/vrspace/api/groups/unread', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<UserGroup>}
+     */
+    listUnreadGroups() {
+      return this.listUnreadGroupsWithHttpInfo()
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * @param {Number} groupId 
+     * @return {Promise< Array.<GroupMessage> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<GroupMessage>} and HTTP response
+     */
+    listUnreadMessagesWithHttpInfo(groupId) {
+      let postBody = null;
+      // verify the required parameter 'groupId' is set
+      if (groupId === undefined || groupId === null) {
+        throw new Error("Missing the required parameter 'groupId' when calling listUnreadMessages");
+      }
+
+      let pathParams = {
+        'groupId': groupId
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = [GroupMessage];
+      return this.apiClient.callApi(
+        '/vrspace/api/groups/{groupId}/unread', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * @param {Number} groupId 
+     * @return {Promise< Array.<GroupMessage> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<GroupMessage>}
+     */
+    listUnreadMessages(groupId) {
+      return this.listUnreadMessagesWithHttpInfo(groupId)
         .then(function(response_and_data) {
           return response_and_data.data;
         });

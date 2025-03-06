@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.GroupManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.GroupMember;
+import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.UserGroup;
 
 import jakarta.servlet.http.HttpSession;
@@ -246,11 +247,11 @@ public class GroupController extends ClientControllerBase {
   }
 
   @GetMapping("/{groupId}/unread")
-  public List<GroupMember> listUnreadMessages(@PathVariable long groupId, HttpSession session) {
+  public List<GroupMessage> listUnreadMessages(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
-    log.debug("Group requests, user: " + client + " group: " + group);
-    return groupManager.pendingRequests(group, client);
+    log.debug("Unread messages, user: " + client + " group: " + group);
+    return groupManager.unreadMessages(client, group);
   }
 
   protected Client getAuthorisedClient(HttpSession session) {

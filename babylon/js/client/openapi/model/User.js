@@ -95,23 +95,23 @@ export class User {
             if (data.hasOwnProperty('rightArmPos')) {
                 obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
             }
-            if (data.hasOwnProperty('leftArmPos')) {
-                obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
+            if (data.hasOwnProperty('leftArmRot')) {
+                obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
             }
             if (data.hasOwnProperty('rightArmRot')) {
                 obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
             }
-            if (data.hasOwnProperty('leftArmRot')) {
-                obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
+            if (data.hasOwnProperty('leftArmPos')) {
+                obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
             }
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('userHeight')) {
-                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
-            }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            }
+            if (data.hasOwnProperty('userHeight')) {
+                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
@@ -171,17 +171,17 @@ export class User {
         if (data['rightArmPos']) { // data not null
           Point.validateJSON(data['rightArmPos']);
         }
-        // validate the optional field `leftArmPos`
-        if (data['leftArmPos']) { // data not null
-          Point.validateJSON(data['leftArmPos']);
+        // validate the optional field `leftArmRot`
+        if (data['leftArmRot']) { // data not null
+          Quaternion.validateJSON(data['leftArmRot']);
         }
         // validate the optional field `rightArmRot`
         if (data['rightArmRot']) { // data not null
           Quaternion.validateJSON(data['rightArmRot']);
         }
-        // validate the optional field `leftArmRot`
-        if (data['leftArmRot']) { // data not null
-          Quaternion.validateJSON(data['leftArmRot']);
+        // validate the optional field `leftArmPos`
+        if (data['leftArmPos']) { // data not null
+          Point.validateJSON(data['leftArmPos']);
         }
         // validate the optional field `sceneProperties`
         if (data['sceneProperties']) { // data not null
@@ -267,9 +267,9 @@ User.prototype['video'] = undefined;
 User.prototype['rightArmPos'] = undefined;
 
 /**
- * @member {Point} leftArmPos
+ * @member {Quaternion} leftArmRot
  */
-User.prototype['leftArmPos'] = undefined;
+User.prototype['leftArmRot'] = undefined;
 
 /**
  * @member {Quaternion} rightArmRot
@@ -277,9 +277,9 @@ User.prototype['leftArmPos'] = undefined;
 User.prototype['rightArmRot'] = undefined;
 
 /**
- * @member {Quaternion} leftArmRot
+ * @member {Point} leftArmPos
  */
-User.prototype['leftArmRot'] = undefined;
+User.prototype['leftArmPos'] = undefined;
 
 /**
  * @member {SceneProperties} sceneProperties
@@ -287,14 +287,14 @@ User.prototype['leftArmRot'] = undefined;
 User.prototype['sceneProperties'] = undefined;
 
 /**
- * @member {Number} userHeight
- */
-User.prototype['userHeight'] = undefined;
-
-/**
  * @member {Object.<String, String>} tokens
  */
 User.prototype['tokens'] = undefined;
+
+/**
+ * @member {Number} userHeight
+ */
+User.prototype['userHeight'] = undefined;
 
 /**
  * @member {Boolean} temporary

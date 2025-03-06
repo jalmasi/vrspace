@@ -104,9 +104,9 @@ class LinkStack {
  * By default alligned to left side of the screen.
  */
 export class ChatLog extends TextArea {
-  constructor(scene) {
-    super(scene, "ChatLog");
-    this.input = new TextAreaInput(this, "Say");
+  constructor(scene, title, name="ChatLog") {
+    super(scene, name, title);
+    this.input = new TextAreaInput(this, "Say", title);
     this.input.submitName = "send";
     this.input.showNoMatch = false;
     this.inputPrefix = "ME";
@@ -123,12 +123,13 @@ export class ChatLog extends TextArea {
    */
   show() {
     super.show();
-    this.hide(true);
     this.input.inputPrefix = this.inputPrefix;
+    // order matters: InputArea.init() shows the title, so call hide after
     this.input.init();
     if ( this.handles ) {
       this.handles.dontMinimize.push(this.input.plane);
     }
+    this.hide(true);
     this.attachToHud();
     this.handleResize();
     this.resizeHandler = () => this.handleResize();

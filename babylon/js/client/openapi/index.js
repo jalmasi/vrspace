@@ -18,6 +18,7 @@ import Client from './model/Client';
 import ContentCategory from './model/ContentCategory';
 import GltfModel from './model/GltfModel';
 import GroupMember from './model/GroupMember';
+import GroupMessage from './model/GroupMessage';
 import LoginResponse from './model/LoginResponse';
 import Point from './model/Point';
 import Quaternion from './model/Quaternion';
@@ -106,6 +107,12 @@ export {
      * @property {GroupMember}
      */
     GroupMember,
+
+    /**
+     * The GroupMessage model constructor.
+     * @property {GroupMessage}
+     */
+    GroupMessage,
 
     /**
      * The LoginResponse model constructor.
