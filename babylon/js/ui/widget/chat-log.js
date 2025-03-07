@@ -109,6 +109,7 @@ export class ChatLog extends TextArea {
   static instanceId(name, title) {
     return name+":"+title;
   }
+  /** @return {ChatLog} */
   static findInstance(title, name="ChatLog") {
     if ( ChatLog.instances.hasOwnProperty(ChatLog.instanceId(name,title)) ) {
       return ChatLog.instances[ChatLog.instanceId(name,title)];

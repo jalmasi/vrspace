@@ -400,43 +400,50 @@ class ListGroupsForm extends Form {
     console.log("read messages of: "+group.isInvite,group);
     
     if ( typeof group.chatlog == "undefined") {
-      group.chatlog = new ChatLog(this.scene, group.name, "ChatLog:"+group.name);
-      group.chatlog.canClose = true;
-      group.chatlog.minimizeTitle = false;
-      group.chatlog.minimizeInput = true;
-      group.chatlog.autoHide = false;
-      group.chatlog.onClose = () => {
+      group.chatlog = ChatLog.findInstance(group.name, "ChatLog:"+group.name);
+      if ( group.chatlog == null ) {
+        group.chatlog = new ChatLog(this.scene, group.name, "ChatLog:"+group.name);
+        group.chatlog.canClose = true;
+        group.chatlog.minimizeTitle = false;
+        group.chatlog.minimizeInput = true;
+        group.chatlog.autoHide = false;
+        if ( this.stackVertical ) {
+          group.chatlog.verticalAnchor = group.chatlog.verticalAnchor + 0.05 * (ChatLog.instanceCount-1); 
+        }
+        if ( this.stackHorizontal ) {
+          group.chatlog.baseAnchor = group.chatlog.baseAnchor + 0.25 * (ChatLog.instanceCount-1);
+        } 
+        group.chatlog.show();
+        //group.chatlogSelection = World.lastInstance.addSelectionPredicate((mesh) => group.chatLog.isSelectableMesh(mesh));
+        group.chatlog.input.autoWrite = false;
+        group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
+        group.chatlog.input.addListener(text => {
+          // TODO send a group message message
+          this.groupApi.write(group.id,text);
+        });
+
+        group.chatlog.groupListener = VRSPACE.addGroupListener(event=>{
+          if ( event.message && group.id == event.message.group.id) {
+            group.chatlog.log(event.message.from.User.name, event.message.content);
+          }
+        }); 
+      }
+      
+      // previously existing chatlog refers to previously existing group, that may no longer exist/be visible
+      // so, replace existing close event handler (installed in show() call) 
+      group.chatlog.handles.onClose = () => {
+        VRSPACE.removeGroupListener(group.chatlog.groupListener);
         group.chatlog.dispose();
-        VRSPACE.removeGroupListener(group.groupListener);
         //World.lastInstance.removeSelectionPredicate(group.chatlogSelection);
         delete group.chatlog;
       }
-      if ( this.stackVertical ) {
-        group.chatlog.verticalAnchor = group.chatlog.verticalAnchor + 0.05 * (ChatLog.instanceCount-1); 
-      }
-      if ( this.stackHorizontal ) {
-        group.chatlog.baseAnchor = group.chatlog.baseAnchor + 0.25 * (ChatLog.instanceCount-1);
-      } 
-      group.chatlog.show();
-      //group.chatlogSelection = World.lastInstance.addSelectionPredicate((mesh) => group.chatLog.isSelectableMesh(mesh));
-      group.chatlog.input.autoWrite = false;
-      group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
-      group.chatlog.input.addListener(text => {
-        // TODO send a group message message
-        this.groupApi.write(group.id,text);
-      });
-
+      
       this.groupApi.listUnreadMessages(group.id).then(messages=>{
         messages.forEach(message=>{
           group.chatlog.log(message.from.name, message.content);
         });
       });
 
-      group.groupListener = VRSPACE.addGroupListener(event=>{
-        if ( event.message && group.id == event.message.group.id) {
-          group.chatlog.log(event.message.from.User.name, event.message.content);
-        }
-      });
     }
   }
   async groupLeave(group) {
@@ -537,10 +544,16 @@ export class GroupsUI {
     }
   }
 
-  show(button) {
+  async show(button) {
     VRSPACEUI.hud.showButtons(false, button);
     VRSPACEUI.hud.newRow();
-    this.listGroupsButton = this.hud.addButton("List", this.contentBase + "/content/icons/user-group-settings.png", () => { this.listUI() }, false);
+    let unreadGroups = await this.groupApi.listUnreadGroups();
+    let unreadTotal = unreadGroups.reduce((sum,group)=>sum + group.unread, 0);
+    let listText = "List";
+    if (unreadTotal > 0){
+      listText += ": "+unreadTotal;
+    }
+    this.listGroupsButton = this.hud.addButton(listText, this.contentBase + "/content/icons/user-group-settings.png", () => { this.listUI() }, false);
     this.createGroupsButton = this.hud.addButton("Create", this.contentBase + "/content/icons/user-group-plus.png", () => { this.createUI() });
     this.groupsInvitesButton = this.hud.addButton("Invites", this.contentBase + "/content/icons/user-group-info.png", () => { this.invites() });
   }
