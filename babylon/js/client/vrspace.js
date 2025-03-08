@@ -395,7 +395,7 @@ export class GroupMember {
   constructor() {
     this.id = null;
     /** @type {UserGroup} */
-    this.userGroup = null;
+    this.group = null;
     /** @type {Client} */
     this.client = null;
     this.pendingInvite = null;

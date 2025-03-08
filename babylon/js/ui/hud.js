@@ -158,9 +158,21 @@ export class HUD {
    */
   makeRoomForMore() {
     // TODO take variable size of elements into account
-    var width = this.buttonSize + this.buttonSpacing;
+    let width = this.buttonSize + this.buttonSpacing;
     this.elements.forEach(b => {
       b.position.x = b.position.x - width / 2;
+    });
+    return width;
+  }
+
+  /**
+   * Called when removing a button to update all buttons positions
+   */
+  recalculateWidth() {
+    let width = this.buttonSize + this.buttonSpacing;
+    let startPos = (this.elements.length-1)*(this.buttonSize+this.buttonSpacing)/2;
+    this.elements.forEach((button,index) => {
+      button.position.x = index * width - startPos;
     });
     return width;
   }
@@ -204,6 +216,20 @@ export class HUD {
     return button;
   }
 
+  /**
+   * Remove and dispose a button created by addButton
+   */
+  removeButton(button) {
+    let elementIndex = this.elements.findIndex(value => value == button);
+    let controlsIndex = this.controls.findIndex(value => value == button);
+    if ( elementIndex >= 0 && controlsIndex >= 0 ) {
+      this.elements.splice(elementIndex,1);
+      this.controls.splice(controlsIndex,1);
+      this.recalculateWidth();
+      this.rescaleHUD();
+      button.dispose();
+    }
+  }
   /** Activates given button, if it's visible */
   activateButton(button) {
     // CHECKME: do we really want this check here?
