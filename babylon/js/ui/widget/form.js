@@ -21,6 +21,8 @@ export class Form {
     this.verticalPanel = false;
     this.inputWidth = 500;
     this.padding = 0;
+    this.paddingLeftInPixels = 0;
+    this.paddingRightInPixels = 0;
     this.keyboardRows = null;
     this.virtualKeyboardEnabled = true;
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
@@ -76,6 +78,8 @@ export class Form {
     block.fontSize = this.fontSize;
     block.heightInPixels = this.heightInPixels;
     block.resizeToFit = this.resizeToFit;
+    block.paddingLeftInPixels = this.paddingLeftInPixels;
+    block.paddingRightInPixels = this.paddingRightInPixels;
     if ( params ) {
       for(var c of Object.keys(params)) {
         block[c] = params[c];
@@ -90,6 +94,9 @@ export class Form {
     obj.widthInPixels = this.heightInPixels;
     obj.color = this.color;
     obj.background = this.background;
+    // makes box not square:
+    //obj.paddingLeftInPixels = this.paddingLeftInPixels;
+    //obj.paddingRightInPixels = this.paddingRightInPixels;
     if ( params ) {
       for(var c of Object.keys(params)) {
         obj[c] = params[c];
@@ -135,6 +142,8 @@ export class Form {
     input.widthInPixels = this.inputWidth;
     input.heightInPixels = this.heightInPixels;
     input.fontSizeInPixels = this.fontSize;
+    input.paddingLeftInPixels = this.paddingLeftInPixels;
+    input.paddingRightInPixels = this.paddingRightInPixels;
 
     input.color = this.color;
     input.background = this.background;
