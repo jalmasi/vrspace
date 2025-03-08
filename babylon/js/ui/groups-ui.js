@@ -684,6 +684,10 @@ export class GroupsUI {
       this.createGroupForm.dispose();
       this.createGroupForm = null;
     }
+    if (this.listGroupsForm) {
+      this.listGroupsForm.dispose();
+      this.listGroupsForm = null;
+    }
     VRSPACE.removeGroupListener(this.groupEventListener);
   }
 
@@ -743,9 +747,10 @@ export class GroupsUI {
     this.listGroupsForm.dispose();
     this.listGroupsForm = null;
     this.hud.markEnabled(this.listGroupsButton);
+    this.showInvitesButton();
   }
 
-  createForm(invites, groups) {
+  createForm(invites, groups, refresh) {
     let form = new ListGroupsForm(
       this.scene,
       invites,
@@ -758,7 +763,7 @@ export class GroupsUI {
       this.contentBase + "/content/icons/tick.png",
       this.contentBase + "/content/icons/delete.png",
       group => this.groupDelete(group),
-      () => this.refreshList()
+      () => this.refreshList(()=>refresh())
     );
     form.init();
 
@@ -778,7 +783,9 @@ export class GroupsUI {
       this.groupApi.listInvites()
         .then(invites => {
           this.invitations = invites;
-          this.createForm(this.invitations, []);
+          if ( invites.length > 0 ) {
+            this.createForm(this.invitations, [], ()=>this.listInvitesUI());
+          }
         });
     }
   }
@@ -798,7 +805,7 @@ export class GroupsUI {
           myGroups.forEach(g => g.isOwned = ownedGroups.some(e => e.id == g.id));
           myGroups.forEach(g => g.unread = unreadGroups.find(e => e.id == g.id)?.unread || "");
 
-          this.createForm(invites, myGroups);
+          this.createForm(invites, myGroups, ()=>this.listGroupsUI());
         });
     }
   }
@@ -807,16 +814,16 @@ export class GroupsUI {
     let dialogue = new Dialogue("Delete " + group.name + " ?", (yes) => {
       if (yes) {
         this.groupApi.callDelete(group.id).then(() => {
-          this.refreshList();
+          this.refreshList(()=>this.listGroupsUI());
         });
       }
     });
     dialogue.init();
   }
 
-  refreshList() {
-    this.listGroupsUI();
-    this.listGroupsUI();
+  refreshList(refresh) {
+    refresh();
+    refresh();
     this.showInvitesButton();
   }
 
@@ -837,7 +844,7 @@ export class GroupsUI {
           VRSPACEUI.hud.clearRow();
           VRSPACEUI.hud.showButtons(true);
           if (this.listGroupsForm) {
-            this.refreshList();
+            this.refreshList(()=>this.listGroupsUI());
           }
         });
       });
