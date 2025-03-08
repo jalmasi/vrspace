@@ -89,18 +89,19 @@ class ListMembersForm extends Form {
 }
 
 class GroupSettingsForm extends Form {
-  constructor(group, isReadOnly, close, listCallback){
+  constructor(group, isOwner, close, listCallback){
     super();
     /** @type {UserGroup} */
     this.group = group;
     this.listCallback = listCallback;
-    this.isReadOnly = isReadOnly;
+    this.isOwner = isOwner;
     this.close = close;
     this.nameText = "Name:";
     this.publicText = "Public:";
     this.submitText = "Submit";
     this.cancelText = "Cancel";
     this.closeText = "Close";
+    this.leaveText = "Leave group";
     this.membersText = "Members:";
     this.listText = "  List  ";
     this.members = [];
@@ -117,7 +118,7 @@ class GroupSettingsForm extends Form {
     
     this.nameInput = this.inputText('name');
     this.nameInput.text = this.group.name;
-    this.nameInput.isReadOnly = this.isReadOnly;
+    this.nameInput.isReadOnly = !this.isOwner;
     this.addControl(this.nameInput);
     
     this.publicLabel = this.textBlock(this.publicText);
@@ -125,7 +126,7 @@ class GroupSettingsForm extends Form {
     
     this.publicCheckbox = this.checkbox('public');
     this.publicCheckbox.isChecked = this.group.public;
-    this.publicCheckbox.isReadOnly = this.isReadOnly;
+    this.publicCheckbox.isReadOnly = !this.isOwner;
     this.addControl(this.publicCheckbox);
     
     this.membersLabel = this.textBlock(this.membersText);
@@ -145,14 +146,16 @@ class GroupSettingsForm extends Form {
     this.panel2.height = "128px";
     this.panel2.paddingLeft="30%";
 
-    if ( this.isReadOnly ) {
-      let noButton = this.textButton(this.closeText, () => this.close(false), VRSPACEUI.contentBase+"/content/icons/close.png", this.cancelColor);
-      this.addControl(noButton);
-    } else {
+    if ( this.isOwner ) {
       let yesButton = this.textButton(this.submitText, () => this.close(true), VRSPACEUI.contentBase+"/content/icons/tick.png");
       this.addControl(yesButton);
       let noButton = this.textButton(this.cancelText, () => this.close(false), VRSPACEUI.contentBase+"/content/icons/close.png", this.cancelColor);
       this.addControl(noButton);
+    } else {
+      let closeButton = this.textButton(this.closeText, () => this.close(false), VRSPACEUI.contentBase+"/content/icons/close.png");
+      this.addControl(closeButton);
+      let leaveButton = this.textButton(this.leaveText, () => this.close(true), VRSPACEUI.contentBase+"/content/icons/user-group-minus.png", this.cancelColor);
+      this.addControl(leaveButton);
     }
     
     this.verticalPanel = true;
@@ -549,15 +552,14 @@ class ListGroupsForm extends Form {
     this.listArea.detach(.7);
     this.listArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
   }
-  groupCommon(group, isReadOnly, callback) {
+  groupCommon(group, isOwner, callback) {
     if ( this.settingsForm != null ) {
       this.settingsForm.dispose();
       this.settingsArea.dispose();
     }
-    this.settingsForm = new GroupSettingsForm(group, isReadOnly, (ok)=>{
-      callback(ok);
-      this.settingsForm.dispose();
+    this.settingsForm = new GroupSettingsForm(group, isOwner, (ok)=>{
       this.settingsArea.dispose();
+      callback(ok);
     }, (members)=>this.groupList(members));
     this.settingsForm.init();
 
@@ -569,10 +571,14 @@ class ListGroupsForm extends Form {
     this.settingsArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
   }
   groupInfo(group) {
-    this.groupCommon(group, true, ()=>this.settingsArea.dispose());
+    this.groupCommon(group, false, (leave)=>{
+      if ( leave ) {
+        this.groupLeave(group);
+      }
+    });
   }
   groupSettings(group) {
-    this.groupCommon(group, false, (ok)=>{
+    this.groupCommon(group, true, (ok)=>{
       if(ok) {
         let isPublic = this.settingsForm.publicCheckbox.isChecked;
         let groupName = this.settingsForm.nameInput.text.trim()
