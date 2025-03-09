@@ -475,7 +475,7 @@ class ListGroupsForm extends Form {
             if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERMOVE) {
               let row = Math.floor((1 - coord.y) * (this.table.length));
               this.pointerEvent(row);
-            } else if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN) {
+            } else if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN && this.groups.length > 0) {
               this.pointerClick();
             }
           }
@@ -573,7 +573,7 @@ class ListGroupsForm extends Form {
     this.groupEventListener = VRSPACE.addGroupListener(event => {
       if (event.message) {
         let groupIndex = this.groups.findIndex(group => group.id == event.message.group.id);
-        if (groupIndex >= 0) {
+        if (groupIndex >= 0 && typeof this.groups[groupIndex].chatlog == "undefined") {
           this.groups[groupIndex].unread++;
           let row = groupIndex + this.invites.length;
           this.grid.getChildrenAt(row, 3)[0].text = this.groups[groupIndex].unread;
@@ -662,7 +662,9 @@ class ListGroupsForm extends Form {
   }
   
   pointerClick() {
-    let group = this.groups[this.activeRow];
+    // CHECKME: does this when table contain invites?
+    //let group = this.groups[this.activeRow];
+    let group = this.table[this.activeRow];
     // TODO check group.isInvite
     console.log("read messages of: " + group.isInvite, group);
 
@@ -706,6 +708,8 @@ class ListGroupsForm extends Form {
       }
 
       this.groupApi.listUnreadMessages(group.id).then(messages => {
+        group.unread = 0;
+        this.grid.getChildrenAt(this.activeRow, 3)[0].text = "";
         messages.forEach(message => {
           group.chatlog.log(message.from.name, message.content);
         });
@@ -885,7 +889,15 @@ export class GroupsUI {
     });
     this.groupEventListener = VRSPACE.addGroupListener(event=>{
       if ( event.message ) {
-        this.unreadTotal++;
+        // groups form tracks unread count
+        if ( !this.listGroupsForm ) {
+          // chatlog tracks unread count
+          let chatlog = ChatLog.findInstance(event.message.group.name, "ChatLog:" + event.message.group.name);
+          if ( !chatlog ) {
+            this.unreadTotal++;
+          }
+        }
+        this.showListButton();
       } else if ( event.invite ) {
         this.invitations.push(event.invite);
         this.showInvitesButton();
@@ -966,6 +978,9 @@ export class GroupsUI {
       this.clearForm();
     } else {
       this.hud.markActive(this.listGroupsButton);
+      // tracking unread here while group list/chatlog is open is too complicated, so
+      this.unreadTotal = 0;
+      this.showListButton();
       Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups(), this.groupApi.listUnreadGroups()])
         .then(results => {
           let invites = results[0];

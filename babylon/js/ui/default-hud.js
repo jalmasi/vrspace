@@ -20,6 +20,7 @@ import { ImageArea } from './widget/image-area.js';
 import { UserDirectionMonitor } from './widget/user-direction-monitor.js';
 import { MiniMap } from './widget/mini-map.js';
 import { GroupsUI } from './groups-ui.js';
+import { ChatLog } from './widget/chat-log.js';
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -760,6 +761,13 @@ export class DefaultHud {
   groupEvent(event) {
     console.log("Group event", event);
     if ( !this.displayButtons ) {
+      if ( event.message ) {
+        let chatlog = ChatLog.findInstance(event.message.group.name, "ChatLog:" + event.message.group.name);
+        if ( chatlog ) {
+          // chatlog displays messages
+          return;
+        }
+      }
       this.groupEventCount++;
       this.groupsButton.text = "Groups:"+this.groupEventCount;
       this.groupsButton.pointerEnterAnimation();

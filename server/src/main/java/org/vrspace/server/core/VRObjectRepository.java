@@ -271,7 +271,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return count(msg)")
   Integer unreadMessageCount(long groupId, Instant since);
 
-  @Query("MATCH (c:Client)<-[mc:SENDER_CLIENT]-(msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return msg, mc, c")
+  @Query("MATCH (c:Client)<-[mc:SENDER_CLIENT]-(msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return msg, mc, c ORDER BY msg.timestamp")
   List<GroupMessage> messagesSince(long groupId, Instant since);
 
 }
