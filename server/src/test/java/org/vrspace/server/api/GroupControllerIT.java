@@ -17,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
@@ -46,7 +45,7 @@ public class GroupControllerIT {
   private MockMvc mockMvc;
 
   @Autowired
-  @Qualifier("objectMapper")
+  // we use restMapper here, since it is primary
   private ObjectMapper objectMapper;
   @Autowired
   private WebApplicationContext webApplicationContext;
@@ -85,7 +84,8 @@ public class GroupControllerIT {
     MvcResult emptyResult1 = mockMvc.perform(get(ENDPOINT).session(session1)).andExpect(status().isOk()).andReturn();
     assertEquals(0, getList(emptyResult1, UserGroup.class).size());
 
-    MvcResult createResult = mockMvc.perform(post(ENDPOINT).session(session1).param("name", "testGroup"))
+    MvcResult createResult = mockMvc
+        .perform(post(ENDPOINT).session(session1).param("name", "testGroup").param("isPublic", "true"))
         .andExpect(status().isCreated()).andReturn();
     UserGroup group = getObject(createResult, UserGroup.class);
     assertNotNull(group);
@@ -174,11 +174,12 @@ public class GroupControllerIT {
 
     MvcResult invitesResult = mockMvc.perform(get(ENDPOINT + "/invitations").session(session2))
         .andExpect(status().isOk()).andReturn();
-    List<UserGroup> invites = objectMapper.readValue(getResult(invitesResult), new TypeReference<List<UserGroup>>() {
-    });
+    List<GroupMember> invites = objectMapper.readValue(getResult(invitesResult),
+        new TypeReference<List<GroupMember>>() {
+        });
     assertEquals(1, invites.size());
-    assertEquals(group.getId(), invites.get(0).getId());
-    assertTrue(invites.get(0).isPrivate());
+    assertEquals(group.getId(), invites.get(0).getGroup().getId());
+    assertTrue(invites.get(0).getGroup().isPrivate());
 
     mockMvc.perform(post(ENDPOINT + "/{groupId}/accept", group.getId()).session(session2).param("clientId",
         client2.getId().toString())).andExpect(status().isOk()).andReturn();

@@ -104,31 +104,75 @@ class LinkStack {
  * By default alligned to left side of the screen.
  */
 export class ChatLog extends TextArea {
-  constructor(scene) {
-    super(scene, "ChatLog");
-    this.input = new TextAreaInput(this, "Say");
+  static instanceCount = 0;
+  static instances = {}
+  static instanceId(name, title) {
+    return name+":"+title;
+  }
+  /** @return {ChatLog} */
+  static findInstance(title, name="ChatLog") {
+    if ( ChatLog.instances.hasOwnProperty(ChatLog.instanceId(name,title)) ) {
+      return ChatLog.instances[ChatLog.instanceId(name,title)];
+    }
+  }
+  static getInstance(scene, title, name="ChatLog") {
+    if ( ChatLog.instances.hasOwnProperty(ChatLog.instanceId(name,title)) ) {
+      return ChatLog.instances[ChatLog.instanceId(name,title)];
+    }
+    return new ChatLog(scene, title, name);
+  }
+  constructor(scene, title, name="ChatLog") {
+    super(scene, name, title);
+    if ( ChatLog.instances.hasOwnProperty(this.instanceId()) ) {
+      throw "Instance already exists: "+this.instanceId();
+    }
+    this.input = new TextAreaInput(this, "Say", title);
     this.input.submitName = "send";
     this.input.showNoMatch = false;
     this.inputPrefix = "ME";
     this.showLinks = true;
+    this.minimizeInput = false;
+    this.minimizeTitle = true;
+    this.autoHide = true;
     this.size = .3;
     this.baseAnchor = -.4;
+    this.verticalAnchor = -.1;
     //this.baseAnchor = 0;
     this.anchor = this.baseAnchor;
     this.leftSide();
     this.linkStack = new LinkStack(this.scene, this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
+    ChatLog.instanceCount++;
+    ChatLog.instances[this.instanceId()] = this;
+  }
+  instanceId() {
+    return this.name+":"+this.titleText;
   }
   /**
    * Show both TextArea and TextAreaInput, and attach to HUD.
    */
   show() {
     super.show();
-    this.hide(true);
     this.input.inputPrefix = this.inputPrefix;
+    // order matters: InputArea.init() shows the title, so call hide after
     this.input.init();
     if ( this.handles ) {
-      this.handles.dontMinimize.push(this.input.plane);
+      if ( !this.minimizeInput ) {
+        this.handles.dontMinimize.push(this.input.plane);
+      }
+      if ( this.title && !this.minimizeTitle ) {
+        this.handles.dontMinimize.push(this.title.textPlane);
+        // reposition the title
+        this.handles.onMinMax = (minimized) => {
+          if ( minimized ) {
+            this.title.position.y = -1.2 * this.size/2 + this.title.height/2;
+          } else {
+            // CHECKME: copied from TextArea.showTitle:
+            this.title.position.y = 1.2 * this.size/2 + this.title.height/2;
+          }
+        };
+      }
     }
+    this.hide(this.autoHide);
     this.attachToHud();
     this.handleResize();
     this.resizeHandler = () => this.handleResize();
@@ -165,7 +209,7 @@ export class ChatLog extends TextArea {
    */
   moveToAnchor() {
     //this.position = new BABYLON.Vector3(this.anchor, this.size/2-.025, 0);
-    this.position = new BABYLON.Vector3(this.anchor, this.size/2-.1, 0.2);
+    this.position = new BABYLON.Vector3(this.anchor, this.size/2+this.verticalAnchor, 0.2);
     this.group.position = this.position;
   }
   /**
@@ -210,6 +254,8 @@ export class ChatLog extends TextArea {
     this.input.dispose();
     super.dispose();
     this.linkStack.dispose();
+    delete ChatLog.instances[this.instanceId()];
+    ChatLog.instanceCount--;
   }
   /** XR pointer selection support */
   isSelectableMesh(mesh) {

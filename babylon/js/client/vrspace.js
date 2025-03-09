@@ -365,7 +365,7 @@ export class SceneEvent {
 /**
  * Streaming session data, used to match the client avatar or other mesh to the video/audio stream.
  */
-export class SessionData{
+export class SessionData {
   /**
    * @param {String} json string representation of this object (passed along connection as user data) 
    */
@@ -380,6 +380,49 @@ export class SessionData{
       this[key] = value;
       return value;
     });
+  }
+}
+
+export class UserGroup {
+  constructor() {
+    this.id = null;
+    this.name = null;
+    this.isPublic = null;    
+  }
+}
+
+export class GroupMember {
+  constructor() {
+    this.id = null;
+    /** @type {UserGroup} */
+    this.group = null;
+    /** @type {Client} */
+    this.client = null;
+    this.pendingInvite = null;
+    this.pendingRequest = null;
+    /** @type {Client} */
+    this.sponsor = null;
+    this.lastUpdate = null;
+  }
+}
+
+export class GroupMessage {
+  constructor() {
+    /** @type {Client} */
+    this.from = null;
+    /** @type {UserGroup} */
+    this.group = null;
+    this.message = null;
+  }
+}
+
+/** Notification from a UserGroup */
+export class GroupEvent {
+  constructor() {
+    /** @type {GroupMessage} */
+    this.message = null;
+    /** @type {GroupMember} */
+    this.invite = null;
   }
 }
 
@@ -403,6 +446,7 @@ export class VRSpace {
     this.sceneListeners = [];
     this.welcomeListeners = [];
     this.errorListeners = [];
+    this.groupListeners = [];
     /** Listener to response to a command. */
     this.responseListener = null;
     this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, Terrain, VRFile, Game, Background };
@@ -410,6 +454,15 @@ export class VRSpace {
     // exposing each class
     for( var c in this.sharedClasses ) {
       this[c] = this.sharedClasses[c];
+    }
+    this.messageHandlers = {
+      object:message=>this.handleEvent(message),
+      Add:message=>this.handleAdd(message.Add),
+      Remove:message=>this.handleRemove(message.Remove),
+      ERROR:message=>this.handleError(message.ERROR),
+      Welcome:message=>this.handleWelcome(message.Welcome),
+      response:message=>this.handleResponse(message.response),
+      GroupEvent:message=>this.handleGroupEvent(message)
     }
   }
   
@@ -424,6 +477,7 @@ export class VRSpace {
     if ( typeof callback == 'function' || typeof callback == 'object') {
       array.push(callback);
     }
+    return callback;
   }
   
   /* Used internally to remove a listener */  
@@ -439,12 +493,12 @@ export class VRSpace {
   Callback is passed boolean argument indicating connection state.
    */
   addConnectionListener(callback) {
-    this.addListener( this.connectionListeners, callback);
+    return this.addListener( this.connectionListeners, callback);
   }
   
   /** Add a data listener that receives everything from the server (JSON string argument) */
   addDataListener(callback) {
-    this.addListener( this.dataListeners, callback);
+    return this.addListener( this.dataListeners, callback);
   }
   
   /** 
@@ -452,7 +506,7 @@ export class VRSpace {
   Scene listeners receive SceneEvent argument for each change. 
   */
   addSceneListener(callback) {
-    this.addListener( this.sceneListeners, callback );
+    return this.addListener( this.sceneListeners, callback );
   }
 
   /** 
@@ -467,7 +521,7 @@ export class VRSpace {
   The listener receives Welcome object.
   */
   addWelcomeListener(callback) {
-    this.addListener( this.welcomeListeners, callback);
+    return this.addListener( this.welcomeListeners, callback);
   }
   
   /** 
@@ -483,9 +537,35 @@ export class VRSpace {
   Error listener is passed the string containing the server error message, e.g. java exception.
   */
   addErrorListener(callback) {
-    this.addListener( this.errorListeners, callback);
+    return this.addListener( this.errorListeners, callback);
   }
 
+  /** 
+  Remove error listener
+  @param callback listener to remove 
+  */
+  removeErrorListener(callback) {
+    this.removeListener( this.errorListeners, callback);
+  }
+
+  /** 
+  Add a group listener, notified when entering a world. 
+  The listener receives Welcome object.
+  @param {function(GroupEvent)} callback 
+  */
+  addGroupListener(callback) {
+    return this.addListener( this.groupListeners, callback);
+  }
+
+  /** 
+  Remove group listener
+  @param callback listener to remove 
+  */
+  removeGroupListener(callback) {
+    this.removeListener( this.groupListeners, callback);
+  }
+
+  
   /**
   Return the current scene, optionally filtered
   @param filter string to match current members, usually class name, or function that takes VRObject as argument
@@ -608,11 +688,11 @@ export class VRSpace {
   /** Create a local field of an object existing on the server FIXME Obsolete */
   createField(className, fieldName, callback) {
     // TODO: use class metadata
-    this.call('{"command":{"Describe":{"className":"'+className+'"}}}',(obj) => {
+    this.call('{"command":{"Describe":{"className":"'+className+'"}}}',(response) => {
       var ret = null;
-      for ( var field in obj.response ) {
+      for ( var field in response ) {
         if ( field === fieldName ) {
-          var javaType = obj.response[field];
+          var javaType = response[field];
           if ( javaType === 'String' ) {
             ret = '';
           } else if ( javaType == 'Long' ) {
@@ -651,7 +731,7 @@ export class VRSpace {
       // response to command contains object ID
       this.call('{"command":{"'+command+'":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
         this.log("Response:", response);
-        var objectId = response.response[0][className];
+        var objectId = response[0][className];
         const id = new ID(className,objectId);
         this.log("Created object:"+ objectId);
         // by now the object is already in the scene, since Add message preceeded the response
@@ -874,72 +954,105 @@ export class VRSpace {
     this.sceneListeners.forEach((listener) => listener(e));
   }
   
-  /* process changes to the object, used internally */
-  processEvent(obj,changes) {
-    var id = new ID(Object.keys(obj)[0],Object.values(obj)[0]);
+  /**
+  Called when a message is received from the server. JSON message is converted to an object, 
+  then depending on object type, forwarded to one of this.messageHandlers.
+  @param {String} message text message from the server over the websocket  
+   */
+  receive(message) {
+    this.log("Received: "+message);
+    let obj = JSON.parse(message);
+    let handlerName = Object.keys(obj)[0];
+    try {
+      if ( Object.hasOwn(this.messageHandlers,handlerName) ) {
+        this.messageHandlers[handlerName](obj);
+      } else {
+        console.error("ERROR: unknown message type", message);
+      }
+    } catch (exception) {
+      console.error("ERROR processing message ", message, exception);
+    }
+  }
+
+  /**
+   * Handle event of a shared VRObject: find the object in the scene, apply changes, notify listeners.
+   * @param {VREvent} message containing object id and changes  
+   */  
+  handleEvent(message){
+    var id = new ID(Object.keys(message.object)[0],Object.values(message.object)[0]);
     this.log("processing changes on "+id);
     if ( this.scene.has(id.toString())) {
       var object = this.scene.get(id.toString());
-      Object.assign(object,changes);
-      // TODO: route event to mesh/script
-      // TODO: notify listeners
-      object.notifyListeners(changes);
+      Object.assign(object,message.changes);
+      object.notifyListeners(message.changes);
     } else {
       this.log("Unknown object "+id);
     }
   }
-  
   /**
-  Called when a message is received from the server. JSON message is converted to an object, 
-  then depending on object type, handled as one of: 
-  message to an object in the scene,
-  add an object message,
-  remove an object,
-  error message,
-  response to a command
+   * Handle Add message: add every object to the scene, and notify listeners. Calls addObject.
+   * @param {Add} add Add command containing addedd objects
    */
-  receive(message) {
-    this.log("Received: "+message);
-    var obj = JSON.parse(message);
-    if ("object" in obj){
-      this.processEvent(obj.object,obj.changes);
-    } else if ("Add" in obj ) {
-      for ( i=0; i< obj.Add.objects.length; i++ ) {
-        // this.log("adding "+i+":"+obj);
-        this.addObject(obj.Add.objects[i]);
-      }
-      this.log("added "+obj.Add.objects.length+" scene size "+this.scene.size);
-    } else if ("Remove" in obj) {
-      for ( var i=0; i< obj.Remove.objects.length; i++ ) {
-        this.removeObject(obj.Remove.objects[i]);
-      }
-    } else if ("ERROR" in obj){
-      // TODO: error listener(s)
-      this.log(obj.ERROR);
-      this.errorListeners.forEach((listener)=>listener(obj.ERROR));
-    } else if ( "Welcome" in obj) {
-      var welcome = obj.Welcome;
-      if ( ! this.me ) {
-        // FIXME: Uncaught TypeError: Cannot assign to read only property of function class
-        let client = new User();
-        this.me = Object.assign(client,welcome.client.User);
-      }
-      this.welcomeListeners.forEach((listener)=>listener(welcome));
-      if ( welcome.permanents ) {
-        welcome.permanents.forEach( o => this.addObject(o));
-      }
-    } else if ("response" in obj) {
-      this.log("Response to command");
-      if ( typeof this.responseListener === 'function') {
-        var callback = this.responseListener;
-        this.responseListener = null;
-        callback(obj);
-      }
-    } else {
-      this.log("ERROR: unknown message type");
+  handleAdd(add){
+    for ( let i=0; i< add.objects.length; i++ ) {
+      // this.log("adding "+i+":"+obj);
+      this.addObject(add.objects[i]);
+    }
+    this.log("added "+add.objects.length+" scene size "+this.scene.size);
+  }
+  /**
+   * Handle Remove message: remove every object from the scene, and notify listeners. Calls removeObject.
+   * @param {Remove} remove Remove command containing list of object IDs to remove
+   */
+  handleRemove(remove){
+    for ( let i=0; i< remove.objects.length; i++ ) {
+      this.removeObject(remove.objects[i]);
+    }
+  }
+  /**
+   * Handle server error: log the error, and notify error listeners.
+   * @param {object} error object containing error message received from the server
+   */
+  handleError(error){
+    this.log(error);
+    this.errorListeners.forEach((listener)=>listener(error));
+  }
+  /**
+   * Handle Welcome message: create own user object, and notify welcome listeners. Adds all permanent objects to the scene.
+   * @param {Welcome} welcome the Welcome message. 
+   */
+  handleWelcome(welcome){
+    if ( ! this.me ) {
+      // FIXME: Uncaught TypeError: Cannot assign to read only property of function class
+      let client = new User();
+      this.me = Object.assign(client,welcome.client.User);
+    }
+    this.welcomeListeners.forEach((listener)=>listener(welcome));
+    if ( welcome.permanents ) {
+      welcome.permanents.forEach( o => this.addObject(o));
+    }
+  }
+  /**
+   * Handle response to command: if responseListener is installed, execute it with the message, ignore otherwise.
+   * @param {object} response object containing response to the command, can be anything, depending on the command. 
+   */
+  handleResponse(response){
+    this.log("Response to command");
+    if ( typeof this.responseListener === 'function') {
+      var callback = this.responseListener;
+      this.responseListener = null;
+      callback(response);
     }
   }
   
+  /**
+   * Handle a group event, simply forward the event to all groupListeners.
+   * @param {GroupEvent} event 
+   */
+  handleGroupEvent(event) {
+    this.groupListeners.forEach(l=>l(event.GroupEvent));
+  }
+
   /**
    * Experimental. Executes StreamingSession start command on the server that returns session token,
    * the executes callback, passing the token to it 
@@ -947,9 +1060,9 @@ export class VRSpace {
   async startStreaming( callback ) {
     return new Promise( (resolve, reject) => {
       this.call('{"command":{"StreamingSession":{"action":"start"}}}', (response) => {
-        resolve(response.response);
+        resolve(response);
         if ( callback ) {
-          callback(response.response);
+          callback(response);
         }
       });
     });

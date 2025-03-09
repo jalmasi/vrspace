@@ -98,10 +98,10 @@ public class Oauth2Controller extends ApiBase {
    * This endpoint requires both user name and authentication provider id (fb,
    * github, google... as defined in app properties file). The framework then
    * performs authentication through a series of on-site and off-site redirects.
-   * Only after successful Oauth2 authentication with external provider, this
-   * method fetches or creates the Client object, and redirect back to the
-   * referring page. Client object is stored in HttpSession, under key specified
-   * by clientFactory.clientAttribute().
+   * Only after successful Oauth2 authentication with external provider, the
+   * browser lands here. This method fetches or creates the Client object, and
+   * redirect back to the referring page. Client object is stored in HttpSession,
+   * under key specified by clientFactory.clientAttribute().
    * 
    * @param name     Login name of the user, local
    * @param provider Oauth2 authentication provider id , as registered in
@@ -109,7 +109,7 @@ public class Oauth2Controller extends ApiBase {
    * @param avatar   Optional avatar URI, used only when creating a new user
    */
   @GetMapping("/login")
-  public ResponseEntity<String> login(String name, String provider, String avatar, HttpSession session,
+  public ResponseEntity<String> afterAuthentication(String name, String provider, String avatar, HttpSession session,
       HttpServletRequest request) {
     String referrer = request.getHeader(HttpHeaders.REFERER);
     log.info("Referer: " + referrer);
@@ -159,12 +159,14 @@ public class Oauth2Controller extends ApiBase {
   }
 
   // CHECKME unused?
+  /*
   @GetMapping("/callback")
   public void callback(String code, String state, HttpServletRequest request) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
+  
     OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
     log.debug("oauth callback: code=" + code + " " + oauthToken);
   }
+  */
 
 }

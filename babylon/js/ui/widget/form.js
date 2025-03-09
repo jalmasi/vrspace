@@ -17,9 +17,12 @@ export class Form {
     this.background = "black";
     this.selected = "yellow";
     this.submitColor = "green";
+    this.cancelColor = "red";
     this.verticalPanel = false;
     this.inputWidth = 500;
     this.padding = 0;
+    this.paddingLeftInPixels = 0;
+    this.paddingRightInPixels = 0;
     this.keyboardRows = null;
     this.virtualKeyboardEnabled = true;
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
@@ -51,7 +54,7 @@ export class Form {
    * Returns new StackPanel with 1 height and width and aligned to center both vertically and horizontally
    */
   createPanel() {
-    this.panel = new BABYLON.GUI.StackPanel();
+    this.panel = new BABYLON.GUI.StackPanel('StackPanel:'+(this.verticalPanel?'vertical':'horizontal'));
     this.panel.isVertical = this.verticalPanel;
     this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
@@ -67,7 +70,7 @@ export class Form {
    * Creates and returns a textblock with given text 
    */
   textBlock(text, params) {
-    var block = new BABYLON.GUI.TextBlock();
+    var block = new BABYLON.GUI.TextBlock('TextBlock:'+text);
     block.horizontalAlignment = this.horizontalAlignment;
     block.verticalAlignment = this.verticalAlignment;
     block.text = text;
@@ -75,6 +78,8 @@ export class Form {
     block.fontSize = this.fontSize;
     block.heightInPixels = this.heightInPixels;
     block.resizeToFit = this.resizeToFit;
+    block.paddingLeftInPixels = this.paddingLeftInPixels;
+    block.paddingRightInPixels = this.paddingRightInPixels;
     if ( params ) {
       for(var c of Object.keys(params)) {
         block[c] = params[c];
@@ -89,6 +94,9 @@ export class Form {
     obj.widthInPixels = this.heightInPixels;
     obj.color = this.color;
     obj.background = this.background;
+    // makes box not square:
+    //obj.paddingLeftInPixels = this.paddingLeftInPixels;
+    //obj.paddingRightInPixels = this.paddingRightInPixels;
     if ( params ) {
       for(var c of Object.keys(params)) {
         obj[c] = params[c];
@@ -114,14 +122,14 @@ export class Form {
    * Creates and returns a named Checkbox
    */
   checkbox(name, params) {
-    var checkbox = new BABYLON.GUI.Checkbox();
+    var checkbox = new BABYLON.GUI.Checkbox('Checkbox:'+name);
     return this._common(checkbox, name, params);
   }
   /**
    * Creates and returns a named RadioButton
    */
   radio(name, params) {
-    var radioButton= new BABYLON.GUI.RadioButton();
+    var radioButton= new BABYLON.GUI.RadioButton('radio:'+name);
     return this._common(radioButton, name, params);
   }
   /**
@@ -130,10 +138,12 @@ export class Form {
    * @param params optional object to override InputText field values
    */
   inputText(name, params) {
-    let input = new BABYLON.GUI.InputText(name);
+    let input = new BABYLON.GUI.InputText('InputText:'+name);
     input.widthInPixels = this.inputWidth;
     input.heightInPixels = this.heightInPixels;
     input.fontSizeInPixels = this.fontSize;
+    input.paddingLeftInPixels = this.paddingLeftInPixels;
+    input.paddingRightInPixels = this.paddingRightInPixels;
 
     input.color = this.color;
     input.background = this.background;
@@ -200,6 +210,13 @@ export class Form {
     this.setupButton(button, callback);
     return button;
   }
+  
+  makeIcon(name, url) {
+    let ret = new BABYLON.GUI.Image(name, url);
+    ret.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+    return ret;
+  }
+
   /**
    * Creates and returns a VirtualKeyboard, bound to given AdvancedDynamicTexture.
    * A form can only have one keyboard, shared by all InputText elements. 

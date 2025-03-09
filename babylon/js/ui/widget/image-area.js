@@ -226,6 +226,8 @@ export class ImageArea extends BaseArea {
     this.handles.material.diffuseColor = new BABYLON.Color3(.2,.2,.3);
     */
     this.handles.canMinimize = this.canMinimize;
+    this.handles.canClose = this.canClose;
+    this.handles.onClose = this.onClose;
     this.handles.show();
     this.attachVolumeControl();
   }
@@ -269,6 +271,9 @@ export class ImageArea extends BaseArea {
   /** Clean up. */
   dispose() {
     super.dispose();
+    if ( this.material ) {
+      this.material.dispose();
+    }
     if ( this.clickHandler) {
       this.scene.onPointerObservable.remove(this.clickHandler);
     }

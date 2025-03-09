@@ -3,6 +3,7 @@ package org.vrspace.server.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,7 @@ import org.vrspace.server.obj.Embedded;
 import org.vrspace.server.obj.Entity;
 import org.vrspace.server.obj.GltfModel;
 import org.vrspace.server.obj.GroupMember;
+import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.TerrainPoint;
@@ -230,8 +232,11 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
       + " WHERE ID(c) = $clientId RETURN o,owns,c,owned,obj")
   List<UserGroup> listOwnedGroups(long clientId);
 
-  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId RETURN ug")
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId AND gm.pendingInvite IS NULL AND gm.pendingRequest IS NULL RETURN ug")
   List<UserGroup> listUserGroups(long clientId);
+
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId AND gm.pendingInvite IS NULL AND gm.pendingRequest IS NULL RETURN gm, r, ug")
+  List<GroupMember> listGroupMemberships(long clientId);
 
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId AND gm.pendingRequest IS NULL AND gm.pendingInvite IS NULL RETURN c")
   List<Client> listGroupClients(long groupId);
@@ -260,7 +265,13 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(ug)=$groupId AND gm.pendingRequest IS NOT NULL RETURN gm, c, mc, r, ug")
   List<GroupMember> listPendingRequests(long groupId);
 
-  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId AND gm.pendingInvite IS NOT NULL RETURN gm, c, mc, r, ug")
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup), (s:Client)<-[sc:SPONSOR_CLIENT]-(gm:GroupMember) WHERE ID(c)=$clientId AND gm.pendingInvite IS NOT NULL RETURN gm, c, mc, r, ug, sc, s")
   List<GroupMember> listPendingInvitations(long clientId);
+
+  @Query("MATCH (msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return count(msg)")
+  Integer unreadMessageCount(long groupId, Instant since);
+
+  @Query("MATCH (c:Client)<-[mc:SENDER_CLIENT]-(msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ID(ug)=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return msg, mc, c ORDER BY msg.timestamp")
+  List<GroupMessage> messagesSince(long groupId, Instant since);
 
 }

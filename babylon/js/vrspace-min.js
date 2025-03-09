@@ -1,8 +1,8 @@
 // minimal imports, VRSpace classes only
 export { VRSPACE, VRSpace, SceneEvent, VREvent, EventRecorder, Client, SceneProperties, VRObject, Point, Rotation, ID } from "./client/vrspace.js";
 export { VRSpaceAPI } from './client/rest-api.js';
+export { ScriptLoader } from "./client/script-loader.js";
 
-export { ScriptLoader } from "./core/script-loader.js";
 export { ServerFolder, ServerFile } from "./core/server-folder.js";
 export { WorldManager } from "./core/world-manager.js";
 export { MediaStreams, OpenViduStreams } from "./core/media-streams.js";

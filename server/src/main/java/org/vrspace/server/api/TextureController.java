@@ -30,7 +30,7 @@ public class TextureController extends ApiBase {
    * List all jpg and png files in content directory hierarchy
    */
   @GetMapping("/list")
-  public List<String> list() {
+  public List<String> listTextures() {
     try {
       URI contentUri = new URI("file:" + contentDir);
       log.debug("Listing " + contentUri);
@@ -49,10 +49,10 @@ public class TextureController extends ApiBase {
    * Search textures that contain given substring
    */
   @GetMapping("/search")
-  public List<String> search(String pattern) {
+  public List<String> searchTextures(String pattern) {
     try {
       log.debug("Searching textures for " + pattern);
-      return list().stream().filter(f -> f.toLowerCase().indexOf(pattern) >= 0).collect(Collectors.toList());
+      return listTextures().stream().filter(f -> f.toLowerCase().indexOf(pattern) >= 0).collect(Collectors.toList());
     } catch (Exception e) {
       log.error("Error listing textures", e);
       throw new ApiException("Error listing textures: " + e);

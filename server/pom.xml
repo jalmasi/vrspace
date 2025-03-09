@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.vrspace</groupId>
   <artifactId>server</artifactId>
@@ -17,14 +19,14 @@
   </properties>
 
   <dependencyManagement>
-     <dependencies>
-        <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-dependencies</artifactId>
-          <version>3.3.7</version>
-          <type>pom</type>
-          <scope>import</scope>
-        </dependency>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>3.3.7</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -43,13 +45,13 @@
       <organizationUrl>https://www.vrspace.org</organizationUrl>
     </developer>
   </developers>
-  
+
   <scm>
     <connection>scm:git:git://github.com/jalmasi/vrspace.git</connection>
     <developerConnection>scm:git:ssh://github.com:jalmasi/vrspace.git</developerConnection>
     <url>http://github.com/jalmasi/vrspace/tree/master</url>
   </scm>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -77,7 +79,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webflux</artifactId>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
@@ -114,9 +116,9 @@
 
     <!-- swagger 3 -->
     <dependency>
-        <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-        <version>2.6.0</version>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>2.6.0</version>
     </dependency>
     <!--To Use code comments as Swagger description library -->
     <dependency>
@@ -124,7 +126,7 @@
       <artifactId>therapi-runtime-javadoc</artifactId>
       <version>0.15.0</version>
     </dependency>
-  
+
     <!-- Neo4j -->
     <dependency>
       <groupId>org.springframework.data</groupId>
@@ -166,8 +168,9 @@
       <artifactId>spring-boot-configuration-processor</artifactId>
       <optional>true</optional>
     </dependency>
-    
-    <!-- remote browsing, we have to override bunch of versions already managed by spring boot -->
+
+    <!-- remote browsing, we have to override bunch of versions already managed
+    by spring boot -->
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
@@ -217,13 +220,13 @@
       <version>5.2.1</version>
     </dependency>
 
-    <!-- elastic search session listener(s)-->        
+    <!-- elastic search session listener(s)-->
     <dependency>
       <groupId>co.elastic.clients</groupId>
       <artifactId>elasticsearch-java</artifactId>
       <version>8.16.1</version>
     </dependency>
-    
+
   </dependencies>
 
   <distributionManagement>
@@ -263,7 +266,7 @@
                   <goal>repackage</goal>
                 </goals>
               </execution>
-            </executions>            
+            </executions>
           </plugin>
 
           <plugin>
@@ -272,11 +275,13 @@
             <version>3.8.1</version>
             <configuration>
               <fork>true</fork>
-              <!-- DBIT may fail without this, as VRObjectRepository contains no @Param annotations -->
+              <!-- DBIT may fail without this, as VRObjectRepository contains no
+              @Param annotations -->
               <compilerArgs>
                 <arg>-parameters</arg>
               </compilerArgs>
-              <!--To Use code comments as Swagger description Plugin
+              <!--To
+              Use code comments as Swagger description Plugin
               -->
               <annotationProcessorPaths>
                 <path>
@@ -319,7 +324,13 @@
             </executions>
             <configuration>
               <classesDirectory>${project.build.outputDirectory}</classesDirectory>
-              <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED</argLine>
+              <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens
+                java.base/java.nio=ALL-UNNAMED --add-opens
+                java.base/java.io=ALL-UNNAMED --add-opens
+                java.base/java.util=ALL-UNNAMED --add-opens
+                java.base/java.util.concurrent=ALL-UNNAMED --add-opens
+                java.base/sun.net.www.protocol.http=ALL-UNNAMED --add-opens
+                java.base/sun.nio.ch=ALL-UNNAMED</argLine>
             </configuration>
           </plugin>
 
@@ -338,7 +349,7 @@
                   <destFile>${project.build.directory}/jacoco-unit.exec</destFile>
                 </configuration>
               </execution>
-                
+
               <execution>
                 <id>prepare-agent-integration</id>
                 <goals>
@@ -349,7 +360,7 @@
                   <append>true</append>
                 </configuration>
               </execution>
-              
+
               <execution>
                 <id>report</id>
                 <phase>post-integration-test</phase>
@@ -374,7 +385,7 @@
                 </configuration>
               </execution>
             </executions>
-            
+
           </plugin>
 
           <!-- include git info to be exposed under /actuator endpoint -->
@@ -386,7 +397,8 @@
               <offline>true</offline>
               <failOnNoGitDirectory>false</failOnNoGitDirectory>
               <generateGitPropertiesFile>true</generateGitPropertiesFile>
-              <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+              <generateGitPropertiesFilename>
+                ${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
               <commitIdGenerationMode>full</commitIdGenerationMode>
               <excludeProperties>
                 <excludeProperty>git.build.user.*</excludeProperty>
@@ -424,7 +436,11 @@
     </profile>
 
     <profile>
-      <!-- generate javadoc, e.g. for web site -->
+      <!-- 
+        generate javadoc, e.g. for web site
+        use along with the main profile, e.g.
+        mvn clean install -P build,docs 
+      -->
       <id>docs</id>
       <build>
         <plugins>
@@ -452,13 +468,14 @@
             <version>3.8.1</version>
             <configuration>
               <fork>true</fork>
-              <!-- DBIT may fail without this, as VRObjectRepository contains no @Param annotations -->
+              <!-- DBIT may fail without this, as VRObjectRepository contains no
+              @Param annotations -->
               <compilerArgs>
                 <arg>-parameters</arg>
               </compilerArgs>
             </configuration>
           </plugin>
-          
+
           <!-- unit tests -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -485,7 +502,13 @@
             </executions>
             <configuration>
               <classesDirectory>${project.build.outputDirectory}</classesDirectory>
-              <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED</argLine>
+              <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens
+                java.base/java.nio=ALL-UNNAMED --add-opens
+                java.base/java.io=ALL-UNNAMED --add-opens
+                java.base/java.util=ALL-UNNAMED --add-opens
+                java.base/java.util.concurrent=ALL-UNNAMED --add-opens
+                java.base/sun.net.www.protocol.http=ALL-UNNAMED --add-opens
+                java.base/sun.nio.ch=ALL-UNNAMED</argLine>
             </configuration>
           </plugin>
 
@@ -513,7 +536,10 @@
     </profile>
 
     <profile>
-      <!-- publish the release to nexus and maven central -->
+      <!-- 
+      publish the release to nexus and maven central 
+      mvn deploy -P publish
+      -->
       <id>publish</id>
       <build>
         <plugins>
@@ -523,13 +549,14 @@
             <version>3.8.1</version>
             <configuration>
               <fork>true</fork>
-              <!-- DBIT may fail without this, as VRObjectRepository contains no @Param annotations -->
+              <!-- DBIT may fail without this, as VRObjectRepository contains no
+              @Param annotations -->
               <compilerArgs>
                 <arg>-parameters</arg>
               </compilerArgs>
             </configuration>
           </plugin>
-          
+
           <!-- unit tests -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -556,7 +583,13 @@
             </executions>
             <configuration>
               <classesDirectory>${project.build.outputDirectory}</classesDirectory>
-              <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED</argLine>
+              <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens
+                java.base/java.nio=ALL-UNNAMED --add-opens
+                java.base/java.io=ALL-UNNAMED --add-opens
+                java.base/java.util=ALL-UNNAMED --add-opens
+                java.base/java.util.concurrent=ALL-UNNAMED --add-opens
+                java.base/sun.net.www.protocol.http=ALL-UNNAMED --add-opens
+                java.base/sun.nio.ch=ALL-UNNAMED</argLine>
             </configuration>
           </plugin>
 
@@ -615,6 +648,107 @@
                 <goals>
                   <goal>sign</goal>
                 </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <!--
+      generate javascript client source from openapi spec, and copy it over to /babylon/js/client/openapi
+      requires locally running vrspace server to fetch the spec from
+      mvn generate-sources -P openapi
+      -->
+      <id>openapi</id>
+      <build>
+        <plugins>
+
+          <!-- https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin -->
+          <plugin>
+            <groupId>org.openapitools</groupId>
+            <artifactId>openapi-generator-maven-plugin</artifactId>
+            <version>7.11.0</version>
+            <executions>
+              <execution>
+                <id>generate-client</id>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+                <configuration>
+                  <!-- https://openapi-generator.tech/docs/generators/javascript/ -->
+                  <inputSpec>http://localhost:8080/v3/api-docs</inputSpec>
+                  <generatorName>javascript</generatorName>
+                  <generateModelTests>false</generateModelTests>
+                  <generateModelDocumentation>false</generateModelDocumentation>
+                  <generateApiTests>false</generateApiTests>
+                  <generateApiDocumentation>false</generateApiDocumentation>
+                  <templateDirectory>${project.basedir}/src/main/resources/openapi</templateDirectory>
+                  <!-- 
+                  openapi moustache templates customized to generate javascript that works in the browser (functional imports) 
+                  fetch templates:
+                  npm install @openapitools/openapi-generator-cli -g
+                  openapi-generator-cli author template -g javascript 
+                  -->
+                  <configOptions>
+                    <!-- js gen -->
+                    <usePromises>true</usePromises>
+                    <!-- DefaultUserAgent setting causes errors in chrome -->
+                    <skipDefaultUserAgent>true</skipDefaultUserAgent>
+                  </configOptions>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          
+          <plugin>
+            <groupId>com.google.code.maven-replacer-plugin</groupId>
+            <artifactId>replacer</artifactId>
+            <version>1.5.2</version>
+            <executions>
+              <execution>
+                <id>fix-javadoc-types</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>replace</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <basedir>${project.build.directory}/generated-sources/openapi/src/</basedir>
+              <includes>
+                <include>**/*.js</include>
+              </includes>
+              <replacements>
+                <replacement>
+                  <token>module:model/</token>
+                  <value></value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>3.3.1</version>
+            <executions>
+              <execution>
+                <id>copy-generated-client</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${project.basedir}/../babylon/js/client/openapi</outputDirectory>
+                  <resources>          
+                    <resource>
+                      <directory>${project.build.directory}/generated-sources/openapi/src/</directory>
+                      <filtering>false</filtering>
+                    </resource>
+                  </resources>              
+                </configuration>            
               </execution>
             </executions>
           </plugin>

@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.UserGroup;
 
 @SpringBootTest
@@ -53,7 +56,7 @@ public class GroupManagerIT {
   public void testPublicJoinLeave() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test"));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
     assertThrows(IllegalArgumentException.class, () -> gm.leave(group, c1));
 
     Client c2 = db.save(new Client());
@@ -75,7 +78,7 @@ public class GroupManagerIT {
   public void testPrivateJoinKick() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", false));
 
     Client c2 = db.save(new Client());
 
@@ -105,10 +108,10 @@ public class GroupManagerIT {
   public void testPublicInvite() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test"));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
 
     Client c2 = db.save(new Client());
-    gm.invite(group, c2, null);
+    gm.invite(group, c2, c1);
 
     assertTrue(db.listGroupClients(group.getId()).contains(c1));
     assertFalse(db.listGroupClients(group.getId()).contains(c2));
@@ -129,7 +132,7 @@ public class GroupManagerIT {
   public void testPrivateInvite() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", false));
 
     Client c2 = db.save(new Client());
 
@@ -151,4 +154,31 @@ public class GroupManagerIT {
     assertTrue(db.listGroupClients(group.getId()).contains(c2));
   }
 
+  @Test
+  @Transactional
+  public void testUnread() {
+    Client c1 = db.save(new Client());
+
+    UserGroup group1 = gm.createGroup(c1, new UserGroup("group1", true));
+    UserGroup group2 = gm.createGroup(c1, new UserGroup("group2", true));
+    UserGroup group3 = gm.createGroup(c1, new UserGroup("group3", true));
+    gm.write(c1, group1, "msg1");
+
+    Client c2 = db.save(new Client());
+    gm.join(group1, c2);
+    gm.join(group2, c2);
+
+    List<UserGroup> unreadGroups = gm.unreadGroups(c2);
+
+    assertEquals(1, unreadGroups.size());
+    assertEquals(1, unreadGroups.iterator().next().getUnread());
+
+    List<GroupMessage> unreadMessages = gm.unreadMessages(c2, group1);
+
+    assertEquals(1, unreadMessages.size());
+
+    unreadMessages = gm.unreadMessages(c2, group1);
+
+    assertEquals(0, unreadMessages.size());
+  }
 }

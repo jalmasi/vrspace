@@ -30,6 +30,7 @@ export class TextArea extends BaseArea {
     this.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.text = "";
+    /** @type {Label} */
     this.title = null;
   }
   /**
@@ -102,11 +103,11 @@ export class TextArea extends BaseArea {
    */
   showTitle() {
     if (this.titleText) {
-      let titleHeight = this.size / this.getMaxRows() * 2; // twice as high as a text row
       if ( this.title ) {
         this.title.dispose();
       }
-      this.title = new Label(this.title, new BABYLON.Vector3(0, 1.2 * this.size/2 + titleHeight/2, 0), this.group);
+      let titleHeight = this.size / this.getMaxRows() * 2; // twice as high as a text row
+      this.title = new Label(this.titleText, new BABYLON.Vector3(0, 1.2 * this.size/2 + titleHeight/2, 0), this.group);
       this.title.text = this.titleText;
       this.title.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
       this.title.height = titleHeight;
@@ -131,6 +132,8 @@ export class TextArea extends BaseArea {
   createHandles() {
     this.handles = new ManipulationHandles(this.backgroundPlane, this.size*this.ratio, this.size, this.scene);
     this.handles.canMinimize = this.canMinimize;
+    this.handles.canClose = this.canClose;
+    this.handles.onClose = this.onClose;
     this.handles.show();
   }
 

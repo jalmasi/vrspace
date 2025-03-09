@@ -1,4 +1,4 @@
-import { VRSPACE } from '../client/vrspace.js';
+import { VRSPACE, GroupEvent } from '../client/vrspace.js';
 import { VRSPACEUI } from './vrspace-ui.js';
 import { MediaStreams } from '../core/media-streams.js';
 import { SpeechInput } from '../core/speech-input.js';
@@ -19,7 +19,8 @@ import { CameraHelper } from '../core/camera-helper.js';
 import { ImageArea } from './widget/image-area.js';
 import { UserDirectionMonitor } from './widget/user-direction-monitor.js';
 import { MiniMap } from './widget/mini-map.js';
-
+import { GroupsUI } from './groups-ui.js';
+import { ChatLog } from './widget/chat-log.js';
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -46,12 +47,19 @@ export class DefaultHud {
     this.whiteboard = null;
     this.creditArea = null;
     this.miniMap = null;
+    this.groupsUI = null;
+    this.groupEventCount = 0;
+    this.groupListener = VRSPACE.addGroupListener(event=>this.groupEvent(event));
   }
 
   init() {
     if ( this.miniMap ) {
       this.miniMap.dispose();
       this.miniMap = null;
+    }
+    if ( this.groupsUI ) {
+      this.groupsUI.dispose();
+      this.groupsUI = null;
     }
     if (this.settingsButton && this.displayButtons) {
       this.clearRow();
@@ -95,7 +103,7 @@ export class DefaultHud {
 
       /*
       // this is supposed to either change profile, or allow user to activate some avatar animation
-      this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/avatar.png", () => this.changeAvatar());
+      this.avatarButton = this.hud.addButton("Avatar", this.contentBase + "/content/icons/user-avatar.png", () => this.changeAvatar());
       this.avatarButton.isVisible = (this.avatar != null);
       this.avatarButton.tooltipText = "TODO";
       */
@@ -279,8 +287,9 @@ export class DefaultHud {
   setAuthenticated(arg = false) {
     this.isAuthenticated = arg;
     if (!this.displayButtons && this.isAuthenticated && !this.worldButton) {
-      // add this button only once, to the first row along with settings button
+      // add these buttons only once, to the first row along with settings button
       this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => { this.showWorldTemplates() });
+      this.groupsButton = this.hud.addButton("Groups", this.contentBase + "/content/icons/user-group.png", () => { this.groups() });
     }
   }
 
@@ -732,6 +741,39 @@ export class DefaultHud {
       VRSPACEUI.hud.showButtons(false, this.soundButton);
       VRSPACEUI.hud.newRow();
       SoundMixer.getInstance(this.scene).show();
+    }
+  }
+  
+  groups() {
+    this.displayButtons = !this.displayButtons;
+    this.groupEventCount=0;
+    this.groupsButton.text = "Groups";
+    if ( this.groupsUI ) {
+      this.groupsUI.hide();
+      this.groupsUI = null;
+    } else {
+      this.groupsUI = new GroupsUI(this.scene);
+      this.groupsUI.show(this.groupsButton);
+   }
+  }
+ 
+  /** @param {GroupEvent} event  */ 
+  groupEvent(event) {
+    console.log("Group event", event);
+    if ( !this.displayButtons ) {
+      if ( event.message ) {
+        let chatlog = ChatLog.findInstance(event.message.group.name, "ChatLog:" + event.message.group.name);
+        if ( chatlog ) {
+          // chatlog displays messages
+          return;
+        }
+      }
+      this.groupEventCount++;
+      this.groupsButton.text = "Groups:"+this.groupEventCount;
+      this.groupsButton.pointerEnterAnimation();
+      setTimeout(()=>{
+        if ( !this.displayButtons) this.groupsButton.pointerOutAnimation()
+      },500);
     }
   }
 }

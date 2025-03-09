@@ -8,11 +8,13 @@ import java.util.regex.Pattern;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.vrspace.server.core.ClassUtil;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.types.Private;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,7 +45,8 @@ public class JacksonConfig {
   private Pattern htmlTag = Pattern.compile("<.+?>");
 
   /**
-   * By default, fields that are annotated as @Private will not be serialized.
+   * ObjectMapper for serialization over web sockets. By default, fields that are
+   * annotated as @Private will not be serialized.
    */
   @Bean("objectMapper")
   public ObjectMapper objectMapper() {
@@ -64,14 +67,44 @@ public class JacksonConfig {
   }
 
   /**
-   * Private mapper also serializes @Private fields, so that a client can see own
-   * private properties.
+   * Private mapper is same as objectMapper, but also serializes @Private fields,
+   * so that a client can access own private properties over web sockets.
    */
   @Bean("privateMapper")
   public ObjectMapper privateMapper() {
     ObjectMapper ret = objectMapperBuilder().build();
     // process and add all subclasses of VRObject
     ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
+
+    return ret;
+  }
+
+  /**
+   * Primary mapper is the same as objectMapper, but ignores @JsonTypeInfo
+   * annotation of VRObject. Annotated as Primary to make REST controllers used it
+   * for serialization.
+   */
+  @Primary
+  @Bean("restMapper")
+  public ObjectMapper restMapper() {
+    ObjectMapper ret = objectMapperBuilder().build();
+    // trick taken from
+    // https://stackoverflow.com/questions/54708772/jackson-suppress-jsontypeinfo-at-serialisation-time
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+    class NoTypes {
+    }
+    ret.addMixIn(VRObject.class, NoTypes.class);
+    // process and add all subclasses of VRObject
+    ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
+
+    ret.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      public boolean hasIgnoreMarker(final AnnotatedMember m) {
+        return super.hasIgnoreMarker(m) || m.hasAnnotation(Private.class);
+      }
+    });
 
     return ret;
   }

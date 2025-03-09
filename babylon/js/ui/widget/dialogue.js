@@ -9,15 +9,17 @@ export class Dialogue extends Form {
     super();
     this.question = question;
     this.callback = callback;
+    this.yesText = "Yes ";
+    this.noText = " No ";
   }  
   
   init() {
     this.createPanel();
     this.label = this.textBlock(this.question);
     this.addControl(this.label);
-    let yesButton = this.textButton("Yes ", () => this.close(true), VRSPACEUI.contentBase+"/content/icons/tick.png");
+    let yesButton = this.textButton(this.yesText, () => this.close(true), VRSPACEUI.contentBase+"/content/icons/tick.png");
     this.addControl(yesButton);
-    let noButton = this.textButton(" No ", () => this.close(false), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
+    let noButton = this.textButton(this.noText, () => this.close(false), VRSPACEUI.contentBase+"/content/icons/close.png", "red");
     this.addControl(noButton);
 
     VRSPACEUI.hud.showButtons(false);

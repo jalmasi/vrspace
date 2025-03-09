@@ -1,15 +1,19 @@
 package org.vrspace.server.core;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.vrspace.server.dto.GroupMessage;
+import org.vrspace.server.dto.GroupEvent;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.GroupMember;
+import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.UserGroup;
 
@@ -32,10 +36,17 @@ public class GroupManager {
   private VRObjectRepository db;
   @Autowired
   private WorldManager worldManager;
+  @Autowired
+  private Neo4jClient neo4jClient;
 
   @Transactional
   public List<UserGroup> listGroups(Client client) {
     return db.listUserGroups(client.getId());
+  }
+
+  @Transactional
+  public List<UserGroup> listOwnedGroups(Client client) {
+    return db.listOwnedGroups(client.getId());
   }
 
   @Transactional
@@ -46,6 +57,15 @@ public class GroupManager {
     group = db.save(group);
     addOwner(group, client);
     addMember(group, client);
+    return group;
+  }
+
+  @Transactional
+  public UserGroup updateGroup(Client client, UserGroup group) {
+    if (db.getOwnership(client.getId(), group.getId()) == null) {
+      throw new SecurityException("Not an owner");
+    }
+    group = db.save(group);
     return group;
   }
 
@@ -65,6 +85,7 @@ public class GroupManager {
     return db.listGroupClients(group.getId());
   }
 
+  @Transactional
   public void invite(UserGroup group, Long memberId, Client owner) {
     invite(group, getClient(memberId), owner);
   }
@@ -75,6 +96,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void invite(UserGroup group, Client member, Client owner) {
     if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already member of group " + group.getId());
@@ -82,8 +104,17 @@ public class GroupManager {
     if (group.isPrivate() && (owner == null || db.findOwnership(owner.getId(), group.getId()).isEmpty())) {
       throw new IllegalArgumentException("Only group owners can invite members");
     }
-    GroupMember gm = new GroupMember(group, member).invite();
+    GroupMember gm = new GroupMember(group, member).invite(owner);
     db.save(gm);
+    Client cachedClient = (Client) worldManager.get(member.getObjectId());
+    if (cachedClient == null) {
+      // TODO client is offline
+      log.debug("Invite for offline client:" + member);
+    } else {
+      // online client, forward message
+      // FIXME this serializes the message all over again for each recipient
+      cachedClient.sendMessage(GroupEvent.invite(gm));
+    }
   }
 
   /**
@@ -92,12 +123,13 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void accept(UserGroup group, Client member) {
     Optional<GroupMember> existingMember = db.findGroupMember(group.getId(), member.getId());
     if (existingMember.isEmpty() || existingMember.get().getPendingInvite() == null) {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }
-    GroupMember updatedMember = existingMember.get().accepted();
+    GroupMember updatedMember = existingMember.get().accept();
     db.save(updatedMember);
   }
 
@@ -107,6 +139,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void ask(UserGroup group, Client member) {
     if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already joining group " + group.getId());
@@ -115,6 +148,7 @@ public class GroupManager {
     db.save(gm);
   }
 
+  @Transactional
   public void allow(UserGroup group, Long memberId, Client owner) {
     allow(group, owner, getClient(memberId));
   }
@@ -125,6 +159,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void allow(UserGroup group, Client member, Client owner) {
     if (db.findOwnership(owner.getId(), group.getId()).isEmpty()) {
       throw new IllegalArgumentException("Only group owners can allow members");
@@ -135,7 +170,7 @@ public class GroupManager {
       if (gm.getPendingRequest() == null) {
         throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
-      db.save(gm.accepted());
+      db.save(gm.allow(owner));
     } else {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }
@@ -147,6 +182,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void join(UserGroup group, Client member) {
     if (group.isPrivate()) {
       throw new IllegalArgumentException("Ask to join a private group");
@@ -162,6 +198,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void leave(UserGroup group, Client member) {
     if (db.findOwnership(member.getId(), group.getId()).isPresent()) {
       throw new IllegalArgumentException("Group owners can not leave their groups");
@@ -169,6 +206,7 @@ public class GroupManager {
     this.removeMember(group, member);
   }
 
+  @Transactional
   public void kick(UserGroup group, long memberId, Client owner) {
     Optional<GroupMember> member = db.findGroupMember(group.getId(), memberId);
     if (member.isEmpty()) {
@@ -184,6 +222,7 @@ public class GroupManager {
    * @param group
    * @param member
    */
+  @Transactional
   public void kick(UserGroup group, Client member, Client owner) {
     if (!group.isPrivate()) {
       throw new IllegalArgumentException("Can't kick members from public groups");
@@ -201,6 +240,7 @@ public class GroupManager {
    * @param member
    * @return
    */
+  @Transactional
   public List<GroupMember> pendingRequests(UserGroup group, Client member) {
     if (db.findOwnership(member.getId(), group.getId()).isEmpty()) {
       throw new SecurityException("Only group owners can list pending requets");
@@ -214,6 +254,7 @@ public class GroupManager {
    * @param member
    * @return
    */
+  @Transactional
   public List<GroupMember> pendingInvitations(Client member) {
     return db.listPendingInvitations(member.getId());
   }
@@ -227,20 +268,23 @@ public class GroupManager {
     db.findGroupMember(group.getId(), member.getId()).ifPresent(groupMember -> db.delete(groupMember));
   }
 
+  @Transactional
   public void addOwner(UserGroup group, Client owner) {
     Ownership ownership = new Ownership(owner, group);
     db.save(ownership);
   }
 
+  @Transactional
   public void removeOwner(UserGroup group, Client owner) {
     db.findOwnership(owner.getId(), group.getId()).ifPresent(ownership -> db.delete(ownership));
   }
 
+  @Transactional
   public void write(Client sender, UserGroup group, String text) {
-    GroupMessage message = new GroupMessage(sender, group, text);
     if (db.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
       throw new SecurityException("Only members can post to groups");
     }
+    GroupMessage message = db.save(new GroupMessage(sender, group, text, Instant.now()));
     db.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message
@@ -251,11 +295,12 @@ public class GroupManager {
       } else {
         // online client, forward message
         // FIXME this serializes the message all over again for each recipient
-        client.sendMessage(message);
+        cachedClient.sendMessage(GroupEvent.message(message));
       }
     });
   }
 
+  @Transactional
   public UserGroup getGroup(Client client, String name) {
     Optional<UserGroup> group = db.findGroup(client.getId(), name);
     if (group.isEmpty()) {
@@ -264,6 +309,7 @@ public class GroupManager {
     return group.get();
   }
 
+  @Transactional
   public UserGroup getGroup(Client client, long groupId) {
     Optional<UserGroup> group = db.findGroup(client.getId(), groupId);
     if (group.isEmpty()) {
@@ -272,12 +318,43 @@ public class GroupManager {
     return group.get();
   }
 
+  @Transactional
   public UserGroup getGroup(long groupId) {
     UserGroup group = db.get(UserGroup.class, groupId);
     if (group == null) {
       throw new NotFoundException("Non-existing group: " + groupId);
     }
     return group;
+  }
+
+  @Transactional
+  public List<UserGroup> unreadGroups(Client client) {
+    List<GroupMember> groups = db.listGroupMemberships(client.getId());
+    groups.forEach((gm) -> {
+      UserGroup group = gm.getGroup();
+      int unread = db.unreadMessageCount(group.getId(), gm.getLastRead());
+      group.setUnread(unread);
+    });
+    return groups.stream().map(gm -> gm.getGroup()).filter(g -> g.getUnread() > 0).collect(Collectors.toList());
+  }
+
+  @Transactional
+  public List<GroupMessage> unreadMessages(Client client, UserGroup group) {
+    Instant now = Instant.now();
+    Optional<GroupMember> gm = db.findGroupMember(group.getId(), client.getId());
+    if (gm.isEmpty()) {
+      throw new NotFoundException("Not a member group: " + group.getId() + " clientId:" + client.getId());
+    }
+    GroupMember member = gm.get();
+    Instant lastRead = member.getLastRead();
+    member.setLastRead(now);
+    db.save(member);
+    return db.messagesSince(group.getId(), lastRead);
+  }
+
+  @Transactional
+  public List<Client> listOwners(UserGroup group) {
+    return db.getOwners(group.getId()).stream().map(ownership -> ownership.getOwner()).toList();
   }
 
   private Client getClient(long clientId) {

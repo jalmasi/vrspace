@@ -24,6 +24,8 @@ export class TextAreaInput extends InputForm {
     this.speechRecognition = true;
     /** Print speech mismatch on TextArea, default true */
     this.showNoMatch = true;
+    /** Write the entered text to the area, default true, otherwise just notify listeners */
+    this.autoWrite = true;
   }
   /**
    * Initialize and attach to the TextArea
@@ -32,8 +34,7 @@ export class TextAreaInput extends InputForm {
     this.buttonCallback = () => {
       // text may be empty string here
       if ( this.input.text ) {
-        this.notifyListeners(this.input.text);
-        this.write(this.input.text, this.inputPrefix);
+        this.processInput();
       }
     }
 
@@ -47,8 +48,7 @@ export class TextAreaInput extends InputForm {
     
     this.inputFocusListener = (input, focused) => {
       if (!focused && input.text) {
-        this.notifyListeners(this.input.text);
-        this.write(this.input.text, this.inputPrefix);
+        this.processInput();
       }
     }
 
@@ -58,6 +58,12 @@ export class TextAreaInput extends InputForm {
     //input.focus(); // not available in babylon 4
     if (this.speechRecognition) {
       this.speechInput.start();
+    }
+  }
+  processInput() {
+    this.notifyListeners(this.input.text);
+    if ( this.autoWrite ) {
+      this.write(this.input.text, this.inputPrefix);
     }
   }
   /** Overridden to display speech mismatch in TextArea */

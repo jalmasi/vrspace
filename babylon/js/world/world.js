@@ -362,6 +362,9 @@ export class World {
   isSelectableMesh(mesh) {
     let ret = VRSPACEUI.hud.isSelectableMesh(mesh);
     this.selectionPredicates.forEach((p) => { ret ||= p(mesh) });
+    // FIXME figure out how to make GUI elements always selectable
+    // this is workaround for chrome only, allows for mouse movement events on form plane
+    // ret ||= mesh.name == "FormPlane";
     return ret;
   }
 

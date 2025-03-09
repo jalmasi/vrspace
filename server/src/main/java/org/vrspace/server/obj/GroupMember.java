@@ -41,10 +41,17 @@ public class GroupMember extends Entity {
   /** Pending request to join, if any */
   private String pendingRequest;
   /**
+   * The client that invited/approved (sponsored) the member; may be null, or
+   * maybe point to non-existing client. Thus, valid only short term.
+   */
+  @Relationship(type = "SPONSOR_CLIENT", direction = Relationship.Direction.OUTGOING)
+  private Client sponsor;
+  /**
    * Time stamp of last membership update, be it invite, request, or joining the
    * group
    */
   private Instant lastUpdate = Instant.now();
+  private Instant lastRead;
 
   public boolean joined() {
     return pendingInvite == null && pendingRequest == null;
@@ -53,11 +60,13 @@ public class GroupMember extends Entity {
   /**
    * Set pendingInvite to random UUID, update the timestamp.
    * 
+   * @param sponsor the client that sends the invite
    * @return this
    */
-  public GroupMember invite() {
+  public GroupMember invite(Client sponsor) {
     setPendingInvite(UUID.randomUUID().toString());
     setLastUpdate(Instant.now());
+    setSponsor(sponsor);
     return this;
   }
 
@@ -77,10 +86,32 @@ public class GroupMember extends Entity {
    * 
    * @return this
    */
-  public GroupMember accepted() {
+  private GroupMember accepted() {
     setPendingInvite(null);
     setPendingRequest(null);
     setLastUpdate(Instant.now());
+    // CHECKME: relation to sponsor may cause referential integrity issues
+    // setSponsor(null);
     return this;
+  }
+
+  /**
+   * Accept the invitation to the group.
+   * 
+   * @return this
+   */
+  public GroupMember accept() {
+    return accepted();
+  }
+
+  /**
+   * Allow a member that asked to join into the group
+   * 
+   * @param sponsor the client that accepted the membership request
+   * @return this
+   */
+  public GroupMember allow(Client sponsor) {
+    setSponsor(sponsor);
+    return accepted();
   }
 }
