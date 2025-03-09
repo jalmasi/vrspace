@@ -352,6 +352,11 @@ public class GroupManager {
     return db.messagesSince(group.getId(), lastRead);
   }
 
+  @Transactional
+  public List<Client> listOwners(UserGroup group) {
+    return db.getOwners(group.getId()).stream().map(ownership -> ownership.getOwner()).toList();
+  }
+
   private Client getClient(long clientId) {
     Client client = db.getClient(clientId);
     if (client == null) {

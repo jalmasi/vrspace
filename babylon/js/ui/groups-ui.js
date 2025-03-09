@@ -53,27 +53,40 @@ class CreateGroupForm extends Form {
 }
 
 class ListMembersForm extends Form {
-  constructor(scene, group, members, requests, isOwner, close) {
+  constructor(scene, group, isOwner, close, refresh) {
     super();
     this.scene = scene;
     this.group = group;
-    this.members = members;
+    this.members = null;
     /** @type {[GroupMember]} */
-    this.requests = requests;
+    this.requests = [];
     this.close = close;
+    this.refresh = refresh;
     this.isOwner = isOwner;
     this.closeText = "Close";
     this.contentBase = VRSPACEUI.contentBase;
     this.kickIcon = this.contentBase + "/content/icons/user-minus.png";
     this.infoIcon = this.contentBase + "/content/icons/user-info.png";
+    this.adminIcon = this.contentBase + "/content/icons/user-group-settings.png";
     this.acceptIcon = this.contentBase + "/content/icons/tick.png";
     this.rejectIcon = this.contentBase + "/content/icons/delete.png";
+    this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
     this.table = [];
     this.activeRow == null;
     this.pointerTracker = null;
     this.selectionPredicate = mesh => mesh == this.plane;
   }
-  init() {
+  async init() {
+    let values = await Promise.all([this.groupApi.show(this.group.id), this.groupApi.listOwners(this.group.id)]);
+    this.members = values[0];
+    let owners = values[1];
+    this.members.forEach(member=>{
+      member.isOwner = owners.some(o=>o.id == member.id);
+    });
+    if ( this.isOwner ) {
+      this.requests = await this.groupApi.listRequests(this.group.id);
+    }
+    
     this.createPanel();
     this.grid = new BABYLON.GUI.Grid();
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
@@ -148,14 +161,22 @@ class ListMembersForm extends Form {
       
       let online = this.checkbox("online");
       online.isChecked = client.active;
-      online.isReadonly = true;
+      online.isReadOnly = true;
       this.grid.addControl(online, index, 2);
-      
+
+      /*
+      // no useful user information to display      
       let infoButton = this.submitButton("info", () => this.clientInfo(client), this.infoIcon);
       infoButton.background = this.background;
       this.grid.addControl(infoButton, index, 3);
-      infoButton.isVisbile = false;
+      infoButton.isVisible = false;
+      */
 
+      if ( client.isOwner ) {
+        let adminIcon = this.makeIcon("admin", this.adminIcon);
+        this.grid.addControl(adminIcon, index, 3);
+      }
+      
       let rejectButton = this.submitButton("kick", () => this.kickUser(client), this.kickIcon);
       this.grid.addControl(rejectButton, index, 4);
       rejectButton.isVisible = false;
@@ -177,6 +198,11 @@ class ListMembersForm extends Form {
     console.log(client);
   }
   
+  async kickUser(client) {
+    await this.groupApi.kick(this.group.id, client.id);
+    this.refresh();
+  }
+  
   pointerEvent(row) {
     if (row !== this.activeRow) {
       this.activeRow = row;
@@ -193,11 +219,13 @@ class ListMembersForm extends Form {
         // GroupMember, request
         return;
       }
-      let infoButton = this.grid.getChildrenAt(row, 3)[0];
+      // no useful user info
+      //let infoButton = this.grid.getChildrenAt(row, 3)[0];
+      //infoButton.isVisible = true;
       let kickButton = this.grid.getChildrenAt(row, 4)[0];
-      infoButton.isVisible = true;
-      kickButton.isVisible = this.isOwner;
-      this.activeButtons = [infoButton,kickButton];
+      kickButton.isVisible = this.isOwner && client.id != VRSPACE.me.id && !client.isOwner;
+      //this.activeButtons = [infoButton,kickButton];
+      this.activeButtons = [kickButton];
       this.activeText = this.grid.getChildrenAt(row, 1)[0];
       this.activeText.fontStyle = "bold";
     }
@@ -691,26 +719,29 @@ class ListGroupsForm extends Form {
     this.refreshCallback();
   }
   
-  async memberList(group, members, isOwner) {
+  closeMembersForm() {
     if (this.listMembersForm != null) {
-      this.listMembersForm.dispose();
-      this.listArea.dispose();
-    }
-    let requests = [];
-    if ( isOwner ) {
-      requests = await this.groupApi.listRequests(group.id);
-    }
-    this.listMembersForm = new ListMembersForm(this.scene, group, members, requests, isOwner, () => {
       this.listMembersForm.dispose();
       this.listArea.dispose();
       this.listMembersForm = null;
       this.listArea = null;
-    });
-    this.listMembersForm.init();
+    }
+  }
+  
+  async memberList(group, isOwner) {
+    this.closeMembersForm();
+    this.listMembersForm = new ListMembersForm(
+      this.scene, 
+      group, 
+      isOwner, 
+      () =>this.closeMembersForm(),
+      () => this.memberList(group,isOwner)
+    );
+    await this.listMembersForm.init();
 
     this.listArea = new FormArea(this.scene, this.listMembersForm);
     this.listArea.size = .2;
-    this.listArea.show(1280, this.listMembersForm.heightInPixels * (members.length + 3));
+    this.listArea.show(1280, this.listMembersForm.heightInPixels * (this.listMembersForm.members.length + 3));
     this.listArea.attachToHud();
     this.listArea.detach(.7);
     this.listArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
@@ -724,7 +755,7 @@ class ListGroupsForm extends Form {
     this.settingsForm = new GroupSettingsForm(group, isOwner, (ok) => {
       this.settingsArea.dispose();
       callback(ok);
-    }, (members) => this.memberList(group, members, isOwner));
+    }, () => this.memberList(group, isOwner));
     this.settingsForm.init();
 
     this.settingsArea = new FormArea(this.scene, this.settingsForm);
@@ -791,10 +822,7 @@ class ListGroupsForm extends Form {
       VRSPACE.removeGroupListener(this.groupEventListener);
       this.groupEventListener = null;
     }
-    if (this.listMembersForm != null) {
-      this.listMembersForm.dispose();
-      this.listArea.dispose();
-    }
+    this.closeMembersForm();
     if (this.settingsForm != null) {
       this.settingsForm.dispose();
       this.settingsArea.dispose();

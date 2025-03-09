@@ -254,6 +254,14 @@ public class GroupController extends ClientControllerBase {
     return groupManager.unreadMessages(client, group);
   }
 
+  @GetMapping("/{groupId}/owners")
+  public List<Client> listOwners(@PathVariable long groupId, HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    UserGroup group = groupManager.getGroup(client, groupId);
+    log.debug("Unread messages, user: " + client + " group: " + group);
+    return groupManager.listOwners(group);
+  }
+
   protected Client getAuthorisedClient(HttpSession session) {
     if (!isAuthenticated(session)) {
       throw new SecurityException("Anonymous user");
