@@ -53,13 +53,25 @@ class CreateGroupForm extends Form {
 }
 
 class ListMembersForm extends Form {
-  constructor(group, members, close, isOwner) {
+  constructor(scene, group, members, requests, isOwner, close) {
     super();
+    this.scene = scene;
     this.group = group;
     this.members = members;
+    /** @type {[GroupMember]} */
+    this.requests = requests;
     this.close = close;
     this.isOwner = isOwner;
     this.closeText = "Close";
+    this.contentBase = VRSPACEUI.contentBase;
+    this.kickIcon = this.contentBase + "/content/icons/user-minus.png";
+    this.infoIcon = this.contentBase + "/content/icons/user-info.png";
+    this.acceptIcon = this.contentBase + "/content/icons/tick.png";
+    this.rejectIcon = this.contentBase + "/content/icons/delete.png";
+    this.table = [];
+    this.activeRow == null;
+    this.pointerTracker = null;
+    this.selectionPredicate = mesh => mesh == this.plane;
   }
   init() {
     this.createPanel();
@@ -67,24 +79,157 @@ class ListMembersForm extends Form {
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 
+    this.pointerTracker = this.scene.onPointerObservable.add((pointerInfo) => {
+      if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
+        if (pointerInfo.pickInfo.pickedMesh == this.plane) {
+          let coord = pointerInfo.pickInfo.getTextureCoordinates();
+          // width of group text in column 2
+          if (coord.x > 0.05 && coord.x < 0.85) {
+            let row = Math.floor((1 - coord.y) * (this.grid.rowCount));
+            if ( row < this.table.length ) {
+              // ignore last row - close button
+              if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERMOVE) {
+                this.pointerEvent(row);
+              } else if (pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN) {
+                this.pointerClick();
+              }
+            }
+          }
+        } else {
+          this.pointerOut();
+        }
+      } else {
+        this.pointerOut();
+      }
+    });
+    World.lastInstance.addSelectionPredicate(this.selectionPredicate);
+
     this.grid.paddingLeftInPixels = 10;
     this.grid.paddingTopInPixels = 10;
     this.grid.paddingBottomInPixels = 10;
 
-    this.grid.addColumnDefinition(1);
-    this.members.forEach((client, index) => {
+    this.grid.addColumnDefinition(0.05);
+    this.grid.addColumnDefinition(0.8);
+    this.grid.addColumnDefinition(0.05);
+    this.grid.addColumnDefinition(0.05);
+    this.grid.addColumnDefinition(0.05);
+
+    let index = 0;
+    this.requests.forEach(request => {
       this.grid.addRowDefinition(this.heightInPixels, true);
-      let clientName = this.textBlock(client.name);
-      this.grid.addControl(clientName, index, 0);
+
+      this.grid.addControl(this.textBlock(index), index, 0);
+      
+      let clientName = this.textBlock(request.client);
+      this.grid.addControl(clientName, index, 1);
+      this.table.push(request);
+
+      let acceptButton = this.submitButton("accept", () => this.acceptRequest(request), this.acceptIcon);
+      this.grid.addControl(acceptButton, index, 2);
+
+      let infoButton = this.submitButton("info", () => this.requestInfo(request), this.infoIcon);
+      infoButton.background = this.background;
+      this.grid.addControl(infoButton, index, 3);
+
+      let rejectButton = this.submitButton("reject", () => this.acceptRequest(request), this.rejectIcon);
+      this.grid.addControl(rejectButton, index, 4);
+      
+      index++;
     });
+
+    this.members.forEach(client => {
+      this.grid.addRowDefinition(this.heightInPixels, true);
+
+      this.grid.addControl(this.textBlock(index), index, 0);
+      
+      let clientName = this.textBlock(client.name);
+      this.grid.addControl(clientName, index, 1);
+      this.table.push(client);
+      
+      let online = this.checkbox("online");
+      online.isChecked = client.active;
+      online.isReadonly = true;
+      this.grid.addControl(online, index, 2);
+      
+      let infoButton = this.submitButton("info", () => this.clientInfo(client), this.infoIcon);
+      infoButton.background = this.background;
+      this.grid.addControl(infoButton, index, 3);
+      infoButton.isVisbile = false;
+
+      let rejectButton = this.submitButton("kick", () => this.kickUser(client), this.kickIcon);
+      this.grid.addControl(rejectButton, index, 4);
+      rejectButton.isVisible = false;
+
+      index++;
+    });
+    
     // empty row
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     this.closeButton = this.textButton(this.closeText, () => this.close(), VRSPACEUI.contentBase + "/content/icons/close.png", this.cancelColor);
-    this.grid.addControl(this.closeButton, this.members.length + 1, 0);
+    this.grid.addControl(this.closeButton, this.table.length + 1, 1);
 
     this.panel.addControl(this.grid);
+  }
+  
+  clientInfo(client) {
+    console.log(client);
+  }
+  
+  pointerEvent(row) {
+    if (row !== this.activeRow) {
+      this.activeRow = row;
+      if (this.activeButtons) {
+        this.activeButtons.forEach(button => button.isVisible = false);
+        this.activeButtons = null;
+      }
+      if (this.activeText) {
+        this.activeText.fontStyle = null;
+        this.activeText = null;
+      }
+      let client = this.table[row];
+      if (client.hasOwnProperty("client")) {
+        // GroupMember, request
+        return;
+      }
+      let infoButton = this.grid.getChildrenAt(row, 3)[0];
+      let kickButton = this.grid.getChildrenAt(row, 4)[0];
+      infoButton.isVisible = true;
+      kickButton.isVisible = this.isOwner;
+      this.activeButtons = [infoButton,kickButton];
+      this.activeText = this.grid.getChildrenAt(row, 1)[0];
+      this.activeText.fontStyle = "bold";
+    }
+  }
+
+  pointerOut() {
+    if (this.activeRow != null) {
+      console.log("pointer out");
+      if (this.activeButtons) {
+        this.activeButtons.forEach(button => button.isVisible = false);
+        this.activeButtons = null;
+      }
+      if (this.activeText) {
+        this.activeText.fontStyle = null;
+        this.activeText = null;
+      }
+      this.grid.onPointerMoveObservable.remove(this.pointerTracker);
+      this.activeRow = null;
+    }
+  }
+  
+  pointerClick() {
+    // CHECKME - anything? E.g. PM, in due time
+  }
+  
+  dispose() {
+    super.dispose();
+    World.lastInstance.removeSelectionPredicate(this.selectionPredicate);
+    if (this.pointerTracker) {
+      this.scene.onPointerObservable.remove(this.pointerTracker);
+      this.pointerTracker = null
+    }
   }
 }
 
@@ -238,7 +383,7 @@ class InviteInfoForm extends Form {
   }
 }
 class ListGroupsForm extends Form {
-  constructor(scene, invites, groups, privateIcon, leaveGroupIcon, groupSettingIcon, groupInviteIcon, groupInfoIcon, groupAcceptIcon, groupDeleteIcon, groupDeleteCallback, refreshCallback) {
+  constructor(scene, invites, groups, groupDeleteCallback, refreshCallback) {
     super();
     this.scene = scene;
     /** @type { [GroupMember]} */
@@ -247,13 +392,14 @@ class ListGroupsForm extends Form {
     this.groups = groups;
     /** @type { [UserGroup]} */
     this.table = Array(this.invites.length + this.groups.length);
-    this.privateIcon = privateIcon;
-    this.leaveGroupIcon = leaveGroupIcon;
-    this.groupSettingIcon = groupSettingIcon;
-    this.groupInviteIcon = groupInviteIcon;
-    this.groupInfoIcon = groupInfoIcon;
-    this.groupAcceptIcon = groupAcceptIcon;
-    this.groupDeleteIcon = groupDeleteIcon;
+    this.contentBase = VRSPACEUI.contentBase;
+    this.privateIcon = this.contentBase + "/content/icons/private-message.png";
+    this.leaveGroupIcon = this.contentBase + "/content/icons/user-group-minus.png";
+    this.groupSettingIcon = this.contentBase + "/content/icons/user-group-settings.png";
+    this.groupInviteIcon = this.contentBase + "/content/icons/user-group-plus.png";
+    this.groupInfoIcon = this.contentBase + "/content/icons/user-group-info.png";
+    this.groupAcceptIcon = this.contentBase + "/content/icons/tick.png";
+    this.groupDeleteIcon = this.contentBase + "/content/icons/delete.png";
     this.groupDeleteCallback = groupDeleteCallback;
     this.refreshCallback = refreshCallback;
     this.stackVertical = false;
@@ -545,13 +691,16 @@ class ListGroupsForm extends Form {
     this.refreshCallback();
   }
   
-  groupList(members) {
+  async memberList(group, members, isOwner) {
     if (this.listMembersForm != null) {
       this.listMembersForm.dispose();
       this.listArea.dispose();
     }
-    let group = this.groups[this.activeRow];
-    this.listMembersForm = new ListMembersForm(group, members, () => {
+    let requests = [];
+    if ( isOwner ) {
+      requests = await this.groupApi.listRequests(group.id);
+    }
+    this.listMembersForm = new ListMembersForm(this.scene, group, members, requests, isOwner, () => {
       this.listMembersForm.dispose();
       this.listArea.dispose();
       this.listMembersForm = null;
@@ -561,11 +710,12 @@ class ListGroupsForm extends Form {
 
     this.listArea = new FormArea(this.scene, this.listMembersForm);
     this.listArea.size = .2;
-    this.listArea.show(1024, this.listMembersForm.heightInPixels * (members.length + 3));
+    this.listArea.show(1280, this.listMembersForm.heightInPixels * (members.length + 3));
     this.listArea.attachToHud();
     this.listArea.detach(.7);
     this.listArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
   }
+  
   groupCommon(group, isOwner, callback) {
     if (this.settingsForm != null) {
       this.settingsForm.dispose();
@@ -574,7 +724,7 @@ class ListGroupsForm extends Form {
     this.settingsForm = new GroupSettingsForm(group, isOwner, (ok) => {
       this.settingsArea.dispose();
       callback(ok);
-    }, (members) => this.groupList(members));
+    }, (members) => this.memberList(group, members, isOwner));
     this.settingsForm.init();
 
     this.settingsArea = new FormArea(this.scene, this.settingsForm);
@@ -755,13 +905,6 @@ export class GroupsUI {
       this.scene,
       invites,
       groups,
-      this.contentBase + "/content/icons/private-message.png",
-      this.contentBase + "/content/icons/user-group-minus.png",
-      this.contentBase + "/content/icons/user-group-settings.png",
-      this.contentBase + "/content/icons/user-group-plus.png",
-      this.contentBase + "/content/icons/user-group-info.png",
-      this.contentBase + "/content/icons/tick.png",
-      this.contentBase + "/content/icons/delete.png",
       group => this.groupDelete(group),
       () => this.refreshList(()=>refresh())
     );
