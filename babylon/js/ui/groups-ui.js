@@ -58,7 +58,7 @@ class ListMembersForm extends Form {
     this.scene = scene;
     this.group = group;
     this.members = null;
-    /** @type {[GroupMember]} */
+    /** @type {GroupMember[]} */
     this.requests = [];
     this.close = close;
     this.refresh = refresh;
@@ -414,11 +414,11 @@ class ListGroupsForm extends Form {
   constructor(scene, invites, groups, groupDeleteCallback, refreshCallback) {
     super();
     this.scene = scene;
-    /** @type { [GroupMember]} */
+    /** @type { GroupMember[] } */
     this.invites = invites;
-    /** @type { [UserGroup]} */
+    /** @type { UserGroup[] } */
     this.groups = groups;
-    /** @type { [UserGroup]} */
+    /** @type { UserGroup[] } */
     this.table = Array(this.invites.length + this.groups.length);
     this.contentBase = VRSPACEUI.contentBase;
     this.privateIcon = this.contentBase + "/content/icons/private-message.png";

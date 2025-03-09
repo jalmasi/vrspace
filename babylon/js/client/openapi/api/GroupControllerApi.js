@@ -42,7 +42,7 @@ export class GroupControllerApi {
      * Accept invitation to a private group.
      * Accept invitation to a private group.
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     acceptWithHttpInfo(groupId) {
       let postBody = null;
@@ -76,7 +76,7 @@ export class GroupControllerApi {
      * Accept invitation to a private group.
      * Accept invitation to a private group.
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     accept(groupId) {
       return this.acceptWithHttpInfo(groupId)
@@ -88,10 +88,10 @@ export class GroupControllerApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     allowWithHttpInfo(groupId, clientId) {
       let postBody = null;
@@ -128,10 +128,10 @@ export class GroupControllerApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     allow(groupId, clientId) {
       return this.allowWithHttpInfo(groupId, clientId)
@@ -145,7 +145,7 @@ export class GroupControllerApi {
      * Ask to join a private group.
      * Ask to join a private group. Group owner needs to allow new members to join.
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     askWithHttpInfo(groupId) {
       let postBody = null;
@@ -179,7 +179,7 @@ export class GroupControllerApi {
      * Ask to join a private group.
      * Ask to join a private group. Group owner needs to allow new members to join.
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     ask(groupId) {
       return this.askWithHttpInfo(groupId)
@@ -193,7 +193,7 @@ export class GroupControllerApi {
      * Delete a group.
      * Delete a group. A group can only be deleted by the owner(s).
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     callDeleteWithHttpInfo(groupId) {
       let postBody = null;
@@ -227,7 +227,7 @@ export class GroupControllerApi {
      * Delete a group.
      * Delete a group. A group can only be deleted by the owner(s).
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     callDelete(groupId) {
       return this.callDeleteWithHttpInfo(groupId)
@@ -293,10 +293,10 @@ export class GroupControllerApi {
 
     /**
      * Invite a user to a group.
-     * Invite a user to a group. Only group owner(s) can invite users to private   groups. Invited users have to accept invitation.
+     * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     inviteWithHttpInfo(groupId, clientId) {
       let postBody = null;
@@ -333,10 +333,10 @@ export class GroupControllerApi {
 
     /**
      * Invite a user to a group.
-     * Invite a user to a group. Only group owner(s) can invite users to private   groups. Invited users have to accept invitation.
+     * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     invite(groupId, clientId) {
       return this.inviteWithHttpInfo(groupId, clientId)
@@ -350,7 +350,7 @@ export class GroupControllerApi {
      * Join a public group.
      * Join a public group.
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     joinWithHttpInfo(groupId) {
       let postBody = null;
@@ -384,7 +384,7 @@ export class GroupControllerApi {
      * Join a public group.
      * Join a public group.
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     join(groupId) {
       return this.joinWithHttpInfo(groupId)
@@ -396,10 +396,10 @@ export class GroupControllerApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     kickWithHttpInfo(groupId, clientId) {
       let postBody = null;
@@ -436,10 +436,10 @@ export class GroupControllerApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     kick(groupId, clientId) {
       return this.kickWithHttpInfo(groupId, clientId)
@@ -451,9 +451,9 @@ export class GroupControllerApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     leaveWithHttpInfo(groupId) {
       let postBody = null;
@@ -485,9 +485,9 @@ export class GroupControllerApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
      * @param {Number} groupId 
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     leave(groupId) {
       return this.leaveWithHttpInfo(groupId)
@@ -845,7 +845,7 @@ export class GroupControllerApi {
      * Update a group.
      * Update a group.
      * @param {UserGroup} userGroup updated group
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     updateWithHttpInfo(userGroup) {
       let postBody = userGroup;
@@ -878,7 +878,7 @@ export class GroupControllerApi {
      * Update a group.
      * Update a group.
      * @param {UserGroup} userGroup updated group
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     update(userGroup) {
       return this.updateWithHttpInfo(userGroup)
@@ -893,7 +893,7 @@ export class GroupControllerApi {
      * Write something to a group.
      * @param {Number} groupId The group
      * @param {String} body The message
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     writeWithHttpInfo(groupId, body) {
       let postBody = body;
@@ -932,7 +932,7 @@ export class GroupControllerApi {
      * Write something to a group.
      * @param {Number} groupId The group
      * @param {String} body The message
-     * @return {Promise<  >} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     write(groupId, body) {
       return this.writeWithHttpInfo(groupId, body)
