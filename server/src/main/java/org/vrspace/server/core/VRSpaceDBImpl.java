@@ -23,6 +23,15 @@ public class VRSpaceDBImpl implements VRSpaceDB {
     return null;
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T extends Entity> T get(Optional<T> obj) {
+    if (obj.isPresent()) {
+      return (T) get(obj.get().getClass(), obj.get().getId());
+    }
+    return null;
+  }
+
   @Override
   public <T extends Entity> Optional<T> findById(Class<T> cls, Long id) {
     return template.findById(id, cls);

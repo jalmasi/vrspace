@@ -33,6 +33,9 @@ public class GroupMember extends Entity {
   @Relationship(type = "IS_MEMBER_OF", direction = Relationship.Direction.OUTGOING)
   @NonNull
   private UserGroup group;
+  // CHECKME having client here may not be the best idea, as we may
+  // unintentionally change client's properties
+  // while saving this entity - use client id instead?
   @Relationship(type = "MEMBER_CLIENT", direction = Relationship.Direction.OUTGOING)
   @NonNull
   private Client client;

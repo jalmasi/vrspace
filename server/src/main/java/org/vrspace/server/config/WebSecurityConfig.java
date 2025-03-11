@@ -22,6 +22,8 @@ public class WebSecurityConfig {
   // might as well make it explicit
   public static final String ENDPOINT = Oauth2Controller.PATH;
 
+  // CHECKME/TODO: missing Oauth2 refresh?
+  // https://stackoverflow.com/questions/68899669/how-to-perform-a-refresh-with-spring-boot-starter-oauth2-client
   @Bean
   SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
     httpSecurity.csrf(csrf -> csrf.disable());

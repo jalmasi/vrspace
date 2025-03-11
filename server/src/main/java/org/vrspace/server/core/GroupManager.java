@@ -105,8 +105,8 @@ public class GroupManager {
       throw new IllegalArgumentException("Only group owners can invite members");
     }
     GroupMember gm = new GroupMember(group, member).invite(owner);
-    db.save(gm);
-    Client cachedClient = (Client) worldManager.get(member.getObjectId());
+    save(gm);
+    Client cachedClient = getCachedClient(member);
     if (cachedClient == null) {
       // TODO client is offline
       log.debug("Invite for offline client:" + member);
@@ -125,12 +125,14 @@ public class GroupManager {
    */
   @Transactional
   public void accept(UserGroup group, Client member) {
+    // shallow copy:
     Optional<GroupMember> existingMember = db.findGroupMember(group.getId(), member.getId());
     if (existingMember.isEmpty() || existingMember.get().getPendingInvite() == null) {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }
-    GroupMember updatedMember = existingMember.get().accept();
-    db.save(updatedMember);
+    // so fetch deep copy first:
+    GroupMember updatedMember = db.get(existingMember).accept();
+    save(updatedMember);
   }
 
   /**
@@ -145,7 +147,7 @@ public class GroupManager {
       throw new IllegalArgumentException("Client " + member.getId() + " is already joining group " + group.getId());
     }
     GroupMember gm = new GroupMember(group, member).request();
-    db.save(gm);
+    save(gm);
   }
 
   @Transactional
@@ -166,11 +168,11 @@ public class GroupManager {
     }
     Optional<GroupMember> invited = db.findGroupMember(group.getId(), member.getId());
     if (invited.isPresent()) {
-      GroupMember gm = invited.get();
+      GroupMember gm = db.get(invited);
       if (gm.getPendingRequest() == null) {
         throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
-      db.save(gm.allow(owner));
+      save(gm.allow(owner));
     } else {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }
@@ -261,7 +263,7 @@ public class GroupManager {
 
   private void addMember(UserGroup group, Client member) {
     GroupMember gm = new GroupMember(group, member);
-    db.save(gm);
+    save(gm);
   }
 
   private void removeMember(UserGroup group, Client member) {
@@ -288,7 +290,7 @@ public class GroupManager {
     db.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message
-      Client cachedClient = (Client) worldManager.get(client.getObjectId());
+      Client cachedClient = getCachedClient(client);
       if (cachedClient == null) {
         // TODO client is offline
         log.debug("Message for offline client:" + client);
@@ -348,7 +350,7 @@ public class GroupManager {
     GroupMember member = gm.get();
     Instant lastRead = member.getLastRead();
     member.setLastRead(now);
-    db.save(member);
+    save(member);
     return db.messagesSince(group.getId(), lastRead);
   }
 
@@ -362,7 +364,20 @@ public class GroupManager {
     if (client == null) {
       throw new NotFoundException("Non-existing client: " + clientId);
     }
+    // log.debug(client.getId() + " " + client.getPosition());
     return client;
   }
 
+  private Client getCachedClient(Client c) {
+    Client cachedClient = (Client) worldManager.get(c.getObjectId());
+    if (cachedClient != null && !cachedClient.isActive()) {
+      log.error("Client is not active " + c);
+    }
+    return cachedClient;
+  }
+
+  private void save(GroupMember gm) {
+    db.save(gm);
+    // log.debug(gm.getClient().getId() + " " + gm.getClient().getPosition());
+  }
 }

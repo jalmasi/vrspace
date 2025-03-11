@@ -10,6 +10,8 @@ import org.vrspace.server.obj.Entity;
 public interface VRSpaceDB {
   <T extends Entity> T get(Class<T> cls, Long id);
 
+  <T extends Entity> T get(Optional<T> obj);
+
   <T extends Client> T getClientByName(String name);
 
   <T extends Client> T getClientByName(String name, Class<T> cls);

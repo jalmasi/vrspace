@@ -430,7 +430,7 @@ class ListGroupsForm extends Form {
     this.groupDeleteIcon = this.contentBase + "/content/icons/delete.png";
     this.groupDeleteCallback = groupDeleteCallback;
     this.refreshCallback = refreshCallback;
-    this.stackVertical = false;
+    this.stackVertical = true;
     this.stackHorizontal = true;
     /** @type {GroupControllerApi} */
     this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
@@ -707,9 +707,10 @@ class ListGroupsForm extends Form {
         delete group.chatlog;
       }
 
+      // this is not safe to do after listUnreadMessages returns - activeRow may have be changed
+      this.grid.getChildrenAt(this.activeRow, 3)[0].text = "";
+      group.unread = 0;
       this.groupApi.listUnreadMessages(group.id).then(messages => {
-        group.unread = 0;
-        this.grid.getChildrenAt(this.activeRow, 3)[0].text = "";
         messages.forEach(message => {
           group.chatlog.log(message.from.name, message.content);
         });
@@ -983,7 +984,7 @@ export class GroupsUI {
       this.showListButton();
       Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups(), this.groupApi.listUnreadGroups()])
         .then(results => {
-          let invites = results[0];
+          this.invitations = results[0];
           let myGroups = results[1];
           let ownedGroups = results[2];
           let unreadGroups = results[3];
@@ -991,7 +992,8 @@ export class GroupsUI {
           myGroups.forEach(g => g.isOwned = ownedGroups.some(e => e.id == g.id));
           myGroups.forEach(g => g.unread = unreadGroups.find(e => e.id == g.id)?.unread || "");
 
-          this.createForm(invites, myGroups, ()=>this.listGroupsUI());
+          this.showInvitesButton();
+          this.createForm(this.invitations, myGroups, ()=>this.listGroupsUI());
         });
     }
   }
