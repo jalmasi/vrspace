@@ -13,6 +13,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -71,6 +72,7 @@ public class ElasticSearchSessionListener implements SessionListener {
   @Value("${org.vrspace.server.session-listener.es.index}")
   private String index;
   @Autowired
+  @Qualifier("objectMapper")
   ObjectMapper objectMapper;
 
   private BulkIngester<?> ingester;
