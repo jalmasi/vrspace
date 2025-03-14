@@ -136,7 +136,7 @@ export class TextWorld extends World {
       textArea.writeln(row);
     }
     textArea.writeln(textArea.getMaxRows()+" rows "+textArea.getMaxCols()+" cols fontSize "+textArea.fontSize+" offset "+textArea.textBlock.fontOffset.height);
-    this.selectables.push(textArea);
+    //this.selectables.push(textArea);
     return textArea;
   }
 
@@ -153,11 +153,11 @@ export class TextWorld extends World {
     scaling.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     scaling.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     scaling.show();
-    this.selectables.push(scaling);
+    //this.selectables.push(scaling);
   }
   
   createUI() {
-    this.selectables = [];
+    //this.selectables = [];
     
     // testing different font sizes
     this.testFontSize(new BABYLON.Vector3(0,2,3));
@@ -187,7 +187,7 @@ export class TextWorld extends World {
     }
     textWrap.writeln("\nclick to clear");
     textWrap.onClick(e=>textWrap.clear());
-    this.selectables.push(textWrap);
+    //this.selectables.push(textWrap);
 
     // window scaling test
     this.testAutoscale(new BABYLON.Vector3(-10,1,5), "This is autoscaling test");
@@ -197,7 +197,7 @@ export class TextWorld extends World {
     // chatlog test
     let chatLog = new ChatLog(this.scene);
     chatLog.show();
-    this.selectables.push(chatLog);
+    //this.selectables.push(chatLog);
     
     // detach/attach to hud/camera test
     let state = 0;
@@ -209,13 +209,13 @@ export class TextWorld extends World {
     hudText.position = new BABYLON.Vector3(.1, 0, .2);
     hudText.show();
     hudText.writeln("\nclick to attach to HUD");
-    this.selectables.push(hudText);
+    //this.selectables.push(hudText);
 
     let inputArea = new TextAreaInput(hudText, "Chat", "A Label attached to TextArea");
     inputArea.inputPrefix = "ME";
     inputArea.addListener(text=>console.log(text));
     inputArea.init();
-    this.selectables.push(inputArea);
+    //this.selectables.push(inputArea);
     
     hudText.onClose = () => {
       inputArea.dispose();
@@ -260,6 +260,7 @@ export class TextWorld extends World {
     formArea.position = new BABYLON.Vector3(0,2,0);
     formArea.show(1024,512);
     //formArea.attachToHud();
+    //this.selectables.push(formArea);
     
     this.initXR();
     this.hudText = hudText;
@@ -275,11 +276,13 @@ export class TextWorld extends World {
       this.hudText.attachToCamera();
     }
   }
+  /*
   isSelectableMesh(mesh) {
     let ret = super.isSelectableMesh(mesh);
     this.selectables.forEach( o => ret |= o.isSelectableMesh(mesh));
     return ret;
-  }  
+  }
+  */
 }
 
 export { VRSPACEUI };

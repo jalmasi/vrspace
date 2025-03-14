@@ -42,6 +42,7 @@ export class VRSpaceUI {
      * @type {HUD} 
      */
     this.hud = null;
+    this.selectables = [];
     /** babylon GUI manager - multiple instances may cause issues with transparency */
     this.guiManager = null;
     /** Script loader */
@@ -623,6 +624,39 @@ export class VRSpaceUI {
     return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
   }
 
+  /**
+   * Add a selectable Form, Area, etc - something that may be interacted with in XR.
+   * It must have isSelectableMesh(mesh) method.
+   */
+  addSelectable(item) {
+    if ( typeof item.isSelectableMesh === "function") {
+      let pos = this.selectables.indexOf(item);
+      if (pos == -1) {
+        this.selectables.push(item);
+      }
+    } else {
+      throw "Object must have isSelectableMesh(mesh) method";
+    }
+  }
+
+  /**
+   * Remove a selectable element.
+   */  
+  removeSelectable(item) {
+    let pos = this.selectables.indexOf(item);
+    if (pos > -1) {
+      this.selectables.splice(pos, 1);
+    }
+  }
+
+
+  isSelectableMesh(mesh) {
+    let ret = this.hud && this.hud.isSelectableMesh(mesh);
+    if ( !ret ) {
+      ret = this.selectables.findIndex( s => s.isSelectableMesh(mesh)) > -1;      
+    }
+    return ret;
+  }
 }
 
 // this does not ensure singleton in the browser

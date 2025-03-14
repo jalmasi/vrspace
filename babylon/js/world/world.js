@@ -360,11 +360,10 @@ export class World {
   Overriding this can easily have undesired consequences like unresponsive HUD.
    */
   isSelectableMesh(mesh) {
-    let ret = VRSPACEUI.hud.isSelectableMesh(mesh);
-    this.selectionPredicates.forEach((p) => { ret ||= p(mesh) });
-    // FIXME figure out how to make GUI elements always selectable
-    // this is workaround for chrome only, allows for mouse movement events on form plane
-    // ret ||= mesh.name == "FormPlane";
+    let ret = VRSPACEUI.isSelectableMesh(mesh);
+    if ( !ret ) {
+      ret = this.selectionPredicates.findIndex(p => p(mesh)) > -1;
+    }
     return ret;
   }
 
@@ -380,7 +379,7 @@ export class World {
     }
     return [];
   }
-
+  
   /**
   Enables or disables collisions in the world. This includes floorMeshes, sceneMeshes, and also applying gravity to camera.
   @param state true or false

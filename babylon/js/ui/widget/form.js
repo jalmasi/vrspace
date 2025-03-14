@@ -1,4 +1,5 @@
 import {SpeechInput} from '../../core/speech-input.js';
+import {VRSPACEUI} from '../vrspace-ui.js';
 
 /**
  * Base form helper class contains utility methods for creation of UI elements - text blocks, checkboxes, text input etc.
@@ -41,6 +42,7 @@ export class Form {
         this[c] = params[c];
       }
     }
+    VRSPACEUI.addSelectable(this);
   }
   /** Returns Form, required by HUD*/
   getClassName() {
@@ -272,6 +274,7 @@ export class Form {
    * Dispose of all created elements.
    */
   dispose() {
+    VRSPACEUI.removeSelectable(this);
     if ( this.vKeyboard ) {
       this.vKeyboard.dispose();
       delete this.vKeyboard;

@@ -25,6 +25,7 @@ export class BaseArea {
     /** Subclasses dispose of material, if they create it */
     this.material = null;
     this.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
+    VRSPACEUI.addSelectable(this);
   }
   
   /**
@@ -99,6 +100,7 @@ export class BaseArea {
 
   /** Clean up allocated resources */
   dispose() {
+    VRSPACEUI.removeSelectable(this);
     this.detach();
     this.removeHandles();
     if ( this.areaPlane ) {
