@@ -203,6 +203,7 @@ export class TextWorld extends World {
     let state = 0;
     let hudText = new TextArea(this.scene, "TouchTextArea");
     hudText.text = "An example of a TextArea\nattached to camera";
+    hudText.canClose = true;
     hudText.attachToCamera();
     hudText.size = .1;
     hudText.position = new BABYLON.Vector3(.1, 0, .2);
@@ -215,6 +216,11 @@ export class TextWorld extends World {
     inputArea.addListener(text=>console.log(text));
     inputArea.init();
     this.selectables.push(inputArea);
+    
+    hudText.onClose = () => {
+      inputArea.dispose();
+      hudText.dispose();
+    }
 
     hudText.onClick(e=>{
       if ( hudText.handles ) {
