@@ -649,13 +649,11 @@ export class VRSpaceUI {
     }
   }
 
-
+  /**
+   * Returns for a mesh that belongs to a selectable UI element.
+   */
   isSelectableMesh(mesh) {
-    let ret = this.hud && this.hud.isSelectableMesh(mesh);
-    if ( !ret ) {
-      ret = this.selectables.findIndex( s => s.isSelectableMesh(mesh)) > -1;      
-    }
-    return ret;
+    return this.selectables.findIndex( s => s.isSelectableMesh(mesh)) > -1;      
   }
   
 }

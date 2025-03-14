@@ -196,10 +196,10 @@ export class VRHelper {
 
       // CHECKME: really ugly way to make it work
       this.world.scene.pointerMovePredicate = (mesh) => {
-        return this.world.isSelectableMesh(mesh);
+        return this.isSelectableMesh(mesh);
       };
       xrHelper.pointerSelection.raySelectionPredicate = (mesh) => {
-        return this.world.isSelectableMesh(mesh);
+        return this.isSelectableMesh(mesh);
       };
 
       // WebXRMotionControllerTeleportation
@@ -269,7 +269,7 @@ export class VRHelper {
 
       this.vrHelper.enableTeleportation({ floorMeshes: this.world.getFloorMeshes() });
       this.vrHelper.raySelectionPredicate = (mesh) => {
-        return this.world.isSelectableMesh(mesh);
+        return this.isSelectableMesh(mesh);
       };
 
       this.vrHelper.onBeforeCameraTeleport.add((targetPosition) => {
@@ -289,6 +289,10 @@ export class VRHelper {
     //console.log("VRHelper initialized", this.vrHelper);
   }
 
+  isSelectableMesh(mesh) {
+    return VRSPACEUI.isSelectableMesh(mesh) || this.world.isSelectableMesh(mesh);
+  }
+  
   gamepadTrigger(state) {
     if (this.pickInfo) {
       // scene event
@@ -638,8 +642,7 @@ export class VRHelper {
         // we don't have controllers (yet), use ray from camera for interaction
         var ray = this.camera().getForwardRay(100);
         this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
-          return this.world.isSelectableMesh(mesh);
-          //return this.world.isSelectableMesh(mesh) || this.world.getFloorMeshes().includes(mesh);
+          return this.isSelectableMesh(mesh);
         });
         if (this.pickInfo.hit) {
           const points = [
@@ -661,8 +664,7 @@ export class VRHelper {
           // we don't have controllers (yet), use ray from camera for interaction
           var ray = this.camera().getForwardRay(100);
           this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
-            return this.world.isSelectableMesh(mesh);
-            //return this.world.isSelectableMesh(mesh) || this.world.getFloorMeshes().includes(mesh);
+            return this.isSelectableMesh(mesh);
           });
           if (this.pickInfo.hit) {
             const points = [

@@ -49,7 +49,6 @@ export class InputForm extends Form {
     
     this.speechInput.start();
     
-    VRSPACEUI.hud.addAttachment(this.plane);
     return this.plane;
   }
   setEnabled(enable) {
@@ -73,7 +72,6 @@ export class InputForm extends Form {
     this.textChangeListeners.forEach(l=>l(this.input.text));
   }
   dispose() {
-    VRSPACEUI.hud.removeAttachment(this.plane);
     super.dispose();
     this.textChangeListeners = null;
   }

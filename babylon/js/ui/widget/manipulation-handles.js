@@ -202,26 +202,6 @@ export class ManipulationHandles {
     }
   }
   
-  attachToHud() {
-    this.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
-    if ( this.canMinimize ) {
-      VRSPACEUI.hud.addAttachment(this.box);
-    }
-    if ( this.canClose ) {
-      VRSPACEUI.hud.addAttachment(this.closeButton);
-    }
-  }
-
-  detachFromHud() {
-    this.handles.forEach( h => VRSPACEUI.hud.removeAttachment(h));
-    if ( this.canMinimize ) {
-      VRSPACEUI.hud.removeAttachment(this.box);
-    }
-    if ( this.canClose ) {
-      VRSPACEUI.hud.removeAttachment(this.closeButton);
-    }
-  }
- 
   /**
   * XR pointer support
   */

@@ -23,7 +23,6 @@ class Link {
     this.label = null;
   }
   dispose() {
-    VRSPACEUI.hud.removeAttachment(this.label.textPlane);
     this.label.dispose();
   }
 }
@@ -58,8 +57,6 @@ class LinkStack {
     label.display();
     label.textPlane.scaling = this.scaling;
     link.label = label;
-    
-    VRSPACEUI.hud.addAttachment(label.textPlane);
     
     this.links.push(link);
     
@@ -188,7 +185,6 @@ export class ChatLog extends TextArea {
   }
   attachToHud(){
     super.attachToHud();
-    VRSPACEUI.hud.addAttachment(this.input.plane);
   }
   /**
    * Move to left side of the screen
@@ -249,7 +245,6 @@ export class ChatLog extends TextArea {
   }
   /** Clean up */
   dispose() {
-    VRSPACEUI.hud.removeAttachment(this.input.plane);
     window.removeEventListener("resize", this.resizeHandler);
     this.input.dispose();
     super.dispose();

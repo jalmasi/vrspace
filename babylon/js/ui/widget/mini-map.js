@@ -25,7 +25,6 @@ export class MiniMap {
 
     this.surface = BABYLON.MeshBuilder.CreateDisc("MiniMap", { radius: .05 }, this.scene);
     this.surface.parent = VRSPACEUI.hud.root;
-    VRSPACEUI.hud.addAttachment(this.surface);
     this.surface.material = new BABYLON.StandardMaterial("screenshotMaterial");
     this.surface.material.disableLighting = true;
 
@@ -138,7 +137,6 @@ export class MiniMap {
 
   dispose() {
     this.scene.unregisterBeforeRender(this.movementHandler);
-    VRSPACEUI.hud.removeAttachment(this.surface);
     CameraHelper.getInstance(this.scene).ignoreCamera = null;
     this.surface.dispose();
     this.camera.dispose();

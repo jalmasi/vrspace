@@ -57,7 +57,6 @@ export class HUD {
     this.scale = this.scaleWeb;
     this.activeControl = null;
     this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene);
-    this.attachments = [];
     this.elements = [];
     this.controls = [];
     this.textures = [];
@@ -538,7 +537,6 @@ export class HUD {
     });
     this.textures.forEach(t => t.dispose());
 
-    //this.attachments = []; // CHECKME attachments are not controls
     this.elements = [];
     this.controls = [];
     this.textures = [];
@@ -583,13 +581,6 @@ export class HUD {
     } else {
       this.speechInput.stop();
     }
-  }
-
-  /**
-   * Used XR pointer selection predicate, returns true if selection is allowed and given mesh is one of HUD elements.
-   */
-  isSelectableMesh(mesh) {
-    return this.allowSelection && mesh.isEnabled() && (this.elements.includes(mesh) || this.attachments.includes(mesh));
   }
 
   /**
@@ -702,8 +693,6 @@ export class HUD {
         ret |= this.pointIsInside(e.absolutePosition, mesh);
       }
     });
-    //this.attachments.forEach(e => ret |= e.intersectsMesh(mesh));
-    this.attachments.forEach(e => ret |= this.pointIsInside(e.absolutePosition,mesh));
     return ret;
   }
 
@@ -752,25 +741,6 @@ export class HUD {
     return pointFound;
     */
   };
-
-  /**
-   * Add an attachment mesh. It will be used for XR controller manipulation as other hud elements.
-   * However, mesh parent isn't changed, it has to be set by caller to hud root.
-   */
-  addAttachment(mesh) {
-    if (mesh && this.attachments.indexOf(mesh) < 0) {
-      this.attachments.push(mesh);
-    }
-  }
-  /** Detach an attached mesh. Parent is not changed here. */
-  removeAttachment(mesh) {
-    if (mesh) {
-      let pos = this.attachments.indexOf(mesh);
-      if (pos > -1) {
-        this.attachments.splice(pos, 1);
-      }
-    }
-  }
 
   /**
    * Helper method to set button color, note that button needs it's own material. 

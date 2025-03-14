@@ -37,10 +37,6 @@ export class BaseArea {
     this.group.position = this.position;
     this.attachedToCamera = false;
     this.attachedToHud = true;
-    VRSPACEUI.hud.addAttachment(this.areaPlane);
-    if ( this.handles ) {
-      this.handles.attachToHud();
-    }
   }
  
   /**
@@ -53,10 +49,6 @@ export class BaseArea {
     this.group.position = this.position;
     this.attachedToCamera = true;
     this.attachedToHud = false;
-    VRSPACEUI.hud.removeAttachment(this.areaPlane);
-    if ( this.handles ) {
-      this.handles.detachFromHud();
-    }
   }
   
   /**
@@ -70,10 +62,6 @@ export class BaseArea {
     this.group.position = camera.position.add(camera.getForwardRay(1).direction.scale(offset));
     this.attachedToCamera = false;
     this.attachedToHud = false;
-    VRSPACEUI.hud.removeAttachment(this.areaPlane);
-    if ( this.handles ) {
-      this.handles.detachFromHud();
-    }
   }
  
   /**

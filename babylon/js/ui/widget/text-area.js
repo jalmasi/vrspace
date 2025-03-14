@@ -162,7 +162,6 @@ export class TextArea extends BaseArea {
   /** Attach both textPlane and backgroundPlane to the HUD, and optionally also handles. */
   attachToHud() {
     super.attachToHud();
-    VRSPACEUI.hud.addAttachment(this.backgroundPlane);
   }
   
   /**
@@ -172,14 +171,12 @@ export class TextArea extends BaseArea {
    */
   attachToCamera(camera = this.scene.activeCamera) {
     super.attachToCamera(camera);
-    VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
   }
   /**
    * Detach from whatever attached to, i.e. drop it where you stand.
    */
   detach(offset) {
     super.detach(offset);
-    VRSPACEUI.hud.removeAttachment(this.backgroundPlane);
   }
   /**
    * Check if current text length exceeds the capacity and truncate as required.
