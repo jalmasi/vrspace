@@ -54,7 +54,7 @@ export class ImageAreaWorld extends World {
     
     chatLog.writeln("Click here: www.vrspace.org");
     
-    this.selectables = [];
+    //this.selectables = [];
     // detach/attach to hud/camera test
     let state = 0;
     let imageArea = new ImageArea(this.scene, "TouchImageArea");
@@ -62,7 +62,7 @@ export class ImageAreaWorld extends World {
     imageArea.size = .05;
     imageArea.position = new BABYLON.Vector3(.1, 0, .2);
     imageArea.show();
-    this.selectables.push(imageArea);
+    //this.selectables.push(imageArea);
     
     imageArea.onClick(e=>{
       // loading video only on click, otherwise chrome doesn't allow sound
@@ -91,17 +91,19 @@ export class ImageAreaWorld extends World {
     this.whiteboard.size = 2;
     this.whiteboard.position = new BABYLON.Vector3(0,2,3);
     this.whiteboard.show();
-    this.selectables.push(this.whiteboard);
+    //this.selectables.push(this.whiteboard);
     this.addListener(this.whiteboard);
 
     this.connect();
   }
 
+  /*
   isSelectableMesh(mesh) {
     let ret = super.isSelectableMesh(mesh);
     this.selectables.forEach( o => ret |= o.isSelectableMesh(mesh));
     return ret;
   }
+  */
 
   connect() {
     new WorldManager(this);

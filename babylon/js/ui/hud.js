@@ -589,7 +589,7 @@ export class HUD {
    * Used XR pointer selection predicate, returns true if selection is allowed and given mesh is one of HUD elements.
    */
   isSelectableMesh(mesh) {
-    return this.allowSelection && (this.elements.includes(mesh) || this.attachments.includes(mesh));
+    return this.allowSelection && mesh.isEnabled() && (this.elements.includes(mesh) || this.attachments.includes(mesh));
   }
 
   /**

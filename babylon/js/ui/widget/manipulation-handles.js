@@ -226,7 +226,7 @@ export class ManipulationHandles {
   * XR pointer support
   */
   isSelectableMesh(mesh) {
-    return !this.handles.minimized && this.handles.includes(mesh) || this.box && mesh == this.box || this.closeButton && mesh == this.closeButton; 
+    return mesh.isEnabled() && (!this.handles.minimized && this.handles.includes(mesh) || this.box && mesh == this.box || this.closeButton && mesh == this.closeButton); 
   }
  
   /**

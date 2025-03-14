@@ -450,7 +450,7 @@ export class Form {
    * XR selection support
    */
   isSelectableMesh(mesh) {
-    return this.plane && this.plane == mesh;
+    return mesh.isEnabled() && this.plane && this.plane == mesh;
   }
 }
 

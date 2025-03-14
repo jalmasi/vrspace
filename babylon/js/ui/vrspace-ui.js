@@ -657,6 +657,7 @@ export class VRSpaceUI {
     }
     return ret;
   }
+  
 }
 
 // this does not ensure singleton in the browser

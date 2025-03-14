@@ -55,10 +55,7 @@ export class BaseArea {
     this.attachedToHud = false;
     VRSPACEUI.hud.removeAttachment(this.areaPlane);
     if ( this.handles ) {
-      // FIXME this is most likely wrong
-      this.handles.attachToHud();
-      this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
-      VRSPACEUI.hud.removeAttachment(this.handles.box);
+      this.handles.detachFromHud();
     }
   }
   
@@ -75,9 +72,7 @@ export class BaseArea {
     this.attachedToHud = false;
     VRSPACEUI.hud.removeAttachment(this.areaPlane);
     if ( this.handles ) {
-      // FIXME this is most likely wrong
-      this.handles.handles.forEach( h => VRSPACEUI.hud.addAttachment(h));
-      VRSPACEUI.hud.removeAttachment(this.handles.box);
+      this.handles.detachFromHud();
     }
   }
  
@@ -95,7 +90,7 @@ export class BaseArea {
   * XR pointer support
   */
   isSelectableMesh(mesh) {
-    return mesh == this.areaPlane && this.areaPlane.isEnabled() || (this.handles && this.handles.isSelectableMesh(mesh)); 
+    return mesh.isEnabled() && ( mesh == this.areaPlane || (this.handles && this.handles.isSelectableMesh(mesh))); 
   }
 
   /** Clean up allocated resources */
