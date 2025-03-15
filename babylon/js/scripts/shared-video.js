@@ -8,6 +8,8 @@ export class SharedVideo extends SharedFile {
 
     this.imageArea = new ImageArea(this.scene, this.vrObject.content.fileName);
     this.imageArea.addHandles = this.isMine();
+    this.imageArea.canClose = this.isMine();
+    this.imageArea.onClose = () => this.unpublish();
     let pos = this.vrObject.position;
     this.imageArea.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
     this.imageArea.width = 256;

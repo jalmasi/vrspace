@@ -1,6 +1,7 @@
 import { BasicScript } from "./basic-script.js";
 import { ImageArea } from "../ui/widget/image-area.js";
 import { Label } from "../ui/widget/label.js";
+import { VRSPACE } from "../client/vrspace.js";
 
 export class SharedFile extends BasicScript {
   init() {
@@ -49,5 +50,9 @@ export class SharedFile extends BasicScript {
       URL.revokeObjectURL(href);
       a.remove();
     });
+  }
+  
+  unpublish() {
+    VRSPACE.deleteSharedObject(this.vrObject);
   }
 }
