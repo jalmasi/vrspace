@@ -687,7 +687,6 @@ class ListGroupsForm extends Form {
         group.chatlog.input.autoWrite = false;
         group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
         group.chatlog.input.addListener(text => {
-          // TODO send a group message message
           this.groupApi.write(group.id, text);
         });
 

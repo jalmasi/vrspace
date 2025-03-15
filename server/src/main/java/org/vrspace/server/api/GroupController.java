@@ -211,6 +211,7 @@ public class GroupController extends ClientControllerBase {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     // FIXME sanitize text
+    log.debug("Group write, user: " + client + " group: " + group + " text: " + text);
     groupManager.write(client, group, text);
   }
 

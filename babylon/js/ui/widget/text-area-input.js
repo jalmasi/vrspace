@@ -26,6 +26,7 @@ export class TextAreaInput extends InputForm {
     this.showNoMatch = true;
     /** Write the entered text to the area, default true, otherwise just notify listeners */
     this.autoWrite = true;
+    this.triggerredOnButton = false;
   }
   /**
    * Initialize and attach to the TextArea
@@ -34,6 +35,7 @@ export class TextAreaInput extends InputForm {
     this.buttonCallback = () => {
       // text may be empty string here
       if ( this.input.text ) {
+        this.triggerredOnButton = true;
         this.processInput();
       }
     }
@@ -48,7 +50,12 @@ export class TextAreaInput extends InputForm {
     
     this.inputFocusListener = (input, focused) => {
       if (!focused && input.text) {
-        this.processInput();
+        if ( this.triggerredOnButton ) {
+          // focus was lost due to click on submit button
+          this.triggerredOnButton = false;
+        } else {
+          this.processInput();
+        }
       }
     }
 
