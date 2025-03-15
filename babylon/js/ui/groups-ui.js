@@ -919,6 +919,8 @@ export class GroupsUI {
     Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups()]).then(groups=>{
       if ( groups[0].length + groups[1].length == 0 ) {
         VRSPACEUI.hud.markDisabled(this.listGroupsButton);
+      } else {
+        VRSPACEUI.hud.markEnabled(this.listGroupsButton);
       }
     });
   }
@@ -1038,6 +1040,7 @@ export class GroupsUI {
           this.createGroupForm = null;
           VRSPACEUI.hud.clearRow();
           VRSPACEUI.hud.showButtons(true);
+          this.showListButton();
           if (this.listGroupsForm) {
             this.refreshList(()=>this.listGroupsUI());
           }
