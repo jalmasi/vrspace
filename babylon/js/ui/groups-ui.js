@@ -916,6 +916,11 @@ export class GroupsUI {
     } else {
       this.listGroupsButton = this.hud.addButton(listText, this.contentBase + "/content/icons/user-group-settings.png", () => { this.listGroupsUI() }, false);
     }
+    Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups()]).then(groups=>{
+      if ( groups[0].length + groups[1].length == 0 ) {
+        VRSPACEUI.hud.markDisabled(this.listGroupsButton);
+      }
+    });
   }
   
   showInvitesButton() {
@@ -993,7 +998,9 @@ export class GroupsUI {
           myGroups.forEach(g => g.unread = unreadGroups.find(e => e.id == g.id)?.unread || "");
 
           this.showInvitesButton();
-          this.createForm(this.invitations, myGroups, ()=>this.listGroupsUI());
+          if ( myGroups.length + this.invitations.length > 0 ) {
+            this.createForm(this.invitations, myGroups, ()=>this.listGroupsUI());
+          }
         });
     }
   }
