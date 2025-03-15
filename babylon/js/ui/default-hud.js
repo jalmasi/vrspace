@@ -78,8 +78,15 @@ export class DefaultHud {
     } else {
       this.hud.markDisabled(this.gamesButton);
     }
+    this.addGroupsButton();
   }
 
+  addGroupsButton() {
+    if ( ! this.groupsButton && this.isOnline() && this.isAuthenticated ) {
+      this.groupsButton = this.hud.addButton("Groups", this.contentBase + "/content/icons/user-group.png", () => { this.groups() });
+    }
+  }
+  
   streamingAvailable() {
     // TODO check server capabilities
     // screen sharing unavailable on mobiles
@@ -289,7 +296,7 @@ export class DefaultHud {
     if (!this.displayButtons && this.isAuthenticated && !this.worldButton) {
       // add these buttons only once, to the first row along with settings button
       this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => { this.showWorldTemplates() });
-      this.groupsButton = this.hud.addButton("Groups", this.contentBase + "/content/icons/user-group.png", () => { this.groups() });
+      this.addGroupsButton();
     }
   }
 
