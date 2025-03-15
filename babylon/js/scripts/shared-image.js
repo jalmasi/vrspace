@@ -20,7 +20,7 @@ export class SharedImage extends SharedFile {
     this.imageArea.group.rotation = new BABYLON.Vector3(rot.x, rot.y, rot.z);
 
     // CHECKME: Do we want to allow download?
-    //this.imageArea.onClick(() => this.download());
+    this.imageArea.onClick(() => this.download());
     
     let path = "/content/tmp/"+this.vrObject.content.fileName;
     this.imageArea.loadUrl(path);
