@@ -437,16 +437,29 @@ export class AvatarSelection extends World {
 
   loadCharacterUrl(url) {
     console.log('loading character from ' + url);
-    var file = new ServerFile(url);
-    this.loadCharacter(file, file.file);
+    let file = new ServerFile(url);
+    // in order to load fixes file, we have to:
+    VRSPACEUI.listCharactersAsync(file.baseUrl).then( avatars => {
+      let localAvatar = avatars.find(folder=>folder.name == file.name);
+      if ( localAvatar ) {
+        // this will load fixes, as ServerFolder contains related fixes file
+        this.loadCharacter(localAvatar);
+      } else {
+        // load without fixes
+        this.loadCharacter(file, file.file);
+      }
+    });
   }
 
+  /**
+   * @param {ServerFolder} dir 
+   */
   loadCharacter(dir, file = "scene.gltf") {
     this.tracking = false;
     this.indicator.add(dir);
     this.indicator.animate();
-    console.log("Loading character from " + dir.name);
-    var loaded = new HumanoidAvatar(this.scene, dir, this.shadowGenerator);
+    console.log("Loading character from " + dir.name+ " fixes "+dir.related);
+    let loaded = new HumanoidAvatar(this.scene, dir, this.shadowGenerator);
     loaded.file = file;
     loaded.animations = this.customAnimations;
     // resize the character to real-world height
