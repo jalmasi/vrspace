@@ -159,7 +159,11 @@ export class ManipulationHandles {
             this.group.removeBehavior(this.behavior);
             this.behavior = null;
             if (this.positionCallback) {
-              this.positionCallback(this.group.position, this.group.rotationQuaternion.toEulerAngles());
+              if ( this.group.rotationQuaternion ) {
+                this.positionCallback(this.group.position, this.group.rotationQuaternion.toEulerAngles());
+              } else {
+                this.positionCallback(this.group.position, this.group.rotation);
+              }
               //this.positionCallback(this.group.position, this.group.rotationQuaternion);
             }
           }

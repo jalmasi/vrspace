@@ -28,6 +28,8 @@ export class SharedFile extends BasicScript {
   dispose() {
     if ( this.imageArea ) {
       this.imageArea.dispose();
+    }
+    if ( this.label ) {
       this.label.dispose();
     }
   }
@@ -52,6 +54,12 @@ export class SharedFile extends BasicScript {
     });
   }
   
+  positionChanged(pos, rot) {
+    VRSPACE.sendEvent(this.vrObject, {position:{x:pos.x, y:pos.y, z:pos.z}, rotation:{x:rot.x, y:rot.y, z:rot.z}});
+  }
+  scaleChanged(scaling) {
+    VRSPACE.sendEvent(this.vrObject, {scale:{x:scaling.x, y:scaling.y, z:scaling.z}})
+  }
   unpublish() {
     VRSPACE.deleteSharedObject(this.vrObject);
   }

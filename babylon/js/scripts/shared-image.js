@@ -1,6 +1,5 @@
 import { SharedFile } from "./shared-file.js";
 import { ImageArea } from "../ui/widget/image-area.js";
-import { VRSPACE } from "../client/vrspace.js";
 
 export class SharedImage extends SharedFile {
   init() {
@@ -33,16 +32,4 @@ export class SharedImage extends SharedFile {
     
     return this.imageArea.group;
   }
-  positionChanged(pos, rot) {
-    VRSPACE.sendEvent(this.vrObject, {position:{x:pos.x, y:pos.y, z:pos.z}, rotation:{x:rot.x, y:rot.y, z:rot.z}});
-  }
-  scaleChanged(scaling) {
-    VRSPACE.sendEvent(this.vrObject, {scale:{x:scaling.x, y:scaling.y, z:scaling.z}})
-  }
-  dispose() {
-    if ( this.imageArea ) {
-      this.imageArea.dispose();
-    }
-  }
-
 }

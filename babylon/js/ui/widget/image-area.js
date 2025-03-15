@@ -206,10 +206,15 @@ export class ImageArea extends BaseArea {
       this.areaPlane.scaling.x = this.size*this.ratio;
       this.areaPlane.scaling.y = this.size;
       if ( this.addHandles ) {
+        // FIXME introduce handles.resize() to preserve all state variables
+        let positionCallback = this.handles.positionCallback;
+        let sizeCallback = this.handles.sizeCallback
         if ( this.handles ) {
           this.handles.dispose();
         }
         this.createHandles();
+        this.handles.positionCallback = positionCallback;
+        this.handles.sizeCallback = sizeCallback;
       }
     }
   }
