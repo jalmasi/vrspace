@@ -27,4 +27,15 @@ public class ClientControllerBase extends ApiBase {
   protected boolean isAuthenticated(HttpSession session) {
     return isAuthenticated(session, clientFactory);
   }
+
+  protected Client getAuthorisedClient(HttpSession session) {
+    if (!isAuthenticated(session)) {
+      throw new SecurityException("Anonymous user");
+    }
+    Client client = findClient(session);
+    if (client.isTemporary()) {
+      throw new SecurityException("Temporary user");
+    }
+    return client;
+  }
 }

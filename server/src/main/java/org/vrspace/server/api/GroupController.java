@@ -263,14 +263,4 @@ public class GroupController extends ClientControllerBase {
     return groupManager.listOwners(group);
   }
 
-  protected Client getAuthorisedClient(HttpSession session) {
-    if (!isAuthenticated(session)) {
-      throw new SecurityException("Anonymous user");
-    }
-    Client client = findClient(session);
-    if (client.isTemporary()) {
-      throw new SecurityException("Temporary user");
-    }
-    return client;
-  }
 }

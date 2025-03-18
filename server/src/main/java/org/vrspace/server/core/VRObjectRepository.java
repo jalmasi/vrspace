@@ -228,4 +228,5 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId AND ud.key=$key RETURN ud, r, o")
   Optional<UserData> findUserData(long objectId, String key);
+
 }
