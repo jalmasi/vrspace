@@ -26,6 +26,8 @@ public class GroupManagerIT {
   @Autowired
   private VRObjectRepository db;
   @Autowired
+  private GroupRepository groupRepo;
+  @Autowired
   private GroupManager gm;
 
   @Test
@@ -37,17 +39,17 @@ public class GroupManagerIT {
 
     assertThrows(IllegalArgumentException.class, () -> gm.createGroup(c1, new UserGroup("test")));
 
-    assertTrue(db.listGroupClients(group.getId()).contains(c1));
-    assertTrue(db.listUserGroups(c1.getId()).contains(group));
-    assertTrue(db.listOwnedGroups(c1.getId()).contains(group));
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c1));
+    assertTrue(groupRepo.listUserGroups(c1.getId()).contains(group));
+    assertTrue(groupRepo.listOwnedGroups(c1.getId()).contains(group));
     assertTrue(db.findOwnership(c1.getId(), group.getId()).isPresent());
 
     assertThrows(SecurityException.class, () -> gm.deleteGroup(c2, group));
     gm.deleteGroup(c1, group);
 
-    assertFalse(db.listGroupClients(group.getId()).contains(c1));
-    assertFalse(db.listUserGroups(c1.getId()).contains(group));
-    assertFalse(db.listOwnedGroups(c1.getId()).contains(group));
+    assertFalse(groupRepo.listGroupClients(group.getId()).contains(c1));
+    assertFalse(groupRepo.listUserGroups(c1.getId()).contains(group));
+    assertFalse(groupRepo.listOwnedGroups(c1.getId()).contains(group));
     assertFalse(db.findOwnership(c1.getId(), group.getId()).isPresent());
   }
 
@@ -62,14 +64,14 @@ public class GroupManagerIT {
     Client c2 = db.save(new Client());
     gm.join(group, c2);
 
-    assertTrue(db.listGroupClients(group.getId()).contains(c1));
-    assertTrue(db.listGroupClients(group.getId()).contains(c2));
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c1));
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c2));
 
     assertThrows(IllegalArgumentException.class, () -> gm.kick(group, c2, c1));
     gm.leave(group, c2);
 
-    assertTrue(db.listGroupClients(group.getId()).contains(c1));
-    assertFalse(db.listGroupClients(group.getId()).contains(c2));
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c1));
+    assertFalse(groupRepo.listGroupClients(group.getId()).contains(c2));
 
   }
 
@@ -86,21 +88,21 @@ public class GroupManagerIT {
     assertThrows(IllegalArgumentException.class, () -> gm.allow(group, c2, c1));
 
     gm.ask(group, c2);
-    assertFalse(db.listGroupClients(group.getId()).contains(c2));
-    assertEquals(1, db.listPendingRequests(group.getId()).size());
+    assertFalse(groupRepo.listGroupClients(group.getId()).contains(c2));
+    assertEquals(1, groupRepo.listPendingRequests(group.getId()).size());
 
     assertThrows(IllegalArgumentException.class, () -> gm.ask(group, c2));
     assertThrows(IllegalArgumentException.class, () -> gm.allow(group, c2, c2));
 
     gm.allow(group, c2, c1);
 
-    assertTrue(db.listGroupClients(group.getId()).contains(c2));
-    assertEquals(0, db.listPendingRequests(group.getId()).size());
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c2));
+    assertEquals(0, groupRepo.listPendingRequests(group.getId()).size());
 
     assertThrows(SecurityException.class, () -> gm.kick(group, c2, c2));
     gm.kick(group, c2, c1);
 
-    assertFalse(db.listGroupClients(group.getId()).contains(c2));
+    assertFalse(groupRepo.listGroupClients(group.getId()).contains(c2));
   }
 
   @Test
@@ -113,18 +115,18 @@ public class GroupManagerIT {
     Client c2 = db.save(new Client());
     gm.invite(group, c2, c1);
 
-    assertTrue(db.listGroupClients(group.getId()).contains(c1));
-    assertFalse(db.listGroupClients(group.getId()).contains(c2));
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c1));
+    assertFalse(groupRepo.listGroupClients(group.getId()).contains(c2));
 
-    assertNotNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
-    assertEquals(1, db.listPendingInvitations(c2.getId()).size());
-    assertEquals(group, db.listPendingInvitations(c2.getId()).get(0).getGroup());
+    assertNotNull(groupRepo.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+    assertEquals(1, groupRepo.listPendingInvitations(c2.getId()).size());
+    assertEquals(group, groupRepo.listPendingInvitations(c2.getId()).get(0).getGroup());
 
     gm.accept(group, c2);
 
-    assertTrue(db.listGroupClients(group.getId()).contains(c2));
-    assertNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
-    assertEquals(0, db.listPendingInvitations(c2.getId()).size());
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c2));
+    assertNull(groupRepo.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+    assertEquals(0, groupRepo.listPendingInvitations(c2.getId()).size());
   }
 
   @Test
@@ -141,17 +143,17 @@ public class GroupManagerIT {
 
     gm.invite(group, c2, c1);
 
-    assertTrue(db.listGroupClients(group.getId()).contains(c1));
-    assertFalse(db.listGroupClients(group.getId()).contains(c2));
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c1));
+    assertFalse(groupRepo.listGroupClients(group.getId()).contains(c2));
 
-    assertNotNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
-    assertEquals(1, db.listPendingInvitations(c2.getId()).size());
-    assertEquals(group, db.listPendingInvitations(c2.getId()).get(0).getGroup());
+    assertNotNull(groupRepo.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+    assertEquals(1, groupRepo.listPendingInvitations(c2.getId()).size());
+    assertEquals(group, groupRepo.listPendingInvitations(c2.getId()).get(0).getGroup());
 
     gm.accept(group, c2);
 
-    assertNull(db.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
-    assertTrue(db.listGroupClients(group.getId()).contains(c2));
+    assertNull(groupRepo.findGroupMember(group.getId(), c2.getId()).get().getPendingInvite());
+    assertTrue(groupRepo.listGroupClients(group.getId()).contains(c2));
   }
 
   @Test

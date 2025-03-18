@@ -37,6 +37,8 @@ public class GroupManagerTest {
   @Mock
   private VRObjectRepository repo;
   @Mock
+  private GroupRepository groupRepo;
+  @Mock
   private WorldManager worldManager;
 
   @InjectMocks
@@ -63,10 +65,10 @@ public class GroupManagerTest {
     g1.setId(10L);
     List<Client> g1members = List.of(c1, c2, c3);
 
-    when(repo.listGroupClients(g1.getId())).thenReturn(g1members);
+    when(groupRepo.listGroupClients(g1.getId())).thenReturn(g1members);
     when(worldManager.get(any(ID.class))).thenAnswer(invocation -> clientCache.get(invocation.getArguments()[0]));
-    when(repo.findGroupMember(eq(g1.getId()), anyLong())).thenReturn(Optional.of(new GroupMember()));
-    when(repo.findGroupMember(eq(g1.getId()), eq(4L))).thenReturn(Optional.empty());
+    when(groupRepo.findGroupMember(eq(g1.getId()), anyLong())).thenReturn(Optional.of(new GroupMember()));
+    when(groupRepo.findGroupMember(eq(g1.getId()), eq(4L))).thenReturn(Optional.empty());
 
     gm.write(c1, g1, "Hello world");
 

@@ -48,6 +48,9 @@ public class DBIT {
   VRObjectRepository repo;
 
   @Autowired
+  GroupRepository groupRepo;
+
+  @Autowired
   Neo4jMappingContext ctx;
 
   @Autowired
@@ -783,7 +786,7 @@ public class DBIT {
     // confirm owned group is persisted:
     Client result = repo.getClient(c1.getId());
     System.err.println(result);
-    List<UserGroup> groups = repo.listOwnedGroups(result.getId());
+    List<UserGroup> groups = groupRepo.listOwnedGroups(result.getId());
     System.err.println(groups);
     Entity owned = groups.iterator().next();
     System.err.println(owned);
@@ -821,7 +824,7 @@ public class DBIT {
     // confirm
     Ownership newOwner = repo.getOwnersOf(g1.getId()).iterator().next();
     assertEquals(newOwner.getOwner(), c2);
-    assertEquals(g1, repo.listOwnedGroups(c2.getId()).iterator().next());
+    assertEquals(g1, groupRepo.listOwnedGroups(c2.getId()).iterator().next());
   }
 
   @Test
@@ -853,40 +856,40 @@ public class DBIT {
     m32 = repo.save(m32);
 
     // g1 contains c1 and c2
-    List<Client> g1c = repo.listGroupClients(g1.getId());
+    List<Client> g1c = groupRepo.listGroupClients(g1.getId());
     assertEquals(2, g1c.size());
     assertTrue(g1c.contains(c1));
     assertTrue(g1c.contains(c2));
-    List<GroupMember> g1m = repo.listGroupMembers(g1.getId());
+    List<GroupMember> g1m = groupRepo.listGroupMembers(g1.getId());
     assertEquals(2, g1m.size());
     assertTrue(g1m.contains(m11));
     assertTrue(g1m.contains(m12));
     // g2 contains only c1
-    List<Client> g2c = repo.listGroupClients(g2.getId());
+    List<Client> g2c = groupRepo.listGroupClients(g2.getId());
     assertEquals(1, g2c.size());
     assertTrue(g2c.contains(c1));
-    List<GroupMember> g2m = repo.listGroupMembers(g2.getId());
+    List<GroupMember> g2m = groupRepo.listGroupMembers(g2.getId());
     assertEquals(1, g2m.size());
     assertTrue(g2m.contains(m21));
     // g3 contains only c2
-    List<Client> g3c = repo.listGroupClients(g3.getId());
+    List<Client> g3c = groupRepo.listGroupClients(g3.getId());
     assertEquals(1, g3c.size());
     assertTrue(g3c.contains(c2));
-    List<GroupMember> g3m = repo.listGroupMembers(g3.getId());
+    List<GroupMember> g3m = groupRepo.listGroupMembers(g3.getId());
     assertEquals(1, g3m.size());
     assertTrue(g3m.contains(m32));
     // g4 has no members
-    List<Client> g4c = repo.listGroupClients(g4.getId());
+    List<Client> g4c = groupRepo.listGroupClients(g4.getId());
     assertEquals(0, g4c.size());
-    List<GroupMember> g4m = repo.listGroupMembers(g4.getId());
+    List<GroupMember> g4m = groupRepo.listGroupMembers(g4.getId());
     assertEquals(0, g4m.size());
     // c1 is member of g1 and g2
-    List<UserGroup> c1g = repo.listUserGroups(c1.getId());
+    List<UserGroup> c1g = groupRepo.listUserGroups(c1.getId());
     assertEquals(2, c1g.size());
     assertTrue(c1g.contains(g1));
     assertTrue(c1g.contains(g2));
     // c2 is member of g1 and g3
-    List<UserGroup> c2g = repo.listUserGroups(c2.getId());
+    List<UserGroup> c2g = groupRepo.listUserGroups(c2.getId());
     assertEquals(2, c2g.size());
     assertTrue(c2g.contains(g1));
     assertTrue(c2g.contains(g3));

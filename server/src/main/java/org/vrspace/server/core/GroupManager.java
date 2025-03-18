@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.GroupEvent;
@@ -35,23 +34,23 @@ public class GroupManager {
   @Autowired
   private VRObjectRepository db;
   @Autowired
-  private WorldManager worldManager;
+  private GroupRepository groupRepo;
   @Autowired
-  private Neo4jClient neo4jClient;
+  private WorldManager worldManager;
 
   @Transactional
   public List<UserGroup> listGroups(Client client) {
-    return db.listUserGroups(client.getId());
+    return groupRepo.listUserGroups(client.getId());
   }
 
   @Transactional
   public List<UserGroup> listOwnedGroups(Client client) {
-    return db.listOwnedGroups(client.getId());
+    return groupRepo.listOwnedGroups(client.getId());
   }
 
   @Transactional
   public UserGroup createGroup(Client client, UserGroup group) {
-    if (db.findGroup(client.getId(), group.getName()).isPresent()) {
+    if (groupRepo.findGroup(client.getId(), group.getName()).isPresent()) {
       throw new IllegalArgumentException("Client already belongs to group " + group.getName());
     }
     group = db.save(group);
@@ -75,14 +74,14 @@ public class GroupManager {
       throw new SecurityException("Not an owner");
     }
     // delete memberships
-    db.listGroupMembers(group.getId()).forEach(groupMember -> db.delete(groupMember));
+    groupRepo.listGroupMembers(group.getId()).forEach(groupMember -> db.delete(groupMember));
     // delete ownership(s)
     db.getOwnersOf(group.getId()).forEach(ownership -> db.delete(ownership));
   }
 
   @Transactional
   public List<Client> show(UserGroup group) {
-    return db.listGroupClients(group.getId());
+    return groupRepo.listGroupClients(group.getId());
   }
 
   @Transactional
@@ -98,7 +97,7 @@ public class GroupManager {
    */
   @Transactional
   public void invite(UserGroup group, Client member, Client owner) {
-    if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
+    if (groupRepo.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already member of group " + group.getId());
     }
     if (group.isPrivate() && (owner == null || db.findOwnership(owner.getId(), group.getId()).isEmpty())) {
@@ -126,7 +125,7 @@ public class GroupManager {
   @Transactional
   public void accept(UserGroup group, Client member) {
     // shallow copy:
-    Optional<GroupMember> existingMember = db.findGroupMember(group.getId(), member.getId());
+    Optional<GroupMember> existingMember = groupRepo.findGroupMember(group.getId(), member.getId());
     if (existingMember.isEmpty() || existingMember.get().getPendingInvite() == null) {
       throw new IllegalArgumentException("Not invited client: " + member.getId());
     }
@@ -143,7 +142,7 @@ public class GroupManager {
    */
   @Transactional
   public void ask(UserGroup group, Client member) {
-    if (db.findGroupMember(group.getId(), member.getId()).isPresent()) {
+    if (groupRepo.findGroupMember(group.getId(), member.getId()).isPresent()) {
       throw new IllegalArgumentException("Client " + member.getId() + " is already joining group " + group.getId());
     }
     GroupMember gm = new GroupMember(group, member).request();
@@ -166,7 +165,7 @@ public class GroupManager {
     if (db.findOwnership(owner.getId(), group.getId()).isEmpty()) {
       throw new IllegalArgumentException("Only group owners can allow members");
     }
-    Optional<GroupMember> invited = db.findGroupMember(group.getId(), member.getId());
+    Optional<GroupMember> invited = groupRepo.findGroupMember(group.getId(), member.getId());
     if (invited.isPresent()) {
       GroupMember gm = db.get(invited);
       if (gm.getPendingRequest() == null) {
@@ -210,7 +209,7 @@ public class GroupManager {
 
   @Transactional
   public void kick(UserGroup group, long memberId, Client owner) {
-    Optional<GroupMember> member = db.findGroupMember(group.getId(), memberId);
+    Optional<GroupMember> member = groupRepo.findGroupMember(group.getId(), memberId);
     if (member.isEmpty()) {
       throw new IllegalArgumentException("Group does not contain client: " + memberId);
     } else {
@@ -247,7 +246,7 @@ public class GroupManager {
     if (db.findOwnership(member.getId(), group.getId()).isEmpty()) {
       throw new SecurityException("Only group owners can list pending requets");
     }
-    return db.listPendingRequests(group.getId());
+    return groupRepo.listPendingRequests(group.getId());
   }
 
   /**
@@ -258,7 +257,7 @@ public class GroupManager {
    */
   @Transactional
   public List<GroupMember> pendingInvitations(Client member) {
-    return db.listPendingInvitations(member.getId());
+    return groupRepo.listPendingInvitations(member.getId());
   }
 
   private void addMember(UserGroup group, Client member) {
@@ -267,7 +266,7 @@ public class GroupManager {
   }
 
   private void removeMember(UserGroup group, Client member) {
-    db.findGroupMember(group.getId(), member.getId()).ifPresent(groupMember -> db.delete(groupMember));
+    groupRepo.findGroupMember(group.getId(), member.getId()).ifPresent(groupMember -> db.delete(groupMember));
   }
 
   @Transactional
@@ -283,11 +282,11 @@ public class GroupManager {
 
   @Transactional
   public void write(Client sender, UserGroup group, String text) {
-    if (db.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
+    if (groupRepo.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
       throw new SecurityException("Only members can post to groups");
     }
     GroupMessage message = db.save(new GroupMessage(sender, group, text, Instant.now()));
-    db.listGroupClients(group.getId()).forEach(client -> {
+    groupRepo.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message
       Client cachedClient = getCachedClient(client);
@@ -304,7 +303,7 @@ public class GroupManager {
 
   @Transactional
   public UserGroup getGroup(Client client, String name) {
-    Optional<UserGroup> group = db.findGroup(client.getId(), name);
+    Optional<UserGroup> group = groupRepo.findGroup(client.getId(), name);
     if (group.isEmpty()) {
       throw new NotFoundException("Non-existing group: " + name + " clientId:" + client.getId());
     }
@@ -313,7 +312,7 @@ public class GroupManager {
 
   @Transactional
   public UserGroup getGroup(Client client, long groupId) {
-    Optional<UserGroup> group = db.findGroup(client.getId(), groupId);
+    Optional<UserGroup> group = groupRepo.findGroup(client.getId(), groupId);
     if (group.isEmpty()) {
       throw new NotFoundException("Non-existing group: " + groupId + " clientId:" + client.getId());
     }
@@ -331,10 +330,10 @@ public class GroupManager {
 
   @Transactional
   public List<UserGroup> unreadGroups(Client client) {
-    List<GroupMember> groups = db.listGroupMemberships(client.getId());
+    List<GroupMember> groups = groupRepo.listGroupMemberships(client.getId());
     groups.forEach((gm) -> {
       UserGroup group = gm.getGroup();
-      int unread = db.unreadMessageCount(group.getId(), gm.getLastRead());
+      int unread = groupRepo.unreadMessageCount(group.getId(), gm.getLastRead());
       group.setUnread(unread);
     });
     return groups.stream().map(gm -> gm.getGroup()).filter(g -> g.getUnread() > 0).collect(Collectors.toList());
@@ -343,7 +342,7 @@ public class GroupManager {
   @Transactional
   public List<GroupMessage> unreadMessages(Client client, UserGroup group) {
     Instant now = Instant.now();
-    Optional<GroupMember> gm = db.findGroupMember(group.getId(), client.getId());
+    Optional<GroupMember> gm = groupRepo.findGroupMember(group.getId(), client.getId());
     if (gm.isEmpty()) {
       throw new NotFoundException("Not a member group: " + group.getId() + " clientId:" + client.getId());
     }
@@ -351,7 +350,7 @@ public class GroupManager {
     Instant lastRead = member.getLastRead();
     member.setLastRead(now);
     save(member);
-    return db.messagesSince(group.getId(), lastRead);
+    return groupRepo.messagesSince(group.getId(), lastRead);
   }
 
   @Transactional
