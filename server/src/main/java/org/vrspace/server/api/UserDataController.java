@@ -73,7 +73,7 @@ public class UserDataController extends ClientControllerBase {
    * Delete all user data belonging to the client.
    */
   @DeleteMapping
-  public void clear(HttpSession session) {
+  public void clearUserData(HttpSession session) {
     Client client = getAuthorisedClient(session);
     log.debug("Clear user data, user: " + client);
     db.listUserData(client.getId()).forEach(data -> db.delete(data));
@@ -83,7 +83,7 @@ public class UserDataController extends ClientControllerBase {
    * Delete a value for the given key.
    */
   @DeleteMapping("/{key}")
-  public void delete(@PathVariable String key, HttpSession session) {
+  public void deleteUserData(@PathVariable String key, HttpSession session) {
     Client client = getAuthorisedClient(session);
     log.debug("Delete user data, user: " + client + " key: " + key);
     UserData existing = db.get(db.findUserData(client.getId(), key));

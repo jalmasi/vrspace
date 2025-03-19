@@ -648,7 +648,7 @@ export class AvatarSelection extends World {
   }
   // TODO: API client class/library
   showActiveUsers() {
-    fetch(this.api.endpoint.worlds + '/users').then(response => response.json().then(worldStats => {
+    this.api.endpoint.worlds.users().then(worldStats => {
       if (worldStats) {
         worldStats.forEach(stat => {
           //console.log(stat);
@@ -664,7 +664,7 @@ export class AvatarSelection extends World {
           }
         });
       }
-    }));
+    });
   }
   portalsEnabled(enable) {
     if (this.portals) {

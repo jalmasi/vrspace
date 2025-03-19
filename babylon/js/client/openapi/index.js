@@ -16,6 +16,7 @@ import ApiClient from './ApiClient';
 import Animation from './model/Animation';
 import Client from './model/Client';
 import ContentCategory from './model/ContentCategory';
+import CreateWorldOptions from './model/CreateWorldOptions';
 import GltfModel from './model/GltfModel';
 import GroupMember from './model/GroupMember';
 import GroupMessage from './model/GroupMessage';
@@ -26,6 +27,7 @@ import Rotation from './model/Rotation';
 import SceneProperties from './model/SceneProperties';
 import UploadRequest from './model/UploadRequest';
 import User from './model/User';
+import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
 import VRObject from './model/VRObject';
 import World from './model/World';
@@ -37,6 +39,7 @@ import SketchfabControllerApi from './api/SketchfabControllerApi';
 import TextureControllerApi from './api/TextureControllerApi';
 import UploadControllerApi from './api/UploadControllerApi';
 import UserControllerApi from './api/UserControllerApi';
+import UserDataControllerApi from './api/UserDataControllerApi';
 import WorldControllerApi from './api/WorldControllerApi';
 
 
@@ -97,6 +100,12 @@ export {
     ContentCategory,
 
     /**
+     * The CreateWorldOptions model constructor.
+     * @property {CreateWorldOptions}
+     */
+    CreateWorldOptions,
+
+    /**
      * The GltfModel model constructor.
      * @property {GltfModel}
      */
@@ -155,6 +164,12 @@ export {
      * @property {User}
      */
     User,
+
+    /**
+     * The UserData model constructor.
+     * @property {UserData}
+     */
+    UserData,
 
     /**
      * The UserGroup model constructor.
@@ -221,6 +236,12 @@ export {
     * @property {module:api/UserControllerApi}
     */
     UserControllerApi,
+
+    /**
+    * The UserDataControllerApi service constructor.
+    * @property {module:api/UserDataControllerApi}
+    */
+    UserDataControllerApi,
 
     /**
     * The WorldControllerApi service constructor.

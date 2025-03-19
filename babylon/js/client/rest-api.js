@@ -1,6 +1,8 @@
 import { ApiClient } from './openapi/ApiClient.js';
 import { GroupControllerApi } from './openapi/api/GroupControllerApi.js';
 import { UserControllerApi } from './openapi/api/UserControllerApi.js';
+import { WorldControllerApi } from './openapi/api/WorldControllerApi.js'
+import { CreateWorldOptions } from './openapi/model/CreateWorldOptions.js';
 import { ScriptLoader } from './script-loader.js';
 /**
  * Class to execute REST API calls, singleton.
@@ -18,7 +20,8 @@ export class VRSpaceAPI {
     VRSpaceAPI.instance = this;
     this.apiClient = new ApiClient(apiBase);
     this.endpoint = {
-      worlds: this.base + "/worlds",
+      /** @type {WorldControllerApi} */
+      worlds: new WorldControllerApi(this.apiClient),
       oauth2: this.base + "/oauth2",
       files: this.base+'/files',
       /** @type {UserControllerApi} */
@@ -118,22 +121,13 @@ export class VRSpaceAPI {
    * @param isTemporary default true, i.e. world is deleted once the last user exits
    */
   async createWorldFromTemplate(worldName, templateName, isPublic=false, isTemporary=true) {
-    /*
-    // CHECKME: DTO?
-    const params = {
+    let token = await this.endpoint.worlds.createWorld({
       worldName: worldName,
-      templateWorldName: templateName,
-      isPublic: isPublic,
-      isTemporary: isTemporary
-    };
-    */
-    // FIXME: error handling
-    const rawResponse = await fetch(this.endpoint.worlds+"/create?worldName="+worldName+"&templateWorldName="+templateName
-    +"&isPublic="+isPublic+"&isTemporary="+isTemporary, {
-      method: 'POST'//,
-      //body: JSON.stringify(params)
+      templateName: templateName,
+      token: crypto.randomUUID(),
+      public: isPublic,
+      temporary: isTemporary
     });
-    const token = await rawResponse.text();
     console.log("Created private world "+worldName+" from template "+templateName+", access token "+token);
     return token;
   }

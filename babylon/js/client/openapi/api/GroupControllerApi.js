@@ -88,7 +88,7 @@ export class GroupControllerApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -128,7 +128,7 @@ export class GroupControllerApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -190,54 +190,6 @@ export class GroupControllerApi {
 
 
     /**
-     * Delete a group.
-     * Delete a group. A group can only be deleted by the owner(s).
-     * @param {Number} groupId 
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
-     */
-    callDeleteWithHttpInfo(groupId) {
-      let postBody = null;
-      // verify the required parameter 'groupId' is set
-      if (groupId === undefined || groupId === null) {
-        throw new Error("Missing the required parameter 'groupId' when calling callDelete");
-      }
-
-      let pathParams = {
-        'groupId': groupId
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
-
-      let authNames = [];
-      let contentTypes = [];
-      let accepts = [];
-      let returnType = null;
-      return this.apiClient.callApi(
-        '/vrspace/api/groups/{groupId}', 'DELETE',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null
-      );
-    }
-
-    /**
-     * Delete a group.
-     * Delete a group. A group can only be deleted by the owner(s).
-     * @param {Number} groupId 
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
-     */
-    callDelete(groupId) {
-      return this.callDeleteWithHttpInfo(groupId)
-        .then(function(response_and_data) {
-          return response_and_data.data;
-        });
-    }
-
-
-    /**
      * Create a group.
      * Create a group.
      * @param {String} name Group name
@@ -292,8 +244,56 @@ export class GroupControllerApi {
 
 
     /**
+     * Delete a group.
+     * Delete a group. A group can only be deleted by the owner(s).
+     * @param {Number} groupId 
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     */
+    deleteGroupWithHttpInfo(groupId) {
+      let postBody = null;
+      // verify the required parameter 'groupId' is set
+      if (groupId === undefined || groupId === null) {
+        throw new Error("Missing the required parameter 'groupId' when calling deleteGroup");
+      }
+
+      let pathParams = {
+        'groupId': groupId
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = [];
+      let returnType = null;
+      return this.apiClient.callApi(
+        '/vrspace/api/groups/{groupId}', 'DELETE',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Delete a group.
+     * Delete a group. A group can only be deleted by the owner(s).
+     * @param {Number} groupId 
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
+     */
+    deleteGroup(groupId) {
+      return this.deleteGroupWithHttpInfo(groupId)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
      * Invite a user to a group.
-     * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation.
+     * Invite a user to a group. Only group owner(s) can invite users to private   groups. Invited users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -333,7 +333,7 @@ export class GroupControllerApi {
 
     /**
      * Invite a user to a group.
-     * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation.
+     * Invite a user to a group. Only group owner(s) can invite users to private   groups. Invited users have to accept invitation.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -396,7 +396,7 @@ export class GroupControllerApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -436,7 +436,7 @@ export class GroupControllerApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -451,7 +451,7 @@ export class GroupControllerApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -485,7 +485,7 @@ export class GroupControllerApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */

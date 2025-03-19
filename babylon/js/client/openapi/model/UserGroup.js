@@ -54,11 +54,11 @@ export class UserGroup {
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
             }
-            if (data.hasOwnProperty('unread')) {
-                obj['unread'] = ApiClient.convertToType(data['unread'], 'Number');
-            }
             if (data.hasOwnProperty('public')) {
                 obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
+            }
+            if (data.hasOwnProperty('unread')) {
+                obj['unread'] = ApiClient.convertToType(data['unread'], 'Number');
             }
         }
         return obj;
@@ -94,14 +94,14 @@ UserGroup.prototype['id'] = undefined;
 UserGroup.prototype['name'] = undefined;
 
 /**
- * @member {Number} unread
- */
-UserGroup.prototype['unread'] = undefined;
-
-/**
  * @member {Boolean} public
  */
 UserGroup.prototype['public'] = undefined;
+
+/**
+ * @member {Number} unread
+ */
+UserGroup.prototype['unread'] = undefined;
 
 
 

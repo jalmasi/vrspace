@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
@@ -19,6 +19,10 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.World;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -59,24 +63,43 @@ public class WorldController extends ApiBase {
   }
 
   /**
+   * World options
+   */
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class CreateWorldOptions {
+    @NonNull
+    /** World name of created world, must be unique, required */
+    private String worldName;
+    /** Optional world template to use */
+    private String templateName;
+    /**
+     * Optional UUID used as world token, required to enter private worlds, defaults
+     * to a random UUID
+     */
+    private String token;
+    /** Optional flag to create public or private world, default false */
+    private boolean publicWorld;
+    /** optional flag to create a temporary world, default true */
+    private boolean temporaryWorld = true;
+  }
+
+  /**
    * Create a private world, the user must be authenticated. If the world already
    * exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201
    * CREATED for created world, or HTTP 200 OK if world already exists.
    * 
-   * @param session           automatically passed by framework
-   * @param worldName         world name of created world, must be unique
-   * @param templateWorldName optional world template to use
-   * @param isPublic          optional flag to create public or private world,
-   *                          default false
-   * @param isTemporary       optional flag to create a temporary world, default
-   *                          true
+   * @param session automatically passed by framework
+   * @param params  world options
    * @return token required to enter the world, only for private worlds
    */
   @PostMapping("/create")
   // CHECKME: DTO or request params?
-  public ResponseEntity<String> createWorld(HttpSession session, @RequestParam(required = true) String worldName,
-      String templateWorldName, boolean isPublic, boolean isTemporary) {
+  public ResponseEntity<String> createWorld(HttpSession session,
+      @RequestBody(required = true) CreateWorldOptions params) {
     String userName = currentUserName(session, clientFactory);
+    log.debug("Create world, user: " + userName + " parms: " + params);
     if (userName == null) {
       throw new SecurityException("User must be logged in");
     }
@@ -86,14 +109,20 @@ public class WorldController extends ApiBase {
       // database at all times
       throw new SecurityException("User " + userName + " must be logged in");
     }
-    if (worldName == null) {
+    if (params.worldName == null) {
       // TODO test this
       throw new ApiException("World name must be specified");
     }
-    World world = db.getWorldByName(worldName);
+    UUID token = null;
+    if (params.token == null) {
+      token = UUID.randomUUID();
+    } else {
+      token = UUID.fromString(params.token);
+    }
+    World world = db.getWorldByName(params.worldName);
     if (world == null) {
       world = new World();
-      if (templateWorldName != null) {
+      if (params.templateName != null) {
         // World template = manager.getWorld(templateWorldName);
         // if (template == null) {
         // this is fine, so no objects to copy
@@ -103,31 +132,31 @@ public class WorldController extends ApiBase {
         // BeanUtils.copyProperties(template, world);
         // TODO copy existing objects to a new world
       }
-      world.setName(worldName);
+      world.setName(params.worldName);
       world.setOwner(user);
       world.setDefaultWorld(false);
-      world.setPublicWorld(isPublic);
-      world.setTemporaryWorld(isTemporary);
-      if (!isPublic) {
-        world.setToken(UUID.randomUUID().toString());
+      world.setPublicWorld(params.publicWorld);
+      world.setTemporaryWorld(params.temporaryWorld);
+      if (!params.publicWorld) {
+        world.setToken(token.toString());
       }
       world = manager.saveWorld(world);
-      log.info("World " + worldName + " created by user " + userName + " token: " + world.getToken());
+      log.info("World " + params.worldName + " created by user " + userName + " token: " + world.getToken());
       return new ResponseEntity<>(world.getToken(), HttpStatus.CREATED);
     } else {
       world = db.get(World.class, world.getId());
       if (!user.equals(world.getOwner())) {
         // TODO test this
-        throw new SecurityException("User " + userName + " does not own exiting world " + worldName);
+        throw new SecurityException("User " + userName + " does not own exiting world " + params.worldName);
       }
-      world.setPublicWorld(isPublic);
-      world.setTemporaryWorld(isTemporary);
-      if (isPublic) {
+      world.setPublicWorld(params.publicWorld);
+      world.setTemporaryWorld(params.temporaryWorld);
+      if (params.publicWorld) {
         world.setToken(null);
       } else {
-        world.setToken(UUID.randomUUID().toString());
+        world.setToken(token.toString());
       }
-      log.info("World " + worldName + " updated by user " + userName + " token: " + world.getToken());
+      log.info("World " + params.worldName + " updated by user " + userName + " token: " + world.getToken());
       return new ResponseEntity<>(world.getToken(), HttpStatus.OK);
     }
   }

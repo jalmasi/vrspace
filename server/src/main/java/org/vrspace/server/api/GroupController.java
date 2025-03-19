@@ -92,7 +92,7 @@ public class GroupController extends ClientControllerBase {
    * Delete a group. A group can only be deleted by the owner(s).
    */
   @DeleteMapping("/{groupId}")
-  public void delete(@PathVariable long groupId, HttpSession session) {
+  public void deleteGroup(@PathVariable long groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     log.debug("Group delete, user: " + client + " group: " + group);

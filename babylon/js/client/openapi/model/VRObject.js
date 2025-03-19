@@ -78,11 +78,11 @@ export class VRObject {
             if (data.hasOwnProperty('animation')) {
                 obj['animation'] = Animation.constructFromObject(data['animation']);
             }
-            if (data.hasOwnProperty('temporary')) {
-                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
-            }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            }
+            if (data.hasOwnProperty('temporary')) {
+                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
             }
         }
         return obj;
@@ -177,16 +177,16 @@ VRObject.prototype['script'] = undefined;
 VRObject.prototype['animation'] = undefined;
 
 /**
- * Temporary objects will be deleted from the database along with their owner
- * @member {Boolean} temporary
- */
-VRObject.prototype['temporary'] = undefined;
-
-/**
  * Custom transient object properties
  * @member {Object.<String, Object>} properties
  */
 VRObject.prototype['properties'] = undefined;
+
+/**
+ * Temporary objects will be deleted from the database along with their owner
+ * @member {Boolean} temporary
+ */
+VRObject.prototype['temporary'] = undefined;
 
 
 

@@ -13,6 +13,7 @@
 
 
 import {ApiClient} from "../ApiClient.js";
+import { CreateWorldOptions } from '../model/CreateWorldOptions.js';
 import { World } from '../model/World.js';
 import { WorldStatus } from '../model/WorldStatus.js';
 
@@ -38,39 +39,20 @@ export class WorldControllerApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
-     * @param {String} worldName world name of created world, must be unique
-     * @param {String} templateWorldName optional world template to use
-     * @param {Boolean} isPublic optional flag to create public or private world,                           default false
-     * @param {Boolean} isTemporary optional flag to create a temporary world, default                           true
+     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
+     * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
-    createWorldWithHttpInfo(worldName, templateWorldName, isPublic, isTemporary) {
-      let postBody = null;
-      // verify the required parameter 'worldName' is set
-      if (worldName === undefined || worldName === null) {
-        throw new Error("Missing the required parameter 'worldName' when calling createWorld");
-      }
-      // verify the required parameter 'templateWorldName' is set
-      if (templateWorldName === undefined || templateWorldName === null) {
-        throw new Error("Missing the required parameter 'templateWorldName' when calling createWorld");
-      }
-      // verify the required parameter 'isPublic' is set
-      if (isPublic === undefined || isPublic === null) {
-        throw new Error("Missing the required parameter 'isPublic' when calling createWorld");
-      }
-      // verify the required parameter 'isTemporary' is set
-      if (isTemporary === undefined || isTemporary === null) {
-        throw new Error("Missing the required parameter 'isTemporary' when calling createWorld");
+    createWorldWithHttpInfo(createWorldOptions) {
+      let postBody = createWorldOptions;
+      // verify the required parameter 'createWorldOptions' is set
+      if (createWorldOptions === undefined || createWorldOptions === null) {
+        throw new Error("Missing the required parameter 'createWorldOptions' when calling createWorld");
       }
 
       let pathParams = {
       };
       let queryParams = {
-        'worldName': worldName,
-        'templateWorldName': templateWorldName,
-        'isPublic': isPublic,
-        'isTemporary': isTemporary
       };
       let headerParams = {
       };
@@ -78,7 +60,7 @@ export class WorldControllerApi {
       };
 
       let authNames = [];
-      let contentTypes = [];
+      let contentTypes = ['application/json'];
       let accepts = ['*/*'];
       let returnType = 'String';
       return this.apiClient.callApi(
@@ -90,15 +72,12 @@ export class WorldControllerApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
-     * @param {String} worldName world name of created world, must be unique
-     * @param {String} templateWorldName optional world template to use
-     * @param {Boolean} isPublic optional flag to create public or private world,                           default false
-     * @param {Boolean} isTemporary optional flag to create a temporary world, default                           true
+     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
+     * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
-    createWorld(worldName, templateWorldName, isPublic, isTemporary) {
-      return this.createWorldWithHttpInfo(worldName, templateWorldName, isPublic, isTemporary)
+    createWorld(createWorldOptions) {
+      return this.createWorldWithHttpInfo(createWorldOptions)
         .then(function(response_and_data) {
           return response_and_data.data;
         });

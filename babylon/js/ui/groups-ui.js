@@ -1009,7 +1009,7 @@ export class GroupsUI {
   groupDelete(group) {
     let dialogue = new Dialogue("Delete " + group.name + " ?", (yes) => {
       if (yes) {
-        this.groupApi.callDelete(group.id).then(() => {
+        this.groupApi.deleteGroup(group.id).then(() => {
           this.refreshList(()=>this.listGroupsUI());
         });
       }
