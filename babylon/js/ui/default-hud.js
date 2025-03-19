@@ -21,6 +21,7 @@ import { UserDirectionMonitor } from './widget/user-direction-monitor.js';
 import { MiniMap } from './widget/mini-map.js';
 import { GroupsUI } from './groups-ui.js';
 import { ChatLog } from './widget/chat-log.js';
+import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -31,6 +32,7 @@ export class DefaultHud {
     this.hud.verticalWeb = -0.15;
     this.contentBase = VRSPACEUI.contentBase;
     this.displayButtons = false;
+    /** @type {HumanoidAvatar} */
     this.avatar = null;
     this.videoAvatar = null;
     this.isAuthenticated = false;
@@ -522,10 +524,23 @@ export class DefaultHud {
 
   async createWorld(portal) {
     console.log("TODO: creating new world from " + portal.name);
-    const userName = this.avatar.name ? this.avatar.name : this.videoAvatar.name;
+    const userName = this.avatar && this.avatar.name ? this.avatar.name : this.videoAvatar.name;
     const worldName = userName + "'s world";
     const token = await VRSpaceAPI.getInstance().createWorldFromTemplate(worldName, portal.name);
-    window.location.href = window.location.href + "?worldName=" + worldName + "&worldToken=" + token + "&worldThumbnail=" + portal.name;
+    const href = window.location.href + "?worldName=" + worldName + "&worldToken=" + token + "&worldThumbnail=" + portal.name;
+    const shareData = {
+      title: worldName,
+      text: "Join "+worldName,
+      url: href
+    };
+    if ( typeof navigator.canShare === "function ") {
+      try {
+        await navigator.share(shareData);
+      } catch ( exception ) {
+        console.error("Can't share world - "+exception);
+      }
+    }
+    window.location.href = href;
   }
 
   share() {
