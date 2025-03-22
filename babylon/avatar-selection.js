@@ -438,17 +438,22 @@ export class AvatarSelection extends World {
   loadCharacterUrl(url) {
     console.log('loading character from ' + url);
     let file = new ServerFile(url);
-    // in order to load fixes file, we have to:
-    VRSPACEUI.listCharactersAsync(file.baseUrl).then( avatars => {
-      let localAvatar = avatars.find(folder=>folder.name == file.name);
-      if ( localAvatar ) {
-        // this will load fixes, as ServerFolder contains related fixes file
-        this.loadCharacter(localAvatar);
-      } else {
-        // load without fixes
-        this.loadCharacter(file, file.file);
-      }
-    });
+    if ( file.relative ) {
+      // in order to load fixes file, we have to:
+      VRSPACEUI.listCharactersAsync(file.baseUrl).then(avatars => {
+        let localAvatar = avatars.find(folder => folder.name == file.name);
+        if (localAvatar) {
+          // this will load fixes, as ServerFolder contains related fixes file
+          this.loadCharacter(localAvatar);
+        } else {
+          // load without fixes
+          this.loadCharacter(file, file.file);
+        }
+      });
+    } else {
+      // NOT relative, RPM avatar
+      this.loadCharacter(file, file.file);
+    }
   }
 
   /**

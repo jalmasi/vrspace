@@ -53,15 +53,18 @@ export class ServerFile extends ServerFolder {
     this.baseName = null;
     /** Extension part of the file name (after the dot) */
     this.extension = null;
+    this.relative = null;
     
     let start = url.indexOf('://');   
     if ( start == -1 ) {
       // relative url
       this.pathname = url.substring(0);
+      this.relative = true;
     } else {
       // absolute, first one is the host
       start = url.indexOf('/',start+1);
       this.pathname = url.substring(start);
+      this.relative = false;
     }
     let pos = url.lastIndexOf('/');
     this.file = url.substring(pos+1);
