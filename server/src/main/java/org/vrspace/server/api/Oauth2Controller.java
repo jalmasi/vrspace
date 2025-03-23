@@ -127,7 +127,10 @@ public class Oauth2Controller extends ApiBase {
       if (client.getIdentity() != null && client.getIdentity().equals(identity)) {
         log.debug("Welcome back: " + name);
       } else {
-        throw new ApiException("Someone else uses this name: " + name);
+        // throw new ApiException("Someone else uses this name: " + name);
+        log.error("Someone else uses name " + name + ": " + client.getIdentity());
+        session.invalidate();
+        return ResponseEntity.status(HttpStatus.FOUND).header("Location", referrer).body("Redirecting to " + referrer);
       }
     } else {
       log.debug("Welcome new user: " + name);
@@ -138,6 +141,7 @@ public class Oauth2Controller extends ApiBase {
     }
     // CHECKME do we need to return anything?
     session.setAttribute(clientFactory.clientNameAttribute(), name);
+    session.setAttribute(clientFactory.CLIENT_ID_ATTRIBUTE, client.getId());
     return ResponseEntity.status(HttpStatus.FOUND).header("Location", referrer).body("Redirecting to " + referrer);
   }
 
