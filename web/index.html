@@ -167,10 +167,11 @@ thanks folks!
   var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
   var scene;
   var anonymousAllowed = true;
+  var world = null;
 
   import("../babylon/avatar-selection.js").then( (module) =>{
   
-    var world = module.WORLD;
+    world = module.WORLD;
     //world.VRSPACEUI.contentBase='https://www.vrspace.org/';
 
     // drag and drop support:    
@@ -258,10 +259,17 @@ thanks folks!
     }
   }
   
-	onload = (event) => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register("serviceworker.js");
-    }
+  onload = (event) => {
+	  if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("./serviceworker.js").then(async (registration) => {
+          console.log("Registered ./serviceworker.js");
+      }).catch( err => {
+        navigator.serviceWorker.register("/babylon/serviceworker.js").then(async (registration) => {
+          console.log("Registered /babylon/serviceworker.js");
+          world.serviceWorker = "/babylon/serviceworker.js";
+        });
+      });
+	  }
 	};
   </script>
 

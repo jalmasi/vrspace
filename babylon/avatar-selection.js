@@ -53,6 +53,7 @@ export class AvatarSelection extends World {
     this.trackDelay = 1000 / this.fps;
     this.api = VRSpaceAPI.getInstance(VRSPACEUI.contentBase);
     this.tokens = {};
+    this.serviceWorker = "./serviceworker.js";
   }
 
   async createSkyBox() {
@@ -161,7 +162,7 @@ export class AvatarSelection extends World {
   }
 
   webpushSubscribe() {
-    this.api.webpushSubscribe("./serviceworker.js");
+    this.api.webpushSubscribe(this.serviceWorker);
   }
   
   // CHECKME this is confusing as it enables/disables portals
