@@ -416,9 +416,11 @@ public class GroupManager {
       log.debug("Notification sent:" + message + " to " + subscription.getEndpoint() + " result: " + res + " "
           + EntityUtils.toString(res.getEntity(), "UTF-8"));
       if (res.getStatusLine().getStatusCode() != 201) {
+        // CHECKME: remove subscription?
         log.error("Push notification failed");
       }
     } catch (Exception e) {
+      // CHECKME: remove subscription?
       log.error("Push notification failed", e);
     }
   }

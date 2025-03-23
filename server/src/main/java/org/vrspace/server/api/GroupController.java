@@ -123,7 +123,8 @@ public class GroupController extends ClientControllerBase {
 
   /**
    * Invite a user to a group. Only group owner(s) can invite users to private
-   * groups. Invited users have to accept invitation.
+   * groups. Invited users have to accept invitation. Offline users may get web
+   * push notification, if these are configured.
    * 
    * @param groupId  Group to invite to
    * @param clientId Client to invite
@@ -201,7 +202,8 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
-   * Write something to a group.
+   * Write something to a group. Online users are notified right away over the web
+   * socket, offline users may get web push notification, if these are configured.
    * 
    * @param groupId The group
    * @param text    The message

@@ -2,8 +2,6 @@ package org.vrspace.server.api;
 
 import java.util.Optional;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.VRObjectRepository;
-import org.vrspace.server.dto.WebPushMessage;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.WebPushSubscription;
 
@@ -21,9 +18,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
 
+/**
+ * Keeps track of clients WebPush subscription data. User must be authorized and
+ * connected to manage subscriptions. User can have multiple subscriptions,
+ * assuming access from multiple devices. Subscribed users may get notifications
+ * while offline, e.g. with new group messages.
+ * 
+ * @author joe
+ *
+ */
 @ConditionalOnProperty("webpush.publicKey")
 @RestController
 @Slf4j
@@ -40,11 +45,17 @@ public class WebPushController extends ClientControllerBase {
   @Autowired
   private VRObjectRepository db;
 
+  /**
+   * Subscribe to webpush: this notifies the server that the browser has created a
+   * webpush subscription. Requires authorization.
+   * 
+   * @param info Subscription data.
+   */
   @PostMapping("/subscribe")
   public void subscribe(@RequestBody WebPushSubscription info, HttpSession session) {
     log.debug("WebPush register: " + info);
     Client client = getAuthorisedClient(session, db);
-    // FIXME this fails for newly created clients that do not yet exist in the
+    // CHECKME this fails for newly created clients that do not yet exist in the
     // database - client.getId() is null
     Optional<WebPushSubscription> existing = db.listSubscriptions(client.getId()).stream()
         .filter(sub -> sub.getEndpoint().equals(info.getEndpoint())).findAny();
@@ -56,6 +67,13 @@ public class WebPushController extends ClientControllerBase {
     }
   }
 
+  /**
+   * Removes subscription information from the server, when browser unsubscribes.
+   * Requires authorization.
+   * 
+   * @param info
+   * @param session
+   */
   @PostMapping("/unsubscribe")
   public void unsubscribe(@RequestBody WebPushSubscription info, HttpSession session) {
     log.debug("WebPush unsubscribe: " + info);
@@ -67,29 +85,14 @@ public class WebPushController extends ClientControllerBase {
     });
   }
 
+  /**
+   * Returns public VAPID key required to create WebPush subscription.
+   * 
+   * @return Base64 encoded key
+   */
   @GetMapping("/publicKey")
   public String getKey() {
     return this.publicKey;
   }
 
-  // TODO we never notify all, this is an example
-  @PostMapping("/notify-all")
-  public void notifyAll(@RequestBody WebPushMessage message) {
-    db.findAll().stream().filter(entity -> WebPushSubscription.class.isInstance(entity)).forEach(entity -> {
-      WebPushSubscription subscription = (WebPushSubscription) entity;
-      try {
-        Notification notification = new Notification(subscription.getEndpoint(), subscription.getKey(),
-            subscription.getAuth(), objectMapper.writeValueAsBytes(message));
-
-        HttpResponse res = pushService.send(notification);
-        log.debug("Notification sent:" + message + " to " + subscription.getEndpoint() + " result: " + res + " "
-            + EntityUtils.toString(res.getEntity(), "UTF-8"));
-        if (res.getStatusLine().getStatusCode() != 201) {
-          log.error("Push notification failed");
-        }
-      } catch (Exception e) {
-        log.error("Push notification failed", e);
-      }
-    });
-  }
 }

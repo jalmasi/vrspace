@@ -201,6 +201,23 @@ export class VRSpaceAPI {
    * Internal used by webpushSubscribe
    * @private
    */ 
+  async unregisterSubscription(subscription) {
+    window.localStorage.removeItem("vrspace-webpush-vapid-key");
+    let webPushSubscription = {
+      endpoint: subscription.endpoint,
+      key: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))),
+      auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth'))))
+    }
+
+    console.log('subscribing', subscription, webPushSubscription);
+
+    await this.endpoint.webpush.unsubscribe(webPushSubscription);
+  }
+  
+  /**
+   * Internal used by webpushSubscribe
+   * @private
+   */ 
   registerSubscription(subscription, vapidPublicKey) {
     let webPushSubscription = {
       endpoint: subscription.endpoint,
@@ -285,7 +302,10 @@ export class VRSpaceAPI {
           let existingKey = window.localStorage.getItem("vrspace-webpush-vapid-key");
           if( existingKey && existingKey != vapidPublicKey ) {
             console.log("Subscription key changed, unsubscribing from ", subscription);
-            subscription.unsubscribe().then(()=>this.createSubscription(vapidPublicKey));
+            this.unregisterSubscription(subscription);
+            subscription.unsubscribe().then(()=>{
+              this.createSubscription(vapidPublicKey);
+            });
           } else {
             console.log("Registering existing subscription");
             this.registerSubscription(subscription, vapidPublicKey);
