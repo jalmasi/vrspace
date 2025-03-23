@@ -265,8 +265,9 @@ public class WorldManagerTest {
 
     worldManager.logout(welcome.getClient());
 
-    // temporary removed from cache and db, world, client and persistent remain
-    assertEquals(3, worldManager.cache.size());
+    // temporary removed from cache and db, world, client removed from cache, only
+    // persistent remain
+    assertEquals(2, worldManager.cache.size());
   }
 
   @Test

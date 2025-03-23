@@ -118,7 +118,7 @@ export class SeleniumControllerApi {
 
     /**
      * Click on a pixel on the screen.
-     * Click on a pixel on the screen. This may do nothing or anything, including  opening a new tab.
+     * Click on a pixel on the screen. This may do nothing or anything, including   opening a new tab.
      * @param {Number} x position from left
      * @param {Number} y position from top
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Blob} and HTTP response
@@ -158,7 +158,7 @@ export class SeleniumControllerApi {
 
     /**
      * Click on a pixel on the screen.
-     * Click on a pixel on the screen. This may do nothing or anything, including  opening a new tab.
+     * Click on a pixel on the screen. This may do nothing or anything, including   opening a new tab.
      * @param {Number} x position from left
      * @param {Number} y position from top
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Blob}
@@ -173,7 +173,7 @@ export class SeleniumControllerApi {
 
     /**
      * Close the browser window/tab.
-     * Close the browser window/tab. Returns to previous tab if any, or returns no  content (http 204 status).
+     * Close the browser window/tab. Returns to previous tab if any, or returns no   content (http 204 status).
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Blob} and HTTP response
      */
     closeWithHttpInfo() {
@@ -201,7 +201,7 @@ export class SeleniumControllerApi {
 
     /**
      * Close the browser window/tab.
-     * Close the browser window/tab. Returns to previous tab if any, or returns no  content (http 204 status).
+     * Close the browser window/tab. Returns to previous tab if any, or returns no   content (http 204 status).
      * @return {Promise< Blob >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Blob}
      */
     close() {

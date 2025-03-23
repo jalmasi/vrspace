@@ -21,7 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class Rotation {
     /**
      * Constructs a new <code>Rotation</code>.
-     * Rotation of an can be represented either by 3 or 4 coordinates (euler angles,  quaternions), the server will store and distribute it either way.
+     * Rotation of an can be represented either by 3 or 4 coordinates (euler angles,   quaternions), the server will store and distribute it either way.
      * @alias Rotation
      */
     constructor() { 

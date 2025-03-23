@@ -220,7 +220,14 @@
       <version>5.2.1</version>
     </dependency>
 
-    <!-- elastic search session listener(s)-->
+    <!-- required to send push notifications -->
+    <dependency>
+      <groupId>nl.martijndwars</groupId>
+      <artifactId>web-push</artifactId>
+      <version>5.1.1</version>
+    </dependency>
+
+    <!-- elastic search session listener(s)-->        
     <dependency>
       <groupId>co.elastic.clients</groupId>
       <artifactId>elasticsearch-java</artifactId>

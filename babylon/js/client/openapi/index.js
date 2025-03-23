@@ -30,6 +30,8 @@ import User from './model/User';
 import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
 import VRObject from './model/VRObject';
+import WebPushMessage from './model/WebPushMessage';
+import WebPushSubscription from './model/WebPushSubscription';
 import World from './model/World';
 import WorldStatus from './model/WorldStatus';
 import GroupControllerApi from './api/GroupControllerApi';
@@ -40,6 +42,7 @@ import TextureControllerApi from './api/TextureControllerApi';
 import UploadControllerApi from './api/UploadControllerApi';
 import UserControllerApi from './api/UserControllerApi';
 import UserDataControllerApi from './api/UserDataControllerApi';
+import WebPushControllerApi from './api/WebPushControllerApi';
 import WorldControllerApi from './api/WorldControllerApi';
 
 
@@ -184,6 +187,18 @@ export {
     VRObject,
 
     /**
+     * The WebPushMessage model constructor.
+     * @property {WebPushMessage}
+     */
+    WebPushMessage,
+
+    /**
+     * The WebPushSubscription model constructor.
+     * @property {WebPushSubscription}
+     */
+    WebPushSubscription,
+
+    /**
      * The World model constructor.
      * @property {World}
      */
@@ -242,6 +257,12 @@ export {
     * @property {module:api/UserDataControllerApi}
     */
     UserDataControllerApi,
+
+    /**
+    * The WebPushControllerApi service constructor.
+    * @property {module:api/WebPushControllerApi}
+    */
+    WebPushControllerApi,
 
     /**
     * The WorldControllerApi service constructor.

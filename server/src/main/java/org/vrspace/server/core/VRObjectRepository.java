@@ -25,6 +25,7 @@ import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.TerrainPoint;
 import org.vrspace.server.obj.UserData;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.obj.WebPushSubscription;
 import org.vrspace.server.obj.World;
 
 @DependsOn({ "database" })
@@ -98,6 +99,9 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
       deleteMembers(o.getClass(), o);
       o.dispose();
       listUserData(o.getId()).forEach(data -> delete(data));
+      if (o instanceof Client) {
+        listSubscriptions(o.getId()).forEach(sub -> delete(sub));
+      }
     } catch (Exception e) {
       log.error("Cannot delete members of " + o.getClass().getSimpleName() + " " + o.getId(), e);
     }
@@ -228,5 +232,8 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId AND ud.key=$key RETURN ud, r, o")
   Optional<UserData> findUserData(long objectId, String key);
+
+  @Query("MATCH (wps:WebPushSubscription)-[sc:SUBSCRIBED_CLIENT]->(c:Client) WHERE ID(c)=$clientId RETURN wps, sc, c")
+  List<WebPushSubscription> listSubscriptions(long clientId);
 
 }

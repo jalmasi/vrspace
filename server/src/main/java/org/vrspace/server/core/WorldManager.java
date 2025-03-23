@@ -555,6 +555,7 @@ public class WorldManager {
       log.debug("Deleted guest client " + client.getId());
     }
     client.getWriteBack().flush();
+    cache.remove(client.getObjectId());
   }
 
   /**

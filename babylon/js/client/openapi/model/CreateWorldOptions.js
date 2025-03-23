@@ -107,7 +107,7 @@ CreateWorldOptions.prototype['worldName'] = undefined;
 CreateWorldOptions.prototype['templateName'] = undefined;
 
 /**
- * Optional UUID used as world token, required to enter private worlds. Defaults   to a random UUID.
+ * Optional UUID used as world token, required to enter private worlds, defaults   to a random UUID
  * @member {String} token
  */
 CreateWorldOptions.prototype['token'] = undefined;

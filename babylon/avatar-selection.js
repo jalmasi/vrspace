@@ -54,7 +54,7 @@ export class AvatarSelection extends World {
     this.api = VRSpaceAPI.getInstance(VRSPACEUI.contentBase);
     this.tokens = {};
   }
-  
+
   async createSkyBox() {
     if (this.backgroundPanorama) {
       var skybox = new BABYLON.PhotoDome("skyDome",
@@ -103,7 +103,7 @@ export class AvatarSelection extends World {
     super.createPhysics();
   }
   async createUI() {
-    
+
     this.hud = new DefaultHud(this.scene);
     this.hud.init();
 
@@ -124,7 +124,9 @@ export class AvatarSelection extends World {
       this.loginForm.position = new BABYLON.Vector3(.25, .8, -1);
       this.loginForm.init(); // starts speech recognition
     }
-    // testing various REST calls here
+    // for authenticated user:
+    // fetch user data, set avatar
+    // subscribe to web push notifications
     this.api.getAuthenticated().then(isAuthenticated => {
       this.hud.setAuthenticated(isAuthenticated);
       if (isAuthenticated) {
@@ -133,10 +135,10 @@ export class AvatarSelection extends World {
           this.setMyName(name);
         });
         this.api.getUserObject().then(me => {
-          if ( me ) {
+          if (me) {
             console.log("user mesh " + me.mesh, me);
             if (me.mesh) {
-              if ( me.mesh == "video") {
+              if (me.mesh == "video") {
                 this.createVideoAvatar();
               } else {
                 this.loadCharacterUrl(me.mesh);
@@ -149,11 +151,19 @@ export class AvatarSelection extends World {
           }
           this.loginForm.dispose();
         });
+        // FIXME this may not work for new clients, as they do not exist in the database yet
+        // they get created only after entering any world for the first time
+        // the only safe place to subscribe is after entering the world
+        //this.webpushSubscribe();
       }
     });
 
   }
 
+  webpushSubscribe() {
+    this.api.webpushSubscribe("./serviceworker.js");
+  }
+  
   // CHECKME this is confusing as it enables/disables portals
   checkValidName() {
     let ret = true;
@@ -216,7 +226,7 @@ export class AvatarSelection extends World {
     return mesh == this.ground
       || this.loginForm && this.loginForm.isSelectableMesh(mesh)
       || mesh.name && (mesh.name.startsWith("Button")
-      || mesh.name.startsWith("PortalEntrance"))
+        || mesh.name.startsWith("PortalEntrance"))
       || super.isSelectableMesh(mesh);
   }
 
@@ -310,7 +320,7 @@ export class AvatarSelection extends World {
     }
 
     this.selectionCallback = selectionCallback;
-    VRSPACEUI.listMatchingFilesAsync(this.characterDir()).then( (folders) => {
+    VRSPACEUI.listMatchingFilesAsync(this.characterDir()).then((folders) => {
       folders.push({ name: "video" });
       if (this.customAvatarFrame) {
         folders.push({ name: "custom" });
@@ -329,7 +339,7 @@ export class AvatarSelection extends World {
       this.characterButtons.dispose();
     }
     if (folder.url) {
-      VRSPACEUI.listCharactersAsync(folder.url()).then( avatars => {
+      VRSPACEUI.listCharactersAsync(folder.url()).then(avatars => {
         var buttons = new Buttons(this.scene, folder.name, avatars, (dir) => this.loadCharacter(dir), "name");
         buttons.setHeight(0.1 * Math.min(20, avatars.length));
         buttons.group.position = new BABYLON.Vector3(1, 2.2, this.buttonsZ);
@@ -368,7 +378,7 @@ export class AvatarSelection extends World {
     await this.video.show();
     this.video.setName(this.userName);
   }
-  
+
   removeVideoAvatar() {
     this.hud.toggleWebcam(false);
     this.hud.videoAvatar = null;
@@ -463,7 +473,7 @@ export class AvatarSelection extends World {
     this.tracking = false;
     this.indicator.add(dir);
     this.indicator.animate();
-    console.log("Loading character from " + dir.name+ " fixes "+dir.related);
+    console.log("Loading character from " + dir.name + " fixes " + dir.related);
     let loaded = new HumanoidAvatar(this.scene, dir, this.shadowGenerator);
     loaded.file = file;
     loaded.animations = this.customAnimations;
@@ -505,7 +515,7 @@ export class AvatarSelection extends World {
     this.userName = name;
     if (this.character) {
       this.character.setName(this.userName);
-    } else if ( this.video ) {
+    } else if (this.video) {
       this.video.setName(this.userName);
     }
   }
@@ -590,13 +600,13 @@ export class AvatarSelection extends World {
       }
     });
   }
-  
+
   removeCharacterButtons() {
-    if ( this.resizeButton ) {
+    if (this.resizeButton) {
       this.resizeButton.dispose();
       this.resizeButton = null;
     }
-    if ( this.mirrorButton ) {
+    if (this.mirrorButton) {
       this.mirrorButton.dispose();
       this.mirrorButton = null;
     }
@@ -609,7 +619,7 @@ export class AvatarSelection extends World {
   showPortals() {
     this.portals = {};
 
-    if ( window.location.search ) {
+    if (window.location.search) {
       // use specified worlds
       // at the moment, world folder still has to exist on the server
       const params = new URLSearchParams(window.location.search);
@@ -617,12 +627,12 @@ export class AvatarSelection extends World {
       const worldName = params.get("worldName");
       const template = params.get("worldThumbnail");
       // CHECKME: this ignores baseUrl
-      var serverFolder = new ServerFolder(this.worldDir()+"/", template, template+".jpg");
-      var portal = new Portal( this.scene, serverFolder, (p)=>this.enterPortal(p));
+      var serverFolder = new ServerFolder(this.worldDir() + "/", template, template + ".jpg");
+      var portal = new Portal(this.scene, serverFolder, (p) => this.enterPortal(p));
       portal.name = worldName;
       this.tokens[worldName] = worldToken;
       this.portals[portal.name] = portal;
-      portal.loadAt( 0,0,this.room.diameter / 2, 0);
+      portal.loadAt(0, 0, this.room.diameter / 2, 0);
     } else {
       // by default, list worlds from /content/worlds directory
       this.showContentPortals();
@@ -693,7 +703,7 @@ export class AvatarSelection extends World {
     }
   }
 
-  avatarUrl(defaultUrl="video") {
+  avatarUrl(defaultUrl = "video") {
     var url = defaultUrl;
     if (this.character) {
       url = this.character.getUrl();
@@ -768,6 +778,11 @@ export class AvatarSelection extends World {
           if (this.afterEnter) {
             this.afterEnter(this, world);
           }
+          if ( this.authenticated ) {
+            // only authenticated clients can subscribe to web push
+            this.webpushSubscribe();
+          }
+
         }).catch((e) => {
           console.log("TODO: disconnected", e);
           if (this.afterExit) {
@@ -819,7 +834,7 @@ export class AvatarSelection extends World {
   enableBackground(enabled) {
     this.room.floorGroup.setEnabled(enabled);
   }
-  
+
   dispose() {
     super.dispose();
     this.hemisphere.dispose();

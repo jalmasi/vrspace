@@ -2,7 +2,7 @@ import { ApiClient } from './openapi/ApiClient.js';
 import { GroupControllerApi } from './openapi/api/GroupControllerApi.js';
 import { UserControllerApi } from './openapi/api/UserControllerApi.js';
 import { WorldControllerApi } from './openapi/api/WorldControllerApi.js'
-import { CreateWorldOptions } from './openapi/model/CreateWorldOptions.js';
+import { WebPushControllerApi } from './openapi/api/WebPushControllerApi.js';
 import { ScriptLoader } from './script-loader.js';
 /**
  * Class to execute REST API calls, singleton.
@@ -27,7 +27,9 @@ export class VRSpaceAPI {
       /** @type {UserControllerApi} */
       user: new UserControllerApi(this.apiClient),
       /** @type {GroupControllerApi} */
-      groups: new GroupControllerApi(this.apiClient)
+      groups: new GroupControllerApi(this.apiClient),
+      /** @type {WebPushControllerApi} */
+      webpush: new WebPushControllerApi(this.apiClient)
     }
     ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');
   }
@@ -194,4 +196,107 @@ export class VRSpaceAPI {
     });
 
   }
+
+  /**
+   * Internal used by webpushSubscribe
+   * @private
+   */ 
+  registerSubscription(subscription, vapidPublicKey) {
+    let webPushSubscription = {
+      endpoint: subscription.endpoint,
+      key: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))),
+      auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth'))))
+    }
+
+    console.log('subscribing', subscription, webPushSubscription);
+
+    this.endpoint.webpush.subscribe(webPushSubscription).then(() => {
+      window.localStorage.setItem("vrspace-webpush-vapid-key", vapidPublicKey);
+    });
+  }
+
+  /**
+   * Internal used by webpushSubscribe
+   * @private
+   */ 
+  createSubscription(vapidPublicKey) {
+    const convertedVapidKey = this.urlBase64ToUint8Array(vapidPublicKey);
+    registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: convertedVapidKey
+    }).then((subscription) => {
+      console.log("Registering new subscription");
+      registerSubscription(subscription, vapidPublicKey);
+    }).catch(err => console.log(err));
+  }
+  
+  /**
+   * Internal used by webpushSubscribe
+   * @private
+   */ 
+  urlBase64ToUint8Array(base64String) {
+    var padding = '='.repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+
+    var rawData = window.atob(base64);
+    var outputArray = new Uint8Array(rawData.length);
+
+    for (var i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  /**
+   * Subcribe to web push, if available on the server. Requires existing service worker, 
+   * registered in main html file onload function. Fails silently if the registration does not exist.
+   * @param {String} clientUrl path to serviceworker.js 
+   */
+  webpushSubscribe(clientUrl) {
+    // service worker is supposed to be registered in main html onload
+    navigator.serviceWorker.getRegistration(clientUrl).then(async (registration) => {
+      if ( typeof registration === "undefined") {
+        // Chrome rejects service worker with self-signed cert on localhost
+        return;
+      }
+      console.log("Got serviceworker registration");
+      Notification.requestPermission().then(status => {
+        if (status === 'denied') {
+          console.log("Notification permission denied");
+        } else if (status === 'granted') {
+          console.log("Notification permission granted");
+        } else {
+          // status is 'default' - the user did not make choice (yet)
+        }
+      });
+      // this will typically return 404, fail gracefully
+      this.endpoint.webpush.getKey().then(async vapidPublicKey =>  {
+        // see https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/js13kGames/Re-engageable_Notifications_Push
+        console.log('VAPID key: ' + vapidPublicKey);
+
+        let subscription = await registration.pushManager.getSubscription();
+        console.log("Got subscription from push manager", subscription);
+
+        if (subscription) {
+          // compare subscription keys and unsubscribe/subscribe if needed, or
+          // DOMException: A subscription with a different application server key already exists.
+          let existingKey = window.localStorage.getItem("vrspace-webpush-vapid-key");
+          if( existingKey && existingKey != vapidPublicKey ) {
+            console.log("Subscription key changed, unsubscribing from ", subscription);
+            subscription.unsubscribe().then(()=>this.createSubscription(vapidPublicKey));
+          } else {
+            console.log("Registering existing subscription");
+            this.registerSubscription(subscription, vapidPublicKey);
+          }
+        } else {
+          this.createSubscription(vapidPublicKey);
+        }
+        
+      }).catch( err => console.log(err));
+
+    });
+  }
+
 }

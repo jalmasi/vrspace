@@ -5,18 +5,26 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.GroupEvent;
+import org.vrspace.server.dto.WebPushMessage;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.UserGroup;
+import org.vrspace.server.obj.WebPushSubscription;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.martijndwars.webpush.Notification;
+import nl.martijndwars.webpush.PushService;
 
 /**
  * Manages client group membership and ownership. General workflow when joining
@@ -37,6 +45,10 @@ public class GroupManager {
   private GroupRepository groupRepo;
   @Autowired
   private WorldManager worldManager;
+  @Autowired(required = false)
+  private PushService pushService;
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Transactional
   public List<UserGroup> listGroups(Client client) {
@@ -107,8 +119,15 @@ public class GroupManager {
     save(gm);
     Client cachedClient = getCachedClient(member);
     if (cachedClient == null) {
-      // TODO client is offline
+      // client is offline
       log.debug("Invite for offline client:" + member);
+      WebPushMessage msg = new WebPushMessage();
+      msg.setType(WebPushMessage.Type.GROUP_INVITE);
+      msg.setGroup(group.getName());
+      msg.setSender(owner.getName());
+      db.listSubscriptions(member.getId()).forEach(sub -> {
+        send(sub, msg);
+      });
     } else {
       // online client, forward message
       // FIXME this serializes the message all over again for each recipient
@@ -291,8 +310,16 @@ public class GroupManager {
       // but we need a reference to live client instance to send the message
       Client cachedClient = getCachedClient(client);
       if (cachedClient == null) {
-        // TODO client is offline
+        // client is offline
         log.debug("Message for offline client:" + client);
+        WebPushMessage msg = new WebPushMessage();
+        msg.setType(WebPushMessage.Type.GROUP_MESSAGE);
+        msg.setGroup(group.getName());
+        msg.setSender(sender.getName());
+        msg.setMessage(text);
+        db.listSubscriptions(client.getId()).forEach(sub -> {
+          send(sub, msg);
+        });
       } else {
         // online client, forward message
         // FIXME this serializes the message all over again for each recipient
@@ -370,7 +397,7 @@ public class GroupManager {
   private Client getCachedClient(Client c) {
     Client cachedClient = (Client) worldManager.get(c.getObjectId());
     if (cachedClient != null && !cachedClient.isActive()) {
-      log.error("Client is not active " + c);
+      log.debug("Client is not active " + c);
     }
     return cachedClient;
   }
@@ -378,5 +405,21 @@ public class GroupManager {
   private void save(GroupMember gm) {
     db.save(gm);
     // log.debug(gm.getClient().getId() + " " + gm.getClient().getPosition());
+  }
+
+  private void send(WebPushSubscription subscription, WebPushMessage message) {
+    try {
+      Notification notification = new Notification(subscription.getEndpoint(), subscription.getKey(),
+          subscription.getAuth(), objectMapper.writeValueAsBytes(message));
+
+      HttpResponse res = pushService.send(notification);
+      log.debug("Notification sent:" + message + " to " + subscription.getEndpoint() + " result: " + res + " "
+          + EntityUtils.toString(res.getEntity(), "UTF-8"));
+      if (res.getStatusLine().getStatusCode() != 201) {
+        log.error("Push notification failed");
+      }
+    } catch (Exception e) {
+      log.error("Push notification failed", e);
+    }
   }
 }

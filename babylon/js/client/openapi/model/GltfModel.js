@@ -22,7 +22,7 @@ import { ContentCategory } from './ContentCategory.js';
 export class GltfModel {
     /**
      * Constructs a new <code>GltfModel</code>.
-     * A 3D Model in GLTF format. Adds unique id, uri and other properties to  Content class. Based on sketchfab models.
+     * A 3D Model in GLTF format. Adds unique id, uri and other properties to   Content class. Based on sketchfab models.
      * @alias GltfModel
      */
     constructor() { 
