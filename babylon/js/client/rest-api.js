@@ -243,7 +243,7 @@ export class VRSpaceAPI {
       applicationServerKey: convertedVapidKey
     }).then((subscription) => {
       console.log("Registering new subscription");
-      registerSubscription(subscription, vapidPublicKey);
+      this.registerSubscription(subscription, vapidPublicKey);
     }).catch(err => console.log(err));
   }
   
