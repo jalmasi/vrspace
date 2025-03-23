@@ -236,7 +236,7 @@ export class VRSpaceAPI {
    * Internal used by webpushSubscribe
    * @private
    */ 
-  createSubscription(vapidPublicKey) {
+  createSubscription(registration, vapidPublicKey) {
     const convertedVapidKey = this.urlBase64ToUint8Array(vapidPublicKey);
     registration.pushManager.subscribe({
       userVisibleOnly: true,
@@ -304,14 +304,14 @@ export class VRSpaceAPI {
             console.log("Subscription key changed, unsubscribing from ", subscription);
             this.unregisterSubscription(subscription);
             subscription.unsubscribe().then(()=>{
-              this.createSubscription(vapidPublicKey);
+              this.createSubscription(registration, vapidPublicKey);
             });
           } else {
             console.log("Registering existing subscription");
             this.registerSubscription(subscription, vapidPublicKey);
           }
         } else {
-          this.createSubscription(vapidPublicKey);
+          this.createSubscription(registration, vapidPublicKey);
         }
         
       }).catch( err => console.log(err));
