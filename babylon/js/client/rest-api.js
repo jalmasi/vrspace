@@ -279,6 +279,7 @@ export class VRSpaceAPI {
         return;
       }
       console.log("Got serviceworker registration");
+      // CHECKME this may not be the right place to ask for permission - dialogue does not pop up in chrome
       Notification.requestPermission().then(status => {
         if (status === 'denied') {
           console.log("Notification permission denied");
@@ -286,6 +287,7 @@ export class VRSpaceAPI {
           console.log("Notification permission granted");
         } else {
           // status is 'default' - the user did not make choice (yet)
+          console.log("Notification permission: "+status);
         }
       });
       // this will typically return 404, fail gracefully

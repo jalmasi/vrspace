@@ -261,12 +261,12 @@ thanks folks!
   
   onload = (event) => {
 	  if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register("./serviceworker.js").then(async (registration) => {
-          console.log("Registered ./serviceworker.js");
+      navigator.serviceWorker.register("/babylon/serviceworker.js").then(async (registration) => {
+        world.serviceWorker = "/babylon/serviceworker.js";
+        console.log("Registered /babylon/serviceworker.js");
       }).catch( err => {
-        navigator.serviceWorker.register("/babylon/serviceworker.js").then(async (registration) => {
-          console.log("Registered /babylon/serviceworker.js");
-          world.serviceWorker = "/babylon/serviceworker.js";
+          navigator.serviceWorker.register("./serviceworker.js").then(async (registration) => {
+            console.log("Registered ./serviceworker.js");
         });
       });
 	  }
