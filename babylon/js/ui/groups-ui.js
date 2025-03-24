@@ -16,35 +16,30 @@ class CreateGroupForm extends Form {
     this.callback = callback;
     this.color = "black";
     this.background = "white";
-    this.nameText = "Group name:";
-    this.publicText = "Make public:";
+    this.nameText = "Name:";
+    this.publicText = "Public:";
+    this.tempText = "Temporary:";
   }
   init() {
     this.createPanel();
     this.grid = new BABYLON.GUI.Grid();
     this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.grid.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-
-    this.grid.paddingLeft = 10;
-    this.grid.paddingTop = 10;
-    this.grid.addColumnDefinition(0.2);
-    this.grid.addColumnDefinition(0.5);
-    this.grid.addColumnDefinition(0.2);
-    this.grid.addColumnDefinition(0.05);
-    this.grid.addColumnDefinition(0.05);
 
     this.nameLabel = this.textBlock(this.nameText);
     this.nameInput = this.inputText('name');
     this.publicLabel = this.textBlock(this.publicText);
     this.publicCheckbox = this.checkbox('public');
+    this.tempLabel = this.textBlock(this.tempText);
+    this.tempCheckbox = this.checkbox('temporary');
     this.submit = this.submitButton("submit", this.callback);
-    this.grid.addControl(this.nameLabel, 0, 0);
-    this.grid.addControl(this.nameInput, 0, 1);
-    this.grid.addControl(this.publicLabel, 0, 2);
-    this.grid.addControl(this.publicCheckbox, 0, 3);
-    this.grid.addControl(this.submit, 0, 4);
-
-    this.panel.addControl(this.grid);
+    
+    this.panel.addControl(this.nameLabel);
+    this.panel.addControl(this.nameInput);
+    this.panel.addControl(this.publicLabel);
+    this.panel.addControl(this.publicCheckbox);
+    this.panel.addControl(this.tempLabel);
+    this.panel.addControl(this.tempCheckbox);
+    this.panel.addControl(this.submit);
 
     this.speechInput.addNoMatch((phrases) => console.log('no match:', phrases));
     this.speechInput.start();
@@ -1033,7 +1028,12 @@ export class GroupsUI {
       VRSPACEUI.hud.showButtons(false, this.createGroupsButton);
       VRSPACEUI.hud.newRow();
       this.createGroupForm = new CreateGroupForm(() => {
-        this.groupApi.create(this.createGroupForm.nameInput.text, { isPublic: this.createGroupForm.publicCheckbox.isChecked }).then(res => {
+        this.groupApi.create(
+          this.createGroupForm.nameInput.text, 
+          { isPublic: this.createGroupForm.publicCheckbox.isChecked,
+            isTemporary: this.createGroupForm.tempCheckbox.isChecked
+           }
+        ).then(res => {
           console.log(res);
           this.createGroupForm.dispose();
           this.createGroupForm = null;

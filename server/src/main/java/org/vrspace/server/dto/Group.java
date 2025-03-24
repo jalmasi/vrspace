@@ -37,7 +37,7 @@ public class Group implements Command {
   private String text;
 
   public ClientResponse execute(WorldManager worldManager, Client client) throws Exception {
-    GroupManager gm = worldManager.getGroupManager();
+    GroupManager gm = GroupManager.getInstance();
     if ("list".equals(action)) {
       return new ClientResponse(gm.listGroups(client));
     } else if ("create".equals(action)) {

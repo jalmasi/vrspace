@@ -175,7 +175,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
    * @param clientId
    * @return list of all ownerships
    */
-  @Query("MATCH (obj:VRObject)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
+  @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE ID(c) = $clientId RETURN o,owns,c,owned,obj")
   List<Ownership> getOwnedObjects(long clientId);
 

@@ -22,6 +22,7 @@ import org.vrspace.server.obj.WebPushSubscription;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
@@ -49,6 +50,17 @@ public class GroupManager {
   private PushService pushService;
   @Autowired
   private ObjectMapper objectMapper;
+
+  private static GroupManager instance;
+
+  public static GroupManager getInstance() {
+    return instance;
+  }
+
+  @PostConstruct
+  public void init() {
+    instance = this;
+  }
 
   @Transactional
   public List<UserGroup> listGroups(Client client) {

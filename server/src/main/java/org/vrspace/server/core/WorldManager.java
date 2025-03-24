@@ -92,7 +92,6 @@ public class WorldManager {
   protected WorldConfig worldConfig;
 
   protected Dispatcher dispatcher;
-  private GroupManager groupManager;
   protected SessionTracker sessionTracker;
 
   // used in tests
@@ -105,7 +104,6 @@ public class WorldManager {
 
   @PostConstruct
   public void init() {
-    // this.groupManager = new GroupManager(this, db);
     this.dispatcher = new Dispatcher(this.privateJackson);
     this.sessionTracker = new SessionTracker(this.config);
     for (Class<?> c : ClassUtil.findSubclasses(PersistenceManager.class)) {
@@ -501,7 +499,9 @@ public class WorldManager {
   public Welcome enter(Client client, World world) {
     if (client.getWorldId() != null) {
       if (client.getWorldId().equals(world.getId())) {
-        throw new IllegalArgumentException("Already in world " + world);
+        // causes problem after server killed
+        // throw new IllegalArgumentException("Already in world " + world);
+        log.error("Client " + client.getId() + " is already in the world " + world);
       }
       // exit current world first
       exit(client);
@@ -579,10 +579,13 @@ public class WorldManager {
       // CHECKME getOwned seems to return shallow copy!?
       Entity ownedEntity = ownership.getOwned();
       VRObject ownedObject = get(ownedEntity.getObjectId());
-      if (ownedEntity instanceof UserGroup && (client.isGuest() || ((UserGroup) ownedEntity).isTemporary())) {
-        // delete temporary group
-        // guest client should not be able to create groups, but just in case
-        groupManager.deleteGroup(client, (UserGroup) ownership.getOwned());
+      if (ownedEntity instanceof UserGroup) {
+        if (client.isGuest() || ((UserGroup) ownedEntity).isTemporary()) {
+          // delete temporary group
+          // guest client should not be able to create groups, but just in case
+          log.debug("Deleting temporary group " + ownedEntity);
+          GroupManager.getInstance().deleteGroup(client, (UserGroup) ownership.getOwned());
+        }
       } else if (ownedObject == null) {
         log.error("Null cached object for owned entity " + ownedEntity);
       } else if (ownedObject.isTemporary() || client.isGuest()) {
@@ -690,15 +693,6 @@ public class WorldManager {
    */
   public StreamManager getStreamManager() {
     return this.streamManager;
-  }
-
-  /**
-   * CHECKME Commands need access to GroupManager
-   * 
-   * @return GroupManager
-   */
-  public GroupManager getGroupManager() {
-    return this.groupManager;
   }
 
   /**
