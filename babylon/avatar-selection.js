@@ -870,4 +870,7 @@ export class AvatarSelection extends World {
   }
 }
 
-export const WORLD = new AvatarSelection();
+// NOT exported any longer, as it happens on script import
+// that happens either before VRSPACEUI constants are set, or complicates setup and startup
+// so, import, optionally do stuff, then new AvatarSelection() explicitly
+//export const WORLD = new AvatarSelection();

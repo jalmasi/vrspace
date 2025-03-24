@@ -171,8 +171,8 @@ thanks folks!
 
   import("../babylon/avatar-selection.js").then( (module) =>{
   
-    world = module.WORLD;
     //world.VRSPACEUI.contentBase='https://www.vrspace.org/';
+    world = new module.AvatarSelection();
 
     // drag and drop support:    
     document.getElementById('renderCanvas').ondragover = (e) => {

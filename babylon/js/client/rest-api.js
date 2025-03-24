@@ -31,6 +31,7 @@ export class VRSpaceAPI {
       /** @type {WebPushControllerApi} */
       webpush: new WebPushControllerApi(this.apiClient)
     }
+    // FIXME: does not work with node:
     ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');
   }
 

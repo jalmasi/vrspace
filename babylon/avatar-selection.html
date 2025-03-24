@@ -74,7 +74,8 @@ var scene;
 
 import("./avatar-selection.js").then( (module) =>{
   
-  var world = module.WORLD;
+  //VRSPACEUI.contentBase="https://www.vrspace.org/";
+  var world = new module.AvatarSelection();
 
   world.init(engine, 'avatar').then((s) => {
     scene = s;
