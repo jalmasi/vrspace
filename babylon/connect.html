@@ -25,12 +25,19 @@
   </style>﻿
   <!--
   Option 1:
-  Pre-load babylonjs from CDN, and use small vrspace script(s)
-  Recommended for development 
-   -->
+  Use stable version of babylonjs provided by vrspace 
+  -->
+  <script src="./js/lib/babylon.js"></script>
+  <script src="./js/lib/babylonjs.loaders.min.js"></script>
+  <script src="./js/lib/babylon.gui.min.js"></script>
+  <!--
+  Option 2:
+  Pre-load latest babylonjs from CDN
+  Recommended for tech preview only 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
   <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+   -->
   <!-- PEP has to be loaded externally either way -->
   <script src="/babylon/js/vrspace-min.js" type="module"></script>
 </head>
