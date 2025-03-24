@@ -3,7 +3,6 @@ import { GroupControllerApi } from './openapi/api/GroupControllerApi.js';
 import { UserControllerApi } from './openapi/api/UserControllerApi.js';
 import { WorldControllerApi } from './openapi/api/WorldControllerApi.js'
 import { WebPushControllerApi } from './openapi/api/WebPushControllerApi.js';
-import { ScriptLoader } from './script-loader.js';
 /**
  * Class to execute REST API calls, singleton.
  * By default, we're making API calls to the same server that serves the content.
@@ -31,8 +30,8 @@ export class VRSpaceAPI {
       /** @type {WebPushControllerApi} */
       webpush: new WebPushControllerApi(this.apiClient)
     }
-    // FIXME: does not work with node:
-    ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');
+    // does not work with node, must be imported from html:
+    //ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');
   }
 
   /**
