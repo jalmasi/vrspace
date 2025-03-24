@@ -30,12 +30,14 @@ public class UserGroup extends Entity {
   @NonNull
   private String name;
   private boolean isPublic;
+  private boolean temporary;
   @Transient
   private transient Integer unread;
 
-  public UserGroup(String name, boolean isPublic) {
+  public UserGroup(String name, boolean isPublic, boolean isTemporary) {
     this.name = name;
     this.isPublic = isPublic;
+    this.temporary = isTemporary;
   }
 
   @JsonIgnore

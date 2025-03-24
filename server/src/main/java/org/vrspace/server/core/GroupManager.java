@@ -85,10 +85,14 @@ public class GroupManager {
     if (db.getOwnership(client.getId(), group.getId()) == null) {
       throw new SecurityException("Not an owner");
     }
+    // delete messages
+    groupRepo.messagesSince(group.getId(), null).forEach(groupMessage -> db.delete(groupMessage));
     // delete memberships
     groupRepo.listGroupMembers(group.getId()).forEach(groupMember -> db.delete(groupMember));
     // delete ownership(s)
     db.getOwnersOf(group.getId()).forEach(ownership -> db.delete(ownership));
+    // and finally, delete the group
+    db.delete(group);
   }
 
   @Transactional

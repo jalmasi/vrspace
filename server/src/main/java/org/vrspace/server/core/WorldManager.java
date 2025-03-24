@@ -573,14 +573,18 @@ public class WorldManager {
     client.notifyListeners(ev);
 
     // temporary objects cleanup
-    List<Ownership> owned = db.listOwnedObjects(client.getId());
+    List<Ownership> allOwned = db.listOwnedObjects(client.getId());
     // CHECKME: this needs to be refactored, maybe into client.unpublish()
-    for (Ownership ownership : owned) {
+    for (Ownership ownership : allOwned) {
       // CHECKME getOwned seems to return shallow copy!?
-      VRObject ownedObject = get(ownership.getOwned().getObjectId());
-      if (ownedObject == null && client.isGuest()) {
-        // Group owned by guest client
+      Entity ownedEntity = ownership.getOwned();
+      VRObject ownedObject = get(ownedEntity.getObjectId());
+      if (ownedEntity instanceof UserGroup && (client.isGuest() || ((UserGroup) ownedEntity).isTemporary())) {
+        // delete temporary group
+        // guest client should not be able to create groups, but just in case
         groupManager.deleteGroup(client, (UserGroup) ownership.getOwned());
+      } else if (ownedObject == null) {
+        log.error("Null cached object for owned entity " + ownedEntity);
       } else if (ownedObject.isTemporary() || client.isGuest()) {
         if (client.getScene() != null) {
           client.getScene().unpublish(ownedObject);

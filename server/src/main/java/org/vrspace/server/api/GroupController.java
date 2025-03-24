@@ -28,7 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Manipulate user groups. All of these operations require a session with a
  * valid user currently logged in. So: login with either github, fb, google, and
- * enter a world before trying any of these.
+ * enter a world before trying any of these. Only group members can read and
+ * write group messages. Groups can public or private: everybody can join public
+ * groups, and private groups require invitation by group owner(s). Temporary
+ * groups are deleted after owner disconnects.
  * 
  * @author joe
  *
@@ -65,15 +68,18 @@ public class GroupController extends ClientControllerBase {
   /**
    * Create a group.
    * 
-   * @param name      Group name
-   * @param isPrivate Create a private group? Defaults to false.
+   * @param name        Group name
+   * @param isPublic    Create a public group? Defaults to false.
+   * @param isTemporary Create a temporary group? Defaults to false.
    */
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  public UserGroup create(String name, Optional<Boolean> isPublic, HttpSession session) {
+  public UserGroup create(String name, Optional<Boolean> isPublic, Optional<Boolean> isTemporary, HttpSession session) {
     Client client = getAuthorisedClient(session);
-    log.debug("Group create, user: " + client + " group: " + name + " public: " + isPublic);
-    return groupManager.createGroup(client, new UserGroup(name, isPublic.isPresent() && isPublic.get()));
+    log.debug(
+        "Group create, user: " + client + " group: " + name + " public: " + isPublic + " temporary: " + isTemporary);
+    return groupManager.createGroup(client,
+        new UserGroup(name, isPublic.isPresent() && isPublic.get(), isTemporary.isPresent() && isTemporary.get()));
   }
 
   /**

@@ -51,6 +51,7 @@ public class GroupManagerIT {
     assertFalse(groupRepo.listUserGroups(c1.getId()).contains(group));
     assertFalse(groupRepo.listOwnedGroups(c1.getId()).contains(group));
     assertFalse(db.findOwnership(c1.getId(), group.getId()).isPresent());
+    assertFalse(groupRepo.findById(UserGroup.class, group.getId()).isPresent());
   }
 
   @Test
@@ -58,7 +59,7 @@ public class GroupManagerIT {
   public void testPublicJoinLeave() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true, false));
     assertThrows(IllegalArgumentException.class, () -> gm.leave(group, c1));
 
     Client c2 = db.save(new Client());
@@ -80,7 +81,7 @@ public class GroupManagerIT {
   public void testPrivateJoinKick() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", false));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", false, false));
 
     Client c2 = db.save(new Client());
 
@@ -110,7 +111,7 @@ public class GroupManagerIT {
   public void testPublicInvite() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", true));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true, false));
 
     Client c2 = db.save(new Client());
     gm.invite(group, c2, c1);
@@ -134,7 +135,7 @@ public class GroupManagerIT {
   public void testPrivateInvite() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", false));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", false, false));
 
     Client c2 = db.save(new Client());
 
@@ -161,9 +162,9 @@ public class GroupManagerIT {
   public void testUnread() {
     Client c1 = db.save(new Client());
 
-    UserGroup group1 = gm.createGroup(c1, new UserGroup("group1", true));
-    UserGroup group2 = gm.createGroup(c1, new UserGroup("group2", true));
-    UserGroup group3 = gm.createGroup(c1, new UserGroup("group3", true));
+    UserGroup group1 = gm.createGroup(c1, new UserGroup("group1", true, false));
+    UserGroup group2 = gm.createGroup(c1, new UserGroup("group2", true, false));
+    UserGroup group3 = gm.createGroup(c1, new UserGroup("group3", true, false));
     gm.write(c1, group1, "msg1");
 
     Client c2 = db.save(new Client());

@@ -21,7 +21,6 @@ import {ApiClient} from '../ApiClient.js';
 export class UserGroup {
     /**
      * Constructs a new <code>UserGroup</code>.
-     * Group of users.
      * @alias UserGroup
      */
     constructor() { 
@@ -53,6 +52,9 @@ export class UserGroup {
             }
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
+            }
+            if (data.hasOwnProperty('temporary')) {
+                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
             }
             if (data.hasOwnProperty('public')) {
                 obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
@@ -92,6 +94,11 @@ UserGroup.prototype['id'] = undefined;
  * @member {String} name
  */
 UserGroup.prototype['name'] = undefined;
+
+/**
+ * @member {Boolean} temporary
+ */
+UserGroup.prototype['temporary'] = undefined;
 
 /**
  * @member {Boolean} public
