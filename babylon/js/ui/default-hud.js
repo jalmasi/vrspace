@@ -534,7 +534,7 @@ export class DefaultHud {
       url: href
     };
     if ( ChatLog.activeInstance ) {
-      ChatLog.activeInstance.input.input.text = "Gone to "+href;
+      ChatLog.activeInstance.input.input.text = worldName+": "+href;
       ChatLog.activeInstance.input.processInput();
     }
     if ( typeof navigator.canShare === "function ") {
@@ -544,7 +544,7 @@ export class DefaultHud {
         console.error("Can't share world - "+exception);
       }
     }
-    //window.location.href = href;
+    window.location.href = href;
   }
 
   share() {

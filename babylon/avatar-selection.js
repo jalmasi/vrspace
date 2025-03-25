@@ -54,6 +54,7 @@ export class AvatarSelection extends World {
     this.api = VRSpaceAPI.getInstance(VRSPACEUI.contentBase);
     this.tokens = {};
     this.serviceWorker = "./serviceworker.js";
+    this.autoEnter = null;
   }
 
   async createSkyBox() {
@@ -138,6 +139,9 @@ export class AvatarSelection extends World {
         this.api.getUserObject().then(me => {
           if (me) {
             console.log("user mesh " + me.mesh, me);
+            if ( this.autoEnter ) {
+              this.enterPortal(this.autoEnter);
+            }
             if (me.mesh) {
               if (me.mesh == "video") {
                 this.createVideoAvatar();
@@ -634,6 +638,7 @@ export class AvatarSelection extends World {
       this.tokens[worldName] = worldToken;
       this.portals[portal.name] = portal;
       portal.loadAt(0, 0, this.room.diameter / 2, 0);
+      this.autoEnter = portal;
     } else {
       // by default, list worlds from /content/worlds directory
       this.showContentPortals();
