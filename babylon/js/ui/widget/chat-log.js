@@ -14,8 +14,9 @@ class ChatLogInput extends TextAreaInput {
 }
 
 class Link {
-  constructor( text ) {
+  constructor( text, external=false ) {
     this.url = text;
+    this.external = external;
     let pos = text.indexOf("://");
     if ( pos > 0 ) {
       text = text.substring(pos+3);
@@ -50,15 +51,15 @@ class LinkStack {
       ) {
         for ( let i = 0; i < this.links.length; i++ ) {
           if ( this.links[i].label.textPlane == pointerInfo.pickInfo.pickedMesh ) {
-            this.clicked(this.links[i].url);
+            this.clicked(this.links[i]);
             break;
           }
         }
       }
     });
   }
-  addLink(word){
-    let link = new Link(word);
+  addLink(word, external){
+    let link = new Link(word, external);
     this.scroll();
     
     let pos = new BABYLON.Vector3(this.position.x+link.site.length/(Label.fontRatio*2)*this.scaling.x,this.position.y,this.position.z);
@@ -71,19 +72,25 @@ class LinkStack {
     this.links.push(link);
     return link;
   }
-  clicked(url) {
+  clicked(link) {
+    // process invitations
+    let url = link.url; 
     console.log("Clicked "+url);
     if ( this.browser ) {
       this.browser.dispose();
     }
-    this.browser = new RemoteBrowser(this.scene);
-    this.browser.show();
-    //this.browser.attachToCamera();
-    this.browser.attachToHud();
-    if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".jpg") ) {
-      this.browser.loadUrl(url);
+    if ( link.external ) {
+      window.location.href = url;
     } else {
-      this.browser.get(url);
+      this.browser = new RemoteBrowser(this.scene);
+      this.browser.show();
+      //this.browser.attachToCamera();
+      this.browser.attachToHud();
+      if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".jpg") ) {
+        this.browser.loadUrl(url);
+      } else {
+        this.browser.get(url);
+      }
     }
   }
   scroll() {
@@ -209,7 +216,7 @@ export class ChatLog extends TextArea {
   log( who, what, link ) {
     this.input.write(what,who);
     if ( link ) {
-      this.showLink(link);
+      this.showLink(link, true);
     }
   }
   attachToHud(){
@@ -263,9 +270,9 @@ export class ChatLog extends TextArea {
       });
     }
   }
-  showLink(word) {
+  showLink(word, external) {
     console.log("Link found: "+word);
-    this.linkStack.addLink(word);
+    this.linkStack.addLink(word, external);
   }
   write(string) {
     this.processLinks(string);

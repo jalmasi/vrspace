@@ -543,7 +543,8 @@ export class DefaultHud {
         console.error("Can't share world - "+exception);
       }
     }
-    window.location.href = href;
+    // give it some time to propagate
+    setTimeout(()=>window.location.href = href, 200);
   }
 
   share() {
