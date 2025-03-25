@@ -113,6 +113,7 @@ class LinkStack {
 export class ChatLog extends TextArea {
   static instanceCount = 0;
   static instances = {}
+  /** @type {ChatLog} */
   static activeInstance = null;
   static instanceId(name, title) {
     return name+":"+title;

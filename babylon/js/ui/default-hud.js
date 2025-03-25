@@ -533,6 +533,10 @@ export class DefaultHud {
       text: "Join "+worldName,
       url: href
     };
+    if ( ChatLog.activeInstance ) {
+      ChatLog.activeInstance.input.input.text = "Gone to "+href;
+      ChatLog.activeInstance.input.processInput();
+    }
     if ( typeof navigator.canShare === "function ") {
       try {
         await navigator.share(shareData);
@@ -540,7 +544,7 @@ export class DefaultHud {
         console.error("Can't share world - "+exception);
       }
     }
-    window.location.href = href;
+    //window.location.href = href;
   }
 
   share() {

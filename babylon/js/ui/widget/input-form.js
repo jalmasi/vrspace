@@ -5,6 +5,7 @@ import { Form } from './form.js';
 export class InputForm extends Form {
   constructor(inputName = "write", submitName = null) {
     super();
+    this.input = null;
     this.inputName = inputName;
     this.submitName = submitName;
     this.height = 512;
