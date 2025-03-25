@@ -69,7 +69,7 @@ class LinkStack {
     link.label = label;
     
     this.links.push(link);
-    
+    return link;
   }
   clicked(url) {
     console.log("Clicked "+url);
@@ -150,6 +150,7 @@ export class ChatLog extends TextArea {
     this.anchor = this.baseAnchor;
     this.leftSide();
     this.linkStack = new LinkStack(this.scene, this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
+    this.listeners = [];
     ChatLog.instanceCount++;
     ChatLog.instances[this.instanceId()] = this;
   }
@@ -163,6 +164,7 @@ export class ChatLog extends TextArea {
     super.show();
     this.setActiveInstance();
     this.input.inputPrefix = this.inputPrefix;
+    this.input.addListener( text => this.notifyListeners(text) );
     // order matters: InputArea.init() shows the title, so call hide after
     this.input.init();
     if ( this.handles ) {
@@ -200,11 +202,15 @@ export class ChatLog extends TextArea {
   }
   /**
    * Log something written by someone.
-   * @param who who wrote that
-   * @param what what they wrote
+   * @param {String} who who wrote that
+   * @param {String} what what they wrote
+   * @param {String} link optional url to open 
    */
-  log( who, what ) {
+  log( who, what, link ) {
     this.input.write(what,who);
+    if ( link ) {
+      this.showLink(link);
+    }
   }
   attachToHud(){
     super.attachToHud();
@@ -269,13 +275,30 @@ export class ChatLog extends TextArea {
   setActiveInstance() {
     ChatLog.activeInstance = this;
     console.log("Focused ", this);
- }
+  }
   clearActiveInstance() {
     if ( ChatLog.activeInstance == this ) {
       console.log("Focus removed from ", this);
       ChatLog.activeInstance = null;
     }
   }
+  notifyListeners(text,link) {
+    this.listeners.forEach(l=>l(text, link));
+  }
+  /**
+   * Add a listener to be called when input text is changed
+   */
+  addListener(listener) {
+    this.listeners.push(listener);
+  }
+  /** Remove a listener */
+  removeListener(listener) {
+    let pos = this.listeners.indexOf(listener);
+    if ( pos > -1 ) {
+      this.listeners.splice(pos,1);
+    }
+  }
+ 
   /** Clean up */
   dispose() {
     window.removeEventListener("resize", this.resizeHandler);

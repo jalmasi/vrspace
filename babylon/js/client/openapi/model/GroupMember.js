@@ -23,6 +23,7 @@ import { UserGroup } from './UserGroup.js';
 export class GroupMember {
     /**
      * Constructs a new <code>GroupMember</code>.
+     * Represents a membership of a user in a group
      * @alias GroupMember
      */
     constructor() { 
@@ -128,11 +129,13 @@ GroupMember.prototype['group'] = undefined;
 GroupMember.prototype['client'] = undefined;
 
 /**
+ * Pending invitation, if any
  * @member {String} pendingInvite
  */
 GroupMember.prototype['pendingInvite'] = undefined;
 
 /**
+ * Pending request to join, if any
  * @member {String} pendingRequest
  */
 GroupMember.prototype['pendingRequest'] = undefined;
@@ -143,6 +146,7 @@ GroupMember.prototype['pendingRequest'] = undefined;
 GroupMember.prototype['sponsor'] = undefined;
 
 /**
+ * Time stamp of last membership update, be it invite, request, or joining the  group
  * @member {Date} lastUpdate
  */
 GroupMember.prototype['lastUpdate'] = undefined;

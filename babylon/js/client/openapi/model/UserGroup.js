@@ -21,6 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class UserGroup {
     /**
      * Constructs a new <code>UserGroup</code>.
+     * Group of users.
      * @alias UserGroup
      */
     constructor() { 

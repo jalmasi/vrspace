@@ -99,7 +99,12 @@ export class Avatar {
    * Write locally generated text, used internally
    * @param wrote text to write above the head
    */
-  async write( text ) {
+  async write( wrote ) {
+    let text = wrote;
+    if ( typeof wrote == 'object') {
+      text = wrote.text;
+      // wrote.link ignored
+    }
     if ( this.displayText ) {
       if ( this.use3dText && this.writer ) {
         let lines = this.processText(text, 20, [this.name]);

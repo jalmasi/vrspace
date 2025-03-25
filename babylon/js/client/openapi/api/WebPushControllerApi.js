@@ -13,7 +13,6 @@
 
 
 import {ApiClient} from "../ApiClient.js";
-import { WebPushMessage } from '../model/WebPushMessage.js';
 import { WebPushSubscription } from '../model/WebPushSubscription.js';
 
 /**
@@ -37,6 +36,8 @@ export class WebPushControllerApi {
 
 
     /**
+     * Returns public VAPID key required to create WebPush subscription.
+     * Returns public VAPID key required to create WebPush subscription.
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     getKeyWithHttpInfo() {
@@ -63,6 +64,8 @@ export class WebPushControllerApi {
     }
 
     /**
+     * Returns public VAPID key required to create WebPush subscription.
+     * Returns public VAPID key required to create WebPush subscription.
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     getKey() {
@@ -74,50 +77,9 @@ export class WebPushControllerApi {
 
 
     /**
-     * @param {WebPushMessage} webPushMessage 
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
-     */
-    notifyAllWithHttpInfo(webPushMessage) {
-      let postBody = webPushMessage;
-      // verify the required parameter 'webPushMessage' is set
-      if (webPushMessage === undefined || webPushMessage === null) {
-        throw new Error("Missing the required parameter 'webPushMessage' when calling notifyAll");
-      }
-
-      let pathParams = {
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
-
-      let authNames = [];
-      let contentTypes = ['application/json'];
-      let accepts = [];
-      let returnType = null;
-      return this.apiClient.callApi(
-        '/vrspace/api/webpush/notify-all', 'POST',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null
-      );
-    }
-
-    /**
-     * @param {WebPushMessage} webPushMessage 
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
-     */
-    notifyAll(webPushMessage) {
-      return this.notifyAllWithHttpInfo(webPushMessage)
-        .then(function(response_and_data) {
-          return response_and_data.data;
-        });
-    }
-
-
-    /**
-     * @param {WebPushSubscription} webPushSubscription 
+     * Subscribe to webpush: this notifies the server that the browser has created a  webpush subscription.
+     * Subscribe to webpush: this notifies the server that the browser has created a  webpush subscription. Requires authorization.
+     * @param {WebPushSubscription} webPushSubscription Subscription data.
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     subscribeWithHttpInfo(webPushSubscription) {
@@ -148,7 +110,9 @@ export class WebPushControllerApi {
     }
 
     /**
-     * @param {WebPushSubscription} webPushSubscription 
+     * Subscribe to webpush: this notifies the server that the browser has created a  webpush subscription.
+     * Subscribe to webpush: this notifies the server that the browser has created a  webpush subscription. Requires authorization.
+     * @param {WebPushSubscription} webPushSubscription Subscription data.
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     subscribe(webPushSubscription) {
@@ -160,6 +124,8 @@ export class WebPushControllerApi {
 
 
     /**
+     * Removes subscription information from the server, when browser unsubscribes.
+     * Removes subscription information from the server, when browser unsubscribes.  Requires authorization.
      * @param {WebPushSubscription} webPushSubscription 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -191,6 +157,8 @@ export class WebPushControllerApi {
     }
 
     /**
+     * Removes subscription information from the server, when browser unsubscribes.
+     * Removes subscription information from the server, when browser unsubscribes.  Requires authorization.
      * @param {WebPushSubscription} webPushSubscription 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */

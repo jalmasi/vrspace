@@ -68,8 +68,8 @@ export class InputForm extends Form {
     }
   }
   /** Called to notify listeners */
-  notifyListeners() {
-    this.textChangeListeners.forEach(l=>l(this.input.text));
+  notifyListeners(text=this.input.text) {
+    this.textChangeListeners.forEach(l=>l(text));
   }
   dispose() {
     super.dispose();

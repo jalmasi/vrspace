@@ -39,8 +39,8 @@ self.addEventListener("push", (event) => {
     console.log("Push "+event.data.text());
     const payload = event.data.json();
     if ( payload.type == "WORLD_INVITE") {
-      const title = "Join "+payload.world;
-      const message = "Invitation from " + payload.sender + ": click here to join world "+payload.world;
+      const title = "Join "+payload.message;
+      const message = "Invitation from " + payload.sender + ": click here to enter "+payload.message;
       event.waitUntil(
         self.registration.showNotification(title, {
           data: payload,

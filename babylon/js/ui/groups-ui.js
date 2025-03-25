@@ -681,13 +681,17 @@ class ListGroupsForm extends Form {
         //group.chatlogSelection = World.lastInstance.addSelectionPredicate((mesh) => group.chatLog.isSelectableMesh(mesh));
         group.chatlog.input.autoWrite = false;
         group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
-        group.chatlog.input.addListener(text => {
-          this.groupApi.write(group.id, text);
+        group.chatlog.addListener((text, link) => {
+          if ( link ) {
+            this.groupApi.shareWorld(group.id, {content:text, link:link} )
+          } else {
+            this.groupApi.write(group.id, text);
+          }
         });
 
         group.chatlog.groupListener = VRSPACE.addGroupListener(event => {
           if (event.message && group.id == event.message.group.id) {
-            group.chatlog.log(event.message.from.User.name, event.message.content);
+            group.chatlog.log(event.message.from.User.name, event.message.content, event.message.link);
           }
         });
       }
@@ -706,7 +710,8 @@ class ListGroupsForm extends Form {
       group.unread = 0;
       this.groupApi.listUnreadMessages(group.id).then(messages => {
         messages.forEach(message => {
-          group.chatlog.log(message.from.name, message.content);
+          // CHECKME: include links?
+          group.chatlog.log(message.from.name, message.content, message.link);
         });
       });
 

@@ -240,7 +240,7 @@ export class World {
     this.chatLog = new ChatLog(this.scene);
     this.chatLog.show();
     this.worldManager.addChangeListener((obj, field, node) => this.remoteEvent(obj, field, node));
-    this.chatLog.input.addListener(text => this.write(text));
+    this.chatLog.addListener((text, link) => this.write(text, link));
     this.chatLog.input.virtualKeyboardEnabled = this.inXR();
     this.addSelectionPredicate((mesh) => this.chatLog.isSelectableMesh(mesh));
   }
@@ -601,10 +601,17 @@ export class World {
   Write some text to world chat. Usually text appears above avatar's head and/or in chat log,
   but this method only sends own 'wrote' event.
   @param text something to say
+  @param link optional url to link the text with
    */
-  write(text) {
+  write(text, link) {
     if (this.worldManager && text) {
-      this.worldManager.write(text);
+      let msg = {
+        text: text
+      }
+      if ( link ) {
+        msg['link'] = link;
+      }
+      this.worldManager.write(msg);
     }
   }
   /**
@@ -620,7 +627,13 @@ export class World {
       if (!name) {
         name = 'u' + obj.id;
       }
-      this.chatLog.log(name, obj.wrote);
+      if ( typeof obj.wrote === 'object' ) {
+        this.chatLog.log(name, obj.wrote.text, obj.wrote.link);
+      } else if ( typeof obj.wrote === 'string' ) {
+        this.chatLog.log(name, obj.wrote);
+      } else {
+        console.error("Unknown type "+ typeof obj.wrote+": ",obj.wrote)
+      }
     }
   }
   /**

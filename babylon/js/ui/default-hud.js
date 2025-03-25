@@ -534,10 +534,9 @@ export class DefaultHud {
       url: href
     };
     if ( ChatLog.activeInstance ) {
-      ChatLog.activeInstance.input.input.text = worldName+": "+href;
-      ChatLog.activeInstance.input.processInput();
+      ChatLog.activeInstance.notifyListeners(worldName, href);
     }
-    if ( typeof navigator.canShare === "function ") {
+    if ( typeof navigator.canShare === "function") {
       try {
         await navigator.share(shareData);
       } catch ( exception ) {

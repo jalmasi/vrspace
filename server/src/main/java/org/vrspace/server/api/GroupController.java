@@ -224,6 +224,23 @@ public class GroupController extends ClientControllerBase {
   }
 
   /**
+   * Share a world link with the group. Online users are notified right away over
+   * the web socket, offline users may get web push notification, if these are
+   * configured.
+   * 
+   * @param groupId   The group
+   * @param worldLink The message containing url and text of the world
+   */
+  @PostMapping("/{groupId}/share")
+  public void shareWorld(@PathVariable long groupId, @RequestBody GroupMessage worldLink, HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    UserGroup group = groupManager.getGroup(client, groupId);
+    // FIXME sanitize text
+    log.debug("Group share world, user: " + client + " group: " + group + " worldLink: " + worldLink);
+    groupManager.worldInvite(client, group, worldLink.getContent(), worldLink.getLink());
+  }
+
+  /**
    * List pending requests to join the group. Only group owners can do that.
    * 
    * @param groupId

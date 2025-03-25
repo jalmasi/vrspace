@@ -37,6 +37,8 @@ export class UserControllerApi {
 
 
     /**
+     * Check if the user is already authenticated
+     * Check if the user is already authenticated
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
      */
     authenticatedWithHttpInfo() {
@@ -63,6 +65,8 @@ export class UserControllerApi {
     }
 
     /**
+     * Check if the user is already authenticated
+     * Check if the user is already authenticated
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
      */
     authenticated() {
@@ -74,7 +78,9 @@ export class UserControllerApi {
 
 
     /**
-     * @param {String} name 
+     * Verifies that user name is available: if user is not logged in, that there's  no such user, or user's name in the database matches name in current session.
+     * Verifies that user name is available: if user is not logged in, that there's  no such user, or user's name in the database matches name in current session.
+     * @param {String} name user name to verify
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
      */
     checkNameWithHttpInfo(name) {
@@ -106,7 +112,9 @@ export class UserControllerApi {
     }
 
     /**
-     * @param {String} name 
+     * Verifies that user name is available: if user is not logged in, that there's  no such user, or user's name in the database matches name in current session.
+     * Verifies that user name is available: if user is not logged in, that there's  no such user, or user's name in the database matches name in current session.
+     * @param {String} name user name to verify
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
      */
     checkName(name) {
@@ -118,7 +126,9 @@ export class UserControllerApi {
 
 
     /**
-     * @param {String} name 
+     * Find user by name.
+     * Find user by name. Only available to users currently connected.
+     * @param {String} name User name, case sensitive, exact match
      * @return {Promise< Client >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Client} and HTTP response
      */
     findWithHttpInfo(name) {
@@ -150,7 +160,9 @@ export class UserControllerApi {
     }
 
     /**
-     * @param {String} name 
+     * Find user by name.
+     * Find user by name. Only available to users currently connected.
+     * @param {String} name User name, case sensitive, exact match
      * @return {Promise< Client >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Client}
      */
     find(name) {
@@ -162,6 +174,8 @@ export class UserControllerApi {
 
 
     /**
+     * Returns current user name
+     * Returns current user name
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     userNameWithHttpInfo() {
@@ -188,6 +202,8 @@ export class UserControllerApi {
     }
 
     /**
+     * Returns current user name
+     * Returns current user name
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     userName() {
@@ -199,6 +215,8 @@ export class UserControllerApi {
 
 
     /**
+     * Returns current user object
+     * Returns current user object
      * @return {Promise< User >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link User} and HTTP response
      */
     userObjectWithHttpInfo() {
@@ -225,6 +243,8 @@ export class UserControllerApi {
     }
 
     /**
+     * Returns current user object
+     * Returns current user object
      * @return {Promise< User >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link User}
      */
     userObject() {

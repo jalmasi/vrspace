@@ -144,9 +144,7 @@ public class GroupManager {
       msg.setType(WebPushMessage.Type.GROUP_INVITE);
       msg.setGroup(group.getName());
       msg.setSender(owner.getName());
-      db.listSubscriptions(member.getId()).forEach(sub -> {
-        send(sub, msg);
-      });
+      notify(member, msg);
     } else {
       log.debug("Invite for offline client:" + member);
     }
@@ -316,12 +314,11 @@ public class GroupManager {
     db.findOwnership(owner.getId(), group.getId()).ifPresent(ownership -> db.delete(ownership));
   }
 
-  @Transactional
-  public void write(Client sender, UserGroup group, String text) {
+  private void write(Client sender, UserGroup group, WebPushMessage.Type type, GroupMessage groupMessage) {
     if (groupRepo.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
       throw new SecurityException("Only members can post to groups");
     }
-    GroupMessage message = db.save(new GroupMessage(sender, group, text, Instant.now()));
+    GroupMessage message = db.save(groupMessage);
     groupRepo.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message
@@ -333,15 +330,26 @@ public class GroupManager {
       } else if (pushService != null) {
         log.debug("Pushing message for offline client:" + client);
         WebPushMessage msg = new WebPushMessage();
-        msg.setType(WebPushMessage.Type.GROUP_MESSAGE);
+        msg.setType(type);
         msg.setGroup(group.getName());
         msg.setSender(sender.getName());
-        msg.setMessage(text);
-        db.listSubscriptions(client.getId()).forEach(sub -> {
-          send(sub, msg);
-        });
+        msg.setMessage(message.getContent());
+        msg.setUrl(message.getLink());
+        notify(client, msg);
       }
     });
+  }
+
+  @Transactional
+  public void write(Client sender, UserGroup group, String text) {
+    write(sender, group, WebPushMessage.Type.GROUP_MESSAGE, new GroupMessage(sender, group, text, Instant.now()));
+  }
+
+  @Transactional
+  public void worldInvite(Client sender, UserGroup group, String text, String link) {
+    GroupMessage msg = new GroupMessage(sender, group, text, Instant.now());
+    msg.setLink(link);
+    write(sender, group, WebPushMessage.Type.WORLD_INVITE, msg);
   }
 
   @Transactional
@@ -421,6 +429,12 @@ public class GroupManager {
   private void save(GroupMember gm) {
     db.save(gm);
     // log.debug(gm.getClient().getId() + " " + gm.getClient().getPosition());
+  }
+
+  private void notify(Client client, WebPushMessage msg) {
+    db.listSubscriptions(client.getId()).forEach(sub -> {
+      send(sub, msg);
+    });
   }
 
   private void send(WebPushSubscription subscription, WebPushMessage message) {

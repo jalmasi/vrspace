@@ -95,11 +95,11 @@ export class User {
             if (data.hasOwnProperty('leftArmRot')) {
                 obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
             }
-            if (data.hasOwnProperty('rightArmRot')) {
-                obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
-            }
             if (data.hasOwnProperty('leftArmPos')) {
                 obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
+            }
+            if (data.hasOwnProperty('rightArmRot')) {
+                obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
             }
             if (data.hasOwnProperty('rightArmPos')) {
                 obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
@@ -107,11 +107,11 @@ export class User {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('userHeight')) {
-                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
-            }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            }
+            if (data.hasOwnProperty('userHeight')) {
+                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
@@ -171,13 +171,13 @@ export class User {
         if (data['leftArmRot']) { // data not null
           Quaternion.validateJSON(data['leftArmRot']);
         }
-        // validate the optional field `rightArmRot`
-        if (data['rightArmRot']) { // data not null
-          Quaternion.validateJSON(data['rightArmRot']);
-        }
         // validate the optional field `leftArmPos`
         if (data['leftArmPos']) { // data not null
           Point.validateJSON(data['leftArmPos']);
+        }
+        // validate the optional field `rightArmRot`
+        if (data['rightArmRot']) { // data not null
+          Quaternion.validateJSON(data['rightArmRot']);
         }
         // validate the optional field `rightArmPos`
         if (data['rightArmPos']) { // data not null
@@ -222,21 +222,25 @@ User.prototype['rotation'] = undefined;
 User.prototype['scale'] = undefined;
 
 /**
+ * Permanent objects are always present (e.g. sky)
  * @member {Boolean} permanent
  */
 User.prototype['permanent'] = undefined;
 
 /**
+ * Whether an object is active (can send events). E.g. online users, robots.
  * @member {Boolean} active
  */
 User.prototype['active'] = undefined;
 
 /**
+ * URL of the file containing the mesh.
  * @member {String} mesh
  */
 User.prototype['mesh'] = undefined;
 
 /**
+ * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
  * @member {String} script
  */
 User.prototype['script'] = undefined;
@@ -247,16 +251,19 @@ User.prototype['script'] = undefined;
 User.prototype['animation'] = undefined;
 
 /**
+ * Client name - unique ID.
  * @member {String} name
  */
 User.prototype['name'] = undefined;
 
 /**
+ * Does this client have humanoid avatar, default true
  * @member {Boolean} humanoid
  */
 User.prototype['humanoid'] = undefined;
 
 /**
+ * Does this client have video avatar, default false
  * @member {Boolean} video
  */
 User.prototype['video'] = undefined;
@@ -267,14 +274,14 @@ User.prototype['video'] = undefined;
 User.prototype['leftArmRot'] = undefined;
 
 /**
- * @member {Quaternion} rightArmRot
- */
-User.prototype['rightArmRot'] = undefined;
-
-/**
  * @member {Point} leftArmPos
  */
 User.prototype['leftArmPos'] = undefined;
+
+/**
+ * @member {Quaternion} rightArmRot
+ */
+User.prototype['rightArmRot'] = undefined;
 
 /**
  * @member {Point} rightArmPos
@@ -287,21 +294,25 @@ User.prototype['rightArmPos'] = undefined;
 User.prototype['sceneProperties'] = undefined;
 
 /**
- * @member {Number} userHeight
- */
-User.prototype['userHeight'] = undefined;
-
-/**
+ * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
  * @member {Object.<String, String>} tokens
  */
 User.prototype['tokens'] = undefined;
 
 /**
+ * User's height in real life, used in VR. Transient biometric data.
+ * @member {Number} userHeight
+ */
+User.prototype['userHeight'] = undefined;
+
+/**
+ * Custom transient object properties
  * @member {Object.<String, Object>} properties
  */
 User.prototype['properties'] = undefined;
 
 /**
+ * Temporary objects will be deleted from the database along with their owner
  * @member {Boolean} temporary
  */
 User.prototype['temporary'] = undefined;

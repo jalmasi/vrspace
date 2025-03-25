@@ -412,7 +412,8 @@ export class GroupMessage {
     this.from = null;
     /** @type {UserGroup} */
     this.group = null;
-    this.message = null;
+    this.content = null;
+    this.link = null;
   }
 }
 

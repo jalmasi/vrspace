@@ -26,6 +26,7 @@ import { VRObject } from './VRObject.js';
 export class Client {
     /**
      * Constructs a new <code>Client</code>.
+     * Basic client class, adds user-related properties and business logic to  VRObject.
      * @alias Client
      */
     constructor() { 
@@ -88,11 +89,11 @@ export class Client {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('userHeight')) {
-                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
-            }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            }
+            if (data.hasOwnProperty('userHeight')) {
+                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
@@ -187,21 +188,25 @@ Client.prototype['rotation'] = undefined;
 Client.prototype['scale'] = undefined;
 
 /**
+ * Permanent objects are always present (e.g. sky)
  * @member {Boolean} permanent
  */
 Client.prototype['permanent'] = undefined;
 
 /**
+ * Whether an object is active (can send events). E.g. online users, robots.
  * @member {Boolean} active
  */
 Client.prototype['active'] = undefined;
 
 /**
+ * URL of the file containing the mesh.
  * @member {String} mesh
  */
 Client.prototype['mesh'] = undefined;
 
 /**
+ * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
  * @member {String} script
  */
 Client.prototype['script'] = undefined;
@@ -212,6 +217,7 @@ Client.prototype['script'] = undefined;
 Client.prototype['animation'] = undefined;
 
 /**
+ * Client name - unique ID.
  * @member {String} name
  */
 Client.prototype['name'] = undefined;
@@ -222,21 +228,25 @@ Client.prototype['name'] = undefined;
 Client.prototype['sceneProperties'] = undefined;
 
 /**
- * @member {Number} userHeight
- */
-Client.prototype['userHeight'] = undefined;
-
-/**
+ * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
  * @member {Object.<String, String>} tokens
  */
 Client.prototype['tokens'] = undefined;
 
 /**
+ * User's height in real life, used in VR. Transient biometric data.
+ * @member {Number} userHeight
+ */
+Client.prototype['userHeight'] = undefined;
+
+/**
+ * Custom transient object properties
  * @member {Object.<String, Object>} properties
  */
 Client.prototype['properties'] = undefined;
 
 /**
+ * Temporary objects will be deleted from the database along with their owner
  * @member {Boolean} temporary
  */
 Client.prototype['temporary'] = undefined;

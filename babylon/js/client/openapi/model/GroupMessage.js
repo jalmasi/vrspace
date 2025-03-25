@@ -61,6 +61,9 @@ export class GroupMessage {
             if (data.hasOwnProperty('content')) {
                 obj['content'] = ApiClient.convertToType(data['content'], 'String');
             }
+            if (data.hasOwnProperty('link')) {
+                obj['link'] = ApiClient.convertToType(data['link'], 'String');
+            }
             if (data.hasOwnProperty('timestamp')) {
                 obj['timestamp'] = ApiClient.convertToType(data['timestamp'], 'Date');
             }
@@ -85,6 +88,10 @@ export class GroupMessage {
         // ensure the json data is a string
         if (data['content'] && !(typeof data['content'] === 'string' || data['content'] instanceof String)) {
             throw new Error("Expected the field `content` to be a primitive type in the JSON string but got " + data['content']);
+        }
+        // ensure the json data is a string
+        if (data['link'] && !(typeof data['link'] === 'string' || data['link'] instanceof String)) {
+            throw new Error("Expected the field `link` to be a primitive type in the JSON string but got " + data['link']);
         }
 
         return true;
@@ -114,6 +121,11 @@ GroupMessage.prototype['group'] = undefined;
  * @member {String} content
  */
 GroupMessage.prototype['content'] = undefined;
+
+/**
+ * @member {String} link
+ */
+GroupMessage.prototype['link'] = undefined;
 
 /**
  * @member {Date} timestamp
