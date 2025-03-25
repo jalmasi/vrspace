@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.socket.WebSocketSession;
 import org.vrspace.server.core.ClientFactory;
-import org.vrspace.server.core.SessionManager;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.GroupMember;
@@ -56,8 +55,6 @@ public class GroupControllerIT {
   private WebSocketSession socket1;
   @Mock
   private WebSocketSession socket2;
-  @Autowired
-  private SessionManager sessionManager;
 
   private MockHttpSession session1 = new MockHttpSession();
   private MockHttpSession session2 = new MockHttpSession();

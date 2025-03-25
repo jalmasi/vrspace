@@ -387,7 +387,7 @@ public class GroupManager {
     Instant now = Instant.now();
     Optional<GroupMember> gm = groupRepo.findGroupMember(group.getId(), client.getId());
     if (gm.isEmpty()) {
-      throw new NotFoundException("Not a member group: " + group.getId() + " clientId:" + client.getId());
+      throw new NotFoundException("Not a group member: " + group.getId() + " clientId:" + client.getId());
     }
     GroupMember member = gm.get();
     Instant lastRead = member.getLastRead();

@@ -183,5 +183,7 @@ public class GroupManagerIT {
     unreadMessages = gm.unreadMessages(c2, group1);
 
     assertEquals(0, unreadMessages.size());
+
+    assertThrows(NotFoundException.class, () -> gm.unreadMessages(c2, group3));
   }
 }

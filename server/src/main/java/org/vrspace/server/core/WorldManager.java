@@ -513,6 +513,7 @@ public class WorldManager {
     // client has now entered the world
     client.setWorld(world);
     // create audio stream
+    // CHECKME RemoteServer can also join; is that OK?
     streamManager.join(client);
     // client.setActive(true); // DON'T
     client = save(client);

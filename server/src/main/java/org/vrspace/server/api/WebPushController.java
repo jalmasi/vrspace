@@ -14,11 +14,8 @@ import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.WebPushSubscription;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import nl.martijndwars.webpush.PushService;
 
 /**
  * Keeps track of clients WebPush subscription data. User must be authorized and
@@ -38,10 +35,6 @@ public class WebPushController extends ClientControllerBase {
 
   @Value("${webpush.publicKey}")
   private String publicKey;
-  @Autowired
-  private PushService pushService;
-  @Autowired
-  private ObjectMapper objectMapper;
   @Autowired
   private VRObjectRepository db;
 
