@@ -30,7 +30,8 @@ public class StressTestClient {
   // private String world = "StressTest";
   private String world = "template";
   // private String world = "galaxy";
-  private Double deltaX, deltaY, deltaZ = 0.1;
+  // eventually, specify movement along axes:
+  // private Double deltaX, deltaY, deltaZ = 0.1;
   private Point spawnPoint = new Point(0, 0, 0);
   private Double spawnRadius = Double.valueOf(maxClients / 2);
   // requires valid cert:
