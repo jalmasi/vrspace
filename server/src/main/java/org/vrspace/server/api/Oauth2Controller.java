@@ -141,7 +141,7 @@ public class Oauth2Controller extends ApiBase {
     }
     // CHECKME do we need to return anything?
     session.setAttribute(clientFactory.clientNameAttribute(), name);
-    session.setAttribute(clientFactory.CLIENT_ID_ATTRIBUTE, client.getId());
+    session.setAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE, client.getId());
     return ResponseEntity.status(HttpStatus.FOUND).header("Location", referrer).body("Redirecting to " + referrer);
   }
 
