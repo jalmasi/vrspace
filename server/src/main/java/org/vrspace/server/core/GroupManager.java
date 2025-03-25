@@ -134,9 +134,12 @@ public class GroupManager {
     GroupMember gm = new GroupMember(group, member).invite(owner);
     save(gm);
     Client cachedClient = getCachedClient(member);
-    if (cachedClient == null) {
-      // client is offline
-      log.debug("Invite for offline client:" + member);
+    if (cachedClient != null) {
+      // online client, forward message
+      // FIXME this serializes the message all over again for each recipient
+      cachedClient.sendMessage(GroupEvent.invite(gm));
+    } else if (pushService != null) {
+      log.debug("Pushing invite for offline client:" + member);
       WebPushMessage msg = new WebPushMessage();
       msg.setType(WebPushMessage.Type.GROUP_INVITE);
       msg.setGroup(group.getName());
@@ -145,9 +148,7 @@ public class GroupManager {
         send(sub, msg);
       });
     } else {
-      // online client, forward message
-      // FIXME this serializes the message all over again for each recipient
-      cachedClient.sendMessage(GroupEvent.invite(gm));
+      log.debug("Invite for offline client:" + member);
     }
   }
 
@@ -325,9 +326,12 @@ public class GroupManager {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message
       Client cachedClient = getCachedClient(client);
-      if (cachedClient == null) {
-        // client is offline
-        log.debug("Message for offline client:" + client);
+      if (cachedClient != null) {
+        // online client, forward message
+        // FIXME this serializes the message all over again for each recipient
+        cachedClient.sendMessage(GroupEvent.message(message));
+      } else if (pushService != null) {
+        log.debug("Pushing message for offline client:" + client);
         WebPushMessage msg = new WebPushMessage();
         msg.setType(WebPushMessage.Type.GROUP_MESSAGE);
         msg.setGroup(group.getName());
@@ -336,10 +340,6 @@ public class GroupManager {
         db.listSubscriptions(client.getId()).forEach(sub -> {
           send(sub, msg);
         });
-      } else {
-        // online client, forward message
-        // FIXME this serializes the message all over again for each recipient
-        cachedClient.sendMessage(GroupEvent.message(message));
       }
     });
   }
