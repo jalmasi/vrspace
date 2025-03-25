@@ -3,6 +3,16 @@ import { TextAreaInput } from './text-area-input.js';
 import { Label } from './label.js';
 import { RemoteBrowser } from './remote-browser.js';
 
+class ChatLogInput extends TextAreaInput {
+  inputFocused(input, focused) {
+    super.inputFocused(input,focused);
+    if ( focused ) {
+      console.log("Focused ", this.textArea);
+      ChatLog.activeInstance = this.textArea;
+    }
+  }
+}
+
 class Link {
   constructor( text ) {
     this.url = text;
@@ -25,6 +35,7 @@ class Link {
     this.label.dispose();
   }
 }
+
 class LinkStack {
   constructor(scene, parent, position, scaling = new BABYLON.Vector3(.02,.02,.02)) {
     this.scene = scene;
@@ -102,6 +113,7 @@ class LinkStack {
 export class ChatLog extends TextArea {
   static instanceCount = 0;
   static instances = {}
+  static activeInstance = null;
   static instanceId(name, title) {
     return name+":"+title;
   }
@@ -122,7 +134,7 @@ export class ChatLog extends TextArea {
     if ( ChatLog.instances.hasOwnProperty(this.instanceId()) ) {
       throw "Instance already exists: "+this.instanceId();
     }
-    this.input = new TextAreaInput(this, "Say", title);
+    this.input = new ChatLogInput(this, "Say", title);
     this.input.submitName = "send";
     this.input.showNoMatch = false;
     this.inputPrefix = "ME";
@@ -148,6 +160,7 @@ export class ChatLog extends TextArea {
    */
   show() {
     super.show();
+    this.setActiveInstance();
     this.input.inputPrefix = this.inputPrefix;
     // order matters: InputArea.init() shows the title, so call hide after
     this.input.init();
@@ -161,9 +174,19 @@ export class ChatLog extends TextArea {
         this.handles.onMinMax = (minimized) => {
           if ( minimized ) {
             this.title.position.y = -1.2 * this.size/2 + this.title.height/2;
+            this.clearActiveInstance();
           } else {
             // CHECKME: copied from TextArea.showTitle:
             this.title.position.y = 1.2 * this.size/2 + this.title.height/2;
+            this.setActiveInstance();
+          }
+        };
+      } else {
+        this.handles.onMinMax = (minimized) => {
+          if ( minimized ) {
+            this.clearActiveInstance();
+          } else {
+            this.setActiveInstance();
           }
         };
       }
@@ -242,12 +265,23 @@ export class ChatLog extends TextArea {
     super.write(string);
     this.hide(false);
   }
+  setActiveInstance() {
+    ChatLog.activeInstance = this;
+    console.log("Focused ", this);
+ }
+  clearActiveInstance() {
+    if ( ChatLog.activeInstance == this ) {
+      console.log("Focus removed from ", this);
+      ChatLog.activeInstance = null;
+    }
+  }
   /** Clean up */
   dispose() {
     window.removeEventListener("resize", this.resizeHandler);
     this.input.dispose();
     super.dispose();
     this.linkStack.dispose();
+    this.clearActiveInstance();
     delete ChatLog.instances[this.instanceId()];
     ChatLog.instanceCount--;
   }
