@@ -139,9 +139,6 @@ export class AvatarSelection extends World {
         this.api.getUserObject().then(me => {
           if (me) {
             console.log("user mesh " + me.mesh, me);
-            if ( this.autoEnter ) {
-              this.enterPortal(this.autoEnter);
-            }
             if (me.mesh) {
               if (me.mesh == "video") {
                 this.createVideoAvatar();
@@ -382,6 +379,7 @@ export class AvatarSelection extends World {
     );
     await this.video.show();
     this.video.setName(this.userName);
+    this.autoEnterPortal();
   }
 
   removeVideoAvatar() {
@@ -450,7 +448,7 @@ export class AvatarSelection extends World {
 
   }
 
-  loadCharacterUrl(url) {
+  async loadCharacterUrl(url) {
     console.log('loading character from ' + url);
     let file = new ServerFile(url);
     if ( file.relative ) {
@@ -507,6 +505,7 @@ export class AvatarSelection extends World {
       this.checkValidName(); // conditionally enables portals
       this.hud.setAvatar(this.character);
       this.hud.toggleWebcam(false);
+      this.autoEnterPortal();
     },
       // on error
       (exception) => {
@@ -717,6 +716,15 @@ export class AvatarSelection extends World {
     return url;
   }
 
+  autoEnterPortal() {
+    if (this.autoEnter) {
+      // CHECKME
+      // so we enter the portal as soon as the user chooses the avatar
+      // should the user also be authenticated?
+      this.enterPortal(this.autoEnter);
+    }
+  }
+  
   async enterPortal(portal) {
     if (this.checkValidName()) {
       this.enterWorld(portal.worldUrl(), portal.name);

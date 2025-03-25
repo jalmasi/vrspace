@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * VRObject container, contains isolated parts of space, like chat room. One
@@ -27,6 +28,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
 @ToString(callSuper = true)
+@Slf4j
 public class World extends Entity {
   // @Index(unique = true) - NeoConfig creates it
   @NonNull
@@ -59,11 +61,13 @@ public class World extends Entity {
     if (!publicWorld && getOwner() != null && !c.equals(this.getOwner())) {
       String serviceId = tokenName();
       // so the world is private, and the client is not the owner
-      if (c.getToken(serviceId) == null) {
+      String token = c.getToken(serviceId);
+      log.debug("Token for " + serviceId + ": " + this.getToken() + " Client offered: " + token);
+      if (token == null) {
         return false;
       }
       // check if token in user's session matches
-      return c.getToken(serviceId).equals(this.getToken());
+      return token.equals(this.getToken());
     }
     return true;
   }
