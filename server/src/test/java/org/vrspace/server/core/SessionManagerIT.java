@@ -98,6 +98,9 @@ public class SessionManagerIT {
 
   @AfterEach
   public void tearDown() throws Exception {
+    // FIXME this may not delete the user, sometimes causing other test(s) to fail
+    // GroupsIT.testPrivateWorkflow
+    // on slow machines?
     repo.delete(dbUser);
     System.err.println("Database objects after: " + repo.count());
     repo.findAll().forEach(e -> {

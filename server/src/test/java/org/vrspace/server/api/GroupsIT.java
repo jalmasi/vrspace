@@ -191,6 +191,9 @@ public class GroupsIT {
     assertEquals(2, clientList2.size());
 
     // client2 writes something, gets kicked, can't write any more
+    // FIXME this sometimes fails (on slower machines?) with bogus error regarding
+    // exisint user "tester"
+    // created in SessionManagerIT but not deleted (yet)
     mockMvc.perform(post(ENDPOINT + "/{groupId}/write", group.getId()).content("hello group kick me").session(session2))
         .andExpect(status().isOk()).andReturn();
 
