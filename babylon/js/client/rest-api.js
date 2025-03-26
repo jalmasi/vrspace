@@ -1,8 +1,8 @@
 import { ApiClient } from './openapi/ApiClient.js';
-import { GroupControllerApi } from './openapi/api/GroupControllerApi.js';
-import { UserControllerApi } from './openapi/api/UserControllerApi.js';
-import { WorldControllerApi } from './openapi/api/WorldControllerApi.js'
-import { WebPushControllerApi } from './openapi/api/WebPushControllerApi.js';
+import { GroupsApi } from './openapi/api/GroupsApi.js';
+import { UsersApi } from './openapi/api/UsersApi.js';
+import { WorldsApi } from './openapi/api/WorldsApi.js'
+import { WebPushApi } from './openapi/api/WebPushApi.js';
 /**
  * Class to execute REST API calls, singleton.
  * By default, we're making API calls to the same server that serves the content.
@@ -19,16 +19,16 @@ export class VRSpaceAPI {
     VRSpaceAPI.instance = this;
     this.apiClient = new ApiClient(apiBase);
     this.endpoint = {
-      /** @type {WorldControllerApi} */
-      worlds: new WorldControllerApi(this.apiClient),
+      /** @type {WorldsApi} */
+      worlds: new WorldsApi(this.apiClient),
       oauth2: this.base + "/oauth2",
       files: this.base+'/files',
-      /** @type {UserControllerApi} */
-      user: new UserControllerApi(this.apiClient),
-      /** @type {GroupControllerApi} */
-      groups: new GroupControllerApi(this.apiClient),
-      /** @type {WebPushControllerApi} */
-      webpush: new WebPushControllerApi(this.apiClient)
+      /** @type {UsersApi} */
+      user: new UsersApi(this.apiClient),
+      /** @type {GroupsApi} */
+      groups: new GroupsApi(this.apiClient),
+      /** @type {WebPushApi} */
+      webpush: new WebPushApi(this.apiClient)
     }
     // does not work with node, must be imported from html:
     //ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');

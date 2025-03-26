@@ -1,7 +1,7 @@
 import { VRSPACE } from './../client/vrspace.js';
 import { VRSPACEUI } from './vrspace-ui.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
-import { GroupControllerApi } from '../client/openapi/api/GroupControllerApi.js';
+import { GroupsApi } from '../client/openapi/api/GroupsApi.js';
 import { Form } from './widget/form.js';
 import { UserGroup } from '../client/openapi/model/UserGroup.js';
 import { GroupMember } from '../client/openapi/model/GroupMember.js';
@@ -274,7 +274,7 @@ class GroupSettingsForm extends Form {
     this.listText = "  List  ";
     this.members = [];
     this.paddingLeftInPixels = 10;
-    /** @type {GroupControllerApi} */
+    /** @type {GroupsApi} */
     this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
   }
   init() {
@@ -427,7 +427,7 @@ class ListGroupsForm extends Form {
     this.refreshCallback = refreshCallback;
     this.stackVertical = true;
     this.stackHorizontal = true;
-    /** @type {GroupControllerApi} */
+    /** @type {GroupsApi} */
     this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
 
     this.activeRow = null;
@@ -841,7 +841,7 @@ export class GroupsUI {
     this.contentBase = VRSPACEUI.contentBase;
     /** @type {VRSpaceAPI} */
     this.api = VRSpaceAPI.getInstance();
-    /** @type {GroupControllerApi} */
+    /** @type {GroupsApi} */
     this.groupApi = this.api.endpoint.groups;
     /** @type {CreateGroupForm} */
     this.createGroupForm = null;
