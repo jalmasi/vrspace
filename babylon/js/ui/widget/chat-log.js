@@ -2,6 +2,7 @@ import { TextArea } from './text-area.js';
 import { TextAreaInput } from './text-area-input.js';
 import { Label } from './label.js';
 import { RemoteBrowser } from './remote-browser.js';
+import { VRSpaceAPI } from './../../client/rest-api.js'
 
 class ChatLogInput extends TextAreaInput {
   inputFocused(input, focused) {
@@ -72,16 +73,17 @@ class LinkStack {
     this.links.push(link);
     return link;
   }
-  clicked(link) {
+  async clicked(link) {
     // process invitations
     let url = link.url; 
     console.log("Clicked "+url);
+    let serverCapabilities = await VRSpaceAPI.getInstance().endpoint.server.getServerCapabilities();
     if ( this.browser ) {
       this.browser.dispose();
     }
     if ( link.external ) {
       window.location.href = url;
-    } else {
+    } else if (serverCapabilities.remoteBrowser) {
       this.browser = new RemoteBrowser(this.scene);
       this.browser.show();
       //this.browser.attachToCamera();
@@ -91,6 +93,8 @@ class LinkStack {
       } else {
         this.browser.get(url);
       }
+    } else {
+      window.open(url, '_blank').focus();
     }
   }
   scroll() {

@@ -3,6 +3,7 @@ import { GroupsApi } from './openapi/api/GroupsApi.js';
 import { UsersApi } from './openapi/api/UsersApi.js';
 import { WorldsApi } from './openapi/api/WorldsApi.js'
 import { WebPushApi } from './openapi/api/WebPushApi.js';
+import { ServerInfoApi } from './openapi/api/ServerInfoApi.js';
 /**
  * Class to execute REST API calls, singleton.
  * By default, we're making API calls to the same server that serves the content.
@@ -28,7 +29,9 @@ export class VRSpaceAPI {
       /** @type {GroupsApi} */
       groups: new GroupsApi(this.apiClient),
       /** @type {WebPushApi} */
-      webpush: new WebPushApi(this.apiClient)
+      webpush: new WebPushApi(this.apiClient),
+      /** @type {ServerInfoApi} */
+      server: new ServerInfoApi(this.apiClient)
     }
     // does not work with node, must be imported from html:
     //ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');
