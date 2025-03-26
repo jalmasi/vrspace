@@ -80,6 +80,11 @@ public class Sketchfab extends ApiBase {
     String url;
   }
 
+  @GetMapping("/available")
+  public boolean isAvailable() {
+    return !"none".equals(clientId) && !"none".equals(clientSecret) && !"none".equals(redirectUri);
+  }
+
   /**
    * Start of the login sequence. Returns the sketchfab login url, containing
    * client id and redirect url. Client is then expected to open that url and

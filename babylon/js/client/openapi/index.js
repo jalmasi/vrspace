@@ -14,6 +14,7 @@
 
 import ApiClient from './ApiClient';
 import Animation from './model/Animation';
+import CapabilitiesAndConfig from './model/CapabilitiesAndConfig';
 import Client from './model/Client';
 import ContentCategory from './model/ContentCategory';
 import CreateWorldOptions from './model/CreateWorldOptions';
@@ -25,23 +26,24 @@ import Point from './model/Point';
 import Quaternion from './model/Quaternion';
 import Rotation from './model/Rotation';
 import SceneProperties from './model/SceneProperties';
+import ServerCapabilities from './model/ServerCapabilities';
+import ServerConfiguration from './model/ServerConfiguration';
 import UploadRequest from './model/UploadRequest';
 import User from './model/User';
 import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
 import VRObject from './model/VRObject';
-import WebPushSubscription from './model/WebPushSubscription';
 import World from './model/World';
 import WorldStatus from './model/WorldStatus';
 import DataApi from './api/DataApi';
 import GroupsApi from './api/GroupsApi';
 import Oauth2LoginApi from './api/Oauth2LoginApi';
 import RemoteBrowserApi from './api/RemoteBrowserApi';
+import ServerInfoApi from './api/ServerInfoApi';
 import SharedContentApi from './api/SharedContentApi';
 import SketchfabApi from './api/SketchfabApi';
 import TexturesApi from './api/TexturesApi';
 import UsersApi from './api/UsersApi';
-import WebPushApi from './api/WebPushApi';
 import WorldsApi from './api/WorldsApi';
 
 
@@ -88,6 +90,12 @@ export {
      * @property {Animation}
      */
     Animation,
+
+    /**
+     * The CapabilitiesAndConfig model constructor.
+     * @property {CapabilitiesAndConfig}
+     */
+    CapabilitiesAndConfig,
 
     /**
      * The Client model constructor.
@@ -156,6 +164,18 @@ export {
     SceneProperties,
 
     /**
+     * The ServerCapabilities model constructor.
+     * @property {ServerCapabilities}
+     */
+    ServerCapabilities,
+
+    /**
+     * The ServerConfiguration model constructor.
+     * @property {ServerConfiguration}
+     */
+    ServerConfiguration,
+
+    /**
      * The UploadRequest model constructor.
      * @property {UploadRequest}
      */
@@ -184,12 +204,6 @@ export {
      * @property {VRObject}
      */
     VRObject,
-
-    /**
-     * The WebPushSubscription model constructor.
-     * @property {WebPushSubscription}
-     */
-    WebPushSubscription,
 
     /**
      * The World model constructor.
@@ -228,6 +242,12 @@ export {
     RemoteBrowserApi,
 
     /**
+    * The ServerInfoApi service constructor.
+    * @property {module:api/ServerInfoApi}
+    */
+    ServerInfoApi,
+
+    /**
     * The SharedContentApi service constructor.
     * @property {module:api/SharedContentApi}
     */
@@ -250,12 +270,6 @@ export {
     * @property {module:api/UsersApi}
     */
     UsersApi,
-
-    /**
-    * The WebPushApi service constructor.
-    * @property {module:api/WebPushApi}
-    */
-    WebPushApi,
 
     /**
     * The WorldsApi service constructor.

@@ -24,7 +24,6 @@ import { Rotation } from './Rotation.js';
 export class VRObject {
     /**
      * Constructs a new <code>VRObject</code>.
-     * Basic VR Object encapsulates minimal spatial and other properties.
      * @alias VRObject
      */
     constructor() { 
@@ -148,25 +147,21 @@ VRObject.prototype['rotation'] = undefined;
 VRObject.prototype['scale'] = undefined;
 
 /**
- * Permanent objects are always present (e.g. sky)
  * @member {Boolean} permanent
  */
 VRObject.prototype['permanent'] = undefined;
 
 /**
- * Whether an object is active (can send events). E.g. online users, robots.
  * @member {Boolean} active
  */
 VRObject.prototype['active'] = undefined;
 
 /**
- * URL of the file containing the mesh.
  * @member {String} mesh
  */
 VRObject.prototype['mesh'] = undefined;
 
 /**
- * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
  * @member {String} script
  */
 VRObject.prototype['script'] = undefined;
@@ -177,13 +172,11 @@ VRObject.prototype['script'] = undefined;
 VRObject.prototype['animation'] = undefined;
 
 /**
- * Custom transient object properties
  * @member {Object.<String, Object>} properties
  */
 VRObject.prototype['properties'] = undefined;
 
 /**
- * Temporary objects will be deleted from the database along with their owner
  * @member {Boolean} temporary
  */
 VRObject.prototype['temporary'] = undefined;

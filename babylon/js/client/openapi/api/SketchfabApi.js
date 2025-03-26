@@ -85,6 +85,43 @@ export class SketchfabApi {
 
 
     /**
+     * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
+     */
+    isAvailableWithHttpInfo() {
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = 'Boolean';
+      return this.apiClient.callApi(
+        '/vrspace/api/sketchfab/available', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
+     */
+    isAvailable() {
+      return this.isAvailableWithHttpInfo()
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
      * Sketchfab oauth2 callback, as explained in   https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided   by client to authorise at sketchfab, and returns 302 redirect to the saved   referrer.
      * Sketchfab oauth2 callback, as explained in   https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided   by client to authorise at sketchfab, and returns 302 redirect to the saved   referrer.
      * @param {String} code provided to the client by sketchfab

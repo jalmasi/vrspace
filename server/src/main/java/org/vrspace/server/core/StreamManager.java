@@ -153,7 +153,7 @@ public class StreamManager {
    * @param world
    */
   public void join(Client client) {
-    if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
+    if (isAvailable()) {
       try {
         disconnect(client, client.getWorld().getName());
       } catch (OpenViduException e) {
@@ -196,7 +196,7 @@ public class StreamManager {
    *         token otherwise
    */
   public String addConnection(Client client) {
-    if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
+    if (isAvailable()) {
       String sessionName = getSessionName(client.getWorld());
       try {
         Session session = startStreamingSession(sessionName);
@@ -222,7 +222,7 @@ public class StreamManager {
    * @param client
    */
   public void closeConection(Client client) {
-    if (!"none".equals(openViduUrl) && !"none".equals(openViduSecret)) {
+    if (isAvailable()) {
       if (client.getToken(additionalConnectionId) != null) {
         client.clearToken(additionalConnectionId);
         Session session = sessions.get(getSessionName(client.getWorld()));
@@ -244,6 +244,10 @@ public class StreamManager {
         }
       }
     }
+  }
+
+  public boolean isAvailable() {
+    return !"none".equals(openViduUrl) && !"none".equals(openViduSecret);
   }
 
   SessionData sessionData(String data) throws JsonMappingException, JsonProcessingException {

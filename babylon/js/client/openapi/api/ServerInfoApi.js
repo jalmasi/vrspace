@@ -13,20 +13,20 @@
 
 
 import {ApiClient} from "../ApiClient.js";
-import { CreateWorldOptions } from '../model/CreateWorldOptions.js';
-import { World } from '../model/World.js';
-import { WorldStatus } from '../model/WorldStatus.js';
+import { CapabilitiesAndConfig } from '../model/CapabilitiesAndConfig.js';
+import { ServerCapabilities } from '../model/ServerCapabilities.js';
+import { ServerConfiguration } from '../model/ServerConfiguration.js';
 
 /**
-* Worlds service.
-* @module api/WorldsApi
+* ServerInfo service.
+* @module api/ServerInfoApi
 * @version v0
 */
-export class WorldsApi {
+export class ServerInfoApi {
 
     /**
-    * Constructs a new WorldsApi. 
-    * @alias module:api/WorldsApi
+    * Constructs a new ServerInfoApi. 
+    * @alias module:api/ServerInfoApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.
@@ -38,52 +38,9 @@ export class WorldsApi {
 
 
     /**
-     * @param {CreateWorldOptions} createWorldOptions 
-     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
+     * @return {Promise< ServerCapabilities >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link ServerCapabilities} and HTTP response
      */
-    createWorldWithHttpInfo(createWorldOptions) {
-      let postBody = createWorldOptions;
-      // verify the required parameter 'createWorldOptions' is set
-      if (createWorldOptions === undefined || createWorldOptions === null) {
-        throw new Error("Missing the required parameter 'createWorldOptions' when calling createWorld");
-      }
-
-      let pathParams = {
-      };
-      let queryParams = {
-      };
-      let headerParams = {
-      };
-      let formParams = {
-      };
-
-      let authNames = [];
-      let contentTypes = ['application/json'];
-      let accepts = ['*/*'];
-      let returnType = 'String';
-      return this.apiClient.callApi(
-        '/vrspace/api/worlds/create', 'POST',
-        pathParams, queryParams, headerParams, formParams, postBody,
-        authNames, contentTypes, accepts, returnType, null
-      );
-    }
-
-    /**
-     * @param {CreateWorldOptions} createWorldOptions 
-     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
-     */
-    createWorld(createWorldOptions) {
-      return this.createWorldWithHttpInfo(createWorldOptions)
-        .then(function(response_and_data) {
-          return response_and_data.data;
-        });
-    }
-
-
-    /**
-     * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<World>} and HTTP response
-     */
-    listWithHttpInfo() {
+    getServerCapabilitiesWithHttpInfo() {
       let postBody = null;
 
       let pathParams = {
@@ -98,19 +55,19 @@ export class WorldsApi {
       let authNames = [];
       let contentTypes = [];
       let accepts = ['*/*'];
-      let returnType = [World];
+      let returnType = ServerCapabilities;
       return this.apiClient.callApi(
-        '/vrspace/api/worlds/list', 'GET',
+        '/vrspace/api/server-info/capabilities', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, null
       );
     }
 
     /**
-     * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<World>}
+     * @return {Promise< ServerCapabilities >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link ServerCapabilities}
      */
-    list() {
-      return this.listWithHttpInfo()
+    getServerCapabilities() {
+      return this.getServerCapabilitiesWithHttpInfo()
         .then(function(response_and_data) {
           return response_and_data.data;
         });
@@ -118,9 +75,9 @@ export class WorldsApi {
 
 
     /**
-     * @return {Promise< Array.<WorldStatus> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<WorldStatus>} and HTTP response
+     * @return {Promise< ServerConfiguration >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link ServerConfiguration} and HTTP response
      */
-    usersWithHttpInfo() {
+    getServerConfigWithHttpInfo() {
       let postBody = null;
 
       let pathParams = {
@@ -135,19 +92,56 @@ export class WorldsApi {
       let authNames = [];
       let contentTypes = [];
       let accepts = ['*/*'];
-      let returnType = [WorldStatus];
+      let returnType = ServerConfiguration;
       return this.apiClient.callApi(
-        '/vrspace/api/worlds/users', 'GET',
+        '/vrspace/api/server-info/configuration', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, null
       );
     }
 
     /**
-     * @return {Promise< Array.<WorldStatus> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<WorldStatus>}
+     * @return {Promise< ServerConfiguration >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link ServerConfiguration}
      */
-    users() {
-      return this.usersWithHttpInfo()
+    getServerConfig() {
+      return this.getServerConfigWithHttpInfo()
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * @return {Promise< CapabilitiesAndConfig >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link CapabilitiesAndConfig} and HTTP response
+     */
+    getServerInfoWithHttpInfo() {
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = CapabilitiesAndConfig;
+      return this.apiClient.callApi(
+        '/vrspace/api/server-info', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * @return {Promise< CapabilitiesAndConfig >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link CapabilitiesAndConfig}
+     */
+    getServerInfo() {
+      return this.getServerInfoWithHttpInfo()
         .then(function(response_and_data) {
           return response_and_data.data;
         });

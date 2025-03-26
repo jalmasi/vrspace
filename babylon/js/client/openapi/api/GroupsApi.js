@@ -39,8 +39,6 @@ export class GroupsApi {
 
 
     /**
-     * Accept invitation to a private group.
-     * Accept invitation to a private group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -73,8 +71,6 @@ export class GroupsApi {
     }
 
     /**
-     * Accept invitation to a private group.
-     * Accept invitation to a private group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
@@ -87,10 +83,8 @@ export class GroupsApi {
 
 
     /**
-     * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
-     * @param {Number} groupId Group to join
-     * @param {Number} clientId Client that asked to join
+     * @param {Number} groupId 
+     * @param {Number} clientId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     allowWithHttpInfo(groupId, clientId) {
@@ -127,10 +121,8 @@ export class GroupsApi {
     }
 
     /**
-     * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
-     * @param {Number} groupId Group to join
-     * @param {Number} clientId Client that asked to join
+     * @param {Number} groupId 
+     * @param {Number} clientId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     allow(groupId, clientId) {
@@ -142,8 +134,6 @@ export class GroupsApi {
 
 
     /**
-     * Ask to join a private group.
-     * Ask to join a private group. Group owner needs to allow new members to join.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -176,8 +166,6 @@ export class GroupsApi {
     }
 
     /**
-     * Ask to join a private group.
-     * Ask to join a private group. Group owner needs to allow new members to join.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
@@ -190,12 +178,10 @@ export class GroupsApi {
 
 
     /**
-     * Create a group.
-     * Create a group.
-     * @param {String} name Group name
+     * @param {String} name 
      * @param {Object} opts Optional parameters
-     * @param {Boolean} [isPublic] Create a public group? Defaults to false.
-     * @param {Boolean} [isTemporary] Create a temporary group? Defaults to false.
+     * @param {Boolean} [isPublic] 
+     * @param {Boolean} [isTemporary] 
      * @return {Promise< UserGroup >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link UserGroup} and HTTP response
      */
     createWithHttpInfo(name, opts) {
@@ -230,12 +216,10 @@ export class GroupsApi {
     }
 
     /**
-     * Create a group.
-     * Create a group.
-     * @param {String} name Group name
+     * @param {String} name 
      * @param {Object} opts Optional parameters
-     * @param {Boolean} opts.isPublic Create a public group? Defaults to false.
-     * @param {Boolean} opts.isTemporary Create a temporary group? Defaults to false.
+     * @param {Boolean} opts.isPublic 
+     * @param {Boolean} opts.isTemporary 
      * @return {Promise< UserGroup >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link UserGroup}
      */
     create(name, opts) {
@@ -247,8 +231,6 @@ export class GroupsApi {
 
 
     /**
-     * Delete a group.
-     * Delete a group. A group can only be deleted by the owner(s).
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -281,8 +263,6 @@ export class GroupsApi {
     }
 
     /**
-     * Delete a group.
-     * Delete a group. A group can only be deleted by the owner(s).
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
@@ -295,10 +275,8 @@ export class GroupsApi {
 
 
     /**
-     * Invite a user to a group.
-     * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation. Offline users may get web  push notification, if these are configured.
-     * @param {Number} groupId Group to invite to
-     * @param {Number} clientId Client to invite
+     * @param {Number} groupId 
+     * @param {Number} clientId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     inviteWithHttpInfo(groupId, clientId) {
@@ -335,10 +313,8 @@ export class GroupsApi {
     }
 
     /**
-     * Invite a user to a group.
-     * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation. Offline users may get web  push notification, if these are configured.
-     * @param {Number} groupId Group to invite to
-     * @param {Number} clientId Client to invite
+     * @param {Number} groupId 
+     * @param {Number} clientId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     invite(groupId, clientId) {
@@ -350,8 +326,6 @@ export class GroupsApi {
 
 
     /**
-     * Join a public group.
-     * Join a public group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -384,8 +358,6 @@ export class GroupsApi {
     }
 
     /**
-     * Join a public group.
-     * Join a public group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
@@ -398,10 +370,8 @@ export class GroupsApi {
 
 
     /**
-     * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
-     * @param {Number} groupId Where to kick from
-     * @param {Number} clientId Whom to kick
+     * @param {Number} groupId 
+     * @param {Number} clientId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     kickWithHttpInfo(groupId, clientId) {
@@ -438,10 +408,8 @@ export class GroupsApi {
     }
 
     /**
-     * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
-     * @param {Number} groupId Where to kick from
-     * @param {Number} clientId Whom to kick
+     * @param {Number} groupId 
+     * @param {Number} clientId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     kick(groupId, clientId) {
@@ -453,8 +421,6 @@ export class GroupsApi {
 
 
     /**
-     * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -487,8 +453,6 @@ export class GroupsApi {
     }
 
     /**
-     * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
@@ -501,8 +465,6 @@ export class GroupsApi {
 
 
     /**
-     * List pending invitations to groups for the current user.
-     * List pending invitations to groups for the current user.
      * @return {Promise< Array.<GroupMember> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<GroupMember>} and HTTP response
      */
     listInvitesWithHttpInfo() {
@@ -529,8 +491,6 @@ export class GroupsApi {
     }
 
     /**
-     * List pending invitations to groups for the current user.
-     * List pending invitations to groups for the current user.
      * @return {Promise< Array.<GroupMember> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<GroupMember>}
      */
     listInvites() {
@@ -542,8 +502,6 @@ export class GroupsApi {
 
 
     /**
-     * List all user groups the user is member of.
-     * List all user groups the user is member of.
      * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<UserGroup>} and HTTP response
      */
     listMyGroupsWithHttpInfo() {
@@ -570,8 +528,6 @@ export class GroupsApi {
     }
 
     /**
-     * List all user groups the user is member of.
-     * List all user groups the user is member of.
      * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<UserGroup>}
      */
     listMyGroups() {
@@ -583,8 +539,6 @@ export class GroupsApi {
 
 
     /**
-     * List all user groups the user owns.
-     * List all user groups the user owns.
      * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<UserGroup>} and HTTP response
      */
     listOwnedGroupsWithHttpInfo() {
@@ -611,8 +565,6 @@ export class GroupsApi {
     }
 
     /**
-     * List all user groups the user owns.
-     * List all user groups the user owns.
      * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<UserGroup>}
      */
     listOwnedGroups() {
@@ -668,8 +620,6 @@ export class GroupsApi {
 
 
     /**
-     * List pending requests to join the group.
-     * List pending requests to join the group. Only group owners can do that.
      * @param {Number} groupId 
      * @return {Promise< Array.<GroupMember> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<GroupMember>} and HTTP response
      */
@@ -702,8 +652,6 @@ export class GroupsApi {
     }
 
     /**
-     * List pending requests to join the group.
-     * List pending requests to join the group. Only group owners can do that.
      * @param {Number} groupId 
      * @return {Promise< Array.<GroupMember> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<GroupMember>}
      */
@@ -797,10 +745,8 @@ export class GroupsApi {
 
 
     /**
-     * Share a world link with the group.
-     * Share a world link with the group. Online users are notified right away over  the web socket, offline users may get web push notification, if these are  configured.
-     * @param {Number} groupId The group
-     * @param {GroupMessage} groupMessage The message containing url and text of the world
+     * @param {Number} groupId 
+     * @param {GroupMessage} groupMessage 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     shareWorldWithHttpInfo(groupId, groupMessage) {
@@ -836,10 +782,8 @@ export class GroupsApi {
     }
 
     /**
-     * Share a world link with the group.
-     * Share a world link with the group. Online users are notified right away over  the web socket, offline users may get web push notification, if these are  configured.
-     * @param {Number} groupId The group
-     * @param {GroupMessage} groupMessage The message containing url and text of the world
+     * @param {Number} groupId 
+     * @param {GroupMessage} groupMessage 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     shareWorld(groupId, groupMessage) {
@@ -851,8 +795,6 @@ export class GroupsApi {
 
 
     /**
-     * Show all members of a group.
-     * Show all members of a group.
      * @param {Number} groupId 
      * @return {Promise< Array.<Client> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<Client>} and HTTP response
      */
@@ -885,8 +827,6 @@ export class GroupsApi {
     }
 
     /**
-     * Show all members of a group.
-     * Show all members of a group.
      * @param {Number} groupId 
      * @return {Promise< Array.<Client> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<Client>}
      */
@@ -899,9 +839,7 @@ export class GroupsApi {
 
 
     /**
-     * Update a group.
-     * Update a group.
-     * @param {UserGroup} userGroup updated group
+     * @param {UserGroup} userGroup 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     updateWithHttpInfo(userGroup) {
@@ -932,9 +870,7 @@ export class GroupsApi {
     }
 
     /**
-     * Update a group.
-     * Update a group.
-     * @param {UserGroup} userGroup updated group
+     * @param {UserGroup} userGroup 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     update(userGroup) {
@@ -946,10 +882,8 @@ export class GroupsApi {
 
 
     /**
-     * Write something to a group.
-     * Write something to a group. Online users are notified right away over the web  socket, offline users may get web push notification, if these are configured.
-     * @param {Number} groupId The group
-     * @param {String} body The message
+     * @param {Number} groupId 
+     * @param {String} body 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     writeWithHttpInfo(groupId, body) {
@@ -985,10 +919,8 @@ export class GroupsApi {
     }
 
     /**
-     * Write something to a group.
-     * Write something to a group. Online users are notified right away over the web  socket, offline users may get web push notification, if these are configured.
-     * @param {Number} groupId The group
-     * @param {String} body The message
+     * @param {Number} groupId 
+     * @param {String} body 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     write(groupId, body) {
