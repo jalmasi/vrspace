@@ -20,7 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.vrspace.server.api.WorldController.CreateWorldOptions;
+import org.vrspace.server.api.Worlds.CreateWorldOptions;
 import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
@@ -29,9 +29,9 @@ import org.vrspace.server.obj.World;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(controllers = WorldController.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class })
-public class WorldControllerTest {
-  private static String ENDPOINT = WorldController.PATH;
+@WebMvcTest(controllers = Worlds.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class })
+public class WorldsTest {
+  private static String ENDPOINT = Worlds.PATH;
 
   @Autowired
   private MockMvc mockMvc;

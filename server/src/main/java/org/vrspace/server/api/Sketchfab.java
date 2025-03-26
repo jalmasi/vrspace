@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * You want to download free content from sketchfab, you have to be OAuth2
- * authorised with them. Once done, the server uses the same credentials for all
+ * authorized with them. Once done, the server uses the same credentials for all
  * further communication with sketchfab, until restart. This is completely
  * different than Oauth2 used to authenticate with vrspace server, i.e. this is
  * how vrspace server authenticates with sketchfab. Credentials are kept in
@@ -52,9 +52,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @RestController
-@RequestMapping(SketchfabController.PATH)
+@RequestMapping(Sketchfab.PATH)
 @Slf4j
-public class SketchfabController extends ApiBase {
+public class Sketchfab extends ApiBase {
   public static final String PATH = API_ROOT + "/sketchfab";
   @Autowired
   ObjectMapper objectMapper;

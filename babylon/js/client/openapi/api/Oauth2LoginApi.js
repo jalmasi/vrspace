@@ -15,15 +15,15 @@
 import {ApiClient} from "../ApiClient.js";
 
 /**
-* Oauth2Controller service.
-* @module api/Oauth2ControllerApi
+* Oauth2Login service.
+* @module api/Oauth2LoginApi
 * @version v0
 */
-export class Oauth2ControllerApi {
+export class Oauth2LoginApi {
 
     /**
-    * Constructs a new Oauth2ControllerApi. 
-    * @alias module:api/Oauth2ControllerApi
+    * Constructs a new Oauth2LoginApi. 
+    * @alias module:api/Oauth2LoginApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.

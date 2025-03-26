@@ -39,8 +39,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
 
-public class GroupControllerIT {
-  private static String ENDPOINT = GroupController.PATH;
+public class GroupsIT {
+  private static String ENDPOINT = Groups.PATH;
   private MockMvc mockMvc;
 
   @Autowired

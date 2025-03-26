@@ -27,8 +27,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @Slf4j
-@RequestMapping(UserController.PATH)
-public class UserController extends ClientControllerBase {
+@RequestMapping(Users.PATH)
+public class Users extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/user";
   @Autowired
   private VRObjectRepository db;

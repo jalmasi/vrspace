@@ -35,8 +35,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @Slf4j
-@RequestMapping(WorldController.PATH)
-public class WorldController extends ApiBase {
+@RequestMapping(Worlds.PATH)
+public class Worlds extends ApiBase {
   public static final String PATH = API_ROOT + "/worlds";
 
   @Autowired

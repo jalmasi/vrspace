@@ -95,6 +95,7 @@ export class CreateWorldOptions {
 
 
 /**
+ * World name of created world, must be unique, required
  * @member {String} worldName
  */
 CreateWorldOptions.prototype['worldName'] = undefined;
@@ -106,7 +107,7 @@ CreateWorldOptions.prototype['worldName'] = undefined;
 CreateWorldOptions.prototype['templateName'] = undefined;
 
 /**
- * Optional UUID used as world token, required to enter private worlds, defaults  to a random UUID
+ * Optional UUID used as world token, required to enter private worlds, defaults   to a random UUID
  * @member {String} token
  */
 CreateWorldOptions.prototype['token'] = undefined;

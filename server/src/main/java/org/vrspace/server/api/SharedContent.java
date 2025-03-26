@@ -24,10 +24,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Manage content created by users. Only upload for the time being.
+ * 
+ * @author joe
+ *
+ */
 @RestController
 @Slf4j
-@RequestMapping(UploadController.PATH)
-public class UploadController extends ClientControllerBase {
+@RequestMapping(SharedContent.PATH)
+public class SharedContent extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/files";
 
   @PutMapping("/upload")

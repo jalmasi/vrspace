@@ -17,15 +17,15 @@ import { Client } from '../model/Client.js';
 import { User } from '../model/User.js';
 
 /**
-* UserController service.
-* @module api/UserControllerApi
+* Users service.
+* @module api/UsersApi
 * @version v0
 */
-export class UserControllerApi {
+export class UsersApi {
 
     /**
-    * Constructs a new UserControllerApi. 
-    * @alias module:api/UserControllerApi
+    * Constructs a new UsersApi. 
+    * @alias module:api/UsersApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.

@@ -41,9 +41,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @Slf4j
-@RequestMapping(SeleniumController.PATH)
+@RequestMapping(RemoteBrowser.PATH)
 @ConditionalOnProperty(prefix = "org.vrspace.server", name = "selenium-enabled", havingValue = "true")
-public class SeleniumController extends ApiBase {
+public class RemoteBrowser extends ApiBase {
   public static final String PATH = API_ROOT + "/webbrowser";
   @Autowired
   WebSessionFactory factory;

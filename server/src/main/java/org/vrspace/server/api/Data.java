@@ -27,9 +27,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @RestController
-@RequestMapping(UserDataController.PATH)
+@RequestMapping(Data.PATH)
 @Slf4j
-public class UserDataController extends ClientControllerBase {
+public class Data extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/user-data";
 
   @Autowired

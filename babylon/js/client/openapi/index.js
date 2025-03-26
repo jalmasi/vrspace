@@ -30,19 +30,17 @@ import User from './model/User';
 import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
 import VRObject from './model/VRObject';
-import WebPushSubscription from './model/WebPushSubscription';
 import World from './model/World';
 import WorldStatus from './model/WorldStatus';
-import GroupControllerApi from './api/GroupControllerApi';
-import Oauth2ControllerApi from './api/Oauth2ControllerApi';
-import SeleniumControllerApi from './api/SeleniumControllerApi';
-import SketchfabControllerApi from './api/SketchfabControllerApi';
-import TextureControllerApi from './api/TextureControllerApi';
-import UploadControllerApi from './api/UploadControllerApi';
-import UserControllerApi from './api/UserControllerApi';
-import UserDataControllerApi from './api/UserDataControllerApi';
-import WebPushControllerApi from './api/WebPushControllerApi';
-import WorldControllerApi from './api/WorldControllerApi';
+import DataApi from './api/DataApi';
+import GroupsApi from './api/GroupsApi';
+import Oauth2LoginApi from './api/Oauth2LoginApi';
+import RemoteBrowserApi from './api/RemoteBrowserApi';
+import SharedContentApi from './api/SharedContentApi';
+import SketchfabApi from './api/SketchfabApi';
+import TexturesApi from './api/TexturesApi';
+import UsersApi from './api/UsersApi';
+import WorldsApi from './api/WorldsApi';
 
 
 /**
@@ -186,12 +184,6 @@ export {
     VRObject,
 
     /**
-     * The WebPushSubscription model constructor.
-     * @property {WebPushSubscription}
-     */
-    WebPushSubscription,
-
-    /**
      * The World model constructor.
      * @property {World}
      */
@@ -204,62 +196,56 @@ export {
     WorldStatus,
 
     /**
-    * The GroupControllerApi service constructor.
-    * @property {module:api/GroupControllerApi}
+    * The DataApi service constructor.
+    * @property {module:api/DataApi}
     */
-    GroupControllerApi,
+    DataApi,
 
     /**
-    * The Oauth2ControllerApi service constructor.
-    * @property {module:api/Oauth2ControllerApi}
+    * The GroupsApi service constructor.
+    * @property {module:api/GroupsApi}
     */
-    Oauth2ControllerApi,
+    GroupsApi,
 
     /**
-    * The SeleniumControllerApi service constructor.
-    * @property {module:api/SeleniumControllerApi}
+    * The Oauth2LoginApi service constructor.
+    * @property {module:api/Oauth2LoginApi}
     */
-    SeleniumControllerApi,
+    Oauth2LoginApi,
 
     /**
-    * The SketchfabControllerApi service constructor.
-    * @property {module:api/SketchfabControllerApi}
+    * The RemoteBrowserApi service constructor.
+    * @property {module:api/RemoteBrowserApi}
     */
-    SketchfabControllerApi,
+    RemoteBrowserApi,
 
     /**
-    * The TextureControllerApi service constructor.
-    * @property {module:api/TextureControllerApi}
+    * The SharedContentApi service constructor.
+    * @property {module:api/SharedContentApi}
     */
-    TextureControllerApi,
+    SharedContentApi,
 
     /**
-    * The UploadControllerApi service constructor.
-    * @property {module:api/UploadControllerApi}
+    * The SketchfabApi service constructor.
+    * @property {module:api/SketchfabApi}
     */
-    UploadControllerApi,
+    SketchfabApi,
 
     /**
-    * The UserControllerApi service constructor.
-    * @property {module:api/UserControllerApi}
+    * The TexturesApi service constructor.
+    * @property {module:api/TexturesApi}
     */
-    UserControllerApi,
+    TexturesApi,
 
     /**
-    * The UserDataControllerApi service constructor.
-    * @property {module:api/UserDataControllerApi}
+    * The UsersApi service constructor.
+    * @property {module:api/UsersApi}
     */
-    UserDataControllerApi,
+    UsersApi,
 
     /**
-    * The WebPushControllerApi service constructor.
-    * @property {module:api/WebPushControllerApi}
+    * The WorldsApi service constructor.
+    * @property {module:api/WorldsApi}
     */
-    WebPushControllerApi,
-
-    /**
-    * The WorldControllerApi service constructor.
-    * @property {module:api/WorldControllerApi}
-    */
-    WorldControllerApi
+    WorldsApi
 };

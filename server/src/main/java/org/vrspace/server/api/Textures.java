@@ -21,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @Slf4j
-@RequestMapping(TextureController.PATH)
-public class TextureController extends ApiBase {
+@RequestMapping(Textures.PATH)
+public class Textures extends ApiBase {
   public static final String PATH = API_ROOT + "/textures";
   private String contentDir = ClassUtil.projectHomeDirectory() + "/content";
 

@@ -15,15 +15,15 @@
 import {ApiClient} from "../ApiClient.js";
 
 /**
-* TextureController service.
-* @module api/TextureControllerApi
+* Textures service.
+* @module api/TexturesApi
 * @version v0
 */
-export class TextureControllerApi {
+export class TexturesApi {
 
     /**
-    * Constructs a new TextureControllerApi. 
-    * @alias module:api/TextureControllerApi
+    * Constructs a new TexturesApi. 
+    * @alias module:api/TexturesApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.

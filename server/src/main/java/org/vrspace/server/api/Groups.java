@@ -37,9 +37,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @RestController
-@RequestMapping(GroupController.PATH)
+@RequestMapping(Groups.PATH)
 @Slf4j
-public class GroupController extends ClientControllerBase {
+public class Groups extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/groups";
 
   @Autowired

@@ -43,8 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @ConditionalOnProperty("org.vrspace.oauth2.enabled")
 @Slf4j
-@RequestMapping(Oauth2Controller.PATH)
-public class Oauth2Controller extends ApiBase {
+@RequestMapping(Oauth2Login.PATH)
+public class Oauth2Login extends ApiBase {
   public static final String PATH = API_ROOT + "/oauth2";
   @Autowired
   private VRObjectRepository db;
@@ -52,7 +52,7 @@ public class Oauth2Controller extends ApiBase {
   private ClientFactory clientFactory;
   private ClientRegistrationRepository clientRegistrationRepository;
 
-  public Oauth2Controller(@Autowired ClientRegistrationRepository clientRegistrationRepository) {
+  public Oauth2Login(@Autowired ClientRegistrationRepository clientRegistrationRepository) {
     this.clientRegistrationRepository = clientRegistrationRepository;
   }
 

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.vrspace.server.api.Oauth2Controller;
+import org.vrspace.server.api.Oauth2Login;
 
 /**
  * Configures Oauth2 authentication endpoints
@@ -20,7 +20,7 @@ import org.vrspace.server.api.Oauth2Controller;
 public class WebSecurityConfig {
   // as the matter of fact, we do have dependency on the controller due to path
   // might as well make it explicit
-  public static final String ENDPOINT = Oauth2Controller.PATH;
+  public static final String ENDPOINT = Oauth2Login.PATH;
 
   // CHECKME/TODO: missing Oauth2 refresh?
   // https://stackoverflow.com/questions/68899669/how-to-perform-a-refresh-with-spring-boot-starter-oauth2-client

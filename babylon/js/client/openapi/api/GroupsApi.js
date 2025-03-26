@@ -19,15 +19,15 @@ import { GroupMessage } from '../model/GroupMessage.js';
 import { UserGroup } from '../model/UserGroup.js';
 
 /**
-* GroupController service.
-* @module api/GroupControllerApi
+* Groups service.
+* @module api/GroupsApi
 * @version v0
 */
-export class GroupControllerApi {
+export class GroupsApi {
 
     /**
-    * Constructs a new GroupControllerApi. 
-    * @alias module:api/GroupControllerApi
+    * Constructs a new GroupsApi. 
+    * @alias module:api/GroupsApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.

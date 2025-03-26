@@ -16,15 +16,15 @@ import {ApiClient} from "../ApiClient.js";
 import { UploadRequest } from '../model/UploadRequest.js';
 
 /**
-* UploadController service.
-* @module api/UploadControllerApi
+* SharedContent service.
+* @module api/SharedContentApi
 * @version v0
 */
-export class UploadControllerApi {
+export class SharedContentApi {
 
     /**
-    * Constructs a new UploadControllerApi. 
-    * @alias module:api/UploadControllerApi
+    * Constructs a new SharedContentApi. 
+    * @alias module:api/SharedContentApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.

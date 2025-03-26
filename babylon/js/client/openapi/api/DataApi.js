@@ -16,15 +16,15 @@ import {ApiClient} from "../ApiClient.js";
 import { UserData } from '../model/UserData.js';
 
 /**
-* UserDataController service.
-* @module api/UserDataControllerApi
+* Data service.
+* @module api/DataApi
 * @version v0
 */
-export class UserDataControllerApi {
+export class DataApi {
 
     /**
-    * Constructs a new UserDataControllerApi. 
-    * @alias module:api/UserDataControllerApi
+    * Constructs a new DataApi. 
+    * @alias module:api/DataApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.

@@ -92,26 +92,26 @@ export class User {
             if (data.hasOwnProperty('video')) {
                 obj['video'] = ApiClient.convertToType(data['video'], 'Boolean');
             }
-            if (data.hasOwnProperty('leftArmRot')) {
-                obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
-            }
             if (data.hasOwnProperty('leftArmPos')) {
                 obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
+            }
+            if (data.hasOwnProperty('rightArmPos')) {
+                obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
             }
             if (data.hasOwnProperty('rightArmRot')) {
                 obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
             }
-            if (data.hasOwnProperty('rightArmPos')) {
-                obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
+            if (data.hasOwnProperty('leftArmRot')) {
+                obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
+            }
+            if (data.hasOwnProperty('userHeight')) {
+                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
-            if (data.hasOwnProperty('userHeight')) {
-                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
@@ -167,21 +167,21 @@ export class User {
         if (data['name'] && !(typeof data['name'] === 'string' || data['name'] instanceof String)) {
             throw new Error("Expected the field `name` to be a primitive type in the JSON string but got " + data['name']);
         }
-        // validate the optional field `leftArmRot`
-        if (data['leftArmRot']) { // data not null
-          Quaternion.validateJSON(data['leftArmRot']);
-        }
         // validate the optional field `leftArmPos`
         if (data['leftArmPos']) { // data not null
           Point.validateJSON(data['leftArmPos']);
+        }
+        // validate the optional field `rightArmPos`
+        if (data['rightArmPos']) { // data not null
+          Point.validateJSON(data['rightArmPos']);
         }
         // validate the optional field `rightArmRot`
         if (data['rightArmRot']) { // data not null
           Quaternion.validateJSON(data['rightArmRot']);
         }
-        // validate the optional field `rightArmPos`
-        if (data['rightArmPos']) { // data not null
-          Point.validateJSON(data['rightArmPos']);
+        // validate the optional field `leftArmRot`
+        if (data['leftArmRot']) { // data not null
+          Quaternion.validateJSON(data['leftArmRot']);
         }
         // validate the optional field `sceneProperties`
         if (data['sceneProperties']) { // data not null
@@ -269,14 +269,14 @@ User.prototype['humanoid'] = undefined;
 User.prototype['video'] = undefined;
 
 /**
- * @member {Quaternion} leftArmRot
- */
-User.prototype['leftArmRot'] = undefined;
-
-/**
  * @member {Point} leftArmPos
  */
 User.prototype['leftArmPos'] = undefined;
+
+/**
+ * @member {Point} rightArmPos
+ */
+User.prototype['rightArmPos'] = undefined;
 
 /**
  * @member {Quaternion} rightArmRot
@@ -284,9 +284,15 @@ User.prototype['leftArmPos'] = undefined;
 User.prototype['rightArmRot'] = undefined;
 
 /**
- * @member {Point} rightArmPos
+ * @member {Quaternion} leftArmRot
  */
-User.prototype['rightArmPos'] = undefined;
+User.prototype['leftArmRot'] = undefined;
+
+/**
+ * User's height in real life, used in VR. Transient biometric data.
+ * @member {Number} userHeight
+ */
+User.prototype['userHeight'] = undefined;
 
 /**
  * @member {SceneProperties} sceneProperties
@@ -298,12 +304,6 @@ User.prototype['sceneProperties'] = undefined;
  * @member {Object.<String, String>} tokens
  */
 User.prototype['tokens'] = undefined;
-
-/**
- * User's height in real life, used in VR. Transient biometric data.
- * @member {Number} userHeight
- */
-User.prototype['userHeight'] = undefined;
 
 /**
  * Custom transient object properties

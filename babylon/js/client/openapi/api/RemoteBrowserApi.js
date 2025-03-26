@@ -15,15 +15,15 @@
 import {ApiClient} from "../ApiClient.js";
 
 /**
-* SeleniumController service.
-* @module api/SeleniumControllerApi
+* RemoteBrowser service.
+* @module api/RemoteBrowserApi
 * @version v0
 */
-export class SeleniumControllerApi {
+export class RemoteBrowserApi {
 
     /**
-    * Constructs a new SeleniumControllerApi. 
-    * @alias module:api/SeleniumControllerApi
+    * Constructs a new RemoteBrowserApi. 
+    * @alias module:api/RemoteBrowserApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.

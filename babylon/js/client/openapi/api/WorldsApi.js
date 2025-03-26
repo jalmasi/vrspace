@@ -18,15 +18,15 @@ import { World } from '../model/World.js';
 import { WorldStatus } from '../model/WorldStatus.js';
 
 /**
-* WorldController service.
-* @module api/WorldControllerApi
+* Worlds service.
+* @module api/WorldsApi
 * @version v0
 */
-export class WorldControllerApi {
+export class WorldsApi {
 
     /**
-    * Constructs a new WorldControllerApi. 
-    * @alias module:api/WorldControllerApi
+    * Constructs a new WorldsApi. 
+    * @alias module:api/WorldsApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
     * default to {@link module:ApiClient#instance} if unspecified.
@@ -39,7 +39,7 @@ export class WorldControllerApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
@@ -72,7 +72,7 @@ export class WorldControllerApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */

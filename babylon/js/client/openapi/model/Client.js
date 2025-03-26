@@ -86,14 +86,14 @@ export class Client {
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
             }
+            if (data.hasOwnProperty('userHeight')) {
+                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
+            }
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
-            if (data.hasOwnProperty('userHeight')) {
-                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
@@ -223,6 +223,12 @@ Client.prototype['animation'] = undefined;
 Client.prototype['name'] = undefined;
 
 /**
+ * User's height in real life, used in VR. Transient biometric data.
+ * @member {Number} userHeight
+ */
+Client.prototype['userHeight'] = undefined;
+
+/**
  * @member {SceneProperties} sceneProperties
  */
 Client.prototype['sceneProperties'] = undefined;
@@ -232,12 +238,6 @@ Client.prototype['sceneProperties'] = undefined;
  * @member {Object.<String, String>} tokens
  */
 Client.prototype['tokens'] = undefined;
-
-/**
- * User's height in real life, used in VR. Transient biometric data.
- * @member {Number} userHeight
- */
-Client.prototype['userHeight'] = undefined;
 
 /**
  * Custom transient object properties

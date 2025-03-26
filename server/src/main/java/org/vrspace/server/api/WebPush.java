@@ -29,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnProperty("webpush.publicKey")
 @RestController
 @Slf4j
-@RequestMapping(WebPushController.PATH)
-public class WebPushController extends ClientControllerBase {
+@RequestMapping(WebPush.PATH)
+public class WebPush extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/webpush";
 
   @Value("${webpush.publicKey}")

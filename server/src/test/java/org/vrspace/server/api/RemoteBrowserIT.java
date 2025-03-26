@@ -18,11 +18,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.vrspace.server.config.SeleniumConfig;
 import org.vrspace.server.config.ServerConfig;
 
-@WebMvcTest(controllers = SeleniumController.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class })
+@WebMvcTest(controllers = RemoteBrowser.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class })
 @Import({ SeleniumConfig.class, ServerConfig.class })
 @EnabledIf(expression = "#{environment['org.vrspace.server.selenium-enabled']=='true'}", loadContext = true)
-public class SeleniumControllerIT {
-  private static String ENDPOINT = SeleniumController.PATH;
+public class RemoteBrowserIT {
+  private static String ENDPOINT = RemoteBrowser.PATH;
   @Autowired
   private MockMvc mockMvc;
 
