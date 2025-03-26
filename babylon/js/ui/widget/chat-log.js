@@ -3,7 +3,8 @@ import { TextAreaInput } from './text-area-input.js';
 import { Label } from './label.js';
 import { RemoteBrowser } from './remote-browser.js';
 import { VRSpaceAPI } from './../../client/rest-api.js'
-
+import { VRSPACEUI } from '../vrspace-ui.js';
+import ServerCapabilities from '../../client/openapi/model/ServerCapabilities.js';
 class ChatLogInput extends TextAreaInput {
   inputFocused(input, focused) {
     super.inputFocused(input,focused);
@@ -15,9 +16,9 @@ class ChatLogInput extends TextAreaInput {
 }
 
 class Link {
-  constructor( text, external=false ) {
+  constructor( text, enterWorld=false ) {
     this.url = text;
-    this.external = external;
+    this.enterWorld = enterWorld;
     let pos = text.indexOf("://");
     if ( pos > 0 ) {
       text = text.substring(pos+3);
@@ -32,13 +33,23 @@ class Link {
     }
     console.log('new link: '+this.url+" "+this.site);
     this.label = null;
+    this.buttons = [];
+  }
+  openHere() {
+    window.location.href = this.url;    
+  }
+  openTab() {
+    window.open(this.url, '_blank').focus();    
   }
   dispose() {
     this.label.dispose();
+    this.buttons.forEach(b=>b.dispose());
   }
 }
 
 class LinkStack {
+  /** @type {ServerCapabilities} */
+  static serverCapablities = null;
   constructor(scene, parent, position, scaling = new BABYLON.Vector3(.02,.02,.02)) {
     this.scene = scene;
     this.parent = parent;
@@ -58,13 +69,27 @@ class LinkStack {
         }
       }
     });
+    if ( LinkStack.serverCapablities == null ) {
+      VRSpaceAPI.getInstance().endpoint.server.getServerCapabilities().then(c=>LinkStack.serverCapablities=c);
+    }
   }
-  addLink(word, external){
-    let link = new Link(word, external);
+  addLink(word, enterWorld){
+    let link = new Link(word, enterWorld);
     this.scroll();
     
-    let pos = new BABYLON.Vector3(this.position.x+link.site.length/(Label.fontRatio*2)*this.scaling.x,this.position.y,this.position.z);
-    let label = new Label("> "+link.site,pos,this.parent);
+    // add buttons to open in new tab, this tab, optionally internal browser
+    if ( enterWorld ) {
+      this.addButton(link, "enter", () => link.openHere());
+    } else {
+      this.addButton(link, "external-link", () => link.openTab());
+      if (LinkStack.serverCapablities.remoteBrowser) {
+        this.addButton(link, "play", () => this.openBrowser(link.url));
+      }
+    }
+
+    let x = this.scaling.x*link.buttons.length+this.position.x+link.site.length/(Label.fontRatio*2)*this.scaling.x;
+    let pos = new BABYLON.Vector3(x,this.position.y,this.position.z);
+    let label = new Label(link.site,pos,this.parent);
     //label.background = "black";
     label.display();
     label.textPlane.scaling = this.scaling;
@@ -73,28 +98,48 @@ class LinkStack {
     this.links.push(link);
     return link;
   }
+  
+  addButton(link, name, callback) {
+    let button = BABYLON.GUI.Button.CreateImageOnlyButton(name+"-"+link.site, VRSPACEUI.contentBase+"/content/icons/"+name+".png");
+    let buttonPlane = BABYLON.MeshBuilder.CreatePlane(name+"-"+link.site, {height:1,width:1});
+    buttonPlane.parent = this.parent;
+    buttonPlane.position = new BABYLON.Vector3(this.position.x + this.scaling.x*link.buttons.length,this.position.y,this.position.z);
+    buttonPlane.scaling = this.scaling;
+    let buttonTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
+      buttonPlane,
+      128,
+      128,
+      false // mouse events disabled
+    );
+    buttonTexture.addControl(button);
+    button.onPointerDownObservable.add( () => callback());
+    link.buttons.push(buttonPlane);    
+  }
+  
+  /** @param {Link} link */
   async clicked(link) {
     // process invitations
-    let url = link.url; 
-    console.log("Clicked "+url);
-    let serverCapabilities = await VRSpaceAPI.getInstance().endpoint.server.getServerCapabilities();
+    console.log("Clicked "+link.url);
+    if ( link.enterWorld ) {
+      link.openHere();
+    } else if (LinkStack.serverCapablities.remoteBrowser) {
+      this.openBrowser(link.url);
+    } else {
+      link.openTab();
+    }
+  }
+  openBrowser(url) {
     if ( this.browser ) {
       this.browser.dispose();
     }
-    if ( link.external ) {
-      window.location.href = url;
-    } else if (serverCapabilities.remoteBrowser) {
-      this.browser = new RemoteBrowser(this.scene);
-      this.browser.show();
-      //this.browser.attachToCamera();
-      this.browser.attachToHud();
-      if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".jpg") ) {
-        this.browser.loadUrl(url);
-      } else {
-        this.browser.get(url);
-      }
+    this.browser = new RemoteBrowser(this.scene);
+    this.browser.show();
+    //this.browser.attachToCamera();
+    this.browser.attachToHud();
+    if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".jpg") ) {
+      this.browser.loadUrl(url);
     } else {
-      window.open(url, '_blank').focus();
+      this.browser.get(url);
     }
   }
   scroll() {
@@ -107,6 +152,7 @@ class LinkStack {
       let label = this.links[i].label;
       let y = label.textPlane.position.y + label.textPlane.scaling.y*1.5;
       label.textPlane.position = new BABYLON.Vector3( label.textPlane.position.x, y, label.textPlane.position.z );
+      this.links[i].buttons.forEach(b=>b.position.y = y );
     }
   }
   dispose() {
@@ -274,9 +320,9 @@ export class ChatLog extends TextArea {
       });
     }
   }
-  showLink(word, external) {
+  showLink(word, enterWorld) {
     console.log("Link found: "+word);
-    this.linkStack.addLink(word, external);
+    this.linkStack.addLink(word, enterWorld);
   }
   write(string) {
     this.processLinks(string);
