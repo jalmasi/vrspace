@@ -56,6 +56,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   private String world = null;
   private volatile CompletableFuture<WebSocket> connecting;
   private volatile CompletableFuture<WebSocket> sending;
+  private volatile boolean reconnectOnClose = true;
   private Map<String, String> settings = null;
   public static final long TIMEOUT = 5000;
   public static final long RETRY = 10000;
@@ -84,6 +85,7 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   }
 
   public void disconnect() {
+    this.reconnectOnClose = false;
     this.ws.sendClose(WebSocket.NORMAL_CLOSURE, "bye");
   }
 
@@ -318,7 +320,9 @@ public class VRSpaceClient implements WebSocket.Listener, Runnable {
   @Override
   public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
     log.debug("Socket closed: " + statusCode + " " + reason);
-    connectAndEnter(this.world);
+    if (this.reconnectOnClose) {
+      connectAndEnter(this.world);
+    }
     return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
   }
 }

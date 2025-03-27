@@ -23,7 +23,7 @@ public class ClientConfig {
   @Autowired
   ServerConfig serverConfig;
 
-  @Bean
+  @Bean(destroyMethod = "disconnect")
   VRSpaceClient connectToVRSpace() {
     URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
     VRSpaceClient client = new VRSpaceClient(uri, objectMapper);
