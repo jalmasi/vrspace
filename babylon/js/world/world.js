@@ -240,7 +240,7 @@ export class World {
   as a change listener with WorldManager to process remote events.
   */
   createChatlog() {
-    this.chatLog = ChatLog.getInstance(this.scene, "World");
+    this.chatLog = ChatLog.getInstance(this.scene);
     this.chatLog.show();
     this.worldManager.addChangeListener((obj, field, node) => this.remoteEvent(obj, field, node));
     this.chatLog.addListener((text, link) => this.write(text, link));
