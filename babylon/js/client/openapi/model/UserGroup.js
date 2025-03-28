@@ -56,11 +56,11 @@ export class UserGroup {
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
             }
-            if (data.hasOwnProperty('public')) {
-                obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
-            }
             if (data.hasOwnProperty('unread')) {
                 obj['unread'] = ApiClient.convertToType(data['unread'], 'Number');
+            }
+            if (data.hasOwnProperty('public')) {
+                obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
             }
         }
         return obj;
@@ -101,14 +101,14 @@ UserGroup.prototype['name'] = undefined;
 UserGroup.prototype['temporary'] = undefined;
 
 /**
- * @member {Boolean} public
- */
-UserGroup.prototype['public'] = undefined;
-
-/**
  * @member {Number} unread
  */
 UserGroup.prototype['unread'] = undefined;
+
+/**
+ * @member {Boolean} public
+ */
+UserGroup.prototype['public'] = undefined;
 
 
 

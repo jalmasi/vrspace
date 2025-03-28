@@ -85,20 +85,20 @@ export class Client {
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            if (data.hasOwnProperty('sceneProperties')) {
+                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('sceneProperties')) {
-                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
-            }
-            if (data.hasOwnProperty('properties')) {
-                obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
+            }
+            if (data.hasOwnProperty('properties')) {
+                obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
             }
         }
         return obj;
@@ -217,9 +217,9 @@ Client.prototype['animation'] = undefined;
 Client.prototype['name'] = undefined;
 
 /**
- * @member {Object.<String, String>} tokens
+ * @member {SceneProperties} sceneProperties
  */
-Client.prototype['tokens'] = undefined;
+Client.prototype['sceneProperties'] = undefined;
 
 /**
  * @member {Number} userHeight
@@ -227,19 +227,19 @@ Client.prototype['tokens'] = undefined;
 Client.prototype['userHeight'] = undefined;
 
 /**
- * @member {SceneProperties} sceneProperties
+ * @member {Object.<String, String>} tokens
  */
-Client.prototype['sceneProperties'] = undefined;
-
-/**
- * @member {Object.<String, Object>} properties
- */
-Client.prototype['properties'] = undefined;
+Client.prototype['tokens'] = undefined;
 
 /**
  * @member {Boolean} temporary
  */
 Client.prototype['temporary'] = undefined;
+
+/**
+ * @member {Object.<String, Object>} properties
+ */
+Client.prototype['properties'] = undefined;
 
 
 

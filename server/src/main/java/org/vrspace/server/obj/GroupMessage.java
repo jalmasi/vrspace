@@ -32,6 +32,7 @@ public class GroupMessage extends Entity {
   private String content;
   private String link;
   private Instant timestamp;
+  private Boolean local;
 
   public GroupMessage(Client from, UserGroup group, String content, Instant timestamp) {
     this.from = from;

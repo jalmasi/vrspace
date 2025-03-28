@@ -349,6 +349,7 @@ public class GroupManager {
   public void worldInvite(Client sender, UserGroup group, String text, String link) {
     GroupMessage msg = new GroupMessage(sender, group, text, Instant.now());
     msg.setLink(link);
+    msg.setLocal(true);
     write(sender, group, WebPushMessage.Type.WORLD_INVITE, msg);
   }
 

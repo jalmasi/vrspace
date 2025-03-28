@@ -545,6 +545,7 @@ export class DefaultHud {
     }
     // give it some time to propagate
     setTimeout(()=>window.location.href = href, 200);
+    // TODO: instead, we should do what AvatarSelection.enterWorld does
   }
 
   share() {

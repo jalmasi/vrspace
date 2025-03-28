@@ -1,8 +1,9 @@
-import { VRSPACEUI } from '../ui/vrspace-ui.js';
+import { VRSpaceUI, VRSPACEUI } from '../ui/vrspace-ui.js';
 import { VRHelper } from '../xr/vr-helper.js';
 import { ChatLog } from '../ui/widget/chat-log.js';
 import { WorldManager } from '../core/world-manager.js';
 import { AvatarController } from '../avatar/avatar-controller.js';
+import { Avatar } from '../avatar/avatar.js';
 import { VRSPACE } from '../client/vrspace.js';
 import { WorldListener } from './world-listener.js';
 import { CameraHelper } from '../core/camera-helper.js';
@@ -76,13 +77,15 @@ export class World {
     /** Skybox, optionally created in createSkybox() @type {Skybox} */
     this.skyBox = null;
 
-    /** Handy reference to VRSpaceUI */
+    /** Handy reference to VRSpaceUI 
+     * @type { VRSpaceUI }
+    */
     this.VRSPACEUI = VRSPACEUI;
-    /** Reference to worldManager, set by WorldManager once that user goes online */
+    /** Reference to worldManager, set by WorldManager once that user goes online @type { WorldManager } */
     this.worldManager = null;
-    /** Reference to AvatarController, set by AvatarController during initialization */
+    /** Reference to AvatarController, set by AvatarController during initialization @type { AvatarController } */
     this.avatarController = null;
-    /**  Reference to own Avatar or VideoAvatar, set by AvatarController during initialization */
+    /** Reference to own Avatar or VideoAvatar, set by AvatarController during initialization @type { Avatar } */
     this.avatar = null;
 
     /** List of world listeners. 
@@ -237,7 +240,7 @@ export class World {
   as a change listener with WorldManager to process remote events.
   */
   createChatlog() {
-    this.chatLog = new ChatLog(this.scene);
+    this.chatLog = ChatLog.getInstance(this.scene, "World");
     this.chatLog.show();
     this.worldManager.addChangeListener((obj, field, node) => this.remoteEvent(obj, field, node));
     this.chatLog.addListener((text, link) => this.write(text, link));

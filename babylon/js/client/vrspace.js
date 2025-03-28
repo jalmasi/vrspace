@@ -414,6 +414,7 @@ export class GroupMessage {
     this.group = null;
     this.content = null;
     this.link = null;
+    this.local = null;
   }
 }
 

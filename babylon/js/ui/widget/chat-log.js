@@ -4,7 +4,9 @@ import { Label } from './label.js';
 import { RemoteBrowser } from './remote-browser.js';
 import { VRSpaceAPI } from './../../client/rest-api.js'
 import { VRSPACEUI } from '../vrspace-ui.js';
-import ServerCapabilities from '../../client/openapi/model/ServerCapabilities.js';
+import { ServerCapabilities } from '../../client/openapi/model/ServerCapabilities.js';
+import { WorldManager } from '../../core/world-manager.js';
+import { World } from '../../world/world.js';
 class ChatLogInput extends TextAreaInput {
   inputFocused(input, focused) {
     super.inputFocused(input,focused);
@@ -35,7 +37,10 @@ class Link {
     this.label = null;
     this.buttons = [];
   }
-  openHere() {
+  openHere(local) {
+    if ( local ) {
+      console.log("TODO: Enter the world like AvatarSelection.enterWorld does");
+    }
     window.location.href = this.url;    
   }
   openTab() {
@@ -74,13 +79,13 @@ class LinkStack {
       VRSpaceAPI.getInstance().endpoint.server.getServerCapabilities().then(c=>LinkStack.serverCapablities=c);
     }
   }
-  addLink(word, enterWorld){
+  addLink(word, enterWorld, local){
     let link = new Link(word, enterWorld);
     this.scroll();
     
     // add buttons to open in new tab, this tab, optionally internal browser
     if ( enterWorld ) {
-      this.addButton(link, "enter", () => link.openHere());
+      this.addButton(link, "enter", () => link.openHere(local));
     } else {
       this.addButton(link, "external-link", () => link.openTab());
       if (LinkStack.serverCapablities.remoteBrowser) {
@@ -180,7 +185,7 @@ export class ChatLog extends TextArea {
   /** @type {ChatLog} */
   static activeInstance = null;
   static instanceId(name, title) {
-    return name+":"+title;
+    return name+"_"+title;
   }
   /** @return {ChatLog} */
   static findInstance(title, name="ChatLog") {
@@ -219,7 +224,7 @@ export class ChatLog extends TextArea {
     ChatLog.instances[this.instanceId()] = this;
   }
   instanceId() {
-    return this.name+":"+this.titleText;
+    return ChatLog.instanceId(this.name, this.titleText);
   }
   /**
    * Show both TextArea and TextAreaInput, and attach to HUD.
@@ -270,7 +275,7 @@ export class ChatLog extends TextArea {
    * @param {String} what what they wrote
    * @param {String} link optional url to open 
    */
-  log( who, what, link ) {
+  log( who, what, link, local ) {
     this.input.write(what,who);
     if ( link ) {
       this.showLink(link, true);
@@ -327,7 +332,7 @@ export class ChatLog extends TextArea {
       });
     }
   }
-  showLink(word, enterWorld) {
+  showLink(word, enterWorld, local) {
     console.log("Link found: "+word);
     this.linkStack.addLink(word, enterWorld);
   }

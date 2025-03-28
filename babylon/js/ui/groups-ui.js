@@ -657,10 +657,7 @@ class ListGroupsForm extends Form {
   }
   
   pointerClick() {
-    // CHECKME: does this when table contain invites?
-    //let group = this.groups[this.activeRow];
     let group = this.table[this.activeRow];
-    // TODO check group.isInvite
     console.log("read messages of: " + group.isInvite, group);
 
     if (typeof group.chatlog == "undefined") {
@@ -678,7 +675,6 @@ class ListGroupsForm extends Form {
           group.chatlog.baseAnchor = group.chatlog.baseAnchor + 0.25 * (ChatLog.instanceCount - 1);
         }
         group.chatlog.show();
-        //group.chatlogSelection = World.lastInstance.addSelectionPredicate((mesh) => group.chatLog.isSelectableMesh(mesh));
         group.chatlog.input.autoWrite = false;
         group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
         group.chatlog.addListener((text, link) => {
@@ -691,7 +687,7 @@ class ListGroupsForm extends Form {
 
         group.chatlog.groupListener = VRSPACE.addGroupListener(event => {
           if (event.message && group.id == event.message.group.id) {
-            group.chatlog.log(event.message.from.User.name, event.message.content, event.message.link);
+            group.chatlog.log(event.message.from.User.name, event.message.content, event.message.link, event.message.local);
           }
         });
       }

@@ -67,6 +67,9 @@ export class GroupMessage {
             if (data.hasOwnProperty('timestamp')) {
                 obj['timestamp'] = ApiClient.convertToType(data['timestamp'], 'Date');
             }
+            if (data.hasOwnProperty('local')) {
+                obj['local'] = ApiClient.convertToType(data['local'], 'Boolean');
+            }
         }
         return obj;
     }
@@ -131,6 +134,11 @@ GroupMessage.prototype['link'] = undefined;
  * @member {Date} timestamp
  */
 GroupMessage.prototype['timestamp'] = undefined;
+
+/**
+ * @member {Boolean} local
+ */
+GroupMessage.prototype['local'] = undefined;
 
 
 
