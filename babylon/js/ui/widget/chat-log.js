@@ -166,6 +166,9 @@ class LinkStack {
       this.browser.dispose();
     }
   }
+  isSelectableMesh(mesh) {
+    return this.meshes.includes(mesh);
+  }
 }
 /**
  * Chat log with TextArea and TextAreaInput, attached by to HUD. 
@@ -372,6 +375,6 @@ export class ChatLog extends TextArea {
   }
   /** XR pointer selection support */
   isSelectableMesh(mesh) {
-    return super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.linkStack.isSeletableMesh(mesh);
+    return super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.linkStack.isSelectableMesh(mesh);
   }
 }
