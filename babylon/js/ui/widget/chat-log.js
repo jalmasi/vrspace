@@ -57,6 +57,7 @@ class LinkStack {
     this.position = position;
     this.capacity = 5;
     this.links = [];
+    this.meshes = []; // XR selectables
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
       if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
         && pointerInfo.pickInfo.hit
@@ -96,6 +97,7 @@ class LinkStack {
     link.label = label;
     
     this.links.push(link);
+    this.meshes.push(label.textPlane);
     return link;
   }
   
@@ -114,6 +116,7 @@ class LinkStack {
     buttonTexture.addControl(button);
     button.onPointerDownObservable.add( () => callback());
     link.buttons.push(buttonPlane);    
+    this.meshes.push(buttonPlane);
   }
   
   /** @param {Link} link */
@@ -158,6 +161,7 @@ class LinkStack {
   dispose() {
     this.scene.onPointerObservable.remove(this.clickHandler);
     this.links.forEach(l=>l.dispose());
+    this.meshes = [];
     if ( this.browser ) {
       this.browser.dispose();
     }
@@ -368,6 +372,6 @@ export class ChatLog extends TextArea {
   }
   /** XR pointer selection support */
   isSelectableMesh(mesh) {
-    return super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh);
+    return super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.linkStack.isSeletableMesh(mesh);
   }
 }
