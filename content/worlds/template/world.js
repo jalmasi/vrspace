@@ -84,6 +84,9 @@ export class WorldTemplate extends World {
     // event recorder records your events and plays them back
     var recorder = new RecorderUI(this.scene, "Recorder:"+Math.floor(Math.random() * 100));
     recorder.showUI()
+    
+    // OPTIONAL default actions, like chatlog
+    super.entered( welcome );
   }
 
 }
