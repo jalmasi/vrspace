@@ -632,7 +632,6 @@ export class VRSpace {
     if (this.ws != null) {
       this.ws.close();
     }
-    this.connectionListeners.forEach((listener)=>listener(false));
     this.log("Disconnected");
   }
   
