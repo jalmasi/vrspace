@@ -6,6 +6,7 @@ import { MeshAvatar } from '../avatar/mesh-avatar.js';
 import { BotController } from '../avatar/bot-controller.js';
 import { World } from '../world/world.js'
 import { CameraHelper } from './camera-helper.js';
+import { MediaStreams } from './media-streams.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -42,7 +43,7 @@ export class WorldManager {
     this.trackRotation = true;
     /** In 3rd person view, we're not tracking and publishing position and orientation camera, but of this mesh*/
     this.trackedMesh = null;
-    /** This is set once we connect to streaming server */
+    /** This is set once we connect to streaming server @type {MediaStreams}*/
     this.mediaStreams = null;
     /** Listeners notified after own avatar property (e.g. position) has changed and published */
     this.myChangeListeners = []
