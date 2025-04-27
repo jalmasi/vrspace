@@ -38,8 +38,11 @@ class Link {
   openHere(local) {
     if ( local ) {
       console.log("TODO: Enter the world like AvatarSelection.enterWorld does");
+      let dest = URL.parse(this.url);
+      window.location.href = window.location.pathname + dest.search;
+    } else {
+      window.location.href = this.url;
     }
-    window.location.href = this.url;    
   }
   openTab() {
     window.open(this.url, '_blank').focus();    
@@ -127,7 +130,8 @@ class LinkStack {
     // process invitations
     console.log("Clicked "+link.url);
     if ( link.enterWorld ) {
-      link.openHere();
+      // CHECKME
+      link.openHere(true);
     } else if (LinkStack.serverCapablities.remoteBrowser) {
       this.openBrowser(link.url);
     } else {
