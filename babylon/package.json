@@ -4,6 +4,7 @@
   "description": "vrspace.org babylonjs client",
   "type": "module",
   "main": "index.mjs",
+  "typings": "types/js/vrspace-min.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
