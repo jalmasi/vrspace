@@ -62,40 +62,6 @@
             </executions>
           </plugin>
           
-          <!-- 
-          generate typescript d.ts type files under types/
-          -->
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>3.0.0</version>
-            <executions>
-              <execution>
-                <id>generate-typescript-types</id>
-                <phase>process-sources</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>npx</executable>
-                  <arguments>
-                    <argument>-p</argument>
-                    <argument>typescript</argument>
-                    <argument>tsc</argument>
-                    <argument>js/vrspace-min.js</argument>
-                    <argument>--declaration</argument>
-                    <argument>--allowJs</argument>
-                    <argument>--declaration</argument>
-                    <argument>--allowJs</argument>
-                    <argument>--emitDeclarationOnly</argument>
-                    <argument>--outDir</argument>
-                    <argument>types</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          
         </plugins>
       </build>
     </profile>
