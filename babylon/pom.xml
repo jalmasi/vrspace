@@ -35,6 +35,10 @@
                   <directory>jsdoc</directory>
                   <followSymlinks>false</followSymlinks>
                 </fileset>
+                <fileset>
+                  <directory>types</directory>
+                  <followSymlinks>false</followSymlinks>
+                </fileset>
               </filesets>
             </configuration>
           </plugin>
@@ -57,6 +61,41 @@
               </execution>
             </executions>
           </plugin>
+          
+          <!-- 
+          generate typescript d.ts type files under types/
+          -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+              <execution>
+                <id>generate-typescript-types</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>npx</executable>
+                  <arguments>
+                    <argument>-p</argument>
+                    <argument>typescript</argument>
+                    <argument>tsc</argument>
+                    <argument>js/vrspace-min.js</argument>
+                    <argument>--declaration</argument>
+                    <argument>--allowJs</argument>
+                    <argument>--declaration</argument>
+                    <argument>--allowJs</argument>
+                    <argument>--emitDeclarationOnly</argument>
+                    <argument>--outDir</argument>
+                    <argument>types</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          
         </plugins>
       </build>
     </profile>
@@ -112,6 +151,7 @@
       <id>publish</id>
       <build>
         <plugins>
+        
           <!-- do NOT use maven deploy plugin -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -126,8 +166,36 @@
             <artifactId>exec-maven-plugin</artifactId>
             <version>3.0.0</version>
             <executions>
+
+              <!-- 
+              first generate typescript d.ts type files under types/
+              -->
               <execution>
-                <id>npm</id>
+                <id>generate-typescript-types</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>npx</executable>
+                  <arguments>
+                    <argument>-p</argument>
+                    <argument>typescript</argument>
+                    <argument>tsc</argument>
+                    <argument>js/vrspace-min.js</argument>
+                    <argument>--declaration</argument>
+                    <argument>--allowJs</argument>
+                    <argument>--declaration</argument>
+                    <argument>--allowJs</argument>
+                    <argument>--emitDeclarationOnly</argument>
+                    <argument>--outDir</argument>
+                    <argument>types</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+
+              <execution>
+                <id>npm-publish</id>
                 <phase>deploy</phase>
                 <goals>
                   <goal>exec</goal>
@@ -141,11 +209,13 @@
                   </arguments>
                 </configuration>
               </execution>
+              
             </executions>
           </plugin>
-          </plugins>
-          </build>
-          </profile>
+          
+        </plugins>
+      </build>
+    </profile>
           
   </profiles>
 

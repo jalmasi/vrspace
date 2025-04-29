@@ -325,7 +325,8 @@ OpenVidu implementation of MediaStreams.
  */
 export class OpenViduStreams extends MediaStreams {
   async init(callback) {
-    await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
+    // CHECKME
+    //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.OV = new OpenVidu();
     this.OV.enableProdMode(); // Disable logging
     this.session = this.OV.initSession();
@@ -359,7 +360,8 @@ export class OpenViduStreams extends MediaStreams {
 
   async shareScreen(endCallback) {
     let token = await VRSPACE.startStreaming();
-    await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
+    // CHECKME
+    //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.screenOV = new OpenVidu();
     this.screenOV.enableProdMode(); // Disable logging
     this.screenSession = this.screenOV.initSession();
