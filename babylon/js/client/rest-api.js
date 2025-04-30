@@ -39,6 +39,8 @@ export class VRSpaceAPI {
 
   /**
    * Returns VRSpaceAPI instance, creates one if required.
+   * @param {String|null} [apiBase] API URL base 
+   * @param {String|null} [apiPath] API URL path 
    * @returns {VRSpaceAPI}
    */
   static getInstance(apiBase, apiPath) {
