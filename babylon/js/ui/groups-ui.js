@@ -687,7 +687,9 @@ class ListGroupsForm extends Form {
 
         group.chatlog.groupListener = VRSPACE.addGroupListener(event => {
           if (event.message && group.id == event.message.group.id) {
-            group.chatlog.log(event.message.from.User.name, event.message.content, event.message.link, event.message.local);
+            // different serialization:
+            //group.chatlog.log(event.message.from.User.name, event.message.content, event.message.link, event.message.local);
+            group.chatlog.log(event.message.from.name, event.message.content, event.message.link, event.message.local);
           }
         });
       }

@@ -7,6 +7,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,6 +24,7 @@ import lombok.ToString;
 public class GroupMessage extends Entity {
   // @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include =
   // JsonTypeInfo.As.WRAPPER_OBJECT)
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
   @Relationship(type = "SENDER_CLIENT", direction = Relationship.Direction.OUTGOING)
   private Client from;
   // @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include =
