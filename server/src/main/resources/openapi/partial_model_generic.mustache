@@ -18,9 +18,9 @@ export class {{classname}} {{#parent}}{{^parentModel}}{{#vendorExtensions.x-is-a
         {{/vendorExtensions.x-is-array}}{{/parentModel}}{{/parent}}
         
         {{#vars}}{{#emitJSDoc}}
-        /**{{#description}}
+        /** {{baseName}} {{#description}}
          * {{{.}}}{{/description}}
-         * @type {{=< >=}}{<&vendorExtensions.x-jsdoc-type>}<={{ }}=> {{baseName}}{{#defaultValue}}
+         * @type {{=< >=}}{<&vendorExtensions.x-jsdoc-type>}<={{ }}=> {{#defaultValue}}
          * @default {{{.}}}{{/defaultValue}}
          */{{/emitJSDoc}}
         this.{{baseName}} = {{{defaultValue}}}{{^defaultValue}}undefined{{/defaultValue}};
@@ -28,9 +28,9 @@ export class {{classname}} {{#parent}}{{^parentModel}}{{#vendorExtensions.x-is-a
         
         {{#useInheritance}}{{#interfaceModels}}// Implement {{classname}} interface:
         {{#allVars}}{{#emitJSDoc}}
-        /**{{#description}}
+        /** {{baseName}} {{#description}}
          * {{{.}}}{{/description}}
-         * @type {{=< >=}}{<&vendorExtensions.x-jsdoc-type>}<={{ }}=> {{baseName}}{{#defaultValue}}
+         * @type {{=< >=}}{<&vendorExtensions.x-jsdoc-type>}<={{ }}=> {{#defaultValue}}
          * @default {{{.}}}{{/defaultValue}}
          */{{/emitJSDoc}}
         this.{{baseName}} = {{{defaultValue}}}{{^defaultValue}}undefined{{/defaultValue}};

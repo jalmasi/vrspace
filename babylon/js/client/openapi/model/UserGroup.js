@@ -27,28 +27,28 @@ export class UserGroup {
     constructor() { 
         
         
-        /**
-         * @type {Number} id
+        /** id 
+         * @type {Number} 
          */
         this.id = undefined;
 
-        /**
-         * @type {String} name
+        /** name 
+         * @type {String} 
          */
         this.name = undefined;
 
-        /**
-         * @type {Boolean} temporary
+        /** temporary 
+         * @type {Boolean} 
          */
         this.temporary = undefined;
 
-        /**
-         * @type {Number} unread
+        /** unread 
+         * @type {Number} 
          */
         this.unread = undefined;
 
-        /**
-         * @type {Boolean} public
+        /** public 
+         * @type {Boolean} 
          */
         this.public = undefined;
         

@@ -30,64 +30,64 @@ export class VRObject {
     constructor() { 
         
         
-        /**
-         * @type {Number} id
+        /** id 
+         * @type {Number} 
          */
         this.id = undefined;
 
-        /**
-         * @type {Point} position
+        /** position 
+         * @type {Point} 
          */
         this.position = undefined;
 
-        /**
-         * @type {Rotation} rotation
+        /** rotation 
+         * @type {Rotation} 
          */
         this.rotation = undefined;
 
-        /**
-         * @type {Point} scale
+        /** scale 
+         * @type {Point} 
          */
         this.scale = undefined;
 
-        /**
+        /** permanent 
          * Permanent objects are always present (e.g. sky)
-         * @type {Boolean} permanent
+         * @type {Boolean} 
          */
         this.permanent = undefined;
 
-        /**
+        /** active 
          * Whether an object is active (can send events). E.g. online users, robots.
-         * @type {Boolean} active
+         * @type {Boolean} 
          */
         this.active = undefined;
 
-        /**
+        /** mesh 
          * URL of the file containing the mesh.
-         * @type {String} mesh
+         * @type {String} 
          */
         this.mesh = undefined;
 
-        /**
-         * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
-         * @type {String} script
+        /** script 
+         * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
+         * @type {String} 
          */
         this.script = undefined;
 
-        /**
-         * @type {Animation} animation
+        /** animation 
+         * @type {Animation} 
          */
         this.animation = undefined;
 
-        /**
+        /** temporary 
          * Temporary objects will be deleted from the database along with their owner
-         * @type {Boolean} temporary
+         * @type {Boolean} 
          */
         this.temporary = undefined;
 
-        /**
+        /** properties 
          * Custom transient object properties
-         * @type {Object.<String, Object>} properties
+         * @type {Object.<String, Object>} 
          */
         this.properties = undefined;
         

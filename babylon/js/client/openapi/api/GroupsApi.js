@@ -88,7 +88,7 @@ export class GroupsApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -128,7 +128,7 @@ export class GroupsApi {
 
     /**
      * Allow a user (who asked) to join a private group.
-     * Allow a user (who asked) to join a private group. Only group owner(s) can do   that.
+     * Allow a user (who asked) to join a private group. Only group owner(s) can do  that.
      * @param {Number} groupId Group to join
      * @param {Number} clientId Client that asked to join
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -296,7 +296,7 @@ export class GroupsApi {
 
     /**
      * Invite a user to a group.
-     * Invite a user to a group. Only group owner(s) can invite users to private   groups. Invited users have to accept invitation. Offline users may get web   push notification, if these are configured.
+     * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation. Offline users may get web  push notification, if these are configured.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -336,7 +336,7 @@ export class GroupsApi {
 
     /**
      * Invite a user to a group.
-     * Invite a user to a group. Only group owner(s) can invite users to private   groups. Invited users have to accept invitation. Offline users may get web   push notification, if these are configured.
+     * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation. Offline users may get web  push notification, if these are configured.
      * @param {Number} groupId Group to invite to
      * @param {Number} clientId Client to invite
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -399,7 +399,7 @@ export class GroupsApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -439,7 +439,7 @@ export class GroupsApi {
 
     /**
      * Kick a user from a group.
-     * Kick a user from a group. Only group owner(s) can do that. Also used to   reject request to join.
+     * Kick a user from a group. Only group owner(s) can do that. Also used to  reject request to join.
      * @param {Number} groupId Where to kick from
      * @param {Number} clientId Whom to kick
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -454,7 +454,7 @@ export class GroupsApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -488,7 +488,7 @@ export class GroupsApi {
 
     /**
      * Leave a group.
-     * Leave a group. Group owners can not leave. Also used to reject invitation to   join the group.
+     * Leave a group. Group owners can not leave. Also used to reject invitation to  join the group.
      * @param {Number} groupId 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
@@ -798,7 +798,7 @@ export class GroupsApi {
 
     /**
      * Share a world link with the group.
-     * Share a world link with the group. Online users are notified right away over   the web socket, offline users may get web push notification, if these are   configured.
+     * Share a world link with the group. Online users are notified right away over  the web socket, offline users may get web push notification, if these are  configured.
      * @param {Number} groupId The group
      * @param {GroupMessage} groupMessage The message containing url and text of the world
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -837,7 +837,7 @@ export class GroupsApi {
 
     /**
      * Share a world link with the group.
-     * Share a world link with the group. Online users are notified right away over   the web socket, offline users may get web push notification, if these are   configured.
+     * Share a world link with the group. Online users are notified right away over  the web socket, offline users may get web push notification, if these are  configured.
      * @param {Number} groupId The group
      * @param {GroupMessage} groupMessage The message containing url and text of the world
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
@@ -947,7 +947,7 @@ export class GroupsApi {
 
     /**
      * Write something to a group.
-     * Write something to a group. Online users are notified right away over the web   socket, offline users may get web push notification, if these are configured.
+     * Write something to a group. Online users are notified right away over the web  socket, offline users may get web push notification, if these are configured.
      * @param {Number} groupId The group
      * @param {String} body The message
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
@@ -986,7 +986,7 @@ export class GroupsApi {
 
     /**
      * Write something to a group.
-     * Write something to a group. Online users are notified right away over the web   socket, offline users may get web push notification, if these are configured.
+     * Write something to a group. Online users are notified right away over the web  socket, offline users may get web push notification, if these are configured.
      * @param {Number} groupId The group
      * @param {String} body The message
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}

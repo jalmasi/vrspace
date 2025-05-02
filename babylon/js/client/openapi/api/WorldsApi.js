@@ -39,7 +39,7 @@ export class WorldsApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
@@ -72,7 +72,7 @@ export class WorldsApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */

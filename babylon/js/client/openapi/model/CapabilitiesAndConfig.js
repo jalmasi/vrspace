@@ -28,13 +28,13 @@ export class CapabilitiesAndConfig {
     constructor() { 
         
         
-        /**
-         * @type {ServerCapabilities} capabilities
+        /** capabilities 
+         * @type {ServerCapabilities} 
          */
         this.capabilities = undefined;
 
-        /**
-         * @type {ServerConfiguration} config
+        /** config 
+         * @type {ServerConfiguration} 
          */
         this.config = undefined;
         

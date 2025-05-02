@@ -21,19 +21,18 @@ import {ApiClient} from '../ApiClient.js';
 export class UserData {
     /**
      * Constructs a new <code>UserData</code>.
-     * Simple key-value pair that can be attached to any VRObject, but is most   useful when attached to Client, as it allows to persist custom user   information.
      * @alias UserData
      */
     constructor() { 
         
         
-        /**
-         * @type {String} key
+        /** key 
+         * @type {String} 
          */
         this.key = undefined;
 
-        /**
-         * @type {String} value
+        /** value 
+         * @type {String} 
          */
         this.value = undefined;
         

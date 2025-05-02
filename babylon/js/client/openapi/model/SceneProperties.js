@@ -21,33 +21,33 @@ import {ApiClient} from '../ApiClient.js';
 export class SceneProperties {
     /**
      * Constructs a new <code>SceneProperties</code>.
-     * Scene properties that determine how far user sees, how often scene is   refreshed, etc. This is a component to be injected, and used as factory when   constructing Scene for every client.
+     * Scene properties that determine how far user sees, how often scene is  refreshed, etc. This is a component to be injected, and used as factory when  constructing Scene for every client.
      * @alias SceneProperties
      */
     constructor() { 
         
         
-        /**
+        /** range 
          * Visibility range, default 2000. Property: vrspace.scene.range
-         * @type {Number} range
+         * @type {Number} 
          */
         this.range = undefined;
 
-        /**
-         * Resolution describes how far one can go before scene is updated, default 10.   Property: vrspace.scene.resolution
-         * @type {Number} resolution
+        /** resolution 
+         * Resolution describes how far one can go before scene is updated, default 10.  Property: vrspace.scene.resolution
+         * @type {Number} 
          */
         this.resolution = undefined;
 
-        /**
-         * Maximum number of objects in the scene, default 1000. Property:   vrspace.scene.size
-         * @type {Number} size
+        /** size 
+         * Maximum number of objects in the scene, default 1000. Property:  vrspace.scene.size
+         * @type {Number} 
          */
         this.size = undefined;
 
-        /**
-         * Scene is refreshed after this many milliseconds, default 30000. Property:   vrspace.scene.timeout
-         * @type {Number} timeout
+        /** timeout 
+         * Scene is refreshed after this many milliseconds, default 30000. Property:  vrspace.scene.timeout
+         * @type {Number} 
          */
         this.timeout = undefined;
         

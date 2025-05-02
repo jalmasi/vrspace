@@ -26,18 +26,18 @@ export class WorldStatus {
     constructor() { 
         
         
-        /**
-         * @type {String} worldName
+        /** worldName 
+         * @type {String} 
          */
         this.worldName = undefined;
 
-        /**
-         * @type {Number} activeUsers
+        /** activeUsers 
+         * @type {Number} 
          */
         this.activeUsers = undefined;
 
-        /**
-         * @type {Number} totalUsers
+        /** totalUsers 
+         * @type {Number} 
          */
         this.totalUsers = undefined;
         

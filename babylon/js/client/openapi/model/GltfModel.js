@@ -22,64 +22,64 @@ import { ContentCategory } from './ContentCategory.js';
 export class GltfModel {
     /**
      * Constructs a new <code>GltfModel</code>.
-     * A 3D Model in GLTF format. Adds unique id, uri and other properties to   Content class. Based on sketchfab models.
+     * A 3D Model in GLTF format. Adds unique id, uri and other properties to  Content class. Based on sketchfab models.
      * @alias GltfModel
      */
     constructor() { 
         
         
-        /**
-         * @type {String} fileName
+        /** fileName 
+         * @type {String} 
          */
         this.fileName = undefined;
 
-        /**
-         * @type {String} contentType
+        /** contentType 
+         * @type {String} 
          */
         this.contentType = undefined;
 
-        /**
-         * @type {Number} length
+        /** length 
+         * @type {Number} 
          */
         this.length = undefined;
 
-        /**
-         * @type {String} uid
+        /** uid 
+         * @type {String} 
          */
         this.uid = undefined;
 
-        /**
-         * @type {String} uri
+        /** uri 
+         * @type {String} 
          */
         this.uri = undefined;
 
-        /**
-         * @type {String} name
+        /** name 
+         * @type {String} 
          */
         this.name = undefined;
 
-        /**
-         * @type {String} description
+        /** description 
+         * @type {String} 
          */
         this.description = undefined;
 
-        /**
-         * @type {String} license
+        /** license 
+         * @type {String} 
          */
         this.license = undefined;
 
-        /**
-         * @type {String} author
+        /** author 
+         * @type {String} 
          */
         this.author = undefined;
 
-        /**
-         * @type {Array.<ContentCategory>} categories
+        /** categories 
+         * @type {Array.<ContentCategory>} 
          */
         this.categories = undefined;
 
-        /**
-         * @type {String} mesh
+        /** mesh 
+         * @type {String} 
          */
         this.mesh = undefined;
         

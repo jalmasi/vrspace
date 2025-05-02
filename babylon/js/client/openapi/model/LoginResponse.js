@@ -26,8 +26,8 @@ export class LoginResponse {
     constructor() { 
         
         
-        /**
-         * @type {String} url
+        /** url 
+         * @type {String} 
          */
         this.url = undefined;
         

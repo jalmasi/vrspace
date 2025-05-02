@@ -28,38 +28,38 @@ export class GroupMessage {
     constructor() { 
         
         
-        /**
-         * @type {Number} id
+        /** id 
+         * @type {Number} 
          */
         this.id = undefined;
 
-        /**
-         * @type {Client} from
+        /** from 
+         * @type {Client} 
          */
         this.from = undefined;
 
-        /**
-         * @type {UserGroup} group
+        /** group 
+         * @type {UserGroup} 
          */
         this.group = undefined;
 
-        /**
-         * @type {String} content
+        /** content 
+         * @type {String} 
          */
         this.content = undefined;
 
-        /**
-         * @type {String} link
+        /** link 
+         * @type {String} 
          */
         this.link = undefined;
 
-        /**
-         * @type {Date} timestamp
+        /** timestamp 
+         * @type {Date} 
          */
         this.timestamp = undefined;
 
-        /**
-         * @type {Boolean} local
+        /** local 
+         * @type {Boolean} 
          */
         this.local = undefined;
         

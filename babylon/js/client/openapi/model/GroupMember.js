@@ -29,46 +29,46 @@ export class GroupMember {
     constructor() { 
         
         
-        /**
-         * @type {Number} id
+        /** id 
+         * @type {Number} 
          */
         this.id = undefined;
 
-        /**
-         * @type {UserGroup} group
+        /** group 
+         * @type {UserGroup} 
          */
         this.group = undefined;
 
-        /**
-         * @type {Client} client
+        /** client 
+         * @type {Client} 
          */
         this.client = undefined;
 
-        /**
+        /** pendingInvite 
          * Pending invitation, if any
-         * @type {String} pendingInvite
+         * @type {String} 
          */
         this.pendingInvite = undefined;
 
-        /**
+        /** pendingRequest 
          * Pending request to join, if any
-         * @type {String} pendingRequest
+         * @type {String} 
          */
         this.pendingRequest = undefined;
 
-        /**
-         * @type {Client} sponsor
+        /** sponsor 
+         * @type {Client} 
          */
         this.sponsor = undefined;
 
-        /**
-         * Time stamp of last membership update, be it invite, request, or joining the   group
-         * @type {Date} lastUpdate
+        /** lastUpdate 
+         * Time stamp of last membership update, be it invite, request, or joining the  group
+         * @type {Date} 
          */
         this.lastUpdate = undefined;
 
-        /**
-         * @type {Date} lastRead
+        /** lastRead 
+         * @type {Date} 
          */
         this.lastRead = undefined;
         

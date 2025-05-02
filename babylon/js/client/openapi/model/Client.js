@@ -26,98 +26,98 @@ import { VRObject } from './VRObject.js';
 export class Client {
     /**
      * Constructs a new <code>Client</code>.
-     * Basic client class, adds user-related properties and business logic to   VRObject.
+     * Basic client class, adds user-related properties and business logic to  VRObject.
      * @alias Client
      */
     constructor() { 
         
         
-        /**
-         * @type {Number} id
+        /** id 
+         * @type {Number} 
          */
         this.id = undefined;
 
-        /**
-         * @type {Array.<VRObject>} children
+        /** children 
+         * @type {Array.<VRObject>} 
          */
         this.children = undefined;
 
-        /**
-         * @type {Point} position
+        /** position 
+         * @type {Point} 
          */
         this.position = undefined;
 
-        /**
-         * @type {Rotation} rotation
+        /** rotation 
+         * @type {Rotation} 
          */
         this.rotation = undefined;
 
-        /**
-         * @type {Point} scale
+        /** scale 
+         * @type {Point} 
          */
         this.scale = undefined;
 
-        /**
+        /** permanent 
          * Permanent objects are always present (e.g. sky)
-         * @type {Boolean} permanent
+         * @type {Boolean} 
          */
         this.permanent = undefined;
 
-        /**
+        /** active 
          * Whether an object is active (can send events). E.g. online users, robots.
-         * @type {Boolean} active
+         * @type {Boolean} 
          */
         this.active = undefined;
 
-        /**
+        /** mesh 
          * URL of the file containing the mesh.
-         * @type {String} mesh
+         * @type {String} 
          */
         this.mesh = undefined;
 
-        /**
-         * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
-         * @type {String} script
+        /** script 
+         * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
+         * @type {String} 
          */
         this.script = undefined;
 
-        /**
-         * @type {Animation} animation
+        /** animation 
+         * @type {Animation} 
          */
         this.animation = undefined;
 
-        /**
+        /** name 
          * Client name - unique ID.
-         * @type {String} name
+         * @type {String} 
          */
         this.name = undefined;
 
-        /**
-         * @type {SceneProperties} sceneProperties
+        /** sceneProperties 
+         * @type {SceneProperties} 
          */
         this.sceneProperties = undefined;
 
-        /**
-         * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} tokens
-         */
-        this.tokens = undefined;
-
-        /**
+        /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
-         * @type {Number} userHeight
+         * @type {Number} 
          */
         this.userHeight = undefined;
 
-        /**
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
+         */
+        this.tokens = undefined;
+
+        /** temporary 
          * Temporary objects will be deleted from the database along with their owner
-         * @type {Boolean} temporary
+         * @type {Boolean} 
          */
         this.temporary = undefined;
 
-        /**
+        /** properties 
          * Custom transient object properties
-         * @type {Object.<String, Object>} properties
+         * @type {Object.<String, Object>} 
          */
         this.properties = undefined;
         
@@ -182,11 +182,11 @@ export class Client {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
+            }
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');

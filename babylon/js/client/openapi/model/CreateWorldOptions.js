@@ -27,33 +27,32 @@ export class CreateWorldOptions {
     constructor() { 
         
         
-        /**
-         * World name of created world, must be unique, required
-         * @type {String} worldName
+        /** worldName 
+         * @type {String} 
          */
         this.worldName = undefined;
 
-        /**
+        /** templateName 
          * Optional world template to use
-         * @type {String} templateName
+         * @type {String} 
          */
         this.templateName = undefined;
 
-        /**
-         * Optional UUID used as world token, required to enter private worlds, defaults   to a random UUID
-         * @type {String} token
+        /** token 
+         * Optional UUID used as world token, required to enter private worlds, defaults  to a random UUID
+         * @type {String} 
          */
         this.token = undefined;
 
-        /**
+        /** publicWorld 
          * Optional flag to create public or private world, default false
-         * @type {Boolean} publicWorld
+         * @type {Boolean} 
          */
         this.publicWorld = undefined;
 
-        /**
+        /** temporaryWorld 
          * optional flag to create a temporary world, default true
-         * @type {Boolean} temporaryWorld
+         * @type {Boolean} 
          */
         this.temporaryWorld = undefined;
         

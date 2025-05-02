@@ -27,13 +27,13 @@ export class ContentCategory {
     constructor() { 
         
         
-        /**
-         * @type {Number} id
+        /** id 
+         * @type {Number} 
          */
         this.id = undefined;
 
-        /**
-         * @type {String} name
+        /** name 
+         * @type {String} 
          */
         this.name = undefined;
         

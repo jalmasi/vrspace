@@ -27,8 +27,8 @@ export class UploadRequest {
     constructor(fileData) { 
         
         
-        /**
-         * @type {File} fileData
+        /** fileData 
+         * @type {File} 
          */
         this.fileData = undefined;
         
