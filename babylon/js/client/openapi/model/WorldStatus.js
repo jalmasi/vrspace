@@ -25,6 +25,25 @@ export class WorldStatus {
      */
     constructor() { 
         
+        
+        /**
+         * @type {String} worldName
+         */
+        this.worldName = undefined;
+
+        /**
+         * @type {Number} activeUsers
+         */
+        this.activeUsers = undefined;
+
+        /**
+         * @type {Number} totalUsers
+         */
+        this.totalUsers = undefined;
+        
+        
+        
+        
         WorldStatus.initialize(this);
     }
 
@@ -76,24 +95,6 @@ export class WorldStatus {
 
 
 }
-
-
-
-/**
- * @member {String} worldName
- */
-WorldStatus.prototype['worldName'] = undefined;
-
-/**
- * @member {Number} activeUsers
- */
-WorldStatus.prototype['activeUsers'] = undefined;
-
-/**
- * @member {Number} totalUsers
- */
-WorldStatus.prototype['totalUsers'] = undefined;
-
 
 
 

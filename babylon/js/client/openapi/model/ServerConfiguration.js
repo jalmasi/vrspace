@@ -25,6 +25,52 @@ export class ServerConfiguration {
      */
     constructor() { 
         
+        
+        /**
+         * Guest (without login) access is allowed
+         * @type {Boolean} guestAllowed
+         */
+        this.guestAllowed = undefined;
+
+        /**
+         * Worlds are created on demand
+         * @type {Boolean} createWorlds
+         */
+        this.createWorlds = undefined;
+
+        /**
+         * Maximum concurrent sessions per server, 0 for unlimited
+         * @type {Number} maxSessions
+         */
+        this.maxSessions = undefined;
+
+        /**
+         * Sessions over maxSessions will wait this many seconds to start, 0 for   unlimited
+         * @type {Number} sessionStartTimeout
+         */
+        this.sessionStartTimeout = undefined;
+
+        /**
+         * HTTP session timeout.
+         * @type {String} sessionTimeout
+         */
+        this.sessionTimeout = undefined;
+
+        /**
+         * WebSocket that clients use to connect
+         * @type {String} webSocketClientPath
+         */
+        this.webSocketClientPath = undefined;
+
+        /**
+         * WebSocket that other servers use to connect
+         * @type {String} webSocketServerPath
+         */
+        this.webSocketServerPath = undefined;
+        
+        
+        
+        
         ServerConfiguration.initialize(this);
     }
 
@@ -96,44 +142,6 @@ export class ServerConfiguration {
 
 
 }
-
-
-
-/**
- * @member {Boolean} guestAllowed
- */
-ServerConfiguration.prototype['guestAllowed'] = undefined;
-
-/**
- * @member {Boolean} createWorlds
- */
-ServerConfiguration.prototype['createWorlds'] = undefined;
-
-/**
- * @member {Number} maxSessions
- */
-ServerConfiguration.prototype['maxSessions'] = undefined;
-
-/**
- * @member {Number} sessionStartTimeout
- */
-ServerConfiguration.prototype['sessionStartTimeout'] = undefined;
-
-/**
- * @member {String} sessionTimeout
- */
-ServerConfiguration.prototype['sessionTimeout'] = undefined;
-
-/**
- * @member {String} webSocketClientPath
- */
-ServerConfiguration.prototype['webSocketClientPath'] = undefined;
-
-/**
- * @member {String} webSocketServerPath
- */
-ServerConfiguration.prototype['webSocketServerPath'] = undefined;
-
 
 
 

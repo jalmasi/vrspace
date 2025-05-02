@@ -21,9 +21,24 @@ import {ApiClient} from '../ApiClient.js';
 export class ContentCategory {
     /**
      * Constructs a new <code>ContentCategory</code>.
+     * A custom category of content.
      * @alias ContentCategory
      */
     constructor() { 
+        
+        
+        /**
+         * @type {Number} id
+         */
+        this.id = undefined;
+
+        /**
+         * @type {String} name
+         */
+        this.name = undefined;
+        
+        
+        
         
         ContentCategory.initialize(this);
     }
@@ -73,19 +88,6 @@ export class ContentCategory {
 
 
 }
-
-
-
-/**
- * @member {Number} id
- */
-ContentCategory.prototype['id'] = undefined;
-
-/**
- * @member {String} name
- */
-ContentCategory.prototype['name'] = undefined;
-
 
 
 

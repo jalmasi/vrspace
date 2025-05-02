@@ -27,6 +27,45 @@ export class GroupMessage {
      */
     constructor() { 
         
+        
+        /**
+         * @type {Number} id
+         */
+        this.id = undefined;
+
+        /**
+         * @type {Client} from
+         */
+        this.from = undefined;
+
+        /**
+         * @type {UserGroup} group
+         */
+        this.group = undefined;
+
+        /**
+         * @type {String} content
+         */
+        this.content = undefined;
+
+        /**
+         * @type {String} link
+         */
+        this.link = undefined;
+
+        /**
+         * @type {Date} timestamp
+         */
+        this.timestamp = undefined;
+
+        /**
+         * @type {Boolean} local
+         */
+        this.local = undefined;
+        
+        
+        
+        
         GroupMessage.initialize(this);
     }
 
@@ -102,44 +141,6 @@ export class GroupMessage {
 
 
 }
-
-
-
-/**
- * @member {Number} id
- */
-GroupMessage.prototype['id'] = undefined;
-
-/**
- * @member {Client} from
- */
-GroupMessage.prototype['from'] = undefined;
-
-/**
- * @member {UserGroup} group
- */
-GroupMessage.prototype['group'] = undefined;
-
-/**
- * @member {String} content
- */
-GroupMessage.prototype['content'] = undefined;
-
-/**
- * @member {String} link
- */
-GroupMessage.prototype['link'] = undefined;
-
-/**
- * @member {Date} timestamp
- */
-GroupMessage.prototype['timestamp'] = undefined;
-
-/**
- * @member {Boolean} local
- */
-GroupMessage.prototype['local'] = undefined;
-
 
 
 

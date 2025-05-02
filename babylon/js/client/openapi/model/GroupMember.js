@@ -23,9 +23,57 @@ import { UserGroup } from './UserGroup.js';
 export class GroupMember {
     /**
      * Constructs a new <code>GroupMember</code>.
+     * Represents a membership of a user in a group
      * @alias GroupMember
      */
     constructor() { 
+        
+        
+        /**
+         * @type {Number} id
+         */
+        this.id = undefined;
+
+        /**
+         * @type {UserGroup} group
+         */
+        this.group = undefined;
+
+        /**
+         * @type {Client} client
+         */
+        this.client = undefined;
+
+        /**
+         * Pending invitation, if any
+         * @type {String} pendingInvite
+         */
+        this.pendingInvite = undefined;
+
+        /**
+         * Pending request to join, if any
+         * @type {String} pendingRequest
+         */
+        this.pendingRequest = undefined;
+
+        /**
+         * @type {Client} sponsor
+         */
+        this.sponsor = undefined;
+
+        /**
+         * Time stamp of last membership update, be it invite, request, or joining the   group
+         * @type {Date} lastUpdate
+         */
+        this.lastUpdate = undefined;
+
+        /**
+         * @type {Date} lastRead
+         */
+        this.lastRead = undefined;
+        
+        
+        
         
         GroupMember.initialize(this);
     }
@@ -109,49 +157,6 @@ export class GroupMember {
 
 
 }
-
-
-
-/**
- * @member {Number} id
- */
-GroupMember.prototype['id'] = undefined;
-
-/**
- * @member {UserGroup} group
- */
-GroupMember.prototype['group'] = undefined;
-
-/**
- * @member {Client} client
- */
-GroupMember.prototype['client'] = undefined;
-
-/**
- * @member {String} pendingInvite
- */
-GroupMember.prototype['pendingInvite'] = undefined;
-
-/**
- * @member {String} pendingRequest
- */
-GroupMember.prototype['pendingRequest'] = undefined;
-
-/**
- * @member {Client} sponsor
- */
-GroupMember.prototype['sponsor'] = undefined;
-
-/**
- * @member {Date} lastUpdate
- */
-GroupMember.prototype['lastUpdate'] = undefined;
-
-/**
- * @member {Date} lastRead
- */
-GroupMember.prototype['lastRead'] = undefined;
-
 
 
 

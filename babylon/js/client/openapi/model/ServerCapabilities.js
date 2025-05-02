@@ -25,6 +25,40 @@ export class ServerCapabilities {
      */
     constructor() { 
         
+        
+        /**
+         * Oauth2 authentication is supported, and the endpoint is available
+         * @type {Boolean} oauth2
+         */
+        this.oauth2 = undefined;
+
+        /**
+         * Remote browsing with selenium is supported, and the endpoint is available
+         * @type {Boolean} remoteBrowser
+         */
+        this.remoteBrowser = undefined;
+
+        /**
+         * The server supports video/audio streaming
+         * @type {Boolean} streamingMedia
+         */
+        this.streamingMedia = undefined;
+
+        /**
+         * Download of 3d content from sketchfab is allowed
+         * @type {Boolean} sketchfab
+         */
+        this.sketchfab = undefined;
+
+        /**
+         * Web Push messages for groups and world invitations are configured
+         * @type {Boolean} webPush
+         */
+        this.webPush = undefined;
+        
+        
+        
+        
         ServerCapabilities.initialize(this);
     }
 
@@ -78,34 +112,6 @@ export class ServerCapabilities {
 
 
 }
-
-
-
-/**
- * @member {Boolean} oauth2
- */
-ServerCapabilities.prototype['oauth2'] = undefined;
-
-/**
- * @member {Boolean} remoteBrowser
- */
-ServerCapabilities.prototype['remoteBrowser'] = undefined;
-
-/**
- * @member {Boolean} streamingMedia
- */
-ServerCapabilities.prototype['streamingMedia'] = undefined;
-
-/**
- * @member {Boolean} sketchfab
- */
-ServerCapabilities.prototype['sketchfab'] = undefined;
-
-/**
- * @member {Boolean} webPush
- */
-ServerCapabilities.prototype['webPush'] = undefined;
-
 
 
 

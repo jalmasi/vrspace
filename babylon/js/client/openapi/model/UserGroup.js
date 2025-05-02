@@ -21,9 +21,39 @@ import {ApiClient} from '../ApiClient.js';
 export class UserGroup {
     /**
      * Constructs a new <code>UserGroup</code>.
+     * Group of users.
      * @alias UserGroup
      */
     constructor() { 
+        
+        
+        /**
+         * @type {Number} id
+         */
+        this.id = undefined;
+
+        /**
+         * @type {String} name
+         */
+        this.name = undefined;
+
+        /**
+         * @type {Boolean} temporary
+         */
+        this.temporary = undefined;
+
+        /**
+         * @type {Number} unread
+         */
+        this.unread = undefined;
+
+        /**
+         * @type {Boolean} public
+         */
+        this.public = undefined;
+        
+        
+        
         
         UserGroup.initialize(this);
     }
@@ -82,34 +112,6 @@ export class UserGroup {
 
 
 }
-
-
-
-/**
- * @member {Number} id
- */
-UserGroup.prototype['id'] = undefined;
-
-/**
- * @member {String} name
- */
-UserGroup.prototype['name'] = undefined;
-
-/**
- * @member {Boolean} temporary
- */
-UserGroup.prototype['temporary'] = undefined;
-
-/**
- * @member {Number} unread
- */
-UserGroup.prototype['unread'] = undefined;
-
-/**
- * @member {Boolean} public
- */
-UserGroup.prototype['public'] = undefined;
-
 
 
 

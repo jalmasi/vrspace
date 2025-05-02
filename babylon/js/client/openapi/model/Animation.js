@@ -21,9 +21,29 @@ import {ApiClient} from '../ApiClient.js';
 export class Animation {
     /**
      * Constructs a new <code>Animation</code>.
+     * A shared animation, embedded into VRObject. TODO more shared properties to   come.
      * @alias Animation
      */
     constructor() { 
+        
+        
+        /**
+         * @type {String} name
+         */
+        this.name = undefined;
+
+        /**
+         * @type {Boolean} loop
+         */
+        this.loop = undefined;
+
+        /**
+         * @type {Number} speedRatio
+         */
+        this.speedRatio = undefined;
+        
+        
+        
         
         Animation.initialize(this);
     }
@@ -76,24 +96,6 @@ export class Animation {
 
 
 }
-
-
-
-/**
- * @member {String} name
- */
-Animation.prototype['name'] = undefined;
-
-/**
- * @member {Boolean} loop
- */
-Animation.prototype['loop'] = undefined;
-
-/**
- * @member {Number} speedRatio
- */
-Animation.prototype['speedRatio'] = undefined;
-
 
 
 

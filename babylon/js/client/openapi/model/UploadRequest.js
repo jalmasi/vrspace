@@ -26,6 +26,15 @@ export class UploadRequest {
      */
     constructor(fileData) { 
         
+        
+        /**
+         * @type {File} fileData
+         */
+        this.fileData = undefined;
+        
+        
+        
+        
         UploadRequest.initialize(this, fileData);
     }
 
@@ -76,14 +85,6 @@ export class UploadRequest {
 }
 
 UploadRequest.RequiredProperties = ["fileData"];
-
-/**
- * @member {File} fileData
- */
-UploadRequest.prototype['fileData'] = undefined;
-
-
-
 
 
 

@@ -26,9 +26,103 @@ import { VRObject } from './VRObject.js';
 export class Client {
     /**
      * Constructs a new <code>Client</code>.
+     * Basic client class, adds user-related properties and business logic to   VRObject.
      * @alias Client
      */
     constructor() { 
+        
+        
+        /**
+         * @type {Number} id
+         */
+        this.id = undefined;
+
+        /**
+         * @type {Array.<VRObject>} children
+         */
+        this.children = undefined;
+
+        /**
+         * @type {Point} position
+         */
+        this.position = undefined;
+
+        /**
+         * @type {Rotation} rotation
+         */
+        this.rotation = undefined;
+
+        /**
+         * @type {Point} scale
+         */
+        this.scale = undefined;
+
+        /**
+         * Permanent objects are always present (e.g. sky)
+         * @type {Boolean} permanent
+         */
+        this.permanent = undefined;
+
+        /**
+         * Whether an object is active (can send events). E.g. online users, robots.
+         * @type {Boolean} active
+         */
+        this.active = undefined;
+
+        /**
+         * URL of the file containing the mesh.
+         * @type {String} mesh
+         */
+        this.mesh = undefined;
+
+        /**
+         * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
+         * @type {String} script
+         */
+        this.script = undefined;
+
+        /**
+         * @type {Animation} animation
+         */
+        this.animation = undefined;
+
+        /**
+         * Client name - unique ID.
+         * @type {String} name
+         */
+        this.name = undefined;
+
+        /**
+         * @type {SceneProperties} sceneProperties
+         */
+        this.sceneProperties = undefined;
+
+        /**
+         * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} tokens
+         */
+        this.tokens = undefined;
+
+        /**
+         * User's height in real life, used in VR. Transient biometric data.
+         * @type {Number} userHeight
+         */
+        this.userHeight = undefined;
+
+        /**
+         * Temporary objects will be deleted from the database along with their owner
+         * @type {Boolean} temporary
+         */
+        this.temporary = undefined;
+
+        /**
+         * Custom transient object properties
+         * @type {Object.<String, Object>} properties
+         */
+        this.properties = undefined;
+        
+        
+        
         
         Client.initialize(this);
     }
@@ -88,11 +182,11 @@ export class Client {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('userHeight')) {
-                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
-            }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            }
+            if (data.hasOwnProperty('userHeight')) {
+                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
@@ -158,89 +252,6 @@ export class Client {
 
 
 }
-
-
-
-/**
- * @member {Number} id
- */
-Client.prototype['id'] = undefined;
-
-/**
- * @member {Array.<VRObject>} children
- */
-Client.prototype['children'] = undefined;
-
-/**
- * @member {Point} position
- */
-Client.prototype['position'] = undefined;
-
-/**
- * @member {Rotation} rotation
- */
-Client.prototype['rotation'] = undefined;
-
-/**
- * @member {Point} scale
- */
-Client.prototype['scale'] = undefined;
-
-/**
- * @member {Boolean} permanent
- */
-Client.prototype['permanent'] = undefined;
-
-/**
- * @member {Boolean} active
- */
-Client.prototype['active'] = undefined;
-
-/**
- * @member {String} mesh
- */
-Client.prototype['mesh'] = undefined;
-
-/**
- * @member {String} script
- */
-Client.prototype['script'] = undefined;
-
-/**
- * @member {Animation} animation
- */
-Client.prototype['animation'] = undefined;
-
-/**
- * @member {String} name
- */
-Client.prototype['name'] = undefined;
-
-/**
- * @member {SceneProperties} sceneProperties
- */
-Client.prototype['sceneProperties'] = undefined;
-
-/**
- * @member {Number} userHeight
- */
-Client.prototype['userHeight'] = undefined;
-
-/**
- * @member {Object.<String, String>} tokens
- */
-Client.prototype['tokens'] = undefined;
-
-/**
- * @member {Boolean} temporary
- */
-Client.prototype['temporary'] = undefined;
-
-/**
- * @member {Object.<String, Object>} properties
- */
-Client.prototype['properties'] = undefined;
-
 
 
 

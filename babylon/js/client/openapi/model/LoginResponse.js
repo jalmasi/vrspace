@@ -25,6 +25,15 @@ export class LoginResponse {
      */
     constructor() { 
         
+        
+        /**
+         * @type {String} url
+         */
+        this.url = undefined;
+        
+        
+        
+        
         LoginResponse.initialize(this);
     }
 
@@ -70,14 +79,6 @@ export class LoginResponse {
 
 
 }
-
-
-
-/**
- * @member {String} url
- */
-LoginResponse.prototype['url'] = undefined;
-
 
 
 

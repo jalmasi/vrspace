@@ -15,8 +15,30 @@ export class {{classname}} {{#parent}}{{^parentModel}}{{#vendorExtensions.x-is-a
      */{{/emitJSDoc}}
     constructor({{#vendorExtensions.x-all-required}}{{name}}{{^-last}}, {{/-last}}{{/vendorExtensions.x-all-required}}) { {{#parent}}{{^parentModel}}{{#vendorExtensions.x-is-array}}
         super();
-        {{/vendorExtensions.x-is-array}}{{/parentModel}}{{/parent}}{{#useInheritance}}
-        {{#interfaceModels}}{{classname}}.initialize(this{{#vendorExtensions.x-all-required}}, {{name}}{{/vendorExtensions.x-all-required}});{{/interfaceModels}}{{/useInheritance}}
+        {{/vendorExtensions.x-is-array}}{{/parentModel}}{{/parent}}
+        
+        {{#vars}}{{#emitJSDoc}}
+        /**{{#description}}
+         * {{{.}}}{{/description}}
+         * @type {{=< >=}}{<&vendorExtensions.x-jsdoc-type>}<={{ }}=> {{baseName}}{{#defaultValue}}
+         * @default {{{.}}}{{/defaultValue}}
+         */{{/emitJSDoc}}
+        this.{{baseName}} = {{{defaultValue}}}{{^defaultValue}}undefined{{/defaultValue}};
+        {{/vars}}
+        
+        {{#useInheritance}}{{#interfaceModels}}// Implement {{classname}} interface:
+        {{#allVars}}{{#emitJSDoc}}
+        /**{{#description}}
+         * {{{.}}}{{/description}}
+         * @type {{=< >=}}{<&vendorExtensions.x-jsdoc-type>}<={{ }}=> {{baseName}}{{#defaultValue}}
+         * @default {{{.}}}{{/defaultValue}}
+         */{{/emitJSDoc}}
+        this.{{baseName}} = {{{defaultValue}}}{{^defaultValue}}undefined{{/defaultValue}};
+        {{/allVars}}{{/interfaceModels}}{{/useInheritance}}
+        
+        {{#useInheritance}}
+        {{#interfaceModels}}{{classname}}.initialize(this{{#vendorExtensions.x-all-required}}, {{name}}{{/vendorExtensions.x-all-required}});{{/interfaceModels}}
+        {{/useInheritance}}
         {{classname}}.initialize(this{{#vendorExtensions.x-all-required}}, {{name}}{{/vendorExtensions.x-all-required}});
     }
 
@@ -150,24 +172,6 @@ export class {{classname}} {{#parent}}{{^parentModel}}{{#vendorExtensions.x-is-a
 }
 
 {{#requiredVars}}{{#-first}}{{classname}}.RequiredProperties = [{{/-first}}"{{{baseName}}}"{{^-last}}, {{/-last}}{{#-last}}];{{/-last}}{{/requiredVars}}
-
-{{#vars}}{{#emitJSDoc}}/**{{#description}}
- * {{{.}}}{{/description}}
- * @member {{=< >=}}{<&vendorExtensions.x-jsdoc-type>}<={{ }}=> {{baseName}}{{#defaultValue}}
- * @default {{{.}}}{{/defaultValue}}
- */{{/emitJSDoc}}
-{{classname}}.prototype['{{baseName}}'] = {{{defaultValue}}}{{^defaultValue}}undefined{{/defaultValue}};
-
-{{/vars}}
-
-{{#useInheritance}}{{#interfaceModels}}// Implement {{classname}} interface:
-{{#allVars}}{{#emitJSDoc}}/**{{#description}}
- * {{{.}}}{{/description}}
- * @member {{=< >=}}{<&vendorExtensions.x-jsdoc-type>}<={{ }}=> {{baseName}}{{#defaultValue}}
- * @default {{{.}}}{{/defaultValue}}
- */{{/emitJSDoc}}
-{{classname}}.prototype['{{baseName}}'] = {{{defaultValue}}}{{^defaultValue}}undefined{{/defaultValue}};
-{{/allVars}}{{/interfaceModels}}{{/useInheritance}}
 
 {{#vars}}{{#isEnum}}{{^isContainer}}
 {{>partial_model_inner_enum}}

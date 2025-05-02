@@ -21,9 +21,39 @@ import {ApiClient} from '../ApiClient.js';
 export class World {
     /**
      * Constructs a new <code>World</code>.
+     * VRObject container, contains isolated parts of space, like chat room. One   default world is created on startup, others are typically created on demand,   after Enter command is issued.
      * @alias World
      */
     constructor() { 
+        
+        
+        /**
+         * @type {Number} id
+         */
+        this.id = undefined;
+
+        /**
+         * @type {String} name
+         */
+        this.name = undefined;
+
+        /**
+         * @type {Boolean} defaultWorld
+         */
+        this.defaultWorld = undefined;
+
+        /**
+         * @type {Boolean} publicWorld
+         */
+        this.publicWorld = undefined;
+
+        /**
+         * @type {Boolean} temporaryWorld
+         */
+        this.temporaryWorld = undefined;
+        
+        
+        
         
         World.initialize(this);
     }
@@ -82,34 +112,6 @@ export class World {
 
 
 }
-
-
-
-/**
- * @member {Number} id
- */
-World.prototype['id'] = undefined;
-
-/**
- * @member {String} name
- */
-World.prototype['name'] = undefined;
-
-/**
- * @member {Boolean} defaultWorld
- */
-World.prototype['defaultWorld'] = undefined;
-
-/**
- * @member {Boolean} publicWorld
- */
-World.prototype['publicWorld'] = undefined;
-
-/**
- * @member {Boolean} temporaryWorld
- */
-World.prototype['temporaryWorld'] = undefined;
-
 
 
 

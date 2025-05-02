@@ -22,9 +22,69 @@ import { ContentCategory } from './ContentCategory.js';
 export class GltfModel {
     /**
      * Constructs a new <code>GltfModel</code>.
+     * A 3D Model in GLTF format. Adds unique id, uri and other properties to   Content class. Based on sketchfab models.
      * @alias GltfModel
      */
     constructor() { 
+        
+        
+        /**
+         * @type {String} fileName
+         */
+        this.fileName = undefined;
+
+        /**
+         * @type {String} contentType
+         */
+        this.contentType = undefined;
+
+        /**
+         * @type {Number} length
+         */
+        this.length = undefined;
+
+        /**
+         * @type {String} uid
+         */
+        this.uid = undefined;
+
+        /**
+         * @type {String} uri
+         */
+        this.uri = undefined;
+
+        /**
+         * @type {String} name
+         */
+        this.name = undefined;
+
+        /**
+         * @type {String} description
+         */
+        this.description = undefined;
+
+        /**
+         * @type {String} license
+         */
+        this.license = undefined;
+
+        /**
+         * @type {String} author
+         */
+        this.author = undefined;
+
+        /**
+         * @type {Array.<ContentCategory>} categories
+         */
+        this.categories = undefined;
+
+        /**
+         * @type {String} mesh
+         */
+        this.mesh = undefined;
+        
+        
+        
         
         GltfModel.initialize(this);
     }
@@ -143,64 +203,6 @@ export class GltfModel {
 
 
 }
-
-
-
-/**
- * @member {String} fileName
- */
-GltfModel.prototype['fileName'] = undefined;
-
-/**
- * @member {String} contentType
- */
-GltfModel.prototype['contentType'] = undefined;
-
-/**
- * @member {Number} length
- */
-GltfModel.prototype['length'] = undefined;
-
-/**
- * @member {String} uid
- */
-GltfModel.prototype['uid'] = undefined;
-
-/**
- * @member {String} uri
- */
-GltfModel.prototype['uri'] = undefined;
-
-/**
- * @member {String} name
- */
-GltfModel.prototype['name'] = undefined;
-
-/**
- * @member {String} description
- */
-GltfModel.prototype['description'] = undefined;
-
-/**
- * @member {String} license
- */
-GltfModel.prototype['license'] = undefined;
-
-/**
- * @member {String} author
- */
-GltfModel.prototype['author'] = undefined;
-
-/**
- * @member {Array.<ContentCategory>} categories
- */
-GltfModel.prototype['categories'] = undefined;
-
-/**
- * @member {String} mesh
- */
-GltfModel.prototype['mesh'] = undefined;
-
 
 
 

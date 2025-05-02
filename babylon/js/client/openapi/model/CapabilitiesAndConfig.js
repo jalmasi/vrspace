@@ -27,6 +27,20 @@ export class CapabilitiesAndConfig {
      */
     constructor() { 
         
+        
+        /**
+         * @type {ServerCapabilities} capabilities
+         */
+        this.capabilities = undefined;
+
+        /**
+         * @type {ServerConfiguration} config
+         */
+        this.config = undefined;
+        
+        
+        
+        
         CapabilitiesAndConfig.initialize(this);
     }
 
@@ -79,19 +93,6 @@ export class CapabilitiesAndConfig {
 
 
 }
-
-
-
-/**
- * @member {ServerCapabilities} capabilities
- */
-CapabilitiesAndConfig.prototype['capabilities'] = undefined;
-
-/**
- * @member {ServerConfiguration} config
- */
-CapabilitiesAndConfig.prototype['config'] = undefined;
-
 
 
 

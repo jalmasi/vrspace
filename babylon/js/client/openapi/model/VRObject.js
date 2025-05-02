@@ -24,9 +24,75 @@ import { Rotation } from './Rotation.js';
 export class VRObject {
     /**
      * Constructs a new <code>VRObject</code>.
+     * Basic VR Object encapsulates minimal spatial and other properties.
      * @alias VRObject
      */
     constructor() { 
+        
+        
+        /**
+         * @type {Number} id
+         */
+        this.id = undefined;
+
+        /**
+         * @type {Point} position
+         */
+        this.position = undefined;
+
+        /**
+         * @type {Rotation} rotation
+         */
+        this.rotation = undefined;
+
+        /**
+         * @type {Point} scale
+         */
+        this.scale = undefined;
+
+        /**
+         * Permanent objects are always present (e.g. sky)
+         * @type {Boolean} permanent
+         */
+        this.permanent = undefined;
+
+        /**
+         * Whether an object is active (can send events). E.g. online users, robots.
+         * @type {Boolean} active
+         */
+        this.active = undefined;
+
+        /**
+         * URL of the file containing the mesh.
+         * @type {String} mesh
+         */
+        this.mesh = undefined;
+
+        /**
+         * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
+         * @type {String} script
+         */
+        this.script = undefined;
+
+        /**
+         * @type {Animation} animation
+         */
+        this.animation = undefined;
+
+        /**
+         * Temporary objects will be deleted from the database along with their owner
+         * @type {Boolean} temporary
+         */
+        this.temporary = undefined;
+
+        /**
+         * Custom transient object properties
+         * @type {Object.<String, Object>} properties
+         */
+        this.properties = undefined;
+        
+        
+        
         
         VRObject.initialize(this);
     }
@@ -123,64 +189,6 @@ export class VRObject {
 
 
 }
-
-
-
-/**
- * @member {Number} id
- */
-VRObject.prototype['id'] = undefined;
-
-/**
- * @member {Point} position
- */
-VRObject.prototype['position'] = undefined;
-
-/**
- * @member {Rotation} rotation
- */
-VRObject.prototype['rotation'] = undefined;
-
-/**
- * @member {Point} scale
- */
-VRObject.prototype['scale'] = undefined;
-
-/**
- * @member {Boolean} permanent
- */
-VRObject.prototype['permanent'] = undefined;
-
-/**
- * @member {Boolean} active
- */
-VRObject.prototype['active'] = undefined;
-
-/**
- * @member {String} mesh
- */
-VRObject.prototype['mesh'] = undefined;
-
-/**
- * @member {String} script
- */
-VRObject.prototype['script'] = undefined;
-
-/**
- * @member {Animation} animation
- */
-VRObject.prototype['animation'] = undefined;
-
-/**
- * @member {Boolean} temporary
- */
-VRObject.prototype['temporary'] = undefined;
-
-/**
- * @member {Object.<String, Object>} properties
- */
-VRObject.prototype['properties'] = undefined;
-
 
 
 

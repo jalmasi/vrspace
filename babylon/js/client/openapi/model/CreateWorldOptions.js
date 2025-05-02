@@ -21,9 +21,44 @@ import {ApiClient} from '../ApiClient.js';
 export class CreateWorldOptions {
     /**
      * Constructs a new <code>CreateWorldOptions</code>.
+     * World options
      * @alias CreateWorldOptions
      */
     constructor() { 
+        
+        
+        /**
+         * World name of created world, must be unique, required
+         * @type {String} worldName
+         */
+        this.worldName = undefined;
+
+        /**
+         * Optional world template to use
+         * @type {String} templateName
+         */
+        this.templateName = undefined;
+
+        /**
+         * Optional UUID used as world token, required to enter private worlds, defaults   to a random UUID
+         * @type {String} token
+         */
+        this.token = undefined;
+
+        /**
+         * Optional flag to create public or private world, default false
+         * @type {Boolean} publicWorld
+         */
+        this.publicWorld = undefined;
+
+        /**
+         * optional flag to create a temporary world, default true
+         * @type {Boolean} temporaryWorld
+         */
+        this.temporaryWorld = undefined;
+        
+        
+        
         
         CreateWorldOptions.initialize(this);
     }
@@ -90,34 +125,6 @@ export class CreateWorldOptions {
 
 
 }
-
-
-
-/**
- * @member {String} worldName
- */
-CreateWorldOptions.prototype['worldName'] = undefined;
-
-/**
- * @member {String} templateName
- */
-CreateWorldOptions.prototype['templateName'] = undefined;
-
-/**
- * @member {String} token
- */
-CreateWorldOptions.prototype['token'] = undefined;
-
-/**
- * @member {Boolean} publicWorld
- */
-CreateWorldOptions.prototype['publicWorld'] = undefined;
-
-/**
- * @member {Boolean} temporaryWorld
- */
-CreateWorldOptions.prototype['temporaryWorld'] = undefined;
-
 
 
 
