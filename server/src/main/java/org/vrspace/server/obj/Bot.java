@@ -81,7 +81,7 @@ public abstract class Bot extends User {
       // stop listening to inactive objects (disconnected clients)
       event.getSource().removeListener(this);
     } else if (event.getChanges().containsKey("wrote")) {
-      String what = (String) event.getChanges().get("wrote");
+      String what = (String) ((Map) event.getChanges().get("wrote")).get("text");
       respondTo(event.getClient(), what);
     }
   }
