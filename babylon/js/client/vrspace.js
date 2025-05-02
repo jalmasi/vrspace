@@ -502,10 +502,16 @@ export class VRSpace {
   addDataListener(callback) {
     return this.addListener( this.dataListeners, callback);
   }
-  
+
+  /**
+   * @callback sceneCallback
+   * @param {SceneEvent} event
+  */
+   
   /** 
   Add a scene listener that gets notified when the scene is changed. 
-  Scene listeners receive SceneEvent argument for each change. 
+  Scene listeners receive SceneEvent argument for each change.
+  @param {sceneCallback} callback 
   */
   addSceneListener(callback) {
     return this.addListener( this.sceneListeners, callback );
