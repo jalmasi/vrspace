@@ -27,7 +27,7 @@ export class MediaStreams {
   constructor(scene, htmlElementName) {
     if (MediaStreams.instance) {
       throw "MediaStreams already instantiated: " + instance;
-    }    
+    }
     MediaStreams.instance = this;
     this.scene = scene;
     // CHECKME null check that element?
@@ -36,8 +36,11 @@ export class MediaStreams {
     this.playStream = (client, mediaStream) => this.unknownStream(client, mediaStream);
     this.startAudio = true;
     this.startVideo = false;
+    this.debug=false;
     // state variables:
+    /** @type {boolean|undefined} */
     this.audioSource = undefined; // use default
+    /** @type {boolean|undefined} */
     this.videoSource = false;     // disabled
     this.publisher = null;
     this.publishingVideo = false;
@@ -71,7 +74,7 @@ export class MediaStreams {
   /**
   Start publishing local video/audio
   FIXME opevidu implementation
-  @param htmlElement needed only for local feedback (testing)
+  @param {string|undefined} htmlElement needed only for local feedback (testing)
    */
   publish(htmlElementName) {
     this.publisher = this.OV.initPublisher(htmlElementName, {
@@ -86,7 +89,7 @@ export class MediaStreams {
 
     // this is only triggered if htmlElement is specified
     this.publisher.on('videoElementCreated', e => {
-      console.log("Video element created:");
+      console.log("Publisher created video element:");
       console.log(e.element);
       e.element.muted = true; // mute altogether
     });
@@ -324,11 +327,22 @@ OpenVidu implementation of MediaStreams.
 @extends MediaStreams
  */
 export class OpenViduStreams extends MediaStreams {
+  
+  /** @returns {OpenViduStreams} */
+  static getInstance(scene, htmlElementName) {
+    if ( ! MediaStreams.instance ) {
+      MediaStreams.instance = new OpenViduStreams(scene, htmlElementName);
+    }
+    return MediaStreams.instance;
+  }
+  
   async init(callback) {
     // CHECKME
     //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.OV = new OpenVidu();
-    this.OV.enableProdMode(); // Disable logging
+    if ( ! this.debug ) {
+      this.OV.enableProdMode(); // Disable logging
+    }
     this.session = this.OV.initSession();
     this.session.on('streamCreated', (event) => {
       // client id can be used to match the stream with the avatar
@@ -337,7 +351,7 @@ export class OpenViduStreams extends MediaStreams {
       console.log(event);
       var subscriber = this.session.subscribe(event.stream, this.htmlElementName);
       subscriber.on('videoElementCreated', e => {
-        console.log("Video element created:");
+        console.log("Subscriber created video element:");
         console.log(e.element);
         e.element.muted = true; // mute altogether
       });

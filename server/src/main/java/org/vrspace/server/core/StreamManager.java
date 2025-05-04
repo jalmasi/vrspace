@@ -1,5 +1,6 @@
 package org.vrspace.server.core;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -179,10 +180,15 @@ public class StreamManager {
     }
   }
 
+  // must be an alphanumeric string: allowed numbers [0-9], letters [a-zA-Z],
+  // dashes (-) and underscores (_)
   private String getSessionName(World world) {
     String sessionName = world.getToken();
     if (sessionName == null) {
-      sessionName = world.getName();
+      // CHECKME:
+      // https://stackoverflow.com/questions/8519669/how-can-non-ascii-characters-be-removed-from-a-string
+      sessionName = Normalizer.normalize(world.getName(), Normalizer.Form.NFD).replace('\'', '_').replace('"', '_')
+          .replace(' ', '-').replaceAll("[^\\x00-\\x7F]", "");
     }
     return sessionName;
   }
