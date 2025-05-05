@@ -83,7 +83,7 @@ export class MediaStreams {
   @param {string} token whatever is needed to connect and initialize the session
    */
   async connect(token) {
-    await this.init((subscriber) => this.streamingStart(subscriber));
+    await this.init((subscriber, playing) => this.streamingStart(subscriber, playing));
     // FIXME: this may throw (or just log?) this.connection is undefined
     return this.session.connect(this.parseToken(token));
   }
@@ -167,7 +167,8 @@ export class MediaStreams {
   @returns {number}
    */
   getClientId(subscriber) {
-    return this.getClientData(subscriber).id;
+    let data = this.getClientData(subscriber);
+    return data.clientId;
   }
 
   /**
@@ -199,8 +200,14 @@ export class MediaStreams {
   /** 
   Called when a new stream is received, set up  as callback in default connect and init method.
   Tries to find an existing client, and if found, calls attachAudioStream and attachVideoStream.
+  @param {*} subscriber
+  @param {boolean} playing false if stream is created but not yet playing, true when starts playing 
    */
-  streamingStart(subscriber) {
+  streamingStart(subscriber, playing) {
+    if ( !playing ) {
+      // stream is created but not playing, just return for backwards compatibility
+      return;
+    }
     var data = this.getClientData(subscriber);
     if ( "main" == data.type ) {
       console.log("Stream started for client", data );
@@ -373,7 +380,7 @@ export class OpenViduStreams extends MediaStreams {
   
   /**
    * Method connects calls init
-   * @param {*} callback function that gets called when stream starts playing
+   * @param {*} callback function that gets called when stream is created (subscriber,false) and starts playing (subscriber,true)
    */
   async init(callback) {
     // CHECKME
@@ -398,9 +405,14 @@ export class OpenViduStreams extends MediaStreams {
         console.log('remote stream playing');
         console.log(event);
         if (callback) {
-          callback(subscriber);
+          // stream is playing
+          callback(subscriber, true);
         }
       });
+      if (callback) {
+        // stream is created but not playing
+        callback(subscriber, false);
+      }
     });
 
     // On every new Stream destroyed...
