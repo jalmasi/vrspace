@@ -80,13 +80,15 @@ class LinkStack {
       VRSpaceAPI.getInstance().endpoint.server.getServerCapabilities().then(c=>LinkStack.serverCapablities=c);
     }
   }
+  
+  // FIXME local is not used, enterWorld is always local
   addLink(word, enterWorld, local){
     let link = new Link(word, enterWorld);
     this.scroll();
     
     // add buttons to open in new tab, this tab, optionally internal browser
     if ( enterWorld ) {
-      this.addButton(link, "enter", () => link.openHere(local));
+      this.addButton(link, "enter", () => link.openHere(enterWorld));
     } else {
       this.addButton(link, "external-link", () => link.openTab());
       if (LinkStack.serverCapablities.remoteBrowser) {

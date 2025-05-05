@@ -3,7 +3,7 @@ WebRTC video/audio streaming support, intended to be overridden by implementatio
 Provides interface to WorldManager, that manages all clients and their streams.
  */
 
-import { VRSPACE } from '../client/vrspace.js';
+import { VRSPACE, Client } from '../client/vrspace.js';
 import { SessionData } from '../client/vrspace.js';
 
 export class MediaStreams {
@@ -21,33 +21,42 @@ export class MediaStreams {
     refDistance : 1 // default 1, used only when exponential
   }
   /**
-  @param scene
-  @param htmlElementName
+  @param scene Babylonjs scene
+  @param {string} htmlElementName
    */
   constructor(scene, htmlElementName) {
     if (MediaStreams.instance) {
-      throw "MediaStreams already instantiated: " + instance;
+      throw "MediaStreams already instantiated: " + MediaStreams.instance;
     }
     MediaStreams.instance = this;
     this.scene = scene;
     // CHECKME null check that element?
+    /** @type {HTMLElement} */
     this.htmlElementName = htmlElementName;
-    /** function to play video of a client */
+    /** Function to play video of a client, passed client and stream. Defaults to uknownStream method.*/
     this.playStream = (client, mediaStream) => this.unknownStream(client, mediaStream);
+    /** Auto start audio? Default true. @type {boolean} */
     this.startAudio = true;
+    /** Auto start video? Default false. @type {boolean} */
     this.startVideo = false;
+    /** Verbose WebRTC? Default false. @type {boolean} */
     this.debug=false;
-    // state variables:
-    /** @type {boolean|undefined} */
+    /** Audio source to use, default undefined (auto). @type {boolean|undefined} */
     this.audioSource = undefined; // use default
-    /** @type {boolean|undefined} */
+    /** Video source to use, default false (disabled). @type {boolean|undefined} */
     this.videoSource = false;     // disabled
+    // state variables:
     this.publisher = null;
+    /** Currently publishing video? @type {boolean} */
     this.publishingVideo = false;
+    /** Currently publishing audio? @type {boolean} */
     this.publishingAudio = false;
     // this is to track/match clients and streams:
+    /** Currently tracked clients, maintained externally (e.g. by calling streamToMesh method) @type {Array.<Client>} */
     this.clients = [];
+    /** Currently tracked streams, maintained by this class (e.g. streaminStart) .*/
     this.subscribers = [];
+    /** Stream listeners, currently used only for screen sharing */
     this.streamListeners = {};
   }
 
@@ -60,15 +69,23 @@ export class MediaStreams {
   }
 
   /**
-  Connect to server with given parameters, calls init.
-  @param token whatever is needed to connect and initialize the session
+   * Parse the passed token
+   * @param {string} token 
+   */
+  parseToken(token) {
+    const ret = token.replaceAll('&amp;', '&');
+    console.log('token: ' + token);
+    return ret;
+  }
+  
+  /**
+  Connect to server with given parameters, calls init with callback to streamingStart method.
+  @param {string} token whatever is needed to connect and initialize the session
    */
   async connect(token) {
-    token.replaceAll('&amp;', '&');
-    console.log('token: ' + token);
     await this.init((subscriber) => this.streamingStart(subscriber));
     // FIXME: this may throw (or just log?) this.connection is undefined
-    return this.session.connect(token);
+    return this.session.connect(this.parseToken(token));
   }
 
   /**
@@ -115,6 +132,7 @@ export class MediaStreams {
 
   /**
   Enable/disable video
+  @param {boolean} enabled 
    */
   publishVideo(enabled) {
     if (this.publisher) {
@@ -126,6 +144,7 @@ export class MediaStreams {
 
   /**
   Enable/disable (mute) audio
+  @param {boolean} enabled 
    */
   publishAudio(enabled) {
     if (this.publisher) {
@@ -135,12 +154,17 @@ export class MediaStreams {
     }
   }
 
+  /**
+   * Returns session data embedded in the session, used internally.
+   * @returns {SessionData}
+   */
   getClientData(subscriber) {
     return new SessionData(subscriber.stream.connection.data);
   }
   
   /**
   Retrieve VRSpace Client id from WebRTC subscriber data
+  @returns {number}
    */
   getClientId(subscriber) {
     return this.getClientData(subscriber).id;
@@ -148,12 +172,16 @@ export class MediaStreams {
 
   /**
   Retrieve MediaStream from subscriber data
+  @returns {MediaStream}
    */
   getStream(subscriber) {
     return subscriber.stream.getMediaStream();
   }
 
-  /** Remove a client, called when client leaves the space */
+  /** 
+   * Remove a client, called when client leaves the space
+   * @param {Client} client 
+   */
   removeClient(client) {
     for (var i = 0; i < this.clients.length; i++) {
       if (this.clients[i].id == client.id) {
@@ -169,7 +197,7 @@ export class MediaStreams {
   }
 
   /** 
-  Called when a new stream is received. 
+  Called when a new stream is received, set up  as callback in default connect and init method.
   Tries to find an existing client, and if found, calls attachAudioStream and attachVideoStream.
    */
   streamingStart(subscriber) {
@@ -203,8 +231,10 @@ export class MediaStreams {
   }
 
   /** 
-  Called when a new client enters the space. 
+  Called when a new client enters the space (in WorldManager). 
   Tries to find an existing stream, and if found, calls attachAudioStream and attachVideoStream.
+  @param {Client} client
+  @param {*} mesh babylonjs mesh
    */
   streamToMesh(client, mesh) {
     if ( client.streamToMesh ) {
@@ -234,7 +264,8 @@ export class MediaStreams {
   }
 
   /**
-  Creates babylon Sound object from the stram with default parameters, and attaches it to the mesh (e.g. avatar).
+  Creates babylon Sound object from the stream with default parameters, and attaches it to the mesh (e.g. avatar).
+  Called internally by streamToMesh.
   @param mesh babylon mesh to attach to
   @param mediaStream MediaStream to attach
   @param options custom sound options, defaults to soundProperties, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions
@@ -279,8 +310,9 @@ export class MediaStreams {
   }
 
   /**
-  Attaches a videoStream to a VideoAvatar
-  @param client Client that streams
+  Attaches a videoStream to a VideoAvatar. Also attaches video properties change event handler, to display video/alt text.
+  Called internally by streamToMesh.
+  @param {Client} client Client that streams
    */
   attachVideoStream(client, subscriber) {
     var mediaStream = subscriber.stream.getMediaStream();
@@ -309,6 +341,9 @@ export class MediaStreams {
     }
   }
 
+  /**
+   * Default play stream implementation - logs error message.
+   */
   unknownStream(client, mediaStream) {
     console.log("Can't attach video stream to " + client.id + " - not a video avatar");
   }
@@ -336,6 +371,10 @@ export class OpenViduStreams extends MediaStreams {
     return MediaStreams.instance;
   }
   
+  /**
+   * Method connects calls init
+   * @param {*} callback function that gets called when stream starts playing
+   */
   async init(callback) {
     // CHECKME
     //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
@@ -367,11 +406,15 @@ export class OpenViduStreams extends MediaStreams {
     // On every new Stream destroyed...
     this.session.on('streamDestroyed', (event) => {
       // TODO remove from the scene
-      console.log("Stream destroyed!")
+      console.log("Stream destroyed! TODO clean up")
       console.log(event);
     });
   }
 
+  /**
+   * Share screen implementation
+   * @param {*} endCallback called when screen sharing stops
+   */
   async shareScreen(endCallback) {
     let token = await VRSPACE.startStreaming();
     // CHECKME
@@ -416,6 +459,9 @@ export class OpenViduStreams extends MediaStreams {
     });
   }
 
+  /**
+   * Stops the sharing.
+   */
   stopSharingScreen() {
     if ( this.screenPublisher ) {
       this.screenSession.unpublish(this.screenPublisher);
