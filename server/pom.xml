@@ -214,10 +214,22 @@
       <artifactId>webdrivermanager</artifactId>
       <version>6.1.0</version>
     </dependency>
+    
+    <!-- handpicked versions of transitive depenencies while patching up security holes -->
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
-      <version>5.2.1</version>
+      <version>5.4.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5</artifactId>
+      <version>5.3.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5-h2</artifactId>
+      <version>5.3.4</version>
     </dependency>
 
     <!-- required to send push notifications -->
