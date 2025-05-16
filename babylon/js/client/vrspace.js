@@ -477,7 +477,11 @@ export class VRSpace {
   /* Used internally to add a listener */  
   addListener(array, callback) {
     if ( typeof callback == 'function' || typeof callback == 'object') {
-      array.push(callback);
+      if ( array.includes(callback) ) {
+        console.error("Listener already added");
+      } else {
+        array.push(callback);
+      }
     }
     return callback;
   }
@@ -624,7 +628,6 @@ export class VRSpace {
     }
     this.ws.onclose = () => {
       this.connectionListeners.forEach((listener)=>listener(false));
-      //clearInterval(this.pingTimerId);
     }
     this.ws.onmessage = (data) => {
       this.receive(data.data);
