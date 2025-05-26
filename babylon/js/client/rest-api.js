@@ -214,7 +214,7 @@ export class VRSpaceAPI {
       auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth'))))
     }
 
-    console.log('subscribing', subscription, webPushSubscription);
+    console.log('unsubscribing', subscription, webPushSubscription);
 
     await this.endpoint.webpush.unsubscribe(webPushSubscription);
   }
@@ -323,6 +323,33 @@ export class VRSpaceAPI {
         
       }).catch( err => console.log(err));
 
+    });
+  }
+  
+  /**
+   * Unsubcribe from web push notifications, if available and subscribed. Requires existing service worker, 
+   * registered in main html file onload function. Fails silently if the not subscribed.
+   * @param {String} clientUrl path to serviceworker.js 
+   */
+  webpushUnsubscribe(clientUrl) {
+    navigator.serviceWorker.getRegistration(clientUrl).then(async (registration) => {
+      if ( typeof registration === "undefined") {
+        // Chrome rejects service worker with self-signed cert on localhost
+        return;
+      }
+      console.log("Got serviceworker registration");
+    
+      let subscription = await registration.pushManager.getSubscription();
+      console.log("Got subscription from push manager", subscription);
+  
+      if (subscription) {
+        let existingKey = window.localStorage.getItem("vrspace-webpush-vapid-key");
+        if( existingKey ) {
+          console.log("Unsubscribing from ", subscription);
+          this.unregisterSubscription(subscription);
+        }            
+        subscription.unsubscribe();
+      }
     });
   }
 
