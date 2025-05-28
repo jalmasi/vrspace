@@ -4,6 +4,8 @@ import { UsersApi } from './openapi/api/UsersApi.js';
 import { WorldsApi } from './openapi/api/WorldsApi.js'
 import { WebPushApi } from './openapi/api/WebPushApi.js';
 import { ServerInfoApi } from './openapi/api/ServerInfoApi.js';
+import { User } from './openapi/model/User.js';
+
 /**
  * Class to execute REST API calls, singleton.
  * By default, we're making API calls to the same server that serves the content.
@@ -13,17 +15,18 @@ import { ServerInfoApi } from './openapi/api/ServerInfoApi.js';
 export class VRSpaceAPI {
   static instance = null;
   /**
-   * @param apiBase Base URL for all API endpoint, defaults to /vrspace/api
+   * @param {string} [apiBase=""] Base URL for all API endpoint, origin (protocol+host) 
+   * @param {string} [apiPath="/vrspace/api"] Path component of the API URL  
    */
   constructor(apiBase = "", apiPath = "/vrspace/api") {
-    this.base = apiBase+apiPath;
+    this.base = apiBase + apiPath;
     VRSpaceAPI.instance = this;
     this.apiClient = new ApiClient(apiBase);
     this.endpoint = {
       /** @type {WorldsApi} */
       worlds: new WorldsApi(this.apiClient),
       oauth2: this.base + "/oauth2",
-      files: this.base+'/files',
+      files: this.base + '/files',
       /** @type {UsersApi} */
       user: new UsersApi(this.apiClient),
       /** @type {GroupsApi} */
@@ -44,16 +47,16 @@ export class VRSpaceAPI {
    * @returns {VRSpaceAPI}
    */
   static getInstance(apiBase, apiPath) {
-    if ( !VRSpaceAPI.instance ) {
+    if (!VRSpaceAPI.instance) {
       new VRSpaceAPI(apiBase, apiPath);
     }
     return VRSpaceAPI.instance;
   }
-  
+
   /**
    * Verify if given user name is valid, i.e. we can create user with that name.
-   * @param name user name
-   * @returns true if user name is available
+   * @param {String} name user name
+   * @returns {boolean} true if user name is available
    */
   async verifyName(name) {
     return await this.endpoint.user.checkName(name);
@@ -63,7 +66,7 @@ export class VRSpaceAPI {
 
   /**
    * Returns current user name associated with the session.
-   * @returns current user name, or null if user is anonymous (not logged in yet)
+   * @returns {String|null} current user name, or null if user is anonymous (not logged in yet)
    */
   async getUserName() {
     return await this.endpoint.user.userName();
@@ -74,6 +77,7 @@ export class VRSpaceAPI {
 
   /**
    * Returns true if the user is authanticated
+   * @returns {boolean}
    */
   async getAuthenticated() {
     return await this.endpoint.user.authenticated();
@@ -85,13 +89,13 @@ export class VRSpaceAPI {
   /**
    * Initiates OAuth2 login with the server - opens login form with Oauth provider. 
    * Requires Oauth2 provider id as returned by listOAuthProviders().
-   * @param providerId Oauth provider as defined on the server
-   * @param userName user name
-   * @param avatarUrl optional Avatar URL
+   * @param {String} providerId Oauth provider as defined on the server
+   * @param {String} userName user name
+   * @param {String} [avatarUrl] optional Avatar URL
    */
   async oauth2login(providerId, userName, avatarUrl) {
-    console.log("Initiating OAuth2 login with "+providerId+" username "+userName+" and avatar "+avatarUrl);
-    if ( !providerId || !userName ) {
+    console.log("Initiating OAuth2 login with " + providerId + " username " + userName + " and avatar " + avatarUrl);
+    if (!providerId || !userName) {
       throw "Both providerId and userName are mandatory parameters";
     }
     window.open(this.endpoint.oauth2 + '/login?name=' + userName + '&provider=' + providerId + '&avatar=' + avatarUrl, '_top');
@@ -99,35 +103,28 @@ export class VRSpaceAPI {
 
   /** Returns object of provider id: name (e.g. github: GitHub) */
   async listOAuthProviders() {
-    return this.getJson(this.endpoint.oauth2 + '/providers');    
+    return this.getJson(this.endpoint.oauth2 + '/providers');
   }
-  
+
   /**
    * Returns User object of the current user, or null for anonymous users
+   * @returns {User|null}
    */
   async getUserObject() {
     let userObject = await this.endpoint.user.userObject();
     console.log("User object ", userObject);
     return userObject;
-    /*
-    var userObject = await this.getJson(this.endpoint.user + "/object");
-    console.log("User object ", userObject);
-    if (userObject) {
-      return userObject.User;
-    }
-    return null;
-    */
   }
 
   /**
    * Create a world from template
    * @returns token required to access the world
-   * @param worldName unique world name
-   * @param templateName optional template name, a world with this name must exist on the server
-   * @param isPublic default false, i.e. only invited users (having the token) can enter
-   * @param isTemporary default true, i.e. world is deleted once the last user exits
+   * @param {String} worldName unique world name
+   * @param {String|undefined} templateName optional template name, a world with this name must exist on the server
+   * @param {boolean} [isPublic=false] false means only invited users (having the token) can enter
+   * @param {boolean} [isTemporary=true] true means world is deleted once the last user exits 
    */
-  async createWorldFromTemplate(worldName, templateName, isPublic=false, isTemporary=true) {
+  async createWorldFromTemplate(worldName, templateName, isPublic = false, isTemporary = true) {
     let token = await this.endpoint.worlds.createWorld({
       worldName: worldName,
       templateName: templateName,
@@ -135,20 +132,21 @@ export class VRSpaceAPI {
       public: isPublic,
       temporary: isTemporary
     });
-    console.log("Created private world "+worldName+" from template "+templateName+", access token "+token);
+    console.log("Created private world " + worldName + " from template " + templateName + ", access token " + token);
     return token;
   }
-  
+
   /**
    * Internally used helper method
+   * @private
    */
   async getJson(url) {
     // CHECKME await
     let data = await this.getText(url);
     try {
       console.log(url + " returned '" + data + "'");
-      if ( data ) {
-        return JSON.parse(data);        
+      if (data) {
+        return JSON.parse(data);
       } else {
         return null;
       }
@@ -159,6 +157,7 @@ export class VRSpaceAPI {
 
   /**
    * Internally used helper method
+   * @private
    */
   async getText(url) {
     // CHECKME await
@@ -174,15 +173,15 @@ export class VRSpaceAPI {
   }
 
   /**
-   * Upload a file.
-   * @param file File object
+   * Upload a file on a position/rotation.
+   * @param {File} file Local file object to upload
    * @param position an object containing x,y,z (Vector3)
    * @param rotation an object containing x,y,z (Vector3)
    */
-  upload( file, position, rotation) {
-    const formData  = new FormData();
+  upload(file, position, rotation) {
+    const formData = new FormData();
     formData.append('fileName', file.name);
-    if ( file.type ) {
+    if (file.type) {
       formData.append('contentType', file.type);
     } else if (file.name.toLowerCase().endsWith('.glb')) {
       formData.append('contentType', 'model/gltf-binary');
@@ -195,7 +194,7 @@ export class VRSpaceAPI {
     formData.append('rotZ', rotation.z);
     formData.append('fileData', file);
 
-    fetch(this.endpoint.files+'/upload', {
+    fetch(this.endpoint.files + '/upload', {
       method: 'PUT',
       body: formData
     });
@@ -205,7 +204,7 @@ export class VRSpaceAPI {
   /**
    * Internal used by webpushSubscribe
    * @private
-   */ 
+   */
   async unregisterSubscription(subscription) {
     window.localStorage.removeItem("vrspace-webpush-vapid-key");
     let webPushSubscription = {
@@ -218,11 +217,11 @@ export class VRSpaceAPI {
 
     await this.endpoint.webpush.unsubscribe(webPushSubscription);
   }
-  
+
   /**
    * Internal used by webpushSubscribe
    * @private
-   */ 
+   */
   registerSubscription(subscription, vapidPublicKey) {
     let webPushSubscription = {
       endpoint: subscription.endpoint,
@@ -240,7 +239,7 @@ export class VRSpaceAPI {
   /**
    * Internal used by webpushSubscribe
    * @private
-   */ 
+   */
   createSubscription(registration, vapidPublicKey) {
     const convertedVapidKey = this.urlBase64ToUint8Array(vapidPublicKey);
     registration.pushManager.subscribe({
@@ -251,11 +250,11 @@ export class VRSpaceAPI {
       this.registerSubscription(subscription, vapidPublicKey);
     }).catch(err => console.log(err));
   }
-  
+
   /**
    * Internal used by webpushSubscribe
    * @private
-   */ 
+   */
   urlBase64ToUint8Array(base64String) {
     var padding = '='.repeat((4 - base64String.length % 4) % 4);
     var base64 = (base64String + padding)
@@ -279,7 +278,7 @@ export class VRSpaceAPI {
   webpushSubscribe(clientUrl) {
     // service worker is supposed to be registered in main html onload
     navigator.serviceWorker.getRegistration(clientUrl).then(async (registration) => {
-      if ( typeof registration === "undefined") {
+      if (typeof registration === "undefined") {
         // Chrome rejects service worker with self-signed cert on localhost
         return;
       }
@@ -292,11 +291,11 @@ export class VRSpaceAPI {
           console.log("Notification permission granted");
         } else {
           // status is 'default' - the user did not make choice (yet)
-          console.log("Notification permission: "+status);
+          console.log("Notification permission: " + status);
         }
       });
       // this will typically return 404, fail gracefully
-      this.endpoint.webpush.getKey().then(async vapidPublicKey =>  {
+      this.endpoint.webpush.getKey().then(async vapidPublicKey => {
         // see https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/js13kGames/Re-engageable_Notifications_Push
         console.log('VAPID key: ' + vapidPublicKey);
 
@@ -307,10 +306,10 @@ export class VRSpaceAPI {
           // compare subscription keys and unsubscribe/subscribe if needed, or
           // DOMException: A subscription with a different application server key already exists.
           let existingKey = window.localStorage.getItem("vrspace-webpush-vapid-key");
-          if( existingKey && existingKey != vapidPublicKey ) {
+          if (existingKey && existingKey != vapidPublicKey) {
             console.log("Subscription key changed, unsubscribing from ", subscription);
             this.unregisterSubscription(subscription);
-            subscription.unsubscribe().then(()=>{
+            subscription.unsubscribe().then(() => {
               this.createSubscription(registration, vapidPublicKey);
             });
           } else {
@@ -320,12 +319,12 @@ export class VRSpaceAPI {
         } else {
           this.createSubscription(registration, vapidPublicKey);
         }
-        
-      }).catch( err => console.log(err));
+
+      }).catch(err => console.log(err));
 
     });
   }
-  
+
   /**
    * Unsubcribe from web push notifications, if available and subscribed. Requires existing service worker, 
    * registered in main html file onload function. Fails silently if the not subscribed.
@@ -333,21 +332,21 @@ export class VRSpaceAPI {
    */
   webpushUnsubscribe(clientUrl) {
     navigator.serviceWorker.getRegistration(clientUrl).then(async (registration) => {
-      if ( typeof registration === "undefined") {
+      if (typeof registration === "undefined") {
         // Chrome rejects service worker with self-signed cert on localhost
         return;
       }
       console.log("Got serviceworker registration");
-    
+
       let subscription = await registration.pushManager.getSubscription();
       console.log("Got subscription from push manager", subscription);
-  
+
       if (subscription) {
         let existingKey = window.localStorage.getItem("vrspace-webpush-vapid-key");
-        if( existingKey ) {
+        if (existingKey) {
           console.log("Unsubscribing from ", subscription);
           this.unregisterSubscription(subscription);
-        }            
+        }
         subscription.unsubscribe();
       }
     });
