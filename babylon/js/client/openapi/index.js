@@ -38,7 +38,6 @@ import WorldStatus from './model/WorldStatus';
 import DataApi from './api/DataApi';
 import GroupsApi from './api/GroupsApi';
 import Oauth2LoginApi from './api/Oauth2LoginApi';
-import RemoteBrowserApi from './api/RemoteBrowserApi';
 import ServerInfoApi from './api/ServerInfoApi';
 import SharedContentApi from './api/SharedContentApi';
 import SketchfabApi from './api/SketchfabApi';
@@ -234,12 +233,6 @@ export {
     * @property {module:api/Oauth2LoginApi}
     */
     Oauth2LoginApi,
-
-    /**
-    * The RemoteBrowserApi service constructor.
-    * @property {module:api/RemoteBrowserApi}
-    */
-    RemoteBrowserApi,
 
     /**
     * The ServerInfoApi service constructor.

@@ -295,6 +295,54 @@ export class GroupsApi {
 
 
     /**
+     * Get a group.
+     * Get a group.
+     * @param {Number} groupId 
+     * @return {Promise< UserGroup >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link UserGroup} and HTTP response
+     */
+    getGroupWithHttpInfo(groupId) {
+      let postBody = null;
+      // verify the required parameter 'groupId' is set
+      if (groupId === undefined || groupId === null) {
+        throw new Error("Missing the required parameter 'groupId' when calling getGroup");
+      }
+
+      let pathParams = {
+        'groupId': groupId
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = UserGroup;
+      return this.apiClient.callApi(
+        '/vrspace/api/groups/{groupId}', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Get a group.
+     * Get a group.
+     * @param {Number} groupId 
+     * @return {Promise< UserGroup >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link UserGroup}
+     */
+    getGroup(groupId) {
+      return this.getGroupWithHttpInfo(groupId)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
      * Invite a user to a group.
      * Invite a user to a group. Only group owner(s) can invite users to private  groups. Invited users have to accept invitation. Offline users may get web  push notification, if these are configured.
      * @param {Number} groupId Group to invite to

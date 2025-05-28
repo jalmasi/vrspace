@@ -106,6 +106,17 @@ public class Groups extends ClientControllerBase {
   }
 
   /**
+   * Get a group.
+   */
+  @GetMapping("/{groupId}")
+  public UserGroup getGroup(@PathVariable long groupId, HttpSession session) {
+    Client client = getAuthorisedClient(session);
+    UserGroup group = groupManager.getGroup(groupId);
+    log.debug("Group get, user: " + client + " group: " + group);
+    return group;
+  }
+
+  /**
    * Show all members of a group.
    */
   @GetMapping("/{groupId}/show")
