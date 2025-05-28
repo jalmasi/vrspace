@@ -223,6 +223,10 @@ public class GroupManager {
       throw new IllegalArgumentException("Ask to join a private group");
     } else {
       // join public group
+      Optional<GroupMember> existing = groupRepo.findGroupMember(group.getId(), member.getId());
+      if (existing.isPresent()) {
+        throw new IllegalArgumentException("Already a member");
+      }
       addMember(group, member);
     }
   }
