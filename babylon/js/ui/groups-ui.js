@@ -126,20 +126,24 @@ class ListMembersForm extends Form {
     this.requests.forEach(request => {
       this.grid.addRowDefinition(this.heightInPixels, true);
 
-      this.grid.addControl(this.textBlock(index), index, 0);
+      this.grid.addControl(this.textBlock(index+1), index, 0);
 
-      let clientName = this.textBlock(request.client);
+      let clientName = this.textBlock(request.client.name);
       this.grid.addControl(clientName, index, 1);
       this.table.push(request);
 
-      let acceptButton = this.submitButton("accept", () => this.acceptRequest(request), this.acceptIcon);
-      this.grid.addControl(acceptButton, index, 2);
-
+      /*
+      // no useful user information to display
       let infoButton = this.submitButton("info", () => this.requestInfo(request), this.infoIcon);
       infoButton.background = this.background;
       this.grid.addControl(infoButton, index, 3);
+      */
 
-      let rejectButton = this.submitButton("reject", () => this.acceptRequest(request), this.rejectIcon);
+      let acceptButton = this.submitButton("accept", () => this.acceptRequest(request.group.id, request.client.id), this.acceptIcon);
+      this.grid.addControl(acceptButton, index, 3);
+
+      let rejectButton = this.submitButton("reject", () => this.rejectRequest(request), this.rejectIcon);
+      rejectButton.background = this.cancelColor;
       this.grid.addControl(rejectButton, index, 4);
 
       index++;
@@ -148,7 +152,7 @@ class ListMembersForm extends Form {
     this.members.forEach(client => {
       this.grid.addRowDefinition(this.heightInPixels, true);
 
-      this.grid.addControl(this.textBlock(index), index, 0);
+      this.grid.addControl(this.textBlock(index+1), index, 0);
 
       let clientName = this.textBlock(client.name);
       this.grid.addControl(clientName, index, 1);
@@ -189,15 +193,21 @@ class ListMembersForm extends Form {
     this.panel.addControl(this.grid);
   }
 
-  clientInfo(client) {
-    console.log(client);
-  }
-
   async kickUser(client) {
     await this.groupApi.kick(this.group.id, client.id);
     this.refresh();
   }
-
+  
+  async acceptRequest(groupId, clientId) {
+    await this.groupApi.allow(groupId, clientId);
+    this.refresh();
+  }
+  
+  async rejectRequest(groupId, clientId) {
+    await this.groupApi.kick(groupId, clientId);
+    this.refresh();
+  }
+  
   pointerEvent(row) {
     if (row !== this.activeRow) {
       this.activeRow = row;
@@ -743,7 +753,7 @@ class ListGroupsForm extends Form {
 
     this.listArea = new FormArea(this.scene, this.listMembersForm);
     this.listArea.size = .2;
-    this.listArea.show(1280, this.listMembersForm.heightInPixels * (this.listMembersForm.members.length + 3));
+    this.listArea.show(1280, this.listMembersForm.heightInPixels * (this.listMembersForm.table.length + 3));
     this.listArea.attachToHud();
     this.listArea.detach(.7);
     this.listArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;

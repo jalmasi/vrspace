@@ -185,7 +185,7 @@ public class GroupManager {
 
   @Transactional
   public void allow(UserGroup group, Long memberId, Client owner) {
-    allow(group, owner, getClient(memberId));
+    allow(group, getClient(memberId), owner);
   }
 
   /**
