@@ -77,7 +77,7 @@ export class VRSpaceAPI {
 
   /**
    * Returns true if the user is authanticated
-   * @returns {boolean}
+   * @returns {Promise<boolean>}
    */
   async getAuthenticated() {
     return await this.endpoint.user.authenticated();
@@ -108,7 +108,7 @@ export class VRSpaceAPI {
 
   /**
    * Returns User object of the current user, or null for anonymous users
-   * @returns {User|null}
+   * @returns {Promise< User|null >}
    */
   async getUserObject() {
     let userObject = await this.endpoint.user.userObject();

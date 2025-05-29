@@ -130,7 +130,7 @@ export class AvatarSelection extends World {
     // fetch user data, set avatar
     // subscribe to web push notifications
     this.api.getAuthenticated().then(isAuthenticated => {
-      this.hud.setAuthenticated(isAuthenticated);
+      this.hud.setAuthenticated();
       if (isAuthenticated) {
         this.authenticated = true;
         this.api.getUserName().then(name => {
@@ -153,7 +153,7 @@ export class AvatarSelection extends World {
           }
           this.loginForm.dispose();
         });
-        // FIXME this may not work for new clients, as they do not exist in the database yet
+        // this may not work for new clients, as they do not exist in the database yet
         // they get created only after entering any world for the first time
         // the only safe place to subscribe is after entering the world
         //this.webpushSubscribe();
