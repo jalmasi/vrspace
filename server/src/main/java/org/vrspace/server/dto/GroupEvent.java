@@ -24,6 +24,8 @@ public class GroupEvent {
   private GroupMessage message;
   private GroupMember invite;
 
+  // TODO join request event
+  // TODO request accepted event
   public static GroupEvent message(GroupMessage groupMessage) {
     GroupEvent ret = new GroupEvent();
     ret.setMessage(groupMessage);

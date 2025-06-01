@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class WebPushMessage {
   public static enum Type {
+    // TODO join request event, request accepted event?
     GROUP_INVITE, GROUP_MESSAGE, WORLD_INVITE
   }
 

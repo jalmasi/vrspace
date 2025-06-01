@@ -181,6 +181,7 @@ public class GroupManager {
     }
     GroupMember gm = new GroupMember(group, member).request();
     save(gm);
+    // TODO notify the owner(s)?
   }
 
   @Transactional
@@ -199,15 +200,16 @@ public class GroupManager {
     if (db.findOwnership(owner.getId(), group.getId()).isEmpty()) {
       throw new IllegalArgumentException("Only group owners can allow members");
     }
-    Optional<GroupMember> invited = groupRepo.findGroupMember(group.getId(), member.getId());
-    if (invited.isPresent()) {
-      GroupMember gm = db.get(invited);
+    Optional<GroupMember> asked = groupRepo.findGroupMember(group.getId(), member.getId());
+    if (asked.isPresent()) {
+      GroupMember gm = db.get(asked);
       if (gm.getPendingRequest() == null) {
         throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
       save(gm.allow(owner));
+      // TODO notify the client
     } else {
-      throw new IllegalArgumentException("Not invited client: " + member.getId());
+      throw new IllegalArgumentException("Client did not ask to join: " + member.getId());
     }
   }
 
