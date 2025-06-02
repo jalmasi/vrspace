@@ -136,7 +136,6 @@ public class GroupManager {
     Client cachedClient = getCachedClient(member);
     if (cachedClient != null) {
       // online client, forward message
-      // FIXME this serializes the message all over again for each recipient
       cachedClient.sendMessage(GroupEvent.invite(gm));
     } else if (pushService != null) {
       log.debug("Pushing invite for offline client:" + member);
@@ -181,7 +180,21 @@ public class GroupManager {
     }
     GroupMember gm = new GroupMember(group, member).request();
     save(gm);
-    // TODO notify the owner(s)?
+    // notify the owner(s)
+    groupRepo.listGroupOwners(group.getId()).forEach(client -> {
+      Client cachedClient = getCachedClient(client);
+      if (cachedClient != null) {
+        // online client, forward message
+        cachedClient.sendMessage(GroupEvent.ask(gm));
+      } else if (pushService != null) {
+        log.debug("Pushing message for offline client:" + client);
+        WebPushMessage msg = new WebPushMessage();
+        msg.setType(WebPushMessage.Type.GROUP_ASK);
+        msg.setGroup(group.getName());
+        msg.setSender(member.getName());
+        notify(client, msg);
+      }
+    });
   }
 
   @Transactional
@@ -207,7 +220,19 @@ public class GroupManager {
         throw new IllegalArgumentException("No pending request for client: " + member.getId());
       }
       save(gm.allow(owner));
-      // TODO notify the client
+      // notify the client
+      Client cachedClient = getCachedClient(member);
+      if (cachedClient != null) {
+        // online client, forward message
+        cachedClient.sendMessage(GroupEvent.allow(gm));
+      } else if (pushService != null) {
+        log.debug("Pushing message for offline client:" + member);
+        WebPushMessage msg = new WebPushMessage();
+        msg.setType(WebPushMessage.Type.GROUP_ALLOWED);
+        msg.setGroup(group.getName());
+        msg.setSender(member.getName());
+        notify(member, msg);
+      }
     } else {
       throw new IllegalArgumentException("Client did not ask to join: " + member.getId());
     }

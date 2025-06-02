@@ -425,6 +425,10 @@ export class GroupEvent {
     this.message = null;
     /** @type {GroupMember} */
     this.invite = null;
+    /** @type {GroupMember} */
+    this.ask = null;
+    /** @type {GroupMember} */
+    this.allowed = null;
   }
 }
 

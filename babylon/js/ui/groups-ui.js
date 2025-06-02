@@ -590,6 +590,10 @@ class ListGroupsForm extends Form {
         } else {
           this.refreshCallback();
         }
+      } else if (event.ask) {
+        console.log("TODO asked to join:", event.ask);
+      } else if (event.allowed) {
+        console.log("TODO allowed to join:", event.ask);
       }
     });
   }

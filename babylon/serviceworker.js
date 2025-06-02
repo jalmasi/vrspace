@@ -80,6 +80,34 @@ self.addEventListener("push", (event) => {
           requireInteraction: false
         })
       );
+    } else if ( payload.type == "GROUP_ASK") {
+      const title = "Join "+payload.group;
+      const message = payload.sender + " wants to join group "+payload.group;
+      event.waitUntil(
+        self.registration.showNotification(title, {
+          data: payload,
+          body: message,
+          image: "/web/favicon-512.png",
+          icon: "/web/favicon-128.png",
+          badge: "/web/favicon-128.png", //96x96px
+          //renotify: true, // may require tag
+          requireInteraction: true
+        })
+      );
+    } else if ( payload.type == "GROUP_ALLOWED") {
+      const title = "Welcome to "+payload.group;
+      const message = "Your request to join "+payload.group+" has been approved";
+      event.waitUntil(
+        self.registration.showNotification(title, {
+          data: payload,
+          body: message,
+          image: "/web/favicon-512.png",
+          icon: "/web/favicon-128.png",
+          badge: "/web/favicon-128.png", //96x96px
+          //renotify: true, // may require tag
+          requireInteraction: true
+        })
+      );
     }
   }
 });

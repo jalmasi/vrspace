@@ -23,9 +23,9 @@ import lombok.NoArgsConstructor;
 public class GroupEvent {
   private GroupMessage message;
   private GroupMember invite;
+  private GroupMember ask;
+  private GroupMember allowed;
 
-  // TODO join request event
-  // TODO request accepted event
   public static GroupEvent message(GroupMessage groupMessage) {
     GroupEvent ret = new GroupEvent();
     ret.setMessage(groupMessage);
@@ -35,6 +35,18 @@ public class GroupEvent {
   public static GroupEvent invite(GroupMember groupMember) {
     GroupEvent ret = new GroupEvent();
     ret.setInvite(groupMember);
+    return ret;
+  }
+
+  public static GroupEvent ask(GroupMember groupMember) {
+    GroupEvent ret = new GroupEvent();
+    ret.setAsk(groupMember);
+    return ret;
+  }
+
+  public static GroupEvent allow(GroupMember groupMember) {
+    GroupEvent ret = new GroupEvent();
+    ret.setAllowed(groupMember);
     return ret;
   }
 }

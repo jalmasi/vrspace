@@ -16,10 +16,14 @@ import org.vrspace.server.obj.UserGroup;
 @DependsOn({ "database" })
 public interface GroupRepository extends Neo4jRepository<Entity, Long>, VRSpaceDB {
 
-  // TODO all these group related methods need to go to their own repo
   @Query("MATCH (ug:UserGroup)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE ID(c) = $clientId RETURN o,owns,c,owned,ug ORDER BY ug.name")
   List<UserGroup> listOwnedGroups(long clientId);
+
+  // CHECKME this likely returns shallow client
+  @Query("MATCH (ug:UserGroup)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
+      + " WHERE ID(ug) = $groupId RETURN o,owns,c,owned,ug")
+  List<Client> listGroupOwners(long groupId);
 
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ID(c)=$clientId AND gm.pendingInvite IS NULL AND gm.pendingRequest IS NULL RETURN ug ORDER BY ug.name")
   List<UserGroup> listUserGroups(long clientId);
