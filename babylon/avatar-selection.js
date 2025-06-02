@@ -130,7 +130,7 @@ export class AvatarSelection extends World {
     // fetch user data, set avatar
     // subscribe to web push notifications
     this.api.getAuthenticated().then(isAuthenticated => {
-      this.hud.setAuthenticated();
+      this.hud.setAuthenticated(isAuthenticated);
       if (isAuthenticated) {
         this.authenticated = true;
         this.api.getUserName().then(name => {
