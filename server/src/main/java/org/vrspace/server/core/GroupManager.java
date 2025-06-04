@@ -19,6 +19,7 @@ import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.Ownership;
 import org.vrspace.server.obj.UserGroup;
 import org.vrspace.server.obj.WebPushSubscription;
+import org.vrspace.server.obj.World;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -141,7 +142,8 @@ public class GroupManager {
       log.debug("Pushing invite for offline client:" + member);
       WebPushMessage msg = new WebPushMessage();
       msg.setType(WebPushMessage.Type.GROUP_INVITE);
-      msg.setGroup(group.getName());
+      msg.setGroupId(group.getId());
+      msg.setGroupName(group.getName());
       msg.setSender(owner.getName());
       notify(member, msg);
     } else {
@@ -190,7 +192,8 @@ public class GroupManager {
         log.debug("Pushing message for offline client:" + client);
         WebPushMessage msg = new WebPushMessage();
         msg.setType(WebPushMessage.Type.GROUP_ASK);
-        msg.setGroup(group.getName());
+        msg.setGroupId(group.getId());
+        msg.setGroupName(group.getName());
         msg.setSender(member.getName());
         notify(client, msg);
       }
@@ -229,7 +232,8 @@ public class GroupManager {
         log.debug("Pushing message for offline client:" + member);
         WebPushMessage msg = new WebPushMessage();
         msg.setType(WebPushMessage.Type.GROUP_ALLOWED);
-        msg.setGroup(group.getName());
+        msg.setGroupId(group.getId());
+        msg.setGroupName(group.getName());
         msg.setSender(member.getName());
         notify(member, msg);
       }
@@ -362,7 +366,9 @@ public class GroupManager {
         log.debug("Pushing message for offline client:" + client);
         WebPushMessage msg = new WebPushMessage();
         msg.setType(type);
-        msg.setGroup(group.getName());
+        msg.setWorldId(message.getWorldId());
+        msg.setGroupId(group.getId());
+        msg.setGroupName(group.getName());
         msg.setSender(sender.getName());
         msg.setMessage(message.getContent());
         msg.setUrl(message.getLink());
@@ -377,10 +383,16 @@ public class GroupManager {
   }
 
   @Transactional
-  public void worldInvite(Client sender, UserGroup group, String text, String link) {
-    GroupMessage msg = new GroupMessage(sender, group, text, Instant.now());
+  public void worldInvite(Client sender, UserGroup group, String worldName, String link) {
+    GroupMessage msg = new GroupMessage(sender, group, worldName, Instant.now());
     msg.setLink(link);
     msg.setLocal(true);
+    World world = worldManager.getWorld(worldName);
+    if (world == null) {
+      throw new IllegalArgumentException("Unknown world " + worldName);
+    }
+    msg.setWorldId(world.getId());
+    // CHECKME: also set token or something? (token is in the link)
     write(sender, group, WebPushMessage.Type.WORLD_INVITE, msg);
   }
 

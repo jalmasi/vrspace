@@ -239,16 +239,17 @@ public class Groups extends ClientControllerBase {
    * the web socket, offline users may get web push notification, if these are
    * configured.
    * 
-   * @param groupId   The group
-   * @param worldLink The message containing url and text of the world
+   * @param groupId    The group
+   * @param worldShare The message containing url and name of the world in link
+   *                   and content fields
    */
   @PostMapping("/{groupId}/share")
-  public void shareWorld(@PathVariable long groupId, @RequestBody GroupMessage worldLink, HttpSession session) {
+  public void shareWorld(@PathVariable long groupId, @RequestBody GroupMessage worldShare, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroup(client, groupId);
     // FIXME sanitize text
-    log.debug("Group share world, user: " + client + " group: " + group + " worldLink: " + worldLink);
-    groupManager.worldInvite(client, group, worldLink.getContent(), worldLink.getLink());
+    log.debug("Group share world, user: " + client + " group: " + group + " worldShare: " + worldShare);
+    groupManager.worldInvite(client, group, worldShare.getContent(), worldShare.getLink());
   }
 
   /**

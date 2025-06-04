@@ -691,9 +691,10 @@ class ListGroupsForm extends Form {
         group.chatlog.show();
         group.chatlog.input.autoWrite = false;
         group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
-        group.chatlog.addListener((text, link) => {
+        // add listener for share world (default-hud)
+        group.chatlog.addListener((text, data) => {
           if (link) {
-            this.groupApi.shareWorld(group.id, { content: text, link: link })
+            this.groupApi.shareWorld(group.id, data)
           } else {
             this.groupApi.write(group.id, text);
           }

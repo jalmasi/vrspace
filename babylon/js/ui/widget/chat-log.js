@@ -355,8 +355,8 @@ export class ChatLog extends TextArea {
       ChatLog.activeInstance = null;
     }
   }
-  notifyListeners(text,link) {
-    this.listeners.forEach(l=>l(text, link));
+  notifyListeners(text,data) {
+    this.listeners.forEach(l=>l(text, data));
   }
   /**
    * Add a listener to be called when input text is changed

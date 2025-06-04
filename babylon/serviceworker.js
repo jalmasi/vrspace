@@ -53,8 +53,8 @@ self.addEventListener("push", (event) => {
         })
       );
     } else if ( payload.type == "GROUP_INVITE") {
-      const title = "Join "+payload.group;
-      const message = "Invitation from " + payload.sender + ": join group "+payload.group;
+      const title = "Join "+payload.groupName;
+      const message = "Invitation from " + payload.sender + ": join group "+payload.groupName;
       event.waitUntil(
         self.registration.showNotification(title, {
           data: payload,
@@ -67,7 +67,7 @@ self.addEventListener("push", (event) => {
         })
       );
     } else if ( payload.type == "GROUP_MESSAGE") {
-      const title = payload.group;
+      const title = payload.groupName;
       const message = "["+payload.sender+"] " + payload.message;
       event.waitUntil(
         self.registration.showNotification(title, {
@@ -81,8 +81,8 @@ self.addEventListener("push", (event) => {
         })
       );
     } else if ( payload.type == "GROUP_ASK") {
-      const title = "Join "+payload.group;
-      const message = payload.sender + " wants to join group "+payload.group;
+      const title = "Join "+payload.groupName;
+      const message = payload.sender + " wants to join group "+payload.groupName;
       event.waitUntil(
         self.registration.showNotification(title, {
           data: payload,
@@ -95,8 +95,8 @@ self.addEventListener("push", (event) => {
         })
       );
     } else if ( payload.type == "GROUP_ALLOWED") {
-      const title = "Welcome to "+payload.group;
-      const message = "Your request to join "+payload.group+" has been approved";
+      const title = "Welcome to "+payload.groupName;
+      const message = "Your request to join "+payload.groupName+" has been approved";
       event.waitUntil(
         self.registration.showNotification(title, {
           data: payload,

@@ -44,14 +44,22 @@ export class GroupMessage {
         this.group = undefined;
 
         /** content 
+         * Message content (text)
          * @type {String} 
          */
         this.content = undefined;
 
         /** link 
+         * URL shared, only one for the time being. May be relative (e.g. for local  worlds) or absolute (external)
          * @type {String} 
          */
         this.link = undefined;
+
+        /** worldId 
+         * World ID, used only for world invitations/shares
+         * @type {Number} 
+         */
+        this.worldId = undefined;
 
         /** timestamp 
          * @type {Date} 
@@ -59,6 +67,7 @@ export class GroupMessage {
         this.timestamp = undefined;
 
         /** local 
+         * Used along the link, true if the link points to a world on this server
          * @type {Boolean} 
          */
         this.local = undefined;
@@ -102,6 +111,9 @@ export class GroupMessage {
             }
             if (data.hasOwnProperty('link')) {
                 obj['link'] = ApiClient.convertToType(data['link'], 'String');
+            }
+            if (data.hasOwnProperty('worldId')) {
+                obj['worldId'] = ApiClient.convertToType(data['worldId'], 'Number');
             }
             if (data.hasOwnProperty('timestamp')) {
                 obj['timestamp'] = ApiClient.convertToType(data['timestamp'], 'Date');

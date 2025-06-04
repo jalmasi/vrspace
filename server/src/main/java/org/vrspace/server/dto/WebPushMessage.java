@@ -12,8 +12,10 @@ public class WebPushMessage {
   private Type type;
   /** Name of the client that sends the message */
   private String sender;
-  private String group;
-  private String world;
+  private Long groupId;
+  private String groupName;
+  private Long worldId;
+  private String worldName;
   private String message;
   private String url;
 }

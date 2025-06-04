@@ -97,17 +97,17 @@ export class Client {
          */
         this.sceneProperties = undefined;
 
-        /** userHeight 
-         * User's height in real life, used in VR. Transient biometric data.
-         * @type {Number} 
-         */
-        this.userHeight = undefined;
-
         /** tokens 
          * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
          * @type {Object.<String, String>} 
          */
         this.tokens = undefined;
+
+        /** userHeight 
+         * User's height in real life, used in VR. Transient biometric data.
+         * @type {Number} 
+         */
+        this.userHeight = undefined;
 
         /** temporary 
          * Temporary objects will be deleted from the database along with their owner
@@ -182,11 +182,11 @@ export class Client {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('userHeight')) {
-                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
-            }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            }
+            if (data.hasOwnProperty('userHeight')) {
+                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');

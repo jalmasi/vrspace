@@ -31,9 +31,17 @@ public class GroupMessage extends Entity {
   // JsonTypeInfo.As.WRAPPER_OBJECT)
   @Relationship(type = "PARENT_GROUP", direction = Relationship.Direction.OUTGOING)
   private UserGroup group;
+  /** Message content (text) */
   private String content;
+  /**
+   * URL shared, only one for the time being. May be relative (e.g. for local
+   * worlds) or absolute (external)
+   */
   private String link;
+  /** World ID, used only for world invitations/shares */
+  private Long worldId;
   private Instant timestamp;
+  /** Used along the link, true if the link points to a world on this server */
   private Boolean local;
 
   public GroupMessage(Client from, UserGroup group, String content, Instant timestamp) {

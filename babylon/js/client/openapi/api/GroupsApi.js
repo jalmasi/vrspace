@@ -848,7 +848,7 @@ export class GroupsApi {
      * Share a world link with the group.
      * Share a world link with the group. Online users are notified right away over  the web socket, offline users may get web push notification, if these are  configured.
      * @param {Number} groupId The group
-     * @param {GroupMessage} groupMessage The message containing url and text of the world
+     * @param {GroupMessage} groupMessage The message containing url and name of the world in link                    and content fields
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     shareWorldWithHttpInfo(groupId, groupMessage) {
@@ -887,7 +887,7 @@ export class GroupsApi {
      * Share a world link with the group.
      * Share a world link with the group. Online users are notified right away over  the web socket, offline users may get web push notification, if these are  configured.
      * @param {Number} groupId The group
-     * @param {GroupMessage} groupMessage The message containing url and text of the world
+     * @param {GroupMessage} groupMessage The message containing url and name of the world in link                    and content fields
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     shareWorld(groupId, groupMessage) {
