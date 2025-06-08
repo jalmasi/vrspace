@@ -49,6 +49,7 @@ public class GroupMember extends Entity {
    * The client that invited/approved (sponsored) the member; may be null, or
    * maybe point to non-existing client. Thus, valid only short term.
    */
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
   @Relationship(type = "SPONSOR_CLIENT", direction = Relationship.Direction.OUTGOING)
   private Client sponsor;
   /**
