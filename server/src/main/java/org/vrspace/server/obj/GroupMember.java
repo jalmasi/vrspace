@@ -8,6 +8,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -36,6 +37,7 @@ public class GroupMember extends Entity {
   // CHECKME having client here may not be the best idea, as we may
   // unintentionally change client's properties
   // while saving this entity - use client id instead?
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
   @Relationship(type = "MEMBER_CLIENT", direction = Relationship.Direction.OUTGOING)
   @NonNull
   private Client client;
