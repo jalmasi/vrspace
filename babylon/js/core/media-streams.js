@@ -122,10 +122,16 @@ export class MediaStreams {
     console.log(this.publisher);
   }
 
+  /**
+   * Share screen - subclasses need to implement it
+   */
   async shareScreen(endCallback) {
     throw "implement me!";
   }
 
+  /**
+   * Stop sharing screen - subclasses need to implement it
+   */
   stopSharingScreen() {
     throw "implement me!";
   }
@@ -362,6 +368,13 @@ export class MediaStreams {
   removeStreamListener(clientId) {
     delete this.streamListeners[clientId];
   }
+  
+  /**
+   * Close the session and clean up all resources - subclasses need to implement it
+   */
+  close() {
+    throw "implement me!";    
+  }
 }
 
 /**
@@ -424,8 +437,17 @@ export class OpenViduStreams extends MediaStreams {
   }
 
   /**
+   * Close the session and clean up all resources
+   */
+  close() {
+    if ( this.session ) {
+      this.session.disconnect();      
+    }
+  }
+  
+  /**
    * Share screen implementation
-   * @param {*} endCallback called when screen sharing stops
+   * @param {*} endCallback function called when screen sharing stops
    */
   async shareScreen(endCallback) {
     let token = await VRSPACE.startStreaming();
