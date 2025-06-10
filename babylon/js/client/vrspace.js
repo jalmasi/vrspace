@@ -441,7 +441,7 @@ export class VRSpace {
   constructor() {
     /** Underlying websocket */
     this.ws = null;
-    /** Representation of own Client, available once connection is established */
+    /** @type {User} Representation of own Client, available once connection is established */
     this.me = null;
     /** Map containing all objects in the scene */
     this.scene = new Map();
@@ -758,8 +758,8 @@ export class VRSpace {
   /**
   Share an object.
   @param obj the new VRObject, containing all properties
-  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
-  @returns Promise with the created VRObject instance
+  @param {string|undefined} [className] optional class name to create, defaults to obj.className if exists, otherwise VRObject
+  @returns {Promise<VRObject>} Promise with the created VRObject instance
    */
   async createSharedObject( obj, className ) {
     return this._createSharedObject("Add", obj, className);
@@ -769,9 +769,8 @@ export class VRSpace {
   Create a shared scripted object. 
   The server determines which scripts are allowed, so this sends different command than createSharedObject.
   @param obj the new VRObject, containing all properties
-  @param callback called when shared object is received
-  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObjects
-  @returns Promise with the created VRObject instance
+  @param {string|undefined} [className] optional class name to create, defaults to obj.className if exists, otherwise VRObject
+  @returns {Promise<VRObject>} Promise with the created VRObject instance
    */
   async createScriptedObject( obj, className ) {
     return this._createSharedObject("Share", obj, className);

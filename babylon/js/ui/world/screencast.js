@@ -1,5 +1,6 @@
 import { OpenViduStreams } from '../../core/media-streams.js';
 import { WorldListener } from '../../world/world-listener.js';
+import { WorldManager } from '../../core/world-manager.js';
 
 /**
  * Base screen sharing class, sending side.
@@ -35,6 +36,8 @@ export class Screencast extends WorldListener {
     this.screenShare = null;
     /** Callback executed when sharing state changes, passed true/false */
     this.callback = null;
+    /** @type {WorldManager} */
+    this.worldManager = null;
   }
 
   /**

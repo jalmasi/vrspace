@@ -393,7 +393,7 @@ export class OpenViduStreams extends MediaStreams {
   
   /**
    * Method connects calls init
-   * @param {*} callback function that gets called when stream is created (subscriber,false) and starts playing (subscriber,true)
+   * @param {*} callback function that gets called when stream is created (subscriber,false), starts playing (subscriber,true), and is destroyed (SessionData, undefined)
    */
   async init(callback) {
     // CHECKME
@@ -433,6 +433,9 @@ export class OpenViduStreams extends MediaStreams {
       // TODO remove from the scene
       console.log("Stream destroyed! TODO clean up")
       console.log(event);
+      if (callback) {
+        callback(new SessionData(event.stream.connection.data));
+      }
     });
   }
 
