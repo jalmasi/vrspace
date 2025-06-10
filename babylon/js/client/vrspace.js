@@ -370,11 +370,11 @@ export class SessionData {
    * @param {String} json string representation of this object (passed along connection as user data) 
    */
   constructor(json) {
-    /** Client id, long */
+    /** @type {number} Client id, long */
     this.clientId = null;
-    /** Session name, matches either world name for public world, or world token for private world */
+    /** @type {string} Session name, matches either world name for public world, or world token for private world */
     this.name = null;
-    /** Session type - 'main' or 'screen' */
+    /** @type {string} Session type - 'main' or 'screen' */
     this.type = null;
     JSON.parse(json, (key,value)=>{
       this[key] = value;
