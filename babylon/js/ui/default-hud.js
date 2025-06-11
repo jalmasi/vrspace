@@ -535,7 +535,7 @@ export class DefaultHud {
     };
     if ( ChatLog.activeInstance ) {
       // share the world with current chat group (groups-ui listens)
-      ChatLog.activeInstance.notifyListeners(worldName, { content: text, link: href });
+      ChatLog.activeInstance.notifyListeners(worldName, { content: worldName, link: href });
     }
     if ( typeof navigator.canShare === "function") {
       try {

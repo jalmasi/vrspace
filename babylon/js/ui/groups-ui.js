@@ -694,7 +694,7 @@ class ListGroupsForm extends Form {
         // add listener for share world (default-hud)
         group.chatlog.addListener((text, data) => {
           if (data) {
-            this.groupApi.shareWorld(group.id, data)
+            this.groupApi.shareWorld(group.id, data);
           } else {
             this.groupApi.write(group.id, text);
           }

@@ -353,6 +353,7 @@ public class GroupManager {
     if (groupRepo.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
       throw new SecurityException("Only members can post to groups");
     }
+    groupMessage.setGroup(group);
     GroupMessage message = db.save(groupMessage);
     groupRepo.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
