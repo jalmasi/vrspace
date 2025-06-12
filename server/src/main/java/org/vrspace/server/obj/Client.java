@@ -11,6 +11,7 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.core.WriteBack;
+import org.vrspace.server.dto.ClientResponse;
 import org.vrspace.server.dto.SceneProperties;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.dto.Welcome;
@@ -169,7 +170,7 @@ public class Client extends VRObject {
   // serialisation optimisation
   public void sendMessage(Object obj) {
     try {
-      if (this.equals(obj) || obj instanceof Welcome) {
+      if (this.equals(obj) || obj instanceof Welcome || obj instanceof ClientResponse) {
         send(privateMapper.writeValueAsString(obj));
       } else {
         send(mapper.writeValueAsString(obj));

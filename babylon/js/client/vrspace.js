@@ -816,7 +816,7 @@ export class VRSpace {
 
   /**
   Send a command to the server
-  @param command to execute
+  @param {string} command to execute
   @param callback function that's called with command return value
    */
   callCommand( command, callback ) {
@@ -826,13 +826,49 @@ export class VRSpace {
 
   /**
    * Set a client token e.g. required to enter a world
-   * @param name token name
-   * @param value token value
+   * @param {string} name token name
+   * @param {string} value token value
    */
   setToken( name, value ) {
     this.sendCommand( "SetToken", {name:name, value:value});
   }
 
+  /**
+   * Enter a world, optionally with a token (that may be required for private worlds).
+   * The server sends Welcome message, that's supposed to be processed with Welcome listeners.
+   * 
+   * @param {string} world Name of the world to enter
+   * @param {string} [token] optional token value
+   */
+  enter( world, token ) {
+    if ( token ) {
+      this.sendCommand("Enter", { world: world, token: token });    
+    } else {
+      this.sendCommand("Enter", { world: world });      
+    }
+  }
+
+  /**
+   * Enter a world, optionally with a token (that may be required for private worlds).
+   * The servers sends back Welcome response message, that is resolved in Promise.
+   * 
+   * @param {string} world Name of the world to enter
+   * @param {string} [token] optional token value
+   * @returns {Promise<Welcome>} promise with the welcome message 
+   */
+  enterAsync( world, token ) {
+    let command = '{"command":{"Enter":{"async":false, "world":"'+world+'"}}}';
+    if ( token ) {
+      command = '{"command":{"Enter":{"async":false, "world":"'+world+'", "token":"'+token+'"}}}';
+    }
+    return new Promise( (resolve, reject) => {
+      this.call(command, (response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  
   /**
   Send changes to an object
   @param obj VRObject that changes
