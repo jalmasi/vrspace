@@ -77,7 +77,7 @@ public class WorldManager {
   // this allows Client to read own properties that aren't exposed to others
   @Autowired
   @Qualifier("privateMapper")
-  private ObjectMapper privateJackson;
+  protected ObjectMapper privateJackson;
 
   @Autowired
   private StreamManager streamManager;

@@ -55,6 +55,8 @@ public class WorldManagerTest {
 
   @Autowired
   private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper privateMapper;
 
   @Mock
   private ConcurrentWebSocketSessionDecorator session;
@@ -83,6 +85,7 @@ public class WorldManagerTest {
     Client client = new Client(clientName);
     client.setSession(s);
     client.setMapper(objectMapper);
+    client.setPrivateMapper(privateMapper);
     client.setId(id++);
     client.setGuest(true);
     Map<String, Object> attributes = new HashMap<>();
@@ -98,6 +101,7 @@ public class WorldManagerTest {
     Client client = mockGuestSession(clientName, s);
     client.setSession(s);
     client.setMapper(objectMapper);
+    client.setPrivateMapper(privateMapper);
     client.setGuest(false);
     lenient().when(s.getPrincipal()).thenReturn(new Principal() {
       @Override
@@ -112,6 +116,7 @@ public class WorldManagerTest {
   public void setUp() {
     worldManager.config = config;
     worldManager.jackson = objectMapper;
+    worldManager.privateJackson = privateMapper;
     worldManager.clientFactory = new DefaultClientFactory();
 
     lenient().when(repo.getPermanents(any(Long.class))).thenReturn(new HashSet<VRObject>());
