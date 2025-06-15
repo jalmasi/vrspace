@@ -46,6 +46,8 @@ public class Client extends VRObject {
   // @Index(unique = true) - NeoConfig creates it
   @ToString.Include
   private String name;
+  /** URL of the file with avatar/profile picture */
+  private String picture;
   /**
    * User's height in real life, used in VR. Transient biometric data.
    */

@@ -23,8 +23,6 @@ public class User extends Client {
   private boolean humanoid = true;
   /** Does this client have video avatar, default false */
   private boolean video = false;
-  /** URL of the file with avatar/profile picture */
-  private String picture;
   /**
    * Left arm position, used in VR. Transient biometric data.
    */

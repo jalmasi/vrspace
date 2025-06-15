@@ -92,6 +92,12 @@ export class User {
          */
         this.name = undefined;
 
+        /** picture 
+         * URL of the file with avatar/profile picture
+         * @type {String} 
+         */
+        this.picture = undefined;
+
         /** humanoid 
          * Does this client have humanoid avatar, default true
          * @type {Boolean} 
@@ -103,17 +109,6 @@ export class User {
          * @type {Boolean} 
          */
         this.video = undefined;
-
-        /** picture 
-         * URL of the file with avatar/profile picture
-         * @type {String} 
-         */
-        this.picture = undefined;
-
-        /** rightArmRot 
-         * @type {Quaternion} 
-         */
-        this.rightArmRot = undefined;
 
         /** leftArmRot 
          * @type {Quaternion} 
@@ -130,22 +125,27 @@ export class User {
          */
         this.rightArmPos = undefined;
 
+        /** rightArmRot 
+         * @type {Quaternion} 
+         */
+        this.rightArmRot = undefined;
+
         /** sceneProperties 
          * @type {SceneProperties} 
          */
         this.sceneProperties = undefined;
-
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} 
-         */
-        this.tokens = undefined;
 
         /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
          * @type {Number} 
          */
         this.userHeight = undefined;
+
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
+         */
+        this.tokens = undefined;
 
         /** properties 
          * Custom transient object properties
@@ -217,17 +217,14 @@ export class User {
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
             }
+            if (data.hasOwnProperty('picture')) {
+                obj['picture'] = ApiClient.convertToType(data['picture'], 'String');
+            }
             if (data.hasOwnProperty('humanoid')) {
                 obj['humanoid'] = ApiClient.convertToType(data['humanoid'], 'Boolean');
             }
             if (data.hasOwnProperty('video')) {
                 obj['video'] = ApiClient.convertToType(data['video'], 'Boolean');
-            }
-            if (data.hasOwnProperty('picture')) {
-                obj['picture'] = ApiClient.convertToType(data['picture'], 'String');
-            }
-            if (data.hasOwnProperty('rightArmRot')) {
-                obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
             }
             if (data.hasOwnProperty('leftArmRot')) {
                 obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
@@ -238,14 +235,17 @@ export class User {
             if (data.hasOwnProperty('rightArmPos')) {
                 obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
             }
+            if (data.hasOwnProperty('rightArmRot')) {
+                obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
+            }
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
+            }
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
@@ -305,10 +305,6 @@ export class User {
         if (data['picture'] && !(typeof data['picture'] === 'string' || data['picture'] instanceof String)) {
             throw new Error("Expected the field `picture` to be a primitive type in the JSON string but got " + data['picture']);
         }
-        // validate the optional field `rightArmRot`
-        if (data['rightArmRot']) { // data not null
-          Quaternion.validateJSON(data['rightArmRot']);
-        }
         // validate the optional field `leftArmRot`
         if (data['leftArmRot']) { // data not null
           Quaternion.validateJSON(data['leftArmRot']);
@@ -320,6 +316,10 @@ export class User {
         // validate the optional field `rightArmPos`
         if (data['rightArmPos']) { // data not null
           Point.validateJSON(data['rightArmPos']);
+        }
+        // validate the optional field `rightArmRot`
+        if (data['rightArmRot']) { // data not null
+          Quaternion.validateJSON(data['rightArmRot']);
         }
         // validate the optional field `sceneProperties`
         if (data['sceneProperties']) { // data not null
