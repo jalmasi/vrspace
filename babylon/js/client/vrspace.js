@@ -64,25 +64,45 @@ Basic VRObject, has the same properties as server counterpart.
  */
 export class VRObject {
   constructor() {
-    /** @type {number} Id, equal on server and all instances */
+    /** Id, equal on server and all instances
+     * @type {number} 
+     */
     this.id = null;
-    /** @type {Point} Position, Point */
+    /** Position, Point  
+     * @type {Point} 
+     */
     this.position = null;
-    /** @type {Rotation|null} Rotation */
+    /** Rotation 
+     * @type {Rotation|null} 
+     */
     this.rotation = null;
-    /** @type {Point|null} Scale, Point */
+    /** Scale, Point 
+     * @type {Point|null} 
+     */
     this.scale = null;
-    /** @type {boolean} Default false, permanent objects remain in the scene forever */
+    /** Default false, permanent objects remain in the scene forever
+     * @type {boolean} 
+     */
     this.permanent = false;
-    /** @type {boolean} Everything created by guest client is by default temporary */
+    /** Everything created by guest client is by default temporary 
+     * @type {boolean} 
+     */
     this.temporary = null;
-    /** @type {string|null} URL of 3D mesh */
+    /** URL of 3D mesh
+     * @type {string|null}
+     */
     this.mesh = null;
-    /** @type {boolean} Active i.e. online users */
+    /** Active i.e. online users
+     * @type {boolean} 
+     */
     this.active = false;
-    /** @type {string|null} Name of the animation that is currently active */
+    /** Name of the animation that is currently active 
+     * @type {string|null} 
+     */
     this.animation = null;
-    /** @type {string|null} URL of dynamically loaded script*/
+    /** URL of dynamically loaded script
+     * @type {string|null} 
+     */
     this.script = null;
     /** Custom properties of an object - shared transient object*/
     this.properties = null; 
@@ -95,7 +115,9 @@ export class VRObject {
     this._isLoaded = false;
     /** Handy reference to VRSpace instance */
     this.VRSPACE = null;
-    /** @type {string} Server-side class name */
+    /** Server-side class name 
+     * @type {string} 
+     */
     this.className = 'VRObject';
   }
 
@@ -179,13 +201,21 @@ Scene properties, same as server counterpart.
  */
 export class SceneProperties{
   constructor() {
-    /** @type {number} Visibility range, default 2000 */
+    /** Visibility range, default 2000
+     * @type {number}
+     */
     this.range = 2000;
-    /** @type {number} Movement resolution, default 10 */
+    /** Movement resolution, default 10
+     * @type {number} 
+     */
     this.resolution = 10;
-    /** @type {number} Maximum size, default 1000 */
+    /** Maximum size, default 1000 
+     * @type {number} 
+     */
     this.size = 1000;
-    /** @type {number} Invalidation timeout in ms, default 30000 */
+    /** Invalidation timeout in ms, default 30000 
+     * @type {number} 
+     */
     this.timeout = 30000;
   }
 }
@@ -197,15 +227,23 @@ Representation of a client (user, bot, remote server...).
 export class Client extends VRObject {
   constructor() {
     super();
-    /** @type {string} Client name, must be unique */
+    /** Client name, must be unique
+     * @type {string} 
+     */
     this.name = null;
-    /** @type {SceneProperties} Scene properties */
+    /** Scene properties
+     * @type {SceneProperties} 
+     */
     this.sceneProperties = null; // CHECKME private - should be declared?
     /** Private tokens, map of strings */
     this.tokens = null;
-    /** @type {string} Server-side class name */
+    /** Server-side class name
+     * @type {string} 
+     */
     this.className = 'Client';
-    /** @type {boolean} true if the client has an avatar */
+    /** true if the client has an avatar
+     * @type {boolean} 
+     */
     this.hasAvatar = true;
   }
   
@@ -225,23 +263,41 @@ Representation of a user.
 export class User extends Client {
   constructor() {
     super();
-    /** @type {boolean} Does this client have humanoid avatar, default true */
+    /** Does this client have humanoid avatar, default true
+     * @type {boolean} 
+     */
     this.humanoid = true;
-    /** @type {boolean} Does this client have video avatar, default false */
+    /** Does this client have video avatar, default false
+     * @type {boolean} 
+     */
     this.video = false;
-    /** @type {Point} Left arm position */
+    /** Left arm position
+     * @type {Point} 
+     */
     this.leftArmPos = { x: null, y: null, z: null };
-    /** @type {Point} Right arm position */
+    /** Right arm position
+     * @type {Point} 
+     */
     this.rightArmPos = { x: null, y: null, z: null };
-    /** @type {Rotation} Left arm rotation, quaternion */
+    /** Left arm rotation, quaternion
+     * @type {Rotation} 
+     */
     this.leftArmRot = { x: null, y: null, z: null, w: null };
-    /** @type {Rotation} Right arm rotation, quaternion */
+    /** Right arm rotation, quaternion
+     * @type {Rotation} 
+     */
     this.rightArmRot = { x: null, y: null, z: null, w: null };
-    /** @type {number} User height, default 1.8 */
+    /** User height, default 1.8
+     * @type {number} 
+     */
     this.userHeight = 1.8;
-    /** @type {string} Server-side class name */
+    /** Server-side class name
+     * @type {string} 
+     */
     this.className = 'User';
-    /** @type {string|null} avatar picture url*/
+    /** avatar picture url
+     * @type {string|null} 
+     */
     this.picture = null;
   }
 }
@@ -375,11 +431,17 @@ export class SessionData {
    * @param {String} json string representation of this object (passed along connection as user data) 
    */
   constructor(json) {
-    /** @type {number} Client id, long */
+    /** Client id, long
+     * @type {number} 
+     */
     this.clientId = null;
-    /** @type {string} Session name, matches either world name for public world, or world token for private world */
+    /** Session name, matches either world name for public world, or world token for private world
+     * @type {string} 
+     */
     this.name = null;
-    /** @type {string} Session type - 'main' or 'screen' */
+    /** Session type - 'main' or 'screen'
+     * @type {string} 
+     */
     this.type = null;
     JSON.parse(json, (key,value)=>{
       this[key] = value;
@@ -446,7 +508,9 @@ export class VRSpace {
   constructor() {
     /** Underlying websocket */
     this.ws = null;
-    /** @type {User} Representation of own Client, available once connection is established */
+    /** Representation of own Client, available once the connection is established
+     * @type {User} 
+     */
     this.me = null;
     /** Map containing all objects in the scene */
     this.scene = new Map();
