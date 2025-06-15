@@ -612,37 +612,47 @@ export class VRSpace {
       return ret;
     }
   }
-  
+
   /**
-  Connect to the server, attach listeners.
-  @param url optional websocket url, defaults to /vrspace/client on the same server
+   * @private
+   */
+  defaultWebsocketUrl() {
+    let url = window.location.href;
+    this.log("This href "+url);
+    let start = url.indexOf('/');
+    let protocol = url.substring(0,start);
+    let webSocketProtocol = 'ws';
+    if ( protocol == 'https:' ) {
+      webSocketProtocol = 'wss';
+    }
+    let end = url.indexOf('/', start+2);
+    url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace/client'; // ws://localhost:8080/vrspace
+    return url;
+  }  
+  /**
+  Connect to the server, attach connection listeners and data listeners to the websocket.
+  @param {string} [url] optional websocket url, defaults to /vrspace/client on the same server
+  @returns promise resolved once the connection is successful
    */
   connect(url) {
     if ( ! url ) {
-      url = window.location.href; // http://localhost:8080/console.html
-      this.log("This href "+url);
-      let start = url.indexOf('/');
-      let protocol = url.substring(0,start);
-      let webSocketProtocol = 'ws';
-      if ( protocol == 'https:' ) {
-        webSocketProtocol = 'wss';
-      }
-      let end = url.indexOf('/', start+2);
-      url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace/client'; // ws://localhost:8080/vrspace
+      url = this.defaultWebsocketUrl(url);
     }
     this.log("Connecting to "+url);
     this.ws = new WebSocket(url);
-    this.ws.onopen = () => {
-      this.connectionListeners.forEach((listener)=>listener(true));
-    }
-    this.ws.onclose = () => {
-      this.connectionListeners.forEach((listener)=>listener(false));
-    }
-    this.ws.onmessage = (data) => {
-      this.receive(data.data);
-      this.dataListeners.forEach((listener)=>listener(data.data)); 
-    }
-    this.log("Connected!")
+    return new Promise( (resolve, reject) => {
+      this.ws.onopen = () => {
+        this.connectionListeners.forEach((listener)=>listener(true));
+        resolve();
+      }
+      this.ws.onclose = () => {
+        this.connectionListeners.forEach((listener)=>listener(false));
+      }
+      this.ws.onmessage = (data) => {
+        this.receive(data.data);
+        this.dataListeners.forEach((listener)=>listener(data.data)); 
+      }    
+    });
   }
 
   /** Disconnect, notify connection listeners */  
