@@ -120,12 +120,20 @@ public class Oauth2Login extends ApiBase {
     }
     log.debug("oauth login as:" + name);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String identity = identity((OAuth2AuthenticationToken) authentication);
+    OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
+    String identity = identity(token);
 
     User client = db.getClientByName(name, User.class);
     if (client != null) {
       if (client.getIdentity() != null && client.getIdentity().equals(identity)) {
         log.debug("Welcome back: " + name);
+        if (client.getPicture() == null) {
+          // field picture originally did not exist, add picture to existing clients
+          client.setPicture(getPicture(provider, token));
+          if (client.getPicture() != null) {
+            client = db.save(client);
+          }
+        }
       } else {
         // throw new ApiException("Someone else uses this name: " + name);
         log.error("Someone else uses name " + name + ": " + client.getIdentity());
@@ -137,6 +145,7 @@ public class Oauth2Login extends ApiBase {
       client = new User(name);
       client.setMesh(avatar);
       client.setIdentity(identity);
+      client.setPicture(getPicture(provider, token));
       client = db.save(client);
     }
     // CHECKME do we need to return anything?
@@ -162,6 +171,16 @@ public class Oauth2Login extends ApiBase {
     return authority + ":" + hashedName;
   }
 
+  private String getPicture(String provider, OAuth2AuthenticationToken token) {
+    String ret = null;
+
+    if ("google".equals(provider)) {
+      ret = token.getPrincipal().getAttribute("picture");
+    } else if ("github".equals(provider)) {
+      ret = token.getPrincipal().getAttribute("avatar_url");
+    }
+    return ret;
+  }
   // CHECKME unused?
   /*
   @GetMapping("/callback")

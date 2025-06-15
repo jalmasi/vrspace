@@ -31,8 +31,11 @@ Point in space, x, y, z
  */
 export class Point {
   constructor(){
+    /** @type {number} */    
     this.x=0;
+    /** @type {number} */    
     this.y=0;
+    /** @type {number} */    
     this.z=0;
   }
 }
@@ -61,25 +64,25 @@ Basic VRObject, has the same properties as server counterpart.
  */
 export class VRObject {
   constructor() {
-    /** Id, equal on server and all instances */
+    /** @type {number} Id, equal on server and all instances */
     this.id = null;
-    /** Position, Point */
+    /** @type {Point} Position, Point */
     this.position = null;
-    /** Rotation, Point */
+    /** @type {Rotation|null} Rotation */
     this.rotation = null;
-    /** Scale, Point */
+    /** @type {Point|null} Scale, Point */
     this.scale = null;
-    /** Default false, permanent objects remain in the scene forever */
+    /** @type {boolean} Default false, permanent objects remain in the scene forever */
     this.permanent = false;
-    /** Everything created by guest client is by default temporary */
+    /** @type {boolean} Everything created by guest client is by default temporary */
     this.temporary = null;
-    /** URL of 3D mesh */
+    /** @type {string|null} URL of 3D mesh */
     this.mesh = null;
-    /** Active i.e. online users */
+    /** @type {boolean} Active i.e. online users */
     this.active = false;
-    /** Active animation */
+    /** @type {string|null} Name of the animation that is currently active */
     this.animation = null;
-    /** URL of dynamically loaded script TODO */
+    /** @type {string|null} URL of dynamically loaded script*/
     this.script = null;
     /** Custom properties of an object - shared transient object*/
     this.properties = null; 
@@ -92,7 +95,7 @@ export class VRObject {
     this._isLoaded = false;
     /** Handy reference to VRSpace instance */
     this.VRSPACE = null;
-    /** Server-side class name */
+    /** @type {string} Server-side class name */
     this.className = 'VRObject';
   }
 
@@ -176,13 +179,13 @@ Scene properties, same as server counterpart.
  */
 export class SceneProperties{
   constructor() {
-    /** Visibility range, default 2000 */
+    /** @type {number} Visibility range, default 2000 */
     this.range = 2000;
-    /** Movement resolution, default 10 */
+    /** @type {number} Movement resolution, default 10 */
     this.resolution = 10;
-    /** Maximum size, default 1000 */
+    /** @type {number} Maximum size, default 1000 */
     this.size = 1000;
-    /** Invalidation timeout in ms, default 30000 */
+    /** @type {number} Invalidation timeout in ms, default 30000 */
     this.timeout = 30000;
   }
 }
@@ -194,14 +197,15 @@ Representation of a client (user, bot, remote server...).
 export class Client extends VRObject {
   constructor() {
     super();
-    /** Client name, must be unique */
+    /** @type {string} Client name, must be unique */
     this.name = null;
-    /** Scene properties */
+    /** @type {SceneProperties} Scene properties */
     this.sceneProperties = null; // CHECKME private - should be declared?
-    /** Private tokens */
+    /** Private tokens, map of strings */
     this.tokens = null;
-    /** Server-side class name */
+    /** @type {string} Server-side class name */
     this.className = 'Client';
+    /** @type {boolean} true if the client has an avatar */
     this.hasAvatar = true;
   }
   
@@ -221,23 +225,24 @@ Representation of a user.
 export class User extends Client {
   constructor() {
     super();
-    /** Does this client have humanoid avatar, default true */
+    /** @type {boolean} Does this client have humanoid avatar, default true */
     this.humanoid = true;
-    /** Does this client have video avatar, default false */
+    /** @type {boolean} Does this client have video avatar, default false */
     this.video = false;
-    /** Left arm position */
+    /** @type {Point} Left arm position */
     this.leftArmPos = { x: null, y: null, z: null };
-    /** Right arm position */
+    /** @type {Point} Right arm position */
     this.rightArmPos = { x: null, y: null, z: null };
-    /** Left arm rotation, quaternion */
+    /** @type {Rotation} Left arm rotation, quaternion */
     this.leftArmRot = { x: null, y: null, z: null, w: null };
-    /** Right arm rotation, quaternion */
+    /** @type {Rotation} Right arm rotation, quaternion */
     this.rightArmRot = { x: null, y: null, z: null, w: null };
-    /** User height, default 1.8 */
+    /** @type {number} User height, default 1.8 */
     this.userHeight = 1.8;
-    /** Server-side class name */
+    /** @type {string} Server-side class name */
     this.className = 'User';
-    /** true if the client has avatar */
+    /** @type {string|null} avatar picture url*/
+    this.picture = null;
   }
 }
 

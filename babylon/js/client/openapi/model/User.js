@@ -104,6 +104,12 @@ export class User {
          */
         this.video = undefined;
 
+        /** picture 
+         * URL of the file with avatar/profile picture
+         * @type {String} 
+         */
+        this.picture = undefined;
+
         /** rightArmRot 
          * @type {Quaternion} 
          */
@@ -141,17 +147,17 @@ export class User {
          */
         this.userHeight = undefined;
 
-        /** temporary 
-         * Temporary objects will be deleted from the database along with their owner
-         * @type {Boolean} 
-         */
-        this.temporary = undefined;
-
         /** properties 
          * Custom transient object properties
          * @type {Object.<String, Object>} 
          */
         this.properties = undefined;
+
+        /** temporary 
+         * Temporary objects will be deleted from the database along with their owner
+         * @type {Boolean} 
+         */
+        this.temporary = undefined;
         
         
         
@@ -217,6 +223,9 @@ export class User {
             if (data.hasOwnProperty('video')) {
                 obj['video'] = ApiClient.convertToType(data['video'], 'Boolean');
             }
+            if (data.hasOwnProperty('picture')) {
+                obj['picture'] = ApiClient.convertToType(data['picture'], 'String');
+            }
             if (data.hasOwnProperty('rightArmRot')) {
                 obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
             }
@@ -238,11 +247,11 @@ export class User {
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('temporary')) {
-                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
-            }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            }
+            if (data.hasOwnProperty('temporary')) {
+                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
             }
         }
         return obj;
@@ -291,6 +300,10 @@ export class User {
         // ensure the json data is a string
         if (data['name'] && !(typeof data['name'] === 'string' || data['name'] instanceof String)) {
             throw new Error("Expected the field `name` to be a primitive type in the JSON string but got " + data['name']);
+        }
+        // ensure the json data is a string
+        if (data['picture'] && !(typeof data['picture'] === 'string' || data['picture'] instanceof String)) {
+            throw new Error("Expected the field `picture` to be a primitive type in the JSON string but got " + data['picture']);
         }
         // validate the optional field `rightArmRot`
         if (data['rightArmRot']) { // data not null
