@@ -66,7 +66,8 @@ public class GroupManagerTest {
     List<Client> g1members = List.of(c1, c2, c3);
 
     when(groupRepo.listGroupClients(g1.getId())).thenReturn(g1members);
-    when(worldManager.get(any(ID.class))).thenAnswer(invocation -> clientCache.get(invocation.getArguments()[0]));
+    when(worldManager.getCachedClient(any(Client.class)))
+        .thenAnswer(invocation -> clientCache.get(((Client) invocation.getArguments()[0]).getObjectId()));
     when(groupRepo.findGroupMember(eq(g1.getId()), anyLong())).thenReturn(Optional.of(new GroupMember()));
     when(groupRepo.findGroupMember(eq(g1.getId()), eq(4L))).thenReturn(Optional.empty());
 

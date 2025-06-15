@@ -33,6 +33,7 @@ import User from './model/User';
 import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
 import VRObject from './model/VRObject';
+import Welcome from './model/Welcome';
 import World from './model/World';
 import WorldStatus from './model/WorldStatus';
 import DataApi from './api/DataApi';
@@ -203,6 +204,12 @@ export {
      * @property {VRObject}
      */
     VRObject,
+
+    /**
+     * The Welcome model constructor.
+     * @property {Welcome}
+     */
+    Welcome,
 
     /**
      * The World model constructor.

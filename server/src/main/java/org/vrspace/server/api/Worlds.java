@@ -1,6 +1,7 @@
 package org.vrspace.server.api;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +15,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
+import org.vrspace.server.dto.Welcome;
 import org.vrspace.server.dto.WorldStatus;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.World;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @Slf4j
 @RequestMapping(Worlds.PATH)
-public class Worlds extends ApiBase {
+public class Worlds extends ClientControllerBase {
   public static final String PATH = API_ROOT + "/worlds";
 
   @Autowired
@@ -159,5 +167,52 @@ public class Worlds extends ApiBase {
       log.info("World " + params.worldName + " updated by user " + userName + " token: " + world.getToken());
       return new ResponseEntity<>(world.getToken(), HttpStatus.OK);
     }
+  }
+
+  /**
+   * Enter a world, the client must be authenticated. REST equivalent of Enter
+   * command. This is only valid after the websocket connection has been
+   * established.
+   * 
+   * @param session   automatically passed by framework
+   * @param worldName Name of the world to enter
+   * @param token     Optional token required to enter private world
+   * @param async     If set, the Welcome answer is sent over the websocket, and
+   *                  this will return null
+   * @return Welcome message containing only publicly accessible Client attributes
+   */
+  @PostMapping("/enter")
+  @Operation(description = "Enter a world", operationId = "enterWorld", responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Welcome.class))))
+  // CHECKME: DTO or request params?
+  public String enterWorld(HttpSession session, String worldName, Optional<String> token, Optional<Boolean> async) {
+    String userName = currentUserName(session, clientFactory);
+    log.debug("Enter world " + worldName + ", user: " + userName);
+    if (userName == null) {
+      throw new SecurityException("User must be logged in");
+    }
+    Client user = manager.getClientByName(userName);
+    if (user == null) {
+      throw new SecurityException("Invalid user");
+    }
+    user = worldManager.getCachedClient(user);
+    if (user == null || !user.isActive()) {
+      throw new SecurityException("Client is not connected");
+    }
+    if (token.isPresent()) {
+      user.setToken(worldName, token.get());
+    }
+
+    Welcome welcome = manager.enter(user, worldName);
+    if (async.isPresent() && async.get()) {
+      // CHECKME this triggers client-side welcomeListeners
+      user.sendMessage(welcome);
+      return null;
+    }
+    try {
+      return user.getPrivateMapper().writeValueAsString(welcome);
+    } catch (JsonProcessingException e) {
+      log.error("This can not happen", e);
+    }
+    return null;
   }
 }

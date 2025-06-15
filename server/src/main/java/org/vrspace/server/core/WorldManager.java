@@ -253,6 +253,18 @@ public class WorldManager {
     return (Client) updateCache(ret);
   }
 
+  /**
+   * If the client is currently active, cached version of the client, otherwise
+   * null
+   */
+  public Client getCachedClient(Client c) {
+    Client cachedClient = (Client) get(c.getObjectId());
+    if (cachedClient != null && !cachedClient.isActive()) {
+      log.debug("Client is not active " + c);
+    }
+    return cachedClient;
+  }
+
   @SuppressWarnings("unchecked")
   public <T extends Client> T getClientByName(String name, Class<T> cls) {
     T ret = db.getClientByName(name, cls);

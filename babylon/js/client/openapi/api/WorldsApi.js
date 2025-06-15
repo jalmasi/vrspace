@@ -14,6 +14,7 @@
 
 import {ApiClient} from "../ApiClient.js";
 import { CreateWorldOptions } from '../model/CreateWorldOptions.js';
+import { Welcome } from '../model/Welcome.js';
 import { World } from '../model/World.js';
 import { WorldStatus } from '../model/WorldStatus.js';
 
@@ -78,6 +79,61 @@ export class WorldsApi {
      */
     createWorld(createWorldOptions) {
       return this.createWorldWithHttpInfo(createWorldOptions)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * Enter a world
+     * @param {String} worldName Name of the world to enter
+     * @param {Object} opts Optional parameters
+     * @param {String} [token] Optional token required to enter private world
+     * @param {Boolean} [async] If set, the Welcome answer is sent over the websocket, and                   this will return null
+     * @return {Promise< Welcome >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Welcome} and HTTP response
+     */
+    enterWorldWithHttpInfo(worldName, opts) {
+      opts = opts || {};
+      let postBody = null;
+      // verify the required parameter 'worldName' is set
+      if (worldName === undefined || worldName === null) {
+        throw new Error("Missing the required parameter 'worldName' when calling enterWorld");
+      }
+
+      let pathParams = {
+      };
+      let queryParams = {
+        'worldName': worldName,
+        'token': opts['token'],
+        'async': opts['async']
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = Welcome;
+      return this.apiClient.callApi(
+        '/vrspace/api/worlds/enter', 'POST',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Enter a world
+     * @param {String} worldName Name of the world to enter
+     * @param {Object} opts Optional parameters
+     * @param {String} opts.token Optional token required to enter private world
+     * @param {Boolean} opts.async If set, the Welcome answer is sent over the websocket, and                   this will return null
+     * @return {Promise< Welcome >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Welcome}
+     */
+    enterWorld(worldName, opts) {
+      return this.enterWorldWithHttpInfo(worldName, opts)
         .then(function(response_and_data) {
           return response_and_data.data;
         });

@@ -134,7 +134,7 @@ public class GroupManager {
     }
     GroupMember gm = new GroupMember(group, member).invite(owner);
     save(gm);
-    Client cachedClient = getCachedClient(member);
+    Client cachedClient = worldManager.getCachedClient(member);
     if (cachedClient != null) {
       // online client, forward message
       cachedClient.sendMessage(GroupEvent.invite(gm));
@@ -184,7 +184,7 @@ public class GroupManager {
     save(gm);
     // notify the owner(s)
     groupRepo.listGroupOwners(group.getId()).forEach(client -> {
-      Client cachedClient = getCachedClient(client);
+      Client cachedClient = worldManager.getCachedClient(client);
       if (cachedClient != null) {
         // online client, forward message
         cachedClient.sendMessage(GroupEvent.ask(gm));
@@ -224,7 +224,7 @@ public class GroupManager {
       }
       save(gm.allow(owner));
       // notify the client
-      Client cachedClient = getCachedClient(member);
+      Client cachedClient = worldManager.getCachedClient(member);
       if (cachedClient != null) {
         // online client, forward message
         cachedClient.sendMessage(GroupEvent.allow(gm));
@@ -358,7 +358,7 @@ public class GroupManager {
     groupRepo.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message
-      Client cachedClient = getCachedClient(client);
+      Client cachedClient = worldManager.getCachedClient(client);
       if (cachedClient != null) {
         // online client, forward message
         // FIXME this serializes the message all over again for each recipient
@@ -461,14 +461,6 @@ public class GroupManager {
     }
     // log.debug(client.getId() + " " + client.getPosition());
     return client;
-  }
-
-  private Client getCachedClient(Client c) {
-    Client cachedClient = (Client) worldManager.get(c.getObjectId());
-    if (cachedClient != null && !cachedClient.isActive()) {
-      log.debug("Client is not active " + c);
-    }
-    return cachedClient;
   }
 
   private void save(GroupMember gm) {
