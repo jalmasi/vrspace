@@ -55,7 +55,9 @@ Welcome message received from the server when entering a world.
  */
 export class Welcome {
   constructor() {
+    /** TODO classname first, e.g. client.User.fields */
     this.client = null;
+    /** @type {Array.<VRObject>} */
     this.permanents = [];
   }
 }
@@ -245,6 +247,10 @@ export class Client extends VRObject {
      * @type {boolean} 
      */
     this.hasAvatar = true;
+    /** avatar picture url
+     * @type {string|null} 
+     */
+    this.picture = null;
   }
   
   /** Handy function, returns name if not null, else class and id */
@@ -295,10 +301,6 @@ export class User extends Client {
      * @type {string} 
      */
     this.className = 'User';
-    /** avatar picture url
-     * @type {string|null} 
-     */
-    this.picture = null;
   }
 }
 

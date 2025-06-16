@@ -54,7 +54,7 @@ export class Avatar {
   }
 
   /** 
-  Set the name and display it above the avatar 
+  Set the name and display it above the avatar. The avatar needs to be displayed first.
   @param name 
   */
   async setName(name) {

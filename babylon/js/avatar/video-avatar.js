@@ -251,5 +251,14 @@ export class VideoAvatar extends Avatar {
   async emoji(client, direction=3) {
     super.emoji(client, -direction);
   }
+  
+  setName(name) {
+    super.setName(name);
+    if ( name ) {
+      this.altText = name;      
+    } else {
+      this.altText = "N/A";
+    }
+  }
     
 }

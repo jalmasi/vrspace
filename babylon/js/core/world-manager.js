@@ -1,5 +1,6 @@
-import { Client, VRSPACE } from '../client/vrspace.js';
+import { Client, VRSPACE, Welcome } from '../client/vrspace.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
+import { Avatar } from '../avatar/avatar.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
 import { MeshAvatar } from '../avatar/mesh-avatar.js';
@@ -173,7 +174,7 @@ export class WorldManager {
   If an object was added, calls either loadAvatar, loadStream or loadMesh, as appropriate.
   If an object was removed, calls removeObject.
   Any WorldListeners on the world are notified after changes are performed, by calling added and removed methods.
-  @param e SceneEvent containing the change
+  @param {SceneEvent} e SceneEvent containing the change
   */
   sceneChanged(e) {
     if (e.added != null) {
@@ -227,26 +228,34 @@ export class WorldManager {
     }
   }
 
-  /** Default video avatar factory method */
+  /** 
+   * Default video avatar factory method
+   * @param {Client} obj 
+   */
   createAvatar(obj) {
-    return new VideoAvatar(this.scene, null, this.customOptions);
+    let avatar = new VideoAvatar(this.scene, null, this.customOptions);
+    avatar.autoStart = false;
+    avatar.autoAttach = false;
+    if (obj.picture) {
+      avatar.altImage = obj.picture;
+    }
+    avatar.show();
+    if (obj.name) {
+      avatar.setName(obj.name);
+    } else {
+      avatar.setName("u" + obj.id);
+    }
+    return avatar;
   }
 
   /**
   Load a video avatar, attach a listener to it.
+  @param {Client} obj 
    */
   loadStream(obj) {
     this.log("loading stream for " + obj.id);
 
     var video = this.avatarFactory(obj);
-    video.autoStart = false;
-    video.autoAttach = false;
-    if (obj.name) {
-      video.altText = obj.name;
-    } else {
-      video.altText = "u" + obj.id;
-    }
-    video.show();
     video.mesh.name = obj.mesh;
     // obfuscators get in the way 
     //video.mesh.id = obj.constructor.name+" "+obj.id;
@@ -295,9 +304,9 @@ export class WorldManager {
 
   /**
    * Quick enter, with avatar url and optionally user name.
-   * @param avatarUrl URL to load avatar from
-   * @param userName login name of the user
-   * @returns own Avatar instance
+   * @param {string} avatarUrl URL to load avatar from
+   * @param {string} userName login name of the user
+   * @returns {Avatar} own Avatar instance
    */
   async enterWith(avatarUrl, userName) {
     let avatar = await this.createAvatarFromUrl(avatarUrl);
@@ -310,6 +319,8 @@ export class WorldManager {
    * Enter the world as avatar.
    * Creates propererties by taking user name, height and avatar url from given Avatar,
    * then calls enter( properties ).
+   * @param {Avatar} avatar User's avatar
+   * @return {Promise<Welcome>} promise resolved after enter
    */
   async enterAs(avatar) {
     let myProperties = {
@@ -847,8 +858,8 @@ export class WorldManager {
   Enter the world specified by world.name. If not already connected, 
   first connect to world.serverUrl and set own properties, then start the session.
   World and WorldListeners are notified by calling entered methods. 
-  @param properties own properties to set before starting the session
-  @return Welcome promise
+  @param {Object} properties own properties to set before starting the session
+  @return {Promise<Welcome>} promise resolved after enter
    */
   async enter(properties) {
     VRSPACE.addErrorListener((e) => {

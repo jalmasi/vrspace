@@ -55,6 +55,10 @@ export class AvatarSelection extends World {
     this.tokens = {};
     this.serviceWorker = "./serviceworker.js";
     this.autoEnter = null;
+    /** @type {HumanoidAvatar} */
+    this.character = null;
+    /** @type {VideoAvatar} */
+    this.video = null;
   }
 
   async createSkyBox() {
@@ -765,7 +769,7 @@ export class AvatarSelection extends World {
         this.worldManager.remoteLogging = false;
 
         this.worldManager.mediaStreams = OpenViduStreams.getInstance(this.scene, 'videos');
-        this.worldManager.mediaStreams.debug = true;
+        this.worldManager.mediaStreams.debug = false;
         let avatar = this.video;
         if (this.character) {
           // character is null for e.g. video avatar
@@ -783,6 +787,9 @@ export class AvatarSelection extends World {
             this.worldManager.trackCamera(this.xrHelper.camera());
             this.xrHelper.startTracking();
             this.xrHelper.enableBackground(false);
+          }
+          if ( this.video ) {
+            this.video.altImage = welcome.client.User.picture;
           }
 
           let controller = new AvatarController(this.worldManager, avatar);
