@@ -182,10 +182,11 @@ export class WorldManager {
       this.log(e);
 
       if (typeof e.added.hasAvatar != 'undefined' && e.added.hasAvatar) {
-        if (e.added.humanoid) {
-          this.loadAvatar(e.added);
-        } else if (e.added.video) {
+        // CHECKME: order matters, but consequence of this order is that humanoid avatar can't have video
+        if (e.added.video) {
           this.loadStream(e.added);
+        } else if (e.added.humanoid) {
+          this.loadAvatar(e.added);
         } else {
           this.loadMeshAvatar(e.added);
         }
@@ -671,8 +672,8 @@ export class WorldManager {
 
   /** Called when applying changes other than rotation and translation:
   executes a method if such a method exists, passing it a current instance of associated VRObject.
-  @param obj VRObject to apply change to
-  @param field member field to set or method to execute 
+  @param {VRObject} obj VRObject to apply change to
+  @param {*} field member field to set or method to execute 
    */
   routeEvent(obj, field, node) {
     var object = obj;

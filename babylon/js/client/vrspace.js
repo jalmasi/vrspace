@@ -698,7 +698,7 @@ export class VRSpace {
   /**
   Connect to the server, attach connection listeners and data listeners to the websocket.
   @param {string} [url] optional websocket url, defaults to /vrspace/client on the same server
-  @returns promise resolved once the connection is successful
+  @returns {Promise} promise resolved once the connection is successful
    */
   connect(url) {
     if ( ! url ) {
@@ -906,6 +906,16 @@ export class VRSpace {
 
 
   /**
+  Send a command to the server
+  @param {string} command to execute
+   */
+  async callCommandAsync( command ) {
+    return this.callAsync('{"command":{"'+command+'":{}}}');
+  }
+
+
+
+  /**
    * Set a client token e.g. required to enter a world
    * @param {string} name token name
    * @param {string} value token value
@@ -949,6 +959,13 @@ export class VRSpace {
     });
   }
 
+  /**
+   * Start the session: sends Session command to the server
+   * @returns {Promise} resolves when server responds 
+   */
+  async sessionStart() {
+    return this.callCommandAsync("Session");
+  }
   
   /**
   Send changes to an object
@@ -1030,12 +1047,21 @@ export class VRSpace {
   
   /**
   Perform a synchronous call.
-  @param message JSON string to send
-  @param callback function to execute upon receiving the response
+  @param {string} message JSON string to send
+  @param {*} callback function to execute upon receiving the response
    */
   call( message, callback ) {
     this.responseListener = callback;
     this.send(message);
+  }
+  
+  /**
+   * Perfom a synchronous call.
+   * @param {string} message JSON string to send
+   * @returns {Promise} resolves with response from the server
+   */
+  callAsync(message) {
+    return new Promise((resolve,reject)=>this.call(message, (response)=>resolve(response)));
   }
   
   /** 
