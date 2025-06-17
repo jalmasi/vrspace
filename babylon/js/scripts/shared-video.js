@@ -2,7 +2,7 @@ import { SharedFile } from "./shared-file.js";
 import { ImageArea } from "../ui/widget/image-area.js";
 
 export class SharedVideo extends SharedFile {
-  init() {
+  async init() {
     console.log("Remote video", this.vrObject);
 
     this.imageArea = new ImageArea(this.scene, this.vrObject.content.fileName);

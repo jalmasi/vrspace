@@ -4,7 +4,7 @@ import { Label } from "../ui/widget/label.js";
 import { VRSPACE } from "../client/vrspace.js";
 
 export class SharedFile extends BasicScript {
-  init() {
+  async init() {
     this.imageArea = new ImageArea(this.scene, this.vrObject.content.fileName);
     this.imageArea.addHandles = false;
     let pos = this.vrObject.position;

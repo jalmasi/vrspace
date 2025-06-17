@@ -3,12 +3,18 @@ Object ID, consisting of class name and number.
  */
 export class ID {
   constructor(className,id) {
-    /** Class name */
+    /** Class name 
+     * @type {string}
+     */
     this.className = className;
-    /** Identifier (number) */
+    /** Identifier (number) 
+     * @type {number}
+     */
     this.id = id;
   }
-  /** class name + ' ' + id */
+  /** class name + ' ' + id 
+   * @returns {string}
+   */
   toString() {
     return this.className+" "+this.id;
   }
@@ -106,8 +112,10 @@ export class VRObject {
      * @type {string|null} 
      */
     this.script = null;
-    /** Custom properties of an object - shared transient object*/
-    this.properties = null; 
+    /** Custom properties of an object - shared transient object
+     * @type {Object}
+     */
+    this.properties = null;
     //this.children = []; // CHECKME
     /** Event listeners. Typically world manager listens to changes, and moves objects around. */
     this.listeners = [];
@@ -412,15 +420,25 @@ An object is either added or removed, the other value is null.
  */
 export class SceneEvent {
   constructor(scene,className,objectId,added,removed) {
-    /** Class name of object added/removed */
+    /** Class name of object added/removed 
+     * @type {string}
+     */
     this.className = className;
-    /** Id of added/removed object */
+    /** Id of added/removed object 
+     * @type {ID}
+    */
     this.objectId = objectId;
-    /** Added object */
+    /** Added object
+     * @type {VRObject|null}
+     */
     this.added = added;
-    /** Removed object */
+    /** Removed object
+     * @type {VRObject|null}
+     */
     this.removed = removed;
-    /** New scene */
+    /** New scene
+     * @type {Map<String, Object>}
+     */
     this.scene = scene;
   }
 }
@@ -514,7 +532,9 @@ export class VRSpace {
      * @type {User} 
      */
     this.me = null;
-    /** Map containing all objects in the scene */
+    /** Map containing all objects in the scene
+     * @type {Map<String, VRObject>}
+     */
     this.scene = new Map();
     /** Debug logging, default false */
     this.debug = false;
@@ -871,8 +891,8 @@ export class VRSpace {
   }
   /** 
   Send notification of own property changes
-  @param field name of member variable that has changed
-  @param value new field value
+  @param {string} field name of member variable that has changed
+  @param {*} value new field value
    */
   sendMy(field,value) {
     if ( this.me != null) {
@@ -884,8 +904,8 @@ export class VRSpace {
   
   /**
   Send a command to the server
-  @param command to execute
-  @param args optional object with command arguments
+  @param {string} command to execute
+  @param {Object} args optional object with command arguments
    */
   sendCommand( command, args ) {
     if ( args ) {
@@ -991,8 +1011,8 @@ export class VRSpace {
 
   /**
   Send changes to an object
-  @param obj VRObject that changes
-  @param changes object containing changed fields
+  @param {VRObject} obj VRObject that changes
+  @param {Object} changes object containing changed fields
    */
   sendEvent(obj, changes) {
     if ( ! changes || changes.length == 0 ) {
@@ -1025,7 +1045,7 @@ export class VRSpace {
 
   /**
   Send changes to own avatar
-  @param changes object containing changed field(s)
+  @param {Object} changes object containing changed fields
    */
   sendMyEvent(changes) {
     if ( this.me != null) {

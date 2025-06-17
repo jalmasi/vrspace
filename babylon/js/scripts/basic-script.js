@@ -19,7 +19,7 @@ export class BasicScript {
   /**
   Supposed to create a visible object and return root node
    */
-  init() {
+  async init() {
     return null;
   }
 

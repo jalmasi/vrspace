@@ -546,7 +546,7 @@ export class WorldManager {
    * See basic-script.js and web-portal.js.
    */
   loadScript(obj) {
-    import(obj.script).then(module => {
+    import(obj.script).then(async module => {
       console.log(module);
       let className = Object.keys(module)[0];
       console.log("TODO: loading script " + className);
@@ -556,7 +556,7 @@ export class WorldManager {
 
       this.notifyLoadListeners(obj, instance);
 
-      var node = instance.init();
+      var node = await instance.init();
       if (node) {
         node.VRObject = obj;
         if (obj.active) {
