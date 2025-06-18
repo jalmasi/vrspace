@@ -21,14 +21,34 @@ export class ID {
 }
 
 /**
-Rotation, FIXME: not used
+ * Rotation
+ * @typedef {Object} Rotation
+ * @prop {number} [x=0]
+ * @prop {number} [y=1]
+ * @prop {number} [z=0]
  */
 export class Rotation {
   constructor(){
     this.x=0;
     this.y=1;
     this.z=0;
-    this.angle=0;
+  }
+}
+
+/**
+ * Quaternion
+ * @typedef {Object} Quaternion
+ * @prop {number|null} [x]
+ * @prop {number|null} [y]
+ * @prop {number|null} [z]
+ * @prop {number|null} [w]
+ */
+export class Quaternion {
+  constructor(){
+    this.x=null;
+    this.y=null;
+    this.z=null;
+    this.w=null;
   }
 }
 
@@ -70,7 +90,7 @@ export class Welcome {
 /**
 Basic VRObject, has the same properties as server counterpart.
  */
-export class VRObject {
+export class VRObject extends ID {
   constructor() {
     /** Id, equal on server and all instances
      * @type {number} 
@@ -294,11 +314,11 @@ export class User extends Client {
      */
     this.rightArmPos = { x: null, y: null, z: null };
     /** Left arm rotation, quaternion
-     * @type {Rotation} 
+     * @type {Quaternion} 
      */
     this.leftArmRot = { x: null, y: null, z: null, w: null };
     /** Right arm rotation, quaternion
-     * @type {Rotation} 
+     * @type {Quaternion} 
      */
     this.rightArmRot = { x: null, y: null, z: null, w: null };
     /** User height, default 1.8
@@ -827,12 +847,14 @@ export class VRSpace {
 
   /**
   Common code for createSharedObject and createScriptedObject
-  @param command either Add or Share
-  @param obj the new VRObject, containing all properties
-  @param className optional class name to create, defaults to obj.className if exists, otherwise VRObject
+  @param {string} command either Add or Share
+  @param {VRObject} obj the new VRObject, containing all properties
+  @param {string} className optional class name to create, defaults to obj.className if exists, otherwise VRObject
+  @param {boolean} [temporary] create temporary object 
   @returns Promise with the created VRObject instance
+  @private
    */
-  async _createSharedObject( command, obj, className ) {
+  async _createSharedObject( command, obj, className, temporary ) {
     if ( ! className ) {
       if ( obj.className ) {
         className = obj.className;
@@ -858,7 +880,7 @@ export class VRSpace {
 
   /**
   Share an object.
-  @param obj the new VRObject, containing all properties
+  @param {VRObject} obj the new VRObject, containing all properties
   @param {string|undefined} [className] optional class name to create, defaults to obj.className if exists, otherwise VRObject
   @returns {Promise<VRObject>} Promise with the created VRObject instance
    */
@@ -869,17 +891,17 @@ export class VRSpace {
   /**
   Create a shared scripted object. 
   The server determines which scripts are allowed, so this sends different command than createSharedObject.
-  @param obj the new VRObject, containing all properties
+  @param {VRObject} obj the new VRObject, containing all properties
   @param {string|undefined} [className] optional class name to create, defaults to obj.className if exists, otherwise VRObject
   @returns {Promise<VRObject>} Promise with the created VRObject instance
    */
   async createScriptedObject( obj, className ) {
-    return this._createSharedObject("Share", obj, className);
+    return this._createSharedObject("Share", obj, className, true);
   }
   
   /**
   Delete a shared object.
-  @param obj to be removed from the server
+  @param {ID} obj to be removed from the server
   @param {*} [callback] optional, called after removal from the server
    */
   deleteSharedObject( obj, callback ) {
@@ -1011,7 +1033,7 @@ export class VRSpace {
 
   /**
   Send changes to an object
-  @param {VRObject} obj VRObject that changes
+  @param {ID} obj VRObject that changes
   @param {Object} changes object containing changed fields
    */
   sendEvent(obj, changes) {
