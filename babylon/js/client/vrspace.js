@@ -92,6 +92,7 @@ Basic VRObject, has the same properties as server counterpart.
  */
 export class VRObject extends ID {
   constructor() {
+    super();
     /** Id, equal on server and all instances
      * @type {number} 
      */
