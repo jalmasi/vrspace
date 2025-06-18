@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -491,4 +492,21 @@ public class SessionManagerIT {
     assertEquals(world.getId(), client.getWorldId());
   }
 
+  @Test
+  @Transactional
+  public void testCleanupOnExit() throws Exception {
+    login();
+    startSession();
+
+    String add = "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"temporary\":true,\"position\":{\"x\":3,\"y\":2,\"z\":1}}}, {\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}}]}}}";
+    sendMessage(add);
+
+    verify(session, times(4)).sendMessage(any(TextMessage.class));
+
+    long beforeClose = repo.count();
+    sessionManager.afterConnectionClosed(session, CloseStatus.NORMAL);
+    long afterClose = repo.count();
+    // removed ownership, object and position
+    assertEquals(beforeClose - 3, afterClose);
+  }
 }
