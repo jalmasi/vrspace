@@ -501,7 +501,13 @@ export class OpenViduStreams extends MediaStreams {
    */
   stopSharingScreen() {
     if ( this.screenPublisher ) {
-      this.screenSession.unpublish(this.screenPublisher);
+      // FIXME: The associated Connection object of this Publisher is null
+      // happens when shared window is closed?
+      try {
+        this.screenSession.unpublish(this.screenPublisher);
+      } catch ( error ) {
+        console.error(error);
+      }
       this.screenPublisher = null;
     }
   }
