@@ -6,7 +6,7 @@
   <groupId>org.vrspace</groupId>
   <artifactId>server</artifactId>
   <name>server</name>
-  <version>0.8.2-SNAPSHOT</version>
+  <version>0.8.2</version>
   <description>VRSpace.org server</description>
   <url>https://github.com/jalmasi/vrspace</url>
 
