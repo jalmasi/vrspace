@@ -753,6 +753,9 @@ export class VRSpace {
         resolve();
       }
       this.ws.onclose = () => {
+        // TODO handle websocket error codes, reconnect if possible
+        // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/close_event
+        // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
         this.connectionListeners.forEach((listener)=>listener(false));
       }
       this.ws.onmessage = (data) => {
