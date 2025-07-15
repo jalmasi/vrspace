@@ -85,6 +85,7 @@ export class MediaStreams {
   async connect(token) {
     await this.init((subscriber, playing) => this.streamingStart(subscriber, playing));
     // FIXME: this may throw (or just log?) this.connection is undefined
+    // seems to be caused by participantEvicted event
     return this.session.connect(this.parseToken(token));
   }
 

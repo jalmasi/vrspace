@@ -1172,7 +1172,7 @@ export class VRSpace {
         console.error("ERROR: unknown message type", message);
       }
     } catch (exception) {
-      console.error("ERROR processing message ", message, exception);
+      console.error("ERROR processing message "+message, exception);
     }
   }
 

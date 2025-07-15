@@ -1,13 +1,12 @@
 import { Client, VRSPACE, Welcome } from '../client/vrspace.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Avatar } from '../avatar/avatar.js';
-import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
-import { VideoAvatar } from '../avatar/video-avatar.js';
-import { MeshAvatar } from '../avatar/mesh-avatar.js';
-import { BotController } from '../avatar/bot-controller.js';
 import { World } from '../world/world.js'
 import { CameraHelper } from './camera-helper.js';
 import { MediaStreams } from './media-streams.js';
+import { AvatarLoader } from './avatar-loader.js';
+import { SceneEvent } from '../client/vrspace.js';
+import { EventRouter } from './event-router.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -15,7 +14,7 @@ and tracks network events and applies them to local scene.
 Loads avatars of other users and maps network events to their avatars, 
 including user video and audio streams.
  */
-export class WorldManager {
+export class WorldManager extends EventRouter {
   /** Current WorldManager instance @type {WorldManager} */
   static instance = null;
   /** Creates world manager with default values and connection, scene, camera listeners.
@@ -23,6 +22,7 @@ export class WorldManager {
   @param fps network framerate, default 5 (send up to 5 events per second)
    */
   constructor(world, fps) {
+    super();
     if (WorldManager.instance) {
       throw "WorldManager already created";
     }
@@ -48,8 +48,6 @@ export class WorldManager {
     this.mediaStreams = null;
     /** Listeners notified after own avatar property (e.g. position) has changed and published */
     this.myChangeListeners = []
-    /** Change listeners receive changes applied to all shared objects */
-    this.changeListeners = [];
     /** Optionally called after an avatar has loaded. Callback is passed VRObject and avatar object as parameters.
      * Avatar object can be either Avatar or VideoAvatar instance, or an AssetContainer.
      * TODO this needs to go away, but is used in WorldEditor.
@@ -59,12 +57,8 @@ export class WorldManager {
      * TODO used in WorldEditor, replace with WorldListener
      */
     this.loadErrorHandler = null;
-    /** Avatar factory, default this.createAvatar */
-    this.avatarFactory = this.createAvatar;
-    /** Default position applied after an avatar loads */
-    this.defaultPosition = new BABYLON.Vector3(1000, 1000, 1000);
-    /** Default rotation applied after an avatar loads */
-    this.defaultRotation = new BABYLON.Vector3(0, 0, 0);
+    /** Avatar loader */
+    this.avatarLoader = new AvatarLoader(this.scene, (obj, avatar) => this.notifyLoadListeners(obj, avatar));
     /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
      * Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
      */
@@ -74,7 +68,7 @@ export class WorldManager {
     } else {
       this.trackCamera();
     }
-    CameraHelper.getInstance(this.scene).addCameraListener(()=>this.trackCamera());
+    CameraHelper.getInstance(this.scene).addCameraListener(() => this.trackCamera());
     this.VRSPACE = VRSPACE;
     /** Network frames per second, default 5 */
     this.fps = 5;
@@ -121,14 +115,9 @@ export class WorldManager {
       this.mediaStreams.connect(user.tokens.OpenViduMain).then(() => this.mediaStreams.publish());
     }
     // we may need to pause/unpause audio publishing during speech input
+    // TODO figure out how to use instance
     VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
-  }
-
-  /** Optionally log something */
-  log(what) {
-    if (this.debug) {
-      console.log(what);
-    }
+    this.avatarLoader.mediaStreams = this.mediaStreams;
   }
 
   /** Track a mesh, used in 3rd person view */
@@ -171,7 +160,7 @@ export class WorldManager {
   }
 
   /** Called when scene has changed (scene listener). 
-  If an object was added, calls either loadAvatar, loadStream or loadMesh, as appropriate.
+  If an object was added, calls appropriate loader method.
   If an object was removed, calls removeObject.
   Any WorldListeners on the world are notified after changes are performed, by calling added and removed methods.
   @param {SceneEvent} e SceneEvent containing the change
@@ -182,16 +171,9 @@ export class WorldManager {
       this.log(e);
 
       if (typeof e.added.hasAvatar != 'undefined' && e.added.hasAvatar) {
-        // CHECKME: order matters, but consequence of this order is that humanoid avatar can't have video
-        if (e.added.video) {
-          this.loadStream(e.added);
-        } else if (e.added.humanoid) {
-          this.loadAvatar(e.added);
-        } else {
-          this.loadMeshAvatar(e.added);
-        }
+        this.avatarLoader.load(e.added);
       } else if (e.added.mesh) {
-        this.loadMesh(e.added);
+        this.avatarLoader.loadMesh(e.added);
       } else if (e.added.script) {
         this.loadScript(e.added);
       } else {
@@ -229,80 +211,6 @@ export class WorldManager {
     }
   }
 
-  /** 
-   * Default video avatar factory method
-   * @param {Client} obj 
-   */
-  createAvatar(obj) {
-    let avatar = new VideoAvatar(this.scene, null, this.customOptions);
-    avatar.autoStart = false;
-    avatar.autoAttach = false;
-    if (obj.picture) {
-      avatar.altImage = obj.picture;
-    }
-    avatar.show();
-    if (obj.name) {
-      avatar.setName(obj.name);
-    } else {
-      avatar.setName("u" + obj.id);
-    }
-    return avatar;
-  }
-
-  /**
-  Load a video avatar, attach a listener to it.
-  @param {Client} obj 
-   */
-  loadStream(obj) {
-    this.log("loading stream for " + obj.id);
-
-    var video = this.avatarFactory(obj);
-    video.mesh.name = obj.mesh;
-    // obfuscators get in the way 
-    //video.mesh.id = obj.constructor.name+" "+obj.id;
-    video.mesh.id = obj.className + " " + obj.id;
-    obj.avatar = video;
-
-    var parent = new BABYLON.TransformNode("Root of " + video.mesh.id, this.scene);
-    video.mesh.parent = parent;
-    parent.VRObject = obj;
-    parent.avatar = video; // CHECKME
-
-    this.log("Added stream " + obj.id);
-
-    if (obj.position.x == 0 && obj.position.y == 0 && obj.position.z == 0) {
-      // avatar position has not yet been initialized, use default
-      parent.position = new BABYLON.Vector3(this.defaultPosition.x, this.defaultPosition.y, this.defaultPosition.z);
-      obj.position = this.defaultPosition;
-      var initialPosition = { position: {} };
-      this.changeObject(obj, initialPosition, parent);
-    } else {
-      // apply known position
-      parent.position = new BABYLON.Vector3(obj.position.x, obj.position.y, obj.position.z)
-    }
-
-    if (obj.rotation) {
-      if (obj.rotation.x == 0 && obj.rotation.y == 0 && obj.rotation.z == 0) {
-        // avatar rotation has not yet been initialized, use default
-        parent.rotation = new BABYLON.Vector3(this.defaultRotation.x, this.defaultRotation.y, this.defaultRotation.z);
-        obj.rotation = this.defaultRotation;
-        var initialRotation = { rotation: {} };
-        this.changeObject(obj, initialRotation, parent);
-      } else {
-        // apply known rotation
-        parent.rotation = new BABYLON.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z)
-      }
-    }
-
-    obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));
-    if (this.mediaStreams) {
-      this.mediaStreams.streamToMesh(obj, video.mesh);
-    } else {
-      console.log("WARNING: unable to stream to " + obj.id + " - no MediaStreams")
-    }
-    this.notifyLoadListeners(obj, video);
-  }
-
   /**
    * Quick enter, with avatar url and optionally user name.
    * @param {string} avatarUrl URL to load avatar from
@@ -310,7 +218,7 @@ export class WorldManager {
    * @returns {Avatar} own Avatar instance
    */
   async enterWith(avatarUrl, userName) {
-    let avatar = await this.createAvatarFromUrl(avatarUrl);
+    let avatar = await this.avatarLoader.createAvatarFromUrl(avatarUrl);
     avatar.name = userName;
     await this.enterAs(avatar);
     return avatar;
@@ -337,65 +245,11 @@ export class WorldManager {
   }
 
   /**
-   * Creates new Avatar instance from the URL
-   * @param url URL to load avatar from 
+   * Internal used to notify load listeners: loadCallback, object load listeners, world load listeners
+   * @private
+   * @param {Client} obj
+   * @param {Avatar} avatar  
    */
-  async createAvatarFromUrl(url) {
-    let avatar = await HumanoidAvatar.createFromUrl(this.scene, url);
-    avatar.animations = this.customAnimations;
-    avatar.fps = this.fps;
-    avatar.generateAnimations = this.createAnimations;
-    // GLTF characters are facing the user when loaded, turn it around
-    // this doesn't do anything for cloned characters, affects only first one that loads
-    avatar.turnAround = true;
-
-    //avatar.debug = false; // or this.debug?
-    return avatar;
-  }
-
-  /** 
-   * Load a 3D avatar, attach a listener to it
-   * @param obj VRObject that represents the user 
-   */
-  async loadAvatar(obj) {
-    this.log("loading avatar " + obj.mesh);
-    let avatar = await this.createAvatarFromUrl(obj.mesh);
-    avatar.userHeight = obj.userHeight;
-    avatar.load((avatar) => {
-      obj.avatar = avatar;
-      obj.instantiatedEntries = avatar.instantiatedEntries;
-      avatar.VRObject = obj;
-      avatar.parentMesh.VRObject = obj;
-      // apply current name, position and rotation
-      this.changeAvatar(obj, { name: obj.name, position: obj.position });
-      if (obj.rotation) {
-        // FIXME rotation can be null sometimes (offline users?)
-        this.changeAvatar(obj, { rotation: obj.rotation });
-      }
-      // TODO also apply other non-null properties here
-      if (obj.animation) {
-        this.changeAvatar(obj, { animation: obj.animation });
-      }
-      // add listener to process changes
-      obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
-      // subscribe to media stream here if available
-      if (this.mediaStreams) {
-        this.mediaStreams.streamToMesh(obj, obj.avatar.baseMesh());
-      }
-      if (obj.className.indexOf("Bot") >= 0) {
-        console.log("Bot loaded");
-        // TODO bot controller
-        obj.avatarController = new BotController(this, avatar);
-      }
-      this.notifyLoadListeners(obj, avatar);
-    }, (error) => {
-      // FIXME - this fallback is not safe when loading multiple instances at once
-      console.log("Failed to load humanoid avatar, loading as mesh", error);
-      obj.humanoid = false;
-      this.loadMeshAvatar(obj);
-    });
-  }
-
   notifyLoadListeners(obj, avatar) {
     if (this.loadCallback) {
       this.loadCallback(obj, avatar);
@@ -413,58 +267,6 @@ export class WorldManager {
     });
   }
 
-  /** Apply remote changes to an avatar (VRObject listener) */
-  changeAvatar(obj, changes) {
-    this.log('Processing changes on avatar');
-    this.log(changes);
-    var avatar = obj.avatar;
-    for (var field in changes) {
-      var node = avatar.baseMesh();
-      // TODO introduce event handler functions in Avatar class, use only routeEvent here
-      if ('position' === field) {
-        if (!obj.translate) {
-          obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
-        }
-        VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
-      } else if ('rotation' === field) {
-        if (!obj.rotate) {
-          obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
-        }
-        VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);
-      } else if ('animation' === field) {
-        avatar.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speed);
-      } else if ('leftArmPos' === field) {
-        var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
-        avatar.reachFor(avatar.body.rightArm, pos);
-      } else if ('rightArmPos' === field) {
-        var pos = new BABYLON.Vector3(obj.rightArmPos.x, obj.rightArmPos.y, obj.rightArmPos.z);
-        avatar.reachFor(avatar.body.leftArm, pos);
-      } else if ('leftArmRot' === field) {
-        avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
-      } else if ('rightArmRot' === field) {
-        avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
-      } else if ('name' === field) {
-        avatar.setName(obj.name);
-      } else if ('userHeight' === field) {
-        avatar.trackHeight(obj.userHeight);
-      } else {
-        this.routeEvent(obj, field, node);
-      }
-      this.notifyListeners(obj, field, node);
-    }
-  }
-
-  /** Notify listeners of remote changes */
-  notifyListeners(obj, field, node) {
-    this.changeListeners.forEach((l) => {
-      try {
-        l(obj, field, node)
-      } catch (e) {
-        console.error(e);
-      }
-    });
-  }
-
   /** Add a listener to own events */
   addMyChangeListener(listener) {
     VRSPACE.addListener(this.myChangeListeners, listener);
@@ -473,72 +275,6 @@ export class WorldManager {
   /** Remove listener to own events */
   removeMyChangeListener(listener) {
     VRSPACE.removeListener(this.myChangeListeners, listener);
-  }
-
-  /** Add a listener to remote events */
-  addChangeListener(listener) {
-    VRSPACE.addListener(this.changeListeners, listener);
-  }
-
-  /** Remove listener to remote events */
-  removeChangeListener(listener) {
-    VRSPACE.removeListener(this.changeListeners, listener);
-  }
-
-  /** Any 3d object can be an avatar */
-  loadMeshAvatar(obj) {
-    let avatar = new MeshAvatar(this.scene, obj);
-    this.loadMesh(obj, mesh => {
-      avatar.mesh = mesh;
-      obj.avatar = avatar;
-      mesh.avatar = avatar;
-      var bbox = avatar.baseMesh().getHierarchyBoundingVectors();
-      this.log("Bounding box:");
-      this.log(bbox);
-      avatar.userHeight = bbox.max.y - bbox.min.y;
-      avatar.setName(obj.name);
-    });
-  }
-  /**
-  Load an object and attach a listener.
-   */
-  async loadMesh(obj, callback) {
-    this.log("Loading object " + obj.mesh);
-    if (!obj.mesh) {
-      console.log("Null mesh of client " + obj.id);
-      return;
-    }
-    // CHECKME: do this in AssetLoader?
-    if (obj.mesh.startsWith('/') && VRSPACEUI.contentBase) {
-      obj.mesh = VRSPACEUI.contentBase + obj.mesh;
-    }
-    VRSPACEUI.assetLoader.loadObject(obj, (mesh) => {
-      this.log("loaded " + obj.mesh);
-      mesh.VRObject = obj;
-
-      var initialPosition = { position: {} };
-      this.changeObject(obj, initialPosition);
-      if (obj.scale) {
-        this.changeObject(obj, { scale: { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z } });
-      }
-      if (obj.rotation) {
-        // CHECKME: quaternion?
-        this.changeObject(obj, { rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } });
-      }
-
-      // add listener to process changes - active objects only
-      if (obj.active) {
-        obj.addListener((obj, changes) => this.changeObject(obj, changes));
-        // subscribe to media stream here if available
-        if (this.mediaStreams) {
-          this.mediaStreams.streamToMesh(obj, mesh);
-        }
-      }
-      this.notifyLoadListeners(obj, mesh);
-      if (callback) {
-        callback(mesh);
-      }
-    }, this.loadErrorHandler);
   }
 
   /**
@@ -639,62 +375,6 @@ export class WorldManager {
       return obj.instantiatedEntries.rootNodes[0];
     }
     console.log("ERROR: unknown root for " + obj);
-  }
-
-  /** Apply remote changes to an object. */
-  changeObject(obj, changes, node) {
-    this.log("Changes on " + obj.id + ": " + JSON.stringify(changes));
-    if (!node) {
-      node = this.getRootNode(obj);
-    }
-    for (var field in changes) {
-      if ('position' === field) {
-        if (!obj.translate) {
-          obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
-        }
-        VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
-      } else if ('rotation' === field) {
-        if (!obj.rotate) {
-          obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
-        }
-        VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
-      } else if ('scale' === field) {
-        if (!obj.rescale) {
-          obj.rescale = VRSPACEUI.createAnimation(node, "scaling", this.fps);
-        }
-        VRSPACEUI.updateAnimation(obj.rescale, node.scaling, obj.scale);
-      } else {
-        this.routeEvent(obj, field, node);
-      }
-      this.notifyListeners(obj, field, node);
-    }
-  }
-
-  /** Called when applying changes other than rotation and translation:
-  executes a method if such a method exists, passing it a current instance of associated VRObject.
-  @param {VRObject} obj VRObject to apply change to
-  @param {*} field member field to set or method to execute 
-   */
-  routeEvent(obj, field, node) {
-    var object = obj;
-    if (obj.avatar) {
-      object = obj.avatar;
-    } else if (obj.container) {
-      object = obj.container;
-    } else if (obj.instantiatedEntries) {
-      object = obj.instantiatedEntries;
-    } else {
-      //this.log("Ignoring unknown event "+field+" to object "+obj.id);
-      return;
-    }
-    if (typeof object[field] === 'function') {
-      object[field](obj);
-    } else if (typeof obj[field + 'Changed'] === 'function') {
-      obj[field + 'Changed'](obj);
-      //} else if (object.hasOwnProperty(field)) {
-    } else {
-      //console.log("Ignoring unknown event to "+obj+": "+field);
-    }
   }
 
   /** 
