@@ -1,20 +1,21 @@
 import { VRSPACE } from '../client/vrspace.js';
 import { VRObject } from '../client/vrspace.js';
+import { VRSPACEUI } from '../ui/vrspace-ui.js';
 
 /**
- * Base event routing class
+ * Base event routing class.
  */
 export class EventRouter {
+  static changeListeners = [];
   constructor() {
     /** Change listeners receive changes applied to all shared objects */
-    this.changeListeners = [];
     this.debug = false;    
   }
   /** 
-   * Notify listeners of remote changes 
+   * Notify listeners of remote changes
    */
   notifyListeners(obj, field, node) {
-    this.changeListeners.forEach((l) => {
+    EventRouter.changeListeners.forEach((l) => {
       try {
         l(obj, field, node)
       } catch (e) {
@@ -25,12 +26,12 @@ export class EventRouter {
 
   /** Add a listener to remote events */
   addChangeListener(listener) {
-    VRSPACE.addListener(this.changeListeners, listener);
+    VRSPACE.addListener(EventRouter.changeListeners, listener);
   }
 
   /** Remove listener to remote events */
   removeChangeListener(listener) {
-    VRSPACE.removeListener(this.changeListeners, listener);
+    VRSPACE.removeListener(EventRouter.changeListeners, listener);
   }
 
   /** Called when applying changes other than rotation and translation:
@@ -92,6 +93,21 @@ export class EventRouter {
     }
   }
  
+  /**
+   * Get root node of a VRObject
+   * @param {VRObject} obj 
+   */
+  getRootNode(obj) {
+    if (obj.avatar) {
+      return obj.avatar.baseMesh();
+    } else if (obj.container) {
+      return obj.container.meshes[0];
+    } else if (obj.instantiatedEntries) {
+      return obj.instantiatedEntries.rootNodes[0];
+    }
+    console.log("ERROR: unknown root for " + obj);
+  }
+  
   /** Optionally log something */
   log(what) {
     if (this.debug) {

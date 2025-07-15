@@ -58,7 +58,7 @@ export class WorldManager extends EventRouter {
      */
     this.loadErrorHandler = null;
     /** Avatar loader */
-    this.avatarLoader = new AvatarLoader(this.scene, (obj, avatar) => this.notifyLoadListeners(obj, avatar));
+    this.avatarLoader = new AvatarLoader(this.scene, (obj, avatar) => this.notifyLoadListeners(obj, avatar), this.loadErrorHandler);
     /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
      * Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
      */
@@ -364,17 +364,6 @@ export class WorldManager extends EventRouter {
     var bbox = this.bBox(mesh);
     console.log("BBox: " + bbox);
     return Math.max(bbox.x, Math.max(bbox.y, bbox.z));
-  }
-
-  getRootNode(obj) {
-    if (obj.avatar) {
-      return obj.avatar.baseMesh();
-    } else if (obj.container) {
-      return obj.container.meshes[0];
-    } else if (obj.instantiatedEntries) {
-      return obj.instantiatedEntries.rootNodes[0];
-    }
-    console.log("ERROR: unknown root for " + obj);
   }
 
   /** 

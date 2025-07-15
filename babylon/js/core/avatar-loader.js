@@ -8,10 +8,11 @@ import { MeshLoader } from './mesh-loader.js';
 import { MediaStreams } from './media-streams.js';
 
 export class AvatarLoader extends MeshLoader {
-  constructor(scene, loadCallback){
+  constructor(scene, loadCallback, loadErrorHandler){
     super();
     this.scene = scene;
     this.notifyLoadListeners = loadCallback;
+    this.loadErrorHandler = loadErrorHandler;
     /** Avatar factory, default this.createAvatar */
     this.avatarFactory = this.createAvatar;
     /** Default position applied after an avatar loads */
@@ -120,7 +121,7 @@ export class AvatarLoader extends MeshLoader {
       if (obj.className.indexOf("Bot") >= 0) {
         console.log("Bot loaded");
         // TODO bot controller
-        obj.avatarController = new BotController(this, avatar);
+        obj.avatarController = new BotController(avatar);
       }
       this.notifyLoadListeners(obj, avatar);
     }, (error) => {
@@ -146,7 +147,7 @@ export class AvatarLoader extends MeshLoader {
       this.log(bbox);
       avatar.userHeight = bbox.max.y - bbox.min.y;
       avatar.setName(obj.name);
-    });
+    }, this.loadErrorHandler);
   }
  
   /** Apply remote changes to an avatar (VRObject listener) */

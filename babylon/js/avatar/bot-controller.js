@@ -1,15 +1,16 @@
 import { AvatarAnimation } from './avatar-animation.js';
+import { WorldManager } from '../core/world-manager.js';
 
 export class BotController {
-  constructor( worldManager, avatar ) {
+  constructor( avatar ) {
     /** Timestamp of last change */
     this.lastChange = Date.now();
     /** After not receiving any events for this many millis, idle animation starts */
     this.idleTimeout = 200;
     this.lastAnimation = null;
-    this.worldManager = worldManager;
-    this.world = worldManager.world;
-    this.scene = worldManager.scene;
+    this.worldManager = WorldManager.instance;
+    this.world = this.worldManager.world;
+    this.scene = this.worldManager.scene;
     this.avatar = avatar;
     this.vrObject = avatar.VRObject;
     this.animation = new AvatarAnimation(avatar);
