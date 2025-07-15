@@ -52,9 +52,9 @@ export class EventRouter {
       return;
     }
     if (typeof object[field] === 'function') {
-      object[field](obj);
+      object[field](obj, node);
     } else if (typeof obj[field + 'Changed'] === 'function') {
-      obj[field + 'Changed'](obj);
+      obj[field + 'Changed'](obj, node);
       //} else if (object.hasOwnProperty(field)) {
     } else {
       //console.log("Ignoring unknown event to "+obj+": "+field);
