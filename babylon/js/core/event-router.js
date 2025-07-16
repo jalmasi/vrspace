@@ -40,31 +40,11 @@ export class EventRouter {
   @param {*} field member field to set or method to execute 
    */
   routeEvent(obj, field, node) {
-    let object = null;
-    // CHECKME do we really want to execute changes on containers/instances directly?
-    if (obj.avatar) {
-      object = obj.avatar;
-    } else if (obj.container) {
-      object = obj.container;
-    } else if (obj.instantiatedEntries) {
-      object = obj.instantiatedEntries;
-    } else {
-      //this.log("Ignoring unknown event "+field+" to object "+obj.id);
-      return;
-    }
-
-    if (typeof object[field] === 'function') {
-      // execute a single change on avatars - wrote
-      object[field](obj, node);
-    } else if (typeof object[field + 'Changed'] === 'function') {
-      // execute other changes on avatars
-      object[field + 'Changed'](obj, node);
-    } else if (typeof obj[field + 'Changed'] === 'function') {
+    if (typeof obj[field + 'Changed'] === 'function') {
       // execute changes on VRObject, required by WorldEditor
       obj[field + 'Changed'](obj, node);
-      //} else if (object.hasOwnProperty(field)) {
     } else {
-      //console.log("Ignoring unknown event to "+obj+": "+field);
+      console.log("Ignoring unknown event to "+obj+": "+field);
     }
   }
 
@@ -109,6 +89,7 @@ export class EventRouter {
    * Called during WorldManager initialization. 
    */ 
   addVRObjectRoutingMethods(fps) {
+    console.log("FPS:"+fps)
     // in prototype methods, obj == this
     VRObject.prototype.positionChanged = (obj,node) => {
       if (!obj.translate) {

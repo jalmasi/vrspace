@@ -33,7 +33,7 @@ export class Avatar {
     /** Distance for text above the avatar */
     this.textOffset = 0.4;
     /** Animation frames per second, default 10 */
-    this.fps = 10;
+    this.fps = 5;
     this.humanoid = false;
     this.video = false;
     /** Original root mesh of the avatar, used to scale the avatar */

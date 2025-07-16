@@ -1,4 +1,3 @@
-import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { VRObject } from '../client/vrspace.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { MeshAvatar } from '../avatar/mesh-avatar.js';
@@ -143,9 +142,9 @@ export class AvatarLoader extends MeshLoader {
    */
   loadMeshAvatar(obj) {
     let avatar = new MeshAvatar(this.scene, obj);
+    obj.avatar = avatar;
     this.loadMesh(obj, mesh => {
       avatar.mesh = mesh;
-      obj.avatar = avatar;
       mesh.avatar = avatar;
       var bbox = avatar.baseMesh().getHierarchyBoundingVectors();
       this.log("Bounding box:");
@@ -199,6 +198,26 @@ export class AvatarLoader extends MeshLoader {
     }
   }
  
+  routeEvent(obj, field, node) {
+    if (obj.avatar) {
+      let object = obj.avatar;
+      if (typeof object[field] === 'function') {
+        // execute a change on avatars - e.g. wrote
+        object[field](obj, node);
+      } else if (typeof object[field + 'Changed'] === 'function') {
+        // execute callback after changes are applied
+        object[field + 'Changed'](obj, node);
+      } else {
+        console.log("Ignoring unknown event to "+obj+": "+field);
+      }
+    } else {
+      // CHECKME this should not be routed here
+      //super.routeEvent(obj, field, node);
+      console.log("Ignoring unknown event "+field+" to object "+obj.id);
+    }
+  }
+
+  
   /**
    * Creates new Avatar instance from the URL
    * @param url URL to load avatar from 

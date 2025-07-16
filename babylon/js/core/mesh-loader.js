@@ -28,18 +28,18 @@ export class MeshLoader extends EventRouter {
       mesh.VRObject = obj;
 
       var initialPosition = { position: {} };
-      this.changeObject(obj, initialPosition);
+      this.changeObject(obj, initialPosition, mesh);
       if (obj.scale) {
-        this.changeObject(obj, { scale: { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z } });
+        this.changeObject(obj, { scale: { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z } }, mesh);
       }
       if (obj.rotation) {
         // CHECKME: quaternion?
-        this.changeObject(obj, { rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } });
+        this.changeObject(obj, { rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } }, mesh);
       }
 
       // add listener to process changes - active objects only
       if (obj.active) {
-        obj.addListener((obj, changes) => this.changeObject(obj, changes));
+        obj.addListener((obj, changes) => this.changeObject(obj, changes, mesh));
         // subscribe to media stream here if available
         if (this.mediaStreams) {
           this.mediaStreams.streamToMesh(obj, mesh);

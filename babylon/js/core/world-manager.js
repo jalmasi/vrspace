@@ -5,6 +5,7 @@ import { World } from '../world/world.js'
 import { CameraHelper } from './camera-helper.js';
 import { MediaStreams } from './media-streams.js';
 import { AvatarLoader } from './avatar-loader.js';
+import { MeshLoader } from './mesh-loader.js';
 import { SceneEvent } from '../client/vrspace.js';
 import { EventRouter } from './event-router.js';
 
@@ -21,7 +22,7 @@ export class WorldManager extends EventRouter {
   @param world
   @param fps network framerate, default 5 (send up to 5 events per second)
    */
-  constructor(world, fps) {
+  constructor(world, fps=5) {
     super();
     if (WorldManager.instance) {
       throw "WorldManager already created";
@@ -52,12 +53,11 @@ export class WorldManager extends EventRouter {
      */
     this.loadErrorHandler = null;
     /** Network frames per second, default 5 */
-    this.fps = 5;
-    if (fps) {
-      this.fps = fps
-    }
+    this.fps = fps;
     /** Avatar loader */
     this.avatarLoader = new AvatarLoader(this.scene, this.fps, (obj, avatar) => this.notifyLoadListeners(obj, avatar), this.loadErrorHandler);
+    /** Mesh loader */
+    this.meshLoader = new MeshLoader((obj, avatar) => this.notifyLoadListeners(obj, avatar), this.loadErrorHandler);
     /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
      * Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
      */
@@ -168,7 +168,7 @@ export class WorldManager extends EventRouter {
       if (typeof e.added.hasAvatar != 'undefined' && e.added.hasAvatar) {
         this.avatarLoader.load(e.added);
       } else if (e.added.mesh) {
-        this.avatarLoader.loadMesh(e.added);
+        this.meshLoader.loadMesh(e.added);
       } else if (e.added.script) {
         this.loadScript(e.added);
       } else {
