@@ -3,6 +3,11 @@ import { VRObject } from '../client/vrspace.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 
 export class MeshLoader extends EventRouter {
+  constructor(loadCallback, loadErrorHandler) {
+    super();
+    this.notifyLoadListeners = loadCallback;
+    this.loadErrorHandler = loadErrorHandler;    
+  }
   /**
   Load an object and attach a listener.
   @param {VRObject} obj

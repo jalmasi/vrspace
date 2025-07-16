@@ -9,7 +9,7 @@ import { MediaStreams } from './media-streams.js';
 
 export class AvatarLoader extends MeshLoader {
   constructor(scene, fps, loadCallback, loadErrorHandler){
-    super();
+    super(loadCallback,loadErrorHandler);
     this.scene = scene;
     this.fps = fps;
     /** Create animations for movement of avatars, default true. Recommended for low fps.*/
@@ -18,8 +18,6 @@ export class AvatarLoader extends MeshLoader {
     this.customOptions = null;
     /** Custom avatar animations */
     this.customAnimations = null;
-    this.notifyLoadListeners = loadCallback;
-    this.loadErrorHandler = loadErrorHandler;
     /** Avatar factory, default this.createAvatar */
     this.avatarFactory = this.createAvatar;
     /** Default position applied after an avatar loads */

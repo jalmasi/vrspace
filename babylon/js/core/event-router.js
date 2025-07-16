@@ -40,7 +40,8 @@ export class EventRouter {
   @param {*} field member field to set or method to execute 
    */
   routeEvent(obj, field, node) {
-    var object = obj;
+    let object = null;
+    // CHECKME do we really want to execute changes on containers/instances directly?
     if (obj.avatar) {
       object = obj.avatar;
     } else if (obj.container) {
@@ -51,10 +52,16 @@ export class EventRouter {
       //this.log("Ignoring unknown event "+field+" to object "+obj.id);
       return;
     }
+
     if (typeof object[field] === 'function') {
+      // execute a single change on avatars - wrote
       object[field](obj, node);
     } else if (typeof object[field + 'Changed'] === 'function') {
+      // execute other changes on avatars
       object[field + 'Changed'](obj, node);
+    } else if (typeof obj[field + 'Changed'] === 'function') {
+      // execute changes on VRObject, required by WorldEditor
+      obj[field + 'Changed'](obj, node);
       //} else if (object.hasOwnProperty(field)) {
     } else {
       //console.log("Ignoring unknown event to "+obj+": "+field);
