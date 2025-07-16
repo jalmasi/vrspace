@@ -217,6 +217,9 @@ export class Avatar {
     this.attachments = {};
   }
   
+  /**
+   * Handles position change network event
+   */
   positionChanged(obj, node) {
     if (!obj.translate) {
       obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
@@ -224,13 +227,19 @@ export class Avatar {
     VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);   
   }
   
+  /**
+   * Handles rotation change network event
+   */
   rotationChanged(obj, node) {
     if (!obj.rotate) {
-      obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
+      obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
     }
-    VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);    
+    VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
   }
 
+  /**
+   * Handles name change network event
+   */
   nameChanged(obj,node) {
     this.setName(obj.name);    
   }  

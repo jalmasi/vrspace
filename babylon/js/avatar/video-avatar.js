@@ -251,7 +251,10 @@ export class VideoAvatar extends Avatar {
   async emoji(client, direction=3) {
     super.emoji(client, -direction);
   }
-  
+
+  /**
+   * Handles name change network event
+   */
   setName(name) {
     super.setName(name);
     if ( name ) {

@@ -1878,28 +1878,53 @@ export class HumanoidAvatar extends Avatar {
     avatar.file = file;
     return avatar;
   }
-  
+ 
+  /**
+   * Handles animation change network event
+   */ 
   animationChanged(obj,node) {
     // FIXME only humanoid avatar has animations, mesh avatar could have them too
     this.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speed);    
   }
 
+  /**
+   * Handles arm position change network event
+   */
   leftArmPosChanged(obj,node) {
     var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
     this.reachFor(this.body.rightArm, pos);    
   }
   
+  /**
+   * Handles arm position change network event
+   */
   rightArmPosChanged(obj,node) {
     var pos = new BABYLON.Vector3(obj.rightArmPos.x, obj.rightArmPos.y, obj.rightArmPos.z);
     this.reachFor(this.body.leftArm, pos);    
   }
   
+  /**
+   * Handles arm rotation change network event
+   */
   leftArmRotChanged(obj,node) {
     this.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
   }
 
+  /**
+   * Handles arm rotation change network event
+   */
   rightArmRotChanged(obj,node) {
     this.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
   }
-  
+ 
+  /**
+   * Handles rotation change network event (quaternion)
+   */
+  rotationChanged(obj, node) {
+    if (!obj.rotate) {
+      obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
+    }
+    VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);    
+  }
+   
 }

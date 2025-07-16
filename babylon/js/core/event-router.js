@@ -57,7 +57,7 @@ export class EventRouter {
       object[field + 'Changed'](obj, node);
       //} else if (object.hasOwnProperty(field)) {
     } else {
-      console.log("Ignoring unknown event to "+obj+": "+field);
+      //console.log("Ignoring unknown event to "+obj+": "+field);
     }
   }
 
@@ -95,7 +95,12 @@ export class EventRouter {
       this.notifyListeners(obj, field, node);
     }
   }
- 
+
+  /**
+   * Overrides VRObject routing methods (positionChanged, rotationChanged, scaleChanged)
+   * with implementations that create and update animations.
+   * Called during WorldManager initialization. 
+   */ 
   addVRObjectRoutingMethods(fps) {
     // in prototype methods, obj == this
     VRObject.prototype.positionChanged = (obj,node) => {

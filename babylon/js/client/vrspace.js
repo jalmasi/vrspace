@@ -222,9 +222,26 @@ export class VRObject extends ID {
     this.VRSPACE.send(json);
   }
   
+  /** 
+   * Returns ID of this VRObject
+   * @returns {ID}
+   */
   getID() {
     return new ID(this.className, this.id);
   }
+  
+  /**
+   * Executedwhile handling network event. Empty implementation, overridden by EventRouter.
+   */
+  positionChanged() {}
+  /**
+   * Executedwhile handling network event. Empty implementation, overridden by EventRouter.
+   */
+  rotationChanged() {}
+  /**
+   * Executedwhile handling network event. Empty implementation, overridden by EventRouter.
+   */
+  scaleChanged() {}
 }
 
 /**
