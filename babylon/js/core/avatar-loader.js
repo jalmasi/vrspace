@@ -8,9 +8,16 @@ import { MeshLoader } from './mesh-loader.js';
 import { MediaStreams } from './media-streams.js';
 
 export class AvatarLoader extends MeshLoader {
-  constructor(scene, loadCallback, loadErrorHandler){
+  constructor(scene, fps, loadCallback, loadErrorHandler){
     super();
     this.scene = scene;
+    this.fps = fps;
+    /** Create animations for movement of avatars, default true. Recommended for low fps.*/
+    this.createAnimations = true;
+    /** Custom avatar options, applied to avatars after loading. Currently video avatars only */
+    this.customOptions = null;
+    /** Custom avatar animations */
+    this.customAnimations = null;
     this.notifyLoadListeners = loadCallback;
     this.loadErrorHandler = loadErrorHandler;
     /** Avatar factory, default this.createAvatar */
@@ -157,6 +164,7 @@ export class AvatarLoader extends MeshLoader {
     var avatar = obj.avatar;
     for (var field in changes) {
       var node = avatar.baseMesh();
+      /*
       // TODO introduce event handler functions in Avatar class, use only routeEvent here
       if ('position' === field) {
         if (!obj.translate) {
@@ -187,7 +195,8 @@ export class AvatarLoader extends MeshLoader {
       } else {
         this.routeEvent(obj, field, node);
       }
-      //this.routeEvent(obj, field, node);
+      */
+      this.routeEvent(obj, field, node);
       this.notifyListeners(obj, field, node);
     }
   }

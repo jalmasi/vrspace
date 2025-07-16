@@ -1884,6 +1884,7 @@ export class HumanoidAvatar extends Avatar {
    */ 
   animationChanged(obj,node) {
     // FIXME only humanoid avatar has animations, mesh avatar could have them too
+    console.log("Animation started",obj);
     this.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speed);    
   }
 

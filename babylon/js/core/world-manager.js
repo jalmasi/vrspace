@@ -34,12 +34,6 @@ export class WorldManager extends EventRouter {
     this.scene = world.scene;
     /** Movement resolution, default 1 cm/3.6 deg. Any movement less than this will be ignored.*/
     this.resolution = 0.01; // 1 cm/3.6 deg
-    /** Create animations for movement of avatars, default true. Recommended for low fps.*/
-    this.createAnimations = true;
-    /** Custom avatar options, applied to avatars after loading. Currently video avatars only */
-    this.customOptions = null;
-    /** Custom avatar animations */
-    this.customAnimations = null;
     /** Whether to track user rotation, default true. */
     this.trackRotation = true;
     /** In 3rd person view, we're not tracking and publishing position and orientation camera, but of this mesh*/
@@ -57,8 +51,13 @@ export class WorldManager extends EventRouter {
      * TODO used in WorldEditor, replace with WorldListener
      */
     this.loadErrorHandler = null;
+    /** Network frames per second, default 5 */
+    this.fps = 5;
+    if (fps) {
+      this.fps = fps
+    }
     /** Avatar loader */
-    this.avatarLoader = new AvatarLoader(this.scene, (obj, avatar) => this.notifyLoadListeners(obj, avatar), this.loadErrorHandler);
+    this.avatarLoader = new AvatarLoader(this.scene, this.fps, (obj, avatar) => this.notifyLoadListeners(obj, avatar), this.loadErrorHandler);
     /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
      * Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
      */
@@ -70,11 +69,6 @@ export class WorldManager extends EventRouter {
     }
     CameraHelper.getInstance(this.scene).addCameraListener(() => this.trackCamera());
     this.VRSPACE = VRSPACE;
-    /** Network frames per second, default 5 */
-    this.fps = 5;
-    if (fps) {
-      this.fps = fps
-    }
     /** Current position */
     this.pos = { x: null, y: null, z: null };
     /** Current rotation */
