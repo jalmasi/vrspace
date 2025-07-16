@@ -158,6 +158,7 @@ export class AvatarLoader extends MeshLoader {
     for (var field in changes) {
       var node = avatar.baseMesh();
       // TODO introduce event handler functions in Avatar class, use only routeEvent here
+      /*
       if ('position' === field) {
         if (!obj.translate) {
           obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
@@ -187,6 +188,8 @@ export class AvatarLoader extends MeshLoader {
       } else {
         this.routeEvent(obj, field, node);
       }
+      */
+      this.routeEvent(obj, field, node);
       this.notifyListeners(obj, field, node);
     }
   }

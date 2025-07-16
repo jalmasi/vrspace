@@ -28,8 +28,6 @@ export class HumanoidAvatar extends Avatar {
     this.shadowGenerator = shadowGenerator;
     /** Optional custom animations */
     this.animations = null;
-    /** Animation frames per second, default 10 */
-    this.fps = 10;
     /** Height of the ground, default 0 */
     this.groundHeight = 0;
     /** Object containing fixes */
@@ -1880,4 +1878,28 @@ export class HumanoidAvatar extends Avatar {
     avatar.file = file;
     return avatar;
   }
+  
+  animationChanged(obj,node) {
+    // FIXME only humanoid avatar has animations, mesh avatar could have them too
+    this.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speed);    
+  }
+
+  leftArmPosChanged(obj,node) {
+    var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
+    this.reachFor(this.body.rightArm, pos);    
+  }
+  
+  rightArmPosChanged(obj,node) {
+    var pos = new BABYLON.Vector3(obj.rightArmPos.x, obj.rightArmPos.y, obj.rightArmPos.z);
+    this.reachFor(this.body.leftArm, pos);    
+  }
+  
+  leftArmRotChanged(obj,node) {
+    this.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
+  }
+
+  rightArmRotChanged(obj,node) {
+    this.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
+  }
+  
 }

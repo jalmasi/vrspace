@@ -2,6 +2,7 @@ import { TextWriter } from '../core/text-writer.js';
 import { EmojiParticleSystem } from '../ui/world/emoji-particle-system.js';
 import { Label } from '../ui/widget/label.js';
 import { TextArea } from '../ui/widget/text-area.js';
+import { VRSPACEUI } from '../ui/vrspace-ui.js';
 
 /**
  * Base avatar class, provides common methods for actual humanoid/video/mesh avatars
@@ -31,6 +32,8 @@ export class Avatar {
     this.userHeight = 1.8;
     /** Distance for text above the avatar */
     this.textOffset = 0.4;
+    /** Animation frames per second, default 10 */
+    this.fps = 10;
     this.humanoid = false;
     this.video = false;
     /** Original root mesh of the avatar, used to scale the avatar */
@@ -213,4 +216,22 @@ export class Avatar {
     Object.values(this.attachments).forEach(node=>node.dispose());
     this.attachments = {};
   }
+  
+  positionChanged(obj, node) {
+    if (!obj.translate) {
+      obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
+    }
+    VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);   
+  }
+  
+  rotationChanged(obj, node) {
+    if (!obj.rotate) {
+      obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
+    }
+    VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);    
+  }
+
+  nameChanged(obj,node) {
+    this.setName(obj.name);    
+  }  
 }

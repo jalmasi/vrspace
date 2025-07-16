@@ -53,11 +53,11 @@ export class EventRouter {
     }
     if (typeof object[field] === 'function') {
       object[field](obj, node);
-    } else if (typeof obj[field + 'Changed'] === 'function') {
-      obj[field + 'Changed'](obj, node);
+    } else if (typeof object[field + 'Changed'] === 'function') {
+      object[field + 'Changed'](obj, node);
       //} else if (object.hasOwnProperty(field)) {
     } else {
-      //console.log("Ignoring unknown event to "+obj+": "+field);
+      console.log("Ignoring unknown event to "+obj+": "+field);
     }
   }
 
@@ -71,6 +71,7 @@ export class EventRouter {
       node = this.getRootNode(obj);
     }
     for (var field in changes) {
+      /*
       if ('position' === field) {
         if (!obj.translate) {
           obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
@@ -89,10 +90,34 @@ export class EventRouter {
       } else {
         this.routeEvent(obj, field, node);
       }
+      */
+      this.routeEvent(obj, field, node);
       this.notifyListeners(obj, field, node);
     }
   }
  
+  addVRObjectRoutingMethods(fps) {
+    // in prototype methods, obj == this
+    VRObject.prototype.positionChanged = (obj,node) => {
+      if (!obj.translate) {
+        obj.translate = VRSPACEUI.createAnimation(node, "position", fps);
+      }
+      VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);      
+    }
+    VRObject.prototype.rotationChanged = (obj,node) => {
+      if (!obj.rotate) {
+        obj.rotate = VRSPACEUI.createAnimation(node, "rotation", fps);
+      }
+      VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);      
+    }
+    VRObject.prototype.scaleChanged = (obj,node) => {
+      if (!obj.rescale) {
+        obj.rescale = VRSPACEUI.createAnimation(node, "scaling", fps);
+      }
+      VRSPACEUI.updateAnimation(obj.rescale, node.scaling, obj.scale);      
+    }
+  }
+  
   /**
    * Get root node of a VRObject
    * @param {VRObject} obj 

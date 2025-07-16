@@ -97,6 +97,7 @@ export class WorldManager extends EventRouter {
     this.world.worldManager = this;
     VRSPACEUI.init(this.scene); // to ensure assetLoader is available
     WorldManager.instance = this;
+    this.addVRObjectRoutingMethods(this.fps);
   }
   /** 
    * Publish and subscribe
