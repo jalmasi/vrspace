@@ -98,12 +98,15 @@ export class WorldManager extends EventRouter {
         this.mediaStreams.startVideo = true;
         this.mediaStreams.videoSource = undefined;
       }
-      this.mediaStreams.connect(user.tokens.OpenViduMain).then(() => this.mediaStreams.publish());
+      this.mediaStreams.connect(user.tokens.OpenViduMain).then(() => {
+        this.avatarLoader.mediaStreams = this.mediaStreams;
+        this.meshLoader.mediaStreams = this.mediaStreams;
+        // we may need to pause/unpause audio publishing during speech input
+        // TODO figure out how to use instance
+        VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
+        this.mediaStreams.publish();
+      });
     }
-    // we may need to pause/unpause audio publishing during speech input
-    // TODO figure out how to use instance
-    VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
-    this.avatarLoader.mediaStreams = this.mediaStreams;
   }
 
   /** Track a mesh, used in 3rd person view */
@@ -146,7 +149,7 @@ export class WorldManager extends EventRouter {
   }
 
   /** Called when scene has changed (scene listener). 
-  If an object was added, calls appropriate loader method.
+  If an object was added, calls addObject.
   If an object was removed, calls removeObject.
   Any WorldListeners on the world are notified after changes are performed, by calling added and removed methods.
   @param {SceneEvent} e SceneEvent containing the change
@@ -155,18 +158,7 @@ export class WorldManager extends EventRouter {
     if (e.added != null) {
       this.log("ADDED " + e.objectId + " new size " + e.scene.size);
       this.log(e);
-
-      if (typeof e.added.hasAvatar != 'undefined' && e.added.hasAvatar) {
-        this.avatarLoader.load(e.added);
-      } else if (e.added.mesh) {
-        this.meshLoader.loadMesh(e.added);
-      } else if (e.added.script) {
-        this.loadScript(e.added);
-      } else {
-        // TODO server needs to ensure that mesh exists
-        // in the meantime we define default behavior here
-        console.log("WARNING: can't load " + e.objectId + " - no mesh");
-      }
+      this.addObject(e.added);
       this.world.worldListeners.forEach(listener => {
         try {
           if (listener.added) {
@@ -366,9 +358,28 @@ export class WorldManager extends EventRouter {
     return Math.max(bbox.x, Math.max(bbox.y, bbox.z));
   }
 
+  /**
+   * Add an object to the scene - calls the appropriate loader method.
+   * @param {VRObject} obj 
+   */
+  addObject(obj) {
+    if (typeof obj.hasAvatar != 'undefined' && obj.hasAvatar) {
+      this.avatarLoader.load(obj);
+    } else if (obj.mesh) {
+      this.meshLoader.loadMesh(obj);
+    } else if (obj.script) {
+      this.loadScript(obj);
+    } else {
+      // TODO server needs to ensure that mesh exists
+      // in the meantime we define default behavior here
+      console.log("WARNING: can't load " + e.objectId + " - no mesh");
+    }
+  }
+  
   /** 
    * Remove an object: remove the mesh from the scene (scene listener), and dispose of everything.
-  */
+   * @param {VRObject} obj 
+   */
   removeObject(obj) {
     if (this.mediaStreams) {
       this.mediaStreams.removeClient(obj);

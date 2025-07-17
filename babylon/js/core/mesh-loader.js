@@ -7,6 +7,8 @@ export class MeshLoader extends EventRouter {
     super();
     this.notifyLoadListeners = loadCallback;
     this.loadErrorHandler = loadErrorHandler;    
+    /** This is set once we connect to streaming server @type {MediaStreams}*/
+    this.mediaStreams = null;
   }
   /**
   Load an object and attach a listener.

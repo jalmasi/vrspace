@@ -3,7 +3,8 @@ import { EmojiParticleSystem } from '../ui/world/emoji-particle-system.js';
 import { Label } from '../ui/widget/label.js';
 import { TextArea } from '../ui/widget/text-area.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
-
+import { User } from '../client/vrspace.js';
+import { WorldManager } from '../core/world-manager.js';
 /**
  * Base avatar class, provides common methods for actual humanoid/video/mesh avatars
  * @abstract
@@ -242,5 +243,37 @@ export class Avatar {
    */
   nameChanged(obj,node) {
     this.setName(obj.name);    
-  }  
+  }
+ 
+  /**
+   * @param {User} obj 
+   */ 
+  meshChanged(obj, node) {
+    console.log("TODO: replace avatar mesh", obj);
+  }
+  
+  /**
+   * @param {User} obj 
+   */ 
+  videoChanged(obj, node) { 
+    console.log("TODO: replace video avatar", obj);
+    if ( obj.video ) {
+      console.log("TODO: unload user avatar, create video avatar", obj);
+      WorldManager.instance.removeObject(obj);
+      WorldManager.instance.addObject(obj);      
+    } else if (obj.mesh) {
+      console.log("TODO: replace video avatar with mesh", obj);
+      WorldManager.instance.removeObject(obj);
+      WorldManager.instance.addObject(obj);      
+    } else {
+      console.log("TODO: just show user image instead of video", obj);
+    }
+  }
+  
+  /**
+   * @param {User} obj 
+   */ 
+  humanoidChanged(obj, node) {
+    console.log("TODO: humanoid avatar", obj);
+  }
 }

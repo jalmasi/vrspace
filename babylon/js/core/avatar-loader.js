@@ -23,8 +23,6 @@ export class AvatarLoader extends MeshLoader {
     this.defaultPosition = new BABYLON.Vector3(1000, 1000, 1000);
     /** Default rotation applied after an avatar loads */
     this.defaultRotation = new BABYLON.Vector3(0, 0, 0);
-    /** This is set once we connect to streaming server @type {MediaStreams}*/
-    this.mediaStreams = null;
   }
   
   /** @param {VRObject} obj  */
