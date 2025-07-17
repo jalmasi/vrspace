@@ -361,6 +361,7 @@ export class AvatarSelection extends World {
 
   async createVideoAvatar() {
     if (this.video) {
+      this.video.show();
       return;
     }
     // load video avatar and start streaming video
@@ -368,15 +369,16 @@ export class AvatarSelection extends World {
       this.scene,
       () => {
         if (this.character) {
-          this.character.dispose();
-          delete this.character;
+          //this.character.dispose();
+          //delete this.character;
+          this.character.hide();
           // do NOT dispose one created by HUD
           //this.guiManager.dispose();
           //delete this.guiManager;
           this.removeCharacterButtons();
         }
         this.portalsEnabled(true);
-        this.hud.setAvatar(null);
+        //this.hud.setAvatar(null);
         this.hud.toggleWebcam(true, this.video);
       },
       this.customOptions
@@ -388,10 +390,10 @@ export class AvatarSelection extends World {
 
   removeVideoAvatar() {
     this.hud.toggleWebcam(false);
-    this.hud.videoAvatar = null;
+    //this.hud.videoAvatar = null;
     if (this.video) {
       this.video.dispose();
-      delete this.video;
+      //delete this.video;
     }
   }
 

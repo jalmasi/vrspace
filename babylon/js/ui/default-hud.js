@@ -22,6 +22,7 @@ import { MiniMap } from './widget/mini-map.js';
 import { GroupsUI } from './groups-ui.js';
 import { ChatLog } from './widget/chat-log.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
+import { VideoAvatar } from '../avatar/video-avatar.js';
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -34,6 +35,7 @@ export class DefaultHud {
     this.displayButtons = false;
     /** @type {HumanoidAvatar} */
     this.avatar = null;
+    /** @type {VideoAvatar} */
     this.videoAvatar = null;
     this.isAuthenticated = false;
     this.xrMovementChangeEnabled = true;
@@ -397,19 +399,29 @@ export class DefaultHud {
     }
     this.state.webcam = enable;
     if (this.webcamButton) {
-      // webcamButton may be created/destroyed any time
+      // this may be called before webcamButton is created
+      /*
       if (!this.videoAvatar) {
         this.hud.markDisabled(this.webcamButton);
         return;
       }
+      */
       if (this.state.webcam) {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
-        if (this.videoAvatar) {
+        if ( this.avatar && this.videoAvatar) {
+          this.avatar.hide();
+          this.videoAvatar.show();
+        } else if (this.videoAvatar) {
           this.videoAvatar.displayVideo();
         }
       } else {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
-        if (this.videoAvatar) {
+        if ( this.avatar ) {
+          this.avatar.show();
+          if ( this.videoAvatar ) {
+            this.videoAvatar.dispose();
+          }
+        } else if (this.videoAvatar) {
           this.videoAvatar.displayAlt();
         }
       }

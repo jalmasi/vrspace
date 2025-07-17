@@ -174,15 +174,27 @@ export class HumanoidAvatar extends Avatar {
     }
     // TODO also dispose of materials and textures (asset container)
   }
-  // CHECKME this is called only from avatar-selection dispose()
+  /**
+   * Hide the avatar, also turns it around to prepare it for cloning. Used to keep reference to own avatar.
+   */
   hide() {
-    if (this.character && this.parentMesh) {
+    if (this.character && this.parentMesh && this.parentMesh.isEnabled()) {
       this.parentMesh.setEnabled(false);
       // CHECKME: turnAround for cloned character
       // has to be prepared for cloning
       this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));
     }
   }
+  /**
+   * Show the hidden avatar.
+   */
+  show() {
+    if (this.character && this.parentMesh && ! this.parentMesh.isEnabled()) {
+      this.parentMesh.setEnabled(true);
+      this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));
+    }    
+  }
+  
   /** 
   Utility method, dispose of avatar and return this one.
   @param avatar optional avatar to dispose of
