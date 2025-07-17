@@ -6,24 +6,29 @@ export class WorldListener {
   constructor(){}
   /**
   Called when user enters the world.
-  @param welcome Welcome message
+  @param {Welcome} welcome Welcome message
   */
   entered(welcome) {}
   /**
   Called when a new object is added to the scene
-  @param vrobject a VRObject, typically a Client, added to the scene.
+  @param {VRObject} vrobject a VRObject, typically a User, added to the scene.
    */
   added(vrobject){}
   /**
   Called when a new object is loaded.
   What that exactly means, depends on type of object - e.g. avatars are loaded differently than video streams.
   Actual mesh/avatar/etc is in vrobject, e.g. vrobject.container in case of general model.
-  @param vrobject a VRObject, typically a Client, added to the scene.
+  @param {VRObject} vrobject a VRObject, typically a User, added to the scene.
    */
   loaded(vrobject){}
   /**
+   * Called when load fails
+   * @param {VRObject} vrobject that failed to load
+   */
+  loadError(vrobject){}
+  /**
   Called when an object is removed from the scene
-  @param vrobject a VRObject, typically a Client, removed from the scene
+  @param {VRObject} vrobject a VRObject, typically a User, removed from the scene
    */
   removed(vrobject){}
 }

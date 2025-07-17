@@ -161,38 +161,6 @@ export class AvatarLoader extends MeshLoader {
     var avatar = obj.avatar;
     for (var field in changes) {
       var node = avatar.baseMesh();
-      /*
-      // TODO introduce event handler functions in Avatar class, use only routeEvent here
-      if ('position' === field) {
-        if (!obj.translate) {
-          obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
-        }
-        VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
-      } else if ('rotation' === field) {
-        if (!obj.rotate) {
-          obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
-        }
-        VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);
-      } else if ('animation' === field) {
-        avatar.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speed);
-      } else if ('leftArmPos' === field) {
-        var pos = new BABYLON.Vector3(obj.leftArmPos.x, obj.leftArmPos.y, obj.leftArmPos.z);
-        avatar.reachFor(avatar.body.rightArm, pos);
-      } else if ('rightArmPos' === field) {
-        var pos = new BABYLON.Vector3(obj.rightArmPos.x, obj.rightArmPos.y, obj.rightArmPos.z);
-        avatar.reachFor(avatar.body.leftArm, pos);
-      } else if ('leftArmRot' === field) {
-        avatar.body.leftArm.pointerQuat = new BABYLON.Quaternion(obj.rightArmRot.x, obj.rightArmRot.y, obj.rightArmRot.z, obj.rightArmRot.w)
-      } else if ('rightArmRot' === field) {
-        avatar.body.rightArm.pointerQuat = new BABYLON.Quaternion(obj.leftArmRot.x, obj.leftArmRot.y, obj.leftArmRot.z, obj.leftArmRot.w)
-      } else if ('name' === field) {
-        avatar.setName(obj.name);
-      } else if ('userHeight' === field) {
-        avatar.trackHeight(obj.userHeight);
-      } else {
-        this.routeEvent(obj, field, node);
-      }
-      */
       this.routeEvent(obj, field, node);
       this.notifyListeners(obj, field, node);
     }
@@ -211,8 +179,6 @@ export class AvatarLoader extends MeshLoader {
         console.log("Ignoring unknown event to "+obj+": "+field);
       }
     } else {
-      // CHECKME this should not be routed here
-      //super.routeEvent(obj, field, node);
       console.log("Ignoring unknown event "+field+" to object "+obj.id);
     }
   }

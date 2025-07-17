@@ -58,26 +58,6 @@ export class EventRouter {
       node = this.getRootNode(obj);
     }
     for (var field in changes) {
-      /*
-      if ('position' === field) {
-        if (!obj.translate) {
-          obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
-        }
-        VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
-      } else if ('rotation' === field) {
-        if (!obj.rotate) {
-          obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
-        }
-        VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
-      } else if ('scale' === field) {
-        if (!obj.rescale) {
-          obj.rescale = VRSPACEUI.createAnimation(node, "scaling", this.fps);
-        }
-        VRSPACEUI.updateAnimation(obj.rescale, node.scaling, obj.scale);
-      } else {
-        this.routeEvent(obj, field, node);
-      }
-      */
       this.routeEvent(obj, field, node);
       this.notifyListeners(obj, field, node);
     }

@@ -21,7 +21,7 @@ export class TerrainEditor extends WorldListener {
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
     world.addSelectionPredicate(this.selectionPredicate);
   }
-  /** Called by WorldManager when user enters the world */
+  /** Called by WorldManager when user enters the world (WorldListener method) */
   entered(welcome) {
     //console.log(welcome);
     if ( welcome.permanents ) {
@@ -51,6 +51,7 @@ export class TerrainEditor extends WorldListener {
     } 
   }
   
+  /** WorldListener method, called when an object is added to the scene */
   added(added) {
     if ( added && added.className == "Terrain") {
       console.log("Terrain added", added);
