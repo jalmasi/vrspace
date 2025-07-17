@@ -1,6 +1,8 @@
 import { VRSPACEUI } from '../vrspace-ui.js';
 import { ScrollablePanel } from "./scrollable-panel.js";
 import { Form } from '../widget/form.js';
+import { World } from '../../world/world.js';
+import { WorldListener } from '../../world/world-listener.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -44,16 +46,18 @@ class SearchForm extends Form {
  * and manipulating own objects.
  * Works on PC, VR devices and mobiles, including mobile VR+gamepad. Or at least it's supposed to;)
  */
-export class WorldEditor {
+export class WorldEditor extends WorldListener {
   /**
-   * @param world mandatory world to edit
+   * @param {World} world mandatory world to edit
    * @param fileInput optional html file input component, required for load
    * @throws when world doesn't have WorldManager associated
    */
   constructor(world, fileInput) {
+    super();
     if (!world.worldManager) {
       throw "World editor requires connection to the server - enter a world first";
     }
+    /** @type {World} */
     this.world = world;
     this.scene = world.scene;
     this.autoCreateFileInput = true; 
@@ -63,15 +67,10 @@ export class WorldEditor {
     }
     this.contentBase = VRSPACEUI.contentBase;
     this.worldManager = world.worldManager;
-    this.defaultErrorHandler = world.worldManager.loadErrorHandler;
-    this.defaultloadCallback = world.worldManager.loadCallback;
     this.buttons = [];
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
-    // TODO replace this with WorldListener
-    this.worldManager.loadCallback = (object, rootMesh) => this.objectLoaded(object, rootMesh);
-    this.worldManager.loadErrorHandler = (object, exception) => this.loadingFailed(object, exception);
 
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
@@ -80,7 +79,10 @@ export class WorldEditor {
     // add squeeze listener to take/drop an object
     this.squeeze = (side, value) => this.handleSqueeze(side, value);
     world.xrHelper.addSqueezeConsumer(this.squeeze);
+   
+    world.addListener(this);
   }
+  
   endpoint() {
     return VRSPACEUI.contentBase + "/vrspace/api/sketchfab";
   }
@@ -188,11 +190,14 @@ export class WorldEditor {
   }
 
   /**
-   * WorldManager callback, installed by constructor. Executed every time a shared object has loaded into the scene.
+   * WorldManager callback (WorldListener method), installed by constructor. 
+   * Executed every time a shared object has loaded into the scene.
    * If it is own object, rescales it and calls this.takeObject().
    * This is what happens when selecting a sketchfab object to load.
+   * @param {VRObject} vrObject that was loaded
+   * @param {*} rootMesh Root mesh of the loaded object
    */
-  objectLoaded(vrObject, rootMesh) {
+  loaded(vrObject, rootMesh) {
     console.log("WorldEditor loaded: " + vrObject.className + " " + vrObject.id + " " + vrObject.mesh);
     if (vrObject.properties && vrObject.properties.editing == this.worldManager.VRSPACE.me.id) {
       VRSPACEUI.indicator.remove("Download");
@@ -209,15 +214,13 @@ export class WorldEditor {
       }
       // CHECKME: we can do it here
       //this.createGizmo(rootMesh);
-    } else if (this.defaultloadCallback) {
-      this.defaultloadCallback(vrObject, rootMesh);
     }
   }
 
   /**
    * WorldManager error callback, installed by constructor.
    */
-  loadingFailed(obj, exception) {
+  loadError(obj, exception) {
     // TODO VRObject still may exists, remove it
     // CHECKME maybe also mark this object as invalid
     VRSPACEUI.indicator.remove("Download");

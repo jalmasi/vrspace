@@ -11,9 +11,9 @@ export class MeshLoader extends EventRouter {
   /**
   Load an object and attach a listener.
   @param {VRObject} obj
-  @param {*} callback 
+  @param {*} callback optional
    */
-  async loadMesh(obj, callback, errorHandler) {
+  async loadMesh(obj, callback) {
     this.log("Loading object " + obj.mesh);
     if (!obj.mesh) {
       console.log("Null mesh of client " + obj.id);
@@ -49,7 +49,7 @@ export class MeshLoader extends EventRouter {
       if (callback) {
         callback(mesh);
       }
-    }, errorHandler);
+    }, this.loadErrorHandler);
   }
       
 }

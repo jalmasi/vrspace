@@ -1,4 +1,4 @@
-import { Client, VRSPACE, Welcome } from '../client/vrspace.js';
+import { Client, VRSPACE, Welcome, VRObject } from '../client/vrspace.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Avatar } from '../avatar/avatar.js';
 import { World } from '../world/world.js'
@@ -43,21 +43,12 @@ export class WorldManager extends EventRouter {
     this.mediaStreams = null;
     /** Listeners notified after own avatar property (e.g. position) has changed and published */
     this.myChangeListeners = []
-    /** Optionally called after an avatar has loaded. Callback is passed VRObject and avatar object as parameters.
-     * Avatar object can be either Avatar or VideoAvatar instance, or an AssetContainer.
-     * TODO this needs to go away, but is used in WorldEditor.
-     */
-    this.loadCallback = null;
-    /** Called when loading fails, default null. 
-     * TODO used in WorldEditor, replace with WorldListener
-     */
-    this.loadErrorHandler = null;
     /** Network frames per second, default 5 */
     this.fps = fps;
     /** Avatar loader */
-    this.avatarLoader = new AvatarLoader(this.scene, this.fps, (obj, avatar) => this.notifyLoadListeners(obj, avatar), this.loadErrorHandler);
+    this.avatarLoader = new AvatarLoader(this.scene, this.fps, (obj, mesh) => this.notifyLoadListeners(obj, mesh), (obj, exception) => this.alertLoadListeners(obj, exception));
     /** Mesh loader */
-    this.meshLoader = new MeshLoader((obj, avatar) => this.notifyLoadListeners(obj, avatar), this.loadErrorHandler);
+    this.meshLoader = new MeshLoader((obj, avatar) => this.notifyLoadListeners(obj, avatar), (obj, exception) => this.alertLoadListeners(obj, exception));
     /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
      * Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
      */
@@ -242,19 +233,33 @@ export class WorldManager extends EventRouter {
   /**
    * Internal used to notify load listeners: loadCallback, object load listeners, world load listeners
    * @private
-   * @param {Client} obj
-   * @param {Avatar} avatar  
+   * @param {VRObject} obj
+   * @param mesh Root mesh of the loaded object
    */
-  notifyLoadListeners(obj, avatar) {
-    if (this.loadCallback) {
-      this.loadCallback(obj, avatar);
-    }
-    console.log("Listeners: " + obj.loadListeners.length);
+  notifyLoadListeners(obj, mesh) {
     obj.notifyLoadListeners(); // CHECKME SoC
     this.world.worldListeners.forEach(listener => {
       try {
         if (listener.loaded) {
-          listener.loaded(obj);
+          listener.loaded(obj, mesh);
+        }
+      } catch (error) {
+        console.log("Error in world listener", error);
+      }
+    });
+  }
+  
+  /**
+   * Internal used to notify load listeners that loading has failed.
+   * @private
+   * @param {VRObject} obj
+   * @param exception
+   */
+  alertLoadListeners(obj, exception) {
+    this.world.worldListeners.forEach(listener => {
+      try {
+        if (listener.loadError) {
+          listener.loadError(obj, exception);
         }
       } catch (error) {
         console.log("Error in world listener", error);

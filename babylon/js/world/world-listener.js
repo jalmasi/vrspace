@@ -19,8 +19,9 @@ export class WorldListener {
   What that exactly means, depends on type of object - e.g. avatars are loaded differently than video streams.
   Actual mesh/avatar/etc is in vrobject, e.g. vrobject.container in case of general model.
   @param {VRObject} vrobject a VRObject, typically a User, added to the scene.
+  @param mesh Root mesh created by the loader
    */
-  loaded(vrobject){}
+  loaded(vrobject, mesh){}
   /**
    * Called when load fails
    * @param {VRObject} vrobject that failed to load

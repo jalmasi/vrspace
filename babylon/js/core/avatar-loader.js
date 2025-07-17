@@ -151,7 +151,7 @@ export class AvatarLoader extends MeshLoader {
       this.log(bbox);
       avatar.userHeight = bbox.max.y - bbox.min.y;
       avatar.setName(obj.name);
-    }, this.loadErrorHandler);
+    });
   }
  
   /** Apply remote changes to an avatar (VRObject listener) */

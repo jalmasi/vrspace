@@ -44,7 +44,8 @@ export class EventRouter {
       // execute changes on VRObject, required by WorldEditor
       obj[field + 'Changed'](obj, node);
     } else {
-      console.log("Ignoring unknown event to "+obj+": "+field);
+      // business as usual - most network events simply change object properties, without any callback
+      //console.log("Ignoring unknown event to "+obj+": "+field);
     }
   }
 
