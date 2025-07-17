@@ -188,23 +188,25 @@ export class VideoAvatar extends Avatar {
   @param position default 50cm ahead, 15cm right, 15cm below.
    */
   attachToCamera( position ) {
-    this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
-    this.mesh.parent = this.camera;
-    if ( position ) {
-      this.mesh.position = position;
-    } else {
-      this.mesh.position = new BABYLON.Vector3( .15, -.15, .5 );
-      var scale = (this.radius/2)/20; // 5cm size
-      this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+    if ( this.mesh ) {
+      this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
+      this.mesh.parent = this.camera;
+      if ( position ) {
+        this.mesh.position = position;
+      } else {
+        this.mesh.position = new BABYLON.Vector3( .15, -.15, .5 );
+        var scale = (this.radius/2)/20; // 5cm size
+        this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+      }
+      this.cameraChanged();
+      this.attached = true;
+      CameraHelper.getInstance(this.scene).addCameraListener(this.cameraTracker);      
     }
-    this.cameraChanged();
-    this.attached = true;
-    CameraHelper.getInstance(this.scene).addCameraListener(this.cameraTracker);
   }
   
   /** Rescale own avatar and detach from camera */
   detachFromCamera() {
-    if ( this.attached ) {
+    if ( this.attached && this.mesh ) {
       this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
       this.mesh.position = this.camera.position; // CHECKME: must be the same
       console.log("Mesh position: "+this.mesh.position);

@@ -341,21 +341,13 @@ export class AvatarController {
     this.world.avatarController = this;
     this.world.avatar = avatar;
     this.scene = worldManager.scene;
-    this.avatar = avatar;
 
-    // video avatar has no parent mesh
-    if (avatar.parentMesh) {
-      avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0, 1, 0);
-    }
 
-    this.animation = new AvatarAnimation(avatar);
+    this.setAvatar(avatar);
 
     this.setupIdleTimer();
     // event handlers
     this.keyboardHandler = (kbInfo) => this.handleKeyboard(kbInfo);
-    // movement state variables and constants
-    this.movement = new AvatarMovement(this, avatar, this.animation);
-    this.movementHandler = () => this.movement.moveAvatar();
     this.clickHandler = null;
 
     this.trackingEnabled = true;
@@ -371,6 +363,21 @@ export class AvatarController {
     }
   }
 
+  setAvatar(avatar) {
+    this.avatar = avatar;
+
+    // video avatar has no parent mesh
+    if (avatar.parentMesh) {
+      avatar.parentMesh.ellipsoidOffset = new BABYLON.Vector3(0, 1, 0);
+    }
+
+    this.animation = new AvatarAnimation(avatar);
+    
+    // movement state variables and constants
+    this.movement = new AvatarMovement(this, avatar, this.animation);
+    this.movementHandler = () => this.movement.moveAvatar();
+  }
+  
   /**
    * Create timer for idle animation, if it doesn't exist.
    */
@@ -459,7 +466,8 @@ export class AvatarController {
   showAvatar() {
     // CHECKME different kind of check?
     if (this.avatar.parentMesh) {
-      this.avatar.parentMesh.setEnabled(true);
+      //this.avatar.parentMesh.setEnabled(true);
+      this.avatar.show();
     } else {
       this.avatar.detachFromCamera();
     }
@@ -468,7 +476,8 @@ export class AvatarController {
   hideAvatar() {
     // video avatar has no parentMesh - CHECKME different kind of check?
     if (this.avatar.parentMesh) {
-      this.avatar.parentMesh.setEnabled(false);
+      //this.avatar.parentMesh.setEnabled(false);
+      this.avatar.hide();
     } else {
       this.avatar.attachToCamera();
     }

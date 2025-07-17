@@ -870,7 +870,8 @@ export class AvatarSelection extends World {
       //this.character.dispose();
       //VRSPACEUI.assetLoader.unloadAsset(this.character.getUrl());
       //this.character = null;
-      this.character.hide();
+      // hiding the character to allow for cloning or 3rd person display
+      this.character.hide(true);
     }
 
     if (this.mainButtons) {

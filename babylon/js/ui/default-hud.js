@@ -409,6 +409,7 @@ export class DefaultHud {
       if (this.state.webcam) {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         if ( this.avatar && this.videoAvatar) {
+          //this.avatar.parentMesh.setEnabled(false);
           this.avatar.hide();
           this.videoAvatar.show();
         } else if (this.videoAvatar) {
@@ -418,6 +419,7 @@ export class DefaultHud {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
         if ( this.avatar ) {
           this.avatar.show();
+          //this.avatar.parentMesh.setEnabled(true);
           if ( this.videoAvatar ) {
             this.videoAvatar.dispose();
           }
