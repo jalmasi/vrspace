@@ -375,7 +375,14 @@ export class AvatarController {
     
     // movement state variables and constants
     this.movement = new AvatarMovement(this, avatar, this.animation);
-    this.movementHandler = () => this.movement.moveAvatar();
+    if (this.activeCamera == this.world.camera3p) {
+      this.firstPerson();
+      this.movementHandler = () => this.movement.moveAvatar();
+      this.thirdPerson();
+    } else {
+      this.movementHandler = () => this.movement.moveAvatar();      
+    }
+    
   }
   
   /**

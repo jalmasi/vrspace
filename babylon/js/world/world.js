@@ -682,6 +682,16 @@ export class World {
       this.avatarController.thirdPerson();
     }
   }
+  
+  /**
+   * Set own avatar, valid only while online. Makes a call to AvatarController method, if available.
+   * @param {Avatar} avatar 
+   */
+  setAvatar(avatar) {
+    if (this.avatarController) {
+      this.avatarController.setAvatar(avatar);
+    }
+  }
 
   /**
    * Quick enter, with avatar url and optionally user name.

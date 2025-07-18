@@ -179,7 +179,7 @@ export class HumanoidAvatar extends Avatar {
    * @param {boolean|undefined} forceTurn has to be turned the other way before cloning 
    */
   hide(forceTurn) {
-    if (this.character && this.parentMesh && this.parentMesh.isEnabled()) {
+    if (this.character && this.parentMesh) {
       this.parentMesh.setEnabled(false);
       if ( forceTurn ) {
         this.rootMesh.rotationQuaternion = this.rootMesh.rotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.PI));        
@@ -191,7 +191,7 @@ export class HumanoidAvatar extends Avatar {
    * Show the hidden avatar.
    */
   show() {
-    if (this.character && this.parentMesh && ! this.parentMesh.isEnabled()) {
+    if (this.character && this.parentMesh) {
       this.parentMesh.setEnabled(true);
       //console.log("Avatar show, turnaround="+this.turnAround);
     }    

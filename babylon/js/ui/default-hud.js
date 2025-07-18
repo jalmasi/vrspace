@@ -412,6 +412,7 @@ export class DefaultHud {
           //this.avatar.parentMesh.setEnabled(false);
           this.avatar.hide();
           this.videoAvatar.show();
+          World.lastInstance.setAvatar(this.videoAvatar);
         } else if (this.videoAvatar) {
           this.videoAvatar.displayVideo();
         }
@@ -423,6 +424,7 @@ export class DefaultHud {
           if ( this.videoAvatar ) {
             this.videoAvatar.dispose();
           }
+          World.lastInstance.setAvatar(this.avatar);
         } else if (this.videoAvatar) {
           this.videoAvatar.displayAlt();
         }
