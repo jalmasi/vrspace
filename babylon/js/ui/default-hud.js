@@ -409,23 +409,32 @@ export class DefaultHud {
       if (this.state.webcam) {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         if ( this.avatar && this.videoAvatar) {
+          // switch from existing 3d avatar to video avatar
           //this.avatar.parentMesh.setEnabled(false);
           this.avatar.hide();
           this.videoAvatar.show();
           World.lastInstance.setAvatar(this.videoAvatar);
+          if ( this.isOnline() ) {
+            WorldManager.instance.sendMy({video:true});
+          }
         } else if (this.videoAvatar) {
           this.videoAvatar.displayVideo();
         }
       } else {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
         if ( this.avatar ) {
+          // switch from video avatar to existing 3d avatar
           this.avatar.show();
           //this.avatar.parentMesh.setEnabled(true);
           if ( this.videoAvatar ) {
             this.videoAvatar.dispose();
           }
           World.lastInstance.setAvatar(this.avatar);
+          if ( this.isOnline() ) {
+            WorldManager.instance.sendMy({video:false});
+          }
         } else if (this.videoAvatar) {
+          // no 3d avatar, just display image/name
           this.videoAvatar.displayAlt();
         }
       }

@@ -782,7 +782,7 @@ export class AvatarSelection extends World {
 
         this.worldManager.enterAs(
           avatar
-        ).then((welcome) => {
+        ).then(async (welcome) => {
           world.initXR(this.vrHelper, this.arHelper, this.xrHelper);
           if (this.inXR()) {
             console.log("Tracking, " + this.inXR());
@@ -797,7 +797,7 @@ export class AvatarSelection extends World {
           let controller = new AvatarController(this.worldManager, avatar);
           this.worldManager.addMyChangeListener(changes => controller.processChanges(changes));
           // CHECKME better way to flag publishing video?
-          this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
+          //await this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
           this.hud.init();
           if (this.afterEnter) {
             this.afterEnter(this, world);

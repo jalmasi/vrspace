@@ -1,10 +1,10 @@
 import { VRObject } from '../client/vrspace.js';
+import { Client } from '../client/vrspace.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { MeshAvatar } from '../avatar/mesh-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
 import { BotController } from '../avatar/bot-controller.js';
 import { MeshLoader } from './mesh-loader.js';
-import { MediaStreams } from './media-streams.js';
 
 export class AvatarLoader extends MeshLoader {
   constructor(scene, fps, loadCallback, loadErrorHandler){

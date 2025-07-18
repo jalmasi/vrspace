@@ -89,7 +89,8 @@ export class WorldManager extends EventRouter {
    * @param {Client} user Client object of the local user
    * @param {boolean} autoPublishVideo should webcam video be published as soon as possible
    */
-  pubSub(user, autoPublishVideo) {
+  async pubSub(user, autoPublishVideo) {
+    console.log("PubSub autoPublishVideo:"+autoPublishVideo, user);
     // CHECKME: should it be OpenVidu or general streaming service name?
     if (this.mediaStreams && user.tokens && user.tokens.OpenViduMain) {
       this.log("Subscribing as User " + user.id + " with token " + user.tokens.OpenViduMain);
@@ -98,14 +99,17 @@ export class WorldManager extends EventRouter {
         this.mediaStreams.startVideo = true;
         this.mediaStreams.videoSource = undefined;
       }
-      this.mediaStreams.connect(user.tokens.OpenViduMain).then(() => {
+      try {
+        await this.mediaStreams.connect(user.tokens.OpenViduMain)
         this.avatarLoader.mediaStreams = this.mediaStreams;
         this.meshLoader.mediaStreams = this.mediaStreams;
         // we may need to pause/unpause audio publishing during speech input
         // TODO figure out how to use instance
         VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
-        this.mediaStreams.publish();
-      });
+        this.mediaStreams.publish();        
+      } catch ( exception ) {
+        console.error("Streaming connection failure", exception);
+      }
     }
   }
 
@@ -408,6 +412,10 @@ export class WorldManager extends EventRouter {
       obj.streamToMesh.dispose();
       obj.streamToMesh = null;
     }
+    // CHECKME: introduce dispose method? 
+    obj.listeners = [];
+    obj.loadListeners = [];
+    obj._isLoaded = false;
     // TODO also remove object (avatar) from internal arrays
   }
 
@@ -565,7 +573,7 @@ export class WorldManager extends EventRouter {
         });
         resolve(welcome);
       };
-      var afterConnect = (welcome) => {
+      var afterConnect = async (welcome) => {
         VRSPACE.removeWelcomeListener(afterConnect);
         if (this.remoteLogging) {
           this.enableRemoteLogging();
@@ -583,6 +591,9 @@ export class WorldManager extends EventRouter {
             VRSPACE.me[prop] = properties[prop];
           }
         }
+        // CHECKME better way to flag publishing video?
+        //await this.pubSub(welcome.client.User, 'video' === VRSPACE.me.mesh);
+        await this.pubSub(welcome.client.User, VRSPACE.me.video);
         // FIXME for the time being, Enter first, then Session
         if (this.world.name) {
           VRSPACE.addWelcomeListener(welcome => {
