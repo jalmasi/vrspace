@@ -36,6 +36,7 @@ export class VideoAvatar extends Avatar {
    */
   async show() {
     if ( ! this.mesh ) {
+      console.log("VideoAvatar.show()");
       if ( this.autoAttach ) {
         this.cameraTracker = () => this.cameraChanged();
       }
@@ -85,6 +86,10 @@ export class VideoAvatar extends Avatar {
       this.mesh.dispose();
       delete this.mesh;
     }
+  }
+  
+  isEnabled() {
+    return Object.hasOwn(this,"mesh"); 
   }
   
   /**

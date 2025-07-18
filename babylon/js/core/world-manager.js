@@ -386,7 +386,8 @@ export class WorldManager extends EventRouter {
    */
   removeObject(obj) {
     if (this.mediaStreams) {
-      this.mediaStreams.removeClient(obj);
+      // CHECKME should remove some time later?
+      //this.mediaStreams.removeClient(obj.id);
     }
     if (obj.avatar) {
       obj.avatar.dispose(); // calls unloadObject

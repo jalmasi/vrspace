@@ -683,6 +683,10 @@ export class World {
     }
   }
   
+  inThirdPerson() {
+    return this.camera3p && this.scene.activeCamera == this.camera3p;
+  }
+  
   /**
    * Set own avatar, valid only while online. Makes a call to AvatarController method, if available.
    * @param {Avatar} avatar 

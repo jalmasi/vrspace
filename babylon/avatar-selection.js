@@ -778,6 +778,7 @@ export class AvatarSelection extends World {
           // CHECKME this should be safe to do even earlier, before enter
           this.character.turnAround = true;
           avatar = this.character;
+          avatar.video = this.video && this.video.isEnabled();
         }
 
         this.worldManager.enterAs(

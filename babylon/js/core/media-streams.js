@@ -188,22 +188,42 @@ export class MediaStreams {
 
   /** 
    * Remove a client, called when client leaves the space
-   * @param {Client} client 
+   * @param {number} clientId 
    */
-  removeClient(client) {
+  removeClient(clientId) {
     for (var i = 0; i < this.clients.length; i++) {
-      if (this.clients[i].id == client.id) {
+      if (this.clients[i].id == clientId) {
         this.clients.splice(i, 1);
-        console.log("Removed client " + client.id);
+        console.log("Removed client " + clientId);
         break;
       }
     }
     var oldSize = this.subscribers.length;
     // one client can have multiple subscribers, remove them all
-    this.subscribers = this.subscribers.filter(subscriber => this.getClientId(subscriber) != client.id);
+    this.subscribers = this.subscribers.filter(subscriber => this.getClientId(subscriber) != clientId);
     console.log("Removed " + (oldSize - this.subscribers.length) + " subscribers, new size " + this.subscribers.length);
   }
 
+  /**
+   * @param {SessionData} data 
+   */
+  findClient(data) {
+    for (var i = 0; i < this.clients.length; i++) {
+      const client = this.clients[i];
+      // FIXME this implies that the streamToMesh is called before streamingStart
+      // this seems to always be the case, but is not guaranteed
+      if (client.id == data.clientId) {
+        // matched
+        if ( !client.streamToMesh ) {
+          console.log("Ignoring null streaming mesh for client "+client.id);
+          continue;
+        }
+        return client;
+      }
+    }
+    return null;
+  }
+  
   /** 
   Called when a new stream is received, set up  as callback in default connect and init method.
   Tries to find an existing client, and if found, calls attachAudioStream and attachVideoStream.
@@ -218,18 +238,12 @@ export class MediaStreams {
     var data = this.getClientData(subscriber);
     if ( "main" == data.type ) {
       console.log("Stream started for client", data );
-      for (var i = 0; i < this.clients.length; i++) {
-        var client = this.clients[i];
-        // FIXME this implies that the streamToMesh is called before streamingStart
-        // this seems to always be the case, but is not guaranteed
-        if (client.id == data.clientId) {
-          // matched
-          this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
-          //this.clients.splice(i,1); // too eager, we may need to keep it for another stream
-          console.log("Audio/video stream started for avatar of client ", data);
-          this.attachVideoStream(client, subscriber);
-          break;
-        }
+      const client = this.findClient(data);
+      if ( client ) {
+        this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
+        //this.clients.splice(i,1); // too eager, we may need to keep it for another stream
+        console.log("Audio/video stream started for avatar of client ", data);
+        this.attachVideoStream(client, subscriber);        
       }
       this.subscribers.push(subscriber);
     } else if ( "screen" == data.type ) {
@@ -255,7 +269,10 @@ export class MediaStreams {
       console.log("Already streaming to avatar of client " + client.id+" - stream ignored");
       return;
     }
-    console.log("Streaming to avatar of client " + client.id);
+    console.log("Streaming to avatar of client " + client.id, mesh);
+    if ( !mesh ) {
+      throw "Null mesh";      
+    }
     client.streamToMesh = mesh;
     for (let i = 0; i < this.subscribers.length; i++) {
       let subscriber = this.subscribers[i];
@@ -332,24 +349,12 @@ export class MediaStreams {
     var mediaStream = subscriber.stream.getMediaStream();
     // CHECKME: this doesn't always trigger
     // maybe use getVideoTracks() instead?
-    if (client.video) {
+    if (client.video && client.avatar.video) {
       // optional: also stream video as diffuseTexture
       if (subscriber.stream.hasVideo && subscriber.stream.videoActive) {
         console.log("Streaming video texture")
         client.avatar.displayStream(mediaStream);
       }
-      subscriber.on('streamPropertyChanged', event => {
-        // "videoActive", "audioActive", "videoDimensions" or "filter"
-        console.log('Stream property changed: ');
-        console.log(event);
-        if (event.changedProperty === 'videoActive') {
-          if (event.newValue && event.stream.hasVideo) {
-            client.avatar.displayStream(mediaStream);
-          } else {
-            client.avatar.displayAlt();
-          }
-        }
-      });
     } else {
       this.playStream(client, mediaStream);
     }
@@ -423,6 +428,25 @@ export class OpenViduStreams extends MediaStreams {
           callback(subscriber, true);
         }
       });
+      subscriber.on('streamPropertyChanged', event => {
+        // "videoActive", "audioActive", "videoDimensions" or "filter"
+        console.log('Stream property changed: ');
+        console.log(event);
+        if (event.changedProperty === 'videoActive') {
+          const sessionData = new SessionData(event.stream.connection.data);
+          const client = this.findClient(sessionData);
+          if ( client && client.avatar.video ) {
+            const mediaStream = event.stream.connection.stream;
+            if (event.newValue && event.stream.hasVideo) {
+              client.avatar.displayStream(mediaStream);
+            } else {
+              client.avatar.displayAlt();
+            }            
+          } else {
+            console.log("Cannot activate video for client - not a video avatar", client);
+          }
+        }
+      });      
       if (callback) {
         // stream is created but not playing
         callback(subscriber, false);
@@ -432,10 +456,13 @@ export class OpenViduStreams extends MediaStreams {
     // On every new Stream destroyed...
     this.session.on('streamDestroyed', (event) => {
       // TODO remove from the scene
-      console.log("Stream destroyed! TODO clean up")
+      console.log("Stream destroyed! TODO clean up");
+      //event.stream.connection.data contains the client
       console.log(event);
+      const sessionData = new SessionData(event.stream.connection.data);
+      this.removeClient(sessionData.clientId);
       if (callback) {
-        callback(new SessionData(event.stream.connection.data));
+        callback(sessionData);
       }
     });
   }

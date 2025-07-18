@@ -66,7 +66,7 @@ export class AvatarLoader extends MeshLoader {
       this.changeObject(obj, initialPosition, parent);
     } else {
       // apply known position
-      parent.position = new BABYLON.Vector3(obj.position.x, obj.position.y, obj.position.z)
+      parent.position = new BABYLON.Vector3(obj.position.x, obj.position.y, obj.position.z);
     }
 
     if (obj.rotation) {
@@ -78,7 +78,7 @@ export class AvatarLoader extends MeshLoader {
         this.changeObject(obj, initialRotation, parent);
       } else {
         // apply known rotation
-        parent.rotation = new BABYLON.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z)
+        parent.rotation = new BABYLON.Vector3(obj.rotation.x, obj.rotation.y, obj.rotation.z);
       }
     }
 
@@ -86,7 +86,7 @@ export class AvatarLoader extends MeshLoader {
     if (this.mediaStreams) {
       this.mediaStreams.streamToMesh(obj, video.mesh);
     } else {
-      console.log("WARNING: unable to stream to " + obj.id + " - no MediaStreams")
+      console.log("WARNING: unable to stream to " + obj.id + " - no MediaStreams");
     }
     this.notifyLoadListeners(obj, video);
   }

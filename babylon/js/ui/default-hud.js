@@ -255,7 +255,7 @@ export class DefaultHud {
     this.stopEmoji();
     if (this.isOnline()) {
       // online, bind to camera in 1st person and to avatar in 3rd person view
-      if (World.lastInstance.camera3p && this.scene.activeCamera == World.lastInstance.camera3p) {
+      if (World.lastInstance.inThirdPerson()) {
         this.emojiParticleSystem.init(url, World.lastInstance.avatarController.avatar).start();
       } else {
         this.emojiParticleSystem.init(url).start();
@@ -408,21 +408,18 @@ export class DefaultHud {
       */
       if (this.state.webcam) {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
-        if ( this.avatar && this.videoAvatar) {
+        if ( World.lastInstance.inThirdPerson() && this.avatar && this.videoAvatar) {
           // switch from existing 3d avatar to video avatar
           //this.avatar.parentMesh.setEnabled(false);
           this.avatar.hide();
           this.videoAvatar.show();
           World.lastInstance.setAvatar(this.videoAvatar);
-          if ( this.isOnline() ) {
-            WorldManager.instance.sendMy({video:true});
-          }
-        } else if (this.videoAvatar) {
+        } else if (this.videoAvatar && this.videoAvatar.isEnabled()) {
           this.videoAvatar.displayVideo();
         }
       } else {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
-        if ( this.avatar ) {
+        if ( World.lastInstance.inThirdPerson() && this.avatar ) {
           // switch from video avatar to existing 3d avatar
           this.avatar.show();
           //this.avatar.parentMesh.setEnabled(true);
@@ -433,12 +430,13 @@ export class DefaultHud {
           if ( this.isOnline() ) {
             WorldManager.instance.sendMy({video:false});
           }
-        } else if (this.videoAvatar) {
+        } else if (this.videoAvatar && this.videoAvatar.isEnabled()) {
           // no 3d avatar, just display image/name
           this.videoAvatar.displayAlt();
         }
       }
-      if (MediaStreams.instance) {
+      if (this.isOnline() && MediaStreams.instance) {
+        WorldManager.instance.sendMy({video:enable});
         MediaStreams.instance.publishVideo(enable);
       }
     }

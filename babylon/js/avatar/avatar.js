@@ -260,11 +260,11 @@ export class Avatar {
     if ( obj.video ) {
       console.log("TODO: unload user avatar, create video avatar", obj);
       WorldManager.instance.removeObject(obj);
-      WorldManager.instance.addObject(obj);
+      setTimeout(()=>WorldManager.instance.addObject(obj), 100);
     } else if (obj.mesh) {
       console.log("TODO: replace video avatar with mesh", obj);
       WorldManager.instance.removeObject(obj);
-      WorldManager.instance.addObject(obj);      
+      setTimeout(()=>WorldManager.instance.addObject(obj), 100);
     } else {
       console.log("TODO: just show user image instead of video", obj);
     }
