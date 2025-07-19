@@ -5,6 +5,8 @@ import { TextArea } from '../ui/widget/text-area.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { User } from '../client/vrspace.js';
 import { WorldManager } from '../core/world-manager.js';
+import { VRObject } from '../client/vrspace.js';
+
 /**
  * Base avatar class, provides common methods for actual humanoid/video/mesh avatars
  * @abstract
@@ -220,26 +222,41 @@ export class Avatar {
   
   /**
    * Handles position change network event
+   * @param {VRObject} obj contains already changed position
+   * @param {*} node babylon node 
    */
   positionChanged(obj, node) {
     if (!obj.translate) {
       obj.translate = VRSPACEUI.createAnimation(node, "position", this.fps);
+      // CHECKME move this assignment to createAnimation?
+      node.position.x = obj.position.x; 
+      node.position.y = obj.position.y; 
+      node.position.z = obj.position.z; 
+    } else {
+      VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
     }
-    VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);   
   }
   
   /**
    * Handles rotation change network event
+   * @param {VRObject} obj contains already changed rotation
+   * @param {*} node babylon node 
    */
   rotationChanged(obj, node) {
     if (!obj.rotate) {
       obj.rotate = VRSPACEUI.createAnimation(node, "rotation", this.fps);
+      node.rotation.x = obj.rotation.x; 
+      node.rotation.y = obj.rotation.y; 
+      node.rotation.z = obj.rotation.z; 
+    } else {
+      VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
     }
-    VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
   }
 
   /**
    * Handles name change network event
+   * @param {VRObject} obj contains already changed name
+   * @param {*} node babylon node 
    */
   nameChanged(obj,node) {
     this.setName(obj.name);    
@@ -250,13 +267,14 @@ export class Avatar {
    */ 
   meshChanged(obj, node) {
     console.log("TODO: replace avatar mesh", obj);
+    WorldManager.instance.removeObject(obj);
+    setTimeout(()=>WorldManager.instance.addObject(obj), 100);
   }
   
   /**
    * @param {User} obj 
    */ 
   videoChanged(obj, node) { 
-    console.log("TODO: replace video avatar", obj);
     if ( obj.video ) {
       console.log("TODO: unload user avatar, create video avatar", obj);
       WorldManager.instance.removeObject(obj);

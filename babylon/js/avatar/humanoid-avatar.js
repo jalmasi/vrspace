@@ -1938,8 +1938,10 @@ export class HumanoidAvatar extends Avatar {
   rotationChanged(obj, node) {
     if (!obj.rotate) {
       obj.rotate = VRSPACEUI.createQuaternionAnimation(node, "rotationQuaternion", this.fps);
+      node.rotationQuaternion = new BABYLON.Quaternion.FromEulerAngles(0,obj.rotation.y,0);
+    } else {
+      VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);
     }
-    VRSPACEUI.updateQuaternionAnimationFromVec(obj.rotate, node.rotationQuaternion, obj.rotation);    
   }
    
 }
