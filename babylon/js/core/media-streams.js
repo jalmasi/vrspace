@@ -44,7 +44,7 @@ export class MediaStreams {
     /** Audio source to use, default undefined (auto). @type {boolean|undefined} */
     this.audioSource = undefined; // use default
     /** Video source to use, default false (disabled). @type {boolean|undefined} */
-    this.videoSource = false;     // disabled
+    this.videoSource = undefined;     // disabled
     // state variables:
     this.publisher = null;
     /** Currently publishing video? @type {boolean} */

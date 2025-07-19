@@ -53,15 +53,15 @@ export class DefaultHud {
     this.miniMap = null;
     this.groupsUI = null;
     this.groupEventCount = 0;
-    this.groupListener = VRSPACE.addGroupListener(event=>this.groupEvent(event));
+    this.groupListener = VRSPACE.addGroupListener(event => this.groupEvent(event));
   }
 
   init() {
-    if ( this.miniMap ) {
+    if (this.miniMap) {
       this.miniMap.dispose();
       this.miniMap = null;
     }
-    if ( this.groupsUI ) {
+    if (this.groupsUI) {
       this.groupsUI.dispose();
       this.groupsUI = null;
     }
@@ -86,11 +86,11 @@ export class DefaultHud {
   }
 
   addGroupsButton() {
-    if ( ! this.groupsButton && this.isOnline() && this.isAuthenticated ) {
+    if (!this.groupsButton && this.isOnline() && this.isAuthenticated) {
       this.groupsButton = this.hud.addButton("Groups", this.contentBase + "/content/icons/user-group.png", () => { this.groups() });
     }
   }
-  
+
   streamingAvailable() {
     // TODO check server capabilities
     // screen sharing unavailable on mobiles
@@ -148,15 +148,15 @@ export class DefaultHud {
 
       this.minimapButton = this.hud.addButton("Mini map", this.contentBase + "/content/icons/map.png", () => this.toggleMiniMap(), false);
       this.minimapButton.tooltipText = "Show mini map";
-      if ( this.miniMap ) {
+      if (this.miniMap) {
         this.hud.markActive(this.minimapButton, true);
       }
-      
+
       this.compassButton = this.hud.addButton("Positions", this.contentBase + "/content/icons/location-indicator.png", () => this.compass(), false);
       this.compassButton.tooltipText = "Show positions";
-      if ( !UserDirectionMonitor.isEnabled()) {
+      if (!UserDirectionMonitor.isEnabled()) {
         this.hud.markDisabled(this.compassButton, true);
-      } else if ( UserDirectionMonitor.instance ) {
+      } else if (UserDirectionMonitor.instance) {
         this.hud.markActive(this.compassButton, true);
       }
 
@@ -174,17 +174,17 @@ export class DefaultHud {
   }
 
   compass() {
-    if ( UserDirectionMonitor.instance ) {
+    if (UserDirectionMonitor.instance) {
       UserDirectionMonitor.instance.dispose();
       this.hud.markEnabled(this.compassButton, true);
     } else {
       new UserDirectionMonitor().start();
-      this.hud.markActive(this.compassButton,true);
+      this.hud.markActive(this.compassButton, true);
     }
   }
-  
+
   toggleMiniMap() {
-    if ( this.miniMap ) {
+    if (this.miniMap) {
       this.miniMap.dispose();
       this.miniMap = null;
       this.hud.markEnabled(this.minimapButton, true);
@@ -193,7 +193,7 @@ export class DefaultHud {
       this.hud.markActive(this.minimapButton, true);
     }
   }
-  
+
   clearRow() {
     this.hud.clearRow();
     if (this.orientationButton) {
@@ -397,49 +397,70 @@ export class DefaultHud {
       this.videoAvatar = videoAvatar;
       this.hud.markEnabled(this.webcamButton);
     }
-    this.state.webcam = enable;
+    // this may be called before webcamButton is created
     if (this.webcamButton) {
-      // this may be called before webcamButton is created
-      /*
-      if (!this.videoAvatar) {
+      if (!this.isOnline() && (!this.videoAvatar || !this.videoAvatar.isEnabled())) {
+        // entry screen, video avatar not created or not selected
         this.hud.markDisabled(this.webcamButton);
         return;
       }
-      */
-      if (this.state.webcam) {
+      if (enable) {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
-        if ( World.lastInstance.inThirdPerson() && this.avatar && this.videoAvatar) {
-          // switch from existing 3d avatar to video avatar
-          //this.avatar.parentMesh.setEnabled(false);
-          this.avatar.hide();
-          this.videoAvatar.show();
+        // enabling video avatar online
+        if (this.isOnline() && MediaStreams.instance) {
+          if (!this.videoAvatar) {
+            // user entered a space without selecting video avatar, create one
+            this.videoAvatar = WorldManager.instance.avatarLoader.avatarFactory(VRSPACE.me, true, true);
+            if (!this.videoAvatar.selectDevice()) {
+              this.hud.markDisabled(this.webcamButton);
+              return;
+            }
+          }
+          // handle 3rd person cases
+          if (World.lastInstance.inThirdPerson()) {
+            if (this.avatar && this.videoAvatar) {
+              // switch from existing 3d avatar to video avatar
+              this.avatar.hide();
+              this.videoAvatar.show();
+            } else {
+              // video avatar only, just start video
+              this.videoAvatar.displayVideo();
+            }
+          } else {
+            // in 1st person, show the avatar and attach to camera
+            this.videoAvatar.show();
+            this.videoAvatar.attachToCamera();
+          }
           World.lastInstance.setAvatar(this.videoAvatar);
         } else if (this.videoAvatar && this.videoAvatar.isEnabled()) {
+          // offline, just show the video
           this.videoAvatar.displayVideo();
         }
       } else {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
-        if ( World.lastInstance.inThirdPerson() && this.avatar ) {
-          // switch from video avatar to existing 3d avatar
-          this.avatar.show();
-          //this.avatar.parentMesh.setEnabled(true);
-          if ( this.videoAvatar ) {
+        if (this.isOnline() && MediaStreams.instance) {
+          if (this.avatar) {
+            // switch from video avatar to existing 3d avatar
+            if (World.lastInstance.inThirdPerson()) {
+              this.avatar.show();
+            }
+            World.lastInstance.setAvatar(this.avatar);
+          }
+          if (this.videoAvatar) {
+            // in both 1st and 3rd person view, remove video avatar
             this.videoAvatar.dispose();
           }
-          World.lastInstance.setAvatar(this.avatar);
-          if ( this.isOnline() ) {
-            WorldManager.instance.sendMy({video:false});
-          }
         } else if (this.videoAvatar && this.videoAvatar.isEnabled()) {
-          // no 3d avatar, just display image/name
+          // offline, just display image/name
           this.videoAvatar.displayAlt();
         }
       }
       if (this.isOnline() && MediaStreams.instance) {
-        WorldManager.instance.sendMy({video:enable});
+        WorldManager.instance.sendMy({ video: enable });
         MediaStreams.instance.publishVideo(enable);
       }
     }
+    this.state.webcam = enable;
   }
 
   speech(enable = !this.state.speech) {
@@ -503,7 +524,7 @@ export class DefaultHud {
       this.helpGamepadButton = this.hud.addButton("Gamepad", this.contentBase + "/content/icons/gamepad.png", () => this.helpImage("help-gamepad.jpg"));
       this.helpGamepadButton = this.hud.addButton("VR", this.contentBase + "/content/icons/device-goggles.png", () => this.helpImage("help-vr.jpg"));
     } else {
-      if ( this.helpImageArea ) {
+      if (this.helpImageArea) {
         this.helpImageArea.dispose();
         this.helpImageArea = null;
       }
@@ -515,20 +536,20 @@ export class DefaultHud {
   }
 
   helpImage(file) {
-    if ( this.helpImageArea ) {
+    if (this.helpImageArea) {
       this.helpImageArea.dispose();
     }
     this.helpImageArea = new ImageArea(this.scene, "help image");
     this.helpImageArea.size = 1;
     this.helpImageArea.width = 1024;
     this.helpImageArea.height = 512;
-    this.helpImageArea.position = new BABYLON.Vector3(0,.5,0);
+    this.helpImageArea.position = new BABYLON.Vector3(0, .5, 0);
     this.helpImageArea.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
     this.helpImageArea.show();
     this.helpImageArea.detach(2);
-    this.helpImageArea.loadUrl(this.contentBase+"/content/images/"+file);
+    this.helpImageArea.loadUrl(this.contentBase + "/content/images/" + file);
   }
-  
+
   showWorldTemplates() {
     this.displayButtons = !this.displayButtons;
     if (this.displayButtons) {
@@ -553,22 +574,22 @@ export class DefaultHud {
     const href = window.location.href + "?worldName=" + worldName + "&worldToken=" + token + "&worldThumbnail=" + portal.name;
     const shareData = {
       title: worldName,
-      text: "Join "+worldName,
+      text: "Join " + worldName,
       url: href
     };
-    if ( ChatLog.activeInstance ) {
+    if (ChatLog.activeInstance) {
       // share the world with current chat group (groups-ui listens)
       ChatLog.activeInstance.notifyListeners(worldName, { content: worldName, link: href });
     }
-    if ( typeof navigator.canShare === "function") {
+    if (typeof navigator.canShare === "function") {
       try {
         await navigator.share(shareData);
-      } catch ( exception ) {
-        console.error("Can't share world - "+exception);
+      } catch (exception) {
+        console.error("Can't share world - " + exception);
       }
     }
     // give it some time to propagate
-    setTimeout(()=>window.location.href = href, 200);
+    setTimeout(() => window.location.href = href, 200);
     // TODO: instead, we should do what AvatarSelection.enterWorld does
   }
 
@@ -794,37 +815,37 @@ export class DefaultHud {
       SoundMixer.getInstance(this.scene).show();
     }
   }
-  
+
   groups() {
     this.displayButtons = !this.displayButtons;
-    this.groupEventCount=0;
+    this.groupEventCount = 0;
     this.groupsButton.text = "Groups";
-    if ( this.groupsUI ) {
+    if (this.groupsUI) {
       this.groupsUI.hide();
       this.groupsUI = null;
     } else {
       this.groupsUI = new GroupsUI(this.scene);
       this.groupsUI.show(this.groupsButton);
-   }
+    }
   }
- 
-  /** @param {GroupEvent} event  */ 
+
+  /** @param {GroupEvent} event  */
   groupEvent(event) {
     console.log("Group event", event);
-    if ( !this.displayButtons ) {
-      if ( event.message ) {
+    if (!this.displayButtons) {
+      if (event.message) {
         let chatlog = ChatLog.findInstance(event.message.group.name, "ChatLog:" + event.message.group.name);
-        if ( chatlog ) {
+        if (chatlog) {
           // chatlog displays messages
           return;
         }
       }
       this.groupEventCount++;
-      this.groupsButton.text = "Groups:"+this.groupEventCount;
+      this.groupsButton.text = "Groups:" + this.groupEventCount;
       this.groupsButton.pointerEnterAnimation();
-      setTimeout(()=>{
-        if ( !this.displayButtons) this.groupsButton.pointerOutAnimation()
-      },500);
+      setTimeout(() => {
+        if (!this.displayButtons) this.groupsButton.pointerOutAnimation()
+      }, 500);
     }
   }
 }

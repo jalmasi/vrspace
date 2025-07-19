@@ -36,7 +36,6 @@ export class VideoAvatar extends Avatar {
    */
   async show() {
     if ( ! this.mesh ) {
-      console.log("VideoAvatar.show()");
       if ( this.autoAttach ) {
         this.cameraTracker = () => this.cameraChanged();
       }
@@ -74,7 +73,9 @@ export class VideoAvatar extends Avatar {
   dispose() {
     super.dispose();
     if ( this.mesh ) {
-      if ( this.mesh.parent ) {
+      if ( this.mesh.parent && !this.attached) {
+        // if attached, this could dispose of camera
+        // otherwise dispose of parent mesh created by avatar loader
         this.mesh.parent.dispose();
       }
       if ( this.mesh.material ) {
@@ -86,6 +87,10 @@ export class VideoAvatar extends Avatar {
       this.mesh.dispose();
       delete this.mesh;
     }
+    if ( this.cameraTracker ) {
+      CameraHelper.getInstance(this.scene).removeCameraListener(this.cameraTracker);
+    }
+
   }
   
   isEnabled() {
@@ -131,13 +136,7 @@ export class VideoAvatar extends Avatar {
     }
   }
 
-  /** 
-  Display video from given device, used for own avatar.
-   */
-  async displayVideo( deviceId ) {
-    if ( this.displaying === "VIDEO" ) {
-      return;
-    }
+  async selectDevice(deviceId) {
     if ( deviceId ) {
       this.deviceId = deviceId;
     }
@@ -146,17 +145,30 @@ export class VideoAvatar extends Avatar {
         // prompts for permission to use camera
         await navigator.mediaDevices.getUserMedia({video:true});
       } catch(err) {
-        console.log("User permission denied ", err);
-        return;
+        console.error("User permission denied ", err);
+        return false;
       }
       var devices = await navigator.mediaDevices.enumerateDevices();
       for (var idx = 0; idx < devices.length; ++idx) {
         if (devices[idx].kind === "videoinput") {
           console.log(devices[idx]);
           this.deviceId = devices[idx].deviceId;
-          break;
+          return true;
         }
       }
+    }
+    return this.deviceId != null;    
+  }
+  
+  /** 
+  Display video from given device, used for own avatar.
+   */
+  async displayVideo( deviceId ) {
+    if ( this.displaying === "VIDEO" ) {
+      return;
+    }
+    if (! await this.selectDevice(deviceId) ) {
+      return;
     }
     if ( this.deviceId ) {
       BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: this.maxWidth, maxHeight: this.maxHeight, deviceId: this.deviceId }).then( (texture) => {
@@ -203,8 +215,8 @@ export class VideoAvatar extends Avatar {
         var scale = (this.radius/2)/20; // 5cm size
         this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
       }
-      this.cameraChanged();
       this.attached = true;
+      this.cameraChanged();
       CameraHelper.getInstance(this.scene).addCameraListener(this.cameraTracker);      
     }
   }
@@ -224,7 +236,7 @@ export class VideoAvatar extends Avatar {
  
   /** Called when active camera changes/avatar attaches to camera */ 
   cameraChanged() {
-    if ( this.autoAttach && this.attached ) {
+    if ( this.autoAttach && this.attached && this.mesh ) {
       console.log("Camera changed: "+this.scene.activeCamera.getClassName()+" new position "+this.scene.activeCamera.position);
       if ( this.scene.activeCamera.getClassName() == 'UniversalCamera' ) {
         this.camera = this.scene.activeCamera;

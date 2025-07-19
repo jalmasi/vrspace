@@ -97,7 +97,7 @@ export class WorldManager extends EventRouter {
       // obtain token and start pub/sub voices
       if (autoPublishVideo) {
         this.mediaStreams.startVideo = true;
-        this.mediaStreams.videoSource = undefined;
+        //this.mediaStreams.videoSource = undefined;
       }
       try {
         await this.mediaStreams.connect(user.tokens.OpenViduMain)

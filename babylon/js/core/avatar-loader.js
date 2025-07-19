@@ -201,12 +201,14 @@ export class AvatarLoader extends MeshLoader {
 
   /** 
    * Default video avatar factory method
-   * @param {Client} obj 
+   * @param {Client} obj
+   * @param {boolean} [autoStart=false] 
+   * @param {boolean} [autoAttach=false]
    */
-  createAvatar(obj) {
+  createAvatar(obj, autoStart=false, autoAttach=false) {
     let avatar = new VideoAvatar(this.scene, null, this.customOptions);
-    avatar.autoStart = false;
-    avatar.autoAttach = false;
+    avatar.autoStart = autoStart;
+    avatar.autoAttach = autoAttach;
     if (obj.picture) {
       avatar.altImage = obj.picture;
     }
