@@ -374,7 +374,7 @@ export class DefaultHud {
   }
 
   displayMic() {
-    if (MediaStreams.instance) {
+    if (MediaStreams.instance && MediaHelper.selectAudioInput()) {
       if (MediaStreams.instance.publishingAudio) {
         this.micButton.imageUrl = this.contentBase + "/content/icons/microphone.png";
       } else {
@@ -404,7 +404,7 @@ export class DefaultHud {
         // entry screen, video avatar not created or not selected
         !this.isOnline() && (!this.videoAvatar || !this.videoAvatar.isEnabled())
         // permission denied 
-        ||! await MediaHelper.selectDevice()) 
+        ||! await MediaHelper.selectVideoInput()) 
       {
         this.hud.markDisabled(this.webcamButton);
         return;

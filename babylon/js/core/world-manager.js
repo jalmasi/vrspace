@@ -96,13 +96,20 @@ export class WorldManager extends EventRouter {
     if (this.mediaStreams && user.tokens && user.tokens.OpenViduMain) {
       this.log("Subscribing as User " + user.id + " with token " + user.tokens.OpenViduMain);
       // ask for webcam access permissions
-      const deviceId = await MediaHelper.selectDevice();
-      if ( deviceId ) {
+      const videoDeviceId = await MediaHelper.selectVideoInput();
+      if (videoDeviceId) {
         this.mediaStreams.videoSource = deviceId;
       }
       if (autoPublishVideo) {
         this.mediaStreams.startVideo = true;
       }
+      const audioDeviceId = await MediaHelper.selectAudioInput();
+      if (audioDeviceId) {
+        this.mediaStreams.videoSource = deviceId;
+      } else {
+        this.mediaStreams.audioSource = false;        
+      }
+      
       try {
         await this.mediaStreams.connect(user.tokens.OpenViduMain)
         this.avatarLoader.mediaStreams = this.mediaStreams;
