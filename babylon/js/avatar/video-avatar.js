@@ -1,5 +1,6 @@
 import { Avatar } from './avatar.js';
 import { CameraHelper } from '../core/camera-helper.js';
+import { MediaHelper } from '../core/media-helper.js';
 
 /**
 A disc that shows video stream. Until streaming starts, altText is displayed on the cylinder.
@@ -136,40 +137,14 @@ export class VideoAvatar extends Avatar {
     }
   }
 
-  async selectDevice(deviceId) {
-    if ( deviceId ) {
-      this.deviceId = deviceId;
-    }
-    if ( ! this.deviceId ) {
-      try {
-        // prompts for permission to use camera
-        await navigator.mediaDevices.getUserMedia({video:true});
-      } catch(err) {
-        console.error("User permission denied ", err);
-        return false;
-      }
-      var devices = await navigator.mediaDevices.enumerateDevices();
-      for (var idx = 0; idx < devices.length; ++idx) {
-        if (devices[idx].kind === "videoinput") {
-          console.log(devices[idx]);
-          this.deviceId = devices[idx].deviceId;
-          return true;
-        }
-      }
-    }
-    return this.deviceId != null;    
-  }
-  
   /** 
   Display video from given device, used for own avatar.
    */
-  async displayVideo( deviceId ) {
+  async displayVideo(deviceId) {
     if ( this.displaying === "VIDEO" ) {
       return;
     }
-    if (! await this.selectDevice(deviceId) ) {
-      return;
-    }
+    this.deviceId = MediaHelper.selectDevice(deviceId);
     if ( this.deviceId ) {
       BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: this.maxWidth, maxHeight: this.maxHeight, deviceId: this.deviceId }).then( (texture) => {
         if ( this.mesh.material.diffuseTexture ) {

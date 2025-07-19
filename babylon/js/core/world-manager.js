@@ -594,7 +594,8 @@ export class WorldManager extends EventRouter {
         }
         // CHECKME better way to flag publishing video?
         //await this.pubSub(welcome.client.User, 'video' === VRSPACE.me.mesh);
-        await this.pubSub(welcome.client.User, VRSPACE.me.video);
+        //await this.pubSub(welcome.client.User, VRSPACE.me.video);
+        await this.pubSub(welcome.client.User, true);
         // FIXME for the time being, Enter first, then Session
         if (this.world.name) {
           VRSPACE.addWelcomeListener(welcome => {

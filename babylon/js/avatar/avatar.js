@@ -275,16 +275,12 @@ export class Avatar {
    * @param {User} obj 
    */ 
   videoChanged(obj, node) { 
-    if ( obj.video ) {
-      console.log("TODO: unload user avatar, create video avatar", obj);
-      WorldManager.instance.removeObject(obj);
-      setTimeout(()=>WorldManager.instance.addObject(obj), 100);
-    } else if (obj.mesh) {
-      console.log("TODO: replace video avatar with mesh", obj);
+    if (obj.mesh && obj.mesh != "video") {
+      console.log("TODO: switch between video and humanoid avatar", obj);
       WorldManager.instance.removeObject(obj);
       setTimeout(()=>WorldManager.instance.addObject(obj), 100);
     } else {
-      console.log("TODO: just show user image instead of video", obj);
+      console.log("TODO: VideoAvatar displaying stream: "+obj.video, obj);
     }
   }
   

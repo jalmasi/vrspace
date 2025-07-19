@@ -23,6 +23,7 @@ import { GroupsUI } from './groups-ui.js';
 import { ChatLog } from './widget/chat-log.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
+import { MediaHelper } from '../core/media-helper.js';
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -391,7 +392,7 @@ export class DefaultHud {
     }
   }
 
-  toggleWebcam(enable = !this.state.webcam, videoAvatar) {
+  async toggleWebcam(enable = !this.state.webcam, videoAvatar) {
     console.log("Webcam: " + enable);
     if (videoAvatar) {
       this.videoAvatar = videoAvatar;
@@ -399,8 +400,12 @@ export class DefaultHud {
     }
     // this may be called before webcamButton is created
     if (this.webcamButton) {
-      if (!this.isOnline() && (!this.videoAvatar || !this.videoAvatar.isEnabled())) {
+      if (
         // entry screen, video avatar not created or not selected
+        !this.isOnline() && (!this.videoAvatar || !this.videoAvatar.isEnabled())
+        // permission denied 
+        ||! await MediaHelper.selectDevice()) 
+      {
         this.hud.markDisabled(this.webcamButton);
         return;
       }
@@ -410,12 +415,8 @@ export class DefaultHud {
         if (this.isOnline() && MediaStreams.instance) {
           if (!this.videoAvatar) {
             // user entered a space without selecting video avatar, create one
-            this.videoAvatar = WorldManager.instance.avatarLoader.avatarFactory(VRSPACE.me, true, true);
-            if (!this.videoAvatar.selectDevice()) {
-              this.hud.markDisabled(this.webcamButton);
-              return;
-            }
           }
+          this.videoAvatar = WorldManager.instance.avatarLoader.avatarFactory(VRSPACE.me, true, true);
           // handle 3rd person cases
           if (World.lastInstance.inThirdPerson()) {
             if (this.avatar && this.videoAvatar) {
@@ -445,10 +446,13 @@ export class DefaultHud {
               this.avatar.show();
             }
             World.lastInstance.setAvatar(this.avatar);
-          }
-          if (this.videoAvatar) {
-            // in both 1st and 3rd person view, remove video avatar
-            this.videoAvatar.dispose();
+            if (this.videoAvatar) {
+              // in both 1st and 3rd person view, remove video avatar
+              this.videoAvatar.dispose();
+            }
+          } else {
+            // no 3d avatar, just display image/name
+            this.videoAvatar.displayAlt();            
           }
         } else if (this.videoAvatar && this.videoAvatar.isEnabled()) {
           // offline, just display image/name
