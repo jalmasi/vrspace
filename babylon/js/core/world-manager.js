@@ -8,6 +8,7 @@ import { AvatarLoader } from './avatar-loader.js';
 import { MeshLoader } from './mesh-loader.js';
 import { SceneEvent } from '../client/vrspace.js';
 import { EventRouter } from './event-router.js';
+import { MediaHelper } from './media-helper.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -94,10 +95,13 @@ export class WorldManager extends EventRouter {
     // CHECKME: should it be OpenVidu or general streaming service name?
     if (this.mediaStreams && user.tokens && user.tokens.OpenViduMain) {
       this.log("Subscribing as User " + user.id + " with token " + user.tokens.OpenViduMain);
-      // obtain token and start pub/sub voices
+      // ask for webcam access permissions
+      const deviceId = await MediaHelper.selectDevice();
+      if ( deviceId ) {
+        this.mediaStreams.videoSource = deviceId;
+      }
       if (autoPublishVideo) {
         this.mediaStreams.startVideo = true;
-        //this.mediaStreams.videoSource = undefined;
       }
       try {
         await this.mediaStreams.connect(user.tokens.OpenViduMain)
@@ -592,10 +596,8 @@ export class WorldManager extends EventRouter {
             VRSPACE.me[prop] = properties[prop];
           }
         }
-        // CHECKME better way to flag publishing video?
-        //await this.pubSub(welcome.client.User, 'video' === VRSPACE.me.mesh);
-        //await this.pubSub(welcome.client.User, VRSPACE.me.video);
-        await this.pubSub(welcome.client.User, true);
+        // start publishing video only for video avatar currently displaying video
+        this.pubSub(welcome.client.User, VRSPACE.me.video);
         // FIXME for the time being, Enter first, then Session
         if (this.world.name) {
           VRSPACE.addWelcomeListener(welcome => {

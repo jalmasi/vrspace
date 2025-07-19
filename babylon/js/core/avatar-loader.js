@@ -27,8 +27,7 @@ export class AvatarLoader extends MeshLoader {
   
   /** @param {VRObject} obj  */
   load(obj) {
-    // CHECKME: order matters, but consequence of this order is that humanoid avatar can't have video
-    if (obj.video) {
+    if (obj.video || obj.mesh == "video") {
       this.loadStream(obj);
     } else if (obj.humanoid) {
       this.loadAvatar(obj);

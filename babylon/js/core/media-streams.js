@@ -42,9 +42,9 @@ export class MediaStreams {
     /** Verbose WebRTC? Default false. @type {boolean} */
     this.debug=false;
     /** Audio source to use, default undefined (auto). @type {boolean|undefined} */
-    this.audioSource = undefined; // use default
+    this.audioSource = undefined;
     /** Video source to use, default false (disabled). @type {boolean|undefined} */
-    this.videoSource = undefined; // use default
+    this.videoSource = false;
     // state variables:
     this.publisher = null;
     /** Currently publishing video? @type {boolean} */
@@ -436,7 +436,7 @@ export class OpenViduStreams extends MediaStreams {
           const sessionData = new SessionData(event.stream.connection.data);
           const client = this.findClient(sessionData);
           if ( client && client.avatar.video ) {
-            const mediaStream = event.stream.connection.stream;
+            const mediaStream = event.stream.connection.stream.mediaStream;
             if (event.newValue && event.stream.hasVideo) {
               client.avatar.displayStream(mediaStream);
             } else {
