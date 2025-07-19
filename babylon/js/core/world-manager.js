@@ -98,14 +98,14 @@ export class WorldManager extends EventRouter {
       // ask for webcam access permissions
       const videoDeviceId = await MediaHelper.selectVideoInput();
       if (videoDeviceId) {
-        this.mediaStreams.videoSource = deviceId;
+        this.mediaStreams.videoSource = videoDeviceId;
       }
       if (autoPublishVideo) {
         this.mediaStreams.startVideo = true;
       }
       const audioDeviceId = await MediaHelper.selectAudioInput();
       if (audioDeviceId) {
-        this.mediaStreams.videoSource = deviceId;
+        this.mediaStreams.videoSource = audioDeviceId;
       } else {
         this.mediaStreams.audioSource = false;        
       }
