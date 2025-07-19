@@ -373,8 +373,8 @@ export class DefaultHud {
     this.showXRMovementControls();
   }
 
-  displayMic() {
-    if (MediaStreams.instance && MediaHelper.selectAudioInput()) {
+  async displayMic() {
+    if (MediaStreams.instance && await MediaHelper.checkAudioPermissions()) {
       if (MediaStreams.instance.publishingAudio) {
         this.micButton.imageUrl = this.contentBase + "/content/icons/microphone.png";
       } else {
@@ -404,7 +404,7 @@ export class DefaultHud {
         // entry screen, video avatar not created or not selected
         !this.isOnline() && (!this.videoAvatar || !this.videoAvatar.isEnabled())
         // permission denied 
-        ||! await MediaHelper.selectVideoInput()) 
+        ||! await MediaHelper.checkVideoPermissions()) 
       {
         this.hud.markDisabled(this.webcamButton);
         return;

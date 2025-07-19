@@ -144,7 +144,7 @@ export class VideoAvatar extends Avatar {
     if ( this.displaying === "VIDEO" ) {
       return;
     }
-    this.deviceId = MediaHelper.selectDevice(deviceId);
+    this.deviceId = MediaHelper.selectVideoInput(deviceId);
     if ( this.deviceId ) {
       BABYLON.VideoTexture.CreateFromWebCamAsync(this.scene, { maxWidth: this.maxWidth, maxHeight: this.maxHeight, deviceId: this.deviceId }).then( (texture) => {
         if ( this.mesh.material.diffuseTexture ) {

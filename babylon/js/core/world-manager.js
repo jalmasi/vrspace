@@ -96,16 +96,12 @@ export class WorldManager extends EventRouter {
     if (this.mediaStreams && user.tokens && user.tokens.OpenViduMain) {
       this.log("Subscribing as User " + user.id + " with token " + user.tokens.OpenViduMain);
       // ask for webcam access permissions
-      const videoDeviceId = await MediaHelper.selectVideoInput();
-      if (videoDeviceId) {
-        this.mediaStreams.videoSource = videoDeviceId;
+      if ( await MediaHelper.checkVideoPermissions() ) {
+        this.mediaStreams.videoSource = undefined;
+        this.mediaStreams.startVideo = autoPublishVideo;
       }
-      if (autoPublishVideo) {
-        this.mediaStreams.startVideo = true;
-      }
-      const audioDeviceId = await MediaHelper.selectAudioInput();
-      if (audioDeviceId) {
-        this.mediaStreams.videoSource = audioDeviceId;
+      if (await MediaHelper.checkAudioPermissions()) {
+        this.mediaStreams.audioSource = undefined;
       } else {
         this.mediaStreams.audioSource = false;        
       }
@@ -117,7 +113,10 @@ export class WorldManager extends EventRouter {
         // we may need to pause/unpause audio publishing during speech input
         // TODO figure out how to use instance
         VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
-        this.mediaStreams.publish();        
+        if ( this.mediaStreams.audioSource == undefined || this.mediaStreams.videoSource == undefined ) {
+          // otherwise error
+          this.mediaStreams.publish();
+        }
       } catch ( exception ) {
         console.error("Streaming connection failure", exception);
       }

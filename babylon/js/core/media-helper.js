@@ -2,7 +2,7 @@ export class MediaHelper {
   static devices = {};
   static async checkPermissions(permissionObject) {
   try {
-    // prompts for permission to use camera
+    // prompts for permission to use camera/mic
     await navigator.mediaDevices.getUserMedia(permissionObject);
     return true;
   } catch(err) {
@@ -10,6 +10,14 @@ export class MediaHelper {
     return false;
   }
   }
+  static async checkAudioPermissions() {
+    return MediaHelper.checkPermissions({audio:true});
+  }  
+  static async checkVideoPermissions() {
+    return MediaHelper.checkPermissions({video:true});
+  }  
+  
+  // FIXME this can return device with empty ID 
   static async selectDevice(deviceId, kind) {
     if ( deviceId ) {
       MediaHelper.devices[kind] = deviceId;
@@ -29,13 +37,13 @@ export class MediaHelper {
   
   static async selectVideoInput(deviceId) {
     if (MediaHelper.checkPermissions({video:true})) {
-      return MediaHelper.selectDevice(deviceId, "videoinput");      
+      return MediaHelper.selectDevice(deviceId, "videoinput");
     }
     return null;
   }
   static async selectAudioInput(deviceId) {
-    if( MediaHelper.checkPermissions({audio:true}) ) {
-      return MediaHelper.selectDevice(deviceId, "audioinput");      
+    if(MediaHelper.checkPermissions({audio:true})) {
+      return MediaHelper.selectDevice(deviceId, "audioinput");
     }
     return null;
   }
