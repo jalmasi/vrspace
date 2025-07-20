@@ -409,6 +409,10 @@ export class DefaultHud {
         this.hud.markDisabled(this.webcamButton);
         return;
       }
+      if ( this.state.webcam == enable ) {
+        // prevents reload of remote avatar instances 
+        return;
+      }
       if (enable) {
         this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         // enabling video avatar online
