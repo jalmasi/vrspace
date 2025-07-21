@@ -386,7 +386,7 @@ export class WorldManager extends EventRouter {
     } else {
       // TODO server needs to ensure that mesh exists
       // in the meantime we define default behavior here
-      console.log("WARNING: can't load " + e.objectId + " - no mesh");
+      console.log("WARNING: can't load " + obj.id + " - no mesh");
     }
   }
   
