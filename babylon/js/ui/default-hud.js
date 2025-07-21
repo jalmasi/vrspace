@@ -24,6 +24,7 @@ import { ChatLog } from './widget/chat-log.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
 import { MediaHelper } from '../core/media-helper.js';
+import { WorldEditorUI } from '../ui/world/worldeditor-ui.js';
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -51,6 +52,7 @@ export class DefaultHud {
     this.screencast = null;
     this.whiteboard = null;
     this.creditArea = null;
+    this.worldEditorUI = null;
     this.miniMap = null;
     this.groupsUI = null;
     this.groupEventCount = 0;
@@ -153,6 +155,12 @@ export class DefaultHud {
         this.hud.markActive(this.minimapButton, true);
       }
 
+      this.editButton = this.hud.addButton("World editor", this.contentBase + "/content/icons/world.png", () => this.editWorld(), false);
+      this.editButton.tooltipText = "Edit the world";
+      if ( !this.isOnline() ) {
+        this.hud.markDisabled(this.editButton, true);
+      }
+
       this.compassButton = this.hud.addButton("Positions", this.contentBase + "/content/icons/location-indicator.png", () => this.compass(), false);
       this.compassButton.tooltipText = "Show positions";
       if (!UserDirectionMonitor.isEnabled()) {
@@ -194,6 +202,16 @@ export class DefaultHud {
       this.hud.markActive(this.minimapButton, true);
     }
   }
+  
+  editWorld() {
+    if ( this.worldEditorUI ) {
+      this.worldEditorUI.hide();
+      this.worldEditorUI = null;      
+    } else {
+      this.worldEditorUI = new WorldEditorUI(this.scene);
+      this.worldEditorUI.show(this.editButton);
+    }
+  }
 
   clearRow() {
     this.hud.clearRow();
@@ -220,6 +238,10 @@ export class DefaultHud {
     if (this.creditArea) {
       this.creditArea.dispose();
       this.creditArea = null;
+    }
+    if ( this.worldEditorUI ) {
+      this.worldEditorUI.hide();
+      this.worldEditorUI = null;
     }
     this.buttons.forEach(b => b.dispose());
     this.buttons = [];

@@ -35,6 +35,7 @@ export { TextureSelector } from "./ui/world/texture-selector.js";
 export { SkyboxSelector } from "./ui/world/skybox-selector.js";
 export { TerrainEditor } from "./ui/world/terrain-editor.js";
 export { WorldEditor } from "./ui/world/world-editor.js";
+export { WorldEditorUI } from './ui/world/worldeditor-ui.js';
 
 export { Buttons } from "./ui/widget/buttons.js";
 export { ColorPickerPanel } from './ui/widget/colorpicker-panel.js';

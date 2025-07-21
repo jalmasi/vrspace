@@ -20,6 +20,7 @@ export class TerrainEditor extends WorldListener {
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
     world.addSelectionPredicate(this.selectionPredicate);
+    this.observer = null;
   }
   /** Called by WorldManager when user enters the world (WorldListener method) */
   entered(welcome) {
@@ -97,29 +98,31 @@ export class TerrainEditor extends WorldListener {
   
   edit() {
     this.createSharedTerrain();
-    this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
-      switch (pointerInfo.type) {
-        case BABYLON.PointerEventTypes.POINTERDOWN:
-          if(pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh == this.terrain.mesh()) {
-            this.lastIndex = this.updatePicked(pointerInfo.pickInfo);
-            this.terrain.mesh().enablePointerMoveEvents = true;
-          }
-          break;
-        case BABYLON.PointerEventTypes.POINTERUP:
-          this.lastIndex = -1;
-          this.terrain.mesh().enablePointerMoveEvents = false;
-          break;
-        case BABYLON.PointerEventTypes.POINTERMOVE:
-          if ( this.lastIndex >= 0 && pointerInfo.pickInfo.pickedMesh == this.terrain.mesh() ) {
-            var newIndex = this.terrain.findIndex(pointerInfo.pickInfo.pickedPoint.x,pointerInfo.pickInfo.pickedPoint.z);
-            if ( newIndex != this.lastIndex ) {
-              this.lastIndex = newIndex;
-              this.updatePicked(pointerInfo.pickInfo);
+    if ( ! this.observer ) {
+      this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
+        switch (pointerInfo.type) {
+          case BABYLON.PointerEventTypes.POINTERDOWN:
+            if(pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh == this.terrain.mesh()) {
+              this.lastIndex = this.updatePicked(pointerInfo.pickInfo);
+              this.terrain.mesh().enablePointerMoveEvents = true;
             }
+            break;
+          case BABYLON.PointerEventTypes.POINTERUP:
+            this.lastIndex = -1;
+            this.terrain.mesh().enablePointerMoveEvents = false;
+            break;
+          case BABYLON.PointerEventTypes.POINTERMOVE:
+            if ( this.lastIndex >= 0 && pointerInfo.pickInfo.pickedMesh == this.terrain.mesh() ) {
+              var newIndex = this.terrain.findIndex(pointerInfo.pickInfo.pickedPoint.x,pointerInfo.pickInfo.pickedPoint.z);
+              if ( newIndex != this.lastIndex ) {
+                this.lastIndex = newIndex;
+                this.updatePicked(pointerInfo.pickInfo);
+              }
+            }
+            break;
           }
-          break;
-        }
-    });
+      });      
+    }
     
     this.raiseButton = VRSPACEUI.hud.addButton("Raise", VRSPACEUI.contentBase+"/content/icons/upload.png");
     this.digButton = VRSPACEUI.hud.addButton("Dig", VRSPACEUI.contentBase+"/content/icons/download.png");
@@ -145,7 +148,7 @@ export class TerrainEditor extends WorldListener {
       } else {
         this.textureSelector.hide();
       }
-      VRSPACEUI.hud.showButtons(!this.editing,this.textureButton,this);
+      VRSPACEUI.hud.showButtons(!this.editing,this.textureButton);
     });
     this.raiseSlider.onValueChangedObservable.add(value=>{this.heightIncrement=value});
     
@@ -192,10 +195,12 @@ export class TerrainEditor extends WorldListener {
     }
     return index;
   }
+  
   publishTexture(imgUrl) {
     console.log("Publishing texture: "+imgUrl);
     this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {diffuseTexture:imgUrl});
   }
+  
   setTexture(imgUrl) {
     console.log("New texture: "+imgUrl);
     if ( this.terrainTexture ) {
@@ -204,11 +209,18 @@ export class TerrainEditor extends WorldListener {
     this.terrainTexture = new BABYLON.Texture(imgUrl, this.scene);
     this.terrain.mesh().material.diffuseTexture = this.terrainTexture;
   }
+  
   dispose() {
     this.world.removeSelectionPredicate(this.selectionPredicate);
     this.world.removeListener(this);
-    // ..etc, CHECKME
+    this.terrain.terrainMaterial.wireframe = false;
+    this.scene.onPointerObservable.remove(this.observer);
+    this.raiseButton.dispose();
+    this.digButton.dispose();
+    this.textureButton.dispose();    
+    this.raiseSlider.dispose();
   }
+  
   isSelectableMesh(mesh) {
     // terrain is selectable only while editing
     return this.editing && this.terrain && mesh == this.terrain.mesh();

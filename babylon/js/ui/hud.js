@@ -201,7 +201,7 @@ export class HUD {
     if (onPointerDown) {
       button.onPointerDownObservable.add((vector3WithInfo) => {
         // CHECKME: do we really want this check here?
-        if (this.isEnabled(button) || this.isActive(button)) {
+        if (this.canActivate(button) ) {
           onPointerDown(button, vector3WithInfo)
         }
       });
@@ -213,6 +213,18 @@ export class HUD {
       });
     }
     return button;
+  }
+  
+  /**
+   * A button can be activated if
+   * - visible
+   * - enabled or active (so it can be deactivated)
+   * - is in the last or previous row (handling more rows than that requires too much bookkeeping)
+   */
+  canActivate(button) {
+    return button.isVisible &&
+    (this.isEnabled(button) || this.isActive(button)) &&
+    (this.elements.includes(button) || this.rows.length > 1 && this.rows[this.rows.length-2].elements.includes(button));
   }
 
   /**
@@ -232,7 +244,7 @@ export class HUD {
   /** Activates given button, if it's visible */
   activateButton(button) {
     // CHECKME: do we really want this check here?
-    if (button.isVisible && (this.isEnabled(button) || this.isActive(button))) {
+    if (this.canActivate(button)) {
       button.onPointerDownObservable.observers.forEach(observer => observer.callback(button))
       button.onPointerUpObservable.observers.forEach(observer => observer.callback(button))
     }
@@ -489,7 +501,7 @@ export class HUD {
         element.isVisible = show;
       }
     });
-    if (!show && except && except != this.getActiveControl()) {
+    if (!show && except && except.filter(control=>control!=undefined&&control!=null).length > 0 && !except.find(control=>control==this.getActiveControl()) ) {
       // if everything turned off, including currently selected button, select what you can
       this.right();
     }

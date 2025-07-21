@@ -95,6 +95,7 @@ export class World {
     */
     this.worldListeners = [];
     this.floorMeshes = [];
+    this.floorEnabled = true;
     this.ground = null;
     // CHECKME: should floors be selectable?
     this.selectionPredicates = [(mesh) => { return this.getFloorMeshes().includes(mesh) }];
@@ -370,12 +371,22 @@ export class World {
   Used for movement in XR.
    */
   getFloorMeshes() {
-    if (this.floorMeshes && this.floorMeshes.length > 0) {
-      return this.floorMeshes;
-    } else if (this.ground) {
-      return [this.ground];
+    if ( this.floorEnabled ) {
+      if (this.floorMeshes && this.floorMeshes.length > 0) {
+        return this.floorMeshes;
+      } else if (this.ground) {
+        return [this.ground];
+      }      
     }
     return [];
+  }
+  
+  /**
+   * Enable/disable floor/ground selection, includes manipulation and teleportation
+   * @param {boolean} enable 
+   */
+  enableFloorSelection(enable) {
+    this.floorEnabled = enable;
   }
   
   /**

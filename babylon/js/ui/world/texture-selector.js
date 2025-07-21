@@ -1,5 +1,6 @@
 import {ScrollablePanel} from "./scrollable-panel.js";
 import {Form} from '../widget/form.js';
+import { VRSPACEUI } from "../vrspace-ui.js";
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -53,9 +54,11 @@ export class TextureSelector {
     this.showImages();
     this.searchForm();
   }
+  
   show() {
     this.doSearch();
   }
+  
   searchForm() {
     VRSPACEUI.hud.newRow(); // stops speech recognition
     this.form = new SearchForm((text)=>this.doSearch(text));
