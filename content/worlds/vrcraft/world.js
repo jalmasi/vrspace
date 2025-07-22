@@ -1,4 +1,4 @@
-import { World, VRSPACEUI, WorldManager, WorldEditor, WorldEditorUI, Terrain, TerrainEditor, SkyboxSelector, Skybox } from '../../../babylon/js/vrspace-min.js';
+import { World, VRSPACEUI, WorldManager, WorldEditorUI, Terrain, Skybox, DefaultHud } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldEditorExample extends World {
   constructor(params) {
@@ -61,24 +61,23 @@ export class WorldEditorExample extends World {
   }
   
   createUI() {
-    this.worldEditorUI = new WorldEditorUI(this.scene);
-    this.worldEditorUI.show();
-  }
-  
-  enterXR() {
-    super.enterXR();
-    this.terrainEdit.isVisible = !this.inAR;
-    this.skyboxEdit.isVisible = !this.inAR;
-  }
-  
-  exitXR() {
-    super.exitXR();
-    if ( !this.editing ) {
-      this.terrainEdit.isVisible = true;
-      this.skyboxEdit.isVisible = true;    
+    if ( !DefaultHud.instance ) {
+      this.worldEditorUI = new WorldEditorUI(this.scene);
+      this.worldEditorUI.show();
     }
   }
-
+  
+  async entered(welcome) {
+    super.entered(welcome);
+    // FIXME avatar-selection calls DefaultHud.init() after entered() was called
+    if (DefaultHud.instance) {
+      setTimeout(()=>{
+        DefaultHud.instance.tools();
+        DefaultHud.instance.editWorld();
+      },200);
+    }
+  }
+  
   // used in stand-alone mode (i.e. if world is not entered via avatar-selection, but from world.html)  
   connect() {
     new WorldManager(this);
@@ -91,9 +90,6 @@ export class WorldEditorExample extends World {
     });
   }
   
-  search( what, flags ) {
-    this.worldEditor.search( what, flags );
-  }
 }
 
 export const WORLD = new WorldEditorExample();

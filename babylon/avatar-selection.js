@@ -798,7 +798,7 @@ export class AvatarSelection extends World {
 
           let controller = new AvatarController(this.worldManager, avatar);
           this.worldManager.addMyChangeListener(changes => controller.processChanges(changes));
-          // CHECKME better way to flag publishing video?
+          // moved to WorldManager.enter()
           //await this.worldManager.pubSub(welcome.client.User, 'video' === avatarUrl);
           this.hud.init();
           if (this.afterEnter) {

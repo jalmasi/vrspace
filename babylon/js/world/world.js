@@ -150,7 +150,7 @@ export class World {
       this.indicator = await VRSPACEUI.loadProgressIndicator(this.scene, this.camera);
       this.onProgress = (evt, name) => this.indicator.progress(evt, name)
     }
-    const terrain = this.createTerrain();
+    const terrain = await this.createTerrain();
     if ( terrain ) {
       this.terrain = terrain;
     }

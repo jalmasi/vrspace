@@ -29,6 +29,8 @@ import { WorldEditorUI } from '../ui/world/worldeditor-ui.js';
  * Adds default holographic buttons to the HUD.
  */
 export class DefaultHud {
+  /** @type {DefaultHud} */
+  static instance = null;
   constructor(scene) {
     this.scene = scene;
     this.hud = VRSPACEUI.hud;
@@ -57,6 +59,7 @@ export class DefaultHud {
     this.groupsUI = null;
     this.groupEventCount = 0;
     this.groupListener = VRSPACE.addGroupListener(event => this.groupEvent(event));
+    DefaultHud.instance = this;
   }
 
   init() {
