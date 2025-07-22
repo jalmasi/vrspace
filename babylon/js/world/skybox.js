@@ -1,3 +1,4 @@
+import { World } from "./world.js";
 /**
  * Utility class to create babylon skybox.
  */
@@ -62,4 +63,33 @@ export class Skybox {
     }
     // CHECKME: scene environment texture is better left as it is
   }
+
+  /**
+   * WorldListener method, called when an object is added to the scene. 
+   * If added object is instance of Background, installs this.skyboxChanged() as VRObject listener. 
+   * @param {VRObject} added
+   */  
+  added(added) {
+    if (added && added.className == "Background") {
+      console.log("Skybox added", added);
+      World.lastInstance.sharedSkybox = added;
+      if ( added.texture ) {
+        this.skyboxChanged(added);
+      }
+      added.addListener((obj, change) => this.skyboxChanged(change));
+    }
+  }
+ 
+  /**
+   * VRObject listener triggerred on remote change
+   * @param {Object} change contains texture property 
+   */
+  skyboxChanged(change) {
+    console.log("Skybox texture", change);
+    World.lastInstance.skyBox.dir = change.texture;
+    World.lastInstance.skyBox.dispose();
+    World.lastInstance.skyBox.create();
+    // TODO
+  }
+ 
 }

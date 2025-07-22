@@ -11,44 +11,18 @@ export class SkyboxSelector {
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
     world.addSelectionPredicate(this.selectionPredicate);
-    world.addListener(this);
-    this.sharedSkybox = null;
-  }
-
-  entered(welcome) {
-    //console.log(welcome);
-    if (welcome.permanents) {
-      welcome.permanents.forEach(obj => {
-        if (obj.Background) {
-          this.skyboxChanged(obj.Background);
-        }
-      });
-    }
-  }
-
-  added(added) {
-    if (added && added.className == "Background") {
-      console.log("Skybox added", added);
-      this.sharedSkybox = added;
-      added.addListener((obj, change) => this.skyboxChanged(change));
-    }
-  }
-
-  skyboxChanged(change) {
-    this.world.skyBox.dir = change.texture;
-    this.world.skyBox.dispose();
-    this.world.skyBox.create();
-    // TODO
   }
 
   async createSharedSkybox() {
-    var object = {
-      permanent: true,
-      active: true
-    };
-    let obj = await this.world.worldManager.VRSPACE.createSharedObject(object, "Background");
-    console.log("Created new Skybox", obj);
-    this.sharedSkybox = obj;
+    if ( ! World.lastInstance.sharedSkybox ) {
+      var object = {
+        permanent: true,
+        active: true
+      };
+      let obj = await this.world.worldManager.VRSPACE.createSharedObject(object, "Background");
+      console.log("Created new Skybox", obj);
+      World.lastInstance.sharedSkybox = obj;
+    }
   }
 
   makeSkyBox(dir) {
@@ -108,10 +82,8 @@ export class SkyboxSelector {
 
   }
   async sendChange(dir) {
-    if (!this.sharedSkybox) {
-      await this.createSharedSkybox();
-    }
-    this.world.worldManager.VRSPACE.sendEvent(this.sharedSkybox, { texture: dir });
+    await this.createSharedSkybox();
+    this.world.worldManager.VRSPACE.sendEvent(this.world.sharedSkybox, { texture: dir });
   }
 
   hide() {

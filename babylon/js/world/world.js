@@ -76,8 +76,10 @@ export class World {
     this.terrain = null;
     /** Skybox, optionally created in createSkybox() @type {Skybox} */
     this.skyBox = null;
-    /** Terrain VRObject, set in entered() method */
+    /** Terrain VRObject */
     this.sharedTerrain = null;
+    /** Background VRObject */
+    this.sharedSkybox = null;
 
     /** Handy reference to VRSpaceUI 
      * @type { VRSpaceUI }
@@ -171,7 +173,7 @@ export class World {
     if (!this.scene) {
       this.scene = new BABYLON.Scene(engine);
     }
-    var camera = await this.createCamera();
+    const camera = await this.createCamera();
     if (camera) {
       this.camera = camera;
     }
@@ -179,19 +181,23 @@ export class World {
       this.camera1p = this.camera;
     }
     this.attachControl();
-    var light = await this.createLights();
+    const light = await this.createLights();
     if (light) {
       this.light = light;
     }
-    var shadowGenerator = await this.createShadows();
+    const shadowGenerator = await this.createShadows();
     if (shadowGenerator) {
       this.shadowGenerator = shadowGenerator;
     }
-    var skyBox = await this.createSkyBox();
+    const skyBox = await this.createSkyBox();
     if (skyBox) {
       this.skyBox = skyBox;
     }
-    var ground = await this.createGround();
+    if ( this.skyBox && typeof this.skyBox.added == "function") {
+      // trigger when shared terrain is added 
+      this.addListener(this.skyBox);
+    }
+    const ground = await this.createGround();
     if (ground) {
       this.ground = ground;
     }

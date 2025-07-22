@@ -237,7 +237,7 @@ export class Terrain extends WorldListener {
     this.mesh().material.diffuseTexture = this.terrainTexture;
   }
 
-  /** 
+  /**
    * WorldListener method, called when an object is added to the scene. 
    * If added object is instance of Terrain, calls setSharedObject().
    * @param {VRObject} added
