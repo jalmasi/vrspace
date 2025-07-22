@@ -1,9 +1,14 @@
+import {WorldListener} from '../world/world-listener.js';
+import {World} from '../world/world.js';
+import {VRObject} from '../client/vrspace.js';
+
 /**
 Wrapper around babylonjs dynamic terrain.
 See https://github.com/BabylonJS/Extensions/blob/b16eb03254c90438e8f6ea0ff5b3406f52035cd0/DynamicTerrain/src/babylon.dynamicTerrain.ts
  */
-export class Terrain {
+export class Terrain extends WorldListener {
   constructor( world, params = {xSize:1000, zSize:1000, visibility:100, material:null }) {
+    super();
     this.world = world;
     this.xSize = params.xSize;
     this.zSize = params.zSize;
@@ -12,6 +17,7 @@ export class Terrain {
     this.checkCollisions = true;
     this.enabled=true;
     this.sps=null;
+    this.sharedTerrain = null;
   }
   buildGrid() {
     this.mapData = new Float32Array(this.xSize * this.zSize * 3);
@@ -188,4 +194,82 @@ export class Terrain {
   point(index) {
     return { x: this.terrain.mapData[index], y: this.terrain.mapData[index+1], z: this.terrain.mapData[index+2]}
   }
+  
+  /**
+   * Set internal VRObject that tracks the shared state. Called from added().
+   * @param {VRObject} obj permament VRObject from Wellcome message 
+   */
+  setSharedTerrain(obj) {
+    this.sharedTerrain = obj;
+    World.lastInstance.sharedTerrain = obj;
+    // TODO this should not be required, just route events to terrain object
+    obj.addListener((obj,change)=>this.terrainChanged(change));
+    if ( obj.points ) {
+      obj.points.forEach( p => {
+        this.update(p.index, p.x, p.y, p.z);
+      });
+      this.refresh();
+    }
+    if ( obj.specularColor ) {
+      this.terrainMaterial.specularColor = new BABYLON.Color3(obj.specularColor.r, obj.specularColor.g, obj.specularColor.b)
+    }
+    if ( obj.diffuseColor ) {
+      this.terrainMaterial.diffuseColor = new BABYLON.Color3(obj.diffuseColor.r, obj.diffuseColor.g, obj.diffuseColor.b)
+    }
+    if ( obj.emissiveColor ) {
+      this.terrainMaterial.emissiveColor = new BABYLON.Color3(obj.emissiveColor.r, obj.emissiveColor.g, obj.emissiveColor.b)
+    }
+    if ( obj.diffuseTexture ) {
+      this.setTexture(obj.diffuseTexture);
+    }
+  }
+
+  /**
+   * Set terrain texture
+   * @param {string} imgUrl 
+   */  
+  setTexture(imgUrl) {
+    console.log("New texture: "+imgUrl);
+    if ( this.terrainTexture ) {
+      this.terrainTexture.dispose();
+    }
+    this.terrainTexture = new BABYLON.Texture(imgUrl, this.scene);
+    this.mesh().material.diffuseTexture = this.terrainTexture;
+  }
+
+  /** 
+   * WorldListener method, called when an object is added to the scene. 
+   * If added object is instance of Terrain, calls setSharedObject().
+   * @param {VRObject} added
+   */
+  added(added) {
+    if ( added && added.className == "Terrain") {
+      console.log("Terrain added", added);
+      this.setSharedTerrain(added);
+      this.mesh().setEnabled(true);
+    }
+  }
+  
+  /**
+   * Callback that receives network event, set up in setSharedTerrain
+   * @param {Object} e object containing changes to the VRObject 
+   */
+  terrainChanged(e) {
+    console.log("Terrain changed", e);
+    if ( e.change ) {
+      this.update(e.change.index, e.change.point.x, e.change.point.y, e.change.point.z);
+      this.refresh();
+    } else {
+      for ( const field in e ) {
+        if ( field.indexOf('Color') > 0 ) {
+          // e.g. emissiveColor, diffuseColor, specularColor
+          console.log(field + "="+e[field]);
+          this.terrainMaterial[field] = new BABYLON.Color3(e[field].r, e[field].g, e[field].b);
+        } else if (field.indexOf('Texture') > 0) {
+          this.setTexture(e[field]);
+        }
+      }
+    }
+  }  
+  
 }

@@ -22,7 +22,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(callSuper = false)
+@ToString(callSuper = false, exclude = "terrain")
 @Node
 public class TerrainPoint extends Embedded {
   @JsonIgnore

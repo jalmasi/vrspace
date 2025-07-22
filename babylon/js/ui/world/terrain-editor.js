@@ -1,87 +1,27 @@
 import {VRSPACEUI} from '../vrspace-ui.js';
-import {WorldListener} from '../../world/world-listener.js';
 import {World} from '../../world/world.js';
 import {TextureSelector} from './texture-selector.js';
 
-export class TerrainEditor extends WorldListener {
+export class TerrainEditor {
   /**
    * @param {World} world 
    */
   constructor(world) {
-    super();
     this.world = world;
     this.scene = world.scene;
     this.terrain = world.terrain;
     this.heightIncrement=1;
-    this.sharedTerrain = null;
     this.editing = false;
-    world.addListener(this);
     this.textureSelector = new TextureSelector(this.scene, (img) => this.publishTexture(img));
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
     world.addSelectionPredicate(this.selectionPredicate);
     this.observer = null;
-  }
-  /** Called by WorldManager when user enters the world (WorldListener method) */
-  entered(welcome) {
-    //console.log(welcome);
-    if ( welcome.permanents ) {
-      welcome.permanents.forEach( obj => {
-        if (obj.Terrain) {
-          this.sharedTerrain = obj.Terrain;
-          if ( obj.Terrain.points ) {
-            obj.Terrain.points.forEach( p => {
-              this.terrain.update(p.index, p.x, p.y, p.z);
-            });
-            this.terrain.refresh();
-          }
-          if ( obj.Terrain.specularColor ) {
-            this.terrain.terrainMaterial.specularColor = new BABYLON.Color3(obj.Terrain.specularColor.r, obj.Terrain.specularColor.g, obj.Terrain.specularColor.b)
-          }
-          if ( obj.Terrain.diffuseColor ) {
-            this.terrain.terrainMaterial.diffuseColor = new BABYLON.Color3(obj.Terrain.diffuseColor.r, obj.Terrain.diffuseColor.g, obj.Terrain.diffuseColor.b)
-          }
-          if ( obj.Terrain.emissiveColor ) {
-            this.terrain.terrainMaterial.emissiveColor = new BABYLON.Color3(obj.Terrain.emissiveColor.r, obj.Terrain.emissiveColor.g, obj.Terrain.emissiveColor.b)
-          }
-          if ( obj.Terrain.diffuseTexture ) {
-            this.setTexture(obj.Terrain.diffuseTexture);
-          }
-        };
-      });
-    } 
-  }
-  
-  /** WorldListener method, called when an object is added to the scene */
-  added(added) {
-    if ( added && added.className == "Terrain") {
-      console.log("Terrain added", added);
-      this.sharedTerrain = added;
-      added.addListener((obj,change)=>this.terrainChanged(change));
-      this.terrain.mesh().setEnabled(true);
-    }
-  }
-  
-  terrainChanged(e) {
-    console.log("Terrain changed", e);
-    if ( e.change ) {
-      this.terrain.update(e.change.index, e.change.point.x, e.change.point.y, e.change.point.z);
-      this.terrain.refresh();
-    } else {
-      for ( const field in e ) {
-        if ( field.indexOf('Color') > 0 ) {
-          // e.g. emissiveColor, diffuseColor, specularColor
-          console.log(field + "="+e[field]);
-          this.terrain.terrainMaterial[field] = new BABYLON.Color3(e[field].r, e[field].g, e[field].b);
-        } else if (field.indexOf('Texture') > 0) {
-          this.setTexture(e[field]);
-        }
-      }
-    }
+    this.groundPickable = null;
   }
   
   createSharedTerrain() {
-    if ( ! this.sharedTerrain ) {
+    if ( ! World.lastInstance.sharedTerrain ) {
       var object = {
         permanent: true,
         active:true,
@@ -91,7 +31,7 @@ export class TerrainEditor extends WorldListener {
       };
       this.world.worldManager.VRSPACE.createSharedObject(object, "Terrain").then(obj=>{
         console.log("Created new Terrain", obj);
-        this.sharedTerrain = obj;
+        World.lastInstance.sharedTerrain = obj;
       });
     }
   }
@@ -122,6 +62,11 @@ export class TerrainEditor extends WorldListener {
             break;
           }
       });      
+    }
+    
+    if ( World.lastInstance.ground ) {
+      this.groundPickable = World.lastInstance.ground.isPickable;
+      World.lastInstance.ground.isPickable = false;
     }
     
     this.raiseButton = VRSPACEUI.hud.addButton("Raise", VRSPACEUI.contentBase+"/content/icons/upload.png");
@@ -157,15 +102,15 @@ export class TerrainEditor extends WorldListener {
     this.emissivePicker = VRSPACEUI.hud.addColorPicker("Emissive", this.terrain.terrainMaterial.emissiveColor);
     this.specularPicker.onValueChangedObservable.add( (val) => {
       //this.terrain.terrainMaterial.specularColor.copyFrom(val);
-      this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {specularColor:val});      
+      this.world.worldManager.VRSPACE.sendEvent(World.lastInstance.sharedTerrain, {specularColor:val});      
     });
     this.diffusePicker.onValueChangedObservable.add( (val) => {
       //this.terrain.terrainMaterial.diffuseColor.copyFrom(val);
-      this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {diffuseColor:val});      
+      this.world.worldManager.VRSPACE.sendEvent(World.lastInstance.sharedTerrain, {diffuseColor:val});      
     });
     this.emissivePicker.onValueChangedObservable.add( (val) => {
       //this.terrain.terrainMaterial.emissiveColor.copyFrom(val);
-      this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {emissiveColor:val});      
+      this.world.worldManager.VRSPACE.sendEvent(World.lastInstance.sharedTerrain, {emissiveColor:val});      
     });
     
     VRSPACEUI.hud.enableSpeech(true);
@@ -176,7 +121,7 @@ export class TerrainEditor extends WorldListener {
     var x = pickInfo.pickedPoint.x;
     var z = pickInfo.pickedPoint.z;
     if ( this.editing ) {
-      var online = this.world.isOnline() && this.sharedTerrain;
+      var online = this.world.isOnline() && World.lastInstance.sharedTerrain;
       if ( online ) {
         // if online, terrain is not refreshed until the server responds with updated height
         index = this.terrain.findIndex(x,z);
@@ -185,7 +130,7 @@ export class TerrainEditor extends WorldListener {
           point.y += this.heightIncrement*this.direction;
           // publish updates
           var change = { change: {index: index, point: point} };
-          this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, change);
+          this.world.worldManager.VRSPACE.sendEvent(World.lastInstance.sharedTerrain, change);
         } else {
           console.log("ERROR: index "+index+" for "+x+","+z);
         }
@@ -198,16 +143,7 @@ export class TerrainEditor extends WorldListener {
   
   publishTexture(imgUrl) {
     console.log("Publishing texture: "+imgUrl);
-    this.world.worldManager.VRSPACE.sendEvent(this.sharedTerrain, {diffuseTexture:imgUrl});
-  }
-  
-  setTexture(imgUrl) {
-    console.log("New texture: "+imgUrl);
-    if ( this.terrainTexture ) {
-      this.terrainTexture.dispose();
-    }
-    this.terrainTexture = new BABYLON.Texture(imgUrl, this.scene);
-    this.terrain.mesh().material.diffuseTexture = this.terrainTexture;
+    this.world.worldManager.VRSPACE.sendEvent(World.lastInstance.sharedTerrain, {diffuseTexture:imgUrl});
   }
   
   dispose() {
@@ -217,8 +153,11 @@ export class TerrainEditor extends WorldListener {
     this.scene.onPointerObservable.remove(this.observer);
     this.raiseButton.dispose();
     this.digButton.dispose();
-    this.textureButton.dispose();    
+    this.textureButton.dispose();
     this.raiseSlider.dispose();
+    if ( World.lastInstance.ground ) {
+      World.lastInstance.ground.isPickable = this.groundPickable;
+    }
   }
   
   isSelectableMesh(mesh) {

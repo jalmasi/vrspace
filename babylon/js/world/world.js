@@ -76,6 +76,8 @@ export class World {
     this.terrain = null;
     /** Skybox, optionally created in createSkybox() @type {Skybox} */
     this.skyBox = null;
+    /** Terrain VRObject, set in entered() method */
+    this.sharedTerrain = null;
 
     /** Handy reference to VRSpaceUI 
      * @type { VRSpaceUI }
@@ -146,7 +148,15 @@ export class World {
       this.indicator = await VRSPACEUI.loadProgressIndicator(this.scene, this.camera);
       this.onProgress = (evt, name) => this.indicator.progress(evt, name)
     }
-    this.createTerrain();
+    const terrain = this.createTerrain();
+    if ( terrain ) {
+      this.terrain = terrain;
+    }
+    if ( this.terrain && typeof this.terrain.added == "function") {
+      // trigger when shared terrain is added 
+      this.addListener(this.terrain);
+    }
+    
     this.createUI();
     this.load(callback);
     return this.scene;

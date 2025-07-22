@@ -115,7 +115,9 @@ export class SkyboxSelector {
   }
 
   hide() {
-    this.panel.dispose();
+    if ( this.panel ) {
+      this.panel.dispose();      
+    }
     this.boxes = [];
   }
 

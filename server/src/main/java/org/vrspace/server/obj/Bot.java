@@ -76,7 +76,7 @@ public abstract class Bot extends User {
    */
   @Override
   public void processEvent(VREvent event) {
-    log.debug(this + " received event: " + event);
+    // log.debug(this + " received event: " + event);
     if (!event.getSource().isActive()) {
       // stop listening to inactive objects (disconnected clients)
       event.getSource().removeListener(this);
