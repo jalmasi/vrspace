@@ -41,7 +41,7 @@ export class HUD {
     this.verticalXR = -0.1;
     this.scaleWeb = 1;
     this.scaleXR = .5;
-    this.rowOffset = new BABYLON.Vector3(0, this.verticalWeb, 0);
+    this.rowOffset = new BABYLON.Vector3(0, this.verticalWeb, .1);
     this.colorEnabled = new BABYLON.Color3(0.3, 0.35, 0.4);
     this.colorDisabled = new BABYLON.Color3(0.67, 0.29, 0.29);
     this.colorActive = new BABYLON.Color3(0.29, 0.67, 0.29);
@@ -99,7 +99,7 @@ export class HUD {
     this.root.parent = this.camera;
     this.root.position = new BABYLON.Vector3(0, this.vertical(), this.distance());
     this.root.rotation = new BABYLON.Vector3(0, 0, 0);
-    this.rowOffset = new BABYLON.Vector3(0, this.verticalWeb, 0);
+    this.rowOffset = new BABYLON.Vector3(0, this.verticalWeb, 0.1);
     this.currentController = null;
   }
   /** Returns true if XR mode is active (current camera is WebXRCamera) */
@@ -516,9 +516,11 @@ export class HUD {
    * Creates a new empty row. Current row is scaled down and moved a bit down.
    */
   newRow() {
-    this.rows.forEach(row => {
+    this.rows.forEach((row,index) => {
       row.root.scaling.scaleInPlace(.5);
-      row.root.position.addInPlace(this.rowOffset.scale(.6 / (this.rows.length * 2)));
+      //row.root.position.addInPlace(this.rowOffset.scale(.6 / (this.rows.length * 2)));
+      row.root.position.addInPlace(this.rowOffset.scale(.35 / (this.rows.length - index)));
+      console.log(index,row.root.position);
     });
     this.unselectCurrent();
     this.currentRow().activeControl = this.activeControl;
@@ -566,9 +568,10 @@ export class HUD {
 
     this.rows.pop();
 
-    this.rows.forEach(row => {
+    this.rows.forEach((row,index) => {
       row.root.scaling.scaleInPlace(2);
-      row.root.position.addInPlace(this.rowOffset.scale(-.6 / (this.rows.length * 2)));
+      //row.root.position.addInPlace(this.rowOffset.scale(-.6 / (this.rows.length * 2)));
+      row.root.position.addInPlace(this.rowOffset.scale(-.35 / (this.rows.length - index)));
     });
 
     var row = this.rows[this.rows.length - 1];
