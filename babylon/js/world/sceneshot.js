@@ -54,8 +54,8 @@ export class Sceneshot {
     };
     worldInfo.assets = VRSPACEUI.assetLoader.dump(true); // CHECKME include avatars or no?
     worldInfo.sceneMeshes = [];
-    if (world.skyBox) {
-      worldInfo.skyBox = BABYLON.SceneSerializer.SerializeMesh(world.skyBox);
+    if (world.skyBox && world.skyBox.skybox) {
+      worldInfo.skyBox = BABYLON.SceneSerializer.SerializeMesh(world.skyBox.skybox);
     }
     if (world.room) {
       worldInfo.room = true;
@@ -259,6 +259,7 @@ var scene;
     let scriptSrc = '/babylon/js/vrspace-min.js';
     if ( window.location.href.indexOf('localhost') >= 0 ) {
       console.warn('This document can not be loaded from filesystem, only from web server');
+      scriptSrc = 'https://www.vrspace.org/'+ scriptSrc;
     } else {
       scriptSrc = window.location.origin + scriptSrc;
     }
