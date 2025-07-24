@@ -394,7 +394,6 @@ export class WorldManager extends EventRouter {
    * Remove all objects from the scene
    */
   removeAll() {
-    console.log(Array.from(VRSPACE.getScene().values()));
     Array.from(VRSPACE.getScene().values()).forEach(obj=>VRSPACE.removeByID(obj.getID()));
   }
   /** 
@@ -620,6 +619,7 @@ export class WorldManager extends EventRouter {
           });
           VRSPACE.sendCommand("Enter", { world: this.world.name });
         } else {
+          // CHECKME/FIXME: when does this trigger, why the if?
           VRSPACE.callCommand("Session", () => {
             this.entered(welcome)
             resolve(welcome);
@@ -628,8 +628,11 @@ export class WorldManager extends EventRouter {
       };
       if (!this.isOnline()) {
         VRSPACE.addWelcomeListener(afterConnect);
-        VRSPACE.connect(this.world.serverUrl);
-        VRSPACE.addConnectionListener((connected) => {
+        if ( !VRSPACE.isConnected() ) {
+          // making sure reconnect is handled
+          VRSPACE.connect(this.world.serverUrl);          
+        }
+        const connectionListener = VRSPACE.addConnectionListener((connected) => {
           console.log('connected:' + connected);
           if (!connected) {
             if ( !this.isOnline() ) {
@@ -637,16 +640,23 @@ export class WorldManager extends EventRouter {
               reject(this);
             } else {
               // connection lost, reconnect may be in progress
-              // clear the scene
-              this.removeAll();
             }
           } else if (this.isOnline()) {
             // reconnect succeeded
+            // clear the scene
+            this.removeAll();
             // ensure same workflow, sets online to false:
             this.setSessionStatus(false);
+            // this is going to be set up again
+            VRSPACE.removeConnectionListener(connectionListener);
             // restart enter procedure
-            this.enter(properties);
-            // TODO set own position
+            this.enter(properties).then(()=>{
+              // set own position - filthy trick to enforce checkChange() to trigger
+              const resolution = this.resolution;
+              this.resolution = -1;
+              this.trackChanges();
+              this.resolution = resolution;
+            });
           }
         });
       } else if (this.world.name) {

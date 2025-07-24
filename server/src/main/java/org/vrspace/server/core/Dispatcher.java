@@ -64,7 +64,7 @@ public class Dispatcher {
     // ownership check
     if (!event.isOwner()) {
       if (source.getClass().isAnnotationPresent(Owned.class)) {
-        throw new SecurityException("Cannot change owned object'");
+        throw new SecurityException("Cannot change owned object");
       } else {
         declaredFields(source.getClass(), Owned.class, ownedFields).forEach(key -> {
           if (event.getChanges().containsKey(key)) {

@@ -642,6 +642,10 @@ export class VRSpace {
   addConnectionListener(callback) {
     return this.addListener( this.connectionListeners, callback);
   }
+
+  removeConnectionListener(callback) {
+    this.removeListener(this.connectionListeners, callback);
+  }
   
   /** Add a data listener that receives everything from the server (JSON string argument) */
   addDataListener(callback) {
@@ -772,6 +776,9 @@ export class VRSpace {
     if ( ! url ) {
       url = this.defaultWebsocketUrl();
     }
+    if ( this.isConnected() ) {
+      throw "Already connected to "+this.url;
+    }
     this.url = url;
     this.log("Connecting to "+url);
     this.ws = new WebSocket(url);
@@ -791,7 +798,6 @@ export class VRSpace {
           listener(false);
           this.me = null;
           if ( this.autoReconnect && !this.reconnecting ) {
-            this.reconnecting = true;
             this.reconnect();
           }
         });
@@ -818,12 +824,17 @@ export class VRSpace {
       if ( ++ retry >= retries ) {
         clearInterval(handle);
         console.error("Failed to reconnect after "+retries+" retries");
-      } else {
+        this.reconnecting = false;
+      } else if (!this.reconnecting) {
+        this.reconnecting = true;
         this.connect(this.url).then(()=>{
           clearInterval(handle);
           this.reconnecting = false;
           console.log("Reconnect attempt "+retry+" succeeded");
-        }).catch(err=>console.log("Reconnect attempt "+retry+" failed", err));
+        }).catch(err=>{
+          console.log("Reconnect attempt "+retry+" failed", err);
+          this.reconnecting = false;
+        });
       }
     }, interval);
   }
@@ -1128,7 +1139,7 @@ export class VRSpace {
     } else {
       this.log("No my ID yet, user event ignored:");
       this.log(changes);
-      throw "No my ID yet, user event ignored:";
+      //throw "No my ID yet, user event ignored:";
     }
   }
 
@@ -1301,6 +1312,7 @@ export class VRSpace {
       // FIXME: Uncaught TypeError: Cannot assign to read only property of function class
       let client = new User();
       this.me = Object.assign(client,welcome.client.User);
+      //console.log("ME: ", this.me);
     }
     this.welcomeListeners.forEach((listener)=>listener(welcome));
     if ( welcome.permanents ) {
