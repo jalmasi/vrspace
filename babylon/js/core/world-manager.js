@@ -568,7 +568,7 @@ export class WorldManager extends EventRouter {
   @return {Promise<Welcome>} promise resolved after enter
    */
   async enter(properties) {
-    VRSPACE.addErrorListener((e) => {
+    const errorListener = VRSPACE.addErrorListener((e) => {
       console.log("Server error:" + e);
       this.error = e;
     });
@@ -634,6 +634,7 @@ export class WorldManager extends EventRouter {
         }
         const connectionListener = VRSPACE.addConnectionListener((connected) => {
           console.log('connected:' + connected);
+          console.log("Remote logging "+this.remoteLogging);
           if (!connected) {
             if ( !this.isOnline() ) {
               // initial connection failed
@@ -643,8 +644,14 @@ export class WorldManager extends EventRouter {
             }
           } else if (this.isOnline()) {
             // reconnect succeeded
+            // TODO move this to dedicated cleanup method
             // clear the scene
             this.removeAll();
+            VRSPACE.removeErrorListener(errorListener);
+            // clear audio/video session
+            if ( this.mediaStreams ) {
+              this.mediaStreams.close();
+            }
             // ensure same workflow, sets online to false:
             this.setSessionStatus(false);
             // this is going to be set up again

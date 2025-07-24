@@ -474,6 +474,9 @@ export class OpenViduStreams extends MediaStreams {
     if ( this.session ) {
       this.session.disconnect();      
     }
+    if ( this.screenSession ) {
+      this.screenSession.disconnect();
+    }
   }
   
   /**

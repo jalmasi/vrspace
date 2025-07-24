@@ -658,8 +658,7 @@ export class World {
         name = 'u' + obj.id;
       }
       if ( typeof obj.wrote === 'object' ) {
-        // CHECKME: link.link :)
-        this.chatLog.log(name, obj.wrote.text, obj.wrote.link.link);
+        this.chatLog.log(name, obj.wrote.text, obj.wrote.link);
       } else if ( typeof obj.wrote === 'string' ) {
         this.chatLog.log(name, obj.wrote);
       } else {

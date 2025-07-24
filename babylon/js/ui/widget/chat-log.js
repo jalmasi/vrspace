@@ -287,12 +287,12 @@ export class ChatLog extends TextArea {
    * Log something written by someone.
    * @param {String} who who wrote that
    * @param {String} what what they wrote
-   * @param {String} link optional url to open 
+   * @param {object} link metadata of the link 
    */
   log( who, what, link, local ) {
     this.input.write(what,who);
     if ( link ) {
-      this.showLink(link, true);
+      this.showLink(link.link, true);
     }
   }
   attachToHud(){
