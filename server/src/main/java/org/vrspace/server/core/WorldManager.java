@@ -558,6 +558,9 @@ public class WorldManager {
     return client.createScene(this);
   }
 
+  /**
+   * Called by SessionManager after the client closes the web socket
+   */
   @Transactional
   public synchronized void logout(Client client) {
     sessionTracker.remove(client);

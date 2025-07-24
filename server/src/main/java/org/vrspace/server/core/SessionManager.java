@@ -199,7 +199,16 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
   public void cleanup() {
     // this is to delete automatically created guest clients on shutdown
     for (Client client : clients.values()) {
-      worldManager.logout(client);
+      WebSocketSession session = client.getSession();
+      try {
+        log.info("Closing client websocket " + client.getId() + " open: " + session.isOpen());
+        // this status code is not propagated to the client, always gets 1006 abnormal
+        // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+        // triggers afterConnectionClosed that logs out the client
+        session.close(CloseStatus.SERVICE_RESTARTED);
+      } catch (Exception e) {
+        log.error("WebSocket close failure", e);
+      }
     }
   }
 }

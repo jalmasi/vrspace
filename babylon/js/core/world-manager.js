@@ -606,7 +606,8 @@ export class WorldManager extends EventRouter {
         this.pubSub(welcome.client.User, VRSPACE.me.video);
         // FIXME for the time being, Enter first, then Session
         if (this.world.name) {
-          VRSPACE.addWelcomeListener(welcome => {
+          let anotherWelcomeListener = VRSPACE.addWelcomeListener(welcome => {
+            VRSPACE.removeWelcomeListener(anotherWelcomeListener);
             VRSPACE.callCommand("Session", () => afterEnter(welcome));
           });
           VRSPACE.sendCommand("Enter", { world: this.world.name });
@@ -621,7 +622,7 @@ export class WorldManager extends EventRouter {
         VRSPACE.addWelcomeListener(afterConnect);
         VRSPACE.connect(this.world.serverUrl);
         VRSPACE.addConnectionListener((connected) => {
-          this.log('connected:' + connected);
+          console.log('connected:' + connected);
           if (!connected) {
             reject(this);
           }

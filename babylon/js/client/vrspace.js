@@ -571,11 +571,19 @@ export class VRSpace {
      */
     this.me = null;
     /** Map containing all objects in the scene
-     * @type {Map<String, VRObject>}
+     * @type {Map<string, VRObject>}
      */
     this.scene = new Map();
+    /**
+     * Connection URL, set once connection is established 
+     * @type {string} 
+     */
+    this.url = null;
     /** Debug logging, default false */
     this.debug = false;
+    /** Reconnect automatically, experimental */
+    this.autoReconnect = true;
+    this.reconnecting = false;
     this.connectionListeners = [];
     this.dataListeners = [];
     this.sceneListeners = [];
@@ -752,7 +760,8 @@ export class VRSpace {
     let end = url.indexOf('/', start+2);
     url = webSocketProtocol+':'+url.substring(start,end)+'/vrspace/client'; // ws://localhost:8080/vrspace
     return url;
-  }  
+  }
+  
   /**
   Connect to the server, attach connection listeners and data listeners to the websocket.
   @param {string} [url] optional websocket url, defaults to /vrspace/client on the same server
@@ -760,8 +769,9 @@ export class VRSpace {
    */
   connect(url) {
     if ( ! url ) {
-      url = this.defaultWebsocketUrl(url);
+      url = this.defaultWebsocketUrl();
     }
+    this.url = url;
     this.log("Connecting to "+url);
     this.ws = new WebSocket(url);
     return new Promise( (resolve, reject) => {
@@ -769,19 +779,53 @@ export class VRSpace {
         this.connectionListeners.forEach((listener)=>listener(true));
         resolve();
       }
-      this.ws.onclose = () => {
+      this.ws.onclose = (event) => {
         // TODO handle websocket error codes, reconnect if possible
         // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/close_event
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
-        this.connectionListeners.forEach((listener)=>listener(false));
+        if (this.debug) {
+          console.log("WebSocket closed", event);
+        }
+        this.connectionListeners.forEach((listener)=>{
+          listener(false);
+          if ( this.autoReconnect && !this.reconnecting ) {
+            this.reconnecting = true;
+            this.reconnect();
+          }
+        });
       }
       this.ws.onmessage = (data) => {
         this.receive(data.data);
         this.dataListeners.forEach((listener)=>listener(data.data)); 
-      }    
+      }
+      if ( this.debug ) {
+        this.ws.onerror = (event) => {
+          console.log("WebSocket error",event);
+        }        
+      }
     });
   }
 
+  isConnected() {
+    return this.ws && this.ws.readyState == this.ws.OPEN;
+  }
+  
+  reconnect(interval=5000, retries=10) {
+    let retry = 0;
+    const handle = setInterval( () => {
+      if ( ++ retry >= retries ) {
+        clearInterval(handle);
+        console.error("Failed to reconnect after "+retries+" retries");
+      } else {
+        this.connect(this.url).then(()=>{
+          clearInterval(handle);
+          this.reconnecting = false;
+          console.log("Reconnect attempt "+retry+" succeeded");
+        }).catch(err=>console.log("Reconnect attempt "+retry+" failed", err));
+      }
+    }, interval);
+  }
+  
   /** Disconnect, notify connection listeners */  
   disconnect() {
     if (this.ws != null) {
