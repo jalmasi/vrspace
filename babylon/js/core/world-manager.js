@@ -390,6 +390,13 @@ export class WorldManager extends EventRouter {
     }
   }
   
+  /**
+   * Remove all objects from the scene
+   */
+  removeAll() {
+    console.log(Array.from(VRSPACE.getScene().values()));
+    Array.from(VRSPACE.getScene().values()).forEach(obj=>VRSPACE.removeByID(obj.getID()));
+  }
   /** 
    * Remove an object: remove the mesh from the scene (scene listener), and dispose of everything.
    * @param {VRObject} obj 
@@ -603,6 +610,7 @@ export class WorldManager extends EventRouter {
           }
         }
         // start publishing video only for video avatar currently displaying video
+        // CHECKME what happens when reconnecting?
         this.pubSub(welcome.client.User, VRSPACE.me.video);
         // FIXME for the time being, Enter first, then Session
         if (this.world.name) {
@@ -624,7 +632,21 @@ export class WorldManager extends EventRouter {
         VRSPACE.addConnectionListener((connected) => {
           console.log('connected:' + connected);
           if (!connected) {
-            reject(this);
+            if ( !this.isOnline() ) {
+              // initial connection failed
+              reject(this);
+            } else {
+              // connection lost, reconnect may be in progress
+              // clear the scene
+              this.removeAll();
+            }
+          } else if (this.isOnline()) {
+            // reconnect succeeded
+            // ensure same workflow, sets online to false:
+            this.setSessionStatus(false);
+            // restart enter procedure
+            this.enter(properties);
+            // TODO set own position
           }
         });
       } else if (this.world.name) {

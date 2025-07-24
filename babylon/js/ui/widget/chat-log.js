@@ -191,13 +191,23 @@ export class ChatLog extends TextArea {
   static instanceId(name, title) {
     return name+"_"+title;
   }
-  /** @return {ChatLog} */
+  /**
+   * @param {string} title
+   * @param {string} [name="ChatLog"] 
+   * @return {ChatLog} 
+   */
   static findInstance(title, name="ChatLog") {
     if ( ChatLog.instances.hasOwnProperty(ChatLog.instanceId(name,title)) ) {
       return ChatLog.instances[ChatLog.instanceId(name,title)];
     }
   }
-  static getInstance(scene, title, name="ChatLog") {
+  /**
+   * @param {*} scene 
+   * @param {string} title
+   * @param {string} [name="ChatLog"] 
+   * @return {ChatLog} 
+   */
+  static getInstance(scene, title="main", name="ChatLog") {
     if ( ChatLog.instances.hasOwnProperty(ChatLog.instanceId(name,title)) ) {
       return ChatLog.instances[ChatLog.instanceId(name,title)];
     }

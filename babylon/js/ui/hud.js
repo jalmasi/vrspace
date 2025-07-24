@@ -520,7 +520,7 @@ export class HUD {
       row.root.scaling.scaleInPlace(.5);
       //row.root.position.addInPlace(this.rowOffset.scale(.6 / (this.rows.length * 2)));
       row.root.position.addInPlace(this.rowOffset.scale(.35 / (this.rows.length - index)));
-      console.log(index,row.root.position);
+      //console.log(index,row.root.position);
     });
     this.unselectCurrent();
     this.currentRow().activeControl = this.activeControl;

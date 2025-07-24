@@ -722,6 +722,7 @@ export class VRSpace {
   /**
   Return the current scene, optionally filtered
   @param filter string to match current members, usually class name, or function that takes VRObject as argument
+  @return {Map<string, VRObject>} scene
    */
   getScene( filter ) {
     if ( typeof filter === 'undefined') {
@@ -788,6 +789,7 @@ export class VRSpace {
         }
         this.connectionListeners.forEach((listener)=>{
           listener(false);
+          this.me = null;
           if ( this.autoReconnect && !this.reconnecting ) {
             this.reconnecting = true;
             this.reconnect();
@@ -1206,9 +1208,19 @@ export class VRSpace {
     this.addToScene(className, object);
   }
   
-  /* Remove object, used internally */
+  /** Remove object, used internally
+   * @param {object} objectId object taken from Remove command, e.g. {User:123} 
+   */
   removeObject(objectId) {
     const id = new ID(Object.keys(objectId)[0],Object.values(objectId)[0]);
+    this.removeByID(id);
+  }
+  
+  /** 
+   * Remove object from the scene and notify listeners
+   * @param {ID} id 
+   */
+  removeByID(id) {
     const obj = this.scene.get(id.toString());
     const deleted = this.scene.delete(id.toString());
     this.log("deleted "+this.scene.size+" "+id+":"+deleted);
