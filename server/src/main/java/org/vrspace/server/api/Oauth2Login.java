@@ -151,6 +151,7 @@ public class Oauth2Login extends ApiBase {
     // CHECKME do we need to return anything?
     session.setAttribute(clientFactory.clientNameAttribute(), name);
     session.setAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE, client.getId());
+    session.setAttribute(ClientFactory.OAUTH2PROVIDER_ID_ATTRIBUTE, provider);
     return ResponseEntity.status(HttpStatus.FOUND).header("Location", referrer).body("Redirecting to " + referrer);
   }
 

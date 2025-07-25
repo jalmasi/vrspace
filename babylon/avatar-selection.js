@@ -36,6 +36,7 @@ export class AvatarSelection extends World {
     this.fps = 5;
     /** Enable Oauth2 login */
     this.oauth2enabled = true;
+    this.oauth2providerId = null;
     /** default user height, 1.8 m */
     this.userHeight = 1.8;
     /** is anonymous entry (guest login) allowed */
@@ -119,7 +120,7 @@ export class AvatarSelection extends World {
       () => this.checkValidName(),
       (providerId, providerName) => {
         if (this.oauth2enabled) {
-          this.api.oauth2login(providerId, this.userName, this.avatarUrl(""))
+          this.api.oauth2login(providerId, this.userName, this.avatarUrl(""));
         }
       },
       providers
@@ -142,6 +143,7 @@ export class AvatarSelection extends World {
         });
         this.api.getUserObject().then(me => {
           if (me) {
+            this.oauth2providerId = me.oauth2provider;
             console.log("user mesh " + me.mesh, me);
             if (me.mesh) {
               if (me.mesh == "video") {
@@ -766,6 +768,10 @@ export class AvatarSelection extends World {
         this.worldManager.tokens = this.tokens;
         this.worldManager.avatarLoader.customOptions = this.customOptions;
         this.worldManager.avatarLoader.customAnimations = this.customAnimations;
+        
+        this.worldManager.authenticated = this.authenticated;
+        this.worldManager.oauth2providerId = this.oauth2providerId;
+        
         this.worldManager.debug = this.debug; // scene debug
         this.worldManager.VRSPACE.debug = this.debug; // network debug
         this.worldManager.remoteLogging = false;

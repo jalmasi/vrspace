@@ -20,7 +20,7 @@ export class WorldManager extends EventRouter {
   /** Current WorldManager instance @type {WorldManager} */
   static instance = null;
   /** Creates world manager with default values and connection, scene, camera listeners.
-  @param world
+  @param {World} world
   @param fps network framerate, default 5 (send up to 5 events per second)
    */
   constructor(world, fps=5) {
@@ -50,8 +50,14 @@ export class WorldManager extends EventRouter {
     this.avatarLoader = new AvatarLoader(this.scene, this.fps, (obj, mesh) => this.notifyLoadListeners(obj, mesh), (obj, exception) => this.alertLoadListeners(obj, exception));
     /** Mesh loader @type {MeshLoader} */
     this.meshLoader = new MeshLoader((obj, avatar) => this.notifyLoadListeners(obj, avatar), (obj, exception) => this.alertLoadListeners(obj, exception));
-    /** Connection manager @type {ConnectionManager} */
-    this.connectionManager = new ConnectionManager(this);
+    /** Set if session was authenticated CHECKME see if there's a better place for this */
+    this.authenticated = false;
+    /** used for reconnect */
+    this.oauth2providerId = null;
+    /** Connection manager, initialized when entering a world for the first time
+     *  @type {ConnectionManager} 
+     */
+    this.connectionManager = null;
     /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
      * Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
      */
@@ -197,6 +203,9 @@ export class WorldManager extends EventRouter {
     };
     if (avatar.name) {
       myProperties.name = avatar.name;
+    }
+    if ( !this.connectionManager ) {
+      this.connectionManager = new ConnectionManager(this);      
     }
     return this.connectionManager.enter(myProperties);
   }
@@ -410,7 +419,7 @@ export class WorldManager extends EventRouter {
   Periodically executed, as specified by fps. 
   Tracks changes to camera and XR controllers. 
   Calls checkChange, and if anything has changed, changes are sent to server,
-  and to myChangeListeners. 
+  and to myChangeListeners, by call to publishChanges(). 
    */
   trackChanges() {
     var changes = [];
@@ -504,6 +513,17 @@ export class WorldManager extends EventRouter {
     }
   }
 
+  /**
+   * Publish current values of all own properties. Used after reconnect.
+   */
+  publishState() {
+    // set own position - filthy trick to enforce checkChange() to trigger
+    const resolution = this.resolution;
+    this.resolution = -1;
+    this.trackChanges();
+    this.resolution = resolution;
+  }
+  
   /**
   Check if a value has changed, and update change array if so.
    */

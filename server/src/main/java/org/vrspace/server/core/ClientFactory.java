@@ -18,6 +18,7 @@ import org.vrspace.server.obj.Client;
 public interface ClientFactory {
   public static final String CLIENT_NAME_ATTRIBUTE = "local-user-name";
   public static final String CLIENT_ID_ATTRIBUTE = "local-user-id";
+  public static final String OAUTH2PROVIDER_ID_ATTRIBUTE = "oauth2-provider-name";
 
   /**
    * Find an authorised known client, called only if security principal is known.

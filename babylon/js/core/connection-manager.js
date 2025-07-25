@@ -2,7 +2,7 @@ import { Client, VRSPACE, Welcome, VRObject } from '../client/vrspace.js';
 import { WorldManager } from './world-manager.js';
 import { MediaHelper } from './media-helper.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
-
+import { VRSpaceAPI } from '../client/rest-api.js';
 /**
  * Component responsible for setting up and mantaining connection to server.
  */
@@ -13,6 +13,7 @@ export class ConnectionManager {
     this.world = worldManager.world;
     // probably not instantiated at the moment of creation
     this.mediaStreams = worldManager.mediaStreams
+    this.api = VRSpaceAPI.getInstance(VRSPACEUI.contentBase);
   }
   
   /**
@@ -58,7 +59,7 @@ export class ConnectionManager {
         VRSPACE.addWelcomeListener(afterConnect);
         if ( !VRSPACE.isConnected() ) {
           // making sure reconnect is handled
-          VRSPACE.connect(this.world.serverUrl);          
+          VRSPACE.connect(this.world.serverUrl);
         }
         const connectionListener = VRSPACE.addConnectionListener((connected) => {
           console.log('connected:' + connected);
@@ -68,6 +69,14 @@ export class ConnectionManager {
               reject(this);
             } else {
               // connection lost, reconnect may be in progress
+              if ( this.worldManager.authenticated ) {
+                this.api.getAuthenticated().then(authenticated=>{
+                  if ( ! authenticated ) {
+                    // no automatic reconnect for authenticated users once authentication expires
+                    this.api.oauth2login(this.worldManager.oauth2providerId, properties.name, properties.mesh);
+                  }
+                }).catch(err=>{console.log("Can't query server API", err)});
+              }
             }
           } else if (this.worldManager.isOnline()) {
             // reconnect succeeded
@@ -85,11 +94,7 @@ export class ConnectionManager {
             VRSPACE.removeConnectionListener(connectionListener);
             // restart enter procedure
             this.enter(properties).then(()=>{
-              // set own position - filthy trick to enforce checkChange() to trigger
-              const resolution = this.resolution;
-              this.resolution = -1;
-              this.trackChanges();
-              this.resolution = resolution;
+              this.worldManager.publishState();
             });
           }
         });
@@ -151,7 +156,7 @@ export class ConnectionManager {
    * @param {boolean} autoPublishVideo should webcam video be published as soon as possible
    */
   async pubSub(user, autoPublishVideo) {
-    this.mediaStreams = this.worldManager.mediaStreams
+    //this.mediaStreams = this.worldManager.mediaStreams // may not be initialized
     console.log("PubSub autoPublishVideo:"+autoPublishVideo, user);
     // CHECKME: should it be OpenVidu or general streaming service name?
     if (this.mediaStreams && user.tokens && user.tokens.OpenViduMain) {

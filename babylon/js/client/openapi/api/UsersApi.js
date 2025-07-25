@@ -233,7 +233,7 @@ export class UsersApi {
 
       let authNames = [];
       let contentTypes = [];
-      let accepts = ['*/*'];
+      let accepts = ['application/json'];
       let returnType = User;
       return this.apiClient.callApi(
         '/vrspace/api/user/object', 'GET',

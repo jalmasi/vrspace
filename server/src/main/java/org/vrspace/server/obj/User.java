@@ -6,6 +6,7 @@ import org.vrspace.server.core.Scene;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.types.Filter;
 import org.vrspace.server.types.Owned;
+import org.vrspace.server.types.Private;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -43,6 +44,13 @@ public class User extends Client {
    */
   @Transient
   transient private Quaternion rightArmRot;
+
+  /**
+   * Oauth2 provider ID, transient private property visible only to this user.
+   */
+  @Transient
+  @Private
+  transient private String oauth2provider;
 
   public User(String name) {
     super(name);

@@ -791,9 +791,9 @@ export class VRSpace {
         // TODO handle websocket error codes, reconnect if possible
         // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/close_event
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
-        if (this.debug) {
+        //if (this.debug) {
           console.log("WebSocket closed", event);
-        }
+        //}
         this.connectionListeners.forEach((listener)=>{
           listener(false);
           this.me = null;

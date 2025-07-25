@@ -109,6 +109,24 @@ public class JacksonConfig {
     return ret;
   }
 
+  /**
+   * Primary mapper is the same as privateMapper, but ignores @JsonTypeInfo
+   * annotation of VRObject. Usage in REST controllers only manual: return String
+   * ResponseEntity, but specify return type with OpenApi @Schema annotation.
+   */
+  @Bean("restPrivateMapper")
+  public ObjectMapper restPrivateMapper() {
+    ObjectMapper ret = objectMapperBuilder().build();
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+    class NoTypes {
+    }
+    ret.addMixIn(VRObject.class, NoTypes.class);
+    // process and add all subclasses of VRObject
+    ClassUtil.findSubclasses(VRObject.class).forEach((c) -> ret.registerSubtypes(c));
+
+    return ret;
+  }
+
   @Bean
   public Jackson2ObjectMapperBuilder objectMapperBuilder() {
     Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();

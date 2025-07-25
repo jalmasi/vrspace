@@ -1,6 +1,7 @@
 package org.vrspace.server.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,12 +9,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.config.ServerConfig;
+import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.User;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,6 +41,9 @@ public class Users extends ClientControllerBase {
   private VRObjectRepository db;
   @Autowired
   private ServerConfig config;
+  @Autowired
+  @Qualifier("restPrivateMapper")
+  protected ObjectMapper jackson;
 
   /**
    * Verifies that user name is available: if user is not logged in, that there's
@@ -88,13 +98,22 @@ public class Users extends ClientControllerBase {
    *         instance of User
    */
   @GetMapping("/object")
-  public @ResponseBody User userObject(HttpSession session) {
+  @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Ok", content = {
+      @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }) })
+  // public @ResponseBody User userObject(HttpSession session) {
+  public ResponseEntity<String> userObject(HttpSession session) {
     String currentName = currentUserName(session, clientFactory);
-    if (currentName != null) {
-      Client ret = db.getClientByName(currentName);
-      if (ret instanceof User) {
-        return (User) ret;
+    try {
+      if (currentName != null) {
+        Client client = db.getClientByName(currentName);
+        if (client instanceof User) {
+          ((User) client).setOauth2provider((String) session.getAttribute(ClientFactory.OAUTH2PROVIDER_ID_ATTRIBUTE));
+          String ret = jackson.writeValueAsString((User) client);
+          return ResponseEntity.ok(ret);
+        }
       }
+    } catch (Exception e) {
+      log.error("User object retrieval failure", e);
     }
     return null;
   }

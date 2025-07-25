@@ -170,6 +170,10 @@ export class LoginForm extends Form {
     super.dispose();
   }
 
+  getProviderId() {
+    return this.providerForm.selectedKey;
+  }
+  
   isSelectableMesh(mesh) {
     return (this.plane && mesh == this.plane) || mesh == this.nameForm.keyboardPlane; 
   }
