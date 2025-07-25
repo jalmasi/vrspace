@@ -8,7 +8,7 @@ import { AvatarLoader } from './avatar-loader.js';
 import { MeshLoader } from './mesh-loader.js';
 import { SceneEvent } from '../client/vrspace.js';
 import { EventRouter } from './event-router.js';
-import { MediaHelper } from './media-helper.js';
+import { ConnectionManager } from './connection-manager.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -46,10 +46,12 @@ export class WorldManager extends EventRouter {
     this.myChangeListeners = []
     /** Network frames per second, default 5 */
     this.fps = fps;
-    /** Avatar loader */
+    /** Avatar loader @type {AvatarLoader} */
     this.avatarLoader = new AvatarLoader(this.scene, this.fps, (obj, mesh) => this.notifyLoadListeners(obj, mesh), (obj, exception) => this.alertLoadListeners(obj, exception));
-    /** Mesh loader */
+    /** Mesh loader @type {MeshLoader} */
     this.meshLoader = new MeshLoader((obj, avatar) => this.notifyLoadListeners(obj, avatar), (obj, exception) => this.alertLoadListeners(obj, exception));
+    /** Connection manager @type {ConnectionManager} */
+    this.connectionManager = new ConnectionManager(this);
     /** Mobile browsers don't have javascript console, and USB debugging is next to useless.
      * Enable to redirect all console output to the server log. Sure, it starts only after connection to the server is established.
      */
@@ -84,43 +86,6 @@ export class WorldManager extends EventRouter {
     VRSPACEUI.init(this.scene); // to ensure assetLoader is available
     WorldManager.instance = this;
     this.addVRObjectRoutingMethods(this.fps);
-  }
-  /** 
-   * Publish and subscribe
-   * @param {Client} user Client object of the local user
-   * @param {boolean} autoPublishVideo should webcam video be published as soon as possible
-   */
-  async pubSub(user, autoPublishVideo) {
-    console.log("PubSub autoPublishVideo:"+autoPublishVideo, user);
-    // CHECKME: should it be OpenVidu or general streaming service name?
-    if (this.mediaStreams && user.tokens && user.tokens.OpenViduMain) {
-      this.log("Subscribing as User " + user.id + " with token " + user.tokens.OpenViduMain);
-      // ask for webcam access permissions
-      if ( await MediaHelper.checkVideoPermissions() ) {
-        this.mediaStreams.videoSource = undefined;
-        this.mediaStreams.startVideo = autoPublishVideo;
-      }
-      if (await MediaHelper.checkAudioPermissions()) {
-        this.mediaStreams.audioSource = undefined;
-      } else {
-        this.mediaStreams.audioSource = false;        
-      }
-      
-      try {
-        await this.mediaStreams.connect(user.tokens.OpenViduMain)
-        this.avatarLoader.mediaStreams = this.mediaStreams;
-        this.meshLoader.mediaStreams = this.mediaStreams;
-        // we may need to pause/unpause audio publishing during speech input
-        // TODO figure out how to use instance
-        VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
-        if ( this.mediaStreams.audioSource == undefined || this.mediaStreams.videoSource == undefined ) {
-          // otherwise error
-          this.mediaStreams.publish();
-        }
-      } catch ( exception ) {
-        console.error("Streaming connection failure", exception);
-      }
-    }
   }
 
   /** Track a mesh, used in 3rd person view */
@@ -233,7 +198,7 @@ export class WorldManager extends EventRouter {
     if (avatar.name) {
       myProperties.name = avatar.name;
     }
-    return this.enter(myProperties);
+    return this.connectionManager.enter(myProperties);
   }
 
   /**
@@ -560,127 +525,6 @@ export class WorldManager extends EventRouter {
     return val < old - range || val > old + range;
   }
 
-  /**
-  Enter the world specified by world.name. If not already connected, 
-  first connect to world.serverUrl and set own properties, then start the session.
-  World and WorldListeners are notified by calling entered methods. 
-  @param {Object} properties own properties to set before starting the session
-  @return {Promise<Welcome>} promise resolved after enter
-   */
-  async enter(properties) {
-    const errorListener = VRSPACE.addErrorListener((e) => {
-      console.log("Server error:" + e);
-      this.error = e;
-    });
-    return new Promise((resolve, reject) => {
-      // TODO most of this code needs to go into VRSpace client.
-      // TODO it should use async rather than callback functions
-      var afterEnter = (welcome) => {
-        VRSPACE.removeWelcomeListener(afterEnter);
-        this.entered(welcome);
-        // CHECKME formalize this as WorldListener interface?
-        this.world.worldListeners.forEach(listener => {
-          try {
-            if (listener.entered) {
-              listener.entered(welcome);
-            }
-          } catch (error) {
-            console.log("Error in world listener", error);
-          }
-        });
-        resolve(welcome);
-      };
-      var afterConnect = async (welcome) => {
-        VRSPACE.removeWelcomeListener(afterConnect);
-        if (this.remoteLogging) {
-          this.enableRemoteLogging();
-        }
-        if (this.tokens) {
-          for (let token in this.tokens) {
-            VRSPACE.setToken(token, this.tokens[token]);
-          }
-        }
-        if (properties) {
-          for (var prop in properties) {
-            // publish own properties
-            VRSPACE.sendMy(prop, properties[prop]);
-            // and also set their values locally
-            VRSPACE.me[prop] = properties[prop];
-          }
-        }
-        // start publishing video only for video avatar currently displaying video
-        // CHECKME what happens when reconnecting?
-        this.pubSub(welcome.client.User, VRSPACE.me.video);
-        // FIXME for the time being, Enter first, then Session
-        if (this.world.name) {
-          let anotherWelcomeListener = VRSPACE.addWelcomeListener(welcome => {
-            VRSPACE.removeWelcomeListener(anotherWelcomeListener);
-            VRSPACE.callCommand("Session", () => afterEnter(welcome));
-          });
-          VRSPACE.sendCommand("Enter", { world: this.world.name });
-        } else {
-          // CHECKME/FIXME: when does this trigger, why the if?
-          VRSPACE.callCommand("Session", () => {
-            this.entered(welcome)
-            resolve(welcome);
-          });
-        }
-      };
-      if (!this.isOnline()) {
-        VRSPACE.addWelcomeListener(afterConnect);
-        if ( !VRSPACE.isConnected() ) {
-          // making sure reconnect is handled
-          VRSPACE.connect(this.world.serverUrl);          
-        }
-        const connectionListener = VRSPACE.addConnectionListener((connected) => {
-          console.log('connected:' + connected);
-          console.log("Remote logging "+this.remoteLogging);
-          if (!connected) {
-            if ( !this.isOnline() ) {
-              // initial connection failed
-              reject(this);
-            } else {
-              // connection lost, reconnect may be in progress
-            }
-          } else if (this.isOnline()) {
-            // reconnect succeeded
-            // TODO move this to dedicated cleanup method
-            // clear the scene
-            this.removeAll();
-            VRSPACE.removeErrorListener(errorListener);
-            // clear audio/video session
-            if ( this.mediaStreams ) {
-              this.mediaStreams.close();
-            }
-            // ensure same workflow, sets online to false:
-            this.setSessionStatus(false);
-            // this is going to be set up again
-            VRSPACE.removeConnectionListener(connectionListener);
-            // restart enter procedure
-            this.enter(properties).then(()=>{
-              // set own position - filthy trick to enforce checkChange() to trigger
-              const resolution = this.resolution;
-              this.resolution = -1;
-              this.trackChanges();
-              this.resolution = resolution;
-            });
-          }
-        });
-      } else if (this.world.name) {
-        VRSPACE.addWelcomeListener(afterEnter);
-        VRSPACE.sendCommand("Enter", { world: this.world.name });
-      }
-    });
-  }
-
-  /** Called after user enters a world, calls world.entered() wrapped in try/catch */
-  entered(welcome) {
-    try {
-      this.world.entered(welcome);
-    } catch (err) {
-      console.log("Error in world entered", err);
-    }
-  }
   /** 
   Send own event.
   @param obj object containing changes to be sent, i.e. name-value pair(s).
