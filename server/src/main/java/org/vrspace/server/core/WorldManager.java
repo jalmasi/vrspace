@@ -469,6 +469,8 @@ public class WorldManager {
     if (httpSession != null) {
       // may be null in tests
       httpSession.setAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE, client.getId());
+      log.debug(
+          "WebSocket session " + session.getId() + " HttpSession " + httpSession.getId() + " client " + client.getId());
     }
     login(client);
     return enter(client, defaultWorld());

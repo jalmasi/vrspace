@@ -69,8 +69,10 @@ export class ConnectionManager {
               reject(this);
             } else {
               // connection lost, reconnect may be in progress
+              console.log("Reconnecting, user was authenticated: "+ this.worldManager.authenticated );
               if ( this.worldManager.authenticated ) {
                 this.api.getAuthenticated().then(authenticated=>{
+                  console.log("Reconnecting, user was/is authenticated: "+ this.worldManager.authenticated+"/"+authenticated );
                   if ( ! authenticated ) {
                     // no automatic reconnect for authenticated users once authentication expires
                     this.api.oauth2login(this.worldManager.oauth2providerId, properties.name, properties.mesh);

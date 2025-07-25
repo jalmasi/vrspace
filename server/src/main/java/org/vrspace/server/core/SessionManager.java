@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -40,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component
 @Slf4j
-public class SessionManager extends TextWebSocketHandler implements Runnable {
+public class SessionManager extends TextWebSocketHandler implements Runnable, HttpSessionListener {
   // TODO: properties
   public static final int SEND_TIMEOUT = 1000;
   // public static final int BUFFER_SIZE = 64 * 1024;
@@ -195,20 +197,42 @@ public class SessionManager extends TextWebSocketHandler implements Runnable {
   // CHECKME cleanup? Seems that afterConnectionClosed triggers just fine.
   // }
 
+  private void closeSocket(Client client, CloseStatus status) {
+    WebSocketSession session = client.getSession();
+    try {
+      log.info("Closing client websocket " + client.getId() + " open: " + session.isOpen());
+      // this status code is not propagated to the client, always gets 1006 abnormal
+      // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+      // triggers afterConnectionClosed that logs out the client
+      session.close(status);
+    } catch (Exception e) {
+      log.error("WebSocket close failure", e);
+    }
+  }
+
   @PreDestroy
   public void cleanup() {
     // this is to delete automatically created guest clients on shutdown
     for (Client client : clients.values()) {
-      WebSocketSession session = client.getSession();
-      try {
-        log.info("Closing client websocket " + client.getId() + " open: " + session.isOpen());
-        // this status code is not propagated to the client, always gets 1006 abnormal
-        // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
-        // triggers afterConnectionClosed that logs out the client
-        session.close(CloseStatus.SERVICE_RESTARTED);
-      } catch (Exception e) {
-        log.error("WebSocket close failure", e);
-      }
+      closeSocket(client, CloseStatus.SERVICE_RESTARTED);
     }
   }
+
+  @Override
+  public void sessionDestroyed(HttpSessionEvent se) {
+    String sessionId = se.getSession().getId();
+    Long clientId = (Long) se.getSession().getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
+    log.info("Session destroyed: " + sessionId + " client " + clientId);
+    if (clientId == null) {
+      log.warn("No clientId for destroyed session " + sessionId);
+    } else {
+      Client client = clients.get(clientId);
+      if (client == null) {
+        log.warn("No client for destroyed session " + sessionId);
+      } else {
+        closeSocket(client, CloseStatus.POLICY_VIOLATION);
+      }
+    }
+  };
+
 }

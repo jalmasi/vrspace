@@ -34,6 +34,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
   private String serverPath;
   @Value("${org.vrspace.server.allowedOrigins:*}")
   private String origins;
+  @Value("${org.vrspace.server.websocketSessions:#{true}}")
+  private boolean createSession;
 
   @Autowired
   private SessionManager sessionManager;
@@ -59,10 +61,20 @@ public class WebSocketConfig implements WebSocketConfigurer {
         ServletServerHttpRequest serverRequest = (ServletServerHttpRequest) request;
         HttpSession httpSession = serverRequest.getServletRequest().getSession(isCreateSession());
         attributes.put(HTTP_SESSION_ATTR_NAME, httpSession);
+        return httpSession != null;
       }
       return ret;
     }
 
+    /**
+     * We allow websocket-only sessions explicitly. Changing this to false disables
+     * automatic websocket reconnect, since HTTP request has to be made first to
+     * create the session.
+     */
+    @Override
+    public boolean isCreateSession() {
+      return createSession;
+    }
   }
 
 }
