@@ -584,6 +584,7 @@ export class VRSpace {
     /** Reconnect automatically, experimental */
     this.autoReconnect = true;
     this.reconnecting = false;
+    this.retryTimer = null;
     this.connectionListeners = [];
     this.dataListeners = [];
     this.sceneListeners = [];
@@ -791,25 +792,29 @@ export class VRSpace {
         // TODO handle websocket error codes, reconnect if possible
         // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/close_event
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
-        //if (this.debug) {
-          console.log("WebSocket closed", event);
-        //}
-        this.connectionListeners.forEach((listener)=>{
-          listener(false);
-          this.me = null;
-          if ( this.autoReconnect && !this.reconnecting ) {
-            this.reconnect();
-          }
-        });
+        // while reconnecting, if connection fails, we get onclose event
+        if (!this.retryTimer) {
+          //if (this.debug) {
+            console.log("WebSocket closed", event);
+          //}
+          this.connectionListeners.forEach((listener)=>{
+            listener(false);
+            this.me = null;
+            if ( this.autoReconnect) {
+              this.reconnect();
+            }
+          });
+        }
       }
       this.ws.onmessage = (data) => {
         this.receive(data.data);
         this.dataListeners.forEach((listener)=>listener(data.data)); 
       }
-      if ( this.debug ) {
-        this.ws.onerror = (event) => {
-          console.log("WebSocket error",event);
-        }        
+      this.ws.onerror = (err) => {
+        //if ( this.debug ) {
+        //console.log("WebSocket error",err);
+        //}
+        reject(err);
       }
     });
   }
@@ -819,16 +824,21 @@ export class VRSpace {
   }
   
   reconnect(interval=5000, retries=10) {
+    if ( this.retryTimer ) {
+      throw "Already retrying";
+    }
     let retry = 0;
-    const handle = setInterval( () => {
+    this.retryTimer = setInterval( () => {
       if ( ++ retry >= retries ) {
-        clearInterval(handle);
+        clearInterval(this.retryTimer);
+        this.retryTimer = null;
         console.error("Failed to reconnect after "+retries+" retries");
         this.reconnecting = false;
       } else if (!this.reconnecting) {
         this.reconnecting = true;
         this.connect(this.url).then(()=>{
-          clearInterval(handle);
+          clearInterval(this.retryTimer);
+          this.retryTimer = null;
           this.reconnecting = false;
           console.log("Reconnect attempt "+retry+" succeeded");
         }).catch(err=>{
