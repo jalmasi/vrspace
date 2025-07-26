@@ -62,7 +62,7 @@ export class ConnectionManager {
           // making sure reconnect is handled
           VRSPACE.connect(this.world.serverUrl);
         }
-        const connectionListener = VRSPACE.addConnectionListener((connected, reconnecting) => {
+        const connectionListener = VRSPACE.addConnectionListener(async (connected, reconnecting) => {
           console.log('connected:' + connected);
           if (!connected) {
             if ( !this.worldManager.isOnline() ) {
@@ -72,15 +72,6 @@ export class ConnectionManager {
               this.trackProgress();
               // connection lost, reconnect in progress
               console.log("Reconnecting, user was authenticated: "+ this.worldManager.authenticated );
-              if ( this.worldManager.authenticated ) {
-                this.api.getAuthenticated().then(authenticated=>{
-                  console.log("Reconnecting, user was/is authenticated: "+ this.worldManager.authenticated+"/"+authenticated );
-                  if ( ! authenticated ) {
-                    // no automatic reconnect for authenticated users once authentication expires
-                    this.api.oauth2login(this.worldManager.oauth2providerId, properties.name, properties.mesh);
-                  }
-                }).catch(err=>{console.log("Can't query server API", err)});
-              }
             } else {
               console.log("connection lost and NOT reconnecting - return to login screen");
               this.closeProgress();
@@ -100,6 +91,15 @@ export class ConnectionManager {
             this.worldManager.setSessionStatus(false);
             // this is going to be set up again
             VRSPACE.removeConnectionListener(connectionListener);
+            // authenticated users may need to log in again
+            if ( this.worldManager.authenticated ) {
+              let authenticated = await this.api.getAuthenticated();
+              console.log("Reconnecting, user was/is authenticated: "+ this.worldManager.authenticated+"/"+authenticated );
+              if ( ! authenticated ) {
+                // no automatic reconnect for authenticated users once authentication expires
+                this.api.oauth2login(this.worldManager.oauth2providerId, properties.name, properties.mesh);
+              }
+            }
             // restart enter procedure
             this.enter(properties).then(()=>{
               this.worldManager.publishState();
