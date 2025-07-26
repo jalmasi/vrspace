@@ -472,10 +472,18 @@ export class OpenViduStreams extends MediaStreams {
    */
   close() {
     if ( this.session ) {
-      this.session.disconnect();      
+      try {
+        this.session.disconnect();
+      } catch ( err ) {
+        console.error(err);
+      }
     }
     if ( this.screenSession ) {
-      this.screenSession.disconnect();
+      try {
+        this.screenSession.disconnect();
+      } catch ( err ) {
+        console.error(err);
+      }
     }
   }
   
