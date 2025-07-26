@@ -97,7 +97,7 @@ export class ConnectionManager {
               console.log("Reconnecting, user was/is authenticated: "+ this.worldManager.authenticated+"/"+authenticated );
               if ( ! authenticated ) {
                 // no automatic reconnect for authenticated users once authentication expires
-                this.api.oauth2login(this.worldManager.oauth2providerId, properties.name, properties.mesh);
+                await this.api.oauth2login(this.worldManager.oauth2providerId, properties.name, properties.mesh);
               }
             }
             // restart enter procedure
