@@ -1,4 +1,4 @@
-import { Client, VRSPACE, Welcome, VRObject } from '../client/vrspace.js';
+import { VRSPACE, Welcome, VRObject } from '../client/vrspace.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Avatar } from '../avatar/avatar.js';
 import { World } from '../world/world.js'
@@ -594,7 +594,11 @@ export class WorldManager extends EventRouter {
     let str = this.concat(args)
     if (str) {
       output(str);
-      VRSPACE.sendCommand("Log", { message: str, severity: severity });
+      try {
+        VRSPACE.sendCommand("Log", { message: str, severity: severity });
+      } catch ( err ) {
+        output(err);
+      }
     }
   }
   // based on

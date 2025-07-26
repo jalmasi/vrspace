@@ -200,7 +200,7 @@ public class SessionManager extends TextWebSocketHandler implements Runnable, Ht
   private void closeSocket(Client client, CloseStatus status) {
     WebSocketSession session = client.getSession();
     try {
-      log.info("Closing client websocket " + client.getId() + " open: " + session.isOpen());
+      log.info("Closing client websocket " + client.getId() + " status: " + status);
       // this status code is not propagated to the client, always gets 1006 abnormal
       // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
       // triggers afterConnectionClosed that logs out the client
@@ -223,12 +223,10 @@ public class SessionManager extends TextWebSocketHandler implements Runnable, Ht
     String sessionId = se.getSession().getId();
     Long clientId = (Long) se.getSession().getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
     log.info("Session destroyed: " + sessionId + " client " + clientId);
-    if (clientId == null) {
-      log.warn("No clientId for destroyed session " + sessionId);
-    } else {
+    if (clientId != null) {
       Client client = clients.get(clientId);
       if (client == null) {
-        log.warn("No client for destroyed session " + sessionId);
+        log.debug("No client for destroyed session " + sessionId);
       } else {
         closeSocket(client, CloseStatus.POLICY_VIOLATION);
       }

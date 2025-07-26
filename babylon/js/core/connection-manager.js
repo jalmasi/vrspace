@@ -1,8 +1,9 @@
-import { Client, VRSPACE, Welcome, VRObject } from '../client/vrspace.js';
+import { Client, VRSPACE, Welcome } from '../client/vrspace.js';
 import { WorldManager } from './world-manager.js';
 import { MediaHelper } from './media-helper.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
+
 /**
  * Component responsible for setting up and mantaining connection to server.
  */
@@ -61,14 +62,15 @@ export class ConnectionManager {
           // making sure reconnect is handled
           VRSPACE.connect(this.world.serverUrl);
         }
-        const connectionListener = VRSPACE.addConnectionListener((connected) => {
+        const connectionListener = VRSPACE.addConnectionListener((connected, reconnecting) => {
           console.log('connected:' + connected);
           if (!connected) {
             if ( !this.worldManager.isOnline() ) {
               // initial connection failed
               reject(this);
-            } else {
-              // connection lost, reconnect may be in progress
+            } else if (reconnecting) {
+              this.trackProgress();
+              // connection lost, reconnect in progress
               console.log("Reconnecting, user was authenticated: "+ this.worldManager.authenticated );
               if ( this.worldManager.authenticated ) {
                 this.api.getAuthenticated().then(authenticated=>{
@@ -79,6 +81,10 @@ export class ConnectionManager {
                   }
                 }).catch(err=>{console.log("Can't query server API", err)});
               }
+            } else {
+              console.log("connection lost and NOT reconnecting - return to login screen");
+              this.closeProgress();
+              window.location.reload();
             }
           } else if (this.worldManager.isOnline()) {
             // reconnect succeeded
@@ -97,6 +103,7 @@ export class ConnectionManager {
             // restart enter procedure
             this.enter(properties).then(()=>{
               this.worldManager.publishState();
+              this.closeProgress();
             });
           }
         });
@@ -107,6 +114,17 @@ export class ConnectionManager {
     });
   }
 
+  trackProgress() {
+    if ( VRSPACEUI.indicator) {
+      VRSPACEUI.indicator.add("Reconnect")
+      VRSPACEUI.indicator.animate();
+    }
+  }
+  closeProgress() {
+    if ( VRSPACEUI.indicator ) {
+      VRSPACEUI.indicator.remove("Reconnect")
+    }
+  }
   /** Called after user enters a world, calls world and world listener entered() methods wrapped in try/catch */
   entered(welcome) {
     try {

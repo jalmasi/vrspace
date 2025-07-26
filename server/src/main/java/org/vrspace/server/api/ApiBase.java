@@ -17,7 +17,7 @@ public abstract class ApiBase {
 
   public static String currentUserName(HttpSession session, ClientFactory clientFactory) {
     log.debug(clientFactory.clientNameAttribute() + "=" + session.getAttribute(clientFactory.clientNameAttribute())
-        + " session: " + session);
+        + " session: " + session.getId());
     return (String) session.getAttribute(clientFactory.clientNameAttribute());
   }
 

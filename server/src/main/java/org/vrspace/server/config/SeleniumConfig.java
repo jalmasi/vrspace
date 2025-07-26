@@ -155,7 +155,7 @@ public class SeleniumConfig implements HttpSessionListener, ServletContextListen
 
   @Override
   public void sessionDestroyed(HttpSessionEvent se) {
-    log.debug("Session destroyed");
+    // log.debug("Session destroyed");
     WebSession session = (WebSession) se.getSession().getAttribute(WebSession.KEY);
     if (session != null) {
       session.quit();

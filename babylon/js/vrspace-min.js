@@ -5,6 +5,7 @@ export { ScriptLoader } from "./client/script-loader.js";
 
 export { ServerFolder, ServerFile } from "./core/server-folder.js";
 export { WorldManager } from "./core/world-manager.js";
+export { ConnectionManager } from "./core/connection-manager.js";
 export { MediaStreams, OpenViduStreams } from "./core/media-streams.js";
 export { SpeechInput } from "./core/speech-input.js";
 

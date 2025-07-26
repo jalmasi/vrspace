@@ -792,18 +792,21 @@ export class VRSpace {
         // TODO handle websocket error codes, reconnect if possible
         // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/close_event
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+        // code 1006 = no close frame, server termination (should be 1012)
+        // code 1008 = http session expired
         // while reconnecting, if connection fails, we get onclose event
         if (!this.retryTimer) {
           //if (this.debug) {
             console.log("WebSocket closed", event);
           //}
+          const shouldReconnect = this.autoReconnect && event.code != 1008;
           this.connectionListeners.forEach((listener)=>{
-            listener(false);
+            listener(false, shouldReconnect);
             this.me = null;
-            if ( this.autoReconnect) {
-              this.reconnect();
-            }
           });
+          if (shouldReconnect) {
+            this.reconnect();
+          }
         }
       }
       this.ws.onmessage = (data) => {
@@ -834,6 +837,9 @@ export class VRSpace {
         this.retryTimer = null;
         console.error("Failed to reconnect after "+retries+" retries");
         this.reconnecting = false;
+        this.connectionListeners.forEach((listener)=>{
+          listener(false, false);
+        });
       } else if (!this.reconnecting) {
         this.reconnecting = true;
         this.connect(this.url).then(()=>{
@@ -1318,6 +1324,7 @@ export class VRSpace {
    * @param {Welcome} welcome the Welcome message. 
    */
   handleWelcome(welcome){
+    //console.log("Welcome",welcome);
     if ( ! this.me ) {
       // FIXME: Uncaught TypeError: Cannot assign to read only property of function class
       let client = new User();
