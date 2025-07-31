@@ -1,6 +1,5 @@
 package org.vrspace.server.connect;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -37,7 +36,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._helpers.bulk.BulkIngester;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
@@ -89,7 +87,8 @@ public class ElasticSearchSessionListener implements SessionListener {
     // Create the transport with a Jackson mapper
     ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper(objectMapper));
 
-    ElasticsearchClient esClient = new ElasticsearchClient(transport);
+    // Asynchronous non-blocking client
+    ElasticsearchAsyncClient asyncClient = new ElasticsearchAsyncClient(transport);
 
     ESLogEntry entry = new ESLogEntry();
     entry.timestamp = LocalDateTime.now(ZoneId.of("UTC"));
@@ -110,18 +109,13 @@ public class ElasticSearchSessionListener implements SessionListener {
     entry.changes = new HashMap<>();
     entry.changes.put("url", "https://www.vrspace.org");
 
-    // using asynchronous non-blocking client - we don't want to slow down startup
-    try (ElasticsearchAsyncClient asyncClient = new ElasticsearchAsyncClient(transport)) {
-      asyncClient.index(IndexRequest.of(i -> i.index(index).document(entry))).whenComplete((response, exception) -> {
-        if (exception != null) {
-          log.error("Indexing error: ", exception);
-        }
-      });
-    } catch (IOException e) {
-      log.error("Error closing ES async client", e);
-    }
+    asyncClient.index(IndexRequest.of(i -> i.index(index).document(entry))).whenComplete((response, exception) -> {
+      if (exception != null) {
+        log.error("Indexing error: ", exception);
+      }
+    });
 
-    ingester = BulkIngester.of(b -> b.client(esClient).flushInterval(1, TimeUnit.SECONDS));
+    ingester = BulkIngester.of(b -> b.client(asyncClient).flushInterval(1, TimeUnit.SECONDS));
   }
 
   @PreDestroy
