@@ -19,9 +19,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.vrspace.server.api.sketchfab.AuthResponse;
+import org.vrspace.server.api.sketchfab.DownloadResponse;
+import org.vrspace.server.api.sketchfab.FileInfo;
+import org.vrspace.server.api.sketchfab.ModelSearchRequest;
 import org.vrspace.server.core.ClassUtil;
 import org.vrspace.server.core.FileUtil;
 import org.vrspace.server.core.VRObjectRepository;
@@ -158,14 +164,8 @@ public class Sketchfab extends ApiBase {
     return response.getBody();
   }
 
-  @Data
-  @NoArgsConstructor
-  public static class AuthResponse {
-    private String access_token;
-    private int expires_in;
-    private String token_type;
-    private String scope;
-    private String refresh_token;
+  @PostMapping("/search")
+  public void searchModels(@RequestBody ModelSearchRequest params) {
   }
 
   /**
@@ -254,21 +254,6 @@ public class Sketchfab extends ApiBase {
     } catch (Exception e) {
       throw new RuntimeException("Error downloading " + gltf.getUrl(), e);
     }
-  }
-
-  @Data
-  @NoArgsConstructor
-  public static class DownloadResponse {
-    private FileInfo gltf;
-    private FileInfo usdz;
-  }
-
-  @Data
-  @NoArgsConstructor
-  public static class FileInfo {
-    private String url;
-    private long size;
-    private int expires;
   }
 
   private GltfModel modelInfo(String uid) throws JsonMappingException, JsonProcessingException {
