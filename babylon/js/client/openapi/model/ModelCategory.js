@@ -14,48 +14,27 @@
 import {ApiClient} from '../ApiClient.js';
 
 /**
- * The UserGroup model module.
- * @module model/UserGroup
+ * The ModelCategory model module.
+ * @module model/ModelCategory
  * @version v0
  */
-export class UserGroup {
+export class ModelCategory {
     /**
-     * Constructs a new <code>UserGroup</code>.
-     * Group of users.
-     * @alias UserGroup
+     * Constructs a new <code>ModelCategory</code>.
+     * @alias ModelCategory
      */
     constructor() { 
         
         
-        /** id 
-         * @type {Number} 
-         */
-        this.id = undefined;
-
         /** name 
          * @type {String} 
          */
         this.name = undefined;
-
-        /** temporary 
-         * @type {Boolean} 
-         */
-        this.temporary = undefined;
-
-        /** unread 
-         * @type {Number} 
-         */
-        this.unread = undefined;
-
-        /** public 
-         * @type {Boolean} 
-         */
-        this.public = undefined;
         
         
         
         
-        UserGroup.initialize(this);
+        ModelCategory.initialize(this);
     }
 
     /**
@@ -67,39 +46,27 @@ export class UserGroup {
     }
 
     /**
-     * Constructs a <code>UserGroup</code> from a plain JavaScript object, optionally creating a new instance.
+     * Constructs a <code>ModelCategory</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {UserGroup} obj Optional instance to populate.
-     * @return {UserGroup} The populated <code>UserGroup</code> instance.
+     * @param {ModelCategory} obj Optional instance to populate.
+     * @return {ModelCategory} The populated <code>ModelCategory</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {
-            obj = obj || new UserGroup();
+            obj = obj || new ModelCategory();
 
-            if (data.hasOwnProperty('id')) {
-                obj['id'] = ApiClient.convertToType(data['id'], 'Number');
-            }
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
-            }
-            if (data.hasOwnProperty('temporary')) {
-                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
-            }
-            if (data.hasOwnProperty('unread')) {
-                obj['unread'] = ApiClient.convertToType(data['unread'], 'Number');
-            }
-            if (data.hasOwnProperty('public')) {
-                obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
             }
         }
         return obj;
     }
 
     /**
-     * Validates the JSON data with respect to <code>UserGroup</code>.
+     * Validates the JSON data with respect to <code>ModelCategory</code>.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>UserGroup</code>.
+     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>ModelCategory</code>.
      */
     static validateJSON(data) {
         // ensure the json data is a string
@@ -117,5 +84,5 @@ export class UserGroup {
 
 
 
-export default UserGroup;
+export default ModelCategory;
 

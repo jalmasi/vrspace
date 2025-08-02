@@ -4,6 +4,7 @@ import { UsersApi } from './openapi/api/UsersApi.js';
 import { WorldsApi } from './openapi/api/WorldsApi.js'
 import { WebPushApi } from './openapi/api/WebPushApi.js';
 import { ServerInfoApi } from './openapi/api/ServerInfoApi.js';
+import { SketchfabApi } from './openapi/api/SketchfabApi.js';
 import { User } from './openapi/model/User.js';
 
 /**
@@ -34,7 +35,9 @@ export class VRSpaceAPI {
       /** @type {WebPushApi} */
       webpush: new WebPushApi(this.apiClient),
       /** @type {ServerInfoApi} */
-      server: new ServerInfoApi(this.apiClient)
+      server: new ServerInfoApi(this.apiClient),
+      /** @type {SketchfabApi} */
+      sketchfab: new SketchfabApi(this.apiClient)
     }
     // does not work with node, must be imported from html:
     //ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');

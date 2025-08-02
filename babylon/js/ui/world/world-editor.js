@@ -3,6 +3,8 @@ import { ScrollablePanel } from "./scrollable-panel.js";
 import { Form } from '../widget/form.js';
 import { World } from '../../world/world.js';
 import { WorldListener } from '../../world/world-listener.js';
+import { VRSpaceAPI } from '../../client/rest-api.js';
+import { ModelSearchRequest } from '../../client/openapi/model/ModelSearchRequest.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -148,10 +150,72 @@ export class WorldEditor extends WorldListener {
     this.displayButtons(true);
   }
 
+  doSearch(text, cursor, count=24) {
+    if (!text) {
+      return;
+    }    
+    let request = new ModelSearchRequest();
+    request.q = text;
+    if (this.form.animated.isChecked) {
+      request.animated = true;
+    }
+    if (this.form.rigged.isChecked) {
+      request.rigged = true;
+    }
+    if (cursor) {
+      request.cursor = cursor;
+      request.count = count;
+    }
+    VRSpaceAPI.getInstance().endpoint.sketchfab.searchModels(request).then(obj=>{
+        this.searchPanel.beginUpdate(
+          obj.cursors.previous != null,
+          obj.cursors.next != null,
+          // FIXME: next/previous
+          () => this.doSearch(text, obj.cursors.previous),
+          () => this.doSearch(text, obj.cursors.next)
+        );
+        obj.results.forEach(result => {
+          // interesting result fields:
+          // next - url of next result page
+          // previous - url of previous page
+          //   for thumbnails.images, pick largest size, use url
+          //  archives.gltf.size
+          //  name
+          //  description
+          //  user.displayname
+          //  isAgeRestricted
+          //  categories.name
+          //console.log( result.description );
+          var thumbnail = result.thumbnails.images[0];
+          result.thumbnails.images.forEach(img => {
+            if (img.size > thumbnail.size) {
+              thumbnail = img;
+            }
+          });
+          //console.log(thumbnail);
+
+          this.searchPanel.addButton(
+            [result.name,
+            'by ' + result.user.displayName,
+            (result.archives.gltf.size / 1024 / 1024).toFixed(2) + "MB"
+              //'Faces: '+result.faceCount,
+              //'Vertices: '+result.vertexCount
+            ],
+            thumbnail.url,
+            () => this.download(result)
+          );
+
+        });
+        // ending workaround:
+        this.searchPanel.endUpdate(true);
+    }).catch(err=>console.error(err));
+    this.clearForm();
+  }
+
   /**
    * Search form callback, prepares parameters, calls this.search, and clears the form 
    */
-  doSearch(text) {
+  doSketchfabSearch(text) {
     if (text) {
       var args = {};
       if (this.form.animated.isChecked) {
@@ -160,11 +224,92 @@ export class WorldEditor extends WorldListener {
       if (this.form.rigged.isChecked) {
         args.rigged = true;
       }
-      this.search(text, args);
+      this.searchSketchfab(text, args);
     }
     this.clearForm();
   }
 
+  /**
+   * Sketchfab API search call.
+   * @param text search string
+   * @param args search paramters object
+   */
+  searchSketchfab(text, args) {
+    var url = new URL('https://api.sketchfab.com/v3/search');
+    /*
+    interesting params:
+      categories - dropdown, radio? Array[string]
+      downloadable
+      animated
+      rigged
+      license: by = CC-BY, sketchfab default
+    */
+    var params = {
+      q: text,
+      type: 'models',
+      downloadable: true
+    };
+    if (args) {
+      for (var arg in args) {
+        params[arg] = args[arg];
+      }
+    }
+    url.search = new URLSearchParams(params).toString();
+
+    this.doFetch(url, true);
+  }
+  
+  /**
+   * Execute Sketchfab search call, and process response.
+   * Adds thumbnails of all search results as buttons to the search panel.
+   */
+  doFetch(url, relocate) {
+    fetch(url).then(response => {
+      response.json().then(obj => {
+        this.searchPanel.beginUpdate(
+          obj.previous != null,
+          obj.next != null,
+          () => this.doFetch(obj.previous),
+          () => this.doFetch(obj.next)
+        );
+        obj.results.forEach(result => {
+          // interesting result fields:
+          // next - url of next result page
+          // previous - url of previous page
+          //   for thumbnails.images, pick largest size, use url
+          //  archives.gltf.size
+          //  name
+          //  description
+          //  user.displayname
+          //  isAgeRestricted
+          //  categories.name
+          //console.log( result.description );
+          var thumbnail = result.thumbnails.images[0];
+          result.thumbnails.images.forEach(img => {
+            if (img.size > thumbnail.size) {
+              thumbnail = img;
+            }
+          });
+          //console.log(thumbnail);
+
+          this.searchPanel.addButton(
+            [result.name,
+            'by ' + result.user.displayName,
+            (result.archives.gltf.size / 1024 / 1024).toFixed(2) + "MB"
+              //'Faces: '+result.faceCount,
+              //'Vertices: '+result.vertexCount
+            ],
+            thumbnail.url,
+            () => this.download(result)
+          );
+
+        });
+        // ending workaround:
+        this.searchPanel.endUpdate(relocate);
+      });
+    }).catch(err => console.log(err));
+  }
+  
   /**
    * Creates a HUD button. Adds customAction field to the button, that is executed if a scene object is clicked on.
    * @param text button text
@@ -619,36 +764,6 @@ export class WorldEditor extends WorldListener {
   }
 
   /**
-   * Sketchfab API search call.
-   * @param text search string
-   * @param args search paramters object
-   */
-  search(text, args) {
-    var url = new URL('https://api.sketchfab.com/v3/search');
-    /*
-    interesting params:
-      categories - dropdown, radio? Array[string]
-      downloadable
-      animated
-      rigged
-      license: by = CC-BY, sketchfab default
-    */
-    var params = {
-      q: text,
-      type: 'models',
-      downloadable: true
-    };
-    if (args) {
-      for (var arg in args) {
-        params[arg] = args[arg];
-      }
-    }
-    url.search = new URLSearchParams(params).toString();
-
-    this.doFetch(url, true);
-  }
-
-  /**
    * Save current scene: dumps everything using AssetLoader.dump(), and calls VRSPACEUI.saveFile(). 
    */
   save() {
@@ -728,57 +843,6 @@ export class WorldEditor extends WorldListener {
         });
       });
     }
-  }
-
-  /**
-   * Execute Sketchfab search call, and process response.
-   * Adds thumbnails of all search results as buttons to the search panel.
-   */
-  doFetch(url, relocate) {
-    fetch(url).then(response => {
-      response.json().then(obj => {
-        this.searchPanel.beginUpdate(
-          obj.previous != null,
-          obj.next != null,
-          () => this.doFetch(obj.previous),
-          () => this.doFetch(obj.next)
-        );
-        obj.results.forEach(result => {
-          // interesting result fields:
-          // next - url of next result page
-          // previous - url of previous page
-          //   for thumbnails.images, pick largest size, use url
-          //  archives.gltf.size
-          //  name
-          //  description
-          //  user.displayname
-          //  isAgeRestricted
-          //  categories.name
-          //console.log( result.description );
-          var thumbnail = result.thumbnails.images[0];
-          result.thumbnails.images.forEach(img => {
-            if (img.size > thumbnail.size) {
-              thumbnail = img;
-            }
-          });
-          //console.log(thumbnail);
-
-          this.searchPanel.addButton(
-            [result.name,
-            'by ' + result.user.displayName,
-            (result.archives.gltf.size / 1024 / 1024).toFixed(2) + "MB"
-              //'Faces: '+result.faceCount,
-              //'Vertices: '+result.vertexCount
-            ],
-            thumbnail.url,
-            () => this.download(result)
-          );
-
-        });
-        // ending workaround:
-        this.searchPanel.endUpdate(relocate);
-      });
-    }).catch(err => console.log(err));
   }
 
   /**

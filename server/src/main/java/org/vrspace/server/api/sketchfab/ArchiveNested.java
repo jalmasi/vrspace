@@ -4,9 +4,10 @@ import lombok.Data;
 
 @Data
 public class ArchiveNested {
-  Integer faceCount;
   Integer textureCount;
   Integer size;
-  Integer vertexCount;
+  String type;
   Integer textureMaxResolution;
+  Integer faceCount;
+  Integer vertexCount;
 }

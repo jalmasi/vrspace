@@ -4,9 +4,9 @@ import lombok.Data;
 
 @Data
 public class ImageInfo {
-  String url;
-  Integer width;
-  Integer size;
   String uid;
+  Integer size;
+  Integer width;
+  String url;
   Integer height;
 }

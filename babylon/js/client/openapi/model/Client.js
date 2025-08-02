@@ -98,11 +98,6 @@ export class Client {
          */
         this.picture = undefined;
 
-        /** sceneProperties 
-         * @type {SceneProperties} 
-         */
-        this.sceneProperties = undefined;
-
         /** tokens 
          * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
          * @type {Object.<String, String>} 
@@ -115,17 +110,22 @@ export class Client {
          */
         this.userHeight = undefined;
 
-        /** properties 
-         * Custom transient object properties
-         * @type {Object.<String, Object>} 
+        /** sceneProperties 
+         * @type {SceneProperties} 
          */
-        this.properties = undefined;
+        this.sceneProperties = undefined;
 
         /** temporary 
          * Temporary objects will be deleted from the database along with their owner
          * @type {Boolean} 
          */
         this.temporary = undefined;
+
+        /** properties 
+         * Custom transient object properties
+         * @type {Object.<String, Object>} 
+         */
+        this.properties = undefined;
         
         
         
@@ -188,20 +188,20 @@ export class Client {
             if (data.hasOwnProperty('picture')) {
                 obj['picture'] = ApiClient.convertToType(data['picture'], 'String');
             }
-            if (data.hasOwnProperty('sceneProperties')) {
-                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
-            }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('properties')) {
-                obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            if (data.hasOwnProperty('sceneProperties')) {
+                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
+            }
+            if (data.hasOwnProperty('properties')) {
+                obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
             }
         }
         return obj;

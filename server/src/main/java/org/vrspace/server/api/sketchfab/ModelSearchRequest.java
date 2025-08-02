@@ -1,8 +1,10 @@
 package org.vrspace.server.api.sketchfab;
 
+import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.List;
 
-import org.vrspace.server.api.Sketchfab;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.Data;
 
@@ -61,5 +63,27 @@ public class ModelSearchRequest {
    * reslution is returned for each archive type.
    */
   Boolean archives_flavours;
-}
+  /**
+   * Items displayed per page, seems ignored by sketchfab but returned in paging
+   */
+  Integer count;
+  /** Starting item number, used for paging. */
+  Integer cursor;
+  /** Constant, type=models */
+  String type = "models";
 
+  public URI toURI(String url) {
+    UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+    for (Field field : getClass().getDeclaredFields()) {
+      try {
+        Object val = field.get(this);
+        if (val != null) {
+          builder.queryParam(field.getName(), val);
+        }
+      } catch (Exception e) {
+        throw new RuntimeException("Error getting " + field.getName(), e);
+      }
+    }
+    return builder.build().toUri();
+  }
+}

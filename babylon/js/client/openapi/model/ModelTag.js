@@ -14,48 +14,37 @@
 import {ApiClient} from '../ApiClient.js';
 
 /**
- * The UserGroup model module.
- * @module model/UserGroup
+ * The ModelTag model module.
+ * @module model/ModelTag
  * @version v0
  */
-export class UserGroup {
+export class ModelTag {
     /**
-     * Constructs a new <code>UserGroup</code>.
-     * Group of users.
-     * @alias UserGroup
+     * Constructs a new <code>ModelTag</code>.
+     * @alias ModelTag
      */
     constructor() { 
         
         
-        /** id 
-         * @type {Number} 
-         */
-        this.id = undefined;
-
         /** name 
          * @type {String} 
          */
         this.name = undefined;
 
-        /** temporary 
-         * @type {Boolean} 
+        /** slug 
+         * @type {String} 
          */
-        this.temporary = undefined;
+        this.slug = undefined;
 
-        /** unread 
-         * @type {Number} 
+        /** uri 
+         * @type {String} 
          */
-        this.unread = undefined;
-
-        /** public 
-         * @type {Boolean} 
-         */
-        this.public = undefined;
+        this.uri = undefined;
         
         
         
         
-        UserGroup.initialize(this);
+        ModelTag.initialize(this);
     }
 
     /**
@@ -67,44 +56,46 @@ export class UserGroup {
     }
 
     /**
-     * Constructs a <code>UserGroup</code> from a plain JavaScript object, optionally creating a new instance.
+     * Constructs a <code>ModelTag</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {UserGroup} obj Optional instance to populate.
-     * @return {UserGroup} The populated <code>UserGroup</code> instance.
+     * @param {ModelTag} obj Optional instance to populate.
+     * @return {ModelTag} The populated <code>ModelTag</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {
-            obj = obj || new UserGroup();
+            obj = obj || new ModelTag();
 
-            if (data.hasOwnProperty('id')) {
-                obj['id'] = ApiClient.convertToType(data['id'], 'Number');
-            }
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
             }
-            if (data.hasOwnProperty('temporary')) {
-                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
+            if (data.hasOwnProperty('slug')) {
+                obj['slug'] = ApiClient.convertToType(data['slug'], 'String');
             }
-            if (data.hasOwnProperty('unread')) {
-                obj['unread'] = ApiClient.convertToType(data['unread'], 'Number');
-            }
-            if (data.hasOwnProperty('public')) {
-                obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
+            if (data.hasOwnProperty('uri')) {
+                obj['uri'] = ApiClient.convertToType(data['uri'], 'String');
             }
         }
         return obj;
     }
 
     /**
-     * Validates the JSON data with respect to <code>UserGroup</code>.
+     * Validates the JSON data with respect to <code>ModelTag</code>.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>UserGroup</code>.
+     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>ModelTag</code>.
      */
     static validateJSON(data) {
         // ensure the json data is a string
         if (data['name'] && !(typeof data['name'] === 'string' || data['name'] instanceof String)) {
             throw new Error("Expected the field `name` to be a primitive type in the JSON string but got " + data['name']);
+        }
+        // ensure the json data is a string
+        if (data['slug'] && !(typeof data['slug'] === 'string' || data['slug'] instanceof String)) {
+            throw new Error("Expected the field `slug` to be a primitive type in the JSON string but got " + data['slug']);
+        }
+        // ensure the json data is a string
+        if (data['uri'] && !(typeof data['uri'] === 'string' || data['uri'] instanceof String)) {
+            throw new Error("Expected the field `uri` to be a primitive type in the JSON string but got " + data['uri']);
         }
 
         return true;
@@ -117,5 +108,5 @@ export class UserGroup {
 
 
 
-export default UserGroup;
+export default ModelTag;
 

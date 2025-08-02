@@ -4,11 +4,11 @@ import lombok.Data;
 
 @Data
 public class UserRelated {
+  String uid;
   String username;
+  String displayName;
   String profileUrl;
   String account;
-  String displayName;
-  String uid;
   String uri;
   AvatarRelated avatar;
 }

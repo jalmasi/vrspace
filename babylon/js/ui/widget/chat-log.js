@@ -5,6 +5,7 @@ import { RemoteBrowser } from './remote-browser.js';
 import { VRSpaceAPI } from './../../client/rest-api.js'
 import { VRSPACEUI } from '../vrspace-ui.js';
 import { ServerCapabilities } from '../../client/openapi/model/ServerCapabilities.js';
+
 class ChatLogInput extends TextAreaInput {
   inputFocused(input, focused) {
     super.inputFocused(input,focused);

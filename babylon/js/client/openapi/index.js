@@ -14,24 +14,37 @@
 
 import ApiClient from './ApiClient';
 import Animation from './model/Animation';
+import ArchiveNested from './model/ArchiveNested';
+import AvatarRelated from './model/AvatarRelated';
 import CapabilitiesAndConfig from './model/CapabilitiesAndConfig';
 import Client from './model/Client';
 import ContentCategory from './model/ContentCategory';
 import CreateWorldOptions from './model/CreateWorldOptions';
+import Cursors from './model/Cursors';
 import GltfModel from './model/GltfModel';
 import GroupMember from './model/GroupMember';
 import GroupMessage from './model/GroupMessage';
+import ImageInfo from './model/ImageInfo';
+import InlineArchives from './model/InlineArchives';
 import LoginResponse from './model/LoginResponse';
+import ModelCategory from './model/ModelCategory';
+import ModelLicense from './model/ModelLicense';
+import ModelSearchList from './model/ModelSearchList';
+import ModelSearchRequest from './model/ModelSearchRequest';
+import ModelSearchResponse from './model/ModelSearchResponse';
+import ModelTag from './model/ModelTag';
 import Point from './model/Point';
 import Quaternion from './model/Quaternion';
 import Rotation from './model/Rotation';
 import SceneProperties from './model/SceneProperties';
 import ServerCapabilities from './model/ServerCapabilities';
 import ServerConfiguration from './model/ServerConfiguration';
+import ThumbnailsRelated from './model/ThumbnailsRelated';
 import UploadRequest from './model/UploadRequest';
 import User from './model/User';
 import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
+import UserRelated from './model/UserRelated';
 import VRObject from './model/VRObject';
 import Welcome from './model/Welcome';
 import World from './model/World';
@@ -92,6 +105,18 @@ export {
     Animation,
 
     /**
+     * The ArchiveNested model constructor.
+     * @property {ArchiveNested}
+     */
+    ArchiveNested,
+
+    /**
+     * The AvatarRelated model constructor.
+     * @property {AvatarRelated}
+     */
+    AvatarRelated,
+
+    /**
      * The CapabilitiesAndConfig model constructor.
      * @property {CapabilitiesAndConfig}
      */
@@ -116,6 +141,12 @@ export {
     CreateWorldOptions,
 
     /**
+     * The Cursors model constructor.
+     * @property {Cursors}
+     */
+    Cursors,
+
+    /**
      * The GltfModel model constructor.
      * @property {GltfModel}
      */
@@ -134,10 +165,58 @@ export {
     GroupMessage,
 
     /**
+     * The ImageInfo model constructor.
+     * @property {ImageInfo}
+     */
+    ImageInfo,
+
+    /**
+     * The InlineArchives model constructor.
+     * @property {InlineArchives}
+     */
+    InlineArchives,
+
+    /**
      * The LoginResponse model constructor.
      * @property {LoginResponse}
      */
     LoginResponse,
+
+    /**
+     * The ModelCategory model constructor.
+     * @property {ModelCategory}
+     */
+    ModelCategory,
+
+    /**
+     * The ModelLicense model constructor.
+     * @property {ModelLicense}
+     */
+    ModelLicense,
+
+    /**
+     * The ModelSearchList model constructor.
+     * @property {ModelSearchList}
+     */
+    ModelSearchList,
+
+    /**
+     * The ModelSearchRequest model constructor.
+     * @property {ModelSearchRequest}
+     */
+    ModelSearchRequest,
+
+    /**
+     * The ModelSearchResponse model constructor.
+     * @property {ModelSearchResponse}
+     */
+    ModelSearchResponse,
+
+    /**
+     * The ModelTag model constructor.
+     * @property {ModelTag}
+     */
+    ModelTag,
 
     /**
      * The Point model constructor.
@@ -176,6 +255,12 @@ export {
     ServerConfiguration,
 
     /**
+     * The ThumbnailsRelated model constructor.
+     * @property {ThumbnailsRelated}
+     */
+    ThumbnailsRelated,
+
+    /**
      * The UploadRequest model constructor.
      * @property {UploadRequest}
      */
@@ -198,6 +283,12 @@ export {
      * @property {UserGroup}
      */
     UserGroup,
+
+    /**
+     * The UserRelated model constructor.
+     * @property {UserRelated}
+     */
+    UserRelated,
 
     /**
      * The VRObject model constructor.

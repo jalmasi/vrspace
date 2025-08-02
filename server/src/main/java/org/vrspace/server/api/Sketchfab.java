@@ -1,8 +1,16 @@
 package org.vrspace.server.api;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,12 +36,14 @@ import org.vrspace.server.api.sketchfab.AuthResponse;
 import org.vrspace.server.api.sketchfab.DownloadResponse;
 import org.vrspace.server.api.sketchfab.FileInfo;
 import org.vrspace.server.api.sketchfab.ModelSearchRequest;
+import org.vrspace.server.api.sketchfab.ModelSearchResponse;
 import org.vrspace.server.core.ClassUtil;
 import org.vrspace.server.core.FileUtil;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.ContentCategory;
 import org.vrspace.server.obj.GltfModel;
 
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,6 +78,7 @@ public class Sketchfab extends ApiBase {
   VRObjectRepository db;
 
   private final String loginUrl = "https://sketchfab.com/oauth2/token/";
+  private final String searchUrl = "https://api.sketchfab.com/v3/search";
 
   @Value("${sketchfab.clientId:none}")
   private String clientId;
@@ -164,8 +175,42 @@ public class Sketchfab extends ApiBase {
     return response.getBody();
   }
 
+  /**
+   * Search free models available at Sketchfab. Search request and response
+   * contain the same data as when querying Sketchfab directly, though with the
+   * different request method (POST vs GET). But, this one allows the server to
+   * get model information.
+   * 
+   * @param params search criteria, recommended minimum is q (query string)
+   * @return structured list of models matching the criteria
+   */
   @PostMapping("/search")
-  public void searchModels(@RequestBody ModelSearchRequest params) {
+  public ResponseEntity<ModelSearchResponse> searchModels(@RequestBody ModelSearchRequest params) {
+    HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL)
+        .connectTimeout(Duration.of(10, ChronoUnit.SECONDS)).build();
+    try {
+      HttpRequest request = HttpRequest.newBuilder(params.toURI(searchUrl)).timeout(Duration.of(10, ChronoUnit.SECONDS))
+          .GET().build();
+
+      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+      String body = response.body();
+      // log.debug("Sketchfab response: code=" + response.statusCode() + " body=" +
+      // body);
+      ModelSearchResponse ret = objectMapper.readValue(body, ModelSearchResponse.class);
+      return ResponseEntity.ofNullable(ret);
+    } catch (JacksonException e) {
+      log.error("Internal error", e);
+      return new ResponseEntity<ModelSearchResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+    } catch (IOException e) {
+      log.error("Connection error", e);
+      return new ResponseEntity<ModelSearchResponse>(HttpStatus.BAD_GATEWAY);
+    } catch (InterruptedException e) {
+      log.error("Connection timeout", e);
+      return new ResponseEntity<ModelSearchResponse>(HttpStatus.GATEWAY_TIMEOUT);
+    } catch (Exception e) {
+      log.error("Internal error", e);
+      return new ResponseEntity<ModelSearchResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   /**
@@ -182,7 +227,7 @@ public class Sketchfab extends ApiBase {
    */
   @GetMapping("/download")
   public ResponseEntity<GltfModel> download(String uid, HttpServletRequest request) {
-    // if not authorised ( null token ) authorise first
+    // if not authorized ( null token ) authorize first
     if (this.token == null) {
       this.referrer = request.getHeader(HttpHeaders.REFERER);
       return new ResponseEntity<GltfModel>(HttpStatus.UNAUTHORIZED);
