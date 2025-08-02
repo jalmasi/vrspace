@@ -130,7 +130,7 @@ export class WorldEditor extends WorldListener {
       this.clearForm();
     } else {
       VRSPACEUI.hud.newRow(); // stops speech recognition
-      this.form = new SearchForm((text) => this.doSearch(text));
+      this.form = new SearchForm(() => this.doSearch());
       this.form.init(); // starts speech recognition
       if (VRSPACEUI.hud.inXR()) {
         let texture = VRSPACEUI.hud.addForm(this.form, 1536, 512);
@@ -144,35 +144,38 @@ export class WorldEditor extends WorldListener {
    * Disposes of search form and displays HUD buttons
    */
   clearForm() {
-    this.form.dispose(); // stops speech recognition
-    delete this.form;
-    VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
-    this.displayButtons(true);
+    if ( this.form ) {
+      this.form.dispose(); // stops speech recognition
+      delete this.form;
+      VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
+      this.displayButtons(true);      
+    }
   }
 
-  doSearch(text, cursor, count=24) {
-    if (!text) {
-      return;
-    }    
-    let request = new ModelSearchRequest();
-    request.q = text;
-    if (this.form.animated.isChecked) {
-      request.animated = true;
-    }
-    if (this.form.rigged.isChecked) {
-      request.rigged = true;
+  doSearch(request= new ModelSearchRequest(), cursor, count=24) {
+    if ( this.form ) {
+      request.q = this.form.input.text;
+      if (this.form.animated.isChecked) {
+        request.animated = true;
+      }
+      if (this.form.rigged.isChecked) {
+        request.rigged = true;
+      }      
     }
     if (cursor) {
       request.cursor = cursor;
       request.count = count;
+    } else {
+      request.cursor = null;
+      request.count = null;
     }
     VRSpaceAPI.getInstance().endpoint.sketchfab.searchModels(request).then(obj=>{
         this.searchPanel.beginUpdate(
-          obj.cursors.previous != null,
-          obj.cursors.next != null,
+          obj.previous != null,
+          obj.next != null,
           // FIXME: next/previous
-          () => this.doSearch(text, obj.cursors.previous),
-          () => this.doSearch(text, obj.cursors.next)
+          () => this.doSearch(request, obj.cursors.previous),
+          () => this.doSearch(request, obj.cursors.next)
         );
         obj.results.forEach(result => {
           // interesting result fields:
@@ -209,6 +212,7 @@ export class WorldEditor extends WorldListener {
         // ending workaround:
         this.searchPanel.endUpdate(true);
     }).catch(err=>console.error(err));
+    
     this.clearForm();
   }
 
@@ -756,6 +760,7 @@ export class WorldEditor extends WorldListener {
    */
   download(result) {
     if (this.fetching || this.activeButton) {
+      console.log("Skipping download, fetching="+this.fetching+" activeButton=",this.activeButton);
       return;
     }
     this.fetching = result;
