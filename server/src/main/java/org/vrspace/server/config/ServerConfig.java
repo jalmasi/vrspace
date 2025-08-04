@@ -18,12 +18,14 @@ import lombok.Data;
 @Component
 @Data
 public class ServerConfig {
-
   @Value("${org.vrspace.server.guestAllowed:true}")
   private boolean guestAllowed = true;
 
   @Value("${org.vrspace.server.createWorlds:true}")
   private boolean createWorlds = true;
+
+  @Value("${org.vrspace.server.allowedScriptPath:/babylon/js/}")
+  private String allowedScriptPath = "/babylon/js/";
 
   @Value("${org.vrspace.server.maxSessions:0}")
   private int maxSessions;

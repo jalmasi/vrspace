@@ -350,6 +350,10 @@ public class WorldManager {
    * @return saved VRObject
    */
   public VRObject add(Client client, VRObject o) {
+    if (o.getScript() != null && !o.getScript().startsWith(config.getAllowedScriptPath())) {
+      throw new SecurityException("Disallowed script path: " + o.getScript());
+    }
+
     if (o.getPosition() == null && client.getPosition() != null) {
       o.setPosition(new Point(client.getPosition()));
     }
