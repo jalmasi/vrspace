@@ -57,6 +57,7 @@ import SharedContentApi from './api/SharedContentApi';
 import SketchfabApi from './api/SketchfabApi';
 import TexturesApi from './api/TexturesApi';
 import UsersApi from './api/UsersApi';
+import WorldObjectsApi from './api/WorldObjectsApi';
 import WorldsApi from './api/WorldsApi';
 
 
@@ -361,6 +362,12 @@ export {
     * @property {module:api/UsersApi}
     */
     UsersApi,
+
+    /**
+    * The WorldObjectsApi service constructor.
+    * @property {module:api/WorldObjectsApi}
+    */
+    WorldObjectsApi,
 
     /**
     * The WorldsApi service constructor.

@@ -350,6 +350,9 @@ public class WorldManager {
    * @return saved VRObject
    */
   public VRObject add(Client client, VRObject o) {
+    if (o.getId() != null) {
+      throw new IllegalArgumentException("Cannot add object having an id");
+    }
     if (o.getScript() != null && !o.getScript().startsWith(config.getAllowedScriptPath())) {
       throw new SecurityException("Disallowed script path: " + o.getScript());
     }

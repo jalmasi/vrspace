@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * World controller handles worlds-related operations. Currently only list and
  * count users, publicly available. Eventually it should allow world creation
- * and management for authorised users.
+ * and management for authorized users.
  * 
  * @author joe
  *

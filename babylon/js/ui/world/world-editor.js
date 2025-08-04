@@ -5,6 +5,7 @@ import { World } from '../../world/world.js';
 import { WorldListener } from '../../world/world-listener.js';
 import { VRSpaceAPI } from '../../client/rest-api.js';
 import { ModelSearchRequest } from '../../client/openapi/model/ModelSearchRequest.js';
+import { VRObject } from '../../vrspace-min.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -84,7 +85,8 @@ export class WorldEditor extends WorldListener {
    
     world.addListener(this);
   }
-  
+
+  // TODO remove after all replaceced with REST API  
   endpoint() {
     return VRSPACEUI.contentBase + "/vrspace/api/sketchfab";
   }
@@ -440,14 +442,6 @@ export class WorldEditor extends WorldListener {
   }
 
   /**
-   * Delete a shared object from the scene.
-   * @param obj scene object to delete
-   */
-  removeObject(obj) {
-    this.worldManager.VRSPACE.deleteSharedObject(obj.VRObject);
-  }
-
-  /**
    * Copy an object: sends a Add command to the server, actual copy (instance) is created when the server responds.
    * @param obj scene object to copy.
    */
@@ -459,6 +453,18 @@ export class WorldEditor extends WorldListener {
     this.createSharedObject(vrObject.mesh, { position: vrObject.position, rotation: vrObject.rotation, scale: vrObject.scale });
     this.clearGizmo();
   }
+
+  /**
+   * Delete a shared object from the scene.
+   * @param obj scene object to delete
+   */
+  removeObject(obj) {
+    //this.worldManager.VRSPACE.deleteSharedObject(obj.VRObject);
+    VRSpaceAPI.getInstance().endpoint.objects.removeObject(obj.VRObject.className, obj.VRObject.id).then(obj => {
+      console.log("Created new VRObject", obj);
+    });
+  }
+
 
   /**
    * Display or hide all buttons, except.
@@ -766,6 +772,7 @@ export class WorldEditor extends WorldListener {
     this.fetching = result;
     VRSPACEUI.indicator.animate();
     VRSPACEUI.indicator.add("Download");
+    // TODO use REST API
     fetch(this.endpoint() + "/download?uid=" + result.uid)
       .then(response => {
         this.fetching = null;
@@ -804,15 +811,22 @@ export class WorldEditor extends WorldListener {
         object[p] = properties[p];
       }
     }
+    console.log("Creating new VRObject", object);
+    VRSpaceAPI.getInstance().endpoint.objects.addObject(object).then(obj => {
+      console.log("Created new VRObject", obj);
+    });
+    /*
     this.worldManager.VRSPACE.createSharedObject(object).then(obj => {
       console.log("Created new VRObject", obj);
     });
+    */
   }
 
   /**
    * Rest API call to VRSpace sketchfab endpoint. If login is required, this opens the login page in the same browser window.
    */
   sketchfabLogin() {
+    // TODO use REST API
     fetch(this.endpoint() + "/login").then(response => {
       console.log(response);
       response.json().then(login => {

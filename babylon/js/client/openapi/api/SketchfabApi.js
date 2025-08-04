@@ -39,8 +39,8 @@ export class SketchfabApi {
 
 
     /**
-     * Sketchfab download, as explained in   https://sketchfab.com/developers/download-api/downloading-models Requires   successful authentication, returns 401 unauthorised unless the server is   authorised with sketchfab (token exists). In that case, client is expected to   attempt to login.
-     * Sketchfab download, as explained in   https://sketchfab.com/developers/download-api/downloading-models Requires   successful authentication, returns 401 unauthorised unless the server is   authorised with sketchfab (token exists). In that case, client is expected to   attempt to login.
+     * Sketchfab download, as explained in  https://sketchfab.com/developers/download-api/downloading-models Requires  successful authentication, returns 401 unauthorised unless the server is  authorised with sketchfab (token exists). In that case, client is expected to  attempt to login.
+     * Sketchfab download, as explained in  https://sketchfab.com/developers/download-api/downloading-models Requires  successful authentication, returns 401 unauthorised unless the server is  authorised with sketchfab (token exists). In that case, client is expected to  attempt to login.
      * @param {String} uid unique id of the model
      * @return {Promise< GltfModel >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link GltfModel} and HTTP response
      */
@@ -73,8 +73,8 @@ export class SketchfabApi {
     }
 
     /**
-     * Sketchfab download, as explained in   https://sketchfab.com/developers/download-api/downloading-models Requires   successful authentication, returns 401 unauthorised unless the server is   authorised with sketchfab (token exists). In that case, client is expected to   attempt to login.
-     * Sketchfab download, as explained in   https://sketchfab.com/developers/download-api/downloading-models Requires   successful authentication, returns 401 unauthorised unless the server is   authorised with sketchfab (token exists). In that case, client is expected to   attempt to login.
+     * Sketchfab download, as explained in  https://sketchfab.com/developers/download-api/downloading-models Requires  successful authentication, returns 401 unauthorised unless the server is  authorised with sketchfab (token exists). In that case, client is expected to  attempt to login.
+     * Sketchfab download, as explained in  https://sketchfab.com/developers/download-api/downloading-models Requires  successful authentication, returns 401 unauthorised unless the server is  authorised with sketchfab (token exists). In that case, client is expected to  attempt to login.
      * @param {String} uid unique id of the model
      * @return {Promise< GltfModel >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link GltfModel}
      */
@@ -125,7 +125,7 @@ export class SketchfabApi {
 
     /**
      * Search free models available at Sketchfab.
-     * Search free models available at Sketchfab. Search request and response   contain the same data as when querying Sketchfab directly, though with the   different request method (POST vs GET). But, this one allows the server to   get model information.
+     * Search free models available at Sketchfab. Search request and response  contain the same data as when querying Sketchfab directly, though with the  different request method (POST vs GET). But, this one allows the server to  get model information.
      * @param {ModelSearchRequest} modelSearchRequest search criteria, recommended minimum is q (query string)
      * @return {Promise< ModelSearchResponse >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link ModelSearchResponse} and HTTP response
      */
@@ -158,7 +158,7 @@ export class SketchfabApi {
 
     /**
      * Search free models available at Sketchfab.
-     * Search free models available at Sketchfab. Search request and response   contain the same data as when querying Sketchfab directly, though with the   different request method (POST vs GET). But, this one allows the server to   get model information.
+     * Search free models available at Sketchfab. Search request and response  contain the same data as when querying Sketchfab directly, though with the  different request method (POST vs GET). But, this one allows the server to  get model information.
      * @param {ModelSearchRequest} modelSearchRequest search criteria, recommended minimum is q (query string)
      * @return {Promise< ModelSearchResponse >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link ModelSearchResponse}
      */
@@ -171,8 +171,8 @@ export class SketchfabApi {
 
 
     /**
-     * Sketchfab oauth2 callback, as explained in   https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided   by client to authorise at sketchfab, and returns 302 redirect to the saved   referrer.
-     * Sketchfab oauth2 callback, as explained in   https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided   by client to authorise at sketchfab, and returns 302 redirect to the saved   referrer.
+     * Sketchfab oauth2 callback, as explained in  https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided  by client to authorise at sketchfab, and returns 302 redirect to the saved  referrer.
+     * Sketchfab oauth2 callback, as explained in  https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided  by client to authorise at sketchfab, and returns 302 redirect to the saved  referrer.
      * @param {String} code provided to the client by sketchfab
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
@@ -205,8 +205,8 @@ export class SketchfabApi {
     }
 
     /**
-     * Sketchfab oauth2 callback, as explained in   https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided   by client to authorise at sketchfab, and returns 302 redirect to the saved   referrer.
-     * Sketchfab oauth2 callback, as explained in   https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided   by client to authorise at sketchfab, and returns 302 redirect to the saved   referrer.
+     * Sketchfab oauth2 callback, as explained in  https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided  by client to authorise at sketchfab, and returns 302 redirect to the saved  referrer.
+     * Sketchfab oauth2 callback, as explained in  https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided  by client to authorise at sketchfab, and returns 302 redirect to the saved  referrer.
      * @param {String} code provided to the client by sketchfab
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
@@ -220,7 +220,7 @@ export class SketchfabApi {
 
     /**
      * Start of the login sequence.
-     * Start of the login sequence. Returns the sketchfab login url, containing   client id and redirect url. Client is then expected to open that url and   authorise there. Saves the referrer for later use in callback.
+     * Start of the login sequence. Returns the sketchfab login url, containing  client id and redirect url. Client is then expected to open that url and  authorise there. Saves the referrer for later use in callback.
      * @return {Promise< LoginResponse >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link LoginResponse} and HTTP response
      */
     sketchfabLoginWithHttpInfo() {
@@ -248,7 +248,7 @@ export class SketchfabApi {
 
     /**
      * Start of the login sequence.
-     * Start of the login sequence. Returns the sketchfab login url, containing   client id and redirect url. Client is then expected to open that url and   authorise there. Saves the referrer for later use in callback.
+     * Start of the login sequence. Returns the sketchfab login url, containing  client id and redirect url. Client is then expected to open that url and  authorise there. Saves the referrer for later use in callback.
      * @return {Promise< LoginResponse >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link LoginResponse}
      */
     sketchfabLogin() {

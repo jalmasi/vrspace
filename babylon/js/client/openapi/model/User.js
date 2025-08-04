@@ -116,6 +116,11 @@ export class User {
          */
         this.oauth2provider = undefined;
 
+        /** leftArmPos 
+         * @type {Point} 
+         */
+        this.leftArmPos = undefined;
+
         /** rightArmPos 
          * @type {Point} 
          */
@@ -126,21 +131,15 @@ export class User {
          */
         this.leftArmRot = undefined;
 
-        /** leftArmPos 
-         * @type {Point} 
-         */
-        this.leftArmPos = undefined;
-
         /** rightArmRot 
          * @type {Quaternion} 
          */
         this.rightArmRot = undefined;
 
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} 
+        /** sceneProperties 
+         * @type {SceneProperties} 
          */
-        this.tokens = undefined;
+        this.sceneProperties = undefined;
 
         /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
@@ -148,10 +147,11 @@ export class User {
          */
         this.userHeight = undefined;
 
-        /** sceneProperties 
-         * @type {SceneProperties} 
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
          */
-        this.sceneProperties = undefined;
+        this.tokens = undefined;
 
         /** temporary 
          * Temporary objects will be deleted from the database along with their owner
@@ -235,26 +235,26 @@ export class User {
             if (data.hasOwnProperty('oauth2provider')) {
                 obj['oauth2provider'] = ApiClient.convertToType(data['oauth2provider'], 'String');
             }
+            if (data.hasOwnProperty('leftArmPos')) {
+                obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
+            }
             if (data.hasOwnProperty('rightArmPos')) {
                 obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
             }
             if (data.hasOwnProperty('leftArmRot')) {
                 obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
             }
-            if (data.hasOwnProperty('leftArmPos')) {
-                obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
-            }
             if (data.hasOwnProperty('rightArmRot')) {
                 obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            if (data.hasOwnProperty('sceneProperties')) {
+                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('sceneProperties')) {
-                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
@@ -318,6 +318,10 @@ export class User {
         if (data['oauth2provider'] && !(typeof data['oauth2provider'] === 'string' || data['oauth2provider'] instanceof String)) {
             throw new Error("Expected the field `oauth2provider` to be a primitive type in the JSON string but got " + data['oauth2provider']);
         }
+        // validate the optional field `leftArmPos`
+        if (data['leftArmPos']) { // data not null
+          Point.validateJSON(data['leftArmPos']);
+        }
         // validate the optional field `rightArmPos`
         if (data['rightArmPos']) { // data not null
           Point.validateJSON(data['rightArmPos']);
@@ -325,10 +329,6 @@ export class User {
         // validate the optional field `leftArmRot`
         if (data['leftArmRot']) { // data not null
           Quaternion.validateJSON(data['leftArmRot']);
-        }
-        // validate the optional field `leftArmPos`
-        if (data['leftArmPos']) { // data not null
-          Point.validateJSON(data['leftArmPos']);
         }
         // validate the optional field `rightArmRot`
         if (data['rightArmRot']) { // data not null
