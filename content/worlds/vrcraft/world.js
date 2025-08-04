@@ -80,13 +80,12 @@ export class WorldEditorExample extends World {
   
   // used in stand-alone mode (i.e. if world is not entered via avatar-selection, but from world.html)  
   connect() {
-    new WorldManager(this);
-    //this.worldManager.debug = true; // multi-user debug info
-    //this.worldManager.VRSPACE.debug = true; // network debug info
-    //this.worldManager.remoteLogging = true;
     this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
-    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'}).then(() => {
+    this.enterWith('//www.vrspace.org/babylon/dolphin.glb').then(() => {
       // we don't really need to do anything here
+      //this.worldManager.debug = true; // multi-user debug info
+      //this.worldManager.VRSPACE.debug = true; // network debug info
+      //this.worldManager.remoteLogging = true;
     });
   }
   

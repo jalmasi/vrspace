@@ -626,6 +626,7 @@ export class WorldEditor extends WorldListener {
       // TODO this is not compatible with gizmo, calculate resulting rotation here
       pos = obj.target.absolutePosition;
       rot = obj.target.absoluteRotationQuaternion.toEulerAngles();
+      console.log("Sending "+pos.x+","+pos.y+","+pos.z);
     }
     this.worldManager.VRSPACE.sendEvent(obj, { position: { x: pos.x, y: pos.y, z: pos.z }, rotation: { x: rot.x, y: rot.y, z: rot.z } });
   }
@@ -778,7 +779,7 @@ export class WorldEditor extends WorldListener {
         this.sketchfabLogin();
       } else {
         this.fetching = null;
-        console.log(err);
+        console.log(error);
         VRSPACEUI.indicator.remove("Download");
       }
     });

@@ -76,13 +76,16 @@ export class EventRouter {
       if (!obj.translate) {
         obj.translate = VRSPACEUI.createAnimation(node, "position", fps);
       }
-      VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);      
+      console.log("Animating from "+node.position.x+","+node.position.y+","+node.position.z+" to "+obj.position.x+","+obj.position.y+","+obj.position.z);
+      //VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
+      VRSPACEUI.chainAnimation(obj.translate, node, "position", obj.position);
     }
     VRObject.prototype.rotationChanged = (obj,node) => {
       if (!obj.rotate) {
         obj.rotate = VRSPACEUI.createAnimation(node, "rotation", fps);
       }
-      VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);      
+      //VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+      VRSPACEUI.chainAnimation(obj.rotate, node, "rotation", obj.rotation);
     }
     VRObject.prototype.scaleChanged = (obj,node) => {
       if (!obj.rescale) {

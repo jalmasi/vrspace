@@ -726,8 +726,8 @@ export class World {
 
   /**
    * Quick enter, with avatar url and optionally user name.
-   * @param avatarUrl URL to load avatar from
-   * @param userName login name of the user
+   * @param {string} avatarUrl URL to load avatar from
+   * @param {string} [userName] login name of the user
    */
   async enterWith(avatarUrl, userName) {
     this.worldManager = new WorldManager(this);
