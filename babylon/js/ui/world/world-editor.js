@@ -86,10 +86,6 @@ export class WorldEditor extends WorldListener {
     world.addListener(this);
   }
 
-  // TODO remove after all replaceced with REST API  
-  endpoint() {
-    return VRSPACEUI.contentBase + "/vrspace/api/sketchfab";
-  }
   /**
   Creates the search panel, called from constructor
   */
@@ -772,25 +768,20 @@ export class WorldEditor extends WorldListener {
     this.fetching = result;
     VRSPACEUI.indicator.animate();
     VRSPACEUI.indicator.add("Download");
-    // TODO use REST API
-    fetch(this.endpoint() + "/download?uid=" + result.uid)
-      .then(response => {
-        this.fetching = null;
-        console.log(response);
-        if (response.status == 401) {
-          console.log("Redirecting to login form")
-          this.sketchfabLogin();
-          return;
-        }
-        response.json().then(res => {
-          console.log(res);
-          this.createSharedObject(res.mesh);
-        });
-      }).catch(err => {
+    VRSpaceAPI.getInstance().endpoint.sketchfab.download(result.uid).then(gltfModel=>{
+      this.fetching = null;
+      console.log(gltfModel);
+      this.createSharedObject(gltfModel.mesh);
+    }).catch(error=>{
+      if (error.status == 401) {
+        console.log("Redirecting to login form")
+        this.sketchfabLogin();
+      } else {
         this.fetching = null;
         console.log(err);
         VRSPACEUI.indicator.remove("Download");
-      });
+      }
+    });
   }
 
   /**
@@ -815,7 +806,7 @@ export class WorldEditor extends WorldListener {
     VRSpaceAPI.getInstance().endpoint.objects.addObject(object).then(obj => {
       console.log("Created new VRObject", obj);
     });
-    /*
+    /* same as above, over websocket
     this.worldManager.VRSPACE.createSharedObject(object).then(obj => {
       console.log("Created new VRObject", obj);
     });
@@ -826,12 +817,8 @@ export class WorldEditor extends WorldListener {
    * Rest API call to VRSpace sketchfab endpoint. If login is required, this opens the login page in the same browser window.
    */
   sketchfabLogin() {
-    // TODO use REST API
-    fetch(this.endpoint() + "/login").then(response => {
-      console.log(response);
-      response.json().then(login => {
-        window.open(login.url, "_self");
-      });
+    VRSpaceAPI.getInstance().endpoint.sketchfab.sketchfabLogin().then(login => {
+      window.open(login.url, "_self");
     });
   }
 
