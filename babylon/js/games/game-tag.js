@@ -103,7 +103,7 @@ export class GameTag extends BasicGame {
       }
       GameTag.instance.startRequested();
     } else if (VRSPACE.me) {
-      VRSPACE.createScriptedObject({
+      VRSPACE.createSharedObject({
         name: "Game of Tag",
         properties: { clientId: VRSPACE.me.id },
         active: true,

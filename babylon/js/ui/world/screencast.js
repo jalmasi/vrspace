@@ -75,7 +75,7 @@ export class Screencast extends WorldListener {
       }
     }
 
-    this.worldManager.VRSPACE.createScriptedObject({
+    this.worldManager.VRSPACE.createSharedObject({
       properties:{ screenName:screenName, type: "Screencast", clientId: this.client.id, size:this.size, addHandles:this.addHandles },
       active:true,
       script:'/babylon/js/scripts/remote-screen.js',

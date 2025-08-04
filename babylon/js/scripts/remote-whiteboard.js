@@ -4,7 +4,7 @@ import { VRSPACE } from "../vrspace-min.js";
 
 /**
  * Receiving component of a Whiteboard.
- * When a client creates a screen sharing VRObject (by calling VRSPACE.createScriptedObject),
+ * When a client creates a screen sharing VRObject (by calling VRSPACE.createSharedObject),
  * client-side presentation logic is implemented by this class.
  * Creates and shows the whiteboard, but only if not already created.
  * This allows for Whiteboard class to be used in two scenarios: 

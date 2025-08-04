@@ -31,6 +31,7 @@ import lombok.NoArgsConstructor;
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 public class Add implements SceneChange {
+  public static final String allowedScriptPath = "/babylon/js/";
   /**
    * List of VRObjects to add.
    */
@@ -52,11 +53,18 @@ public class Add implements SceneChange {
   }
 
   /**
-   * Add objects to the scene, returns List of object identifiers (classname+id
-   * pairs)
+   * Add objects to the world and to the scene scene, returns List of object
+   * identifiers (classname+id pairs). Performs check if object script url is
+   * allowed.
    */
   @Override
   public ClientResponse execute(WorldManager world, Client client) {
+    this.objects.forEach(o -> {
+      if (o.getScript() != null && !o.getScript().startsWith(allowedScriptPath)) {
+        throw new SecurityException("Disallowed script path: " + o.getScript());
+      }
+    });
+
     List<VRObject> added = world.add(client, objects);
     client.getScene().publishAll(added);
     List<Map<String, Long>> ret = added.stream().map(o -> o.getObjectId().map()).collect(Collectors.toList());

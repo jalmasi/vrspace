@@ -940,15 +940,13 @@ export class VRSpace {
   }
 
   /**
-  Common code for createSharedObject and createScriptedObject
-  @param {string} command either Add or Share
+  Share an object.
   @param {VRObject} obj the new VRObject, containing all properties
-  @param {string} className optional class name to create, defaults to obj.className if exists, otherwise VRObject
-  @param {boolean} [temporary] create temporary object 
-  @returns Promise with the created VRObject instance
-  @private
+  @param {string|undefined} [className] optional class name to create, defaults to obj.className if exists, otherwise VRObject
+  @param {boolean} [temporary] Create temporary object. Defaults to true for scripts. 
+  @returns {Promise<VRObject>} Promise with the created VRObject instance
    */
-  async _createSharedObject( command, obj, className, temporary ) {
+  async createSharedObject( obj, className, temporary ) {
     if ( ! className ) {
       if ( obj.className ) {
         className = obj.className;
@@ -956,11 +954,16 @@ export class VRSpace {
         className = 'VRObject';
       }
     }
+    if ( temporary ) {
+      obj.temporary = true;
+    } else if ( obj.script ) {
+      obj.temporary = true;      
+    }
     let json = JSON.stringify(obj);
     this.log(json);
     return new Promise( (resolve, reject) => {
       // response to command contains object ID
-      this.call('{"command":{"'+command+'":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
+      this.call('{"command":{"Add":{"objects":[{"' + className + '":'+json+'}]}}}', (response) => {
         this.log("Response:", response);
         var objectId = response[0][className];
         const id = new ID(className,objectId);
@@ -972,27 +975,6 @@ export class VRSpace {
     });
   }
 
-  /**
-  Share an object.
-  @param {VRObject} obj the new VRObject, containing all properties
-  @param {string|undefined} [className] optional class name to create, defaults to obj.className if exists, otherwise VRObject
-  @returns {Promise<VRObject>} Promise with the created VRObject instance
-   */
-  async createSharedObject( obj, className ) {
-    return this._createSharedObject("Add", obj, className);
-  }
-  
-  /**
-  Create a shared scripted object. 
-  The server determines which scripts are allowed, so this sends different command than createSharedObject.
-  @param {VRObject} obj the new VRObject, containing all properties
-  @param {string|undefined} [className] optional class name to create, defaults to obj.className if exists, otherwise VRObject
-  @returns {Promise<VRObject>} Promise with the created VRObject instance
-   */
-  async createScriptedObject( obj, className ) {
-    return this._createSharedObject("Share", obj, className, true);
-  }
-  
   /**
   Delete a shared object.
   @param {ID} obj to be removed from the server

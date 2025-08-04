@@ -467,7 +467,7 @@ export class HideAndSeek extends BasicGame {
       }
       HideAndSeek.instance.startRequested();
     } else if (VRSPACE.me) {
-      VRSPACE.createScriptedObject({
+      VRSPACE.createSharedObject({
         name: "Hide and Seek",
         properties: { clientId: VRSPACE.me.id },
         active: true,

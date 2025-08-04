@@ -3,7 +3,7 @@ import { ImageArea } from '../ui/widget/image-area.js';
 
 /**
  * Receiving component of a screen share, or some other video stream.
- * When a client creates a screen sharing VRObject (by calling VRSPACE.createScriptedObject),
+ * When a client creates a screen sharing VRObject (by calling VRSPACE.createSharedObject),
  * client-side presentation logic is implemented by this class.
  * It creates an ImageArea, and once stream starts, executes ImageArea.loadStream().
  */
