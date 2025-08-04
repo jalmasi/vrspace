@@ -76,7 +76,7 @@ export class EventRouter {
       if (!obj.translate) {
         obj.translate = VRSPACEUI.createAnimation(node, "position", fps);
       }
-      console.log("Animating from "+node.position.x+","+node.position.y+","+node.position.z+" to "+obj.position.x+","+obj.position.y+","+obj.position.z);
+      //console.log("Animating from "+node.position.x+","+node.position.y+","+node.position.z+" to "+obj.position.x+","+obj.position.y+","+obj.position.z);
       //VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
       VRSPACEUI.chainAnimation(obj.translate, node, "position", obj.position);
     }

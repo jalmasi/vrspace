@@ -230,8 +230,8 @@ public class WorldManagerTest {
     Welcome welcome = worldManager.login(session);
     List<VRObject> newObjects = new ArrayList<VRObject>();
     // add temporary object:
-    newObjects.add(new VRObject(1L));
-    VRObject notTemp = new VRObject(2L);
+    newObjects.add(new VRObject());
+    VRObject notTemp = new VRObject();
     // add persistent object:
     notTemp.setTemporary(false);
     newObjects.add(notTemp);
@@ -256,10 +256,10 @@ public class WorldManagerTest {
     Welcome welcome = worldManager.login(session);
     List<VRObject> newObjects = new ArrayList<VRObject>();
     // add temporary object:
-    VRObject temp = new VRObject(1L);
+    VRObject temp = new VRObject();
     temp.setTemporary(true);
     newObjects.add(temp);
-    VRObject notTemp = new VRObject(2L);
+    VRObject notTemp = new VRObject();
     // add persistent object:
     notTemp.setTemporary(false);
     newObjects.add(notTemp);

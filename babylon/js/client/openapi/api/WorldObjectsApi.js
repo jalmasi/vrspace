@@ -83,18 +83,60 @@ export class WorldObjectsApi {
 
 
     /**
-     * Remove a shared object.
-     * Remove a shared object.
-     * @param {String} className class of the object, e.g. VRObject
+     * Change position, rotation and/or scale of an object.
+     * Change position, rotation and/or scale of an object. The object must be in  the scene. All other object properties are ignored.
+     * @param {VRObject} vRObject 
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     */
+    objectCoordinatesWithHttpInfo(vRObject) {
+      let postBody = vRObject;
+      // verify the required parameter 'vRObject' is set
+      if (vRObject === undefined || vRObject === null) {
+        throw new Error("Missing the required parameter 'vRObject' when calling objectCoordinates");
+      }
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = ['application/json'];
+      let accepts = [];
+      let returnType = null;
+      return this.apiClient.callApi(
+        '/vrspace/api/world/coordinates', 'PATCH',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Change position, rotation and/or scale of an object.
+     * Change position, rotation and/or scale of an object. The object must be in  the scene. All other object properties are ignored.
+     * @param {VRObject} vRObject 
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
+     */
+    objectCoordinates(vRObject) {
+      return this.objectCoordinatesWithHttpInfo(vRObject)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * Remove a shared VRObject.
+     * Remove a shared VRObject.
      * @param {Number} id object id
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
-    removeObjectWithHttpInfo(className, id) {
+    removeObjectWithHttpInfo(id) {
       let postBody = null;
-      // verify the required parameter 'className' is set
-      if (className === undefined || className === null) {
-        throw new Error("Missing the required parameter 'className' when calling removeObject");
-      }
       // verify the required parameter 'id' is set
       if (id === undefined || id === null) {
         throw new Error("Missing the required parameter 'id' when calling removeObject");
@@ -103,7 +145,6 @@ export class WorldObjectsApi {
       let pathParams = {
       };
       let queryParams = {
-        'className': className,
         'id': id
       };
       let headerParams = {
@@ -123,14 +164,13 @@ export class WorldObjectsApi {
     }
 
     /**
-     * Remove a shared object.
-     * Remove a shared object.
-     * @param {String} className class of the object, e.g. VRObject
+     * Remove a shared VRObject.
+     * Remove a shared VRObject.
      * @param {Number} id object id
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
-    removeObject(className, id) {
-      return this.removeObjectWithHttpInfo(className, id)
+    removeObject(id) {
+      return this.removeObjectWithHttpInfo(id)
         .then(function(response_and_data) {
           return response_and_data.data;
         });

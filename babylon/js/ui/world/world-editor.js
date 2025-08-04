@@ -256,7 +256,8 @@ export class WorldEditor extends WorldListener {
         setTimeout(() => {
           var scale = 1 / this.worldManager.bBoxMax(rootMesh);
           //var scale = 1/this.worldManager.bBoxMax(this.worldManager.getRootNode(vrObject));
-          this.worldManager.VRSPACE.sendEvent(vrObject, { scale: { x: scale, y: scale, z: scale } });
+          //this.worldManager.VRSPACE.sendEvent(vrObject, { scale: { x: scale, y: scale, z: scale } });
+          VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: vrObject.id, scale: { x: scale, y: scale, z: scale }}).catch(err=>console.error(err));
         }, 100);
       } else {
         this.takeObject(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
@@ -280,14 +281,16 @@ export class WorldEditor extends WorldListener {
     this.gizmo = new BABYLON.BoundingBoxGizmo();
     this.gizmo.attachedMesh = obj;
     this.gizmo.onScaleBoxDragEndObservable.add(() => {
-      this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: obj.scaling.x, y: obj.scaling.y, z: obj.scaling.z } });
+      //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: obj.scaling.x, y: obj.scaling.y, z: obj.scaling.z } });
+      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, scale: { x: obj.scaling.x, y: obj.scaling.y, z: obj.scaling.z }}).catch(err=>console.error(err));
     });
     this.gizmo.onRotationSphereDragEndObservable.add(() => {
       if (obj.rotationQuaternion) {
         obj.rotation = obj.rotationQuaternion.toEulerAngles();
         obj.rotationQuaternion = null;
       }
-      this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } });
+      //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } });
+      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } }).catch(err=>console.error(err));
     });
   }
   clearGizmo() {
@@ -334,7 +337,8 @@ export class WorldEditor extends WorldListener {
           scale = Math.max(scale, obj.scaling.y * .2);
           scale = Math.min(scale, obj.scaling.y * 5);
           console.log("Scaling: " + obj.scaling.y + " to " + scale);
-          this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: scale, y: scale, z: scale } });
+          //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: scale, y: scale, z: scale } });
+          VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, scale: { x: scale, y: scale, z: scale }}).catch(err=>console.error(err));
         }
       }
     });
@@ -375,10 +379,12 @@ export class WorldEditor extends WorldListener {
           if (Math.abs(dxz) > Math.abs(dy * 3)) {
             // mostly horizontal movement, rotation only around y
             console.log("Y rotation")
-            this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: obj.rotation.x, y: result.y, z: obj.rotation.z } });
+            //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: obj.rotation.x, y: result.y, z: obj.rotation.z } });
+            VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: obj.rotation.x, y: result.y, z: obj.rotation.z } }).catch(err=>console.error(err));
           } else {
             // rotating around all axes
-            this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: result.x, y: result.y, z: result.z } });
+            //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: result.x, y: result.y, z: result.z } });
+            VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: result.x, y: result.y, z: result.z } }).catch(err=>console.error(err));
           }
         }
       }
@@ -401,7 +407,8 @@ export class WorldEditor extends WorldListener {
       newPos.y = obj.position.y + pickInfo.distance;
     }
     if (pickInfo.hit) {
-      this.worldManager.VRSPACE.sendEvent(obj.VRObject, { position: newPos });
+      //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { position: newPos });
+      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, position: newPos }).catch(err=>console.error(err));
       this.clearGizmo();
     }
   }
@@ -434,7 +441,8 @@ export class WorldEditor extends WorldListener {
    */
   upright(obj) {
     this.clearGizmo();
-    this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: 0, y: obj.rotation.y, z: 0 } });
+    //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: 0, y: obj.rotation.y, z: 0 } });
+    VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: 0, y: obj.rotation.y, z: 0 } }).catch(err=>console.error(err));
   }
 
   /**
@@ -456,8 +464,8 @@ export class WorldEditor extends WorldListener {
    */
   removeObject(obj) {
     //this.worldManager.VRSPACE.deleteSharedObject(obj.VRObject);
-    VRSpaceAPI.getInstance().endpoint.objects.removeObject(obj.VRObject.className, obj.VRObject.id).then(obj => {
-      console.log("Created new VRObject", obj);
+    VRSpaceAPI.getInstance().endpoint.objects.removeObject(obj.VRObject.id).then(() => {
+      console.log("Removed VRObject", obj);
     });
   }
 
@@ -626,8 +634,8 @@ export class WorldEditor extends WorldListener {
       // TODO this is not compatible with gizmo, calculate resulting rotation here
       pos = obj.target.absolutePosition;
       rot = obj.target.absoluteRotationQuaternion.toEulerAngles();
-      console.log("Sending "+pos.x+","+pos.y+","+pos.z);
     }
+    // one thing that should always go over the web socket
     this.worldManager.VRSPACE.sendEvent(obj, { position: { x: pos.x, y: pos.y, z: pos.z }, rotation: { x: rot.x, y: rot.y, z: rot.z } });
   }
 
@@ -886,9 +894,14 @@ export class WorldEditor extends WorldListener {
         let desiredQuat = curQuat.multiply(diffQuat);
         let rotation = desiredQuat.toEulerAngles();
         // send
+        /*
         this.worldManager.VRSPACE.sendEvent(this.carrying,
           { scale: { x: scale, y: scale, z: scale }, rotation: { x: rotation.x, y: rotation.y, z: rotation.z } }
         );
+        */
+        VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates(
+          { id: this.carrying.id, scale: { x: scale, y: scale, z: scale }, rotation: { x: rotation.x, y: rotation.y, z: rotation.z } }
+        ).catch(err=>console.error(err));
         // carried object tracks hud, we have to update holder object rotation or next event just rotates it back
         let parentQuat = VRSPACEUI.hud.camera.absoluteRotation;
         if (this.carrying.target && this.carrying.target.parent !== VRSPACEUI.hud.camera) {
