@@ -158,7 +158,7 @@ export class DefaultHud {
         this.hud.markActive(this.minimapButton, true);
       }
 
-      this.editButton = this.hud.addButton("World editor", this.contentBase + "/content/icons/world.png", () => this.editWorld(), false);
+      this.editButton = this.hud.addButton("World editor", this.contentBase + "/content/icons/world-edit.png", () => this.editWorld(), false);
       this.editButton.tooltipText = "Edit the world";
       if ( !this.isOnline() ) {
         this.hud.markDisabled(this.editButton, true);

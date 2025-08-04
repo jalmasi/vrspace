@@ -26,7 +26,7 @@ export class WorldEditorUI {
     VRSPACEUI.hud.showButtons(false, button);
     VRSPACEUI.hud.newRow();
     
-    this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world-edit.png", (b,i)=>this.editWorld(b,i), false);
+    this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world.png", (b,i)=>this.editWorld(b,i), false);
     this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i), false);
     this.skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i), false);
     if (!World.lastInstance.terrain || World.lastInstance.inAR) {
