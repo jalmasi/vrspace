@@ -229,8 +229,8 @@ export class ChatLog extends TextArea {
     this.autoHide = true;
     this.size = .3;
     this.baseAnchor = -.4;
-    this.verticalAnchor = -.1;
-    //this.baseAnchor = 0;
+    // safe in both portrait and lanscape orientation on mobile an pc, just above hud buttons:
+    this.verticalAnchor = 0.02;
     this.anchor = this.baseAnchor;
     this.leftSide();
     this.linkStack = new LinkStack(this.scene, this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
@@ -326,9 +326,9 @@ export class ChatLog extends TextArea {
    */
   handleResize() {
     let aspectRatio = this.scene.getEngine().getAspectRatio(this.scene.activeCamera);
-    // 0.67 -> anchor 0.1 (e.g. smartphone vertical)
+    // 0.65 -> anchor 0.1 (e.g. smartphone vertical)
     // 2 -> anchor 0.4 (pc, smartphone horizontal)
-    let diff = (aspectRatio-0.67)/1.33;
+    let diff = (aspectRatio-0.65)/1.35;
     //this.anchor = -this.baseAnchor * diff * Math.sign(this.anchor);
     this.anchor = this.baseAnchor * diff;
     //console.log("Aspect ratio: "+aspectRatio+" anchor "+Math.sign(this.anchor)+" "+this.anchor+" base "+this.baseAnchor+" diff "+diff);

@@ -188,3 +188,7 @@ footer .right-text-content ul li a {
   padding: 8px;
   margin-right: 5px;
 }
+
+button.babylonVRicon {
+  color: white;
+}
