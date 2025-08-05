@@ -1,6 +1,7 @@
 import { Avatar } from './avatar.js';
 import { CameraHelper } from '../core/camera-helper.js';
 import { MediaHelper } from '../core/media-helper.js';
+import { VRSPACEUI } from "../ui/vrspace-ui.js";
 
 /**
 A disc that shows video stream. Until streaming starts, altText is displayed on the cylinder.
@@ -177,7 +178,7 @@ export class VideoAvatar extends Avatar {
   
   /**
   Rescale own avatar and attach to current camera at given position
-  @param position default 50cm ahead, 15cm right, 15cm below.
+  @param position where to put the avatar, by default it goes to the top left corner
    */
   attachToCamera( position ) {
     if ( this.mesh ) {
@@ -186,7 +187,10 @@ export class VideoAvatar extends Avatar {
       if ( position ) {
         this.mesh.position = position;
       } else {
-        this.mesh.position = new BABYLON.Vector3( .15, -.15, .5 );
+        this.windowResized = () => this.moveToCorner();
+        window.addEventListener("resize", this.windowResized);    
+        this.moveToCorner();
+
         var scale = (this.radius/2)/20; // 5cm size
         this.mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
       }
@@ -196,9 +200,21 @@ export class VideoAvatar extends Avatar {
     }
   }
   
+  /**
+   * @private
+   */
+  moveToCorner() {
+    this.mesh.position = new BABYLON.Vector3(-VRSPACEUI.hud.scaling() * .2 * this.scene.getEngine().getAspectRatio(this.scene.activeCamera) + 0.05, - VRSPACEUI.hud.vertical(), 0.5);
+  }
+  
   /** Rescale own avatar and detach from camera */
   detachFromCamera() {
     if ( this.attached && this.mesh ) {
+      if ( this.windowResized ) {
+        window.removeEventListener("remove", this.windowResized);
+        delete this.windowResized;        
+      }
+      
       this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
       this.mesh.position = this.camera.position; // CHECKME: must be the same
       console.log("Mesh position: "+this.mesh.position);
