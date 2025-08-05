@@ -309,6 +309,8 @@ export class VRHelper {
       let triggerCallback = (state) => this.gamepadTrigger(state);
       if (connected) {
         this.createPointer();
+        // teleportation may be enabled with touch screen, so just in case 
+        this.disableMovement();
         GamepadHelper.instance.addTriggerListener(triggerCallback);
 
         this.teleportTarget = new BABYLON.TransformNode("Teleport-target", this.scene);
