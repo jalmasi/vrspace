@@ -181,7 +181,7 @@ export class VideoAvatar extends Avatar {
   @param position where to put the avatar, by default it goes to the top left corner
    */
   attachToCamera( position ) {
-    if ( this.mesh ) {
+    if (this.mesh && !this.attached) {
       this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_NONE;
       this.mesh.parent = this.camera;
       if ( position ) {

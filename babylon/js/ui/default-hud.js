@@ -444,17 +444,14 @@ export class DefaultHud {
         if (this.isOnline() && MediaStreams.instance) {
           if (!this.videoAvatar) {
             // user entered a space without selecting video avatar, create one
+            this.videoAvatar = WorldManager.instance.avatarLoader.avatarFactory(VRSPACE.me, true, true);
           }
-          this.videoAvatar = WorldManager.instance.avatarLoader.avatarFactory(VRSPACE.me, true, true);
           // handle 3rd person cases
           if (World.lastInstance.inThirdPerson()) {
             if (this.avatar && this.videoAvatar) {
               // switch from existing 3d avatar to video avatar
               this.avatar.hide();
               this.videoAvatar.show();
-            } else {
-              // video avatar only, just start video
-              this.videoAvatar.displayVideo();
             }
           } else {
             // in 1st person, show the avatar and attach to camera
@@ -462,6 +459,8 @@ export class DefaultHud {
             this.videoAvatar.attachToCamera();
           }
           World.lastInstance.setAvatar(this.videoAvatar);
+          // either way start the video
+          this.videoAvatar.displayVideo();
         } else if (this.videoAvatar && this.videoAvatar.isEnabled()) {
           // offline, just show the video
           this.videoAvatar.displayVideo();
