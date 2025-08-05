@@ -181,8 +181,8 @@ export class ConnectionManager {
     // CHECKME: should it be OpenVidu or general streaming service name?
     if (this.mediaStreams && user.tokens && user.tokens.OpenViduMain) {
       console.log("Subscribing as User " + user.id + " with token " + user.tokens.OpenViduMain);
-      // ask for webcam access permissions
-      if ( await MediaHelper.checkVideoPermissions() ) {
+      // ask for webcam access permissions, but NOT while in XR
+      if ( !this.worldManager.world.inXR() && await MediaHelper.checkVideoPermissions() ) {
         this.mediaStreams.videoSource = undefined;
         this.mediaStreams.startVideo = autoPublishVideo;
       }
