@@ -77,12 +77,14 @@ export class TerrainEditor {
     this.raiseButton.onPointerDownObservable.add( () => {
       this.direction = 1;
       VRSPACEUI.hud.showButtons(this.editing,this.raiseButton,this.raiseSlider);
+      this.world.enableFloorSelection(this.editing);
       this.editing = !this.editing;
       this.terrain.terrainMaterial.wireframe = this.editing;
     });
     this.digButton.onPointerDownObservable.add( () => {
       this.direction = -1;
       VRSPACEUI.hud.showButtons(this.editing,this.digButton,this.raiseSlider);
+      this.world.enableFloorSelection(this.editing);
       this.editing = !this.editing;
       this.terrain.terrainMaterial.wireframe = this.editing;
     });

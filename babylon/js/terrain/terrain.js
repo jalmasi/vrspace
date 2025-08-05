@@ -255,7 +255,7 @@ export class Terrain extends WorldListener {
    * @param {Object} e object containing changes to the VRObject 
    */
   terrainChanged(e) {
-    console.log("Terrain changed", e);
+    //console.log("Terrain changed", e);
     if ( e.change ) {
       this.update(e.change.index, e.change.point.x, e.change.point.y, e.change.point.z);
       this.refresh();

@@ -53,14 +53,6 @@ export class Aladinville extends World {
     return new Skybox(this.scene, this.assetPath("../../skybox/hw_sahara/sahara")).create();
   }
 
-  getFloorMeshes() {
-    return [this.ground];
-  }
-  
-  isSelectableMesh(mesh) {
-    return mesh.name == "ground" || super.isSelectableMesh(mesh);
-  }
-  
   setMeshCollisions( mesh, state ) {
     if ( collisionObjects.includes(mesh.id) ) {
       mesh.checkCollisions = state;

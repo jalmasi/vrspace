@@ -29,10 +29,6 @@ export class PersianCity extends World {
     return light1;
   }
 
-  getFloorMeshes() {
-    return [ this.ground ];
-  }
-
   setMeshCollisions( mesh, state ) {
     if ( mesh.material && ( mesh.material.id.startsWith("LoamWalls") || mesh.material.id.startsWith("Brick") )) {
       mesh.checkCollisions = state;
