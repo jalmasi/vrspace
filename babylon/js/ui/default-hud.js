@@ -436,6 +436,7 @@ export class DefaultHud {
       }
       if ( this.state.webcam == enable ) {
         // prevents reload of remote avatar instances 
+        this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         return;
       }
       if (enable) {
