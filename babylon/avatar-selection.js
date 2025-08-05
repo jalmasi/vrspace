@@ -33,7 +33,7 @@ export class AvatarSelection extends World {
     /** custom video avatar options, default null */
     this.customOptions = null;
     /** movement tracking/animation frames per second */
-    this.fps = 5;
+    this.fps = 25;
     /** Enable Oauth2 login */
     this.oauth2enabled = true;
     this.oauth2providerId = null;
