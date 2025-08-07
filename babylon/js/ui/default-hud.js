@@ -417,6 +417,13 @@ export class DefaultHud {
     }
   }
 
+  showWebcamButton(enabled) {
+    if ( enabled ) {
+      this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";      
+    } else {
+      this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";      
+    }
+  }
   async toggleWebcam(enable = !this.state.webcam, videoAvatar) {
     console.log("Webcam: " + enable);
     if (videoAvatar) {
@@ -434,13 +441,12 @@ export class DefaultHud {
         this.hud.markDisabled(this.webcamButton);
         return;
       }
+      this.showWebcamButton(enable);
       if ( this.state.webcam == enable ) {
         // prevents reload of remote avatar instances 
-        this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         return;
       }
       if (enable) {
-        this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
         // enabling video avatar online
         if (this.isOnline() && MediaStreams.instance) {
           if (!this.videoAvatar) {
@@ -467,7 +473,6 @@ export class DefaultHud {
           this.videoAvatar.displayVideo();
         }
       } else {
-        this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
         if (this.isOnline() && MediaStreams.instance) {
           if (this.avatar) {
             // switch from video avatar to existing 3d avatar

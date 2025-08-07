@@ -313,6 +313,7 @@ class AvatarMovement {
         this.world.camera3p.animations.splice(pos, 1);
       }
     }
+    this.movementTracker.dispose();
   }
 }
 
@@ -374,6 +375,9 @@ export class AvatarController {
     this.animation = new AvatarAnimation(avatar);
     
     // movement state variables and constants
+    if ( this.movement ) {
+      this.movement.dispose();
+    }
     this.movement = new AvatarMovement(this, avatar, this.animation);
     if (this.activeCamera && this.activeCamera == this.world.camera3p) {
       // ensure reset of registered movement handler, and avatar position

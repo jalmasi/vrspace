@@ -92,7 +92,7 @@ export class VideoAvatar extends Avatar {
     if ( this.cameraTracker ) {
       CameraHelper.getInstance(this.scene).removeCameraListener(this.cameraTracker);
     }
-
+    this.attached = false;
   }
   
   isEnabled() {
@@ -204,7 +204,9 @@ export class VideoAvatar extends Avatar {
    * @private
    */
   moveToCorner() {
-    this.mesh.position = new BABYLON.Vector3(-VRSPACEUI.hud.scaling() * .2 * this.scene.getEngine().getAspectRatio(this.scene.activeCamera) + 0.05, - VRSPACEUI.hud.vertical(), 0.5);
+    if ( this.mesh ) {
+      this.mesh.position = new BABYLON.Vector3(-VRSPACEUI.hud.scaling() * .2 * this.scene.getEngine().getAspectRatio(this.scene.activeCamera) + 0.05, - VRSPACEUI.hud.vertical(), 0.5);
+    }
   }
   
   /** Rescale own avatar and detach from camera */
