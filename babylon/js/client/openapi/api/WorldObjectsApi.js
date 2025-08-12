@@ -84,7 +84,7 @@ export class WorldObjectsApi {
 
     /**
      * Change position, rotation and/or scale of an object.
-     * Change position, rotation and/or scale of an object. The object must be in  the scene. All other object properties are ignored.
+     * Change position, rotation and/or scale of an object. All other object  properties are ignored.
      * @param {VRObject} vRObject 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -117,7 +117,7 @@ export class WorldObjectsApi {
 
     /**
      * Change position, rotation and/or scale of an object.
-     * Change position, rotation and/or scale of an object. The object must be in  the scene. All other object properties are ignored.
+     * Change position, rotation and/or scale of an object. All other object  properties are ignored.
      * @param {VRObject} vRObject 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
@@ -132,7 +132,7 @@ export class WorldObjectsApi {
     /**
      * Remove a shared VRObject.
      * Remove a shared VRObject.
-     * @param {Number} id object id
+     * @param {String} id object id
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     removeObjectWithHttpInfo(id) {
@@ -166,7 +166,7 @@ export class WorldObjectsApi {
     /**
      * Remove a shared VRObject.
      * Remove a shared VRObject.
-     * @param {Number} id object id
+     * @param {String} id object id
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     removeObject(id) {

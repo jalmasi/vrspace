@@ -30,7 +30,7 @@ export class GroupMember {
         
         
         /** id 
-         * @type {Number} 
+         * @type {String} 
          */
         this.id = undefined;
 
@@ -98,7 +98,7 @@ export class GroupMember {
             obj = obj || new GroupMember();
 
             if (data.hasOwnProperty('id')) {
-                obj['id'] = ApiClient.convertToType(data['id'], 'Number');
+                obj['id'] = ApiClient.convertToType(data['id'], 'String');
             }
             if (data.hasOwnProperty('group')) {
                 obj['group'] = UserGroup.constructFromObject(data['group']);
@@ -131,6 +131,10 @@ export class GroupMember {
      * @return {boolean} to indicate whether the JSON data is valid with respect to <code>GroupMember</code>.
      */
     static validateJSON(data) {
+        // ensure the json data is a string
+        if (data['id'] && !(typeof data['id'] === 'string' || data['id'] instanceof String)) {
+            throw new Error("Expected the field `id` to be a primitive type in the JSON string but got " + data['id']);
+        }
         // validate the optional field `group`
         if (data['group']) { // data not null
           UserGroup.validateJSON(data['group']);

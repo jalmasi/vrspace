@@ -31,7 +31,7 @@ export class VRObject {
         
         
         /** id 
-         * @type {Number} 
+         * @type {String} 
          */
         this.id = undefined;
 
@@ -117,7 +117,7 @@ export class VRObject {
             obj = obj || new VRObject();
 
             if (data.hasOwnProperty('id')) {
-                obj['id'] = ApiClient.convertToType(data['id'], 'Number');
+                obj['id'] = ApiClient.convertToType(data['id'], 'String');
             }
             if (data.hasOwnProperty('position')) {
                 obj['position'] = Point.constructFromObject(data['position']);
@@ -159,6 +159,10 @@ export class VRObject {
      * @return {boolean} to indicate whether the JSON data is valid with respect to <code>VRObject</code>.
      */
     static validateJSON(data) {
+        // ensure the json data is a string
+        if (data['id'] && !(typeof data['id'] === 'string' || data['id'] instanceof String)) {
+            throw new Error("Expected the field `id` to be a primitive type in the JSON string but got " + data['id']);
+        }
         // validate the optional field `position`
         if (data['position']) { // data not null
           Point.validateJSON(data['position']);

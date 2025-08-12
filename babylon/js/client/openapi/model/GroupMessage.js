@@ -29,7 +29,7 @@ export class GroupMessage {
         
         
         /** id 
-         * @type {Number} 
+         * @type {String} 
          */
         this.id = undefined;
 
@@ -57,7 +57,7 @@ export class GroupMessage {
 
         /** worldId 
          * World ID, used only for world invitations/shares
-         * @type {Number} 
+         * @type {String} 
          */
         this.worldId = undefined;
 
@@ -98,7 +98,7 @@ export class GroupMessage {
             obj = obj || new GroupMessage();
 
             if (data.hasOwnProperty('id')) {
-                obj['id'] = ApiClient.convertToType(data['id'], 'Number');
+                obj['id'] = ApiClient.convertToType(data['id'], 'String');
             }
             if (data.hasOwnProperty('from')) {
                 obj['from'] = Client.constructFromObject(data['from']);
@@ -113,7 +113,7 @@ export class GroupMessage {
                 obj['link'] = ApiClient.convertToType(data['link'], 'String');
             }
             if (data.hasOwnProperty('worldId')) {
-                obj['worldId'] = ApiClient.convertToType(data['worldId'], 'Number');
+                obj['worldId'] = ApiClient.convertToType(data['worldId'], 'String');
             }
             if (data.hasOwnProperty('timestamp')) {
                 obj['timestamp'] = ApiClient.convertToType(data['timestamp'], 'Date');
@@ -131,6 +131,10 @@ export class GroupMessage {
      * @return {boolean} to indicate whether the JSON data is valid with respect to <code>GroupMessage</code>.
      */
     static validateJSON(data) {
+        // ensure the json data is a string
+        if (data['id'] && !(typeof data['id'] === 'string' || data['id'] instanceof String)) {
+            throw new Error("Expected the field `id` to be a primitive type in the JSON string but got " + data['id']);
+        }
         // validate the optional field `from`
         if (data['from']) { // data not null
           Client.validateJSON(data['from']);
@@ -146,6 +150,10 @@ export class GroupMessage {
         // ensure the json data is a string
         if (data['link'] && !(typeof data['link'] === 'string' || data['link'] instanceof String)) {
             throw new Error("Expected the field `link` to be a primitive type in the JSON string but got " + data['link']);
+        }
+        // ensure the json data is a string
+        if (data['worldId'] && !(typeof data['worldId'] === 'string' || data['worldId'] instanceof String)) {
+            throw new Error("Expected the field `worldId` to be a primitive type in the JSON string but got " + data['worldId']);
         }
 
         return true;

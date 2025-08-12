@@ -1,5 +1,5 @@
 /**
-Object ID, consisting of class name and number.
+Object ID, consisting of class name and UUID.
  */
 export class ID {
   constructor(className,id) {
@@ -7,8 +7,8 @@ export class ID {
      * @type {string}
      */
     this.className = className;
-    /** Identifier (number) 
-     * @type {number}
+    /** Identifier (UUID) 
+     * @type {string}
      */
     this.id = id;
   }
@@ -94,7 +94,7 @@ export class VRObject extends ID {
   constructor() {
     super();
     /** Id, equal on server and all instances
-     * @type {number} 
+     * @type {string} 
      */
     this.id = null;
     /** Position, Point  
@@ -994,7 +994,7 @@ export class VRSpace {
    */
   sendMy(field,value) {
     if ( this.me != null) {
-      this.send('{"object":{"'+this.me.className+'":'+this.me.id+'},"changes":{'+this.stringifyPair(field,value)+'}}');
+      this.send('{"object":{"'+this.me.className+'":"'+this.me.id+'"},"changes":{'+this.stringifyPair(field,value)+'}}');
     } else {
       this.log("No my ID yet, ignored user event "+field+"="+value);
     }
@@ -1095,7 +1095,7 @@ export class VRSpace {
       return;
     }
     var index = 0;
-    var msg = '{"object":{"'+obj.className+'":'+obj.id+'},"changes":{';
+    var msg = '{"object":{"'+obj.className+'":"'+obj.id+'"},"changes":{';
     changes.forEach((change) => {
       msg += this.stringifyPair(change.field,change.value);
       index++;
@@ -1117,7 +1117,7 @@ export class VRSpace {
       return;
     }
     var index = 0;
-    var msg = '{"object":{"'+obj.className+'":'+obj.id+'},"changes":{';
+    var msg = '{"object":{"'+obj.className+'":"'+obj.id+'"},"changes":{';
     for ( var change in changes ){
       msg += this.stringifyPair(change,changes[change]);
       index++;

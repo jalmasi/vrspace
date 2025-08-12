@@ -33,7 +33,7 @@ export class Client {
         
         
         /** id 
-         * @type {Number} 
+         * @type {String} 
          */
         this.id = undefined;
 
@@ -103,17 +103,17 @@ export class Client {
          */
         this.sceneProperties = undefined;
 
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} 
-         */
-        this.tokens = undefined;
-
         /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
          * @type {Number} 
          */
         this.userHeight = undefined;
+
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
+         */
+        this.tokens = undefined;
 
         /** properties 
          * Custom transient object properties
@@ -153,7 +153,7 @@ export class Client {
             obj = obj || new Client();
 
             if (data.hasOwnProperty('id')) {
-                obj['id'] = ApiClient.convertToType(data['id'], 'Number');
+                obj['id'] = ApiClient.convertToType(data['id'], 'String');
             }
             if (data.hasOwnProperty('children')) {
                 obj['children'] = ApiClient.convertToType(data['children'], [VRObject]);
@@ -191,11 +191,11 @@ export class Client {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
+            }
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
@@ -213,6 +213,10 @@ export class Client {
      * @return {boolean} to indicate whether the JSON data is valid with respect to <code>Client</code>.
      */
     static validateJSON(data) {
+        // ensure the json data is a string
+        if (data['id'] && !(typeof data['id'] === 'string' || data['id'] instanceof String)) {
+            throw new Error("Expected the field `id` to be a primitive type in the JSON string but got " + data['id']);
+        }
         if (data['children']) { // data not null
             // ensure the json data is an array
             if (!Array.isArray(data['children'])) {
