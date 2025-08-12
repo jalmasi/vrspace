@@ -136,7 +136,8 @@
     <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>neo4j</artifactId>
-      <version>4.4.34</version>
+      <version>5.26.10</version>
+      <!-- CHECKME Neo4j logging
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -155,8 +156,16 @@
           <artifactId>junit-vintage-engine</artifactId>
         </exclusion>
       </exclusions>
+      -->
     </dependency>
-
+    
+    <!-- webpush dependency -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+      <version>1.81</version>
+    </dependency>
+    
     <!-- audio/video streaming -->
     <dependency>
       <groupId>io.openvidu</groupId>

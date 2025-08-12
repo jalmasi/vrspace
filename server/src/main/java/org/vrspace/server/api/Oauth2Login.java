@@ -5,7 +5,7 @@ import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.shiro.codec.Hex;
+import org.apache.shiro.lang.codec.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ResolvableType;

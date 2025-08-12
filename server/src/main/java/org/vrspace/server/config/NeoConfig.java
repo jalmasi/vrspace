@@ -6,7 +6,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 
-import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.configuration.connectors.BoltConnector;
 import org.neo4j.configuration.connectors.HttpConnector;
 import org.neo4j.configuration.helpers.SocketAddress;
@@ -93,21 +92,25 @@ public class NeoConfig {
       }
     }
     log.info("Starting database on " + neoUri);
-    managementService = new DatabaseManagementServiceBuilder(dbDir).setConfig(GraphDatabaseSettings.allow_upgrade, true)
+    managementService = new DatabaseManagementServiceBuilder(dbDir)
+        // unavailable with neo4j 5:
+        // .setConfig(GraphDatabaseSettings.allow_upgrade,true)
         .setConfig(BoltConnector.enabled, neoUri.startsWith("bolt:"))
         .setConfig(BoltConnector.listen_address, new SocketAddress("localhost", port))
         .setConfig(HttpConnector.enabled, neoUri.startsWith("http:")).build();
     graphDb = managementService.database("neo4j");
 
     // and now indexes
-    graphDb.executeTransactionally("CREATE CONSTRAINT worldName IF NOT EXISTS ON (w:World) ASSERT w.name IS UNIQUE");
-    graphDb.executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS ON (c:Client) ASSERT c.name IS UNIQUE");
+    graphDb.executeTransactionally("CREATE CONSTRAINT worldName IF NOT EXISTS FOR (w:World) REQUIRE w.name IS UNIQUE");
+    graphDb
+        .executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS FOR (c:Client) REQUIRE c.name IS UNIQUE");
     graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.worldId)");
     graphDb.executeTransactionally("CREATE INDEX pointCoord IF NOT EXISTS FOR (p:Point) ON (p.x, p.y, p.z)");
-    // only single property uniqueness constraints are supported
-    // "CREATE CONSTRAINT ownership IF NOT EXISTS on (o:Ownership) ASSERT
-    // (o.owner,o.owned) IS UNIQUE");
-    graphDb.executeTransactionally("CREATE INDEX ownership IF NOT EXISTS FOR (o:Ownership) ON (o.owner,o.owned)");
+    // only single property uniqueness constraints are supported with neo4j 4
+    graphDb.executeTransactionally(
+        "CREATE CONSTRAINT ownership IF NOT EXISTS FOR (o:Ownership) REQUIRE (o.owner,o.owned) IS UNIQUE");
+    // graphDb.executeTransactionally("CREATE INDEX ownership IF NOT EXISTS FOR
+    // (o:Ownership) ON (o.owner,o.owned)");
     graphDb.executeTransactionally(
         "CREATE INDEX messageTimestamp IF NOT EXISTS FOR (gm:GroupMessage) ON (gm.userGroup,gm.timestamp)");
   }
