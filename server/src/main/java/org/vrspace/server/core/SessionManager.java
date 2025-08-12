@@ -221,7 +221,7 @@ public class SessionManager extends TextWebSocketHandler implements Runnable, Ht
   @Override
   public void sessionDestroyed(HttpSessionEvent se) {
     String sessionId = se.getSession().getId();
-    Long clientId = (Long) se.getSession().getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
+    String clientId = (String) se.getSession().getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
     log.info("Session destroyed: " + sessionId + " client " + clientId);
     if (clientId != null) {
       Client client = clients.get(clientId);
