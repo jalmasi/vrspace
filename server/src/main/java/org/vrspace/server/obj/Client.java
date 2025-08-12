@@ -119,7 +119,7 @@ public class Client extends VRObject {
   // used in tests
   public Client(Long id) {
     this();
-    this.setId(id);
+    this.setId(id.toString());
   }
 
   // used in tests

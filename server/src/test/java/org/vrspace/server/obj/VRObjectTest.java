@@ -12,12 +12,12 @@ public class VRObjectTest {
   // up really easy
   @Test
   public void testEquals() {
-    VRObject o1 = new VRObject(1L);
-    VRObject o2 = new VRObject(1L);
-    VRObject o3 = new VRObject(3L);
-    VRObject t1 = new VRObject(101L, o1);
-    VRObject t2 = new VRObject(101L, o2);
-    VRObject t3 = new VRObject(103L, o1);
+    VRObject o1 = new VRObject("1");
+    VRObject o2 = new VRObject("1");
+    VRObject o3 = new VRObject("3");
+    VRObject t1 = new VRObject("101", o1);
+    VRObject t2 = new VRObject("101", o2);
+    VRObject t3 = new VRObject("103", o1);
 
     assertEquals(o1, o2);
     assertEquals(o2, o1);
@@ -41,6 +41,6 @@ public class VRObjectTest {
 
   @Test
   public void testChildren() throws Exception {
-    assertThrows(IllegalArgumentException.class, () -> new VRObject(1L, new VRObject(1L)));
+    assertThrows(IllegalArgumentException.class, () -> new VRObject("1", new VRObject("1")));
   }
 }

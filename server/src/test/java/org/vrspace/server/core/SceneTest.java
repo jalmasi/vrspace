@@ -50,11 +50,11 @@ public class SceneTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    transforms.add(new VRObject(1L, 0, 0, 0, new VRObject(11L).active()).active());
-    transforms.add(new VRObject(2L, 1, 0, 0).passive());
+    transforms.add(new VRObject("1", 0, 0, 0, new VRObject("11").active()).active());
+    transforms.add(new VRObject("2", 1, 0, 0).passive());
 
-    permanents.add(new VRObject(101L, new VRObject(12L)));
-    permanents.add(new VRObject(202L));
+    permanents.add(new VRObject("101", new VRObject("12")));
+    permanents.add(new VRObject("202"));
 
     Point pos = new Point();
     lenient().when(client.getSceneProperties()).thenReturn(sceneProperties);
@@ -84,13 +84,13 @@ public class SceneTest {
     assertEquals(2, add.getObjects().size());
 
     VRObject t = add.getObjects().get(0);
-    assertEquals(Long.valueOf(1), t.getId());
+    assertEquals("1", t.getId());
 
     assertNotNull(t.getChildren());
     assertEquals(1, t.getChildren().size());
-    assertEquals(Long.valueOf(11), t.getChildren().get(0).getId());
+    assertEquals("11", t.getChildren().get(0).getId());
 
-    assertEquals(Long.valueOf(2), add.getObjects().get(1).getId());
+    assertEquals("2", add.getObjects().get(1).getId());
 
     // verify that client is event listener on parent and child
     assertNotNull(t.getListeners());
@@ -127,16 +127,16 @@ public class SceneTest {
     assertNotNull(remove.getObjects());
     assertEquals(2, remove.getObjects().size());
 
-    Iterator<Map<String, Long>> it = remove.getObjects().iterator();
+    Iterator<Map<String, String>> it = remove.getObjects().iterator();
     ID first = new ID(it.next());
 
     // verify order of elements (transform comes last)
     assertEquals("VRObject", first.getClassName());
-    assertEquals(Long.valueOf(11), first.getId());
+    assertEquals("11", first.getId());
 
     ID last = new ID(it.next());
     assertEquals("VRObject", last.getClassName());
-    assertEquals(Long.valueOf(1), last.getId());
+    assertEquals("1", last.getId());
 
     // verify that client is NOT event listener on transform and child
     assertNotNull(t.getListeners());
@@ -192,9 +192,9 @@ public class SceneTest {
     Scene scene = new Scene(world, client);
     scene.update();
     VRObject closest = scene.getClosest(0, 0, 0);
-    assertEquals(Long.valueOf(1), closest.getId());
+    assertEquals("1", closest.getId());
     closest = scene.getClosest(2, 0, 0);
-    assertEquals(Long.valueOf(2), closest.getId());
+    assertEquals("2", closest.getId());
     assertNotNull(closest.getPosition());
   }
 
@@ -220,26 +220,26 @@ public class SceneTest {
     assertEquals(2, scene.size());
     assertEquals(2, scene.permanents.size());
 
-    VRObject permanent = new VRObject(10L);
+    VRObject permanent = new VRObject("10");
     permanent.setPermanent(true);
     scene.offer(permanent);
     assertEquals(2, scene.size());
     assertEquals(3, scene.permanents.size());
 
     // object without position
-    VRObject noPos = new VRObject(11L);
+    VRObject noPos = new VRObject("11");
     scene.offer(noPos);
     assertEquals(3, scene.size());
 
     // object with position in range
-    VRObject withPos = new VRObject(12L);
+    VRObject withPos = new VRObject("12");
     withPos.setPosition(
         new Point(sceneProperties.getRange() - .1, sceneProperties.getRange() - .1, sceneProperties.getRange() - .1));
     scene.offer(withPos);
     assertEquals(4, scene.size());
 
     // object with position out of range
-    VRObject outOfRange = new VRObject(13L);
+    VRObject outOfRange = new VRObject("13");
     outOfRange.setPosition(
         new Point(sceneProperties.getRange() + .1, sceneProperties.getRange() + .1, sceneProperties.getRange() + .1));
     scene.offer(outOfRange);
@@ -254,18 +254,18 @@ public class SceneTest {
     assertEquals(2, scene.size());
     assertEquals(2, scene.permanents.size());
 
-    VRObject permanent = new VRObject(10L);
+    VRObject permanent = new VRObject("10");
     permanent.setPermanent(true);
     // object without position
-    VRObject noPos = new VRObject(11L);
+    VRObject noPos = new VRObject("11");
 
     // object with position in range
-    VRObject withPos = new VRObject(12L);
+    VRObject withPos = new VRObject("12");
     withPos.setPosition(
         new Point(sceneProperties.getRange() - .1, sceneProperties.getRange() - .1, sceneProperties.getRange() - .1));
 
     // object with position out of range
-    VRObject outOfRange = new VRObject(13L);
+    VRObject outOfRange = new VRObject("13");
     outOfRange.setPosition(
         new Point(sceneProperties.getRange() + .1, sceneProperties.getRange() + .1, sceneProperties.getRange() + .1));
 
@@ -294,14 +294,14 @@ public class SceneTest {
     c2.getScene().offer(client);
     assertEquals(3, c2.getScene().size());
 
-    VRObject newOne = new VRObject(123L);
+    VRObject newOne = new VRObject("123");
     scene.publish(newOne);
     // and newly published object is in both scenes
     assertEquals(4, scene.size());
     assertEquals(4, c2.getScene().size());
 
     // the same with collection
-    VRObject anotherNew = new VRObject(1234L);
+    VRObject anotherNew = new VRObject("1234");
     scene.publishAll(List.of(anotherNew));
     assertEquals(5, scene.size());
     assertEquals(5, c2.getScene().size());

@@ -75,7 +75,7 @@ public class GroupManager {
 
   @Transactional
   public UserGroup createGroup(Client client, UserGroup group) {
-    if (groupRepo.findGroup(client.getId(), group.getName()).isPresent()) {
+    if (groupRepo.findGroupByName(client.getId(), group.getName()).isPresent()) {
       throw new IllegalArgumentException("Client already belongs to group " + group.getName());
     }
     group = db.save(group);
@@ -114,7 +114,7 @@ public class GroupManager {
   }
 
   @Transactional
-  public void invite(UserGroup group, Long memberId, Client owner) {
+  public void invite(UserGroup group, String memberId, Client owner) {
     invite(group, getClient(memberId), owner);
   }
 
@@ -201,7 +201,7 @@ public class GroupManager {
   }
 
   @Transactional
-  public void allow(UserGroup group, Long memberId, Client owner) {
+  public void allow(UserGroup group, String memberId, Client owner) {
     allow(group, getClient(memberId), owner);
   }
 
@@ -277,7 +277,7 @@ public class GroupManager {
   }
 
   @Transactional
-  public void kick(UserGroup group, long memberId, Client owner) {
+  public void kick(UserGroup group, String memberId, Client owner) {
     Optional<GroupMember> member = groupRepo.findGroupMember(group.getId(), memberId);
     if (member.isEmpty()) {
       throw new IllegalArgumentException("Group does not contain client: " + memberId);
@@ -398,8 +398,8 @@ public class GroupManager {
   }
 
   @Transactional
-  public UserGroup getGroup(Client client, String name) {
-    Optional<UserGroup> group = groupRepo.findGroup(client.getId(), name);
+  public UserGroup getGroupByName(Client client, String name) {
+    Optional<UserGroup> group = groupRepo.findGroupByName(client.getId(), name);
     if (group.isEmpty()) {
       throw new NotFoundException("Non-existing group: " + name + " clientId:" + client.getId());
     }
@@ -407,8 +407,8 @@ public class GroupManager {
   }
 
   @Transactional
-  public UserGroup getGroup(Client client, long groupId) {
-    Optional<UserGroup> group = groupRepo.findGroup(client.getId(), groupId);
+  public UserGroup getGroupById(Client client, String groupId) {
+    Optional<UserGroup> group = groupRepo.findGroupById(client.getId(), groupId);
     if (group.isEmpty()) {
       throw new NotFoundException("Non-existing group: " + groupId + " clientId:" + client.getId());
     }
@@ -416,7 +416,7 @@ public class GroupManager {
   }
 
   @Transactional
-  public UserGroup getGroup(long groupId) {
+  public UserGroup getGroup(String groupId) {
     UserGroup group = db.get(UserGroup.class, groupId);
     if (group == null) {
       throw new NotFoundException("Non-existing group: " + groupId);
@@ -454,7 +454,7 @@ public class GroupManager {
     return db.getOwners(group.getId()).stream().map(ownership -> ownership.getOwner()).toList();
   }
 
-  private Client getClient(long clientId) {
+  private Client getClient(String clientId) {
     Client client = db.getClient(clientId);
     if (client == null) {
       throw new NotFoundException("Non-existing client: " + clientId);

@@ -46,7 +46,7 @@ public class VRObject extends Entity {
 
   /* World this object is in, only id is persisted */
   @JsonIgnore
-  private Long worldId;
+  private String worldId;
   @Transient
   @Setter(AccessLevel.NONE)
   @JsonIgnore
@@ -128,12 +128,12 @@ public class VRObject extends Entity {
     setWorldId(world.getId());
   }
 
-  public VRObject(Long id, VRObject... vrObjects) {
+  public VRObject(String id, VRObject... vrObjects) {
     super(id);
     addChildren(vrObjects);
   }
 
-  public VRObject(Long id, double x, double y, double z, VRObject... vrObjects) {
+  public VRObject(String id, double x, double y, double z, VRObject... vrObjects) {
     this(id, vrObjects);
     this.position = new Point(x, y, z);
   }

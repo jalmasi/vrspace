@@ -22,7 +22,7 @@ public class WriteBackTest {
     assertEquals(0, writeBack.writeRequests());
     assertEquals(0, writeBack.writes());
 
-    VRObject o = new VRObject(1L);
+    VRObject o = new VRObject("1");
     writeBack.write(o);
 
     // first write always flushes
@@ -75,7 +75,7 @@ public class WriteBackTest {
 
     writeBack.setActive(false);
 
-    VRObject o = new VRObject(1L);
+    VRObject o = new VRObject("1");
     writeBack.write(o);
     // write does nothing
     assertEquals(0, writeBack.writeRequests());
@@ -95,7 +95,7 @@ public class WriteBackTest {
     long delay = 100L;
     writeBack.setDelay(delay);
 
-    VRObject o = new VRObject(1L);
+    VRObject o = new VRObject("1");
     writeBack.write(o);
 
     // first write always flushes

@@ -33,7 +33,7 @@ public class UserData extends Entity {
   private String value;
 
   @JsonIgnore
-  public Long getId() {
+  public String getId() {
     return super.getId();
   }
 

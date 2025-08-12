@@ -51,7 +51,7 @@ public class SessionManager extends TextWebSocketHandler implements Runnable, Ht
   public static final int PING_PERIOD = 10000;
 
   private ConcurrentHashMap<String, Client> sessions = new ConcurrentHashMap<String, Client>();
-  private ConcurrentHashMap<Long, Client> clients = new ConcurrentHashMap<Long, Client>();
+  private ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<String, Client>();
   private ScheduledExecutorService pingScheduler = Executors.newSingleThreadScheduledExecutor();
   private volatile ScheduledFuture<?> pingFuture;
 
@@ -181,7 +181,7 @@ public class SessionManager extends TextWebSocketHandler implements Runnable, Ht
     }
   }
 
-  public Client getClient(Long id) {
+  public Client getClient(String id) {
     return clients.get(id);
   }
 

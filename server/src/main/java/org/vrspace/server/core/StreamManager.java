@@ -270,7 +270,7 @@ public class StreamManager {
 
   @Data
   public class SessionData {
-    private Long clientId;
+    private String clientId;
     private String name;
     private String type;
   }

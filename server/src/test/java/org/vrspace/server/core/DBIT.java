@@ -452,9 +452,9 @@ public class DBIT {
     c = repo.save(c);
     System.err.println(c);
 
-    Long pointId = c.getPosition().getId();
+    String pointId = c.getPosition().getId();
     // Long ownedId = c.getOwned().iterator().next().getId();
-    Long childId = c.getChildren().get(0).getId();
+    String childId = c.getChildren().get(0).getId();
 
     assertTrue(repo.findById(Point.class, pointId).isPresent());
     // assertTrue(repo.findById(VRObject.class, ownedId).isPresent());

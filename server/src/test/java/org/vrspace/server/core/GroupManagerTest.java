@@ -2,7 +2,7 @@ package org.vrspace.server.core;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -62,14 +62,14 @@ public class GroupManagerTest {
 
     Map<ID, Client> clientCache = Map.of(c1.getObjectId(), c1, c2.getObjectId(), c2);
     UserGroup g1 = new UserGroup();
-    g1.setId(10L);
+    g1.setId("10");
     List<Client> g1members = List.of(c1, c2, c3);
 
     when(groupRepo.listGroupClients(g1.getId())).thenReturn(g1members);
     when(worldManager.getCachedClient(any(Client.class)))
         .thenAnswer(invocation -> clientCache.get(((Client) invocation.getArguments()[0]).getObjectId()));
-    when(groupRepo.findGroupMember(eq(g1.getId()), anyLong())).thenReturn(Optional.of(new GroupMember()));
-    when(groupRepo.findGroupMember(eq(g1.getId()), eq(4L))).thenReturn(Optional.empty());
+    when(groupRepo.findGroupMember(eq(g1.getId()), anyString())).thenReturn(Optional.of(new GroupMember()));
+    when(groupRepo.findGroupMember(eq(g1.getId()), eq("4"))).thenReturn(Optional.empty());
 
     gm.write(c1, g1, "Hello world");
 

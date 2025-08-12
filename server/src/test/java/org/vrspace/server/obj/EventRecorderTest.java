@@ -61,7 +61,7 @@ public class EventRecorderTest {
 
   Set<VRObject> transforms = new HashSet<VRObject>();
   Set<VRObject> permanents = new HashSet<VRObject>();
-  VRObject active = new VRObject(1L, 0, 0, 0, new VRObject(11L).active()).active();
+  VRObject active = new VRObject("2", 0, 0, 0, new VRObject("11").active()).active();
   Client client = new Client();
 
   @BeforeEach
@@ -69,10 +69,10 @@ public class EventRecorderTest {
     when(playingSession.isOpen()).thenReturn(true);
 
     transforms.add(active);
-    transforms.add(new VRObject(2L, 1, 0, 0).passive());
+    transforms.add(new VRObject("2", 1, 0, 0).passive());
 
-    permanents.add(new VRObject(101L, new VRObject(12L)));
-    permanents.add(new VRObject(202L));
+    permanents.add(new VRObject("101", new VRObject("12")));
+    permanents.add(new VRObject("202"));
 
     when(worldManager.getRange(any(Client.class), any(Point.class), any(Point.class))).thenReturn(transforms);
     when(worldManager.getPermanents(any(Client.class))).thenReturn(permanents);

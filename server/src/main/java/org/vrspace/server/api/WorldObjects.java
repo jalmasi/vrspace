@@ -61,7 +61,7 @@ public class WorldObjects extends ClientControllerBase {
    * @param id object id
    */
   @DeleteMapping("/remove")
-  public void removeObject(HttpSession session, Long id) {
+  public void removeObject(HttpSession session, String id) {
     Client client = findClient(session, db);
     VRObject obj = client.getScene().get(new ID(CLASS, id));
     if (obj != null) {

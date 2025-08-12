@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public abstract class Embedded extends Entity {
   @JsonIgnore
-  public Long getId() {
+  public String getId() {
     return super.getId();
   }
 }

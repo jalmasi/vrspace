@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @Slf4j
 public class Game implements Command {
-  private Long id;
+  private String id;
   private String action = "join";
 
   @Override

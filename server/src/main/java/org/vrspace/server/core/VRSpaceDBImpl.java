@@ -15,7 +15,7 @@ public class VRSpaceDBImpl implements VRSpaceDB {
   Neo4jTemplate template;
 
   @Override
-  public <T extends Entity> T get(Class<T> cls, Long id) {
+  public <T extends Entity> T get(Class<T> cls, String id) {
     Optional<T> ret = findById(cls, id);
     if (ret.isPresent()) {
       return ret.get();
@@ -33,7 +33,7 @@ public class VRSpaceDBImpl implements VRSpaceDB {
   }
 
   @Override
-  public <T extends Entity> Optional<T> findById(Class<T> cls, Long id) {
+  public <T extends Entity> Optional<T> findById(Class<T> cls, String id) {
     return template.findById(id, cls);
   }
 
@@ -57,7 +57,7 @@ public class VRSpaceDBImpl implements VRSpaceDB {
   }
 
   @Override
-  public <T extends Entity> void deleteById(Class<T> cls, Long id) {
+  public <T extends Entity> void deleteById(Class<T> cls, String id) {
     template.deleteById(id, cls);
   }
 

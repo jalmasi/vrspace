@@ -39,7 +39,7 @@ public class GroupMessage extends Entity {
    */
   private String link;
   /** World ID, used only for world invitations/shares */
-  private Long worldId;
+  private String worldId;
   private Instant timestamp;
   /** Used along the link, true if the link points to a world on this server */
   private Boolean local;

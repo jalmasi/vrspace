@@ -35,7 +35,7 @@ public class PersistentEvent extends Entity {
   // so we store it converted to JSON string:
   private String payload;
   private List<VRObject> add;
-  private List<Map<String, Long>> remove;
+  private List<Map<String, String>> remove;
 
   public PersistentEvent() {
   }

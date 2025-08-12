@@ -100,7 +100,7 @@ public abstract class Bot extends User {
    * 
    * @param objects
    */
-  public void objectsRemoved(List<Map<String, Long>> objects) {
+  public void objectsRemoved(List<Map<String, String>> objects) {
     log.debug("Removed objects from the scene " + objects);
   }
 

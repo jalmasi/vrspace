@@ -32,22 +32,22 @@ import org.vrspace.server.obj.World;
 /**
  * https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#neo4j.repositories
  */
-public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpaceDB {
+public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRSpaceDB {
   static final Logger log = LoggerFactory.getLogger(VRObjectRepository.class);
 
   @Override
-  default Optional<Entity> findById(Long id) {
+  default Optional<Entity> findById(String id) {
     throw new UnsupportedOperationException("This doesn't work, use findById(Class<T> cls, Long id) instead");
   }
 
   @Override
-  default void deleteById(Long id) {
+  default void deleteById(String id) {
     throw new UnsupportedOperationException("This doesn't work, use deleteById(Class<T> cls, Long id) instead");
   }
 
   // this returns shallow object - does not retrieve members
   @Query("MATCH (o:VRObject{permanent:true}) WHERE o.worldId=$worldId RETURN o")
-  Set<VRObject> getPermanents(Long worldId);
+  Set<VRObject> getPermanents(String worldId);
 
   // default Set<VRObject> getPermanents(Long worldId) {
   // return _getPermanents(worldId).stream().map(o -> get(o.getClass(),
@@ -58,7 +58,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   // @Query("MATCH (o) WHERE ID(o) = $id RETURN *")
   // <T extends Entity> T get(Long id);
 
-  default Client getClient(Long id) {
+  default Client getClient(String id) {
     return get(Client.class, id);
   }
 
@@ -66,7 +66,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   // Client getClientByName(String name);
 
   @Query("MATCH (o:VRObject) WHERE o.worldId = $worldId RETURN o")
-  Set<VRObject> getAllInWorld(Long worldId);
+  Set<VRObject> getAllInWorld(String worldId);
 
   default void deleteWorld(World world) {
     Set<VRObject> objects = getAllInWorld(world.getId());
@@ -77,12 +77,12 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (o:World) WHERE o.name = $name RETURN o")
   World getWorldByName(String name);
 
-  default Set<VRObject> getRange(Long worldId, Point from, Point to) {
+  default Set<VRObject> getRange(String worldId, Point from, Point to) {
     return getRange(worldId, from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
   }
 
   @Query("MATCH (o:VRObject)-[r:HAS_POSITION]->(p:Point) WHERE o.worldId = $worldId AND p.x >= $x1 AND p.y >= $y1 AND p.z >= $z1 AND p.x <= $x2 AND p.y <= $y2 AND p.z <= $z2 RETURN o,r,p")
-  Set<VRObject> getRange(Long worldId, double x1, double y1, double z1, double x2, double y2, double z2);
+  Set<VRObject> getRange(String worldId, double x1, double y1, double z1, double x2, double y2, double z2);
 
   default Set<Point> getPoints(Point from, Point to) {
     return getPoints(from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
@@ -91,7 +91,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
   @Query("MATCH (p:Point) WHERE p.x >= $x1 AND p.y >= $y1 AND p.z >= $z1 AND p.x <= $x2 AND p.y <= $y2 AND p.z <= $z2 RETURN p")
   Set<Point> getPoints(double x1, double y1, double z1, double x2, double y2, double z2);
 
-  @Query("MATCH (o:Entity) WHERE ID(o) = $id RETURN o")
+  @Query("MATCH (o:Entity) WHERE o.id = $id RETURN o")
   <T extends Embedded> T getMember(Class<T> cls, Long id);
 
   default void delete(VRObject o) {
@@ -144,11 +144,11 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
 
   // CHECKME this actually counts Client rather than User instances
   @Query("MATCH (o:Client) WHERE o.worldId = $worldId RETURN count(*)")
-  int countUsers(long worldId);
+  int countUsers(String worldId);
 
   // CHECKME this actually counts Client rather than User instances
   @Query("MATCH (o:Client) WHERE o.worldId = $worldId AND o.active = $active RETURN count(*)")
-  int countUsers(long worldId, boolean active);
+  int countUsers(String worldId, boolean active);
 
   // queries like this just do not work
   // @Query("MATCH (o:Client)-[i:IN_WORLD]->(w:World) RETURN w.name AS name,
@@ -176,10 +176,10 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
    * @return list of all ownerships
    */
   @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
-      + " WHERE ID(c) = $clientId RETURN o,owns,c,owned,obj")
-  List<Ownership> getOwnedObjects(long clientId);
+      + " WHERE c.id = $clientId RETURN o,owns,c,owned,obj")
+  List<Ownership> getOwnedObjects(String clientId);
 
-  default List<Ownership> listOwnedObjects(long ownerId) {
+  default List<Ownership> listOwnedObjects(String ownerId) {
     List<Ownership> ret = new ArrayList<>();
     for (Ownership o : getOwnedObjects(ownerId)) {
       ret.add(get(Ownership.class, o.getId()));
@@ -194,10 +194,10 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
    * @return list of all owners
    */
   @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
-      + " WHERE ID(obj) = $objectId RETURN o,owns,c,owned,obj")
-  List<Ownership> getOwnersOf(long objectId);
+      + " WHERE obj.id = $objectId RETURN o,owns,c,owned,obj")
+  List<Ownership> getOwnersOf(String objectId);
 
-  default List<Ownership> getOwners(long objectId) {
+  default List<Ownership> getOwners(String objectId) {
     List<Ownership> ret = new ArrayList<>();
     for (Ownership o : getOwnersOf(objectId)) {
       ret.add(get(Ownership.class, o.getId()));
@@ -210,10 +210,10 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
    * position and other members are missing - use getOwnership instead
    */
   @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
-      + " WHERE ID(c) = $ownerId AND ID(obj) = $ownedId RETURN o,owns,c,owned,obj")
-  Optional<Ownership> findOwnership(long ownerId, long ownedId);
+      + " WHERE c.id = $ownerId AND obj.id = $ownedId RETURN o,owns,c,owned,obj")
+  Optional<Ownership> findOwnership(String ownerId, String ownedId);
 
-  default Ownership getOwnership(long ownerId, long ownedId) {
+  default Ownership getOwnership(String ownerId, String ownedId) {
     Optional<Ownership> optOwnership = findOwnership(ownerId, ownedId);
     if (optOwnership.isPresent()) {
       return get(Ownership.class, optOwnership.get().getId());
@@ -221,19 +221,19 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, Long>, VRSpa
     return null;
   }
 
-  @Query("MATCH (tp:TerrainPoint)-[r:IS_POINT_OF]->(t:Terrain) WHERE ID(t)=$terrainId RETURN tp")
-  Set<TerrainPoint> getTerrainPoints(Long terrainId);
+  @Query("MATCH (tp:TerrainPoint)-[r:IS_POINT_OF]->(t:Terrain) WHERE t.id=$terrainId RETURN tp")
+  Set<TerrainPoint> getTerrainPoints(String terrainId);
 
-  @Query("MATCH (tp:TerrainPoint)-[r:IS_POINT_OF]->(t:Terrain) WHERE ID(t)=$terrainId and tp.index=$index RETURN tp")
-  TerrainPoint getTerrainPoint(Long terrainId, Long index);
+  @Query("MATCH (tp:TerrainPoint)-[r:IS_POINT_OF]->(t:Terrain) WHERE t.id=$terrainId and tp.index=$index RETURN tp")
+  TerrainPoint getTerrainPoint(String terrainId, Long index);
 
-  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId RETURN ud, r, o")
-  List<UserData> listUserData(long objectId);
+  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE o.id=$objectId RETURN ud, r, o")
+  List<UserData> listUserData(String objectId);
 
-  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE ID(o)=$objectId AND ud.key=$key RETURN ud, r, o")
-  Optional<UserData> findUserData(long objectId, String key);
+  @Query("MATCH (ud:UserData)-[r:USER_DATA]->(o:VRObject) WHERE o.id=$objectId AND ud.key=$key RETURN ud, r, o")
+  Optional<UserData> findUserData(String objectId, String key);
 
-  @Query("MATCH (wps:WebPushSubscription)-[sc:SUBSCRIBED_CLIENT]->(c:Client) WHERE ID(c)=$clientId RETURN wps, sc, c")
-  List<WebPushSubscription> listSubscriptions(long clientId);
+  @Query("MATCH (wps:WebPushSubscription)-[sc:SUBSCRIBED_CLIENT]->(c:Client) WHERE c.id=$clientId RETURN wps, sc, c")
+  List<WebPushSubscription> listSubscriptions(String clientId);
 
 }

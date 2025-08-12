@@ -2,7 +2,7 @@ package org.vrspace.server.dto;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,7 +62,7 @@ public class CommandTest {
 
   @Test
   public void testAdd() throws Exception {
-    when(repo.save(any(VRObject.class))).thenReturn(new VRObject(1L));
+    when(repo.save(any(VRObject.class))).thenReturn(new VRObject("1"));
 
     Add add = new Add(new VRObject(1, 2, 3), new VRObject(3, 2, 1));
     ClientRequest request = new ClientRequest(client, add);
@@ -76,20 +76,20 @@ public class CommandTest {
 
   @Test
   public void testRemoveFail() throws Exception {
-    when(scene.get(any(ID.class))).thenReturn(new VRObject(1L));
-    when(repo.getOwnership(anyLong(), anyLong())).thenReturn(null);
-    Remove remove = new Remove(new VRObject(2L)).removeObject(new VRObject(1L));
+    when(scene.get(any(ID.class))).thenReturn(new VRObject("1"));
+    when(repo.getOwnership(anyString(), anyString())).thenReturn(null);
+    Remove remove = new Remove(new VRObject("2")).removeObject(new VRObject("1"));
     ClientRequest request = new ClientRequest(client, remove);
     assertThrows(SecurityException.class, () -> world.dispatch(request));
   }
 
   @Test
   public void testRemove() throws Exception {
-    VRObject obj = new VRObject(2L);
+    VRObject obj = new VRObject("2");
     when(scene.get(any(ID.class))).thenReturn(obj);
-    when(repo.getOwnership(anyLong(), anyLong())).thenReturn(new Ownership(client, obj));
+    when(repo.getOwnership(anyString(), anyString())).thenReturn(new Ownership(client, obj));
 
-    Remove remove = new Remove(new VRObject(2L)).removeObject(new VRObject(1L));
+    Remove remove = new Remove(new VRObject("2")).removeObject(new VRObject("1"));
     ClientRequest request = new ClientRequest(client, remove);
     world.dispatch(request);
 

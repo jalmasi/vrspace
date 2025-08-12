@@ -21,19 +21,19 @@ public class ID {
   @NonNull
   private String className;
   @NonNull
-  private Long id;
+  private String id;
 
   public <T extends Entity> ID(T obj) {
     this.className = obj.getClass().getSimpleName();
     this.id = obj.getId();
   }
 
-  public <T extends Entity> ID(Class<T> cls, Long id) {
+  public <T extends Entity> ID(Class<T> cls, String id) {
     this.className = cls.getSimpleName();
     this.id = id;
   }
 
-  public ID(Map<String, Long> map) {
+  public ID(Map<String, String> map) {
     if (map.size() != 1) {
       throw new IllegalArgumentException(
           "Map has to contain only one element, containing class name (key) and id (value)");
@@ -44,8 +44,8 @@ public class ID {
     });
   }
 
-  public Map<String, Long> map() {
-    Map<String, Long> ret = new HashMap<String, Long>(1);
+  public Map<String, String> map() {
+    Map<String, String> ret = new HashMap<String, String>(1);
     ret.put(className, id);
     return ret;
   }

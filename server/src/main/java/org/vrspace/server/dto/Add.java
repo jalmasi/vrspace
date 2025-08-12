@@ -60,7 +60,7 @@ public class Add implements SceneChange {
   public ClientResponse execute(WorldManager world, Client client) {
     List<VRObject> added = world.add(client, objects);
     client.getScene().publishAll(added);
-    List<Map<String, Long>> ret = added.stream().map(o -> o.getObjectId().map()).collect(Collectors.toList());
+    List<Map<String, String>> ret = added.stream().map(o -> o.getObjectId().map()).collect(Collectors.toList());
     return new ClientResponse(ret);
   }
 }

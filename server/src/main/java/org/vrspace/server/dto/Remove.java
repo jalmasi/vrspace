@@ -34,16 +34,16 @@ import lombok.NoArgsConstructor;
 public class Remove implements SceneChange {
   /** List of objects identifiers (class name + id pairs) to remove */
   @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
-  private List<Map<String, Long>> objects = new ArrayList<Map<String, Long>>();
+  private List<Map<String, String>> objects = new ArrayList<Map<String, String>>();
 
   @JsonIgnore
-  private Iterator<Map<String, Long>> iterator;
+  private Iterator<Map<String, String>> iterator;
 
   public Remove(VRObject obj) {
     removeObject(obj);
   }
 
-  public Remove(String className, Long id) {
+  public Remove(String className, String id) {
     objects.add(new ID(className, id).map());
   }
 
@@ -53,7 +53,7 @@ public class Remove implements SceneChange {
     }
   }
 
-  public Remove(List<Map<String, Long>> objects) {
+  public Remove(List<Map<String, String>> objects) {
     this.objects = objects;
   }
 
@@ -62,7 +62,7 @@ public class Remove implements SceneChange {
     return this;
   }
 
-  public Remove remove(String className, Long id) {
+  public Remove remove(String className, String id) {
     objects.add(new ID(className, id).map());
     return this;
   }

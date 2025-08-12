@@ -51,7 +51,7 @@ public class DispatcherTest {
 
   @Test
   public void testMergeChanges() throws Exception {
-    VRObject t = new VRObject(1L);
+    VRObject t = new VRObject("1");
     t.setPosition(new Point(1, 0, 0));
     // t.setX(1);
     printJson(t);
@@ -73,7 +73,7 @@ public class DispatcherTest {
 
   @Test
   public void testPayload() throws Exception {
-    VRObject t = new VRObject(1L, 1, 2, 3);
+    VRObject t = new VRObject("1", 1, 2, 3);
     printJson(t);
     VREvent e = new VREvent(t, new Client());
     e.setPayload("{{}{\"position\":{\"x\":2,\"y\":1}}}");
@@ -186,7 +186,7 @@ public class DispatcherTest {
   public void testOwnedField() throws Exception {
     // dispatcher can't work with anonymous classes but will throw security
     // exception before deserialization attempt
-    VRObject obj = new VRObject(2L) {
+    VRObject obj = new VRObject("2") {
       @Owned
       private String something;
     };

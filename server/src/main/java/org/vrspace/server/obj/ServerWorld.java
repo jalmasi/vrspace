@@ -35,7 +35,7 @@ public class ServerWorld extends World {
   private String portalThumbnail;
   private String portalScript;
   @Transient
-  private transient ConcurrentHashMap<Long, RemoteServer> currentServers = new ConcurrentHashMap<>();
+  private transient ConcurrentHashMap<String, RemoteServer> currentServers = new ConcurrentHashMap<>();
   @Transient
   private AtomicInteger serverCount = new AtomicInteger();
   @Transient

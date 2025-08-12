@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -86,7 +86,7 @@ public class WorldManagerTest {
     client.setSession(s);
     client.setMapper(objectMapper);
     client.setPrivateMapper(privateMapper);
-    client.setId(id++);
+    client.setId(String.valueOf(id++));
     client.setGuest(true);
     Map<String, Object> attributes = new HashMap<>();
     attributes.put(ClientFactory.CLIENT_NAME_ATTRIBUTE, clientName);
@@ -119,15 +119,15 @@ public class WorldManagerTest {
     worldManager.privateJackson = privateMapper;
     worldManager.clientFactory = new DefaultClientFactory();
 
-    lenient().when(repo.getPermanents(any(Long.class))).thenReturn(new HashSet<VRObject>());
+    lenient().when(repo.getPermanents(any(String.class))).thenReturn(new HashSet<VRObject>());
 
     World world = new World("test");
-    world.setId(0L);
+    world.setId("0");
     lenient().when(repo.save(any(World.class))).thenAnswer(i -> i.getArguments()[0]);
     lenient().when(repo.save(any(VRObject.class))).then(i -> {
       VRObject o = i.getArgument(0, VRObject.class);
       if (o.getId() == null) {
-        o.setId(id++);
+        o.setId(String.valueOf(id++));
       }
       return o;
     });
@@ -135,7 +135,7 @@ public class WorldManagerTest {
       owned.add(i.getArgument(0, Ownership.class));
       return i.getArgument(0, Ownership.class);
     });
-    lenient().when(repo.listOwnedObjects(anyLong())).thenReturn(owned);
+    lenient().when(repo.listOwnedObjects(anyString())).thenReturn(owned);
     // doNothing().when(repo).delete(any(VRObject.class));
     lenient().when(session.isOpen()).thenReturn(true);
     lenient().when(anotherSession.isOpen()).thenReturn(true);
@@ -148,11 +148,11 @@ public class WorldManagerTest {
     // updateCache() coverage, order matters:
     lenient().when(repo.getWorldByName(ArgumentMatchers.anyString())).thenReturn(null);
     World existingWorld = new World("existing world");
-    existingWorld.setId(1234L);
+    existingWorld.setId("1234");
     lenient().when(repo.getWorldByName(ArgumentMatchers.eq("existing world"))).thenReturn(existingWorld);
-    lenient().when(repo.get(ArgumentMatchers.eq(World.class), ArgumentMatchers.eq(1234L))).thenReturn(existingWorld);
+    lenient().when(repo.get(ArgumentMatchers.eq(World.class), ArgumentMatchers.eq("1234"))).thenReturn(existingWorld);
 
-    lenient().when(repo.getOwnership(anyLong(), anyLong())).thenReturn(null);
+    lenient().when(repo.getOwnership(anyString(), anyString())).thenReturn(null);
 
     worldManager.init();
   }
@@ -182,7 +182,7 @@ public class WorldManagerTest {
     worldManager.sceneProperties = new SceneProperties();
     Welcome welcomeDefault = worldManager.login(session);
     World world = new World("one");
-    world.setId(1L);
+    world.setId("1");
     Welcome welcomeWorld = worldManager.enter(welcomeDefault.getClient(), world);
 
     assertNotNull(welcomeWorld);
@@ -199,7 +199,7 @@ public class WorldManagerTest {
     worldManager.sessionTracker.setMaxSessions(max);
     for (int i = 0; i < max; i++) {
       Welcome welcome = worldManager.login(session);
-      welcome.getClient().setId(Long.valueOf(i));
+      welcome.getClient().setId(String.valueOf(i));
       worldManager.startSession(welcome.getClient());
       clients.add(welcome.getClient());
     }
@@ -207,7 +207,7 @@ public class WorldManagerTest {
     // wait for 1 sec for session to start
     config.setSessionStartTimeout(1);
     Welcome welcome = worldManager.login(session);
-    welcome.getClient().setId(Long.valueOf(max));
+    welcome.getClient().setId(String.valueOf(Long.valueOf(max)));
     long time = System.currentTimeMillis();
     try {
       worldManager.startSession(welcome.getClient());
@@ -284,7 +284,7 @@ public class WorldManagerTest {
     Welcome welcomeDefault = worldManager.login(session);
 
     World world = new World("one");
-    world.setId(1L);
+    world.setId("1");
     world.setOwner(welcomeDefault.getClient());
     world.setTemporaryWorld(true);
 
@@ -306,7 +306,7 @@ public class WorldManagerTest {
     Client owner = welcomeOwner.getClient();
 
     World world = new World("one");
-    world.setId(1L);
+    world.setId("1");
     world.setOwner(owner);
     world.setPublicWorld(false);
 
@@ -375,7 +375,7 @@ public class WorldManagerTest {
     verify(worldManager.dispatcher, times(1)).dispatch(ownEvent);
 
     // client changes own property
-    VRObject obj = new VRObject(123L);
+    VRObject obj = new VRObject("123");
     VREvent objectEvent = new VREvent(obj, client);
     // client has no scene:
     assertThrows(UnsupportedOperationException.class, () -> worldManager.dispatch(objectEvent));

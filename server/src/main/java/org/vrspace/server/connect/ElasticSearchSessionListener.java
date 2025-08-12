@@ -94,7 +94,7 @@ public class ElasticSearchSessionListener implements SessionListener {
     entry.timestamp = LocalDateTime.now(ZoneId.of("UTC"));
     entry.duration = 0;
     Client client = new Client(1L);
-    VRObject object = new VRObject(1L);
+    VRObject object = new VRObject("1");
     entry.source = new ID(object);
     entry.client = new ID(client);
     entry.world = new World();

@@ -15,7 +15,7 @@ import org.vrspace.server.obj.Client;
 public class SessionTracker {
   private ServerConfig config;
 
-  private ArrayBlockingQueue<Long> activeSessions;
+  private ArrayBlockingQueue<String> activeSessions;
 
   public SessionTracker(ServerConfig config) {
     this.config = config;
@@ -28,7 +28,7 @@ public class SessionTracker {
     } else if (config.getMaxSessions() == 0) {
       activeSessions = new ArrayBlockingQueue<>(max);
     } else {
-      ArrayBlockingQueue<Long> q = new ArrayBlockingQueue<>(max);
+      ArrayBlockingQueue<String> q = new ArrayBlockingQueue<>(max);
       if (activeSessions != null) {
         activeSessions.drainTo(q);
       }

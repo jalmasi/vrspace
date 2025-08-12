@@ -35,7 +35,7 @@ public class VREvent {
   /**
    * ID (class name + id ) suitable for serialization.
    */
-  private Map<String, Long> object = new LinkedHashMap<String, Long>(1);
+  private Map<String, String> object = new LinkedHashMap<String, String>(1);
   /**
    * Changes to the object. Multiple changes to same property are going to be
    * 'collapsed', i.e. last value of a field overrides any previous values.
@@ -48,7 +48,7 @@ public class VREvent {
   @JsonIgnore
   private String className;
   @JsonIgnore
-  private Long id;
+  private String id;
   @JsonIgnore
   private VRObject source;
   @JsonIgnore
@@ -82,7 +82,7 @@ public class VREvent {
   }
 
   @JsonIgnore
-  public Long getSourceId() {
+  public String getSourceId() {
     if (id == null) {
       id = object.values().iterator().next();
     }

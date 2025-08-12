@@ -19,7 +19,7 @@ public class ClientControllerBase extends ApiBase {
   }
 
   protected Client findClient(HttpSession session, VRObjectRepository db) {
-    Long clientId = (Long) session.getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
+    String clientId = (String) session.getAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE);
     Client client = worldManager.getClient(clientId);
 
     if (client == null) {

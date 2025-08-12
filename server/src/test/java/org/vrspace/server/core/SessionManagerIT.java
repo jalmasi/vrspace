@@ -156,7 +156,7 @@ public class SessionManagerIT {
     dbUser = testUser;
   }
 
-  private Long login(WebSocketSession session) throws Exception {
+  private String login(WebSocketSession session) throws Exception {
     sessionManager.afterConnectionEstablished(session);
     // verify Welcome message
     verify(session, times(1)).sendMessage(any(TextMessage.class));
@@ -169,7 +169,7 @@ public class SessionManagerIT {
     return welcome.getClient().getId();
   }
 
-  private Long login() throws Exception {
+  private String login() throws Exception {
     return login(this.session);
   }
 
@@ -209,9 +209,9 @@ public class SessionManagerIT {
 
   @Test
   public void testWrongClient() throws Exception {
-    Long clientId = login();
-    String string = "{\"object\":{\"Client\":" + (clientId + 1)
-        + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
+    String clientId = login();
+    String string = "{\"object\":{\"Client\":\"" + (clientId + 1)
+        + "\"},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     sendMessage(string);
     String errorMsg = getMessage();
     assertTrue(errorMsg.contains("ERROR"));
@@ -243,13 +243,13 @@ public class SessionManagerIT {
 
   @Test
   public void testChangeOwnProperty() throws Exception {
-    Long clientId = login();
+    String clientId = login();
     assertEquals(1, testUser.getPosition().getX(), 0.01);
     assertEquals(2, testUser.getPosition().getY(), 0.01);
     assertEquals(3, testUser.getPosition().getZ(), 0.01);
 
-    String string = "{\"object\":{\"User\":" + clientId
-        + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
+    String string = "{\"object\":{\"User\":\"" + clientId
+        + "\"},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     System.err.println(string);
     sendMessage(string);
 
@@ -262,7 +262,7 @@ public class SessionManagerIT {
   @Disabled("apparently identity is the only private field that is persisted, and rightfully marked with JsonIgnore")
   @Test
   public void testChangePrivateProperty() throws Exception {
-    Long clientId = login();
+    String clientId = login();
 
     String string = "{\"object\":{\"User\":" + clientId + "},\"changes\":{\"identity\":\"joe@facebook\"}}";
     System.err.println(string);
@@ -296,7 +296,7 @@ public class SessionManagerIT {
     String addResponse = ((TextMessage) values.get(3)).getPayload();
     ClientResponse rIds = mapper.readValue(addResponse, ClientResponse.class);
     @SuppressWarnings("unchecked")
-    List<Map<String, Long>> ids = (List<Map<String, Long>>) rIds.getResponse();
+    List<Map<String, String>> ids = (List<Map<String, String>>) rIds.getResponse();
     assertEquals(2, ids.size());
 
     // verify received add command as result of scene update
@@ -319,7 +319,7 @@ public class SessionManagerIT {
 
     // verify scene members match response to add command
     int ok = 0;
-    for (Map<String, Long> id : ids) {
+    for (Map<String, String> id : ids) {
       for (VRObject obj : addCommand.getObjects()) {
         if (id.get("VRObject").equals(obj.getId())) {
           assertNotNull(obj.getPosition(), "Object must have position" + obj);
@@ -337,8 +337,8 @@ public class SessionManagerIT {
     assertEquals(2, testUser.getScene().size());
 
     // verify remove command
-    String remove = "{\"command\":{\"Remove\":{\"objects\":[{\"VRObject\":"
-        + ids.iterator().next().values().iterator().next() + "}]}}}";
+    String remove = "{\"command\":{\"Remove\":{\"objects\":[{\"VRObject\":\""
+        + ids.iterator().next().values().iterator().next() + "\"}]}}}";
     sendMessage(remove);
 
     // verify response received
@@ -371,9 +371,9 @@ public class SessionManagerIT {
     WebSocketSession session1 = mockup(mock(WebSocketSession.class), "session1");
     WebSocketSession session2 = mockup(mock(WebSocketSession.class), "session2");
 
-    Long clientId = login();
-    Long cid1 = login(session1);
-    Long cid2 = login(session2);
+    String clientId = login();
+    String cid1 = login(session1);
+    String cid2 = login(session2);
     Client client = sessionManager.getClient(clientId);
     Client user1 = sessionManager.getClient(cid1);
     Client user2 = sessionManager.getClient(cid2);
@@ -413,8 +413,8 @@ public class SessionManagerIT {
     assertEquals(2, client.getListeners().size());
 
     // move and verify movement received by listeners but not by self
-    String string = "{\"object\":{\"User\":" + clientId
-        + "},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
+    String string = "{\"object\":{\"User\":\"" + clientId
+        + "\"},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     sendMessage(string);
 
     verify(session, times(3)).sendMessage(any(TextMessage.class));
@@ -428,8 +428,8 @@ public class SessionManagerIT {
     assertTrue(expected.isEqual(user2.getScene().get(client.getObjectId()).getPosition()));
 
     // set properties of a client
-    String msg = "{\"object\":{\"User\":" + clientId
-        + "},\"changes\":{\"properties\":{\"string\":\"string\",\"number\":123.45}}}";
+    String msg = "{\"object\":{\"User\":\"" + clientId
+        + "\"},\"changes\":{\"properties\":{\"string\":\"string\",\"number\":123.45}}}";
     sendMessage(msg);
     verify(session, times(3)).sendMessage(any(TextMessage.class));
     verify(session1, times(5)).sendMessage(any(TextMessage.class));
@@ -440,7 +440,7 @@ public class SessionManagerIT {
     assertEquals(123.45, client.getProperties().get("number"));
 
     // custom event, e.g. chat
-    String text = "{\"object\":{\"User\":" + clientId + "},\"changes\":{\"wrote\":\"hi\"}}";
+    String text = "{\"object\":{\"User\":\"" + clientId + "\"},\"changes\":{\"wrote\":\"hi\"}}";
     sendMessage(text);
     verify(session, times(3)).sendMessage(any(TextMessage.class));
     verify(session1, times(6)).sendMessage(any(TextMessage.class));

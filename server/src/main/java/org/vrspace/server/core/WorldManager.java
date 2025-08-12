@@ -170,7 +170,7 @@ public class WorldManager {
   }
 
   @SuppressWarnings("unchecked")
-  public <T extends VRObject> T get(Class<T> cls, Long id) {
+  public <T extends VRObject> T get(Class<T> cls, String id) {
     return (T) cache.get(new ID(cls, id));
   }
 
@@ -243,7 +243,7 @@ public class WorldManager {
     return world;
   }
 
-  public Client getClient(Long id) {
+  public Client getClient(String id) {
     Client ret = db.get(Client.class, id);
     return (Client) updateCache(ret);
   }

@@ -32,7 +32,7 @@ public class Group implements Command {
   /** used for create/delete commands */
   private String name;
   /** used for add/remove/invite/kick commands */
-  private long clientId;
+  private String clientId;
   /** used for write action */
   private String text;
 
@@ -43,34 +43,34 @@ public class Group implements Command {
     } else if ("create".equals(action)) {
       gm.createGroup(client, new UserGroup(name));
     } else if ("delete".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.deleteGroup(client, group);
     } else if ("show".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       return new ClientResponse(gm.show(group));
     } else if ("join".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.join(group, client);
     } else if ("invite".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.invite(group, clientId, client);
     } else if ("ask".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.ask(group, client);
     } else if ("accept".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.accept(group, client);
     } else if ("allow".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.allow(group, clientId, client);
     } else if ("leave".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.leave(group, client);
     } else if ("kick".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.kick(group, clientId, client);
     } else if ("write".equals(action)) {
-      UserGroup group = gm.getGroup(client, name);
+      UserGroup group = gm.getGroupByName(client, name);
       gm.write(client, group, text);
     } else {
       throw new UnsupportedOperationException("Invalid action:" + action);
