@@ -1,6 +1,8 @@
 package org.vrspace.server.obj;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -43,6 +45,8 @@ public class GroupMessage extends Entity {
   private Instant timestamp;
   /** Used along the link, true if the link points to a world on this server */
   private Boolean local;
+  /** Attached files */
+  private List<Content> attachments;
 
   public GroupMessage(Client from, UserGroup group, String content, Instant timestamp) {
     this.from = from;
@@ -50,4 +54,18 @@ public class GroupMessage extends Entity {
     this.content = content;
     this.timestamp = timestamp;
   }
+
+  public void attach(Content content) {
+    if (this.attachments == null) {
+      this.attachments = new ArrayList<Content>();
+    }
+    this.attachments.add(content);
+  }
+
+  public void detach(Content content) {
+    if (this.attachments != null) {
+      this.attachments.remove(content);
+    }
+  }
+
 }

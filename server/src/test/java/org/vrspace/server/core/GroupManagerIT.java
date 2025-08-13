@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Content;
 import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.UserGroup;
 
@@ -185,5 +186,35 @@ public class GroupManagerIT {
     assertEquals(0, unreadMessages.size());
 
     assertThrows(NotFoundException.class, () -> gm.unreadMessages(c2, group3));
+  }
+
+  @Test
+  @Transactional
+  public void testAttachments() {
+    Client c1 = db.save(new Client());
+    UserGroup group1 = gm.createGroup(c1, new UserGroup("group1", true, false));
+    String id = gm.write(c1, group1, "this message is to contain attachments");
+
+    Content file1 = new Content();
+    file1.setFileName("file1");
+    Content file2 = new Content();
+    file2.setFileName("file2");
+
+    // create attachments
+    gm.attach(c1, group1, id, List.of(file1, file2));
+
+    GroupMessage msg = db.get(GroupMessage.class, id);
+
+    assertEquals(2, msg.getAttachments().size());
+    assertEquals("file1", msg.getAttachments().get(0).getFileName());
+    assertEquals("file2", msg.getAttachments().get(1).getFileName());
+
+    // delete attachment(s)
+    gm.dettach(c1, group1, id, List.of(file1));
+
+    msg = db.get(GroupMessage.class, id);
+
+    assertEquals(1, msg.getAttachments().size());
+    assertEquals("file2", msg.getAttachments().get(0).getFileName());
   }
 }

@@ -3,6 +3,7 @@ package org.vrspace.server.core;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpResponse;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.dto.GroupEvent;
 import org.vrspace.server.dto.WebPushMessage;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Content;
 import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.Ownership;
@@ -349,12 +351,17 @@ public class GroupManager {
     db.findOwnership(owner.getId(), group.getId()).ifPresent(ownership -> db.delete(ownership));
   }
 
-  private void write(Client sender, UserGroup group, WebPushMessage.Type type, GroupMessage groupMessage) {
+  private String write(Client sender, UserGroup group, WebPushMessage.Type type, GroupMessage groupMessage) {
     if (groupRepo.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
       throw new SecurityException("Only members can post to groups");
     }
     groupMessage.setGroup(group);
     GroupMessage message = db.save(groupMessage);
+    publishMessage(sender, group, type, message);
+    return message.getId();
+  }
+
+  private void publishMessage(Client sender, UserGroup group, WebPushMessage.Type type, GroupMessage message) {
     groupRepo.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message
@@ -376,11 +383,13 @@ public class GroupManager {
         notify(client, msg);
       }
     });
+
   }
 
   @Transactional
-  public void write(Client sender, UserGroup group, String text) {
-    write(sender, group, WebPushMessage.Type.GROUP_MESSAGE, new GroupMessage(sender, group, text, Instant.now()));
+  public String write(Client sender, UserGroup group, String text) {
+    return write(sender, group, WebPushMessage.Type.GROUP_MESSAGE,
+        new GroupMessage(sender, group, text, Instant.now()));
   }
 
   @Transactional
@@ -395,6 +404,29 @@ public class GroupManager {
     msg.setWorldId(world.getId());
     // CHECKME: also set token or something? (token is in the link)
     write(sender, group, WebPushMessage.Type.WORLD_INVITE, msg);
+  }
+
+  private void updateAttachments(Client sender, UserGroup group, String messageId, List<Content> content,
+      BiConsumer<GroupMessage, Content> func) {
+    GroupMessage msg = db.get(GroupMessage.class, messageId);
+    if (msg == null) {
+      throw new IllegalArgumentException("Unknown message " + messageId);
+    }
+    if (!sender.getId().equals(msg.getFrom().getId())) {
+      throw new SecurityException("Only original sender can change attachments");
+    }
+    content.forEach(c -> func.accept(msg, c));
+    write(sender, group, WebPushMessage.Type.MESSAGE_ATTACHMENT, msg);
+  }
+
+  @Transactional
+  public void attach(Client sender, UserGroup group, String messageId, List<Content> content) {
+    updateAttachments(sender, group, messageId, content, (msg, c) -> msg.attach(c));
+  }
+
+  @Transactional
+  public void dettach(Client sender, UserGroup group, String messageId, List<Content> content) {
+    updateAttachments(sender, group, messageId, content, (msg, c) -> msg.detach(c));
   }
 
   @Transactional
@@ -469,6 +501,7 @@ public class GroupManager {
   }
 
   private void notify(Client client, WebPushMessage msg) {
+    // TODO we probably do not want to notify for each and every message type
     db.listSubscriptions(client.getId()).forEach(sub -> {
       send(sub, msg);
     });

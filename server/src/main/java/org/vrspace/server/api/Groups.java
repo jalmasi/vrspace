@@ -224,14 +224,15 @@ public class Groups extends ClientControllerBase {
    * 
    * @param groupId The group
    * @param text    The message
+   * @return message UUID
    */
   @PostMapping("/{groupId}/write")
-  public void write(@PathVariable String groupId, @RequestBody String text, HttpSession session) {
+  public String write(@PathVariable String groupId, @RequestBody String text, HttpSession session) {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroupById(client, groupId);
     // FIXME sanitize text
     log.debug("Group write, user: " + client + " group: " + group + " text: " + text);
-    groupManager.write(client, group, text);
+    return groupManager.write(client, group, text);
   }
 
   /**
@@ -267,8 +268,6 @@ public class Groups extends ClientControllerBase {
 
   /**
    * List pending invitations to groups for the current user.
-   * 
-   * @param session
    */
   @GetMapping("/invitations")
   public List<GroupMember> listInvites(HttpSession session) {
@@ -277,6 +276,11 @@ public class Groups extends ClientControllerBase {
     return groupManager.pendingInvitations(client);
   }
 
+  /**
+   * List groups containing unread messages.
+   * 
+   * @return List of groups having unread messages
+   */
   @GetMapping("/unread")
   public List<UserGroup> listUnreadGroups(HttpSession session) {
     Client client = getAuthorisedClient(session);
@@ -284,6 +288,12 @@ public class Groups extends ClientControllerBase {
     return groupManager.unreadGroups(client);
   }
 
+  /**
+   * List unread messages for the group
+   * 
+   * @param groupId group identifier
+   * @return List of unread messages in the group
+   */
   @GetMapping("/{groupId}/unread")
   public List<GroupMessage> listUnreadMessages(@PathVariable String groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
@@ -292,6 +302,12 @@ public class Groups extends ClientControllerBase {
     return groupManager.unreadMessages(client, group);
   }
 
+  /**
+   * List owners of a group. Needed e.g. to ask to join a private group.
+   * 
+   * @param groupId group identifier
+   * @return List of users owning the group
+   */
   @GetMapping("/{groupId}/owners")
   public List<Client> listOwners(@PathVariable String groupId, HttpSession session) {
     Client client = getAuthorisedClient(session);
