@@ -13,7 +13,7 @@
 
 
 import {ApiClient} from "../ApiClient.js";
-import { UploadRequest } from '../model/UploadRequest.js';
+import { AttachRequest } from '../model/AttachRequest.js';
 
 /**
 * SharedContent service.
@@ -45,12 +45,12 @@ export class SharedContentApi {
      * @param {Number} rotY 
      * @param {Number} rotZ 
      * @param {Object} opts Optional parameters
-     * @param {UploadRequest} [uploadRequest] 
+     * @param {AttachRequest} [attachRequest] 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     uploadWithHttpInfo(fileName, contentType, x, y, z, rotX, rotY, rotZ, opts) {
       opts = opts || {};
-      let postBody = opts['uploadRequest'];
+      let postBody = opts['attachRequest'];
       // verify the required parameter 'fileName' is set
       if (fileName === undefined || fileName === null) {
         throw new Error("Missing the required parameter 'fileName' when calling upload");
@@ -122,7 +122,7 @@ export class SharedContentApi {
      * @param {Number} rotY 
      * @param {Number} rotZ 
      * @param {Object} opts Optional parameters
-     * @param {UploadRequest} opts.uploadRequest 
+     * @param {AttachRequest} opts.attachRequest 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     upload(fileName, contentType, x, y, z, rotX, rotY, rotZ, opts) {

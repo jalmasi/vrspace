@@ -98,6 +98,12 @@ export class Client {
          */
         this.picture = undefined;
 
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
+         */
+        this.tokens = undefined;
+
         /** sceneProperties 
          * @type {SceneProperties} 
          */
@@ -108,12 +114,6 @@ export class Client {
          * @type {Number} 
          */
         this.userHeight = undefined;
-
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} 
-         */
-        this.tokens = undefined;
 
         /** properties 
          * Custom transient object properties
@@ -188,14 +188,14 @@ export class Client {
             if (data.hasOwnProperty('picture')) {
                 obj['picture'] = ApiClient.convertToType(data['picture'], 'String');
             }
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            }
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
-            }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});

@@ -15,9 +15,11 @@
 import ApiClient from './ApiClient';
 import Animation from './model/Animation';
 import ArchiveNested from './model/ArchiveNested';
+import AttachRequest from './model/AttachRequest';
 import AvatarRelated from './model/AvatarRelated';
 import CapabilitiesAndConfig from './model/CapabilitiesAndConfig';
 import Client from './model/Client';
+import Content from './model/Content';
 import ContentCategory from './model/ContentCategory';
 import CreateWorldOptions from './model/CreateWorldOptions';
 import Cursors from './model/Cursors';
@@ -40,7 +42,6 @@ import SceneProperties from './model/SceneProperties';
 import ServerCapabilities from './model/ServerCapabilities';
 import ServerConfiguration from './model/ServerConfiguration';
 import ThumbnailsRelated from './model/ThumbnailsRelated';
-import UploadRequest from './model/UploadRequest';
 import User from './model/User';
 import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
@@ -112,6 +113,12 @@ export {
     ArchiveNested,
 
     /**
+     * The AttachRequest model constructor.
+     * @property {AttachRequest}
+     */
+    AttachRequest,
+
+    /**
      * The AvatarRelated model constructor.
      * @property {AvatarRelated}
      */
@@ -128,6 +135,12 @@ export {
      * @property {Client}
      */
     Client,
+
+    /**
+     * The Content model constructor.
+     * @property {Content}
+     */
+    Content,
 
     /**
      * The ContentCategory model constructor.
@@ -260,12 +273,6 @@ export {
      * @property {ThumbnailsRelated}
      */
     ThumbnailsRelated,
-
-    /**
-     * The UploadRequest model constructor.
-     * @property {UploadRequest}
-     */
-    UploadRequest,
 
     /**
      * The User model constructor.

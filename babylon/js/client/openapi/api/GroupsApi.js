@@ -13,6 +13,7 @@
 
 
 import {ApiClient} from "../ApiClient.js";
+import { AttachRequest } from '../model/AttachRequest.js';
 import { Client } from '../model/Client.js';
 import { GroupMember } from '../model/GroupMember.js';
 import { GroupMessage } from '../model/GroupMessage.js';
@@ -190,6 +191,80 @@ export class GroupsApi {
 
 
     /**
+     * Add an attachment to a message: upload file to the server, and notify all  message recipients.
+     * Add an attachment to a message: upload file to the server, and notify all  message recipients.
+     * @param {String} fileName 
+     * @param {String} contentType 
+     * @param {String} groupId 
+     * @param {String} messageId 
+     * @param {Object} opts Optional parameters
+     * @param {AttachRequest} [attachRequest] 
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     */
+    attachWithHttpInfo(fileName, contentType, groupId, messageId, opts) {
+      opts = opts || {};
+      let postBody = opts['attachRequest'];
+      // verify the required parameter 'fileName' is set
+      if (fileName === undefined || fileName === null) {
+        throw new Error("Missing the required parameter 'fileName' when calling attach");
+      }
+      // verify the required parameter 'contentType' is set
+      if (contentType === undefined || contentType === null) {
+        throw new Error("Missing the required parameter 'contentType' when calling attach");
+      }
+      // verify the required parameter 'groupId' is set
+      if (groupId === undefined || groupId === null) {
+        throw new Error("Missing the required parameter 'groupId' when calling attach");
+      }
+      // verify the required parameter 'messageId' is set
+      if (messageId === undefined || messageId === null) {
+        throw new Error("Missing the required parameter 'messageId' when calling attach");
+      }
+
+      let pathParams = {
+        'groupId': groupId,
+        'messageId': messageId
+      };
+      let queryParams = {
+        'fileName': fileName,
+        'contentType': contentType
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = ['application/json'];
+      let accepts = [];
+      let returnType = null;
+      return this.apiClient.callApi(
+        '/vrspace/api/groups/{groupId}/{messageId}/attachment', 'PUT',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Add an attachment to a message: upload file to the server, and notify all  message recipients.
+     * Add an attachment to a message: upload file to the server, and notify all  message recipients.
+     * @param {String} fileName 
+     * @param {String} contentType 
+     * @param {String} groupId 
+     * @param {String} messageId 
+     * @param {Object} opts Optional parameters
+     * @param {AttachRequest} opts.attachRequest 
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
+     */
+    attach(fileName, contentType, groupId, messageId, opts) {
+      return this.attachWithHttpInfo(fileName, contentType, groupId, messageId, opts)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
      * Create a group.
      * Create a group.
      * @param {String} name Group name
@@ -288,6 +363,130 @@ export class GroupsApi {
      */
     deleteGroup(groupId) {
       return this.deleteGroupWithHttpInfo(groupId)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * Remove an attachment from a message.
+     * Remove an attachment from a message. Removes the file from the server and  notifies all other clients.
+     * @param {String} fileName 
+     * @param {String} groupId 
+     * @param {String} messageId 
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     */
+    detachWithHttpInfo(fileName, groupId, messageId) {
+      let postBody = null;
+      // verify the required parameter 'fileName' is set
+      if (fileName === undefined || fileName === null) {
+        throw new Error("Missing the required parameter 'fileName' when calling detach");
+      }
+      // verify the required parameter 'groupId' is set
+      if (groupId === undefined || groupId === null) {
+        throw new Error("Missing the required parameter 'groupId' when calling detach");
+      }
+      // verify the required parameter 'messageId' is set
+      if (messageId === undefined || messageId === null) {
+        throw new Error("Missing the required parameter 'messageId' when calling detach");
+      }
+
+      let pathParams = {
+        'groupId': groupId,
+        'messageId': messageId
+      };
+      let queryParams = {
+        'fileName': fileName
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = [];
+      let returnType = null;
+      return this.apiClient.callApi(
+        '/vrspace/api/groups/{groupId}/{messageId}/attachment', 'DELETE',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Remove an attachment from a message.
+     * Remove an attachment from a message. Removes the file from the server and  notifies all other clients.
+     * @param {String} fileName 
+     * @param {String} groupId 
+     * @param {String} messageId 
+     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
+     */
+    detach(fileName, groupId, messageId) {
+      return this.detachWithHttpInfo(fileName, groupId, messageId)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * Get an attachment for a message.
+     * Get an attachment for a message. Only users that can read the message can do  that.
+     * @param {String} groupId 
+     * @param {String} messageId 
+     * @param {String} fileName 
+     * @return {Promise< Object >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Object} and HTTP response
+     */
+    getAttachmentWithHttpInfo(groupId, messageId, fileName) {
+      let postBody = null;
+      // verify the required parameter 'groupId' is set
+      if (groupId === undefined || groupId === null) {
+        throw new Error("Missing the required parameter 'groupId' when calling getAttachment");
+      }
+      // verify the required parameter 'messageId' is set
+      if (messageId === undefined || messageId === null) {
+        throw new Error("Missing the required parameter 'messageId' when calling getAttachment");
+      }
+      // verify the required parameter 'fileName' is set
+      if (fileName === undefined || fileName === null) {
+        throw new Error("Missing the required parameter 'fileName' when calling getAttachment");
+      }
+
+      let pathParams = {
+        'groupId': groupId,
+        'messageId': messageId,
+        'fileName': fileName
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = Object;
+      return this.apiClient.callApi(
+        '/vrspace/api/groups/{groupId}/{messageId}/attachment/{fileName}', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * Get an attachment for a message.
+     * Get an attachment for a message. Only users that can read the message can do  that.
+     * @param {String} groupId 
+     * @param {String} messageId 
+     * @param {String} fileName 
+     * @return {Promise< Object >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Object}
+     */
+    getAttachment(groupId, messageId, fileName) {
+      return this.getAttachmentWithHttpInfo(groupId, messageId, fileName)
         .then(function(response_and_data) {
           return response_and_data.data;
         });
@@ -672,7 +871,9 @@ export class GroupsApi {
 
 
     /**
-     * @param {String} groupId 
+     * List owners of a group.
+     * List owners of a group. Needed e.g. to ask to join a private group.
+     * @param {String} groupId group identifier
      * @return {Promise< Array.<Client> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<Client>} and HTTP response
      */
     listOwnersWithHttpInfo(groupId) {
@@ -704,7 +905,9 @@ export class GroupsApi {
     }
 
     /**
-     * @param {String} groupId 
+     * List owners of a group.
+     * List owners of a group. Needed e.g. to ask to join a private group.
+     * @param {String} groupId group identifier
      * @return {Promise< Array.<Client> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<Client>}
      */
     listOwners(groupId) {
@@ -764,6 +967,8 @@ export class GroupsApi {
 
 
     /**
+     * List groups containing unread messages.
+     * List groups containing unread messages.
      * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<UserGroup>} and HTTP response
      */
     listUnreadGroupsWithHttpInfo() {
@@ -790,6 +995,8 @@ export class GroupsApi {
     }
 
     /**
+     * List groups containing unread messages.
+     * List groups containing unread messages.
      * @return {Promise< Array.<UserGroup> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<UserGroup>}
      */
     listUnreadGroups() {
@@ -801,7 +1008,9 @@ export class GroupsApi {
 
 
     /**
-     * @param {String} groupId 
+     * List unread messages for the group
+     * List unread messages for the group
+     * @param {String} groupId group identifier
      * @return {Promise< Array.<GroupMessage> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<GroupMessage>} and HTTP response
      */
     listUnreadMessagesWithHttpInfo(groupId) {
@@ -833,7 +1042,9 @@ export class GroupsApi {
     }
 
     /**
-     * @param {String} groupId 
+     * List unread messages for the group
+     * List unread messages for the group
+     * @param {String} groupId group identifier
      * @return {Promise< Array.<GroupMessage> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<GroupMessage>}
      */
     listUnreadMessages(groupId) {
@@ -998,7 +1209,7 @@ export class GroupsApi {
      * Write something to a group. Online users are notified right away over the web  socket, offline users may get web push notification, if these are configured.
      * @param {String} groupId The group
      * @param {String} body The message
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     writeWithHttpInfo(groupId, body) {
       let postBody = body;
@@ -1023,8 +1234,8 @@ export class GroupsApi {
 
       let authNames = [];
       let contentTypes = ['application/json'];
-      let accepts = [];
-      let returnType = null;
+      let accepts = ['*/*'];
+      let returnType = 'String';
       return this.apiClient.callApi(
         '/vrspace/api/groups/{groupId}/write', 'POST',
         pathParams, queryParams, headerParams, formParams, postBody,
@@ -1037,7 +1248,7 @@ export class GroupsApi {
      * Write something to a group. Online users are notified right away over the web  socket, offline users may get web push notification, if these are configured.
      * @param {String} groupId The group
      * @param {String} body The message
-     * @return {Promise} a {@link https://www.promisejs.org/|Promise}
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     write(groupId, body) {
       return this.writeWithHttpInfo(groupId, body)

@@ -13,6 +13,7 @@
 
 import {ApiClient} from '../ApiClient.js';
 import { Client } from './Client.js';
+import { Content } from './Content.js';
 import { UserGroup } from './UserGroup.js';
 
 /**
@@ -71,6 +72,12 @@ export class GroupMessage {
          * @type {Boolean} 
          */
         this.local = undefined;
+
+        /** attachments 
+         * Attached files
+         * @type {Array.<Content>} 
+         */
+        this.attachments = undefined;
         
         
         
@@ -121,6 +128,9 @@ export class GroupMessage {
             if (data.hasOwnProperty('local')) {
                 obj['local'] = ApiClient.convertToType(data['local'], 'Boolean');
             }
+            if (data.hasOwnProperty('attachments')) {
+                obj['attachments'] = ApiClient.convertToType(data['attachments'], [Content]);
+            }
         }
         return obj;
     }
@@ -154,6 +164,16 @@ export class GroupMessage {
         // ensure the json data is a string
         if (data['worldId'] && !(typeof data['worldId'] === 'string' || data['worldId'] instanceof String)) {
             throw new Error("Expected the field `worldId` to be a primitive type in the JSON string but got " + data['worldId']);
+        }
+        if (data['attachments']) { // data not null
+            // ensure the json data is an array
+            if (!Array.isArray(data['attachments'])) {
+                throw new Error("Expected the field `attachments` to be an array in the JSON data but got " + data['attachments']);
+            }
+            // validate the optional field `attachments` (array)
+            for (const item of data['attachments']) {
+                Content.validateJSON(item);
+            };
         }
 
         return true;
