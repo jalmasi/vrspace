@@ -3,7 +3,6 @@ package org.vrspace.server.core;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpResponse;
@@ -406,8 +405,7 @@ public class GroupManager {
     write(sender, group, WebPushMessage.Type.WORLD_INVITE, msg);
   }
 
-  private void updateAttachments(Client sender, UserGroup group, String messageId, List<Content> content,
-      BiConsumer<GroupMessage, Content> func) {
+  private GroupMessage verifyAttachments(Client sender, UserGroup group, String messageId) {
     GroupMessage msg = db.get(GroupMessage.class, messageId);
     if (msg == null) {
       throw new IllegalArgumentException("Unknown message " + messageId);
@@ -415,18 +413,39 @@ public class GroupManager {
     if (!sender.getId().equals(msg.getFrom().getId())) {
       throw new SecurityException("Only original sender can change attachments");
     }
-    content.forEach(c -> func.accept(msg, c));
-    write(sender, group, WebPushMessage.Type.MESSAGE_ATTACHMENT, msg);
+    return msg;
   }
 
   @Transactional
-  public void attach(Client sender, UserGroup group, String messageId, List<Content> content) {
-    updateAttachments(sender, group, messageId, content, (msg, c) -> msg.attach(c));
+  public void attach(Client sender, UserGroup group, String messageId, Content content) {
+    GroupMessage message = verifyAttachments(sender, group, messageId);
+    message.attach(content);
+    write(sender, group, WebPushMessage.Type.MESSAGE_ATTACHMENT, message);
   }
 
   @Transactional
-  public void dettach(Client sender, UserGroup group, String messageId, List<Content> content) {
-    updateAttachments(sender, group, messageId, content, (msg, c) -> msg.detach(c));
+  public void detach(Client sender, UserGroup group, String messageId, String fileName) {
+    GroupMessage message = verifyAttachments(sender, group, messageId);
+    for (Content content : message.getAttachments()) {
+      if (content.getFileName().equals(fileName)) {
+        message.detach(content);
+        write(sender, group, WebPushMessage.Type.MESSAGE_ATTACHMENT, message);
+        break;
+      }
+    }
+  }
+
+  public Content getAttachment(Client recipient, UserGroup group, String messageId, String fileName) {
+    GroupMessage message = db.get(GroupMessage.class, messageId);
+    if (message == null) {
+      throw new IllegalArgumentException("Unknown message " + messageId);
+    }
+    for (Content content : message.getAttachments()) {
+      if (content.getFileName().equals(fileName)) {
+        return content;
+      }
+    }
+    throw new IllegalArgumentException("Unknown attachment " + fileName);
   }
 
   @Transactional

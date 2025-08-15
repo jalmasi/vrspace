@@ -64,6 +64,7 @@ public class GroupMessage extends Entity {
 
   public void detach(Content content) {
     if (this.attachments != null) {
+      content.dispose();
       this.attachments.remove(content);
     }
   }

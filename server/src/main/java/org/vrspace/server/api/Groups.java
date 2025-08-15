@@ -1,9 +1,16 @@
 package org.vrspace.server.api;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,15 +20,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.vrspace.server.core.FileUtil;
 import org.vrspace.server.core.GroupManager;
 import org.vrspace.server.obj.Client;
+import org.vrspace.server.obj.Content;
 import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.UserGroup;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
@@ -314,6 +327,101 @@ public class Groups extends ClientControllerBase {
     UserGroup group = groupManager.getGroupById(client, groupId);
     log.debug("Unread messages, user: " + client + " group: " + group);
     return groupManager.listOwners(group);
+  }
+
+  /**
+   * Add an attachment to a message: upload file to the server, and notify all
+   * message recipients.
+   * 
+   * @param fileName
+   * @param contentType
+   * @param groupId
+   * @param messageId
+   * @param fileData
+   */
+  @PutMapping("/{groupId}/{messageId}/attachment")
+  public void attach(HttpSession session, String fileName, String contentType, @PathVariable String groupId,
+      @PathVariable String messageId, @RequestPart MultipartFile fileData) {
+
+    Client client = getAuthorisedClient(session);
+    UserGroup group = groupManager.getGroupById(client, groupId);
+
+    String path = FileUtil.attachmentDir();
+    Long fileSize = fileData.getSize();
+    File dest = new File(path + File.separator + fileName);
+    dest.mkdirs();
+
+    log.debug("uploading attachment " + groupId + "/" + messageId + contentType + "/" + fileData.getContentType()
+        + " to " + dest + " size " + fileSize);
+
+    try (InputStream inputStream = fileData.getInputStream()) {
+      Files.copy(inputStream, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    } catch (Exception e) {
+      log.error("Upload error", e);
+    }
+
+    Content content = new Content();
+    content.setFileName(fileName);
+    content.setFolder(path);
+    content.setContentType(contentType);
+    content.setLength(fileSize);
+
+    groupManager.attach(client, group, messageId, content);
+  }
+
+  /**
+   * Remove an attachment from a message. Removes the file from the server and
+   * notifies all other clients.
+   * 
+   * @param fileName
+   * @param groupId
+   * @param messageId
+   */
+  @DeleteMapping("/{groupId}/{messageId}/attachment")
+  public void detach(HttpSession session, String fileName, @PathVariable String groupId,
+      @PathVariable String messageId) {
+    Client client = getAuthorisedClient(session);
+    UserGroup group = groupManager.getGroupById(client, groupId);
+    groupManager.detach(client, group, messageId, fileName);
+  }
+
+  /**
+   * Get an attachment for a message. Only users that can read the message can do
+   * that.
+   * 
+   * @param groupId
+   * @param messageId
+   * @param fileName
+   * @return
+   */
+  @SuppressWarnings("resource")
+  @GetMapping("/{groupId}/{messageId}/attachment/{fileName}")
+  public StreamingResponseBody getAttachment(HttpSession session, HttpServletResponse response,
+      @PathVariable String groupId, @PathVariable String messageId, @PathVariable String fileName) {
+    Client client = getAuthorisedClient(session);
+    UserGroup group = groupManager.getGroupById(client, groupId);
+    Content content = groupManager.getAttachment(client, group, messageId, fileName);
+
+    response.setContentType(content.getContentType());
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=\"" + content.getFileName() + "\"");
+
+    File file = new File(content.getFolder(), content.getFileName());
+    InputStream inputStream;
+    try {
+      // auto-closeable
+      inputStream = new FileInputStream(file);
+    } catch (FileNotFoundException e) {
+      throw new IllegalStateException("File not found " + file, e);
+    }
+
+    return outputStream -> {
+      int bytesRead;
+      // 4MB buffer
+      byte[] buffer = new byte[4 * 1024 * 1024];
+      while ((bytesRead = inputStream.read(buffer)) != -1) {
+        outputStream.write(buffer, 0, bytesRead);
+      }
+    };
   }
 
 }

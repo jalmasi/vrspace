@@ -191,9 +191,9 @@ public class GroupManagerIT {
   @Test
   @Transactional
   public void testAttachments() {
-    Client c1 = db.save(new Client());
-    UserGroup group1 = gm.createGroup(c1, new UserGroup("group1", true, false));
-    String id = gm.write(c1, group1, "this message is to contain attachments");
+    Client client = db.save(new Client());
+    UserGroup group1 = gm.createGroup(client, new UserGroup("group1", true, false));
+    String id = gm.write(client, group1, "this message is to contain attachments");
 
     Content file1 = new Content();
     file1.setFileName("file1");
@@ -201,7 +201,8 @@ public class GroupManagerIT {
     file2.setFileName("file2");
 
     // create attachments
-    gm.attach(c1, group1, id, List.of(file1, file2));
+    gm.attach(client, group1, id, file1);
+    gm.attach(client, group1, id, file2);
 
     GroupMessage msg = db.get(GroupMessage.class, id);
 
@@ -209,8 +210,14 @@ public class GroupManagerIT {
     assertEquals("file1", msg.getAttachments().get(0).getFileName());
     assertEquals("file2", msg.getAttachments().get(1).getFileName());
 
+    Content c1 = gm.getAttachment(client, group1, id, file1.getFileName());
+    Content c2 = gm.getAttachment(client, group1, id, file2.getFileName());
+
+    assertEquals(file1, c1);
+    assertEquals(file2, c2);
+
     // delete attachment(s)
-    gm.dettach(c1, group1, id, List.of(file1));
+    gm.detach(client, group1, id, file1.getFileName());
 
     msg = db.get(GroupMessage.class, id);
 

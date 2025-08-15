@@ -45,6 +45,12 @@ public class ApiExceptionResolver extends ResponseEntityExceptionHandler {
     return logAndHandle(ex, responseBody, new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, request);
   }
 
+  @ExceptionHandler(value = { IllegalStateException.class })
+  protected ResponseEntity<Object> handleArgument(IllegalStateException ex, WebRequest request) {
+    ErrorMessage responseBody = new ErrorMessage(ex.getMessage());
+    return logAndHandle(ex, responseBody, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+  }
+
   @ExceptionHandler(value = { NotFoundException.class })
   protected ResponseEntity<Object> handleArgument(NotFoundException ex, WebRequest request) {
     ErrorMessage responseBody = new ErrorMessage(ex.getMessage());

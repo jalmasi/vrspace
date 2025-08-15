@@ -70,6 +70,7 @@ public class GroupManagerTest {
         .thenAnswer(invocation -> clientCache.get(((Client) invocation.getArguments()[0]).getObjectId()));
     when(groupRepo.findGroupMember(eq(g1.getId()), anyString())).thenReturn(Optional.of(new GroupMember()));
     when(groupRepo.findGroupMember(eq(g1.getId()), eq("4"))).thenReturn(Optional.empty());
+    when(repo.save(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
 
     gm.write(c1, g1, "Hello world");
 
