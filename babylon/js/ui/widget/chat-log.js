@@ -9,7 +9,7 @@ import { ServerCapabilities } from '../../client/openapi/model/ServerCapabilitie
 class ChatLogInput extends TextAreaInput {
   constructor(textArea, inputName = "Write", titleText = null) {
     super(textArea, inputName, titleText);
-    this.attachments=true;
+    this.attachments=false;
     this.attachButton = this.submitButton("attach", ()=>this.attach(), VRSPACEUI.contentBase+"/content/icons/attachment.png");
     this.attachButton.isVisible = false;
     //somehow gets overridden and becomes left:
@@ -60,20 +60,47 @@ class ChatLogInput extends TextAreaInput {
       // TODO notify user
       return;
     }
-    this.attachmentsPanel.widthInPixels = this.textArea.width*2;
-    let fileName = "file.txt"
-    let button = this.textButton(fileName,() => this.detach(button,fileName),VRSPACEUI.contentBase+"/content/icons/attachment.png", this.cancelColor);
-    this.attachmentsPanel.addControl(button);
-    this.attached.push(button);
+    let input = document.createElement("input");
+    input.setAttribute('type', 'file');
+    input.setAttribute('style', 'display:none');
+    document.body.appendChild(input);
+    input.addEventListener("change", () => this.upload(input), false);
+    input.addEventListener("cancel", () => this.upload(input), false);
+    input.click();
   }
-  detach(button,fileName) {
-    console.log("TODO detach"+fileName);
-    this.attachmentsPanel.removeControl(button);
-    this.attached.splice(this.attached.indexOf(button),1);
+  upload(input){
+    console.log("Files: ", input.files);
+    document.body.removeChild(input);
+    if ( input.files ) {
+      this.attachmentsPanel.widthInPixels = this.textArea.width*2;
+      for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        let fileName = file.name;
+        let button = this.textButton(fileName,() => this.detach(button,fileName),VRSPACEUI.contentBase+"/content/icons/attachment.png", this.cancelColor);
+        button.file = file;
+        this.attachmentsPanel.addControl(button);
+        this.attached.push(button);
+      }
+    }
+    this.checkAttachments();
+  }
+  checkAttachments(){
     if ( this.attached.length == 0 ) {
       this.attachmentsPanel.widthInPixels = 64;
       this.attachButton.isVisible = false;
     }
+  }
+  detach(button,fileName) {
+    this.attachmentsPanel.removeControl(button);
+    this.attached.splice(this.attached.indexOf(button),1);
+    button.dispose();
+    this.checkAttachments();
+  }
+  getAttachments() {
+    let ret = this.attached.map(button=>button.file);
+    this.attached.forEach(button=>button.dispose());
+    this.attached=[];
+    return ret;
   }
 }
 
@@ -309,7 +336,7 @@ export class ChatLog extends TextArea {
     super.show();
     this.setActiveInstance();
     this.input.inputPrefix = this.inputPrefix;
-    this.input.addListener( text => this.notifyListeners(text) );
+    this.input.addListener( text => this.notifyListeners(text,null,this.input.getAttachments()) );
     // order matters: InputArea.init() shows the title, so call hide after
     this.input.init();
     if ( this.handles ) {
@@ -427,8 +454,8 @@ export class ChatLog extends TextArea {
       ChatLog.activeInstance = null;
     }
   }
-  notifyListeners(text,data) {
-    this.listeners.forEach(l=>l(text, data));
+  notifyListeners(text,data,attachments) {
+    this.listeners.forEach(l=>l(text, data, attachments));
   }
   /**
    * Add a listener to be called when input text is changed

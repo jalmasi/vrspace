@@ -350,17 +350,19 @@ public class GroupManager {
     db.findOwnership(owner.getId(), group.getId()).ifPresent(ownership -> db.delete(ownership));
   }
 
-  private String write(Client sender, UserGroup group, WebPushMessage.Type type, GroupMessage groupMessage) {
+  private String write(Client sender, UserGroup group, WebPushMessage.Type type, GroupMessage groupMessage,
+      GroupEvent event) {
     if (groupRepo.findGroupMember(group.getId(), sender.getId()).isEmpty()) {
       throw new SecurityException("Only members can post to groups");
     }
     groupMessage.setGroup(group);
     GroupMessage message = db.save(groupMessage);
-    publishMessage(sender, group, type, message);
+    publishMessage(sender, group, type, message, event);
     return message.getId();
   }
 
-  private void publishMessage(Client sender, UserGroup group, WebPushMessage.Type type, GroupMessage message) {
+  private void publishMessage(Client sender, UserGroup group, WebPushMessage.Type type, GroupMessage message,
+      GroupEvent event) {
     groupRepo.listGroupClients(group.getId()).forEach(client -> {
       // CHECKME: client.isActive() should to the trick
       // but we need a reference to live client instance to send the message
@@ -368,7 +370,7 @@ public class GroupManager {
       if (cachedClient != null) {
         // online client, forward message
         // FIXME this serializes the message all over again for each recipient
-        cachedClient.sendMessage(GroupEvent.message(message));
+        cachedClient.sendMessage(event);
       } else if (pushService != null) {
         log.debug("Pushing message for offline client:" + client);
         WebPushMessage msg = new WebPushMessage();
@@ -387,8 +389,8 @@ public class GroupManager {
 
   @Transactional
   public String write(Client sender, UserGroup group, String text) {
-    return write(sender, group, WebPushMessage.Type.GROUP_MESSAGE,
-        new GroupMessage(sender, group, text, Instant.now()));
+    GroupMessage message = new GroupMessage(sender, group, text, Instant.now());
+    return write(sender, group, WebPushMessage.Type.GROUP_MESSAGE, message, GroupEvent.message(message));
   }
 
   @Transactional
@@ -402,7 +404,8 @@ public class GroupManager {
     }
     msg.setWorldId(world.getId());
     // CHECKME: also set token or something? (token is in the link)
-    write(sender, group, WebPushMessage.Type.WORLD_INVITE, msg);
+    // FIXME: this sends wrong event - message rather than invite
+    write(sender, group, WebPushMessage.Type.WORLD_INVITE, msg, GroupEvent.message(msg));
   }
 
   private GroupMessage verifyAttachments(Client sender, UserGroup group, String messageId) {
@@ -420,7 +423,7 @@ public class GroupManager {
   public void attach(Client sender, UserGroup group, String messageId, Content content) {
     GroupMessage message = verifyAttachments(sender, group, messageId);
     message.attach(content);
-    write(sender, group, WebPushMessage.Type.MESSAGE_ATTACHMENT, message);
+    write(sender, group, WebPushMessage.Type.MESSAGE_ATTACHMENT, message, GroupEvent.attachment(message));
   }
 
   @Transactional
@@ -429,7 +432,7 @@ public class GroupManager {
     for (Content content : message.getAttachments()) {
       if (content.getFileName().equals(fileName)) {
         message.detach(content);
-        write(sender, group, WebPushMessage.Type.MESSAGE_ATTACHMENT, message);
+        write(sender, group, WebPushMessage.Type.MESSAGE_ATTACHMENT, message, GroupEvent.attachment(message));
         break;
       }
     }

@@ -45,19 +45,16 @@ export class GroupMessage {
         this.group = undefined;
 
         /** content 
-         * Message content (text)
          * @type {String} 
          */
         this.content = undefined;
 
         /** link 
-         * URL shared, only one for the time being. May be relative (e.g. for local  worlds) or absolute (external)
          * @type {String} 
          */
         this.link = undefined;
 
         /** worldId 
-         * World ID, used only for world invitations/shares
          * @type {String} 
          */
         this.worldId = undefined;
@@ -68,13 +65,11 @@ export class GroupMessage {
         this.timestamp = undefined;
 
         /** local 
-         * Used along the link, true if the link points to a world on this server
          * @type {Boolean} 
          */
         this.local = undefined;
 
         /** attachments 
-         * Attached files
          * @type {Array.<Content>} 
          */
         this.attachments = undefined;

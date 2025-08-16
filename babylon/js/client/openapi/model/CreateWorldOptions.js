@@ -21,7 +21,6 @@ import {ApiClient} from '../ApiClient.js';
 export class CreateWorldOptions {
     /**
      * Constructs a new <code>CreateWorldOptions</code>.
-     * World options
      * @alias CreateWorldOptions
      */
     constructor() { 
@@ -33,25 +32,21 @@ export class CreateWorldOptions {
         this.worldName = undefined;
 
         /** templateName 
-         * Optional world template to use
          * @type {String} 
          */
         this.templateName = undefined;
 
         /** token 
-         * Optional UUID used as world token, required to enter private worlds, defaults  to a random UUID
          * @type {String} 
          */
         this.token = undefined;
 
         /** publicWorld 
-         * Optional flag to create public or private world, default false
          * @type {Boolean} 
          */
         this.publicWorld = undefined;
 
         /** temporaryWorld 
-         * optional flag to create a temporary world, default true
          * @type {Boolean} 
          */
         this.temporaryWorld = undefined;

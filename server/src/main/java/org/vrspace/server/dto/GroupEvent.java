@@ -25,6 +25,7 @@ public class GroupEvent {
   private GroupMember invite;
   private GroupMember ask;
   private GroupMember allowed;
+  private GroupMessage attachment;
 
   public static GroupEvent message(GroupMessage groupMessage) {
     GroupEvent ret = new GroupEvent();
@@ -49,4 +50,11 @@ public class GroupEvent {
     ret.setAllowed(groupMember);
     return ret;
   }
+
+  public static GroupEvent attachment(GroupMessage groupMessage) {
+    GroupEvent ret = new GroupEvent();
+    ret.setAttachment(groupMessage);
+    return ret;
+  }
+
 }

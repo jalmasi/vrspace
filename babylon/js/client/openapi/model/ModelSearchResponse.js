@@ -23,7 +23,6 @@ import { ModelSearchList } from './ModelSearchList.js';
 export class ModelSearchResponse {
     /**
      * Constructs a new <code>ModelSearchResponse</code>.
-     * Model search response, returned as received from sketchfab
      * @alias ModelSearchResponse
      */
     constructor() { 

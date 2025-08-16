@@ -35,8 +35,6 @@ export class TexturesApi {
 
 
     /**
-     * List all jpg and png files in content directory hierarchy
-     * List all jpg and png files in content directory hierarchy
      * @return {Promise< Array.<String> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<String>} and HTTP response
      */
     listTexturesWithHttpInfo() {
@@ -63,8 +61,6 @@ export class TexturesApi {
     }
 
     /**
-     * List all jpg and png files in content directory hierarchy
-     * List all jpg and png files in content directory hierarchy
      * @return {Promise< Array.<String> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<String>}
      */
     listTextures() {
@@ -76,8 +72,6 @@ export class TexturesApi {
 
 
     /**
-     * Search textures that contain given substring
-     * Search textures that contain given substring
      * @param {String} pattern 
      * @return {Promise< Array.<String> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<String>} and HTTP response
      */
@@ -110,8 +104,6 @@ export class TexturesApi {
     }
 
     /**
-     * Search textures that contain given substring
-     * Search textures that contain given substring
      * @param {String} pattern 
      * @return {Promise< Array.<String> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<String>}
      */

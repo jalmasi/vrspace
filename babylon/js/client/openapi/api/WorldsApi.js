@@ -39,9 +39,7 @@ export class WorldsApi {
 
 
     /**
-     * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
-     * @param {CreateWorldOptions} createWorldOptions world options
+     * @param {CreateWorldOptions} createWorldOptions 
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     createWorldWithHttpInfo(createWorldOptions) {
@@ -72,9 +70,7 @@ export class WorldsApi {
     }
 
     /**
-     * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already  exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201  CREATED for created world, or HTTP 200 OK if world already exists.
-     * @param {CreateWorldOptions} createWorldOptions world options
+     * @param {CreateWorldOptions} createWorldOptions 
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     createWorld(createWorldOptions) {
@@ -87,10 +83,10 @@ export class WorldsApi {
 
     /**
      * Enter a world
-     * @param {String} worldName Name of the world to enter
+     * @param {String} worldName 
      * @param {Object} opts Optional parameters
-     * @param {String} [token] Optional token required to enter private world
-     * @param {Boolean} [async] If set, the Welcome answer is sent over the websocket, and                   this will return null
+     * @param {String} [token] 
+     * @param {Boolean} [async] 
      * @return {Promise< Welcome >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Welcome} and HTTP response
      */
     enterWorldWithHttpInfo(worldName, opts) {
@@ -126,10 +122,10 @@ export class WorldsApi {
 
     /**
      * Enter a world
-     * @param {String} worldName Name of the world to enter
+     * @param {String} worldName 
      * @param {Object} opts Optional parameters
-     * @param {String} opts.token Optional token required to enter private world
-     * @param {Boolean} opts.async If set, the Welcome answer is sent over the websocket, and                   this will return null
+     * @param {String} opts.token 
+     * @param {Boolean} opts.async 
      * @return {Promise< Welcome >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Welcome}
      */
     enterWorld(worldName, opts) {

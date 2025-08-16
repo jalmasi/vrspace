@@ -291,11 +291,18 @@ export class ListGroupsForm extends Form {
         group.chatlog.input.autoWrite = false;
         group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
         // add listener for share world (default-hud)
-        group.chatlog.addListener((text, data) => {
+        group.chatlog.addListener((text, data, attachments) => {
           if (data) {
             this.groupApi.shareWorld(group.id, data);
           } else {
-            this.groupApi.write(group.id, text);
+            this.groupApi.write(group.id, text).then(msgId=>{
+              if ( attachments ) {
+                console.log("upload attachments to "+msgId);
+                attachments.forEach(file=>{
+                  VRSpaceAPI.getInstance().attach(file,group.id,msgId);
+                });
+              }
+            });
           }
         });
 
@@ -304,6 +311,8 @@ export class ListGroupsForm extends Form {
             // different serialization:
             //group.chatlog.log(event.message.from.User.name, event.message.content, event.message.link, event.message.local);
             group.chatlog.log(event.message.from.name, event.message.content, event.message.link, event.message.local);
+          } else if (event.attachment && group.id == event.attachment.group.id) {
+            console.log("TODO process message attachments");
           }
         });
       }

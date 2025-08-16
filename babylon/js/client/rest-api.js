@@ -209,6 +209,22 @@ export class VRSpaceAPI {
 
   }
 
+  attach(file,groupId,messageId){
+    const formData = new FormData();
+    formData.append('fileName', file.name);
+    if (file.type) {
+      formData.append('contentType', file.type);
+    } else {
+      formData.append('contentType', 'application/octet-stream');
+    }
+    formData.append('fileData', file);
+
+    fetch(this.base + '/groups/'+groupId+'/'+messageId+'/attachment', {
+      method: 'PUT',
+      body: formData
+    });
+  }
+  
   /**
    * Internal used by webpushSubscribe
    * @private
