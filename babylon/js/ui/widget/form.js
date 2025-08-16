@@ -65,8 +65,8 @@ export class Form {
     return this.panel;
   }
   /** Add control to the panel */
-  addControl(control) {
-    this.panel.addControl(control);
+  addControl(control, panel = this.panel) {
+    panel.addControl(control);
   }
   /**
    * Creates and returns a textblock with given text 

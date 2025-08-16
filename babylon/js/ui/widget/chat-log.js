@@ -9,11 +9,14 @@ import { ServerCapabilities } from '../../client/openapi/model/ServerCapabilitie
 class ChatLogInput extends TextAreaInput {
   constructor(textArea, inputName = "Write", titleText = null) {
     super(textArea, inputName, titleText);
-    this.attachments=false;
+    this.attachments=true;
     this.attachButton = this.submitButton("attach", ()=>this.attach(), VRSPACEUI.contentBase+"/content/icons/attachment.png");
+    this.attachButton.isVisible = false;
     //somehow gets overridden and becomes left:
     //this.attachButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     this.attachButton.background = this.background;
+    this.attached = [];
+    this.maxAttachments = 4;
   }
   init() {
     super.init();
@@ -45,7 +48,7 @@ class ChatLogInput extends TextAreaInput {
   }
   inputFocused(input, focused) {
     super.inputFocused(input,focused);
-    //this.attachButton.isVisible = focused && this.attachments;
+    this.attachButton.isVisible = focused && this.attachments || this.attached.length > 0;
     if ( focused ) {
       console.log("Focused ", this.textArea);
       ChatLog.activeInstance = this.textArea;
@@ -53,6 +56,24 @@ class ChatLogInput extends TextAreaInput {
   }
   attach() {
     console.log("attach clicked");
+    if ( this.attached.length >= this.maxAttachments ) {
+      // TODO notify user
+      return;
+    }
+    this.attachmentsPanel.widthInPixels = this.textArea.width*2;
+    let fileName = "file.txt"
+    let button = this.textButton(fileName,() => this.detach(button,fileName),VRSPACEUI.contentBase+"/content/icons/attachment.png", this.cancelColor);
+    this.attachmentsPanel.addControl(button);
+    this.attached.push(button);
+  }
+  detach(button,fileName) {
+    console.log("TODO detach"+fileName);
+    this.attachmentsPanel.removeControl(button);
+    this.attached.splice(this.attached.indexOf(button),1);
+    if ( this.attached.length == 0 ) {
+      this.attachmentsPanel.widthInPixels = 64;
+      this.attachButton.isVisible = false;
+    }
   }
 }
 
