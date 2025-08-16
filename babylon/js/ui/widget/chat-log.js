@@ -7,12 +7,52 @@ import { VRSPACEUI } from '../vrspace-ui.js';
 import { ServerCapabilities } from '../../client/openapi/model/ServerCapabilities.js';
 
 class ChatLogInput extends TextAreaInput {
+  constructor(textArea, inputName = "Write", titleText = null) {
+    super(textArea, inputName, titleText);
+    this.attachments=false;
+    this.attachButton = this.submitButton("attach", ()=>this.attach(), VRSPACEUI.contentBase+"/content/icons/attachment.png");
+    //somehow gets overridden and becomes left:
+    //this.attachButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    this.attachButton.background = this.background;
+  }
+  init() {
+    super.init();
+    this.plane.position.y -= 0.02; 
+  }
+  createPanel() {
+    super.createPanel();
+    this.panel.width = 1;
+    this.panel.heightInPixels = this.heightInPixels;
+    
+    this.parentPanel = new BABYLON.GUI.StackPanel('StackPanel-parent');
+    this.parentPanel.isVertical = true;
+    this.parentPanel.width = 1;
+    this.parentPanel.heightInPixels = this.heightInPixels*4;
+    
+    this.attachmentsPanel = new BABYLON.GUI.StackPanel('StackPanel-attachments');
+    this.attachmentsPanel.isVertical = false;
+    // disables alignment for reasons unknown:
+    //this.attachmentsPanel.widthInPixels = this.textArea.width*2;
+    this.attachmentsPanel.widthInPixels = 64;
+    this.attachmentsPanel.heightInPixels = this.heightInPixels;
+    this.attachmentsPanel.addControl(this.attachButton);
+    
+    this.parentPanel.addControl(this.panel);
+    this.parentPanel.addControl(this.attachmentsPanel);
+  }
+  createPlane(size, textureWidth, textureHeight, panel=this.panel) {
+    super.createPlane(size,textureWidth, textureHeight, this.parentPanel);
+  }
   inputFocused(input, focused) {
     super.inputFocused(input,focused);
+    //this.attachButton.isVisible = focused && this.attachments;
     if ( focused ) {
       console.log("Focused ", this.textArea);
       ChatLog.activeInstance = this.textArea;
     }
+  }
+  attach() {
+    console.log("attach clicked");
   }
 }
 

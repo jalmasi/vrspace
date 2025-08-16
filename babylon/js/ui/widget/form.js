@@ -242,13 +242,13 @@ export class Form {
    * At this point all UI elements should be created. 
    * TODO Form should estimate required texture width/height from elements
    */
-  createPlane(size, textureWidth, textureHeight) {
+  createPlane(size, textureWidth, textureHeight, panel=this.panel) {
     this.planeSize = size;
     this.plane = BABYLON.MeshBuilder.CreatePlane("FormPlane", {width: size*textureWidth/textureHeight, height: size});
     this.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.plane,textureWidth,textureHeight);
     // advancedTexture creates material and attaches it to the plane
     this.plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
-    this.texture.addControl(this.panel);
+    this.texture.addControl(panel);
     return this.plane;
   }
   /** 

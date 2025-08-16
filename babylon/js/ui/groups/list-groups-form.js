@@ -280,6 +280,7 @@ export class ListGroupsForm extends Form {
         group.chatlog.minimizeTitle = false;
         group.chatlog.minimizeInput = true;
         group.chatlog.autoHide = false;
+        group.chatlog.input.attachments=true;
         if (this.stackVertical) {
           group.chatlog.verticalAnchor = group.chatlog.verticalAnchor + 0.05 * (ChatLog.instanceCount - 1);
         }
