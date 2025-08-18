@@ -376,12 +376,15 @@ export class ChatLog extends TextArea {
    * Log something written by someone.
    * @param {String} who who wrote that
    * @param {String} what what they wrote
-   * @param {object} link metadata of the link 
+   * @param {object} link world link 
    */
   log( who, what, link, local ) {
     this.input.write(what,who);
     if ( link ) {
-      this.showLink(link.link, true);
+      // FIXME: called from ListGroupsForm, twice
+      // CHECKME: where this metadata idea comes from?
+      this.showLink(link, true);
+      //this.showLink(link.link, true);
     }
   }
   attachToHud(){

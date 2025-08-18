@@ -231,6 +231,7 @@ export class MediaStreams {
   @param {boolean} playing false if stream is created but not yet playing, true when starts playing 
    */
   streamingStart(subscriber, playing) {
+    console.log("streamingStart "+playing, subscriber);
     if ( !playing ) {
       // stream is created but not playing, just return for backwards compatibility
       return;
@@ -269,7 +270,7 @@ export class MediaStreams {
       console.log("Already streaming to avatar of client " + client.id+" - stream ignored");
       return;
     }
-    console.log("Streaming to avatar of client " + client.id, mesh);
+    console.log("Streaming to avatar of client " + client.id + " of " + this.subscribers.length, mesh);
     if ( !mesh ) {
       throw "Null mesh";      
     }
@@ -277,6 +278,7 @@ export class MediaStreams {
     for (let i = 0; i < this.subscribers.length; i++) {
       let subscriber = this.subscribers[i];
       let data = this.getClientData(subscriber);
+      console.log(data);
       if (client.id == data.clientId) {
         // matched
         let mediaStream = this.getStream(subscriber);
