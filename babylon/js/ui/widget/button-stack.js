@@ -70,8 +70,12 @@ export class ButtonStack {
     }
   }
   
-  // FIXME local is not used, enterWorld is always local
-  addLink(word, enterWorld, local){
+  /**
+   * Add a link button to the stack, called when ChatLog finds a link in the chat.
+   * @param {string} word A single word to display on the button, e.g. web site name
+   * @param {boolean} enterWorld Whether the link points to another world
+   */
+  addLink(word, enterWorld){
     let link = new Link(word, enterWorld);
     this.scroll();
     
@@ -98,6 +102,12 @@ export class ButtonStack {
     return link;
   }
   
+  /**
+   * @param {string} link url
+   * @param {string} name Icon under /content/icons to display
+   * @param {*} callback function 
+   * @private 
+   */
   addButton(link, name, callback) {
     let button = BABYLON.GUI.Button.CreateImageOnlyButton(name+"-"+link.site, VRSPACEUI.contentBase+"/content/icons/"+name+".png");
     let buttonPlane = BABYLON.MeshBuilder.CreatePlane(name+"-"+link.site, {height:1,width:1});
@@ -116,7 +126,11 @@ export class ButtonStack {
     this.meshes.push(buttonPlane);
   }
   
-  /** @param {Link} link */
+  /**
+   * Called on click, opens the link either in a new tab, or internal browser if available
+   * @private 
+   * @param {Link} link 
+   */
   async clicked(link) {
     // process invitations
     console.log("Clicked "+link.url);
@@ -130,6 +144,11 @@ export class ButtonStack {
     }
   }
   
+  /** 
+   * Opens the URL in internal browser
+   * @private
+   * @param {string} url link to open 
+   */
   openBrowser(url) {
     if ( this.browser ) {
       this.browser.dispose();
@@ -138,13 +157,17 @@ export class ButtonStack {
     this.browser.show();
     //this.browser.attachToCamera();
     this.browser.attachToHud();
-    if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".jpg") ) {
+    if ( url.toLowerCase().endsWith(".jpg") || url.toLowerCase().endsWith(".png") ) {
       this.browser.loadUrl(url);
     } else {
       this.browser.get(url);
     }
   }
-  
+
+  /**
+   * Scroll all buttons up to make space for a new one, keeps only this.capacity buttons.
+   * @private
+   */  
   scroll() {
     if ( this.links.length == this.capacity ) {
       this.links[0].dispose();
@@ -158,7 +181,10 @@ export class ButtonStack {
       this.links[i].buttons.forEach(b=>b.position.y = y );
     }
   }
-  
+
+  /**
+   * Clean up all resources 
+   */  
   dispose() {
     this.scene.onPointerObservable.remove(this.clickHandler);
     this.links.forEach(l=>l.dispose());
@@ -168,6 +194,9 @@ export class ButtonStack {
     }
   }
   
+  /**
+   * XR stuff
+   */
   isSelectableMesh(mesh) {
     return this.meshes.includes(mesh);
   }

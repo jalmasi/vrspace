@@ -154,6 +154,7 @@ export class ChatLog extends TextArea {
     this.anchor = this.baseAnchor;
     this.leftSide();
     this.buttonStack = new ButtonStack(this.scene, this.group, new BABYLON.Vector3(this.size/2*1.25,-this.size/2,0));
+    // TODO document listener arguments
     this.listeners = [];
     ChatLog.instanceCount++;
     ChatLog.instances[this.instanceId()] = this;
@@ -219,6 +220,9 @@ export class ChatLog extends TextArea {
       //this.showLink(link.link, true);
     }
   }
+  /**
+   * Attach chatlog to the HUD
+   */
   attachToHud(){
     super.attachToHud();
   }
@@ -246,6 +250,7 @@ export class ChatLog extends TextArea {
   }
   /**
    * Handle window resize, recalculates the current anchor and positions appropriatelly.
+   * @private
    */
   handleResize() {
     let aspectRatio = this.scene.getEngine().getAspectRatio(this.scene.activeCamera);
@@ -257,10 +262,12 @@ export class ChatLog extends TextArea {
     //console.log("Aspect ratio: "+aspectRatio+" anchor "+Math.sign(this.anchor)+" "+this.anchor+" base "+this.baseAnchor+" diff "+diff);
     this.moveToAnchor();
   }
+  /** @private */
   hasLink(line) {
     // TODO improve link detection
     return line.indexOf("://") > -1 || line.indexOf('www.') > -1 ;
   }
+  /** @private */
   processLinks(line) {
     if ( this.showLinks && typeof(line) === "string" && this.hasLink(line)) {
       line.split(' ').forEach((word)=>{
@@ -270,34 +277,53 @@ export class ChatLog extends TextArea {
       });
     }
   }
-  showLink(word, enterWorld, local) {
+  /** @private */
+  showLink(word, enterWorld) {
     console.log("Link found: "+word);
     this.buttonStack.addLink(word, enterWorld);
   }
+  // FIXME this doesn't seem to be used
   write(string) {
     this.processLinks(string);
     super.write(string);
     this.hide(false);
   }
+  /** @private */
   setActiveInstance() {
     ChatLog.activeInstance = this;
     console.log("Focused ", this);
   }
+  /** @private */
   clearActiveInstance() {
     if ( ChatLog.activeInstance == this ) {
       console.log("Focus removed from ", this);
       ChatLog.activeInstance = null;
     }
   }
+  
+  /**
+   * Share a world: notifies all the listeners (world or group) with the world name, content and link
+   */
+  shareWorld(worldName, href) {
+    this.notifyListeners(worldName, { content: worldName, link: href });
+  }
+  
+  /**
+   * Notify all chatlog listeners that the text has changed.
+   * @private
+   */
   notifyListeners(text,data,attachments) {
     this.listeners.forEach(l=>l(text, data, attachments));
   }
+  
   /**
-   * Add a listener to be called when input text is changed
+   * Add a listener to be called when input text is changed.
+   * Listeners are current world, groups, i.e. whatever this chat is for.
    */
   addListener(listener) {
     this.listeners.push(listener);
   }
+  
   /** Remove a listener */
   removeListener(listener) {
     let pos = this.listeners.indexOf(listener);
@@ -316,6 +342,7 @@ export class ChatLog extends TextArea {
     delete ChatLog.instances[this.instanceId()];
     ChatLog.instanceCount--;
   }
+  
   /** XR pointer selection support */
   isSelectableMesh(mesh) {
     return super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.buttonStack.isSelectableMesh(mesh);
