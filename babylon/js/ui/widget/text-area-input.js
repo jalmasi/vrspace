@@ -1,4 +1,5 @@
 import { InputForm } from './input-form.js';
+import { TextArea } from './text-area.js';
 
 /**
  * Form attached to TextArea facitilates keyboard input. Contains a TextBlock, InputText and a submit button.
@@ -8,12 +9,13 @@ import { InputForm } from './input-form.js';
  */
 export class TextAreaInput extends InputForm {
   /**
-   * @param textArea TextArea to attach to
-   * @param inputName optional InputText name, displayed TextBlock before the InputText, defaults to "Write"
-   * @param titleText optional text to display on label above the area
+   * @param {TextArea} textArea TextArea to attach to
+   * @param {string} [inputName="Write"] optional InputText name, displayed TextBlock before the InputText, defaults to "Write"
+   * @param {null} [titleText=null] optional text to display on label above the area
    */
   constructor(textArea, inputName = "Write", titleText = null) {
     super(inputName);
+    /** @type TextArea */
     this.textArea = textArea;
     this.textArea.titleText = titleText;
     this.inputName = inputName;

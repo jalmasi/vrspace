@@ -310,9 +310,11 @@ export class ListGroupsForm extends Form {
           if (event.message && group.id == event.message.group.id) {
             // different serialization:
             //group.chatlog.log(event.message.from.User.name, event.message.content, event.message.link, event.message.local);
-            group.chatlog.log(event.message.from.name, event.message.content, event.message.link, event.message.local);
+            //group.chatlog.log(event.message.from.name, event.message.content, event.message.link, event.message.local);
+            group.chatlog.logMessage(event.message);
           } else if (event.attachment && group.id == event.attachment.group.id) {
             console.log("TODO process message attachments");
+            group.chatlog.addAttachment(event.attachment.attachments[event.attachment.attachments.length-1]);
           }
         });
       }
@@ -332,7 +334,8 @@ export class ListGroupsForm extends Form {
       this.groupApi.listUnreadMessages(group.id).then(messages => {
         messages.forEach(message => {
           // CHECKME: include links?
-          group.chatlog.log(message.from.name, message.content, message.link);
+          //group.chatlog.log(message.from.name, message.content, message.link);
+          group.chatlog.logMessage(message);
         });
       });
 

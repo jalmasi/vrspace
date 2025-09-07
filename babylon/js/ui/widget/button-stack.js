@@ -4,6 +4,21 @@ import { VRSpaceAPI } from './../../client/rest-api.js'
 import { VRSPACEUI } from '../vrspace-ui.js';
 import { ServerCapabilities } from '../../client/openapi/model/ServerCapabilities.js';
 
+class Attachment {
+  constructor(fileName) {
+    this.fileName = fileName;
+    this.label = null;
+    this.buttons = [];
+  }  
+  dispose() {
+    this.label.dispose();
+    this.buttons.forEach(b=>b.dispose());
+  }
+  getText() {
+    return this.fileName;
+  }
+}
+
 class Link {
   constructor( text, enterWorld=false ) {
     this.url = text;
@@ -40,6 +55,9 @@ class Link {
     this.label.dispose();
     this.buttons.forEach(b=>b.dispose());
   }
+  getText() {
+    return this.site;
+  }
 }
 
 export class ButtonStack {
@@ -54,7 +72,7 @@ export class ButtonStack {
     this.links = [];
     this.meshes = []; // XR selectables
     this.clickHandler = this.scene.onPointerObservable.add((pointerInfo) => {
-      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN
+      if ( pointerInfo.type == BABYLON.PointerEventTypes.POINTERUP
         && pointerInfo.pickInfo.hit
       ) {
         for ( let i = 0; i < this.links.length; i++ ) {
@@ -72,6 +90,7 @@ export class ButtonStack {
   
   /**
    * Add a link button to the stack, called when ChatLog finds a link in the chat.
+   * Also creates buttons to enter world, open link in new tab, internal browser if available.
    * @param {string} word A single word to display on the button, e.g. web site name
    * @param {boolean} enterWorld Whether the link points to another world
    */
@@ -84,33 +103,41 @@ export class ButtonStack {
       this.addButton(link, "enter", () => link.openHere(enterWorld));
     } else {
       this.addButton(link, "external-link", () => link.openTab());
-      if (ButtonStack.serverCapablities.remoteBrowser) {
+      if (ButtonStack.serverCapablities && ButtonStack.serverCapablities.remoteBrowser) {
         this.addButton(link, "play", () => this.openBrowser(link.url));
       }
     }
 
-    let x = this.scaling.x*link.buttons.length+this.position.x+link.site.length/(Label.fontRatio*2)*this.scaling.x;
+    return this.addLabel(link);
+  }
+
+  /**
+   * Add a label with the link/attachment text
+   * @private
+   */
+  addLabel(link) {
+    let x = this.scaling.x*link.buttons.length+this.position.x+link.getText().length/(Label.fontRatio*2)*this.scaling.x;
     let pos = new BABYLON.Vector3(x,this.position.y,this.position.z);
-    let label = new Label(link.site,pos,this.parent);
+    let label = new Label(link.getText(),pos,this.parent);
     //label.background = "black";
     label.display();
     label.textPlane.scaling = this.scaling;
     link.label = label;
-    
+
     this.links.push(link);
     this.meshes.push(label.textPlane);
     return link;
   }
-  
+    
   /**
-   * @param {string} link url
+   * @param {Link} link world/web link
    * @param {string} name Icon under /content/icons to display
    * @param {*} callback function 
    * @private 
    */
   addButton(link, name, callback) {
-    let button = BABYLON.GUI.Button.CreateImageOnlyButton(name+"-"+link.site, VRSPACEUI.contentBase+"/content/icons/"+name+".png");
-    let buttonPlane = BABYLON.MeshBuilder.CreatePlane(name+"-"+link.site, {height:1,width:1});
+    let button = BABYLON.GUI.Button.CreateImageOnlyButton(name+"-"+link.getText(), VRSPACEUI.contentBase+"/content/icons/"+name+".png");
+    let buttonPlane = BABYLON.MeshBuilder.CreatePlane(name+"-"+link.getText(), {height:1,width:1});
     buttonPlane.parent = this.parent;
     buttonPlane.position = new BABYLON.Vector3(this.position.x + this.scaling.x*link.buttons.length,this.position.y,this.position.z);
     buttonPlane.scaling = this.scaling;
@@ -121,20 +148,32 @@ export class ButtonStack {
       false // mouse events disabled
     );
     buttonTexture.addControl(button);
-    button.onPointerDownObservable.add( () => callback());
+    button.onPointerUpObservable.add( () => callback());
     link.buttons.push(buttonPlane);    
     this.meshes.push(buttonPlane);
   }
   
+  addAttachment(fileName) {
+    let attachment = new Attachment(fileName);
+    this.scroll();
+  
+    this.addButton(attachment, "attachment", () => console.log("TODO attachment button clicked"));
+  
+    return this.addLabel(attachment);
+  }
+  
   /**
-   * Called on click, opens the link either in a new tab, or internal browser if available
+   * Called on click on a link, opens the link either in a new tab, or internal browser if available.
+   * This only handles click on the link itself, click on a button behavior is defined in addLink().
    * @private 
-   * @param {Link} link 
+   * @param {Link|Attachment} link 
    */
   async clicked(link) {
     // process invitations
-    console.log("Clicked "+link.url);
-    if ( link.enterWorld ) {
+    console.log("Clicked "+link.getText());
+    if ( link.fileName ) {
+      console.log("TODO attachment clicked");
+    } else if ( link.enterWorld ) {
       // CHECKME
       link.openHere(true);
     } else if (ButtonStack.serverCapablities.remoteBrowser) {

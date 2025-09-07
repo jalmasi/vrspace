@@ -401,11 +401,22 @@ export class Terrain extends VRObject {
   }
 }
 
+export class Content {
+  constructor() {
+    /** @type {string|null} */
+    this.fileName = null;
+    /** @type {string|null} */
+    this.contentType = null;
+    /** @type {number|null} */
+    this.length = null;
+  }
+}
+
 export class VRFile extends VRObject {
   constructor() {
     super();
     this.className = 'VRFile';
-    /** Content object contains fileName, contentType, length */    
+    /** @type {Content|null} */    
     this.content = null;
   }
 }
@@ -537,9 +548,17 @@ export class GroupMessage {
     this.from = null;
     /** @type {UserGroup} */
     this.group = null;
+    /** @type {string} */
     this.content = null;
+    /** @type {string} */
     this.link = null;
+    // CHECKME worldId used only for world invitations/shares
+    /** @type {Date} */
+    this.timestamp = null;
+    /** @type {boolean} */
     this.local = null;
+    /** @type {Array.<Content>} */ 
+    this.attachments = [];
   }
 }
 
@@ -554,6 +573,8 @@ export class GroupEvent {
     this.ask = null;
     /** @type {GroupMember} */
     this.allowed = null;
+    /** @type {GroupMessage} */
+    this.attachment = null;
   }
 }
 

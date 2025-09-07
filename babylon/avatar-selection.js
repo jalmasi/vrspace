@@ -152,12 +152,12 @@ export class AvatarSelection extends World {
                 this.loadCharacterUrl(me.mesh);
               }
             }
+            this.loginForm.dispose();
           } else {
             console.log("WARNING: user is logged in but has no avatar");
             // TODO
             // apparently user can be authenticated via Oauth2 but not to vrspace server
           }
-          this.loginForm.dispose();
         });
         // this may not work for new clients, as they do not exist in the database yet
         // they get created only after entering any world for the first time

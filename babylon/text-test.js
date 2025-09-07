@@ -197,6 +197,9 @@ export class TextWorld extends World {
     // chatlog test
     let chatLog = new ChatLog(this.scene);
     chatLog.show();
+    chatLog.write("Test write method");
+    chatLog.log("tester", "Test link to www.vrspace.org");
+    chatLog.logMessage({from:{name:"from"},content:"Test message",attachments:[{fileName:"myFile.txt"}]});
     //this.selectables.push(chatLog);
     
     // detach/attach to hud/camera test

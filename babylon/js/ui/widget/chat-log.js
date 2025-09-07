@@ -1,6 +1,7 @@
 import { TextArea } from './text-area.js';
 import { TextAreaInput } from './text-area-input.js';
 import { ButtonStack } from './button-stack.js';
+import { Content, GroupMessage } from '../../client/vrspace.js';
 
 class ChatLogInput extends TextAreaInput {
   constructor(textArea, inputName = "Write", titleText = null) {
@@ -205,11 +206,32 @@ export class ChatLog extends TextArea {
     this.resizeHandler = () => this.handleResize();
     window.addEventListener("resize", this.resizeHandler);
   }
+  
+  /**
+   * CHECKME this may make things easier but introduces dependency on the client
+   * @param {Content} content 
+   */
+  addAttachment(content) {
+    this.buttonStack.addAttachment(content.fileName);
+  }
+  
+  /**
+   * CHECKME this may make things easier but introduces dependency on the client
+   * @param {GroupMessage} groupMessage 
+   */
+  logMessage(groupMessage) {
+    this.log(groupMessage.from.name, groupMessage.content, groupMessage.link);
+    if ( groupMessage.attachments ) {
+      groupMessage.attachments.forEach(a=>this.addAttachment(a));
+    }
+  }
+  
   /**
    * Log something written by someone.
    * @param {String} who who wrote that
    * @param {String} what what they wrote
-   * @param {object} link world link 
+   * @param {object} link world link
+   * @param {boolean} local FIXME not used  
    */
   log( who, what, link, local ) {
     this.input.write(what,who);
@@ -282,7 +304,9 @@ export class ChatLog extends TextArea {
     console.log("Link found: "+word);
     this.buttonStack.addLink(word, enterWorld);
   }
-  // FIXME this doesn't seem to be used
+  /**
+   * Internally called on text input.
+   */
   write(string) {
     this.processLinks(string);
     super.write(string);

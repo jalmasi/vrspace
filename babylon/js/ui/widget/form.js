@@ -187,7 +187,7 @@ export class Form {
       if ( command ) {
         this.speechInput.addCommand(command, () => callback(this));
       }
-      button.onPointerDownObservable.add( () => callback(this));
+      button.onPointerUpObservable.add( () => callback(this));
     }
     
     this.elements.push(button);
@@ -354,7 +354,7 @@ export class Form {
       if ( this.activeControl.getClassName() == "Checkbox") {
         this.activeControl.isChecked = !this.activeControl.isChecked;
       } else if ( this.activeControl.getClassName() == "Button") {
-        this.activeControl.onPointerDownObservable.observers.forEach(observer=>observer.callback(this));
+        this.activeControl.onPointerUpObservable.observers.forEach(observer=>observer.callback(this));
       } else if ( this.activeControl.getClassName() == "InputText") {
         console.log("activating keyboard");
         this.activeControl.disableMobilePrompt = true;
