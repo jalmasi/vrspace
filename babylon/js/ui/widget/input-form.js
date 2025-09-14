@@ -18,6 +18,7 @@ export class InputForm extends Form {
         this.notifyListeners(this.input.text);
       }
     }
+    this.enterCallback = this.buttonCallback;
   }
   /**
    * Creates the StackPanel, adds components, creates plane, texture and virtual keyboard.
@@ -31,6 +32,15 @@ export class InputForm extends Form {
     this.panel.addControl(textBlock);
 
     this.input = this.inputText(this.inputName.trim().toLowerCase());
+    if ( this.enterCallback ) {
+      // onEnterPressedObservable does not exist in current babylon version
+      //this.input.onEnterPressedObservable.add((control) => this.enterCallback(this,control));
+      this.input.onKeyboardEventProcessedObservable.add(event=>{
+        if ( event.keyCode == 13 ) {
+          this.enterCallback();
+        }
+      });
+    }
     this.addControl(this.input);
 
     let button;

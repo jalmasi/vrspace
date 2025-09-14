@@ -4,6 +4,7 @@ import { ButtonStack } from './button-stack.js';
 import { GroupMessage } from '../../client/vrspace.js';
 import { VRSpaceAPI } from '../../client/rest-api.js';
 import { GroupsApi } from '../../client/openapi/api/GroupsApi.js';
+import { VRSPACEUI } from '../vrspace-ui.js';
 
 class ChatLogInput extends TextAreaInput {
   constructor(textArea, inputName = "Write", titleText = null) {
@@ -19,7 +20,9 @@ class ChatLogInput extends TextAreaInput {
   }
   init() {
     super.init();
-    this.plane.position.y -= 0.02; 
+    this.plane.position.y -= 0.02;
+    // we don't want to send a message when focus is lost:
+    this.inputFocusListener = null;
   }
   createPanel() {
     super.createPanel();

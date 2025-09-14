@@ -41,6 +41,7 @@ export class TextAreaInput extends InputForm {
         this.processInput();
       }
     }
+    this.enterCallback = this.buttonCallback;
 
     this.inputWidth = this.textArea.width * 2;
     this.size = this.textArea.size / 2;
