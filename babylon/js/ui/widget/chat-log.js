@@ -1,7 +1,9 @@
 import { TextArea } from './text-area.js';
 import { TextAreaInput } from './text-area-input.js';
 import { ButtonStack } from './button-stack.js';
-import { Content, GroupMessage } from '../../client/vrspace.js';
+import { GroupMessage } from '../../client/vrspace.js';
+import { VRSpaceAPI } from '../../client/rest-api.js';
+import { GroupsApi } from '../../client/openapi/api/GroupsApi.js';
 
 class ChatLogInput extends TextAreaInput {
   constructor(textArea, inputName = "Write", titleText = null) {
@@ -159,6 +161,8 @@ export class ChatLog extends TextArea {
     this.listeners = [];
     ChatLog.instanceCount++;
     ChatLog.instances[this.instanceId()] = this;
+    /** @type {GroupsApi} */
+    this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
   }
   instanceId() {
     return ChatLog.instanceId(this.name, this.titleText);
@@ -209,10 +213,21 @@ export class ChatLog extends TextArea {
   
   /**
    * CHECKME this may make things easier but introduces dependency on the client
-   * @param {Content} content 
+   * @param {GroupMessage} groupMessage 
    */
-  addAttachment(content) {
-    this.buttonStack.addAttachment(content.fileName);
+  addAttachment(groupMessage) {
+    let content = groupMessage.attachments[groupMessage.attachments.length-1];
+    this.buttonStack.addAttachment(content.fileName, () => {
+      console.log("Attachment callback group "+groupMessage.group.id+" msg "+groupMessage.id);
+      VRSpaceAPI.getInstance().downloadAttachment(groupMessage.group.id,groupMessage.id,content.fileName);
+      /*
+      this.groupApi.getAttachment(groupMessage.group.id,groupMessage.id,content.fileName).then(
+        ()=>console.log("TODO download attachment")
+      ).catch(
+        ()=>console.log("TODO download attachment failed")        
+      );
+      */
+    });
   }
   
   /**
@@ -222,7 +237,7 @@ export class ChatLog extends TextArea {
   logMessage(groupMessage) {
     this.log(groupMessage.from.name, groupMessage.content, groupMessage.link);
     if ( groupMessage.attachments ) {
-      groupMessage.attachments.forEach(a=>this.addAttachment(a));
+      this.addAttachment(groupMessage);
     }
   }
   

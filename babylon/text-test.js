@@ -199,7 +199,13 @@ export class TextWorld extends World {
     chatLog.show();
     chatLog.write("Test write method");
     chatLog.log("tester", "Test link to www.vrspace.org");
-    chatLog.logMessage({from:{name:"from"},content:"Test message",attachments:[{fileName:"myFile.txt"}]});
+    chatLog.logMessage({
+      id:"UUID1",
+      from:{name:"from"},
+      content:"Test message",
+      attachments:[{fileName:"myFile.txt"}],
+      group: {id:"UUID123", name:"Test group"}
+    });
     //this.selectables.push(chatLog);
     
     // detach/attach to hud/camera test

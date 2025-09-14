@@ -544,6 +544,8 @@ export class GroupMember {
 
 export class GroupMessage {
   constructor() {
+    /** @type {String} */
+    this.id = null;
     /** @type {Client} */
     this.from = null;
     /** @type {UserGroup} */

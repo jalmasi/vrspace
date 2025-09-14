@@ -209,6 +209,12 @@ export class VRSpaceAPI {
 
   }
 
+  /**
+   * Attach a file to a group message
+   * @param {File} file
+   * @param {string} groupId
+   * @param {string} messageId   
+   */
   attach(file,groupId,messageId){
     const formData = new FormData();
     formData.append('fileName', file.name);
@@ -224,6 +230,33 @@ export class VRSpaceAPI {
       body: formData
     });
   }
+
+  /**
+   * Download a file attached to a group message.
+   * @param {string} groupId
+   * @param {string} messageId
+   * @param {string} fileName
+   */
+  downloadAttachment(groupId,messageId,fileName){
+    fetch(this.base + '/groups/'+groupId+'/'+messageId+'/attachment/'+fileName)
+    // TODO this piece of code gets copied around too much, make a common function
+    .then(res=>{
+      // TODO error handling
+      return res.blob();
+    }).then(blob=>{
+      const href = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), {
+        href,
+        style: "display:none",
+        download: fileName
+      });
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(href);
+      a.remove();
+    });
+  }
+
   
   /**
    * Internal used by webpushSubscribe

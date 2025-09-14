@@ -5,10 +5,11 @@ import { VRSPACEUI } from '../vrspace-ui.js';
 import { ServerCapabilities } from '../../client/openapi/model/ServerCapabilities.js';
 
 class Attachment {
-  constructor(fileName) {
+  constructor(fileName, callback) {
     this.fileName = fileName;
     this.label = null;
     this.buttons = [];
+    this.callback = callback;
   }  
   dispose() {
     this.label.dispose();
@@ -153,11 +154,11 @@ export class ButtonStack {
     this.meshes.push(buttonPlane);
   }
   
-  addAttachment(fileName) {
-    let attachment = new Attachment(fileName);
+  addAttachment(fileName, callback) {
+    let attachment = new Attachment(fileName, callback);
     this.scroll();
   
-    this.addButton(attachment, "attachment", () => console.log("TODO attachment button clicked"));
+    this.addButton(attachment, "attachment", () => callback());
   
     return this.addLabel(attachment);
   }
@@ -172,7 +173,9 @@ export class ButtonStack {
     // process invitations
     console.log("Clicked "+link.getText());
     if ( link.fileName ) {
-      console.log("TODO attachment clicked");
+      if ( link.callback ) {
+        link.callback();
+      }
     } else if ( link.enterWorld ) {
       // CHECKME
       link.openHere(true);

@@ -314,7 +314,7 @@ export class ListGroupsForm extends Form {
             group.chatlog.logMessage(event.message);
           } else if (event.attachment && group.id == event.attachment.group.id) {
             console.log("TODO process message attachments");
-            group.chatlog.addAttachment(event.attachment.attachments[event.attachment.attachments.length-1]);
+            group.chatlog.addAttachment(event.attachment);
           }
         });
       }
