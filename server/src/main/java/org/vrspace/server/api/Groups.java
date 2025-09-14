@@ -312,7 +312,8 @@ public class Groups extends ClientControllerBase {
     Client client = getAuthorisedClient(session);
     UserGroup group = groupManager.getGroupById(client, groupId);
     log.debug("Unread messages, user: " + client + " group: " + group);
-    return groupManager.unreadMessages(client, group);
+    List<GroupMessage> ret = groupManager.unreadMessages(client, group);
+    return ret;
   }
 
   /**

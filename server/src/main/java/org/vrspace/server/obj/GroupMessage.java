@@ -46,6 +46,7 @@ public class GroupMessage extends Entity {
   /** Used along the link, true if the link points to a world on this server */
   private Boolean local;
   /** Attached files */
+  @Relationship(type = "ATTACHED", direction = Relationship.Direction.INCOMING)
   private List<Content> attachments;
 
   public GroupMessage(Client from, UserGroup group, String content, Instant timestamp) {

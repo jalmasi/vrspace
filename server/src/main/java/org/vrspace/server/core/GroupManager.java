@@ -500,7 +500,10 @@ public class GroupManager {
     Instant lastRead = member.getLastRead();
     member.setLastRead(now);
     save(member);
-    return groupRepo.messagesSince(group.getId(), lastRead);
+    List<GroupMessage> shallow = groupRepo.messagesSince(group.getId(), lastRead);
+    List<GroupMessage> deep = shallow.stream().map(msg -> db.get(GroupMessage.class, msg.getId()))
+        .collect(Collectors.toList());
+    return deep;
   }
 
   @Transactional

@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Content;
+import org.vrspace.server.obj.GroupMember;
 import org.vrspace.server.obj.GroupMessage;
 import org.vrspace.server.obj.UserGroup;
 
@@ -216,6 +217,11 @@ public class GroupManagerIT {
     assertEquals(file1, c1);
     assertEquals(file2, c2);
 
+    List<GroupMessage> unread1 = gm.unreadMessages(client, group1);
+
+    assertEquals(1, unread1.size());
+    assertEquals(2, unread1.get(0).getAttachments().size());
+
     // delete attachment(s)
     gm.detach(client, group1, id, file1.getFileName());
 
@@ -223,5 +229,15 @@ public class GroupManagerIT {
 
     assertEquals(1, msg.getAttachments().size());
     assertEquals("file2", msg.getAttachments().get(0).getFileName());
+
+    // hack to reset last read timestamp
+    GroupMember member = groupRepo.findGroupMember(group1.getId(), client.getId()).get();
+    member.setLastRead(null);
+    db.save(member);
+
+    List<GroupMessage> unread2 = gm.unreadMessages(client, group1);
+
+    assertEquals(1, unread2.size());
+    assertEquals(1, unread2.get(0).getAttachments().size());
   }
 }

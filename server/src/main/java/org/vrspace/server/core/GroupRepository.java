@@ -52,12 +52,23 @@ public interface GroupRepository extends Neo4jRepository<Entity, String>, VRSpac
   @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup) WHERE ug.id=$groupId AND gm.pendingRequest IS NOT NULL RETURN gm, c, mc, r, ug")
   List<GroupMember> listPendingRequests(String groupId);
 
-  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup), (s:Client)<-[sc:SPONSOR_CLIENT]-(gm:GroupMember) WHERE c.id=$clientId AND gm.pendingInvite IS NOT NULL RETURN gm, c, mc, r, ug, sc, s ORDER BY ug.name")
+  @Query("MATCH (c:Client)<-[mc:MEMBER_CLIENT]-(gm:GroupMember)-[r:IS_MEMBER_OF]->(ug:UserGroup), (s:Client)<-[sc:SPONSOR_CLIENT]-(gm:GroupMember) "
+      + "WHERE c.id=$clientId AND gm.pendingInvite IS NOT NULL RETURN gm, c, mc, r, ug, sc, s ORDER BY ug.name")
   List<GroupMember> listPendingInvitations(String clientId);
 
   @Query("MATCH (msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ug.id=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return count(msg)")
   Integer unreadMessageCount(String groupId, Instant since);
 
-  @Query("MATCH (c:Client)<-[mc:SENDER_CLIENT]-(msg:GroupMessage)-[r:PARENT_GROUP]->(ug:UserGroup) WHERE ug.id=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return msg, mc, c ORDER BY msg.timestamp")
+  /*
+  none of these queries work, return one valid and another invalid (empty) GroupMessage
+  @Query("MATCH (msg:GroupMessage)-[p:PARENT_GROUP]->(ug:UserGroup) "
+      + "WHERE ug.id=$groupId AND ($since IS NULL OR msg.timestamp >= $since) "
+      + "CALL { WITH msg MATCH (c:Client)<-[mc:SENDER_CLIENT]-(msg)<-[r:ATTACHED]-(a:Content) RETURN c, mc, r, a } "
+      + "return msg, ug, p, mc, c, r, a ORDER BY msg.timestamp")
+  @Query("MATCH (msg:GroupMessage)-[p:PARENT_GROUP]->(ug:UserGroup), (c:Client)<-[mc:SENDER_CLIENT]-(msg)<-[r:ATTACHED]-(a:Content)"
+      + "WHERE ug.id=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return msg, p, ug, msg.from, c, a, r ORDER BY msg.timestamp")
+  so we return shallow copy and get every object again
+   */
+  @Query("MATCH (msg:GroupMessage)-[p:PARENT_GROUP]->(ug:UserGroup) WHERE ug.id=$groupId AND ($since IS NULL OR msg.timestamp >= $since) return msg ORDER BY msg.timestamp")
   List<GroupMessage> messagesSince(String groupId, Instant since);
 }
