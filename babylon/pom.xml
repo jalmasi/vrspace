@@ -151,8 +151,6 @@
                     <argument>js/vrspace-min.js</argument>
                     <argument>--declaration</argument>
                     <argument>--allowJs</argument>
-                    <argument>--declaration</argument>
-                    <argument>--allowJs</argument>
                     <argument>--emitDeclarationOnly</argument>
                     <argument>--outDir</argument>
                     <argument>types</argument>

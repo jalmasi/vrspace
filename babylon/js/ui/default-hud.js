@@ -19,7 +19,7 @@ import { CameraHelper } from '../core/camera-helper.js';
 import { ImageArea } from './widget/image-area.js';
 import { UserDirectionMonitor } from './widget/user-direction-monitor.js';
 import { MiniMap } from './widget/mini-map.js';
-import { GroupsUI } from './groups-ui.js';
+import { ChatUI } from './chat-ui.js';
 import { ChatLog } from './widget/chat-log.js';
 import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
@@ -56,7 +56,7 @@ export class DefaultHud {
     this.creditArea = null;
     this.worldEditorUI = null;
     this.miniMap = null;
-    this.groupsUI = null;
+    this.chatUI = null;
     this.groupEventCount = 0;
     this.groupListener = VRSPACE.addGroupListener(event => this.groupEvent(event));
     DefaultHud.instance = this;
@@ -67,9 +67,9 @@ export class DefaultHud {
       this.miniMap.dispose();
       this.miniMap = null;
     }
-    if (this.groupsUI) {
-      this.groupsUI.dispose();
-      this.groupsUI = null;
+    if (this.chatUI) {
+      this.chatUI.dispose();
+      this.chatUI = null;
     }
     if (this.settingsButton && this.displayButtons) {
       this.clearRow();
@@ -88,12 +88,12 @@ export class DefaultHud {
     } else {
       this.hud.markDisabled(this.gamesButton);
     }
-    this.addGroupsButton();
+    this.addChatButton();
   }
 
-  addGroupsButton() {
-    if (!this.groupsButton && this.isOnline() && this.isAuthenticated) {
-      this.groupsButton = this.hud.addButton("Groups", this.contentBase + "/content/icons/user-group.png", () => { this.groups() });
+  addChatButton() {
+    if (!this.chatButton && this.isOnline() && this.isAuthenticated) {
+      this.chatButton = this.hud.addButton("Chat", this.contentBase + "/content/icons/chat.png", () => { this.chat() });
     }
   }
 
@@ -326,7 +326,7 @@ export class DefaultHud {
     if (!this.displayButtons && this.isAuthenticated && !this.worldButton) {
       // add these buttons only once, to the first row along with settings button
       this.worldButton = this.hud.addButton("World", this.contentBase + "/content/icons/world-add.png", () => { this.showWorldTemplates() });
-      this.addGroupsButton();
+      this.addChatButton();
     }
   }
 
@@ -854,16 +854,16 @@ export class DefaultHud {
     }
   }
 
-  groups() {
+  chat() {
     this.displayButtons = !this.displayButtons;
     this.groupEventCount = 0;
-    this.groupsButton.text = "Groups";
-    if (this.groupsUI) {
-      this.groupsUI.hide();
-      this.groupsUI = null;
+    this.chatButton.text = "Chat";
+    if (this.chatUI) {
+      this.chatUI.hide();
+      this.chatUI = null;
     } else {
-      this.groupsUI = new GroupsUI(this.scene);
-      this.groupsUI.show(this.groupsButton);
+      this.chatUI = new ChatUI(this.scene);
+      this.chatUI.show(this.chatButton);
     }
   }
 
@@ -879,10 +879,10 @@ export class DefaultHud {
         }
       }
       this.groupEventCount++;
-      this.groupsButton.text = "Groups:" + this.groupEventCount;
-      this.groupsButton.pointerEnterAnimation();
+      this.chatButton.text = "Chat:" + this.groupEventCount;
+      this.chatButton.pointerEnterAnimation();
       setTimeout(() => {
-        if (!this.displayButtons) this.groupsButton.pointerOutAnimation()
+        if (!this.displayButtons) this.chatButton.pointerOutAnimation()
       }, 500);
     }
   }

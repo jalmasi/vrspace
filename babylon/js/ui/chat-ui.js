@@ -8,7 +8,7 @@ import { ChatLog } from './widget/chat-log.js';
 import { CreateGroupForm } from './groups/create-groups-form.js';
 import { ListGroupsForm } from './groups/list-groups-form.js';
 
-export class GroupsUI {
+export class ChatUI {
   constructor(scene) {
     this.scene = scene;
     this.hud = VRSPACEUI.hud;
@@ -139,6 +139,7 @@ export class GroupsUI {
     this.listGroupsForm.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_Y;
   }
 
+  /** List invites */
   listInvitesUI() {
     if (this.listGroupsForm) {
       this.clearForm();
@@ -154,6 +155,7 @@ export class GroupsUI {
     }
   }
 
+  /** List groups */
   listGroupsUI() {
     if (this.listGroupsForm) {
       this.clearForm();
