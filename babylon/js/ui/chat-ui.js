@@ -25,6 +25,10 @@ export class ChatUI {
     this.createGroupsButton = null;
     this.groupsInvitesButton = null;
     this.invitations = [];
+    this.listGroupsText = "List Groups";
+    this.createGroupText = "Create Group";
+    this.listDirectText = "Messages";
+    this.createDirectText = "Contact";
   }
 
   dispose() {
@@ -54,8 +58,11 @@ export class ChatUI {
     this.unreadTotal = unreadGroups.reduce((sum, group) => sum + group.unread, 0);
     this.inviteTotal = 0;
 
+    this.showChatsButton();
+    this.createChatButton = this.hud.addButton(this.createDirectText, this.contentBase + "/content/icons/user-plus.png", () => { this.createUI() });
+    
     this.showListButton();
-    this.createGroupsButton = this.hud.addButton("Create", this.contentBase + "/content/icons/user-group-plus.png", () => { this.createUI() });
+    this.createGroupsButton = this.hud.addButton(this.createGroupText, this.contentBase + "/content/icons/user-group-plus.png", () => { this.createUI() });
     this.showInvitesButton();
     this.groupApi.listInvites().then(invites => {
       this.invitations = invites;
@@ -79,8 +86,16 @@ export class ChatUI {
     });
   }
 
+  async showChatsButton() {
+    let listText = this.listDirectText;
+    if (this.listChatsButton) {
+    } else {
+      this.listChatsButton = this.hud.addButton(listText, this.contentBase + "/content/icons/user-chat.png", () => { this.listGroupsUI() }, false);
+    }
+  }
+  
   async showListButton() {
-    let listText = "List";
+    let listText = this.listGroupsText;
     if (this.unreadTotal > 0) {
       listText += ": " + this.unreadTotal;
     }

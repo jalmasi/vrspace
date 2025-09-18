@@ -9,7 +9,7 @@ import { FormArea } from '../widget/form-area.js';
 import { World } from '../../world/world.js';
 import { ChatLog } from '../widget/chat-log.js';
 import { GroupSettingsForm } from './group-settings-form.js';
-import { GroupInviteForm } from './group-invite-form.js'; 
+import { UserInviteForm } from '../widget/user-invite-form.js'; 
 import { InviteInfoForm } from './invite-info-form.js';
 import { ListMembersForm } from './list-members-form.js';
 
@@ -44,7 +44,7 @@ export class ListGroupsForm extends Form {
     this.style = null;
     /** @type {GroupSettingsForm} */
     this.settingsForm = null;
-    /** @type {GroupInviteForm} */
+    /** @type {UserInviteForm} */
     this.inviteForm = null;
     this.selectionPredicate = mesh => mesh == this.plane;
     this.groupEventListener = null;
@@ -422,7 +422,7 @@ export class ListGroupsForm extends Form {
   groupInvite(group) {
     VRSPACEUI.hud.showButtons(false);
     VRSPACEUI.hud.newRow();
-    this.inviteForm = new GroupInviteForm(this.scene, group, (ok, userId) => {
+    this.inviteForm = new UserInviteForm(this.scene, (ok, userId) => {
       if (ok) {
         this.groupApi.invite(group.id, userId);
       }
@@ -431,12 +431,7 @@ export class ListGroupsForm extends Form {
       this.trackPointer = true;
     });
     this.inviteForm.init();
-    if (VRSPACEUI.hud.inXR()) {
-      let texture = VRSPACEUI.hud.addForm(this.inviteForm, 1536, 512);
-      this.inviteForm.keyboard(texture);
-    } else {
-      VRSPACEUI.hud.addForm(this.inviteForm, 1536, 64);
-    }
+    this.inviteForm.addToHud();
     this.trackPointer = false;
   }
   dispose() {

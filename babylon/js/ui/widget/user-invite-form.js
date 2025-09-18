@@ -1,12 +1,14 @@
 import { VRSPACEUI } from '../vrspace-ui.js';
 import { VRSpaceAPI } from '../../client/rest-api.js';
-import { Form } from '../widget/form.js';
+import { Form } from './form.js';
 
-export class GroupInviteForm extends Form {
-  constructor(scene, group, callback) {
+/**
+ * Type user name, or select avatar. CHECKME requires live connection to the server
+ */
+export class UserInviteForm extends Form {
+  constructor(scene, callback) {
     super();
     this.scene = scene;
-    this.group = group;
     this.callback = callback;
     this.userApi = VRSpaceAPI.getInstance().endpoint.user;
     this.text = "Select user, or type name:"
@@ -37,19 +39,30 @@ export class GroupInviteForm extends Form {
     });
   }
   checkName() {
-    this.userApi.find(this.nameInput.text).then(client => {
-      this.clientId = client.id;
-      this.nameInput.color = this.color;
-      this.yesButton.isVisible = true;
-    }).catch(reason => {
-      console.log(reason);
-      this.nameInput.color = this.cancelColor;
-      this.yesButton.isVisible = false;
-    });
+    if ( this.nameInput.text ) {
+      this.userApi.find(this.nameInput.text).then(client => {
+        this.clientId = client.id;
+        this.nameInput.color = this.color;
+        this.yesButton.isVisible = true;
+      }).catch(reason => {
+        console.log(reason);
+        this.nameInput.color = this.cancelColor;
+        this.yesButton.isVisible = false;
+      });
+    }
   }
   dispose() {
     super.dispose();
     this.scene.onPointerObservable.remove(this.clickHandler);
+  }
+  addToHud() {
+    if (VRSPACEUI.hud.inXR()) {
+      let texture = VRSPACEUI.hud.addForm(this, 1536, 512);
+      this.keyboard(texture);
+    } else {
+      VRSPACEUI.hud.addForm(this, 1536, 64);
+    }
+    
   }
 }
 
