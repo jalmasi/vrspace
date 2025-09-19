@@ -7,6 +7,8 @@ import { Dialogue } from "./widget/dialogue.js";
 import { ChatLog } from './widget/chat-log.js';
 import { CreateGroupForm } from './groups/create-groups-form.js';
 import { ListGroupsForm } from './groups/list-groups-form.js';
+import { UserInviteForm } from './widget/user-invite-form.js';
+import { GroupHelper } from './groups/group-helper.js';
 
 export class ChatUI {
   constructor(scene) {
@@ -21,6 +23,8 @@ export class ChatUI {
     this.createGroupForm = null;
     /** @type {FormArea} */
     this.listGroupsForm = null;
+    /** @type {UserInviteForm} */
+    this.inviteForm = null;
     this.listGroupsButton = null;
     this.createGroupsButton = null;
     this.groupsInvitesButton = null;
@@ -59,7 +63,7 @@ export class ChatUI {
     this.inviteTotal = 0;
 
     this.showChatsButton();
-    this.createChatButton = this.hud.addButton(this.createDirectText, this.contentBase + "/content/icons/user-plus.png", () => { this.createUI() });
+    this.createChatButton = this.hud.addButton(this.createDirectText, this.contentBase + "/content/icons/user-plus.png", () => { this.addContactUI() });
     
     this.showListButton();
     this.createGroupsButton = this.hud.addButton(this.createGroupText, this.contentBase + "/content/icons/user-group-plus.png", () => { this.createUI() });
@@ -252,4 +256,45 @@ export class ChatUI {
     }
   }
 
+  /**
+   * Invite a user to a private chat: pop up UserInviteForm to select/enter the user, 
+   * then create a private group, and send the invite.
+   */
+  addContactUI() {
+    if ( this.inviteForm ) {
+      VRSPACEUI.hud.clearRow();
+      VRSPACEUI.hud.showButtons(true);
+      this.inviteForm.dispose();
+      this.inviteForm = null;
+    } else {
+      VRSPACEUI.hud.showButtons(false, this.createChatButton);
+      VRSPACEUI.hud.newRow();
+      this.inviteForm = new UserInviteForm(this.scene, (ok, userId, userName) => {
+        if (ok) {
+          // TODO this chat may already exist
+          let groupName = "Chat: "+userName;
+          this.groupApi.create(
+             groupName,
+             {
+               isPublic: false,
+               isTemporary: false
+             }
+          ).then(group => {
+            this.groupApi.invite(group.id, userId).then(()=>{
+              console.log("Invited "+userId+" "+userName+" to "+group.id+" "+group.name);
+              GroupHelper.showUnread(group);
+            });
+          });
+        }
+        VRSPACEUI.hud.clearRow();
+        VRSPACEUI.hud.showButtons(true);
+        this.inviteForm.dispose();
+        this.inviteForm = null;
+      });
+      this.inviteForm.init();
+      this.inviteForm.addToHud();
+    }
+  }
+
+  
 }

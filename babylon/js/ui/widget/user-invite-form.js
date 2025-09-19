@@ -15,6 +15,7 @@ export class UserInviteForm extends Form {
     this.submitText = "Invite";
     this.cancelText = "Cancel";
     this.clientId = null;
+    this.userName = null;
   }
   init() {
     this.createPanel();
@@ -23,7 +24,7 @@ export class UserInviteForm extends Form {
     //this.nameInput.onTextChangedObservable.add(()=>this.checkName());
     this.nameInput.onBlurObservable.add(() => this.checkName());
     this.addControl(this.nameInput);
-    this.yesButton = this.textButton(this.submitText, () => this.callback(true, this.clientId), VRSPACEUI.contentBase + "/content/icons/tick.png");
+    this.yesButton = this.textButton(this.submitText, () => this.callback(true, this.clientId, this.userName), VRSPACEUI.contentBase + "/content/icons/tick.png");
     this.addControl(this.yesButton);
     this.yesButton.isVisible = false;
     let noButton = this.textButton(this.cancelText, () => this.callback(false), VRSPACEUI.contentBase + "/content/icons/close.png", this.cancelColor);
@@ -42,6 +43,7 @@ export class UserInviteForm extends Form {
     if ( this.nameInput.text ) {
       this.userApi.find(this.nameInput.text).then(client => {
         this.clientId = client.id;
+        this.userName = client.name;
         this.nameInput.color = this.color;
         this.yesButton.isVisible = true;
       }).catch(reason => {

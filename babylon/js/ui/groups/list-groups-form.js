@@ -7,11 +7,11 @@ import { UserGroup } from '../../client/openapi/model/UserGroup.js';
 import { GroupMember } from '../../client/openapi/model/GroupMember.js';
 import { FormArea } from '../widget/form-area.js';
 import { World } from '../../world/world.js';
-import { ChatLog } from '../widget/chat-log.js';
 import { GroupSettingsForm } from './group-settings-form.js';
 import { UserInviteForm } from '../widget/user-invite-form.js'; 
 import { InviteInfoForm } from './invite-info-form.js';
 import { ListMembersForm } from './list-members-form.js';
+import { GroupHelper } from './group-helper.js';
 
 export class ListGroupsForm extends Form {
   constructor(scene, invites, groups, groupDeleteCallback, refreshCallback) {
@@ -273,72 +273,11 @@ export class ListGroupsForm extends Form {
     console.log("read messages of: " + group.isInvite, group);
 
     if (typeof group.chatlog == "undefined") {
-      group.chatlog = ChatLog.findInstance(group.name, "ChatLog:" + group.name);
-      if (group.chatlog == null) {
-        group.chatlog = new ChatLog(this.scene, group.name, "ChatLog:" + group.name);
-        group.chatlog.canClose = true;
-        group.chatlog.minimizeTitle = false;
-        group.chatlog.minimizeInput = true;
-        group.chatlog.autoHide = false;
-        group.chatlog.input.attachments=true;
-        if (this.stackVertical) {
-          group.chatlog.verticalAnchor = group.chatlog.verticalAnchor + 0.05 * (ChatLog.instanceCount - 1);
-        }
-        if (this.stackHorizontal) {
-          group.chatlog.baseAnchor = group.chatlog.baseAnchor + 0.25 * (ChatLog.instanceCount - 1);
-        }
-        group.chatlog.show();
-        group.chatlog.input.autoWrite = false;
-        group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
-        // add listener for share world (default-hud)
-        group.chatlog.addListener((text, data, attachments) => {
-          if (data) {
-            this.groupApi.shareWorld(group.id, data);
-          } else {
-            this.groupApi.write(group.id, text).then(msgId=>{
-              if ( attachments ) {
-                console.log("upload attachments to "+msgId);
-                attachments.forEach(file=>{
-                  VRSpaceAPI.getInstance().attach(file,group.id,msgId);
-                });
-              }
-            });
-          }
-        });
-
-        group.chatlog.groupListener = VRSPACE.addGroupListener(event => {
-          if (event.message && group.id == event.message.group.id) {
-            // different serialization:
-            //group.chatlog.log(event.message.from.User.name, event.message.content, event.message.link, event.message.local);
-            //group.chatlog.log(event.message.from.name, event.message.content, event.message.link, event.message.local);
-            group.chatlog.logMessage(event.message);
-          } else if (event.attachment && group.id == event.attachment.group.id) {
-            console.log("TODO process message attachments");
-            group.chatlog.addAttachment(event.attachment);
-          }
-        });
-      }
-
-      // previously existing chatlog refers to previously existing group, that may no longer exist/be visible
-      // so, replace existing close event handler (installed in show() call) 
-      group.chatlog.handles.onClose = () => {
-        VRSPACE.removeGroupListener(group.chatlog.groupListener);
-        group.chatlog.dispose();
-        //World.lastInstance.removeSelectionPredicate(group.chatlogSelection);
-        delete group.chatlog;
-      }
-
+      GroupHelper.attachChatlog(group, this.scene, this.stackVertical, this.stackHorizontal);
       // this is not safe to do after listUnreadMessages returns - activeRow may have be changed
       this.grid.getChildrenAt(this.activeRow, 3)[0].text = "";
       group.unread = 0;
-      this.groupApi.listUnreadMessages(group.id).then(messages => {
-        messages.forEach(message => {
-          // CHECKME: include links?
-          //group.chatlog.log(message.from.name, message.content, message.link);
-          group.chatlog.logMessage(message);
-        });
-      });
-
+      GroupHelper.showUnread(group);
     }
   }
 
@@ -419,6 +358,10 @@ export class ListGroupsForm extends Form {
     });
   }
 
+  /**
+   * Invite a user to a group: pop up UserInviteForm to select/enter the user, then send the invite.
+   * @param {UserGroup} group 
+   */
   groupInvite(group) {
     VRSPACEUI.hud.showButtons(false);
     VRSPACEUI.hud.newRow();
@@ -434,6 +377,7 @@ export class ListGroupsForm extends Form {
     this.inviteForm.addToHud();
     this.trackPointer = false;
   }
+
   dispose() {
     super.dispose();
     World.lastInstance.removeSelectionPredicate(this.selectionPredicate);
