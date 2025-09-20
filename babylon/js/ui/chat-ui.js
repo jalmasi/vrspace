@@ -28,6 +28,7 @@ export class ChatUI {
     this.listGroupsButton = null;
     this.createGroupsButton = null;
     this.groupsInvitesButton = null;
+    this.activeButton = null;
     this.invitations = [];
     this.listGroupsText = "List Groups";
     this.createGroupText = "Create Group";
@@ -55,6 +56,10 @@ export class ChatUI {
     VRSPACE.removeGroupListener(this.groupEventListener);
   }
 
+  /**
+   * Called from outside
+   * @param {*} button HUD button that activates this call
+   */
   async show(button) {
     VRSPACEUI.hud.showButtons(false, button);
     VRSPACEUI.hud.newRow();
@@ -66,7 +71,7 @@ export class ChatUI {
     this.createChatButton = this.hud.addButton(this.createDirectText, this.contentBase + "/content/icons/user-plus.png", () => { this.addContactUI() });
     
     this.showListButton();
-    this.createGroupsButton = this.hud.addButton(this.createGroupText, this.contentBase + "/content/icons/user-group-plus.png", () => { this.createUI() });
+    this.createGroupsButton = this.hud.addButton(this.createGroupText, this.contentBase + "/content/icons/user-group-plus.png", () => { this.createGroupUI() });
     this.showInvitesButton();
     this.groupApi.listInvites().then(invites => {
       this.invitations = invites;
@@ -94,7 +99,7 @@ export class ChatUI {
     let listText = this.listDirectText;
     if (this.listChatsButton) {
     } else {
-      this.listChatsButton = this.hud.addButton(listText, this.contentBase + "/content/icons/user-chat.png", () => { this.listGroupsUI() }, false);
+      this.listChatsButton = this.hud.addButton(listText, this.contentBase + "/content/icons/user-chat.png", () => { this.listGroupsUI(true, this.listChatsButton) }, false);
     }
   }
   
@@ -136,7 +141,10 @@ export class ChatUI {
   clearForm() {
     this.listGroupsForm.dispose();
     this.listGroupsForm = null;
-    this.hud.markEnabled(this.listGroupsButton);
+    if ( this.activeButton ) {
+      this.hud.markEnabled(this.activeButton);
+      this.activeButton = null;
+    }
     this.showInvitesButton();
   }
 
@@ -174,19 +182,24 @@ export class ChatUI {
     }
   }
 
-  /** List groups */
-  listGroupsUI() {
+  /** 
+   * List groups
+   * @param {boolean} [direct=false] true for direct messages (private chats) 
+   */
+  listGroupsUI(direct=false, button=this.listGroupsButton) {
     if (this.listGroupsForm) {
       this.clearForm();
     } else {
-      this.hud.markActive(this.listGroupsButton);
+      this.hud.markActive(button);
+      this.activeButton = button;
       // tracking unread here while group list/chatlog is open is too complicated, so
       this.unreadTotal = 0;
-      this.showListButton();
+      // do not do it here - makes additional API calls:
+      //this.showListButton();
       Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups(), this.groupApi.listUnreadGroups()])
         .then(results => {
           this.invitations = results[0];
-          let myGroups = results[1];
+          let myGroups = results[1].filter(g=>g.direct == direct);
           let ownedGroups = results[2];
           let unreadGroups = results[3];
 
@@ -195,7 +208,7 @@ export class ChatUI {
 
           this.showInvitesButton();
           if (myGroups.length + this.invitations.length > 0) {
-            this.createForm(this.invitations, myGroups, () => this.listGroupsUI());
+            this.createForm(this.invitations, myGroups, () => this.listGroupsUI(direct, button));
           }
         });
     }
@@ -218,7 +231,7 @@ export class ChatUI {
     this.showInvitesButton();
   }
 
-  createUI() {
+  createGroupUI() {
     if (this.createGroupForm) {
       this.createGroupForm.dispose();
       this.createGroupForm = null;
@@ -277,7 +290,8 @@ export class ChatUI {
              groupName,
              {
                isPublic: false,
-               isTemporary: false
+               isTemporary: false,
+               isDirect: true
              }
           ).then(group => {
             this.groupApi.invite(group.id, userId).then(()=>{
