@@ -6,9 +6,12 @@ import { World } from '../../world/world.js';
 
 // CHECKME: Helper or Util class?
 export class GroupHelper {
-  /**
+  /** 
+   * Create and attach a ChatLog to the UserGroup object.
    * @param {UserGroup} group 
    * @param {*} scene 
+   * @param {boolean} stackVertical
+   * @param {boolean} stackHorizontal 
    */
   static attachChatlog(group, scene, stackVertical, stackHorizontal) {
     group.chatlog = ChatLog.findInstance(group.name, "ChatLog:" + group.name);
@@ -68,7 +71,11 @@ export class GroupHelper {
     }
     
   }
-  
+ 
+  /**
+   * Show unread messages of a group in group chatlog.
+   * @param {UserGroup} group 
+   */ 
   static showUnread(group) {
     VRSpaceAPI.getInstance().endpoint.groups.listUnreadMessages(group.id).then(messages => {
       messages.forEach(message => {

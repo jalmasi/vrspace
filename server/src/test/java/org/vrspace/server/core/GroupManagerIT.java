@@ -61,7 +61,7 @@ public class GroupManagerIT {
   public void testPublicJoinLeave() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", true, false));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true, false, false));
     assertThrows(IllegalArgumentException.class, () -> gm.leave(group, c1));
 
     Client c2 = db.save(new Client());
@@ -83,7 +83,7 @@ public class GroupManagerIT {
   public void testPrivateJoinKick() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", false, false));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", false, false, false));
 
     Client c2 = db.save(new Client());
 
@@ -113,7 +113,7 @@ public class GroupManagerIT {
   public void testPublicInvite() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", true, false));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", true, false, false));
 
     Client c2 = db.save(new Client());
     gm.invite(group, c2, c1);
@@ -137,7 +137,7 @@ public class GroupManagerIT {
   public void testPrivateInvite() {
     Client c1 = db.save(new Client());
 
-    UserGroup group = gm.createGroup(c1, new UserGroup("test", false, false));
+    UserGroup group = gm.createGroup(c1, new UserGroup("test", false, false, false));
 
     Client c2 = db.save(new Client());
 
@@ -164,9 +164,9 @@ public class GroupManagerIT {
   public void testUnread() {
     Client c1 = db.save(new Client());
 
-    UserGroup group1 = gm.createGroup(c1, new UserGroup("group1", true, false));
-    UserGroup group2 = gm.createGroup(c1, new UserGroup("group2", true, false));
-    UserGroup group3 = gm.createGroup(c1, new UserGroup("group3", true, false));
+    UserGroup group1 = gm.createGroup(c1, new UserGroup("group1", true, false, false));
+    UserGroup group2 = gm.createGroup(c1, new UserGroup("group2", true, false, false));
+    UserGroup group3 = gm.createGroup(c1, new UserGroup("group3", true, false, false));
     gm.write(c1, group1, "msg1");
 
     Client c2 = db.save(new Client());
@@ -193,7 +193,7 @@ public class GroupManagerIT {
   @Transactional
   public void testAttachments() {
     Client client = db.save(new Client());
-    UserGroup group1 = gm.createGroup(client, new UserGroup("group1", true, false));
+    UserGroup group1 = gm.createGroup(client, new UserGroup("group1", true, false, false));
     String id = gm.write(client, group1, "this message is to contain attachments");
 
     Content file1 = new Content();

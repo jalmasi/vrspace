@@ -96,15 +96,15 @@ export class Client {
          */
         this.sceneProperties = undefined;
 
-        /** tokens 
-         * @type {Object.<String, String>} 
-         */
-        this.tokens = undefined;
-
         /** userHeight 
          * @type {Number} 
          */
         this.userHeight = undefined;
+
+        /** tokens 
+         * @type {Object.<String, String>} 
+         */
+        this.tokens = undefined;
 
         /** properties 
          * @type {Object.<String, Object>} 
@@ -180,11 +180,11 @@ export class Client {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
+            }
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});

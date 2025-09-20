@@ -523,7 +523,9 @@ export class UserGroup {
   constructor() {
     this.id = null;
     this.name = null;
-    this.isPublic = null;    
+    this.isPublic = null;
+    this.temporary = null;
+    this.direct = null;    
   }
 }
 

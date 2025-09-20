@@ -28,16 +28,22 @@ import lombok.ToString;
 @RequiredArgsConstructor
 public class UserGroup extends Entity {
   @NonNull
+  /** Group name */
   private String name;
+  /** Public or private group */
   private boolean isPublic;
+  /** Temporary groups get deleted automatically */
   private boolean temporary;
+  /** Group intended for direct messaging */
+  private boolean direct;
   @Transient
   private transient Integer unread;
 
-  public UserGroup(String name, boolean isPublic, boolean isTemporary) {
+  public UserGroup(String name, boolean isPublic, boolean isTemporary, boolean isDirect) {
     this.name = name;
     this.isPublic = isPublic;
     this.temporary = isTemporary;
+    this.direct = isDirect;
   }
 
   @JsonIgnore

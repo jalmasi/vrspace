@@ -44,7 +44,8 @@ import lombok.extern.slf4j.Slf4j;
  * enter a world before trying any of these. Only group members can read and
  * write group messages. Groups can public or private: everybody can join public
  * groups, and private groups require invitation by group owner(s). Temporary
- * groups are deleted after owner disconnects.
+ * groups are deleted after owner disconnects. Direct messaging groups are
+ * always private.
  * 
  * @author joe
  *
@@ -84,15 +85,17 @@ public class Groups extends ClientControllerBase {
    * @param name        Group name
    * @param isPublic    Create a public group? Defaults to false.
    * @param isTemporary Create a temporary group? Defaults to false.
+   * @param isDirect    Create a direct messaging group? Defaults to false.
    */
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  public UserGroup create(String name, Optional<Boolean> isPublic, Optional<Boolean> isTemporary, HttpSession session) {
+  public UserGroup create(String name, Optional<Boolean> isPublic, Optional<Boolean> isTemporary,
+      Optional<Boolean> isDirect, HttpSession session) {
     Client client = getAuthorisedClient(session);
     log.debug(
         "Group create, user: " + client + " group: " + name + " public: " + isPublic + " temporary: " + isTemporary);
-    return groupManager.createGroup(client,
-        new UserGroup(name, isPublic.isPresent() && isPublic.get(), isTemporary.isPresent() && isTemporary.get()));
+    return groupManager.createGroup(client, new UserGroup(name, isPublic.isPresent() && isPublic.get(),
+        isTemporary.isPresent() && isTemporary.get(), isDirect.isPresent() && isDirect.get()));
   }
 
   /**
