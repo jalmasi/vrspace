@@ -100,7 +100,10 @@ public class GroupManager {
       throw new SecurityException("Not an owner");
     }
     // delete messages
-    groupRepo.messagesSince(group.getId(), null).forEach(groupMessage -> db.delete(groupMessage));
+    groupRepo.messagesSince(group.getId(), null).forEach(groupMessage -> {
+      log.debug("Deleting group " + group.getId() + " message " + groupMessage.getId());
+      db.delete(groupMessage);
+    });
     // delete memberships
     groupRepo.listGroupMembers(group.getId()).forEach(groupMember -> db.delete(groupMember));
     // delete ownership(s)

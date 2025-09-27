@@ -113,13 +113,31 @@ export class ChatUI {
     } else {
       this.listGroupsButton = this.hud.addButton(listText, this.contentBase + "/content/icons/user-group-settings.png", () => { this.listGroupsUI() }, false);
     }
+    this.listGroups();
+  }
+
+  listGroups() {
     Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups()]).then(groups => {
-      if (groups[0].length + groups[1].length == 0) {
-        VRSPACEUI.hud.markDisabled(this.listGroupsButton);
-      } else {
-        VRSPACEUI.hud.markEnabled(this.listGroupsButton);
-      }
-    });
+      // CHECKME probably need to update internal variables
+      this.updateButtons(groups[0], groups[1]);
+    });    
+  }  
+  groupCount(invites,memberships,direct=false) {
+    return invites.filter(i=>i.group.direct == direct).length + memberships.filter(m=>m.direct == direct).length;
+  }
+  async updateButtons(invites, memberships) {  
+    let directTotal = this.groupCount(invites,memberships,true);
+    let membershipTotal = invites.length+memberships.length - directTotal;
+    if (membershipTotal == 0) {
+      VRSPACEUI.hud.markDisabled(this.listGroupsButton);
+    } else {
+      VRSPACEUI.hud.markEnabled(this.listGroupsButton);
+    }
+    if (directTotal == 0) {
+      VRSPACEUI.hud.markDisabled(this.listChatsButton);
+    } else {
+      VRSPACEUI.hud.markEnabled(this.listChatsButton);
+    }
   }
 
   showInvitesButton() {
@@ -207,7 +225,10 @@ export class ChatUI {
           myGroups.forEach(g => g.unread = unreadGroups.find(e => e.id == g.id)?.unread || "");
 
           this.showInvitesButton();
-          if (myGroups.length + this.invitations.length > 0) {
+          this.updateButtons(this.invitations,myGroups);
+          
+          // CHECKME - likely wrong
+          if (this.groupCount(this.invitations,myGroups,direct) > 0) {
             this.createForm(this.invitations, myGroups, () => this.listGroupsUI(direct, button));
           }
         });
@@ -298,6 +319,7 @@ export class ChatUI {
               console.log("Invited "+userId+" "+userName+" to "+group.id+" "+group.name);
               GroupHelper.showUnread(group);
             });
+            this.listGroups();
           });
         }
         VRSPACEUI.hud.clearRow();
