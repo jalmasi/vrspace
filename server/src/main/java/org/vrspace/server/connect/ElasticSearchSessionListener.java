@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -94,7 +95,7 @@ public class ElasticSearchSessionListener implements SessionListener {
     entry.timestamp = LocalDateTime.now(ZoneId.of("UTC"));
     entry.duration = 0;
     Client client = new Client(1L);
-    VRObject object = new VRObject("1");
+    VRObject object = new VRObject(UUID.randomUUID().toString());
     entry.source = new ID(object);
     entry.client = new ID(client);
     entry.world = new World();
