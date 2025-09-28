@@ -34,6 +34,8 @@ export class ChatUI {
     this.createGroupText = "Create Group";
     this.listDirectText = "Messages";
     this.createDirectText = "Contact";
+    this.unreadGroupsTotal = 0;
+    this.unreadChatsTotal = 0;
   }
 
   dispose() {
@@ -64,8 +66,15 @@ export class ChatUI {
     VRSPACEUI.hud.showButtons(false, button);
     VRSPACEUI.hud.newRow();
     let unreadGroups = await this.groupApi.listUnreadGroups();
-    this.unreadTotal = unreadGroups.reduce((sum, group) => sum + group.unread, 0);
-    this.inviteTotal = 0;
+    this.unreadGroupsTotal = 0;
+    this.unreadChatsTotal = 0;
+    unreadGroups.forEach(group=>{
+      if ( group.direct ) {
+        this.unreadChatsTotal += group.unread;
+      } else {
+        this.unreadGroupsTotal += group.unread;
+      }
+    });
 
     this.showChatsButton();
     this.createChatButton = this.hud.addButton(this.createDirectText, this.contentBase + "/content/icons/user-plus.png", () => { this.addContactUI() });
@@ -84,7 +93,7 @@ export class ChatUI {
           // chatlog tracks unread count
           let chatlog = ChatLog.findInstance(event.message.group.name, "ChatLog:" + event.message.group.name);
           if (!chatlog) {
-            this.unreadTotal++;
+            this.unreadGroupsTotal++;
           }
         }
         this.showListButton();
@@ -97,7 +106,11 @@ export class ChatUI {
 
   async showChatsButton() {
     let listText = this.listDirectText;
+    if (this.unreadChatsTotal > 0) {
+      listText += ": " + this.unreadChatsTotal;
+    }
     if (this.listChatsButton) {
+      this.listChatsButton.text = listText;
     } else {
       this.listChatsButton = this.hud.addButton(listText, this.contentBase + "/content/icons/user-chat.png", () => { this.listGroupsUI(true, this.listChatsButton) }, false);
     }
@@ -105,8 +118,8 @@ export class ChatUI {
   
   async showListButton() {
     let listText = this.listGroupsText;
-    if (this.unreadTotal > 0) {
-      listText += ": " + this.unreadTotal;
+    if (this.unreadGroupsTotal > 0) {
+      listText += ": " + this.unreadGroupsTotal;
     }
     if (this.listGroupsButton) {
       this.listGroupsButton.text = listText;
@@ -211,12 +224,12 @@ export class ChatUI {
       this.hud.markActive(button);
       this.activeButton = button;
       // tracking unread here while group list/chatlog is open is too complicated, so
-      this.unreadTotal = 0;
+      this.unreadGroupsTotal = 0;
       // do not do it here - makes additional API calls:
       //this.showListButton();
       Promise.all([this.groupApi.listInvites(), this.groupApi.listMyGroups(), this.groupApi.listOwnedGroups(), this.groupApi.listUnreadGroups()])
         .then(results => {
-          this.invitations = results[0];
+          this.invitations = results[0]; //.filter(g=>g.direct == direct);
           let myGroups = results[1].filter(g=>g.direct == direct);
           let ownedGroups = results[2];
           let unreadGroups = results[3];
@@ -306,7 +319,7 @@ export class ChatUI {
       this.inviteForm = new UserInviteForm(this.scene, (ok, userId, userName) => {
         if (ok) {
           // TODO this chat may already exist
-          let groupName = "Chat: "+userName;
+          let groupName = "Chat: "+VRSPACE.me.name+", "+userName;
           this.groupApi.create(
              groupName,
              {
