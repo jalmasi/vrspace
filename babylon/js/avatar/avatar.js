@@ -233,7 +233,8 @@ export class Avatar {
       node.position.y = obj.position.y; 
       node.position.z = obj.position.z; 
     } else {
-      VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
+      //VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
+      obj.translate = VRSPACEUI.chainAnimation(obj.translate, node, "position", obj.position);
     }
   }
   
@@ -249,7 +250,8 @@ export class Avatar {
       node.rotation.y = obj.rotation.y; 
       node.rotation.z = obj.rotation.z; 
     } else {
-      VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+      //VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
+      obj.rotate = VRSPACEUI.chainAnimation(obj.rotate, node, "rotation", obj.rotation);
     }
   }
 
