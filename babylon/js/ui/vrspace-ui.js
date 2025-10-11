@@ -447,11 +447,12 @@ export class VRSpaceUI {
   @param fps frames per second, defaults to fps field value
   @returns babylonjs AnimationGroup
    */
-  createAnimation(mesh, field, fps) {
+  createAnimation(mesh, field, fps, blendingSpeed) {
     if (!fps) {
       fps = this.fps;
     }
     var group = new BABYLON.AnimationGroup(field + " " + mesh.id);
+    //group.isAdditive = true; // CHECKME does it do anything?
 
     var xAnim = new BABYLON.Animation("xAnim " + mesh.id, field + ".x", fps, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
     var xKeys = [];
@@ -470,6 +471,17 @@ export class VRSpaceUI {
     zKeys.push({ frame: 0, value: 0 });
     zKeys.push({ frame: 1, value: 0 });
     zAnim.setKeys(zKeys);
+    
+    if ( blendingSpeed ) {
+      group.enableBlending = true;
+      group.blendingSpeed = blendingSpeed;
+      xAnim.enableBlending = true;
+      xAnim.blendingSpeed = blendingSpeed;
+      yAnim.enableBlending = true;
+      yAnim.blendingSpeed = blendingSpeed;
+      zAnim.enableBlending = true;
+      zAnim.blendingSpeed = blendingSpeed;      
+    }
 
     group.addTargetedAnimation(xAnim, mesh);
     group.addTargetedAnimation(yAnim, mesh);
@@ -478,40 +490,48 @@ export class VRSpaceUI {
     return group;
   }
 
-  _appendAnimation(group, from, to) {
-    var xAnim = group.targetedAnimations[0].animation;
-    xAnim.getKeys()[0].value = from.x;
+  _appendAnimation(group, chained, to) {
+    const xOld = group.targetedAnimations[0].animation.getKeys()[1].value;
+    const yOld = group.targetedAnimations[1].animation.getKeys()[1].value;
+    const zOld = group.targetedAnimations[2].animation.getKeys()[1].value;
+    //console.log("appendAnimation "+group.name+" "+group.isPlaying+" "+xOld+","+yOld+","+zOld,to);
+    const xAnim = chained.targetedAnimations[0].animation;
+    xAnim.getKeys()[0].value = xOld;
     xAnim.getKeys()[1].value = to.x;
-    var yAnim = group.targetedAnimations[1].animation;
-    yAnim.getKeys()[0].value = from.y;
+    const yAnim = chained.targetedAnimations[1].animation;
+    yAnim.getKeys()[0].value = yOld;
     yAnim.getKeys()[1].value = to.y;
-    var zAnim = group.targetedAnimations[2].animation;
-    zAnim.getKeys()[0].value = from.z;
+    const zAnim = chained.targetedAnimations[2].animation;
+    zAnim.getKeys()[0].value = zOld;
     zAnim.getKeys()[1].value = to.z;
-    group.play(false);
   }
   
   /**
-  Utility method - update x,y,z animation of a mesh field.
-  Add the animation to be played after the current animation ends.
+  Utility method - add the animation to be played after the current animation ends.
+  If it's already ended, simply calls updateAnimation().
   @param group AnimationGroup to update
   @param node Babylonjs node to animate
   @param {string} field node field to animate, e.g. position or rotation 
   @param to Vector3
+  @returns AnimationGroup that's going to be played
   */
   chainAnimation(group, node, field, to) {
     try {
-      if (group.isPlaying) {
-        group.onAnimationGroupEndObservable.add(() => {
-          this._appendAnimation(group, node[field], to);
+      // CHECKME do we want to chain animations before the first one starts playing?
+      if (group.isPlaying ) {
+        const ret = this.createAnimation(node,field,group.fps);
+        this._appendAnimation(group, ret, to);
+        group.onAnimationGroupEndObservable.addOnce(() => {
+          ret.play(false);
         });
         group.loopAnimation = false;
+        return ret;
       } else {
-        this._appendAnimation(group, node[field], to);
-        group.play(false);
+        this.updateAnimation(group, node[field], to);
+        return group;
       }
     } catch (err) {
-      console.error("updateAnimation failed", err);
+      console.error("chainAnimation failed", err);
     }
   }
 
@@ -526,6 +546,7 @@ export class VRSpaceUI {
    */
   updateAnimation(group, from, to) {
     try {
+      //console.log("updateAnimation "+group.name+" "+group.isPlaying+" "+from,to);
       if (group.isPlaying) {
         group.stop();
       }
