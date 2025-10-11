@@ -149,8 +149,8 @@ export class Avatar {
     return this.write( client.wrote );
   }
   
-  /** Remote emoji event routed by WorldManager */  
-  async emoji(client, direction=3) {
+  /** Remote emoji event routed by WorldManager/EventRouter */  
+  async emoji(client, node, direction=3) {
     let url = client.emoji;
     console.log("Remote emoji: "+url);
     if ( url == null ) {

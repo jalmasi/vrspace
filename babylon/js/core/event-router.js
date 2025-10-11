@@ -9,7 +9,7 @@ export class EventRouter {
   static changeListeners = [];
   constructor() {
     /** Change listeners receive changes applied to all shared objects */
-    this.debug = false;    
+    this.debug = false;
   }
   /** 
    * Notify listeners of remote changes
@@ -68,11 +68,11 @@ export class EventRouter {
    * Overrides VRObject routing methods (positionChanged, rotationChanged, scaleChanged)
    * with implementations that create and update animations.
    * Called during WorldManager initialization. 
-   */ 
+   */
   addVRObjectRoutingMethods(fps) {
-    console.log("FPS:"+fps)
+    console.log("FPS:" + fps)
     // in prototype methods, obj == this
-    VRObject.prototype.positionChanged = (obj,node) => {
+    VRObject.prototype.positionChanged = (obj, node) => {
       if (!obj.translate) {
         obj.translate = VRSPACEUI.createAnimation(node, "position", fps);
         VRSPACEUI.updateAnimation(obj.translate, node.position, obj.position);
@@ -80,7 +80,7 @@ export class EventRouter {
         obj.translate = VRSPACEUI.chainAnimation(obj.translate, node, "position", obj.position);
       }
     }
-    VRObject.prototype.rotationChanged = (obj,node) => {
+    VRObject.prototype.rotationChanged = (obj, node) => {
       if (!obj.rotate) {
         obj.rotate = VRSPACEUI.createAnimation(node, "rotation", fps);
         VRSPACEUI.updateAnimation(obj.rotate, node.rotation, obj.rotation);
@@ -88,14 +88,14 @@ export class EventRouter {
         obj.rotate = VRSPACEUI.chainAnimation(obj.rotate, node, "rotation", obj.rotation);
       }
     }
-    VRObject.prototype.scaleChanged = (obj,node) => {
+    VRObject.prototype.scaleChanged = (obj, node) => {
       if (!obj.rescale) {
         obj.rescale = VRSPACEUI.createAnimation(node, "scaling", fps);
       }
-      VRSPACEUI.updateAnimation(obj.rescale, node.scaling, obj.scale);      
+      VRSPACEUI.updateAnimation(obj.rescale, node.scaling, obj.scale);
     }
   }
-  
+
   /**
    * Get root node of a VRObject
    * @param {VRObject} obj 
@@ -110,12 +110,12 @@ export class EventRouter {
     }
     console.log("ERROR: unknown root for " + obj);
   }
-  
+
   /** Optionally log something */
   log(what) {
     if (this.debug) {
       console.log(what);
     }
   }
-   
+
 }
