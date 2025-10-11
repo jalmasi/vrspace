@@ -50,7 +50,7 @@
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 //Option 1:
 //babylon pre-loaded, you can created engine already
-//var engine = new BABYLON.Engine(canvas, true);
+//var engine = new BABYLON.Engine(canvas, true, { audioEngine: true }); // Generate the BABYLON 3D engine
 var engine;
 var scene;
 
@@ -86,7 +86,7 @@ import('./js/vrspace-min.js').then((ui) => {
 	// Option 2, 3:
   // the engine is not created before scripts have loaded, so do it here
   if ( ! engine ) {
-	  engine = new BABYLON.Engine(canvas, true);
+	  engine = new BABYLON.Engine(canvas, true, { audioEngine: true }); // Generate the BABYLON 3D engine
   }
   
   // create the world

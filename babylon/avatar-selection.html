@@ -31,21 +31,6 @@
     <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
     <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/BabylonJS/Extensions@master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"></script>
-
-    <script src="https://cdn.babylonjs.com/v5.57.1/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/v5.57.1/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v5.57.1/gui/babylon.gui.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v5.57.1/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v5.57.1/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/BabylonJS/Extensions@master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"></script>
-    
-    <script src="https://cdn.babylonjs.com/v4.2.1/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/v4.2.1/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v4.2.1/gui/babylon.gui.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v4.2.1/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v4.2.1/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/BabylonJS/Extensions@master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"></script>
-
     <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
      -->
 
@@ -74,7 +59,7 @@
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 // focus canvas so we get keyboard events, otherwise need to click on it first
 canvas.focus();
-var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var engine = new BABYLON.Engine(canvas, true, { audioEngine: true }); // Generate the BABYLON 3D engine
 var scene;
 
 import("./avatar-selection.js").then( (module) =>{

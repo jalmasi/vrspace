@@ -100,17 +100,19 @@ export class LoadProgressIndicator {
   @param item related item 
   */
   progress(evt, item) {
-    this.trackItems = false;
-    if (evt.lengthComputable) {
-      var loaded = evt.loaded / evt.total;
-      this.log("Loaded "+(loaded*100)+"%");
-      if ( this.mesh && this.zeroRotation ) {
-        this.angle += 0.01;
-        this.mesh.rotationQuaternion = this.zeroRotation.multiply( new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,this.angle) );
-      }
-    } else {
-      var dlCount = evt.loaded / (1024 * 1024);
-      this.log("Loaded "+dlCount+" MB" );
+    if ( evt ) {
+      this.trackItems = false;
+      if (evt.lengthComputable) {
+        var loaded = evt.loaded / evt.total;
+        this.log("Loaded "+(loaded*100)+"%");
+        if ( this.mesh && this.zeroRotation ) {
+          this.angle += 0.01;
+          this.mesh.rotationQuaternion = this.zeroRotation.multiply( new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,this.angle) );
+        }
+      } else {
+        var dlCount = evt.loaded / (1024 * 1024);
+        this.log("Loaded "+dlCount+" MB" );
+      }      
     }
   }
   _update() {

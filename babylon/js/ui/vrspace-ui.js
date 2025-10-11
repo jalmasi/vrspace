@@ -63,6 +63,11 @@ export class VRSpaceUI {
     this.assetLoader = null;
     /** UI Material, created from init, defaults to color 0.2,0.2,0.3, with 0.7 alpha */
     this.uiMaterial = null;
+    /** 
+     * Since babylon 7, audio engine is created asynchronously, will be done done here in init method
+     * https://doc.babylonjs.com/typedoc/classes/BABYLON.AudioEngine
+     */
+    this.audioEngine = null;
     VRSpaceUI.instance = this;
   }
 
@@ -100,6 +105,14 @@ export class VRSpaceUI {
       this.uiMaterial.diffuseColor = new BABYLON.Color3(.2, .2, .3);
       this.uiMaterial.specularColor = new BABYLON.Color3(.05, .05, .05);
 
+      /*
+      TODO
+      this.audioEngine = await BABYLON.CreateAudioEngineAsync();
+      this.audioEngine.unlock();
+      // not a function:
+      //this.audioEngine.unlockAsync();
+      */
+      
       await this.loadPortal(scene);
       this.initialized = true;
     }

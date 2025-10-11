@@ -160,10 +160,15 @@ export class Portal {
   playSound(enable) {
     if ( this.sound ) {
       if ( enable ) {
+        /*
+        TODO audio V2 
+        VRSPACEUI.audioEngine.audioContext?.resume();
+        VRSPACEUI.audioEngine.setGlobalVolume(1);
+        */        
         this.sound.play();
         // chrome hacks
         BABYLON.Engine.audioEngine.audioContext?.resume();
-        BABYLON.Engine.audioEngine.setGlobalVolume(1);        
+        BABYLON.Engine.audioEngine.setGlobalVolume(1);
       } else if ( this.sound ) {
         this.sound.stop();
       }

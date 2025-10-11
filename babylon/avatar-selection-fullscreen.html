@@ -79,7 +79,7 @@ var goFullscreen = (e) => {
 window.addEventListener("touchstart", goFullscreen, options);
 window.addEventListener("click", goFullscreen, options);
 
-var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var engine = new BABYLON.Engine(canvas, true, { audioEngine: true }); // Generate the BABYLON 3D engine
 
 var scene;
 

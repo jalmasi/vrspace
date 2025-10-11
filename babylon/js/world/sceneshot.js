@@ -250,7 +250,7 @@ export class Sceneshot {
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 // focus canvas so we get keyboard events, otherwise need to click on it first
 canvas.focus();
-var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var engine = new BABYLON.Engine(canvas, true, { audioEngine: true }); // Generate the BABYLON 3D engine
 var scene;
 `
     html += 'var json =`';

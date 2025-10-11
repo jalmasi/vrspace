@@ -48,7 +48,7 @@ var scene;
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 //canvas.style.width = '90%';
 //canvas.style.height = '60%';
-var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+var engine = new BABYLON.Engine(canvas, true, { audioEngine: true }); // Generate the BABYLON 3D engine
 import("./text-test.js").then( (module) =>{
   var world = module.WORLD;
   world.init(engine);

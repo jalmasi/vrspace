@@ -24,6 +24,9 @@ class AssetSync {
         this.numberOfInstances++;
         console.log('loading sync '+this.url+" "+this.numberOfInstances);
         // load
+        // CHECKME: what happens if this does not exist, or exists but fails to load?
+        // pre babylon 7:
+        /*
         var path = "";
         var file = this.url;
         var pos = this.url.lastIndexOf('/');
@@ -31,7 +34,6 @@ class AssetSync {
           path = this.url.substring(0,pos+1);
           file = this.url.substring(pos+1);
         }
-        // CHECKME: what happens if this does not exist, or exists but fails to load?
         var plugin = BABYLON.SceneLoader.LoadAssetContainer(path, file, this.scene, (container) =>
           {
             console.log("Loaded asset "+this.url, container.meshes);
@@ -62,6 +64,39 @@ class AssetSync {
             this.info = manifest.asset.extras;
             console.log("Asset extra info: ",this.info);
         });
+        */
+        // babylon 8:
+        BABYLON.LoadAssetContainerAsync(this.url, this.scene, {
+          onParsed: gltfBabylon => {
+            var manifest = gltfBabylon.json;
+            this.info = manifest.asset.extras;
+            console.log("Asset extra info: ",this.info);
+          }
+        }).then( (container) =>
+          {
+            console.log("Loaded asset "+this.url, container.meshes);
+            //var root = container.createRootMesh();
+            this.container = container;
+            //container.addAllToScene();
+            if ( callback ) {
+              try {
+                callback(this.url, container, this.info);                
+              } catch ( err ) {
+                console.log( "Error in callback for "+this.url, err);
+              }
+            }
+            resolve(container);
+          }).catch( exception => {
+            if ( failure ) {
+              failure(exception);
+            } else {
+              console.log(message, exception);
+            }
+            reject(exception);
+          }).finally( () => {
+            // doesn't do anything without load event
+            //if ( progress ) progress(null, this.url);
+          });
       }
     });
     return this.promise;
