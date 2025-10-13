@@ -1006,7 +1006,7 @@ export class VRSpace {
   @param {*} [callback] optional, called after removal from the server
    */
   deleteSharedObject( obj, callback ) {
-    this.call('{"command":{"Remove":{"objects":[{"' + obj.className + '":'+obj.id+'}]}}}', (response) => {
+    this.call('{"command":{"Remove":{"objects":[{"' + obj.className + '":"'+obj.id+'"}]}}}', (response) => {
       if ( callback ) {
         callback(obj);
       }
