@@ -237,6 +237,7 @@ export class MediaStreams {
       return;
     }
     var data = this.getClientData(subscriber);
+    console.log("streamingStart "+playing, data);
     if ( "main" == data.type ) {
       console.log("Stream started for client", data );
       const client = this.findClient(data);
@@ -498,7 +499,9 @@ export class OpenViduStreams extends MediaStreams {
     // CHECKME
     //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.screenOV = new OpenVidu();
-    this.screenOV.enableProdMode(); // Disable logging
+    if ( ! this.debug ) {
+      this.screenOV.enableProdMode(); // Disable logging
+    }
     this.screenSession = this.screenOV.initSession();
 
     this.screenPublisher = this.screenOV.initPublisher(this.htmlElementName, {
@@ -526,6 +529,8 @@ export class OpenViduStreams extends MediaStreams {
           resolve(this.screenPublisher.stream.getMediaStream());
         });
         this.screenSession.publish(this.screenPublisher);
+        console.log("Publishing screen to connection " + this.screenPublisher.stream.connection.connectionId);
+        console.log(this.screenPublisher);
       });
 
       this.screenPublisher.once('accessDenied', (event) => {

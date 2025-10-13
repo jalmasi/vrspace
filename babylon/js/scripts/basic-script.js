@@ -1,3 +1,4 @@
+import { WorldManager } from "../core/world-manager.js";
 /**
 Basic script object. Scripts are loaded and instantiated when server demands it.
 Experimental, most likely to change a lot, more towards IOC.
@@ -10,6 +11,7 @@ export class BasicScript {
   constructor( world, vrObject ) {
     this.world = world;
     this.scene = world.scene;
+    /** @type {WorldManager} */
     this.worldManager = world.worldManager;
     this.VRSPACE = this.worldManager.VRSPACE;
     this.vrObject = vrObject;
