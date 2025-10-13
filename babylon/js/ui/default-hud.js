@@ -160,7 +160,7 @@ export class DefaultHud {
 
       this.editButton = this.hud.addButton("World editor", this.contentBase + "/content/icons/world-edit.png", () => this.editWorld(), false);
       this.editButton.tooltipText = "Edit the world";
-      if ( !this.isOnline() ) {
+      if (!this.isOnline()) {
         this.hud.markDisabled(this.editButton, true);
       }
 
@@ -205,11 +205,11 @@ export class DefaultHud {
       this.hud.markActive(this.minimapButton, true);
     }
   }
-  
+
   editWorld() {
-    if ( this.worldEditorUI ) {
+    if (this.worldEditorUI) {
       this.worldEditorUI.hide();
-      this.worldEditorUI = null;      
+      this.worldEditorUI = null;
     } else {
       this.worldEditorUI = new WorldEditorUI(this.scene);
       this.worldEditorUI.show(this.editButton);
@@ -242,7 +242,7 @@ export class DefaultHud {
       this.creditArea.dispose();
       this.creditArea = null;
     }
-    if ( this.worldEditorUI ) {
+    if (this.worldEditorUI) {
       this.worldEditorUI.hide();
       this.worldEditorUI = null;
     }
@@ -418,10 +418,10 @@ export class DefaultHud {
   }
 
   showWebcamButton(enabled) {
-    if ( enabled ) {
-      this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";      
+    if (enabled) {
+      this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam.png";
     } else {
-      this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";      
+      this.webcamButton.imageUrl = this.contentBase + "/content/icons/webcam-off.png";
     }
   }
   async toggleWebcam(enable = !this.state.webcam, videoAvatar) {
@@ -436,13 +436,12 @@ export class DefaultHud {
         // entry screen, video avatar not created or not selected
         !this.isOnline() && (!this.videoAvatar || !this.videoAvatar.isEnabled())
         // permission denied 
-        ||! await MediaHelper.checkVideoPermissions()) 
-      {
+        || ! await MediaHelper.checkVideoPermissions()) {
         this.hud.markDisabled(this.webcamButton);
         return;
       }
       this.showWebcamButton(enable);
-      if ( this.state.webcam == enable ) {
+      if (this.state.webcam == enable) {
         // prevents reload of remote avatar instances 
         return;
       }
@@ -486,7 +485,7 @@ export class DefaultHud {
             }
           } else {
             // no 3d avatar, just display image/name
-            this.videoAvatar.displayAlt();            
+            this.videoAvatar.displayAlt();
           }
         } else if (this.videoAvatar && this.videoAvatar.isEnabled()) {
           // offline, just display image/name
