@@ -710,7 +710,9 @@ export class DefaultHud {
   toggleWhiteboard() {
     if (this.whiteboard) {
       this.hud.markEnabled(this.whiteboardButton)
-      WorldManager.instance.world.removeListener(this.whiteboard);
+      if (this.isOnline()) {
+        WorldManager.instance.world.removeListener(this.whiteboard);
+      }
       this.whiteboard.dispose();
       this.whiteboard = null;
       return;
