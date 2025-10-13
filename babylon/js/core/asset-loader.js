@@ -24,7 +24,6 @@ class AssetSync {
         this.numberOfInstances++;
         console.log('loading sync '+this.url+" "+this.numberOfInstances);
         // load
-        // CHECKME: what happens if this does not exist, or exists but fails to load?
         // pre babylon 7:
         /*
         var path = "";
@@ -65,13 +64,20 @@ class AssetSync {
             console.log("Asset extra info: ",this.info);
         });
         */
-        // babylon 8:
-        BABYLON.LoadAssetContainerAsync(this.url, this.scene, {
-          onParsed: gltfBabylon => {
-            var manifest = gltfBabylon.json;
-            this.info = manifest.asset.extras;
-            console.log("Asset extra info: ",this.info);
-          }
+        // babylon 7+:
+        BABYLON.LoadAssetContainerAsync(this.url, this.scene, 
+          {
+            // https://doc.babylonjs.com/typedoc/interfaces/BABYLON.LoadAssetContainerOptions
+            onProgress: (event) => {if(progress) progress(event,this.url)},
+            pluginOptions: {
+              gltf: {
+                onParsed: gltfBabylon => {
+                  var manifest = gltfBabylon.json;
+                  this.info = manifest.asset.extras;
+                  console.log("Asset extra info: ",this.info);
+                }                
+              }
+            }
         }).then( (container) =>
           {
             console.log("Loaded asset "+this.url, container.meshes);
@@ -93,9 +99,6 @@ class AssetSync {
               console.log(message, exception);
             }
             reject(exception);
-          }).finally( () => {
-            // doesn't do anything without load event
-            //if ( progress ) progress(null, this.url);
           });
       }
     });

@@ -96,8 +96,8 @@ export class LoadProgressIndicator {
   }
   /** 
   Call on load progress event.
-  @param evt progress event
-  @param item related item 
+  @param evt progress event, https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISceneLoaderProgressEvent
+  @param item related item, not used, subclasses may use it
   */
   progress(evt, item) {
     if ( evt ) {
