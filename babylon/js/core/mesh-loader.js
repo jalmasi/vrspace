@@ -1,14 +1,13 @@
 import { EventRouter } from './event-router.js';
 import { VRObject } from '../client/vrspace.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
+import { MediaStreams } from './media-streams.js';
 
 export class MeshLoader extends EventRouter {
   constructor(loadCallback, loadErrorHandler) {
     super();
     this.notifyLoadListeners = loadCallback;
     this.loadErrorHandler = loadErrorHandler;    
-    /** This is set once we connect to streaming server @type {MediaStreams}*/
-    this.mediaStreams = null;
   }
   /**
   Load an object and attach a listener.
@@ -43,8 +42,8 @@ export class MeshLoader extends EventRouter {
       if (obj.active) {
         obj.addListener((obj, changes) => this.changeObject(obj, changes, mesh));
         // subscribe to media stream here if available
-        if (this.mediaStreams) {
-          this.mediaStreams.streamToMesh(obj, mesh);
+        if (MediaStreams.instance) {
+          MediaStreams.instance.streamToMesh(obj, mesh);
         }
       }
       this.notifyLoadListeners(obj, mesh);

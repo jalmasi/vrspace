@@ -1,5 +1,6 @@
 import { BasicScript } from "./basic-script.js";
 import { ImageArea } from '../ui/widget/image-area.js';
+import { MediaStreams } from "../core/media-streams.js";
 
 /**
  * Receiving component of a screen share, or some other video stream.
@@ -13,8 +14,8 @@ export class RemoteScreen extends BasicScript {
     //properties:{ screenName:screenName, clientId: client.id },
     //active:true,
     //script:'/babylon/js/scripts/remote-screen.js'
-    if (this.worldManager.mediaStreams) {
-      this.worldManager.mediaStreams.addStreamListener(this.vrObject.properties.clientId, mediaStream => this.playStream(mediaStream));
+    if (MediaStreams.instance) {
+      MediaStreams.instance.addStreamListener(this.vrObject.properties.clientId, mediaStream => this.playStream(mediaStream));
     }
     this.show();
     return this.imageArea.group;
@@ -32,7 +33,9 @@ export class RemoteScreen extends BasicScript {
   }
 
   async dispose() {
-    this.worldManager.mediaStreams.removeStreamListener(this.vrObject.properties.clientId);
+    if (MediaStreams.instance) {
+      MediaStreams.instance.removeStreamListener(this.vrObject.properties.clientId);
+    }
     this.imageArea.dispose();
   }
 
@@ -67,7 +70,7 @@ export class RemoteScreen extends BasicScript {
         panningModel: "HRTF",
         maxDistance: 100
       }
-      this.worldManager.mediaStreams.attachAudioStream(this.imageArea.group, mediaStream, options);
+      MediaStreams.instance.attachAudioStream(this.imageArea.group, mediaStream, options);
     }
   }
 

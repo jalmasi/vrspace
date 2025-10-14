@@ -776,8 +776,8 @@ export class AvatarSelection extends World {
         this.worldManager.VRSPACE.debug = this.debug; // network debug
         this.worldManager.remoteLogging = false;
 
-        this.worldManager.mediaStreams = OpenViduStreams.getInstance(this.scene, 'videos');
-        this.worldManager.mediaStreams.debug = false;
+        const mediaStreams = OpenViduStreams.getInstance(this.scene, 'videos');
+        mediaStreams.debug = false;
         let avatar = this.video;
         if (this.character) {
           // character is null for e.g. video avatar

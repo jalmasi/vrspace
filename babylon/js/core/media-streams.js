@@ -18,7 +18,7 @@ export class MediaStreams {
     distanceModel: "linear", // or inverse, or exponential
     maxDistance: 50, // default 50, babylon default 100, used only when linear
     rolloffFactor: 1, // default 1, used only when exponential
-    refDistance : 1 // default 1, used only when exponential
+    refDistance: 1 // default 1, used only when exponential
   }
   /**
   @param scene Babylonjs scene
@@ -40,7 +40,7 @@ export class MediaStreams {
     /** Auto start video? Default false. @type {boolean} */
     this.startVideo = false;
     /** Verbose WebRTC? Default false. @type {boolean} */
-    this.debug=false;
+    this.debug = false;
     /** Audio source to use, default undefined (auto). @type {boolean|undefined} */
     this.audioSource = undefined;
     /** Video source to use, default false (disabled). @type {boolean|undefined} */
@@ -77,7 +77,7 @@ export class MediaStreams {
     console.log('token: ' + token);
     return ret;
   }
-  
+
   /**
   Connect to server with given parameters, calls init with callback to streamingStart method.
   @param {string} token whatever is needed to connect and initialize the session
@@ -156,7 +156,7 @@ export class MediaStreams {
   publishAudio(enabled) {
     if (this.publisher) {
       this.publisher.publishAudio(enabled);
-      console.log("Publishing audio: " + enabled+" stream audio: "+this.publisher.stream.audioActive);
+      console.log("Publishing audio: " + enabled + " stream audio: " + this.publisher.stream.audioActive);
       this.publishingAudio = enabled;
     }
   }
@@ -168,7 +168,7 @@ export class MediaStreams {
   getClientData(subscriber) {
     return new SessionData(subscriber.stream.connection.data);
   }
-  
+
   /**
   Retrieve VRSpace Client id from WebRTC subscriber data
   @returns {number}
@@ -214,8 +214,8 @@ export class MediaStreams {
       // this seems to always be the case, but is not guaranteed
       if (client.id == data.clientId) {
         // matched
-        if ( !client.streamToMesh ) {
-          console.log("Ignoring null streaming mesh for client "+client.id);
+        if (!client.streamToMesh) {
+          console.log("Ignoring null streaming mesh for client " + client.id);
           continue;
         }
         return client;
@@ -223,7 +223,7 @@ export class MediaStreams {
     }
     return null;
   }
-  
+
   /** 
   Called when a new stream is received, set up  as callback in default connect and init method.
   Tries to find an existing client, and if found, calls attachAudioStream and attachVideoStream.
@@ -231,26 +231,26 @@ export class MediaStreams {
   @param {boolean} playing false if stream is created but not yet playing, true when starts playing 
    */
   streamingStart(subscriber, playing) {
-    console.log("streamingStart "+playing, subscriber);
-    if ( !playing ) {
+    console.log("streamingStart " + playing, subscriber);
+    if (!playing) {
       // stream is created but not playing, just return for backwards compatibility
       return;
     }
     var data = this.getClientData(subscriber);
-    console.log("streamingStart "+playing, data);
-    if ( "main" == data.type ) {
-      console.log("Stream started for client", data );
+    console.log("streamingStart " + playing, data);
+    if ("main" == data.type) {
+      console.log("Stream started for client", data);
       const client = this.findClient(data);
-      if ( client ) {
+      if (client) {
         this.attachAudioStream(client.streamToMesh, this.getStream(subscriber));
         //this.clients.splice(i,1); // too eager, we may need to keep it for another stream
         console.log("Audio/video stream started for avatar of client ", data);
-        this.attachVideoStream(client, subscriber);        
+        this.attachVideoStream(client, subscriber);
       }
       this.subscribers.push(subscriber);
-    } else if ( "screen" == data.type ) {
+    } else if ("screen" == data.type) {
       if (this.streamListeners[data.clientId]) {
-        console.log("Stream started for share", data );
+        console.log("Stream started for share", data);
         this.streamListeners[data.clientId](this.getStream(subscriber));
       } else {
         console.log("No stream listeners found", data);
@@ -267,13 +267,13 @@ export class MediaStreams {
   @param {*} mesh babylonjs mesh
    */
   streamToMesh(client, mesh) {
-    if ( client.streamToMesh ) {
-      console.log("Already streaming to avatar of client " + client.id+" - stream ignored");
+    if (client.streamToMesh) {
+      console.log("Already streaming to avatar of client " + client.id + " - stream ignored");
       return;
     }
     console.log("Streaming to avatar of client " + client.id + " of " + this.subscribers.length, mesh);
-    if ( !mesh ) {
-      throw "Null mesh";      
+    if (!mesh) {
+      throw "Null mesh";
     }
     client.streamToMesh = mesh;
     for (let i = 0; i < this.subscribers.length; i++) {
@@ -283,7 +283,7 @@ export class MediaStreams {
       if (client.id == data.clientId) {
         // matched
         let mediaStream = this.getStream(subscriber);
-        if ( mediaStream ) {
+        if (mediaStream) {
           this.attachAudioStream(mesh, mediaStream);
           this.attachVideoStream(client, subscriber);
           //this.subscribers.splice(i,1);
@@ -305,7 +305,7 @@ export class MediaStreams {
   @param options custom sound options, defaults to soundProperties, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions
   @returns created babylon Sound object, or null if stream contains no audio tracks
    */
-  attachAudioStream(mesh, mediaStream, options=MediaStreams.soundProperties) {
+  attachAudioStream(mesh, mediaStream, options = MediaStreams.soundProperties) {
     let audioTracks = mediaStream.getAudioTracks();
     if (audioTracks && audioTracks.length > 0) {
       //console.log("Attaching audio stream to mesh "+mesh.id, audioTracks[0]);
@@ -315,26 +315,26 @@ export class MediaStreams {
         spatialSound: true,
         streaming: true
       }
-      for(let p of Object.keys(options)) {
+      for (let p of Object.keys(options)) {
         properties[p] = options[p];
       }
 
-      let name = "stream:"+mesh.name;
-      if ( typeof mesh.VRObject != "undefined" && typeof mesh.VRObject.getNameOrId == "function") {
-        name = "voice:"+mesh.VRObject.getNameOrId();
+      let name = "stream:" + mesh.name;
+      if (typeof mesh.VRObject != "undefined" && typeof mesh.VRObject.getNameOrId == "function") {
+        name = "voice:" + mesh.VRObject.getNameOrId();
       }
       let voice = new BABYLON.Sound(
         name,
         mediaStream,
-        this.scene, 
+        this.scene,
         null, // callback 
         properties
       );
       voice.attachToMesh(mesh); // sets voice._connectedTransformNode = mesh
-      
+
       // all sounds go here:
       //console.log("Scene main sound track", scene.mainSoundTrack, mesh); // and scene.mainSoundTrack.soundColection array contains all sounds
-      
+
       // not used:
       //console.log("Scene sound tracks", scene.soundTracks);
       //console.log("Scene sounds", scene.sounds);
@@ -377,12 +377,12 @@ export class MediaStreams {
   removeStreamListener(clientId) {
     delete this.streamListeners[clientId];
   }
-  
+
   /**
    * Close the session and clean up all resources - subclasses need to implement it
    */
   close() {
-    throw "implement me!";    
+    throw "implement me!";
   }
 }
 
@@ -391,15 +391,15 @@ OpenVidu implementation of MediaStreams.
 @extends MediaStreams
  */
 export class OpenViduStreams extends MediaStreams {
-  
+
   /** @returns {OpenViduStreams} */
   static getInstance(scene, htmlElementName) {
-    if ( ! MediaStreams.instance ) {
+    if (!MediaStreams.instance) {
       MediaStreams.instance = new OpenViduStreams(scene, htmlElementName);
     }
     return MediaStreams.instance;
   }
-  
+
   /**
    * Method connects calls init
    * @param {*} callback function that gets called when stream is created (subscriber,false), starts playing (subscriber,true), and is destroyed (SessionData, undefined)
@@ -408,7 +408,7 @@ export class OpenViduStreams extends MediaStreams {
     // CHECKME
     //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.OV = new OpenVidu();
-    if ( ! this.debug ) {
+    if (!this.debug) {
       this.OV.enableProdMode(); // Disable logging
     }
     this.session = this.OV.initSession();
@@ -438,18 +438,18 @@ export class OpenViduStreams extends MediaStreams {
         if (event.changedProperty === 'videoActive') {
           const sessionData = new SessionData(event.stream.connection.data);
           const client = this.findClient(sessionData);
-          if ( client && client.avatar.video ) {
+          if (client && client.avatar.video) {
             const mediaStream = event.stream.connection.stream.mediaStream;
             if (event.newValue && event.stream.hasVideo) {
               client.avatar.displayStream(mediaStream);
             } else {
               client.avatar.displayAlt();
-            }            
+            }
           } else {
             console.log("Cannot activate video for client - not a video avatar", client);
           }
         }
-      });      
+      });
       if (callback) {
         // stream is created but not playing
         callback(subscriber, false);
@@ -474,22 +474,22 @@ export class OpenViduStreams extends MediaStreams {
    * Close the session and clean up all resources
    */
   close() {
-    if ( this.session ) {
+    if (this.session) {
       try {
         this.session.disconnect();
-      } catch ( err ) {
+      } catch (err) {
         console.error(err);
       }
     }
-    if ( this.screenSession ) {
+    if (this.screenSession) {
       try {
         this.screenSession.disconnect();
-      } catch ( err ) {
+      } catch (err) {
         console.error(err);
       }
     }
   }
-  
+
   /**
    * Share screen implementation
    * @param {*} endCallback function called when screen sharing stops
@@ -499,7 +499,7 @@ export class OpenViduStreams extends MediaStreams {
     // CHECKME
     //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.screenOV = new OpenVidu();
-    if ( ! this.debug ) {
+    if (!this.debug) {
       this.screenOV.enableProdMode(); // Disable logging
     }
     this.screenSession = this.screenOV.initSession();
@@ -546,12 +546,12 @@ export class OpenViduStreams extends MediaStreams {
    * Stops the sharing.
    */
   stopSharingScreen() {
-    if ( this.screenPublisher ) {
+    if (this.screenPublisher) {
       // FIXME: The associated Connection object of this Publisher is null
       // happens when shared window is closed?
       try {
         this.screenSession.unpublish(this.screenPublisher);
-      } catch ( error ) {
+      } catch (error) {
         console.error(error);
       }
       this.screenPublisher = null;

@@ -5,6 +5,7 @@ import { MeshAvatar } from '../avatar/mesh-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
 import { BotController } from '../avatar/bot-controller.js';
 import { MeshLoader } from './mesh-loader.js';
+import { MediaStreams } from './media-streams.js';
 
 export class AvatarLoader extends MeshLoader {
   constructor(scene, fps, loadCallback, loadErrorHandler){
@@ -82,8 +83,8 @@ export class AvatarLoader extends MeshLoader {
     }
 
     obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));
-    if (this.mediaStreams) {
-      this.mediaStreams.streamToMesh(obj, video.mesh);
+    if (MediaStreams.instance) {
+      MediaStreams.instance.streamToMesh(obj, video.mesh);
     } else {
       console.log("WARNING: unable to stream to " + obj.id + " - no MediaStreams");
     }
@@ -116,8 +117,10 @@ export class AvatarLoader extends MeshLoader {
       // add listener to process changes
       obj.addListener((obj, changes) => this.changeAvatar(obj, changes));
       // subscribe to media stream here if available
-      if (this.mediaStreams) {
-        this.mediaStreams.streamToMesh(obj, obj.avatar.baseMesh());
+      if (MediaStreams.instance) {
+        MediaStreams.instance.streamToMesh(obj, obj.avatar.baseMesh());
+      } else {
+        console.log("WARNING: unable to stream to " + obj.id + " - no MediaStreams");
       }
       if (obj.className.indexOf("Bot") >= 0) {
         console.log("Bot loaded");

@@ -1,3 +1,4 @@
+import { MediaStreams } from './media-streams.js';
 /** 
  * Experimental speech input, uses annyang library.
  * Seems to work well on chrome and edge on PC.
@@ -9,7 +10,6 @@ export class SpeechInput {
   static active = false;
   static android = (typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('android') > -1);
   static touchListener = null;
-  static mediaStreams = null;
   constructor() {
     this.commands = {};
     this.noMatch = null;
@@ -27,10 +27,10 @@ export class SpeechInput {
     }
   }
   continue() {
-    if ( this.constructor.active && this.constructor.android && !this.constructor.mediaStreams ) {
+    if ( this.constructor.active && this.constructor.android && !MediaStreams.instance ) {
       //console.log("Android speech recognition (re) starting");
-      if ( this.constructor.mediaStreams ) {
-        this.constructor.mediaStreams.publishAudio(false);
+      if ( MediaStreams.instance ) {
+        MediaStreams.instance.publishAudio(false);
       }
       annyang.start({autoRestart:false, continuous:true});
     }
@@ -88,8 +88,8 @@ export class SpeechInput {
     } else {
       // silence/stop
       //console.log("Speech recognition ended in silence");
-      if ( this.constructor.mediaStreams ) {
-        this.constructor.mediaStreams.publishAudio(true);
+      if ( MediaStreams.instance ) {
+        MediaStreams.instance.publishAudio(true);
       }
     }
   }

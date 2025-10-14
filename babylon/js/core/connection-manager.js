@@ -3,6 +3,7 @@ import { WorldManager } from './world-manager.js';
 import { MediaHelper } from './media-helper.js';
 import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { VRSpaceAPI } from '../client/rest-api.js';
+import { MediaStreams } from './media-streams.js';
 
 /**
  * Component responsible for setting up and mantaining connection to server.
@@ -12,11 +13,9 @@ export class ConnectionManager {
   constructor(worldManager) {
     this.worldManager = worldManager;
     this.world = worldManager.world;
-    // probably not instantiated at the moment of creation
-    this.mediaStreams = worldManager.mediaStreams
     this.api = VRSpaceAPI.getInstance(VRSPACEUI.contentBase);
   }
-  
+
   /**
   Enter the world specified by world.name. If not already connected, 
   first connect to world.serverUrl and set own properties, then start the session.
@@ -57,24 +56,24 @@ export class ConnectionManager {
             // start session in default space
             this.pubSub(VRSPACE.me, VRSPACE.me.video);
           });
-        }    
+        }
       };
       if (!this.worldManager.isOnline()) {
         VRSPACE.addWelcomeListener(afterConnect);
-        if ( !VRSPACE.isConnected() ) {
+        if (!VRSPACE.isConnected()) {
           // making sure reconnect is handled
           VRSPACE.connect(this.world.serverUrl);
         }
         const connectionListener = VRSPACE.addConnectionListener(async (connected, reconnecting) => {
           console.log('connected:' + connected);
           if (!connected) {
-            if ( !this.worldManager.isOnline() ) {
+            if (!this.worldManager.isOnline()) {
               // initial connection failed
               reject(this);
             } else if (reconnecting) {
               this.trackProgress();
               // connection lost, reconnect in progress
-              console.log("Reconnecting, user was authenticated: "+ this.worldManager.authenticated );
+              console.log("Reconnecting, user was authenticated: " + this.worldManager.authenticated);
             } else {
               console.log("connection lost and NOT reconnecting - return to login screen");
               this.closeProgress();
@@ -87,24 +86,24 @@ export class ConnectionManager {
             this.worldManager.removeAll();
             VRSPACE.removeErrorListener(errorListener);
             // clear audio/video session
-            if ( this.mediaStreams ) {
-              this.mediaStreams.close();
+            if (MediaStreams.instance) {
+              MediaStreams.instance.close();
             }
             // ensure same workflow, sets online to false:
             this.worldManager.setSessionStatus(false);
             // this is going to be set up again
             VRSPACE.removeConnectionListener(connectionListener);
             // authenticated users may need to log in again
-            if ( this.worldManager.authenticated ) {
+            if (this.worldManager.authenticated) {
               let authenticated = await this.api.getAuthenticated();
-              console.log("Reconnecting, user was/is authenticated: "+ this.worldManager.authenticated+"/"+authenticated );
-              if ( ! authenticated ) {
+              console.log("Reconnecting, user was/is authenticated: " + this.worldManager.authenticated + "/" + authenticated);
+              if (!authenticated) {
                 // no automatic reconnect for authenticated users once authentication expires
                 await this.api.oauth2login(this.worldManager.oauth2providerId, properties.name, properties.mesh);
               }
             }
             // restart enter procedure
-            this.enter(properties).then(()=>{
+            this.enter(properties).then(() => {
               this.worldManager.publishState();
               this.closeProgress();
             });
@@ -118,13 +117,13 @@ export class ConnectionManager {
   }
 
   trackProgress() {
-    if ( VRSPACEUI.indicator) {
+    if (VRSPACEUI.indicator) {
       VRSPACEUI.indicator.add("Reconnect")
       VRSPACEUI.indicator.animate();
     }
   }
   closeProgress() {
-    if ( VRSPACEUI.indicator ) {
+    if (VRSPACEUI.indicator) {
       VRSPACEUI.indicator.remove("Reconnect")
     }
   }
@@ -172,46 +171,39 @@ export class ConnectionManager {
     // i.e. first make sure user is in the right space
     //this.pubSub(VRSPACE.me, VRSPACE.me.video);
   }
-  
+
   /** 
    * Publish and subscribe audio/video. Expects user object to contain a valid token.
    * @param {Client} user Client object of the local user
    * @param {boolean} autoPublishVideo should webcam video be published as soon as possible
    */
   async pubSub(user, autoPublishVideo) {
-    //this.mediaStreams = this.worldManager.mediaStreams // may not be initialized
-    console.log("PubSub autoPublishVideo:"+autoPublishVideo, user);
+    console.log("PubSub autoPublishVideo:" + autoPublishVideo, user);
     // CHECKME: should it be OpenVidu or general streaming service name?
-    if (this.mediaStreams && user.tokens && user.tokens.OpenViduMain) {
+    if (MediaStreams.instance && user.tokens && user.tokens.OpenViduMain) {
       console.log("Subscribing as User " + user.id + " with token " + user.tokens.OpenViduMain);
       // ask for webcam access permissions, but NOT while in XR
-      if ( !this.worldManager.world.inXR() && await MediaHelper.checkVideoPermissions() ) {
-        this.mediaStreams.videoSource = undefined;
-        this.mediaStreams.startVideo = autoPublishVideo;
+      if (!this.worldManager.world.inXR() && await MediaHelper.checkVideoPermissions()) {
+        MediaStreams.instance.videoSource = undefined;
+        MediaStreams.instance.startVideo = autoPublishVideo;
       }
       if (await MediaHelper.checkAudioPermissions()) {
-        this.mediaStreams.audioSource = undefined;
+        MediaStreams.instance.audioSource = undefined;
       } else {
-        this.mediaStreams.audioSource = false;        
+        MediaStreams.instance.audioSource = false;
       }
-      
+
       try {
-        await this.mediaStreams.connect(user.tokens.OpenViduMain)
-        // TODO use static instance instead
-        this.worldManager.avatarLoader.mediaStreams = this.mediaStreams;
-        this.worldManager.meshLoader.mediaStreams = this.mediaStreams;
-        // we may need to pause/unpause audio publishing during speech input
-        // TODO figure out how to use instance
-        VRSPACEUI.hud.speechInput.constructor.mediaStreams = this.mediaStreams;
-        if ( this.mediaStreams.audioSource == undefined || this.mediaStreams.videoSource == undefined ) {
+        await MediaStreams.instance.connect(user.tokens.OpenViduMain)
+        if (MediaStreams.instance.audioSource == undefined || MediaStreams.instance.videoSource == undefined) {
           // otherwise error
-          this.mediaStreams.publish();
+          MediaStreams.instance.publish();
         }
-      } catch ( exception ) {
+      } catch (exception) {
         console.error("Streaming connection failure", exception);
       }
     }
   }
 
-  
+
 }

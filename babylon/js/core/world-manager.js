@@ -3,7 +3,6 @@ import { VRSPACEUI } from '../ui/vrspace-ui.js';
 import { Avatar } from '../avatar/avatar.js';
 import { World } from '../world/world.js'
 import { CameraHelper } from './camera-helper.js';
-import { MediaStreams } from './media-streams.js';
 import { AvatarLoader } from './avatar-loader.js';
 import { MeshLoader } from './mesh-loader.js';
 import { SceneEvent } from '../client/vrspace.js';
@@ -40,14 +39,17 @@ export class WorldManager extends EventRouter {
     this.trackRotation = true;
     /** In 3rd person view, we're not tracking and publishing position and orientation camera, but of this mesh*/
     this.trackedMesh = null;
-    /** This is set once we connect to streaming server @type {MediaStreams}*/
-    this.mediaStreams = null;
     /** Listeners notified after own avatar property (e.g. position) has changed and published */
     this.myChangeListeners = []
     /** Network frames per second, default 5 */
     this.fps = fps;
     /** Avatar loader @type {AvatarLoader} */
-    this.avatarLoader = new AvatarLoader(this.scene, this.fps, (obj, mesh) => this.notifyLoadListeners(obj, mesh), (obj, exception) => this.alertLoadListeners(obj, exception));
+    this.avatarLoader = new AvatarLoader(
+      this.scene, 
+      this.fps,
+      (obj, mesh) => this.notifyLoadListeners(obj, mesh), 
+      (obj, exception) => this.alertLoadListeners(obj, exception)
+    );
     /** Mesh loader @type {MeshLoader} */
     this.meshLoader = new MeshLoader((obj, avatar) => this.notifyLoadListeners(obj, avatar), (obj, exception) => this.alertLoadListeners(obj, exception));
     /** Set if session was authenticated CHECKME see if there's a better place for this */
@@ -375,10 +377,6 @@ export class WorldManager extends EventRouter {
    * @param {VRObject} obj 
    */
   removeObject(obj) {
-    if (this.mediaStreams) {
-      // CHECKME should remove some time later?
-      //this.mediaStreams.removeClient(obj.id);
-    }
     if (obj.avatar) {
       obj.avatar.dispose(); // calls unloadObject
       obj.avatar = null;
