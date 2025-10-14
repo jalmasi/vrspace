@@ -45,6 +45,7 @@ export class ConnectionManager {
           let anotherWelcomeListener = VRSPACE.addWelcomeListener(welcome => {
             VRSPACE.removeWelcomeListener(anotherWelcomeListener);
             VRSPACE.callCommand("Session", () => afterEnter(welcome));
+            this.pubSub(welcome.client.User, VRSPACE.me.video);
           });
           VRSPACE.sendCommand("Enter", { world: this.world.name });
         } else {
@@ -53,6 +54,8 @@ export class ConnectionManager {
           VRSPACE.callCommand("Session", () => {
             this.entered(welcome)
             resolve(welcome);
+            // start session in default space
+            this.pubSub(VRSPACE.me, VRSPACE.me.video);
           });
         }    
       };
@@ -165,13 +168,13 @@ export class ConnectionManager {
         VRSPACE.me[prop] = properties[prop];
       }
     }
-    // start publishing video only for video avatar currently displaying video
-    //this.pubSub(welcome.client.User, VRSPACE.me.video);
-    this.pubSub(VRSPACE.me, VRSPACE.me.video);
+    // DO NOT start publishing after connect, but after enter
+    // i.e. first make sure user is in the right space
+    //this.pubSub(VRSPACE.me, VRSPACE.me.video);
   }
   
   /** 
-   * Publish and subscribe
+   * Publish and subscribe audio/video. Expects user object to contain a valid token.
    * @param {Client} user Client object of the local user
    * @param {boolean} autoPublishVideo should webcam video be published as soon as possible
    */
