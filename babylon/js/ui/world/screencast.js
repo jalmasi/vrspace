@@ -1,5 +1,6 @@
 import { OpenViduStreams } from '../../core/media-streams.js';
 import { WorldListener } from '../../world/world-listener.js';
+import { World } from '../../world/world.js';
 import { WorldManager } from '../../core/world-manager.js';
 import { MediaStreams } from "../../core/media-streams.js";
 
@@ -20,6 +21,7 @@ export class Screencast extends WorldListener {
     super();
     /** text to display on the share screen button, by default Share screen */
     this.text = 'Share screen';
+    /** @type {World} */
     this.world = world;
     this.scene = world.scene;
     this.name = name;
@@ -35,6 +37,7 @@ export class Screencast extends WorldListener {
 
     /** Contains VRObject used to exchange screens share messages, exists only on the sending side */
     this.screenShare = null;
+    this.vrObject = null;
     /** Callback executed when sharing state changes, passed true/false */
     this.callback = null;
     /** @type {WorldManager} */
@@ -47,7 +50,7 @@ export class Screencast extends WorldListener {
    */
   init() {
     this.worldManager = this.world.worldManager;
-    this.world.addListener(this);
+    this.world.addListener(this, true);
     this.setupStreaming();
   }
 
@@ -128,6 +131,8 @@ export class Screencast extends WorldListener {
   /** WorldListener interface */
   added(vrObject) {
     if (vrObject.properties && vrObject.properties.screenName) {
+      console.log("Added screencast", vrObject);
+      this.vrObject = vrObject;
       this.sharing(true);
     }
   }
@@ -135,7 +140,9 @@ export class Screencast extends WorldListener {
   /** WorldListener interface */
   removed(vrObject) {
     if (vrObject.properties && vrObject.properties.screenName) {
+      console.log("Removed screencast", vrObject);
       this.sharing(false);
+      this.vrObject = null;
     }
   }
 

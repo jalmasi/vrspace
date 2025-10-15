@@ -741,11 +741,18 @@ export class World {
   }
 
   /**
-   * Add a world listener to listen for world events
+   * Add a world listener to listen for world events.
+   * By default, added() event will not trigger for objects already present in the scene at the moment of adding the listener.
    * @param {WorldListener} worldListener 
+   * @param {boolean} processAlreadyAdded to call added() method for objects that added previously
    */
-  addListener(worldListener) {
+  addListener(worldListener, processAlreadyAdded) {
     VRSPACE.addListener(this.worldListeners, worldListener);
+    if (processAlreadyAdded) {
+      VRSPACE.getScene().forEach((vrObject,id)=>{
+        worldListener.added(vrObject);
+      });      
+    }
   }
 
   /**

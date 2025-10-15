@@ -1,4 +1,5 @@
 import { Screencast } from "./screencast.js";
+import { MediaStreams } from "../../core/media-streams.js";
 
 /**
 Simple screen sharing component that allows anybody to share their screen in the fixed place in the world,
@@ -38,7 +39,7 @@ export class SharedScreencast extends Screencast {
   init() {
     super.init();
     this.screenShareMesh.setEnabled(true);
-    this.world.worldManager.mediaStreams.addStreamListener(this.client.id, mediaStream => this.streamPlaying(mediaStream));
+    MediaStreams.instance.addStreamListener(this.client.id, mediaStream => this.streamPlaying(mediaStream));
     
     this.scene.onPointerPick = (e,p) => {
       console.log("Picked ", p.pickedMesh.name);
@@ -75,7 +76,7 @@ export class SharedScreencast extends Screencast {
     super.sharing(state);
     this.isSharing = state;
     if ( state ) {
-      this.writeText('Sharing: '+vrObject.properties.screenName);
+      this.writeText('Sharing: '+this.vrObject.properties.screenName);
     } else {
       this.writeText(this.text);
     }
