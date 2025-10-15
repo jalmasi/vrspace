@@ -90,7 +90,7 @@ export class TextAreaInput extends InputForm {
    * @param true clear text input, default true
    */
   write(what, prefix, clear = true) {
-    if (prefix) {
+    if (typeof prefix != "undefined") {
       this.textArea.writeln('[' + prefix + '] ' + what);
     } else {
       this.textArea.writeln(what);

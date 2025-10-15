@@ -655,7 +655,8 @@ export class World {
       console.log(obj.id + ' wrote ' + obj.wrote);
       var name = obj.name;
       if (!name) {
-        name = 'u' + obj.id;
+        // CHECKME what to display for anonymous users?
+        name='o_o';
       }
       if ( typeof obj.wrote === 'object' ) {
         this.chatLog.log(name, obj.wrote.text, obj.wrote.link);
