@@ -235,11 +235,11 @@ export class Sceneshot {
       margin-right: auto;
     }
     </style>
-    <script src="https://cdn.babylonjs.com/v6.49.0/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/v6.49.0/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v6.49.0/gui/babylon.gui.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v6.49.0/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v6.49.0/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://cdn.babylonjs.com/v7.54.2/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/v7.54.2/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/v7.54.2/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/v7.54.2/materialsLibrary/babylonjs.materials.min.js"></script>
+    <script src="https://cdn.babylonjs.com/v7.54.2/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
     </head>
   <body>
 
