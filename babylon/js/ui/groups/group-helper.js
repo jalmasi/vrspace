@@ -33,9 +33,9 @@ export class GroupHelper {
       group.chatlog.input.autoWrite = false;
       group.chatlog.input.virtualKeyboardEnabled = World.lastInstance.inXR();
       // add listener for share world (default-hud)
-      group.chatlog.addListener((text, data, attachments) => {
-        if (data) {
-          groupApi.shareWorld(group.id, data);
+      group.chatlog.addListener((text, link, attachments) => {
+        if (link) {
+          groupApi.shareWorld(group.id, {content:text,link:link});
         } else {
           groupApi.write(group.id, text).then(msgId=>{
             if ( attachments ) {

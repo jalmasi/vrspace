@@ -9,6 +9,7 @@ import { WorldListener } from './world-listener.js';
 import { CameraHelper } from '../core/camera-helper.js';
 import { Terrain } from '../terrain/terrain.js';
 import { Skybox } from './skybox.js';
+import { ChatMessage } from '../core/chat-message.js';
 
 /**
 Basic world, intended to be overridden.
@@ -630,8 +631,8 @@ export class World {
   /**
   Write some text to world chat. Usually text appears above avatar's head and/or in chat log,
   but this method only sends own 'wrote' event.
-  @param text something to say
-  @param link optional url to link the text with
+  @param {string} text something to say
+  @param {string} link optional url to link the text with
    */
   write(text, link) {
     if (this.worldManager && text) {

@@ -8,6 +8,7 @@ import { MeshLoader } from './mesh-loader.js';
 import { SceneEvent } from '../client/vrspace.js';
 import { EventRouter } from './event-router.js';
 import { ConnectionManager } from './connection-manager.js';
+import { ChatMessage } from './chat-message.js';
 
 /**
 Manages world events: tracks local user events and sends them to the server, 
@@ -408,9 +409,12 @@ export class WorldManager extends EventRouter {
     // TODO also remove object (avatar) from internal arrays
   }
 
-  /** Local user wrote something - send it over and notify local listener(s) */
-  write(text) {
-    this.publishChanges([{ field: 'wrote', value: text }]);
+  /** 
+   * Local user wrote something - send it over and notify local listener(s)
+   * @param {ChatMessage} msg object containing text and optional link fields 
+   */
+  write(msg) {
+    this.publishChanges([{ field: 'wrote', value: msg }]);
   }
 
   /**

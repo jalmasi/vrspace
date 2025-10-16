@@ -347,15 +347,15 @@ export class ChatLog extends TextArea {
    * Share a world: notifies all the listeners (world or group) with the world name, content and link
    */
   shareWorld(worldName, href) {
-    this.notifyListeners(worldName, { content: worldName, link: href });
+    this.notifyListeners(worldName, href);
   }
   
   /**
    * Notify all chatlog listeners that the text has changed.
    * @private
    */
-  notifyListeners(text,data,attachments) {
-    this.listeners.forEach(l=>l(text, data, attachments));
+  notifyListeners(text,link,attachments) {
+    this.listeners.forEach(l=>l(text, link, attachments));
   }
   
   /**
