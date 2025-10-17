@@ -25,6 +25,8 @@ and delegates it to underlying UI elements as appropriate.
 It can contain multiple rows, each containing multiple buttons, but a row can contain only one Form.
  */
 export class HUD {
+  //static buttonClassName = "HolographicButton";
+  static buttonClassName = "TouchHolographicButton";
   /** @param scene babylonjs scene */
   /** @param camera to track, by default tracks active camera */
   constructor(scene, camera) {
@@ -42,7 +44,10 @@ export class HUD {
     this.scaleWeb = 1;
     this.scaleXR = .5;
     this.rowOffset = new BABYLON.Vector3(0, this.verticalWeb, .1);
+    // HolographicButton default color:
     this.colorEnabled = new BABYLON.Color3(0.3, 0.35, 0.4);
+    // TouchHolographicButton default color:
+    //this.colorEnabled = new BABYLON.Color3(0.08, 0.15, 0.55);
     this.colorDisabled = new BABYLON.Color3(0.67, 0.29, 0.29);
     this.colorActive = new BABYLON.Color3(0.29, 0.67, 0.29);
     // state variables
@@ -177,6 +182,16 @@ export class HUD {
   }
 
   /**
+   * Create a HolographicButton or TouchHolographicButton, depending on static buttonClassName
+   */
+  createButton(text, shareMaterial) {
+    if ( HUD.buttonClassName == "TouchHolographicButton" ) {
+      return new BABYLON.GUI.TouchHolographicButton(text + "Button", shareMaterial);
+    } else {
+      return new BABYLON.GUI.HolographicButton(text + "Button", shareMaterial);      
+    }
+  }
+  /**
   Create a button with given text and image and add it to the HUD
   @param text description to display
   @param imageUrl image to display
@@ -187,16 +202,23 @@ export class HUD {
   addButton(text, imageUrl, onPointerDown, shareMaterial = true) {
     var width = this.makeRoomForMore();
 
-    var button = new BABYLON.GUI.HolographicButton(text + "Button", shareMaterial);
+    var button = this.createButton(text + "Button", shareMaterial);
     this.guiManager.addControl(button);
     button.imageUrl = imageUrl;
     button.text = text;
     button.position = new BABYLON.Vector3(this.elements.length * width / 2, 0, 0);
     button.scaling = new BABYLON.Vector3(this.buttonSize, this.buttonSize, this.buttonSize);
-    button.mesh.parent = this.rowRoot;
+    // this does not work on TouchHolographicButton:
+    //button.mesh.parent = this.rowRoot;
+    button.linkToTransformNode(this.rowRoot);
+    if (HUD.buttonClassName == "TouchHolographicButton") {
+      // otherwise it's too thick
+      button.scaling.z = 0.01;      
+    }
     this.elements.push(button);
     this.controls.push(button);
     button.backMaterial.alpha = this.alpha;
+    button.backMaterial.albedoColor = this.colorEnabled;
     this.rescaleHUD();
     if (onPointerDown) {
       button.onPointerDownObservable.add((vector3WithInfo) => {
@@ -295,7 +317,7 @@ export class HUD {
    * Input delegate method, deselects current control. 
    */
   unselectCurrent() {
-    if (this.activeControl && this.activeControl.getClassName() == "HolographicButton") {
+    if (this.activeControl && this.activeControl.getClassName() == HUD.buttonClassName) {
       this.activeControl.pointerOutAnimation();
     } else if (this.activeControl && this.activeControl.getClassName() == "Form") {
       this.activeControl.unselectCurrent();
@@ -305,7 +327,7 @@ export class HUD {
    * Input delegate method, selects current control (button or Form element) at given index.
    */
   selectCurrent(index) {
-    if (this.activeControl && this.activeControl.getClassName() == "HolographicButton") {
+    if (this.activeControl && this.activeControl.getClassName() == HUD.buttonClassName) {
       this.activeControl.pointerEnterAnimation();
     } else if (this.activeControl && this.activeControl.getClassName() == "Form") {
       this.activeControl.selectCurrent(index);
@@ -330,7 +352,7 @@ export class HUD {
    */
   activate() {
     if (this.activeControl) {
-      if (this.activeControl.getClassName() == "HolographicButton") {
+      if (this.activeControl.getClassName() == HUD.buttonClassName) {
         this.activateButton(this.activeControl);
       } else if (this.activeControl.getClassName() == "Form") {
         this.activeControl.activateCurrent();
@@ -342,7 +364,7 @@ export class HUD {
    */
   up() {
     if (this.activeControl) {
-      if (this.activeControl.getClassName() == "HolographicButton") {
+      if (this.activeControl.getClassName() == HUD.buttonClassName) {
         this.activateButton(this.activeControl);
       } else if (this.activeControl.getClassName() == "Form") {
         this.activeControl.up();
@@ -359,7 +381,7 @@ export class HUD {
     }
     if (clear && this.rows.length > 1) {
       let previous = this.rows[this.rows.length - 2];
-      if (previous.activeControl && previous.activeControl.getClassName() == "HolographicButton") {
+      if (previous.activeControl && previous.activeControl.getClassName() == HUD.buttonClassName) {
         this.activateButton(previous.activeControl);
       }
     } else if (clear) {
@@ -695,7 +717,7 @@ export class HUD {
   intersects(mesh) {
     let ret = false;
     this.elements.forEach(e => {
-      if (e.getClassName() == "HolographicButton") {
+      if (e.getClassName() == HUD.buttonClassName) {
         /*
         // also trying currently invisible buttons
         let visible = e.mesh.isVisible;
