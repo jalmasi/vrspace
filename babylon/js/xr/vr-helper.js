@@ -42,6 +42,7 @@ export class VRHelper {
     this.teleporting = false;
     this.sessionMode = sessionMode;
     this.userHeight = 1.8;
+    this.timeToTeleport = 1000;
     /** or NONE, or SLIDE */
     this.movementMode = "TELEPORT";
     console.log("New VRHelper " + sessionMode);
@@ -78,7 +79,10 @@ export class VRHelper {
             sessionMode: this.sessionMode,
             referenceSpaceType: "local-floor"
           },
-          floorMeshes: this.world.getFloorMeshes()
+          floorMeshes: this.world.getFloorMeshes(),
+          teleportationOptions: {
+            timeToTeleport: this.timeToTeleport
+          }
         });
         // selection disallowed until controllers are initialized
         VRSPACEUI.hud.allowSelection = false;
@@ -211,7 +215,7 @@ export class VRHelper {
         // actual class is WebXRInputSource
         this.controllerObserver = (xrController) => {
           if (xrController.grip) {
-            console.log("Controller added: " + xrController.grip.name + " " + xrController.grip.name);
+            console.log("Controller added: " + xrController.grip.name);
             this.clearPointer();
             // right contrtoller seems to be active by default, do we have a way to know?
             this.activeController = "right";
@@ -219,13 +223,13 @@ export class VRHelper {
             if (xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >= 0) {
               this.controller.left = xrController;
               xrController.onMotionControllerInitObservable.add((motionController) => {
-                console.log('left motion controller:', motionController.getComponentIds());
+                console.log('left motion controller: '+motionController.profileId, motionController.getComponentIds());
                 this.trackMotionController(motionController, 'left');
               });
             } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
               this.controller.right = xrController;
               xrController.onMotionControllerInitObservable.add((motionController) => {
-                console.log('right motion controller:', motionController.getComponentIds());
+                console.log('right motion controller:'+motionController.profileId, motionController.getComponentIds());
                 this.trackMotionController(motionController, 'right');
               });
             } else {
@@ -460,7 +464,7 @@ export class VRHelper {
             this.trigger[side] = component;
             // TODO: make this removable
             component.onButtonStateChangedObservable.add((c) => {
-              this.triggerTracker(c, side);
+              this.triggerTracker(controller, c, side);
             });
           } else if (component.type == BABYLON.WebXRControllerComponent.SQUEEZE_TYPE) {
             this.squeeze[side] = component;
@@ -543,12 +547,16 @@ export class VRHelper {
    * Used internally to track triggers of VR controllers. Disables the teleporation if a trigger is pressed.
    * Calls trigger listeners, passing the them the value (0-1) and side (left/right);  
    */
-  triggerTracker(component, side) {
-    if (component.value == 1) {
-      this.vrHelper.teleportation.detach();
-      this.activeController = side;
-    } else if (component.value == 0) {
-      this.vrHelper.teleportation.attach();
+  triggerTracker(controller, component, side) {
+    // XR hand has only one component, xr-standard-trigger
+    // normal XR controller has many
+    if (Object.keys(controller.components).length > 1) {
+      if (component.value == 1) {
+        this.vrHelper.teleportation.detach();
+        this.activeController = side;
+      } else if (component.value == 0) {
+        this.vrHelper.teleportation.attach();
+      }
     }
     this.triggerListeners.forEach(callback => { callback(component.value, side) });
   }
@@ -823,7 +831,8 @@ export class VRHelper {
       featureManager.disableFeature(BABYLON.WebXRFeatureName.MOVEMENT);
       featureManager.enableFeature(BABYLON.WebXRFeatureName.TELEPORTATION, "latest", {
         xrInput: this.vrHelper.input,
-        floorMeshes: this.world.getFloorMeshes()
+        floorMeshes: this.world.getFloorMeshes(),
+        timeToTeleport: this.timeToTeleport
       });
     }
   }
