@@ -97,6 +97,7 @@ export class Buttons {
       button.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
       button.position = new BABYLON.Vector3(this.buttonHeight/2, -i*this.spacing, 0);
       button.parent = this.group;
+      button.isNearPickable = true;
       this.buttons.push(button);
     }
 
