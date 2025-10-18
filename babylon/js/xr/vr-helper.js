@@ -26,16 +26,18 @@ export class VRHelper {
     this.stateChangeObserver = null;
     /** Function that tracks turning XR controllers on/off */
     this.controllerObserver = null;
-    /** left and right trigger, if available */
-    this.trigger = { left: null, right: null };
-    /** left and right squeeze, if available */
-    this.squeeze = { left: null, right: null };
+    /** left and right trigger values*/
+    this.trigger = { left: 0, right: 0 };
+    /** left and right squeeze values */
+    this.squeeze = { left: 0, right: 0 };
     /** left and right thumbstick, if available */
     this.thumbstick = { left: null, right: null };
     /** left and right touchpad, if available */
     this.touchpad = { left: null, right: null };
     /** left and right buttons. */
     this.buttons = { left: [], right: [] };
+    /** left and right thumb and index finger */
+    this.hands = { left: {thumb:null, index:null}, right: {thumb:null, index:null} };
     this.squeezeConsumers = [];
     this.triggerListeners = [];
     this.activeController = "none";
@@ -215,7 +217,7 @@ export class VRHelper {
         // actual class is WebXRInputSource
         this.controllerObserver = (xrController) => {
           if (xrController.grip) {
-            console.log("Controller added: " + xrController.grip.name);
+            console.log("Controller added: " + xrController.grip.name, xrController.inputSource.profiles);
             this.clearPointer();
             // right contrtoller seems to be active by default, do we have a way to know?
             this.activeController = "right";
@@ -254,6 +256,8 @@ export class VRHelper {
             }
           }
         });
+        
+        this.trackHands();
       }
 
 
@@ -461,16 +465,14 @@ export class VRHelper {
         } else if (component.isButton()) {
           // buttons can give values 0,1 or anywhere in between
           if (component.type == BABYLON.WebXRControllerComponent.TRIGGER_TYPE) {
-            this.trigger[side] = component;
             // TODO: make this removable
             component.onButtonStateChangedObservable.add((c) => {
-              this.triggerTracker(controller, c, side);
+              this.triggerTracker(controller, c.value, side);
             });
           } else if (component.type == BABYLON.WebXRControllerComponent.SQUEEZE_TYPE) {
-            this.squeeze[side] = component;
             // TODO: make this removable
             component.onButtonStateChangedObservable.add((c) => {
-              this.squeezeTracker(c, side);
+              this.squeezeTracker(c.value, side);
             });
           } else if (component.type == BABYLON.WebXRControllerComponent.BUTTON_TYPE) {
             this.buttons[side].push(component);
@@ -482,7 +484,7 @@ export class VRHelper {
         }
       };
     } catch (error) {
-      console.log('ERROR', error);
+      console.log('ERROR '+ error);
     }
   }
 
@@ -508,17 +510,20 @@ export class VRHelper {
    * Used internally to track squeeze buttons of VR controllers. Disables the teleporation if a button is pressed.
    * Calls squeeze listeners, passing the them the value (0-1) and side (left/right);  
    */
-  squeezeTracker(component, side) {
-    if (component.value == 1) {
+  squeezeTracker(value, side) {
+    this.squeeze[side] = value;
+    /*
+    if (value == 1) {
       this.vrHelper.teleportation.detach();
-    } else if (component.value == 0) {
+    } else if (value == 0) {
       this.vrHelper.teleportation.attach();
     }
+    */
     this.squeezeConsumers.every(callback => {
       try {
-        return callback(component.value, side);
+        return callback(value, side);
       } catch (err) {
-        log.error("Error processing squeeze ", err);
+        console.log("Error processing squeeze ", err);
         return true;
       }
     });
@@ -547,18 +552,19 @@ export class VRHelper {
    * Used internally to track triggers of VR controllers. Disables the teleporation if a trigger is pressed.
    * Calls trigger listeners, passing the them the value (0-1) and side (left/right);  
    */
-  triggerTracker(controller, component, side) {
+  triggerTracker(controller, value, side) {
+    this.trigger[side] = value;
     // XR hand has only one component, xr-standard-trigger
     // normal XR controller has many
     if (Object.keys(controller.components).length > 1) {
-      if (component.value == 1) {
+      if (value == 1) {
         this.vrHelper.teleportation.detach();
         this.activeController = side;
-      } else if (component.value == 0) {
+      } else if (value == 0) {
         this.vrHelper.teleportation.attach();
       }
     }
-    this.triggerListeners.forEach(callback => { callback(component.value, side) });
+    this.triggerListeners.forEach(callback => { callback(value, side) });
   }
 
   /**
@@ -641,34 +647,13 @@ export class VRHelper {
    * Calls World.trackXrDevices()
    */
   trackXrDevices() {
-    if (this.world && this.world.inXR()) {
-      // user height has to be tracked here due to
-      //XRFrame access outside the callback that produced it is invalid
-      if (this.camera().realWorldHeight) {
-        // are we absolutely sure that all mobiles deliver this value?
-        this.userHeight = this.camera().realWorldHeight;
-      }
-      if (!this.controller.left && !this.controller.right && this.pointerTarget) {
-        // we don't have controllers (yet), use ray from camera for interaction
-        var ray = this.camera().getForwardRay(100);
-        this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
-          return this.isSelectableMesh(mesh);
-        });
-        if (this.pickInfo.hit) {
-          const points = [
-            new BABYLON.Vector3(this.camera().position.x, this.camera().position.y - .5, this.camera().position.z),
-            this.pickInfo.pickedPoint
-          ]
-          this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", { points: points, instance: this.pointerLines });
-          this.pointerTarget.position = this.pickInfo.pickedPoint;
-          this.pointerTarget.setEnabled(true);
-        } else {
-          const points = [
-            new BABYLON.Vector3(this.camera().position.x, this.camera().position.y - .5, this.camera().position.z),
-            ray.direction.scale(ray.length)
-          ]
-          this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", { points: points, instance: this.pointerLines });
-          this.pointerTarget.setEnabled(false);
+    try {
+      if (this.world && this.world.inXR()) {
+        // user height has to be tracked here due to
+        //XRFrame access outside the callback that produced it is invalid
+        if (this.camera().realWorldHeight) {
+          // are we absolutely sure that all mobiles deliver this value?
+          this.userHeight = this.camera().realWorldHeight;
         }
         if (!this.controller.left && !this.controller.right && this.pointerTarget) {
           // we don't have controllers (yet), use ray from camera for interaction
@@ -692,11 +677,42 @@ export class VRHelper {
             this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", { points: points, instance: this.pointerLines });
             this.pointerTarget.setEnabled(false);
           }
-          this.world.scene.simulatePointerMove(this.pickInfo);
-          this.pointerLines.alwaysSelectAsActiveMesh = true;
+          if (!this.controller.left && !this.controller.right && this.pointerTarget) {
+            // we don't have controllers (yet), use ray from camera for interaction
+            var ray = this.camera().getForwardRay(100);
+            this.pickInfo = this.world.scene.pickWithRay(ray, (mesh) => {
+              return this.isSelectableMesh(mesh);
+            });
+            if (this.pickInfo.hit) {
+              const points = [
+                new BABYLON.Vector3(this.camera().position.x, this.camera().position.y - .5, this.camera().position.z),
+                this.pickInfo.pickedPoint
+              ]
+              this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", { points: points, instance: this.pointerLines });
+              this.pointerTarget.position = this.pickInfo.pickedPoint;
+              this.pointerTarget.setEnabled(true);
+            } else {
+              const points = [
+                new BABYLON.Vector3(this.camera().position.x, this.camera().position.y - .5, this.camera().position.z),
+                ray.direction.scale(ray.length)
+              ]
+              this.pointerLines = BABYLON.MeshBuilder.CreateLines("Pointer-lines", { points: points, instance: this.pointerLines });
+              this.pointerTarget.setEnabled(false);
+            }
+            this.world.scene.simulatePointerMove(this.pickInfo);
+            this.pointerLines.alwaysSelectAsActiveMesh = true;
+          }
         }
-      }
-      this.world.trackXrDevices();
+        if ( this.hands.left.index && this.hands.left.thumb ) {
+          this.checkPinch("left");
+        }
+        if ( this.hands.right.index && this.hands.right.thumb ) {
+          this.checkPinch("right");
+        }
+        this.world.trackXrDevices();
+      }      
+    } catch ( err ) {
+      console.error("ERROR in render loop: "+err);
     }
   }
 
@@ -821,6 +837,53 @@ export class VRHelper {
     }
   }
 
+  trackHands() {
+    try {
+      // https://forum.babylonjs.com/t/xr-hands-and-finger-tracking/53436
+      // https://forum.babylonjs.com/t/webxr-hand-functions-like-grabbing-in-quest-3/49287/2
+      const featureManager = this.vrHelper.baseExperience.featuresManager;
+      const xrHandFeature = featureManager.enableFeature(BABYLON.WebXRFeatureName.HAND_TRACKING, "latest", {
+          xrInput: this.vrHelper.input
+      });
+      if (xrHandFeature) {
+        console.log("XR Hands enabled");
+        xrHandFeature.onHandAddedObservable.add((hand) => {
+          let side = '';
+          if (
+            hand.xrController.grip.id.toLowerCase().indexOf("left") >= 0 || hand.xrController.grip.name.toLowerCase().indexOf("left") >= 0
+          ) {
+            console.log("Hand left ", hand);
+            side = "left";
+          } else if (
+            hand.xrController.grip.id.toLowerCase().indexOf("right") >= 0 || hand.xrController.grip.name.toLowerCase().indexOf("right") >= 0
+          ) {
+            console.log("Hand right ", hand);
+            side = "right";
+          } else {
+            console.log("ERROR unknown controller side: "+hand.xrController.grip.id+" "+hand.xrController.grip.name);
+            return;
+          }
+          this.hands[side].index = hand.getJointMesh(BABYLON.WebXRHandJoint.INDEX_FINGER_TIP);
+          this.hands[side].thumb = hand.getJointMesh(BABYLON.WebXRHandJoint.THUMB_TIP);
+        });
+      }      
+    } catch (error) { 
+      console.log("ERROR "+error);
+    }
+  }
+  
+  checkPinch(side) {
+    let hand = this.hands[side]
+    let distance = BABYLON.Vector3.Distance(hand.index.position, hand.thumb.position);
+
+    if(this.squeeze[side] == 0 && distance < 0.03) {
+      this.squeeze[side] = 1;
+      this.squeezeTracker(1, side);
+    } else if(this.squeeze[side] == 1 && distance > 0.03){
+      this.squeeze[side] = 0;
+      this.squeezeTracker(0, side);
+    }    
+  }
   /**
    * Disable sliding movement and enable teleportation.
    */

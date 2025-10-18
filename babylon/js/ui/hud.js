@@ -633,7 +633,7 @@ export class HUD {
   processSqueeze(value, side) {
     let xrController = this.vrHelper.controller[side];
     let intersects = this.intersects(xrController.grip);
-    //console.log(side+' squeeze: '+value+ " Intersects: "+intersects);
+    console.log(side+' squeeze: '+value+ " Intersects: "+intersects);
     if (value == 1 && intersects) {
       if (side == 'left') {
         this.attachToLeftController();
@@ -642,8 +642,9 @@ export class HUD {
       }
       return false;
     } else if (
-      this.vrHelper.squeeze.left.value == 1 && this.vrHelper.squeeze.right.value == 1 &&
-      this.vrHelper.trigger.left.value == 0 && this.vrHelper.trigger.right.value == 0) {
+      this.vrHelper.squeeze.left == 1 && this.vrHelper.squeeze.right == 1 &&
+      this.vrHelper.trigger.left == 0 && this.vrHelper.trigger.right == 0
+    ) {
       // rescaling/repositioning the hud using both squeeze buttons
       try {
         let leftPos = this.vrHelper.controller.left.grip.absolutePosition;
