@@ -694,8 +694,12 @@ export class HUD {
    */
   attachToLeftController() {
     this.root.parent = this.vrHelper.controller.left.grip;
-    this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, .1);
-    this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, Math.PI / 2);
+    // xr controller:
+    //this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, .1);
+    //this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, Math.PI / 2);
+    // xr hand:
+    this.root.position = new BABYLON.Vector3(0, 0, .1);
+    this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI / 2);
     //this.rowOffset = new BABYLON.Vector3(-this.verticalXR,0,0);
     this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, 0);
     this.currentController = 'left';
@@ -705,8 +709,12 @@ export class HUD {
    */
   attachToRightController() {
     this.root.parent = this.vrHelper.controller.right.grip;
-    this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, .1);
-    this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
+    // xr controller:
+    //this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, .1);
+    //this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
+    // xr hand:
+    this.root.position = new BABYLON.Vector3(0, 0, .1);
+    this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI / 2);
     //this.rowOffset = new BABYLON.Vector3(this.verticalXR,0,0);
     this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, 0);
     this.currentController = 'right';

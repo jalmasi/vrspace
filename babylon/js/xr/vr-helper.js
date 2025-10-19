@@ -848,6 +848,10 @@ export class VRHelper {
       if (xrHandFeature) {
         console.log("XR Hands enabled");
         xrHandFeature.onHandAddedObservable.add((hand) => {
+          // TODO introduce rotation correction for controller grip mesh
+          // left: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2)
+          // right:  BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2)
+          // see if that can be also used in HUD
           let side = '';
           if (
             hand.xrController.grip.id.toLowerCase().indexOf("left") >= 0 || hand.xrController.grip.name.toLowerCase().indexOf("left") >= 0
@@ -867,6 +871,9 @@ export class VRHelper {
           this.hands[side].index = hand.getJointMesh(BABYLON.WebXRHandJoint.INDEX_FINGER_TIP);
           this.hands[side].thumb = hand.getJointMesh(BABYLON.WebXRHandJoint.THUMB_TIP);
         });
+        // TODO: onHandRemovedObservable
+        // XR hand may get removed any time, when out of camera range, even if one hand covers the other
+        // in that case controller grip base mesh disappears, HUD loses parent
       }      
     } catch (error) { 
       console.log("ERROR "+error);

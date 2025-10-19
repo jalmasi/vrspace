@@ -259,21 +259,33 @@ export class AvatarSelection extends World {
       // CHECKME: mirror left-right
       if (this.xrHelper.controller.left) {
         if (this.mirror) {
-          var leftPos = this.calcControllerPos(this.character.body.leftArm, this.xrHelper.controller.left);
+          // xr hand:
+          var leftPos = this.calcControllerPos(this.character.body.leftArm, this.xrHelper.controller.left, BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2));
+          // xr controller:
+          //var leftPos = this.calcControllerPos(this.character.body.leftArm, this.xrHelper.controller.left);
           leftPos.z = -leftPos.z;
           this.character.reachFor(this.character.body.leftArm, leftPos);
         } else {
-          var leftPos = this.calcControllerPos(this.character.body.rightArm, this.xrHelper.controller.left);
+          // xr hand:
+          var leftPos = this.calcControllerPos(this.character.body.rightArm, this.xrHelper.controller.left, BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2));
+          // xr controller:
+          //var leftPos = this.calcControllerPos(this.character.body.rightArm, this.xrHelper.controller.left);
           this.character.reachFor(this.character.body.rightArm, leftPos);
         }
       }
       if (this.xrHelper.controller.right) {
         if (this.mirror) {
-          var rightPos = this.calcControllerPos(this.character.body.rightArm, this.xrHelper.controller.right);
+          // xr hand:
+          var rightPos = this.calcControllerPos(this.character.body.rightArm, this.xrHelper.controller.right, BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2));
+          // xr controller:
+          //var rightPos = this.calcControllerPos(this.character.body.rightArm, this.xrHelper.controller.right);
           rightPos.z = -rightPos.z;
           this.character.reachFor(this.character.body.rightArm, rightPos);
         } else {
-          var rightPos = this.calcControllerPos(this.character.body.leftArm, this.xrHelper.controller.right);
+          // xr hand:
+          var rightPos = this.calcControllerPos(this.character.body.leftArm, this.xrHelper.controller.right, BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2));
+          // xr controller:
+          //var rightPos = this.calcControllerPos(this.character.body.leftArm, this.xrHelper.controller.right);
           this.character.reachFor(this.character.body.leftArm, rightPos);
         }
       }
@@ -282,15 +294,22 @@ export class AvatarSelection extends World {
     }
   }
 
-  calcControllerPos(arm, xrController) {
-    this.calcControllerRot(arm, xrController);
+  // TODO: move this to VR helper, take into acount XR hands
+  // the most important part is rotation
+  calcControllerPos(arm, xrController, additionalRotation) {
+    this.calcControllerRot(arm, xrController, additionalRotation);
     var cameraPos = this.xrHelper.camera().position;
     var pos = xrController.grip.absolutePosition.subtract(new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
     return pos;
   }
 
-  calcControllerRot(arm, xrController) {
-    arm.pointerQuat = xrController.pointer.rotationQuaternion.clone();
+  calcControllerRot(arm, xrController, additionalRotation) {
+    // rotation of pointer is different for controller when xr arm is used
+    if ( additionalRotation ) {
+      arm.pointerQuat = xrController.pointer.rotationQuaternion.clone().multiply(additionalRotation);
+    } else {
+      arm.pointerQuat = xrController.pointer.rotationQuaternion.clone();
+    }
     if (!this.mirror) {
       // heuristics 1, mirrored arm rotation, works well below shoulder
       //arm.pointerQuat.y = - arm.pointerQuat.y;
