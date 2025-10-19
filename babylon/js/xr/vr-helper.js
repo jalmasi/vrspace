@@ -37,7 +37,7 @@ export class VRHelper {
     /** left and right buttons. */
     this.buttons = { left: [], right: [] };
     /** left and right thumb and index finger */
-    this.hands = { left: {thumb:null, index:null}, right: {thumb:null, index:null} };
+    this.hands = { left: {hand: null, thumb:null, index:null}, right: {hand: null, thumb:null, index:null} };
     this.squeezeConsumers = [];
     this.triggerListeners = [];
     this.activeController = "none";
@@ -472,7 +472,7 @@ export class VRHelper {
           } else if (component.type == BABYLON.WebXRControllerComponent.SQUEEZE_TYPE) {
             // TODO: make this removable
             component.onButtonStateChangedObservable.add((c) => {
-              this.squeezeTracker(c.value, side);
+              this.squeezeTracker(c.value, side, this.controller[side].grip);
             });
           } else if (component.type == BABYLON.WebXRControllerComponent.BUTTON_TYPE) {
             this.buttons[side].push(component);
@@ -510,7 +510,7 @@ export class VRHelper {
    * Used internally to track squeeze buttons of VR controllers. Disables the teleporation if a button is pressed.
    * Calls squeeze listeners, passing the them the value (0-1) and side (left/right);  
    */
-  squeezeTracker(value, side) {
+  squeezeTracker(value, side, mesh) {
     this.squeeze[side] = value;
     /*
     if (value == 1) {
@@ -521,7 +521,7 @@ export class VRHelper {
     */
     this.squeezeConsumers.every(callback => {
       try {
-        return callback(value, side);
+        return callback(value, side, mesh);
       } catch (err) {
         console.log("Error processing squeeze ", err);
         return true;
@@ -703,10 +703,10 @@ export class VRHelper {
             this.pointerLines.alwaysSelectAsActiveMesh = true;
           }
         }
-        if ( this.hands.left.index && this.hands.left.thumb ) {
+        if (this.hands.left.hand) {
           this.checkPinch("left");
         }
-        if ( this.hands.right.index && this.hands.right.thumb ) {
+        if (this.hands.right.hand) {
           this.checkPinch("right");
         }
         this.world.trackXrDevices();
@@ -863,6 +863,7 @@ export class VRHelper {
             console.log("ERROR unknown controller side: "+hand.xrController.grip.id+" "+hand.xrController.grip.name);
             return;
           }
+          this.hands[side].hand = hand;
           this.hands[side].index = hand.getJointMesh(BABYLON.WebXRHandJoint.INDEX_FINGER_TIP);
           this.hands[side].thumb = hand.getJointMesh(BABYLON.WebXRHandJoint.THUMB_TIP);
         });
@@ -878,10 +879,10 @@ export class VRHelper {
 
     if(this.squeeze[side] == 0 && distance < 0.03) {
       this.squeeze[side] = 1;
-      this.squeezeTracker(1, side);
+      this.squeezeTracker(1, side, hand.thumb);
     } else if(this.squeeze[side] == 1 && distance > 0.03){
       this.squeeze[side] = 0;
-      this.squeezeTracker(0, side);
+      this.squeezeTracker(0, side, hand.thumb);
     }    
   }
   /**

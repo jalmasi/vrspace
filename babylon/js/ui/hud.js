@@ -626,14 +626,35 @@ export class HUD {
    */
   initXR(vrHelper) {
     this.vrHelper = vrHelper;
-    this.squeezeConsumer = (value, side) => this.processSqueeze(value, side);
+    this.squeezeConsumer = (value, side, controllerMesh) => this.processSqueeze(value, side, controllerMesh);
     this.vrHelper.addSqueezeConsumer(this.squeezeConsumer);
   }
 
-  processSqueeze(value, side) {
-    let xrController = this.vrHelper.controller[side];
-    let intersects = this.intersects(xrController.grip);
-    console.log(side+' squeeze: '+value+ " Intersects: "+intersects);
+  /**
+   * Process squeze button/pinch gesture XR callback.
+   * Attach HUD to left/right controller when grabbed, or release it back to be mounted to the head
+   * if both are pressed.
+   * @param {number} value 0-1
+   * @param {string} side left or right
+   * @param {*} controllerMesh baylon mesh of controller/hand used to determine intersetion with the HUD
+   */
+  processSqueeze(value, side, controllerMesh) {
+    //let xrController = this.vrHelper.controller[side];
+    controllerMesh.showBoundingBox = true;
+    /*
+    // more exact variant that takes actual controller mesh into account
+    // does not work for xr hand though
+    let boundInfo = mesh.getHierarchyBoundingVectors(true);
+    let min = boundInfo.min;
+    let max = boundInfo.max;
+    */
+    // approximate variant based on position and distance, works every time
+    let offset = 0.05; // 5 cm
+    let pos = controllerMesh.absolutePosition;
+    let min = {x: pos.x-offset, y: pos.y-offset, z: pos.z-offset};
+    let max = {x: pos.x+offset, y: pos.y+offset, z: pos.z+offset};
+    let intersects = this.intersects(min,max);
+    console.log(side+' squeeze: '+value+ " Intersects: "+intersects+" "+pos.x+","+pos.y+","+pos.z);
     if (value == 1 && intersects) {
       if (side == 'left') {
         this.attachToLeftController();
@@ -647,8 +668,8 @@ export class HUD {
     ) {
       // rescaling/repositioning the hud using both squeeze buttons
       try {
-        let leftPos = this.vrHelper.controller.left.grip.absolutePosition;
-        let rightPos = this.vrHelper.controller.right.grip.absolutePosition;
+        let leftPos = this.vrHelper.leftArmPos();
+        let rightPos = this.vrHelper.rightArmPos();
         let handDistance = leftPos.subtract(rightPos).length();
         let leftDistance = leftPos.subtract(this.camera.position).length();
         let rightDistance = rightPos.subtract(this.camera.position).length();
@@ -715,7 +736,7 @@ export class HUD {
   /**
    * Returns true if mesh intersects any of hud elements. Allows to 'grab' the hud with a VR controller.
    */
-  intersects(mesh) {
+  intersects(min, max) {
     let ret = false;
     this.elements.forEach(e => {
       if (e.getClassName() == HUD.buttonClassName) {
@@ -725,20 +746,17 @@ export class HUD {
         ret |= e.mesh.intersectsMesh(mesh);
         e.mesh.isVisible = visible;
         */
-        ret |= this.pointIsInside(e.mesh.absolutePosition, mesh);
+        ret |= this.pointIsInside(e.mesh.absolutePosition, min, max);
       } else {
         //ret |= e.intersectsMesh(mesh);
-        ret |= this.pointIsInside(e.absolutePosition, mesh);
+        ret |= this.pointIsInside(e.absolutePosition, min, max);
       }
     });
     return ret;
   }
 
   // https://doc.babylonjs.com/toolsAndResources/utilities/IsInside
-  pointIsInside(point, mesh) {
-    let boundInfo = mesh.getHierarchyBoundingVectors(true);
-    let max = boundInfo.max;
-    let min = boundInfo.min;
+  pointIsInside(point, min, max) {
     if (point.x < min.x || point.x > max.x) {
       return false;
     }
@@ -750,34 +768,6 @@ export class HUD {
     }
 
     return true;
-    /*
-    var diameter = 2 * boundInfo.boundingSphere.radius;
-    var pointFound = false;
-    var d = 0;
-    var hitCount = 0;
-    var gap = 0;
-    var distance = 0;
-    var ray = new BABYLON.Ray(BABYLON.Vector3.Zero(), BABYLON.Axis.X, diameter);;
-    var pickInfo;
-    var direction = point.clone();
-    var refPoint = point.clone();
-
-    hitCount = 0;
-    ray.origin = refPoint;
-    ray.direction = direction;
-    ray.distance = diameter;
-    pickInfo = ray.intersectsMesh(mesh);
-    while (pickInfo.hit) {
-      hitCount++;
-      pickInfo.pickedPoint.addToRef(direction.scale(0.00000001), refPoint);
-      ray.origin = refPoint;
-      pickInfo = ray.intersectsMesh(mesh);
-    }
-    if ((hitCount % 2) === 1) {
-      pointFound = true;
-    }
-    return pointFound;
-    */
   };
 
   /**

@@ -80,7 +80,7 @@ export class WorldEditor extends WorldListener {
     world.addSelectionPredicate(this.selectionPredicate);
 
     // add squeeze listener to take/drop an object
-    this.squeeze = (side, value) => this.handleSqueeze(side, value);
+    this.squeeze = (side, value, controllerMesh) => this.handleSqueeze(side, value, controllerMesh);
     world.xrHelper.addSqueezeConsumer(this.squeeze);
    
     world.addListener(this);
@@ -919,10 +919,11 @@ export class WorldEditor extends WorldListener {
    * Triggered on squeeze button pres/release. 
    * One squeeze pressed activates move button, like grabbing the object under the pointer. Release drops it.
    * Two squeeze buttons activate scaling and rotation. Spread more, scale more, closer is smaller.
-   * @param value 0-1
-   * @param side left or right
+   * @param {number} value 0-1
+   * @param {string} side left or right
+   * @param {*} controllerMesh not used
    */
-  handleSqueeze(value, side) {
+  handleSqueeze(value, side, controllerMesh) {
     try {
       this.clearGizmo();
       let bothOn = this.world.xrHelper.squeeze.left == 1 && this.world.xrHelper.squeeze.right == 1;
