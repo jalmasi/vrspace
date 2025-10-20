@@ -37,7 +37,10 @@ export class VRHelper {
     /** left and right buttons. */
     this.buttons = { left: [], right: [] };
     /** left and right thumb and index finger */
-    this.hands = { left: {hand: null, thumb:null, index:null}, right: {hand: null, thumb:null, index:null} };
+    this.hands = {
+      left: {hand: null, thumb:null, index:null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2)}, 
+      right: {hand: null, thumb:null, index:null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2)} 
+    };
     this.squeezeConsumers = [];
     this.triggerListeners = [];
     this.activeController = "none";
@@ -964,4 +967,30 @@ export class VRHelper {
       throw "Unknown movement mode: " + mode;
     }
   }
+  
+  /**
+   * Returns controller/hand position relative to the user.
+   * @param {string} side left or right 
+   */
+  handPosition(side) {    
+    const cameraPos = this.camera().position;
+    const xrController = this.controller[side];
+    // CHECKME: 0, rather than user height?
+    const pos = xrController.grip.absolutePosition.subtract(new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
+    return pos;
+  }
+  
+  /**
+   * Returns controller/hand rotation relative to the user.
+   * @param {string} side left or right 
+   */
+  handRotation(side) {
+    const xrController = this.controller[side];
+    if ( this.hands[side].hand ) {
+      return xrController.pointer.rotationQuaternion.multiply(this.hands[side].rotation);
+    } else {
+      return xrController.pointer.rotationQuaternion.clone();
+    }
+  }
+  
 }
