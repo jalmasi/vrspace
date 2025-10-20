@@ -222,21 +222,12 @@ export class VRHelper {
             // right contrtoller seems to be active by default, do we have a way to know?
             this.activeController = "right";
             VRSPACEUI.hud.allowSelection = true;
-            if (xrController.grip.id.toLowerCase().indexOf("left") >= 0 || xrController.grip.name.toLowerCase().indexOf("left") >= 0) {
-              this.controller.left = xrController;
-              xrController.onMotionControllerInitObservable.add((motionController) => {
-                console.log('left motion controller: '+motionController.profileId, motionController.getComponentIds());
-                this.trackMotionController(motionController, 'left');
-              });
-            } else if (xrController.grip.id.toLowerCase().indexOf("right") >= 0 || xrController.grip.name.toLowerCase().indexOf("right") >= 0) {
-              this.controller.right = xrController;
-              xrController.onMotionControllerInitObservable.add((motionController) => {
-                console.log('right motion controller:'+motionController.profileId, motionController.getComponentIds());
-                this.trackMotionController(motionController, 'right');
-              });
-            } else {
-              log("ERROR: don't know how to handle controller");
-            }
+            const side = this.getGripSide(xrController.grip);
+            this.controller[side] = xrController;
+            xrController.onMotionControllerInitObservable.add((motionController) => {
+              console.log(side+' motion controller: '+motionController.profileId, motionController.getComponentIds());
+              this.trackMotionController(motionController, side);
+            });
           } else if (xrController.inputSource.profiles && xrController.inputSource.profiles.includes("generic-touchscreen")) {
             console.log("Controller added: " + xrController.inputSource.profiles);
             // this happens in AR, touching something brings up teleportation
@@ -254,13 +245,12 @@ export class VRHelper {
               this.teleportForward();
               delete this.touchTimestamp;
             }
+          } else {
+            this.notifyHud(xrController);
           }
         });
-        
         this.trackHands();
       }
-
-
     } else {
       // obsolete and unsupported TODO REMOVEME
       this.vrHelper = this.world.scene.createDefaultVRExperience({ createDeviceOrientationCamera: false });
@@ -297,6 +287,15 @@ export class VRHelper {
     //console.log("VRHelper initialized", this.vrHelper);
   }
 
+  /** 
+   * Notify HUD that a controller has been removed, happens quite often with XR hands.
+   * Matters when HUD is attached to the removed hand.
+   * @private 
+   */
+  notifyHud(xrController) {
+    VRSPACEUI.hud.controllerRemoved(xrController);    
+  }
+  
   isSelectableMesh(mesh) {
     return VRSPACEUI.isSelectableMesh(mesh) || this.world.isSelectableMesh(mesh);
   }
@@ -852,31 +851,38 @@ export class VRHelper {
           // left: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2)
           // right:  BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2)
           // see if that can be also used in HUD
-          let side = '';
-          if (
-            hand.xrController.grip.id.toLowerCase().indexOf("left") >= 0 || hand.xrController.grip.name.toLowerCase().indexOf("left") >= 0
-          ) {
-            console.log("Hand left ", hand);
-            side = "left";
-          } else if (
-            hand.xrController.grip.id.toLowerCase().indexOf("right") >= 0 || hand.xrController.grip.name.toLowerCase().indexOf("right") >= 0
-          ) {
-            console.log("Hand right ", hand);
-            side = "right";
-          } else {
-            console.log("ERROR unknown controller side: "+hand.xrController.grip.id+" "+hand.xrController.grip.name);
-            return;
-          }
+          let side = this.getGripSide(hand.xrController.grip);
           this.hands[side].hand = hand;
           this.hands[side].index = hand.getJointMesh(BABYLON.WebXRHandJoint.INDEX_FINGER_TIP);
           this.hands[side].thumb = hand.getJointMesh(BABYLON.WebXRHandJoint.THUMB_TIP);
         });
-        // TODO: onHandRemovedObservable
         // XR hand may get removed any time, when out of camera range, even if one hand covers the other
         // in that case controller grip base mesh disappears, HUD loses parent
+        xrHandFeature.onHandRemovedObservable.add((hand) => {
+          let side = this.getGripSide(hand.xrController.grip);
+          this.notifyHud(hand.xrController);
+          this.hands[side].hand = null;
+          this.hands[side].index = null;
+          this.hands[side].thumb = null;
+        });        
       }      
     } catch (error) { 
       console.log("ERROR "+error);
+    }
+  }
+  
+  getGripSide(grip) {
+    if (
+      grip.id.toLowerCase().indexOf("left") >= 0 || grip.name.toLowerCase().indexOf("left") >= 0
+    ) {
+      return "left";
+    } else if (
+      grip.id.toLowerCase().indexOf("right") >= 0 || grip.name.toLowerCase().indexOf("right") >= 0
+    ) {
+      return "right";
+    } else {
+      console.log("ERROR unknown controller side: "+grip.id+" "+grip.name);
+      return '';
     }
   }
   

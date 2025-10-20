@@ -111,7 +111,6 @@ export class HUD {
   inXR() {
     return this.camera && "WebXRCamera" == this.camera.getClassName();
   }
-
   /** Returns vertical position of the HUD */
   vertical() {
     if (this.inXR()) {
@@ -741,6 +740,17 @@ export class HUD {
     }
     return null;
   }
+  
+  controllerRemoved(xrController) {
+    // alternatively, we may want attach it to  the other hand, 
+    // or hide it and attach it again when the controller is back
+    if (this.currentController == "left" && this.vrHelper.controller.left == xrController) {
+      this.attachToCamera();
+    } else if (this.currentController == "right" && this.vrHelper.controller.right == xrController) {
+      this.attachToCamera();
+    }
+  }
+  
   /**
    * Returns true if mesh intersects any of hud elements. Allows to 'grab' the hud with a VR controller.
    */
