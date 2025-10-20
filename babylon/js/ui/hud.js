@@ -2,6 +2,7 @@ import { SpeechInput } from '../core/speech-input.js';
 import { ColorPickerPanel } from './widget/colorpicker-panel.js';
 import { VerticalSliderPlane } from './widget/slider-panel.js';
 import { CameraHelper } from '../core/camera-helper.js';
+import { VRHelper } from '../xr/vr-helper.js';
 
 /**
 HUD stands for head-up display - a UI container mounted on users head.
@@ -51,7 +52,10 @@ export class HUD {
     this.colorDisabled = new BABYLON.Color3(0.67, 0.29, 0.29);
     this.colorActive = new BABYLON.Color3(0.29, 0.67, 0.29);
     // state variables
-    /** set by World.InitXR() */
+    /** 
+     * set by World.InitXR()
+     * @type {VRHelper} 
+     */
     this.vrHelper = null;
     /* Allow selection with Ray? True by default, but prevents ray picking object from the scene as it is just in front of the camera.*/
     this.allowSelection = true;
@@ -693,14 +697,15 @@ export class HUD {
    */
   attachToLeftController() {
     this.root.parent = this.vrHelper.controller.left.grip;
-    // xr controller:
-    //this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, .1);
-    //this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, Math.PI / 2);
-    // xr hand:
-    this.root.position = new BABYLON.Vector3(0, 0, .1);
-    this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI / 2);
-    //this.rowOffset = new BABYLON.Vector3(-this.verticalXR,0,0);
-    this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, 0);
+    if (this.vrHelper.hands.left.hand) {
+      this.root.position = new BABYLON.Vector3(0, 0, .1);
+      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI / 2);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, 0);
+    } else {
+      this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, .1);
+      this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, Math.PI / 2);
+      this.rowOffset = new BABYLON.Vector3(-this.verticalXR,0,0);
+    }
     this.currentController = 'left';
   }
   /**
@@ -708,14 +713,15 @@ export class HUD {
    */
   attachToRightController() {
     this.root.parent = this.vrHelper.controller.right.grip;
-    // xr controller:
-    //this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, .1);
-    //this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
-    // xr hand:
-    this.root.position = new BABYLON.Vector3(0, 0, .1);
-    this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI / 2);
-    //this.rowOffset = new BABYLON.Vector3(this.verticalXR,0,0);
-    this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, 0);
+    if (this.vrHelper.hands.right.hand) {
+      this.root.position = new BABYLON.Vector3(0, 0, .1);
+      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI / 2);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, 0);
+    } else {
+      this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, .1);
+      this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
+      this.rowOffset = new BABYLON.Vector3(this.verticalXR,0,0);
+    }
     this.currentController = 'right';
   }
   /**
