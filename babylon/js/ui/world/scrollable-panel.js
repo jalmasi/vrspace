@@ -31,6 +31,7 @@ export class ScrollablePanel {
     this.buttonPrev.linkToTransformNode(this.uiRoot);
     this.buttonPrev.position = new BABYLON.Vector3(-4, 0, 4);
     this.buttonPrev.mesh.rotation = new BABYLON.Vector3(0, 0, Math.PI / 2);
+    this.buttonPrev.mesh.isNearPickable = true;
     this.buttonPrev.tooltipText = "Previous";
     this.buttonPrev.isVisible = false;
 
@@ -40,6 +41,7 @@ export class ScrollablePanel {
     this.buttonNext.linkToTransformNode(this.uiRoot);
     this.buttonNext.position = new BABYLON.Vector3(4, 0, 4);
     this.buttonNext.mesh.rotation = new BABYLON.Vector3(0, 0, -Math.PI / 2);
+    this.buttonNext.mesh.isNearPickable = true;
     this.buttonNext.tooltipText = "Next";
     this.buttonNext.isVisible = false;
 
@@ -109,6 +111,7 @@ export class ScrollablePanel {
 
     var button = new BABYLON.GUI.HolographicButton(text[0]);
     this.panel.addControl(button);
+    button.mesh.isNearPickable = true;
 
     button.imageUrl = image;
 

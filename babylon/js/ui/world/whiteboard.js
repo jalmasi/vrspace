@@ -47,6 +47,7 @@ export class Whiteboard extends ImageArea {
     this.buttonClose = new BABYLON.GUI.HolographicButton("close");
     this.buttonClose.imageUrl = VRSPACEUI.contentBase + "/content/icons/close.png";
     VRSPACEUI.guiManager.addControl(this.buttonClose);
+    this.buttonClose.mesh.isNearPickable = true;
     this.buttonClose.backMaterial.alpha = this.handles.material.alpha;
     this.buttonClose.linkToTransformNode(this.handles.box);
     this.buttonClose.position = new BABYLON.Vector3(5, 0, 0);
@@ -57,6 +58,7 @@ export class Whiteboard extends ImageArea {
     this.buttonUndo = new BABYLON.GUI.HolographicButton("undo");
     this.buttonUndo.imageUrl = VRSPACEUI.contentBase + "/content/icons/undo.png";
     VRSPACEUI.guiManager.addControl(this.buttonUndo);
+    this.buttonUndo.mesh.isNearPickable = true;
     this.buttonUndo.backMaterial.alpha = this.handles.material.alpha;
     this.buttonUndo.linkToTransformNode(this.handles.box);
     this.buttonUndo.position = new BABYLON.Vector3(10, 0, 0);

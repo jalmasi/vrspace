@@ -26,8 +26,8 @@ and delegates it to underlying UI elements as appropriate.
 It can contain multiple rows, each containing multiple buttons, but a row can contain only one Form.
  */
 export class HUD {
-  //static buttonClassName = "HolographicButton";
-  static buttonClassName = "TouchHolographicButton";
+  static buttonClassName = "HolographicButton";
+  //static buttonClassName = "TouchHolographicButton";
   /** @param scene babylonjs scene */
   /** @param camera to track, by default tracks active camera */
   constructor(scene, camera) {
@@ -217,6 +217,8 @@ export class HUD {
     if (HUD.buttonClassName == "TouchHolographicButton") {
       // otherwise it's too thick
       button.scaling.z = 0.01;      
+    } else {
+      button.mesh.isNearPickable = true;      
     }
     this.elements.push(button);
     this.controls.push(button);
