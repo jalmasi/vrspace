@@ -42,6 +42,12 @@ export class HUD {
     this.distanceXR = .5;
     this.verticalWeb = -0.15;
     this.verticalXR = -0.1;
+    /** 
+     * How far from hand/controller HUD is going to bind when attached to hand/controller.
+     * To prevent constant interaction, should be over 10cm, because of babylon near interaction _hoverRadius = 0.1.
+     * https://github.com/BabylonJS/Babylon.js/blob/a1a76330a43a210c258c274d19ae736cc409752f/packages/dev/core/src/XR/features/WebXRNearInteraction.ts#L446 
+     */
+    this.handOffset = 0.15;
     this.scaleWeb = 1;
     this.scaleXR = .5;
     this.rowOffset = new BABYLON.Vector3(0, this.verticalWeb, .1);
@@ -659,7 +665,7 @@ export class HUD {
     let min = {x: pos.x-offset, y: pos.y-offset, z: pos.z-offset};
     let max = {x: pos.x+offset, y: pos.y+offset, z: pos.z+offset};
     let intersects = this.intersects(min,max);
-    console.log(side+' squeeze: '+value+ " Intersects: "+intersects+" "+pos.x+","+pos.y+","+pos.z);
+    //console.log(side+' squeeze: '+value+ " Intersects: "+intersects+" "+pos.x+","+pos.y+","+pos.z);
     if (value == 1 && intersects) {
       if (side == 'left') {
         this.attachToLeftController();
@@ -700,13 +706,15 @@ export class HUD {
   attachToLeftController() {
     this.root.parent = this.vrHelper.controller.left.grip;
     if (this.vrHelper.hands.left.hand) {
-      this.root.position = new BABYLON.Vector3(0, 0, .1);
-      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, 0);
+      this.root.position = new BABYLON.Vector3(0, 0, this.handOffset);
+      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI*2);
+      // parallel with the hand
+      //this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI / 2);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset);
     } else {
-      this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, .1);
+      this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, this.handOffset);
       this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(-this.verticalXR,0,0);
+      this.rowOffset = new BABYLON.Vector3(-this.verticalXR,this.handOffset,0);
     }
     this.currentController = 'left';
   }
@@ -716,13 +724,15 @@ export class HUD {
   attachToRightController() {
     this.root.parent = this.vrHelper.controller.right.grip;
     if (this.vrHelper.hands.right.hand) {
-      this.root.position = new BABYLON.Vector3(0, 0, .1);
-      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, 0);
+      this.root.position = new BABYLON.Vector3(0, 0, this.handOffset);
+      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI*2);
+      // parallel with the hand
+      //this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI / 2);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset);
     } else {
-      this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, .1);
+      this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, this.handOffset);
       this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(this.verticalXR,0,0);
+      this.rowOffset = new BABYLON.Vector3(this.verticalXR,this.handOffset,0);
     }
     this.currentController = 'right';
   }
