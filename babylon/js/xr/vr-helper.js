@@ -38,8 +38,8 @@ export class VRHelper {
     this.buttons = { left: [], right: [] };
     /** left and right thumb and index finger */
     this.hands = {
-      left: {hand: null, thumb:null, index:null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2)}, 
-      right: {hand: null, thumb:null, index:null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2)} 
+      left: {hand: null, thumb:null, index:null, middle:null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2)}, 
+      right: {hand: null, thumb:null, index:null, middle: null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2)} 
     };
     /**
      * Near hover radius:
@@ -525,13 +525,11 @@ export class VRHelper {
    */
   squeezeTracker(value, side, mesh) {
     this.squeeze[side] = value;
-    /*
     if (value == 1) {
       this.vrHelper.teleportation.detach();
     } else if (value == 0) {
       this.vrHelper.teleportation.attach();
     }
-    */
     this.squeezeConsumers.every(callback => {
       try {
         return callback(value, side, mesh);
@@ -867,8 +865,9 @@ export class VRHelper {
           // see if that can be also used in HUD
           let side = this.getGripSide(hand.xrController.grip);
           this.hands[side].hand = hand;
-          this.hands[side].index = hand.getJointMesh(BABYLON.WebXRHandJoint.INDEX_FINGER_TIP);
           this.hands[side].thumb = hand.getJointMesh(BABYLON.WebXRHandJoint.THUMB_TIP);
+          this.hands[side].index = hand.getJointMesh(BABYLON.WebXRHandJoint.INDEX_FINGER_TIP);
+          this.hands[side].middle = hand.getJointMesh(BABYLON.WebXRHandJoint.MIDDLE_FINGER_TIP);
         });
         // XR hand may get removed any time, when out of camera range, even if one hand covers the other
         // in that case controller grip base mesh disappears, HUD loses parent
@@ -876,8 +875,9 @@ export class VRHelper {
           let side = this.getGripSide(hand.xrController.grip);
           this.notifyHud(hand.xrController);
           this.hands[side].hand = null;
-          this.hands[side].index = null;
           this.hands[side].thumb = null;
+          this.hands[side].index = null;
+          this.hands[side].middle = null;
         });        
       }      
       const nearInteraction = featureManager.getEnabledFeature(BABYLON.WebXRFeatureName.NEAR_INTERACTION);
@@ -910,7 +910,8 @@ export class VRHelper {
   
   checkPinch(side) {
     let hand = this.hands[side]
-    let distance = BABYLON.Vector3.Distance(hand.index.position, hand.thumb.position);
+    //let distance = BABYLON.Vector3.Distance(hand.index.position, hand.thumb.position);
+    let distance = BABYLON.Vector3.Distance(hand.middle.position, hand.thumb.position);
 
     if(this.squeeze[side] == 0 && distance < 0.03) {
       this.squeeze[side] = 1;
