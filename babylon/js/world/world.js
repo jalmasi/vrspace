@@ -269,6 +269,7 @@ export class World {
     this.worldManager.addChangeListener((obj, field, node) => this.remoteEvent(obj, field, node));
     this.chatLog.addListener((text, link) => this.write(text, link));
     this.chatLog.input.virtualKeyboardEnabled = this.inXR();
+    //this.chatLog.input.virtualKeyboardEnabled = true;
     this.addSelectionPredicate((mesh) => this.chatLog.isSelectableMesh(mesh));
   }
   /**

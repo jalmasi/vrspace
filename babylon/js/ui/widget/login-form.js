@@ -38,6 +38,7 @@ class NameForm extends Form {
     // advancedTexture creates material and attaches it to the plane
     this.keyboardPlane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
     this.keyboard(this.keyboardTexture);
+    this.addSound(this.keyboardPlane);
   }
 
   inputFocused(input, focused) {

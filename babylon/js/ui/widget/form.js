@@ -37,6 +37,8 @@ export class Form {
     this.activeBackground = null;
     this.plane = null;
     this.texture = null;
+    this.sound = null;
+    this.soundUrl = VRSPACEUI.contentBase+"/content/sound/enok123__keyboard-click.wav";
     if ( params ) {
       for(var c of Object.keys(params)) {
         this[c] = params[c];
@@ -234,7 +236,21 @@ export class Form {
     advancedTexture.addControl(keyboard);
     keyboard.isVisible = false;
     this.vKeyboard = keyboard;
+    if (this.plane && !this.sound) {
+      this.addSound();
+    }
     return keyboard;
+  }
+  
+  addSound(plane=this.plane, keyboard=this.vKeyboard) {
+    this.sound = new BABYLON.Sound(
+      "keyboardSound",
+      this.soundUrl,
+    );
+    this.sound.attachToMesh(plane);
+    keyboard.onKeyPressObservable.add(()=>{
+      this.sound.play();
+    });
   }
 
   /**
@@ -279,6 +295,10 @@ export class Form {
     if ( this.vKeyboard ) {
       this.vKeyboard.dispose();
       delete this.vKeyboard;
+    }
+    if (this.sound) {
+      this.sound.dispose();
+      this.sound = null;
     }
     this.elements.forEach(e=>e.dispose());
     this.speechInput.dispose();
