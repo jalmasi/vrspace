@@ -183,8 +183,8 @@ export class HUD {
    */
   recalculateWidth() {
     let width = this.buttonSize + this.buttonSpacing;
-    let startPos = (this.elements.length-1)*(this.buttonSize+this.buttonSpacing)/2;
-    this.elements.forEach((button,index) => {
+    let startPos = (this.elements.length - 1) * (this.buttonSize + this.buttonSpacing) / 2;
+    this.elements.forEach((button, index) => {
       button.position.x = index * width - startPos;
     });
     return width;
@@ -194,10 +194,10 @@ export class HUD {
    * Create a HolographicButton or TouchHolographicButton, depending on static buttonClassName
    */
   createButton(text, shareMaterial) {
-    if ( HUD.buttonClassName == "TouchHolographicButton" ) {
+    if (HUD.buttonClassName == "TouchHolographicButton") {
       return new BABYLON.GUI.TouchHolographicButton(text + "Button", shareMaterial);
     } else {
-      return new BABYLON.GUI.HolographicButton(text + "Button", shareMaterial);      
+      return new BABYLON.GUI.HolographicButton(text + "Button", shareMaterial);
     }
   }
   /**
@@ -222,7 +222,7 @@ export class HUD {
     button.linkToTransformNode(this.rowRoot);
     if (HUD.buttonClassName == "TouchHolographicButton") {
       // otherwise it's too thick
-      button.scaling.z = 0.01;      
+      button.scaling.z = 0.01;
     } else {
       button.mesh.isNearPickable = VRSPACEUI.allowHands;
     }
@@ -234,7 +234,7 @@ export class HUD {
     if (onPointerDown) {
       button.onPointerDownObservable.add((vector3WithInfo) => {
         // CHECKME: do we really want this check here?
-        if (this.canActivate(button) ) {
+        if (this.canActivate(button)) {
           onPointerDown(button, vector3WithInfo)
         }
       });
@@ -247,7 +247,7 @@ export class HUD {
     }
     return button;
   }
-  
+
   /**
    * A button can be activated if
    * - visible
@@ -256,8 +256,8 @@ export class HUD {
    */
   canActivate(button) {
     return button.isVisible &&
-    (this.isEnabled(button) || this.isActive(button)) &&
-    (this.elements.includes(button) || this.rows.length > 1 && this.rows[this.rows.length-2].elements.includes(button));
+      (this.isEnabled(button) || this.isActive(button)) &&
+      (this.elements.includes(button) || this.rows.length > 1 && this.rows[this.rows.length - 2].elements.includes(button));
   }
 
   /**
@@ -266,9 +266,9 @@ export class HUD {
   removeButton(button) {
     let elementIndex = this.elements.findIndex(value => value == button);
     let controlsIndex = this.controls.findIndex(value => value == button);
-    if ( elementIndex >= 0 && controlsIndex >= 0 ) {
-      this.elements.splice(elementIndex,1);
-      this.controls.splice(controlsIndex,1);
+    if (elementIndex >= 0 && controlsIndex >= 0) {
+      this.elements.splice(elementIndex, 1);
+      this.controls.splice(controlsIndex, 1);
       this.recalculateWidth();
       this.rescaleHUD();
       button.dispose();
@@ -443,7 +443,7 @@ export class HUD {
     let plane = form.createPlane(size, textureWidth, textureHeight);
     plane.parent = this.rowRoot;
     //plane.position = new BABYLON.Vector3(0,size/2,0.02);
-    plane.position = new BABYLON.Vector3(0, size / 2+0.01, -0.05); // closer than buttons
+    plane.position = new BABYLON.Vector3(0, size / 2 + 0.01, -0.05); // closer than buttons
 
     this.elements.push(plane);
     this.controls.push(form.panel);
@@ -534,7 +534,7 @@ export class HUD {
         element.isVisible = show;
       }
     });
-    if (!show && except && except.filter(control=>control!=undefined&&control!=null).length > 0 && !except.find(control=>control==this.getActiveControl()) ) {
+    if (!show && except && except.filter(control => control != undefined && control != null).length > 0 && !except.find(control => control == this.getActiveControl())) {
       // if everything turned off, including currently selected button, select what you can
       this.right();
     }
@@ -549,7 +549,7 @@ export class HUD {
    * Creates a new empty row. Current row is scaled down and moved a bit down.
    */
   newRow() {
-    this.rows.forEach((row,index) => {
+    this.rows.forEach((row, index) => {
       row.root.scaling.scaleInPlace(.5);
       //row.root.position.addInPlace(this.rowOffset.scale(.6 / (this.rows.length * 2)));
       row.root.position.addInPlace(this.rowOffset.scale(.35 / (this.rows.length - index)));
@@ -601,7 +601,7 @@ export class HUD {
 
     this.rows.pop();
 
-    this.rows.forEach((row,index) => {
+    this.rows.forEach((row, index) => {
       row.root.scaling.scaleInPlace(2);
       //row.root.position.addInPlace(this.rowOffset.scale(-.6 / (this.rows.length * 2)));
       row.root.position.addInPlace(this.rowOffset.scale(-.35 / (this.rows.length - index)));
@@ -662,9 +662,9 @@ export class HUD {
     // approximate variant based on position and distance, works every time
     let offset = 0.05; // 5 cm
     let pos = controllerMesh.absolutePosition;
-    let min = {x: pos.x-offset, y: pos.y-offset, z: pos.z-offset};
-    let max = {x: pos.x+offset, y: pos.y+offset, z: pos.z+offset};
-    let intersects = this.intersects(min,max);
+    let min = { x: pos.x - offset, y: pos.y - offset, z: pos.z - offset };
+    let max = { x: pos.x + offset, y: pos.y + offset, z: pos.z + offset };
+    let intersects = this.intersects(min, max);
     //console.log(side+' squeeze: '+value+ " Intersects: "+intersects+" "+pos.x+","+pos.y+","+pos.z);
     if (value == 1 && intersects) {
       if (side == 'left') {
@@ -707,14 +707,14 @@ export class HUD {
     this.root.parent = this.vrHelper.controller.left.grip;
     if (this.vrHelper.hands.left.hand) {
       this.root.position = new BABYLON.Vector3(0, 0, this.handOffset);
-      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI*2);
+      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI * 2);
       // parallel with the hand
       //this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI / 2);
       this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset);
     } else {
       this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, this.handOffset);
       this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(-this.verticalXR,this.handOffset,0);
+      this.rowOffset = new BABYLON.Vector3(-this.verticalXR, this.handOffset, 0);
     }
     this.currentController = 'left';
   }
@@ -725,14 +725,14 @@ export class HUD {
     this.root.parent = this.vrHelper.controller.right.grip;
     if (this.vrHelper.hands.right.hand) {
       this.root.position = new BABYLON.Vector3(0, 0, this.handOffset);
-      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI*2);
+      this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI * 2);
       // parallel with the hand
       //this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI / 2);
       this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset);
     } else {
       this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, this.handOffset);
       this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(this.verticalXR,this.handOffset,0);
+      this.rowOffset = new BABYLON.Vector3(this.verticalXR, this.handOffset, 0);
     }
     this.currentController = 'right';
   }
@@ -758,7 +758,7 @@ export class HUD {
     }
     return null;
   }
-  
+
   controllerRemoved(xrController) {
     // alternatively, we may want attach it to  the other hand, 
     // or hide it and attach it again when the controller is back
@@ -768,7 +768,7 @@ export class HUD {
       this.attachToCamera();
     }
   }
-  
+
   /**
    * Returns true if mesh intersects any of hud elements. Allows to 'grab' the hud with a VR controller.
    */
