@@ -245,6 +245,7 @@ export class Form {
   createPlane(size, textureWidth, textureHeight, panel=this.panel) {
     this.planeSize = size;
     this.plane = BABYLON.MeshBuilder.CreatePlane("FormPlane", {width: size*textureWidth/textureHeight, height: size});
+    this.plane.isNearPickable = VRSPACEUI.allowHands;
     this.texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.plane,textureWidth,textureHeight);
     // advancedTexture creates material and attaches it to the plane
     this.plane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;

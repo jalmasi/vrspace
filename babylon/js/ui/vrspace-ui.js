@@ -51,6 +51,8 @@ export class VRSpaceUI {
     this.canVR = null;
     /** AR availability */
     this.canAR = null;
+    /** Set to allow XR hands scene interaction */
+    this.allowHands = true;
     /** @private */
     this.indicator = null;
     /** @private */

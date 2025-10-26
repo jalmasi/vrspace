@@ -57,21 +57,21 @@ export class ManipulationHandles {
     this.leftHandle.position = new BABYLON.Vector3(-this.width / 2 - this.width / 20, 0, 0);
     this.leftHandle.parent = this.group;
     this.leftHandle.material = this.material;
-    this.leftHandle.isNearPickable = true;
+    this.leftHandle.isNearPickable = VRSPACEUI.allowHands;
 
     this.rightHandle = BABYLON.MeshBuilder.CreateSphere("rightHandle", { segments: this.segments }, this.scene);
     this.rightHandle.scaling = new BABYLON.Vector3(handleWidth, this.height, handleWidth);
     this.rightHandle.position = new BABYLON.Vector3(this.width / 2 + this.width / 20, 0, 0);
     this.rightHandle.parent = this.group;
     this.rightHandle.material = this.material;
-    this.rightHandle.isNearPickable = true;
+    this.rightHandle.isNearPickable = VRSPACEUI.allowHands;
 
     this.topHandle = BABYLON.MeshBuilder.CreateSphere("topHandle", { segments: this.segments }, this.scene);
     this.topHandle.scaling = new BABYLON.Vector3(this.width, handleWidth, handleWidth);
     this.topHandle.position = new BABYLON.Vector3(0, this.height / 2 + this.height / 20, 0);
     this.topHandle.parent = this.group;
     this.topHandle.material = this.material;
-    this.topHandle.isNearPickable = true;
+    this.topHandle.isNearPickable = VRSPACEUI.allowHands;
     //this.topHandle.isNearGrabbable = true;
 
     this.bottomHandle = BABYLON.MeshBuilder.CreateSphere("bottomHandle", { segments: this.segments }, this.scene);
@@ -79,7 +79,7 @@ export class ManipulationHandles {
     this.bottomHandle.position = new BABYLON.Vector3(0, -this.height / 2 - this.height / 20, 0);
     this.bottomHandle.parent = this.group;
     this.bottomHandle.material = this.material;
-    this.bottomHandle.isNearPickable = true;
+    this.bottomHandle.isNearPickable = VRSPACEUI.allowHands;
     //this.bottomHandle.isNearGrabbable = true;
 
     if (this.canMinimize) {
@@ -92,7 +92,7 @@ export class ManipulationHandles {
       this.box.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase + "/content/icons/minimize.png", this.scene);
       this.box.material.diffuseTexture.hasAlpha = true;
       this.box.material.emissiveColor = BABYLON.Color3.White();
-      this.box.isNearPickable = true;
+      this.box.isNearPickable = VRSPACEUI.allowHands;
     }
     if (this.canClose) {
       this.closeButton = BABYLON.MeshBuilder.CreatePlane("MinMaxButon", { width: 1, height: 1 }, this.scene);
@@ -103,7 +103,7 @@ export class ManipulationHandles {
       this.closeButton.material.diffuseTexture = new BABYLON.Texture(VRSPACEUI.contentBase + "/content/icons/close.png", this.scene);
       this.closeButton.material.diffuseTexture.hasAlpha = true;
       this.closeButton.material.emissiveColor = BABYLON.Color3.White();
-      this.closeButton.isNearPickable = true;
+      this.closeButton.isNearPickable = VRSPACEUI.allowHands;
     }
 
     this.bottomHandle.opposite = this.topHandle;

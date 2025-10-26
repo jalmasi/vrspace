@@ -16,6 +16,7 @@ export class ScrollablePanel {
 
     this.uiRoot.position = new BABYLON.Vector3(0, 3, 0);
     this.uiRoot.rotation = new BABYLON.Vector3(0, 0, 0);
+    this.uiRoot.scaling = new BABYLON.Vector3(.5, .5, .5);
     //this.guiManager = new BABYLON.GUI.GUI3DManager(this.scene); // causes transparency issues
     this.guiManager = VRSPACEUI.guiManager;
     this.panel = new BABYLON.GUI.CylinderPanel();
@@ -31,7 +32,7 @@ export class ScrollablePanel {
     this.buttonPrev.linkToTransformNode(this.uiRoot);
     this.buttonPrev.position = new BABYLON.Vector3(-4, 0, 4);
     this.buttonPrev.mesh.rotation = new BABYLON.Vector3(0, 0, Math.PI / 2);
-    this.buttonPrev.mesh.isNearPickable = true;
+    this.buttonPrev.mesh.isNearPickable = VRSPACEUI.allowHands;
     this.buttonPrev.tooltipText = "Previous";
     this.buttonPrev.isVisible = false;
 
@@ -41,7 +42,7 @@ export class ScrollablePanel {
     this.buttonNext.linkToTransformNode(this.uiRoot);
     this.buttonNext.position = new BABYLON.Vector3(4, 0, 4);
     this.buttonNext.mesh.rotation = new BABYLON.Vector3(0, 0, -Math.PI / 2);
-    this.buttonNext.mesh.isNearPickable = true;
+    this.buttonNext.mesh.isNearPickable = VRSPACEUI.allowHands;
     this.buttonNext.tooltipText = "Next";
     this.buttonNext.isVisible = false;
 
@@ -111,7 +112,7 @@ export class ScrollablePanel {
 
     var button = new BABYLON.GUI.HolographicButton(text[0]);
     this.panel.addControl(button);
-    button.mesh.isNearPickable = true;
+    button.mesh.isNearPickable = VRSPACEUI.allowHands;
 
     button.imageUrl = image;
 

@@ -103,7 +103,7 @@ export class RemoteBrowser extends ImageArea {
     this.buttonClose = new BABYLON.GUI.HolographicButton("close");
     this.buttonClose.imageUrl = VRSPACEUI.contentBase+"/content/icons/close.png";
     VRSPACEUI.guiManager.addControl(this.buttonClose);
-    this.buttonClose.mesh.isNearPickable = true;
+    this.buttonClose.mesh.isNearPickable = VRSPACEUI.allowHands;
     this.buttonClose.linkToTransformNode(this.handles.box);
     this.buttonClose.position = new BABYLON.Vector3(5,0,0);
     this.buttonClose.scaling = new BABYLON.Vector3(2,2,2);
@@ -114,7 +114,7 @@ export class RemoteBrowser extends ImageArea {
     this.buttonBack = new BABYLON.GUI.HolographicButton("back");
     this.buttonBack.imageUrl = VRSPACEUI.contentBase+"/content/icons/back.png";
     VRSPACEUI.guiManager.addControl(this.buttonBack);
-    this.buttonBack.mesh.isNearPickable = true;
+    this.buttonBack.mesh.isNearPickable = VRSPACEUI.allowHands;
     this.buttonBack.linkToTransformNode(this.handles.box);
     this.buttonBack.position = new BABYLON.Vector3(8,0,0);
     this.buttonBack.scaling = new BABYLON.Vector3(2,2,2);
@@ -125,7 +125,7 @@ export class RemoteBrowser extends ImageArea {
     this.buttonForward = new BABYLON.GUI.HolographicButton("forward");
     this.buttonForward.imageUrl = VRSPACEUI.contentBase+"/content/icons/forward.png";
     VRSPACEUI.guiManager.addControl(this.buttonForward);
-    this.buttonForward.mesh.isNearPickable = true;
+    this.buttonForward.mesh.isNearPickable = VRSPACEUI.allowHands;
     this.buttonForward.linkToTransformNode(this.handles.box);
     this.buttonForward.position = new BABYLON.Vector3(46,0,0);
     this.buttonForward.scaling = new BABYLON.Vector3(2,2,2);
@@ -136,7 +136,7 @@ export class RemoteBrowser extends ImageArea {
     this.buttonQuit = new BABYLON.GUI.HolographicButton("quit");
     this.buttonQuit.imageUrl = VRSPACEUI.contentBase+"/content/icons/delete.png";
     VRSPACEUI.guiManager.addControl(this.buttonQuit);
-    this.buttonQuit.mesh.isNearPickable = true;
+    this.buttonQuit.mesh.isNearPickable = VRSPACEUI.allowHands;
     this.buttonQuit.linkToTransformNode(this.handles.box);
     this.buttonQuit.position = new BABYLON.Vector3(55,0,0);
     //this.buttonQuit.scaling = new BABYLON.Vector3(2,2,2);

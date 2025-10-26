@@ -111,7 +111,9 @@ export class WorldEditor extends WorldListener {
     this.loadButton = this.makeAButton("Load", this.contentBase + "/content/icons/open.png");
 
     this.searchButton.onPointerDownObservable.add(() => {
-      this.searchPanel.relocatePanel();
+      if ( ! this.form ) {
+        this.searchPanel.relocatePanel();
+      }
       this.searchForm();
     });
     this.saveButton.onPointerDownObservable.add(() => { this.save() });

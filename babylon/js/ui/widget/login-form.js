@@ -31,6 +31,7 @@ class NameForm extends Form {
   createKeyboardPlane(parentForm) {
     let size = parentForm.planeSize * 2;
     this.keyboardPlane = BABYLON.MeshBuilder.CreatePlane("KeyboardPlane", {width: size*2, height: size});
+    this.keyboardPlane.isNearPickable = VRSPACEUI.allowHands;
     this.keyboardPlane.position = new BABYLON.Vector3(0,-size/2,0.1);
     this.keyboardPlane.parent = parentForm.plane;
     this.keyboardTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.keyboardPlane,512,256);

@@ -572,7 +572,7 @@ export class AvatarSelection extends World {
     resizeButton.contentScaleRatio = 1;
     resizeButton.text = "Resize";
     this.guiManager.addControl(resizeButton);
-    resizeButton.mesh.isNearPickable = true;
+    resizeButton.mesh.isNearPickable = VRSPACEUI.allowHands;
     this.resizeButton = resizeButton;
 
     resizeButton.position = new BABYLON.Vector3(-0.5, 0.2, -0.8);
@@ -595,7 +595,7 @@ export class AvatarSelection extends World {
     mirrorButton.contentScaleRatio = 1;
     mirrorButton.text = "Mirroring";
     this.guiManager.addControl(mirrorButton);
-    mirrorButton.mesh.isNearPickable = true;
+    mirrorButton.mesh.isNearPickable = VRSPACEUI.allowHands;
     this.mirrorButton = mirrorButton;
 
     mirrorButton.position = new BABYLON.Vector3(0.5, 0.2, -0.8);

@@ -224,7 +224,7 @@ export class HUD {
       // otherwise it's too thick
       button.scaling.z = 0.01;      
     } else {
-      button.mesh.isNearPickable = true;      
+      button.mesh.isNearPickable = VRSPACEUI.allowHands;
     }
     this.elements.push(button);
     this.controls.push(button);
