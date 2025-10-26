@@ -1,3 +1,5 @@
+import { VRSPACEUI } from "../vrspace-ui.js";
+
 /**
  * Reusable ColorPicker Panel: creates a Plane, AdvancedTexture, and vertical StackPanel that contains
  * name of the color, and color picker itself. 
@@ -5,6 +7,7 @@
 export class ColorPickerPanel {
   constructor(size, text="Color",color=new BABYLON.Color3()) {
     this.plane = BABYLON.MeshBuilder.CreatePlane("Plane-Picker:"+text, {width: size, height: size});
+    this.plane.isNearPickable = VRSPACEUI.allowHands;
 
     this.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.plane,256,256);
     this.panel = new BABYLON.GUI.StackPanel();

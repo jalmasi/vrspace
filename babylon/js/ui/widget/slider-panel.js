@@ -1,3 +1,5 @@
+import { VRSPACEUI } from "../vrspace-ui.js";
+
 class SliderPanel {
   constructor(text,min,max,value,vertical) {
     /** Number of decimals, that value is rounded to, default 2 */
@@ -51,6 +53,7 @@ class SliderPanel {
 
   createPlane(size,width=256,height=256) {
     this.plane = BABYLON.MeshBuilder.CreatePlane("Plane-Slider:"+this.text, {width: size, height: size});
+    this.plane.isNearPickable = VRSPACEUI.allowHands;
     this.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.plane,width,height);
     this.advancedTexture.addControl(this.panel);
     return this.plane;

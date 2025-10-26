@@ -20,6 +20,7 @@ export class Whiteboard extends ImageArea {
 
   show() {
     super.show();
+    this.areaPlane.isNearPickable = VRSPACEUI.allowHands;
     this.ui();
 
     this.texturesDispose();

@@ -89,6 +89,7 @@ export class Portal {
     }
 
     var plane = BABYLON.Mesh.CreatePlane("PortalEntrance:"+this.name, 1.60, this.scene);
+    plane.isNearPickable = VRSPACEUI.allowHands;
     plane.parent = this.group;
     plane.position = new BABYLON.Vector3(0,1.32,0);
     this.pointerTracker = (e) => {
