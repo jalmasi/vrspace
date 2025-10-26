@@ -103,7 +103,13 @@ export class World {
     this.floorEnabled = true;
     this.ground = null;
     // CHECKME: should floors be selectable?
-    this.selectionPredicates = [(mesh) => { return this.getFloorMeshes().includes(mesh) }];
+    this.selectionPredicates = [
+      (mesh) => { return this.getFloorMeshes().includes(mesh) },
+      // in babylon 7 in XR, HolograhpicButton is not selectable unless it's background is selectable
+      // (e.g. above the ground level)
+      // so we make skybox selectable to make sure
+      (mesh) => { return this.skyBox && this.skyBox.skybox == mesh },
+    ];
 
     // now override defaults
     if (params) {
