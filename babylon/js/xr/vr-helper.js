@@ -41,6 +41,16 @@ export class VRHelper {
       left: {hand: null, thumb:null, index:null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2)}, 
       right: {hand: null, thumb:null, index:null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2)} 
     };
+    /**
+     * Near hover radius:
+     * more than this, selection with ray,
+     * less than this, selection with finger/controller touch
+     * (babylonjs internal defaults to 10cm, we set it to 3cm) 
+     */ 
+    this.nearHoverRadius = 0.03;
+    /** Babylonjs internal, defaults to 2cm, set to 1cm here */
+    this.nearPickRadius = 0.01;
+    
     this.squeezeConsumers = [];
     this.triggerListeners = [];
     this.activeController = "none";
@@ -869,6 +879,14 @@ export class VRHelper {
           this.hands[side].thumb = null;
         });        
       }      
+      const nearInteraction = featureManager.getEnabledFeature(BABYLON.WebXRFeatureName.NEAR_INTERACTION);
+      if (nearInteraction) {
+        console.log("Near interaction enabled, setting up...");
+        nearInteraction._hoverRadius = this.nearHoverRadius;
+        nearInteraction._pickRadius = this.nearPickRadius;
+      } else {
+        console.log("Near interaction disabled");
+      }
     } catch (error) { 
       console.log("ERROR "+error);
     }
