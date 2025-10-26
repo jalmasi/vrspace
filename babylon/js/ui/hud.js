@@ -45,9 +45,9 @@ export class HUD {
     /** 
      * How far from hand/controller HUD is going to bind when attached to hand/controller.
      * To prevent constant interaction, should be over 10cm, because of babylon near interaction _hoverRadius = 0.1.
-     * https://github.com/BabylonJS/Babylon.js/blob/a1a76330a43a210c258c274d19ae736cc409752f/packages/dev/core/src/XR/features/WebXRNearInteraction.ts#L446 
+     * VRHelper modifies this internal to 3cm so anything more than 5 should be safe.
      */
-    this.handOffset = 0.15;
+    this.handOffset = 0.10;
     this.scaleWeb = 1;
     this.scaleXR = .5;
     this.rowOffset = new BABYLON.Vector3(0, this.verticalWeb, .1);
@@ -710,11 +710,11 @@ export class HUD {
       this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI * 2);
       // parallel with the hand
       //this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset/2);
     } else {
       this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, this.handOffset);
       this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(-this.verticalXR, this.handOffset, 0);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset/2);
     }
     this.currentController = 'left';
   }
@@ -728,11 +728,11 @@ export class HUD {
       this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI * 2);
       // parallel with the hand
       //this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset/2);
     } else {
       this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, this.handOffset);
       this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(this.verticalXR, this.handOffset, 0);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset/2);
     }
     this.currentController = 'right';
   }

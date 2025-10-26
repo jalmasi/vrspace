@@ -45,7 +45,8 @@ export class VRHelper {
      * Near hover radius:
      * more than this, selection with ray,
      * less than this, selection with finger/controller touch
-     * (babylonjs internal defaults to 10cm, we set it to 3cm) 
+     * (babylonjs internal defaults to 10cm, we set it to 3cm)
+     * https://github.com/BabylonJS/Babylon.js/blob/a1a76330a43a210c258c274d19ae736cc409752f/packages/dev/core/src/XR/features/WebXRNearInteraction.ts#L446 
      */ 
     this.nearHoverRadius = 0.03;
     /** Babylonjs internal, defaults to 2cm, set to 1cm here */
