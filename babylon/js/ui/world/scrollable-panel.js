@@ -56,7 +56,7 @@ export class ScrollablePanel {
   relocatePanel(distanceFromCamera = 6) {
     var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(distanceFromCamera).direction;
     this.uiRoot.position = VRSPACEUI.hud.camera.position.add(forwardDirection);
-    this.uiRoot.rotation = new BABYLON.Vector3(VRSPACEUI.hud.camera.rotation.x, VRSPACEUI.hud.camera.rotation.y, VRSPACEUI.hud.camera.rotation.z);
+    this.uiRoot.rotation = new BABYLON.Vector3(VRSPACEUI.hud.cameraRotation().x, VRSPACEUI.hud.cameraRotation().y, VRSPACEUI.hud.cameraRotation().z);
   }
 
   /**
@@ -135,7 +135,7 @@ export class ScrollablePanel {
    */
   buttonTextWrite(node, lines) {
     if (this.text3d) {
-      if ( ! this.writer ) {
+      if (!this.writer) {
         this.writer = new TextWriter(this.scene);
       }
       this.writer.writeArray(node, lines);
@@ -172,10 +172,10 @@ export class ScrollablePanel {
    * Clean up
    */
   dispose() {
-    if ( this.textArea ) {
+    if (this.textArea) {
       this.textArea.dispose();
     }
-    if ( this.writer ) {
+    if (this.writer) {
       // currently we can't dispose of writer
       //this.writer.dispose();
     }

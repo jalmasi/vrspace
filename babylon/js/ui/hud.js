@@ -117,6 +117,15 @@ export class HUD {
     this.rowOffset = new BABYLON.Vector3(0, this.verticalWeb, 0.1);
     this.currentController = null;
   }
+  /**
+   * Returns rotation as euler angles of currently active camera.
+   */
+  cameraRotation() {
+    if (this.inXR()) {
+      return this.camera.rotationQuaternion.toEulerAngles();
+    }
+    return this.camera.rotation;
+  }
   /** Returns true if XR mode is active (current camera is WebXRCamera) */
   inXR() {
     return this.camera && "WebXRCamera" == this.camera.getClassName();
@@ -710,11 +719,11 @@ export class HUD {
       this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI * 2);
       // parallel with the hand
       //this.root.rotation = new BABYLON.Vector3(Math.PI, 0, Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset/2);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset / 2);
     } else {
       this.root.position = new BABYLON.Vector3(this.verticalWeb, 0, this.handOffset);
       this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset/2);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset / 2);
     }
     this.currentController = 'left';
   }
@@ -728,11 +737,11 @@ export class HUD {
       this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI * 2);
       // parallel with the hand
       //this.root.rotation = new BABYLON.Vector3(Math.PI, 0, -Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset/2);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset / 2);
     } else {
       this.root.position = new BABYLON.Vector3(-this.verticalWeb, 0, this.handOffset);
       this.root.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
-      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset/2);
+      this.rowOffset = new BABYLON.Vector3(0, this.verticalXR, this.handOffset / 2);
     }
     this.currentController = 'right';
   }
