@@ -1014,5 +1014,10 @@ export class VRHelper {
       return xrController.pointer.rotationQuaternion.clone();
     }
   }
+  
+  handActive() {
+    let side = this.activeController;
+    return "none" != side && this.hands[side].hand != null;
+  }
 
 }

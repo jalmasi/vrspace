@@ -17,7 +17,7 @@ class SearchForm extends Form {
     this.panel.addControl(this.textBlock("Search Sketchfab:"));
 
     this.input = this.inputText('search');
-    //this.input.text = 'test'; // skip typing in VR
+    //this.input.text = 'test'; // in development, skip typing in VR
     this.panel.addControl(this.input);
 
     var text2 = this.textBlock("Animated:");
@@ -63,7 +63,7 @@ export class WorldEditor extends WorldListener {
     /** @type {World} */
     this.world = world;
     this.scene = world.scene;
-    this.autoCreateFileInput = true; 
+    this.autoCreateFileInput = true;
     if (fileInput) {
       this.setFileInput(fileInput);
       this.autoCreateFileInput = false;
@@ -82,7 +82,7 @@ export class WorldEditor extends WorldListener {
     // add squeeze listener to take/drop an object
     this.squeeze = (side, value, controllerMesh) => this.handleSqueeze(side, value, controllerMesh);
     world.xrHelper.addSqueezeConsumer(this.squeeze);
-   
+
     world.addListener(this);
   }
 
@@ -111,7 +111,7 @@ export class WorldEditor extends WorldListener {
     this.loadButton = this.makeAButton("Load", this.contentBase + "/content/icons/open.png");
 
     this.searchButton.onPointerDownObservable.add(() => {
-      if ( ! this.form ) {
+      if (!this.form) {
         this.searchPanel.relocatePanel();
       }
       this.searchForm();
@@ -144,23 +144,23 @@ export class WorldEditor extends WorldListener {
    * Disposes of search form and displays HUD buttons
    */
   clearForm() {
-    if ( this.form ) {
+    if (this.form) {
       this.form.dispose(); // stops speech recognition
       delete this.form;
       VRSPACEUI.hud.clearRow(); // (re)starts speech recognition
-      this.displayButtons(true);      
+      this.displayButtons(true);
     }
   }
 
-  doSearch(request= new ModelSearchRequest(), cursor, count=24) {
-    if ( this.form ) {
+  doSearch(request = new ModelSearchRequest(), cursor, count = 24) {
+    if (this.form) {
       request.q = this.form.input.text;
       if (this.form.animated.isChecked) {
         request.animated = true;
       }
       if (this.form.rigged.isChecked) {
         request.rigged = true;
-      }      
+      }
     }
     if (cursor) {
       request.cursor = cursor;
@@ -169,50 +169,50 @@ export class WorldEditor extends WorldListener {
       request.cursor = null;
       request.count = null;
     }
-    VRSpaceAPI.getInstance().endpoint.sketchfab.searchModels(request).then(obj=>{
-        this.searchPanel.beginUpdate(
-          obj.previous != null,
-          obj.next != null,
-          // FIXME: next/previous
-          () => this.doSearch(request, obj.cursors.previous),
-          () => this.doSearch(request, obj.cursors.next)
-        );
-        obj.results.forEach(result => {
-          // interesting result fields:
-          // next - url of next result page
-          // previous - url of previous page
-          //   for thumbnails.images, pick largest size, use url
-          //  archives.gltf.size
-          //  name
-          //  description
-          //  user.displayname
-          //  isAgeRestricted
-          //  categories.name
-          //console.log( result.description );
-          var thumbnail = result.thumbnails.images[0];
-          result.thumbnails.images.forEach(img => {
-            if (img.size > thumbnail.size) {
-              thumbnail = img;
-            }
-          });
-          //console.log(thumbnail);
-
-          this.searchPanel.addButton(
-            [result.name,
-            'by ' + result.user.displayName,
-            (result.archives.gltf.size / 1024 / 1024).toFixed(2) + "MB"
-              //'Faces: '+result.faceCount,
-              //'Vertices: '+result.vertexCount
-            ],
-            thumbnail.url,
-            () => this.download(result)
-          );
-
+    VRSpaceAPI.getInstance().endpoint.sketchfab.searchModels(request).then(obj => {
+      this.searchPanel.beginUpdate(
+        obj.previous != null,
+        obj.next != null,
+        // FIXME: next/previous
+        () => this.doSearch(request, obj.cursors.previous),
+        () => this.doSearch(request, obj.cursors.next)
+      );
+      obj.results.forEach(result => {
+        // interesting result fields:
+        // next - url of next result page
+        // previous - url of previous page
+        //   for thumbnails.images, pick largest size, use url
+        //  archives.gltf.size
+        //  name
+        //  description
+        //  user.displayname
+        //  isAgeRestricted
+        //  categories.name
+        //console.log( result.description );
+        var thumbnail = result.thumbnails.images[0];
+        result.thumbnails.images.forEach(img => {
+          if (img.size > thumbnail.size) {
+            thumbnail = img;
+          }
         });
-        // ending workaround:
-        this.searchPanel.endUpdate(true);
-    }).catch(err=>console.error(err));
-    
+        //console.log(thumbnail);
+
+        this.searchPanel.addButton(
+          [result.name,
+          'by ' + result.user.displayName,
+          (result.archives.gltf.size / 1024 / 1024).toFixed(2) + "MB"
+            //'Faces: '+result.faceCount,
+            //'Vertices: '+result.vertexCount
+          ],
+          thumbnail.url,
+          () => this.download(result)
+        );
+
+      });
+      // ending workaround:
+      this.searchPanel.endUpdate(true);
+    }).catch(err => console.error(err));
+
     this.clearForm();
   }
 
@@ -259,7 +259,7 @@ export class WorldEditor extends WorldListener {
           var scale = 1 / this.worldManager.bBoxMax(rootMesh);
           //var scale = 1/this.worldManager.bBoxMax(this.worldManager.getRootNode(vrObject));
           //this.worldManager.VRSPACE.sendEvent(vrObject, { scale: { x: scale, y: scale, z: scale } });
-          VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: vrObject.id, scale: { x: scale, y: scale, z: scale }}).catch(err=>console.error(err));
+          VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: vrObject.id, scale: { x: scale, y: scale, z: scale } }).catch(err => console.error(err));
         }, 100);
       } else {
         this.takeObject(vrObject, new BABYLON.Vector3(vrObject.position.x, vrObject.position.y, vrObject.position.z));
@@ -284,7 +284,7 @@ export class WorldEditor extends WorldListener {
     this.gizmo.attachedMesh = obj;
     this.gizmo.onScaleBoxDragEndObservable.add(() => {
       //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: obj.scaling.x, y: obj.scaling.y, z: obj.scaling.z } });
-      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, scale: { x: obj.scaling.x, y: obj.scaling.y, z: obj.scaling.z }}).catch(err=>console.error(err));
+      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, scale: { x: obj.scaling.x, y: obj.scaling.y, z: obj.scaling.z } }).catch(err => console.error(err));
     });
     this.gizmo.onRotationSphereDragEndObservable.add(() => {
       if (obj.rotationQuaternion) {
@@ -292,7 +292,7 @@ export class WorldEditor extends WorldListener {
         obj.rotationQuaternion = null;
       }
       //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } });
-      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } }).catch(err=>console.error(err));
+      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } }).catch(err => console.error(err));
     });
   }
   clearGizmo() {
@@ -340,7 +340,7 @@ export class WorldEditor extends WorldListener {
           scale = Math.min(scale, obj.scaling.y * 5);
           console.log("Scaling: " + obj.scaling.y + " to " + scale);
           //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: scale, y: scale, z: scale } });
-          VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, scale: { x: scale, y: scale, z: scale }}).catch(err=>console.error(err));
+          VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, scale: { x: scale, y: scale, z: scale } }).catch(err => console.error(err));
         }
       }
     });
@@ -382,11 +382,11 @@ export class WorldEditor extends WorldListener {
             // mostly horizontal movement, rotation only around y
             console.log("Y rotation")
             //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: obj.rotation.x, y: result.y, z: obj.rotation.z } });
-            VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: obj.rotation.x, y: result.y, z: obj.rotation.z } }).catch(err=>console.error(err));
+            VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: obj.rotation.x, y: result.y, z: obj.rotation.z } }).catch(err => console.error(err));
           } else {
             // rotating around all axes
             //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: result.x, y: result.y, z: result.z } });
-            VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: result.x, y: result.y, z: result.z } }).catch(err=>console.error(err));
+            VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: result.x, y: result.y, z: result.z } }).catch(err => console.error(err));
           }
         }
       }
@@ -410,7 +410,7 @@ export class WorldEditor extends WorldListener {
     }
     if (pickInfo.hit) {
       //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { position: newPos });
-      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, position: newPos }).catch(err=>console.error(err));
+      VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, position: newPos }).catch(err => console.error(err));
       this.clearGizmo();
     }
   }
@@ -444,7 +444,7 @@ export class WorldEditor extends WorldListener {
   upright(obj) {
     this.clearGizmo();
     //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: 0, y: obj.rotation.y, z: 0 } });
-    VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: 0, y: obj.rotation.y, z: 0 } }).catch(err=>console.error(err));
+    VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: 0, y: obj.rotation.y, z: 0 } }).catch(err => console.error(err));
   }
 
   /**
@@ -579,39 +579,51 @@ export class WorldEditor extends WorldListener {
         }
       }
       */
-     
-      if ( this.world.inXR() ) {
-        let side = this.world.xrHelper.activeController;
-        if ( "none" != side ) {
-          parent = this.world.xrHelper.controller[side].pointer
-        }
+
+      let xrHelper = this.world.xrHelper;
+      let side = xrHelper.activeController;
+      // CHECKME xr hand manipulation is just soo bad, we may better just turn this off 
+      if ("none" != side) {
+        // for xr hands, this is rotated
+        parent = xrHelper.controller[side].pointer;
       }
 
-      // create an object and bind it to camera to track the position
+      // create an object and bind it to parent to track the position
       var targetDirection = position.subtract(parent.position);
       var forwardDirection = VRSPACEUI.hud.camera.getForwardRay(targetDirection.length()).direction;
 
       var rotationMatrix = new BABYLON.Matrix();
       BABYLON.Matrix.RotationAlignToRef(forwardDirection.normalizeToNew(), targetDirection.normalizeToNew(), rotationMatrix);
-      var quat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
+      var targetQuat = BABYLON.Quaternion.FromRotationMatrix(rotationMatrix);
 
       var pos = new BABYLON.Vector3(0, 0, targetDirection.length());
-      pos.rotateByQuaternionToRef(quat, pos);
+      pos.rotateByQuaternionToRef(targetQuat, pos);
 
       var target = BABYLON.MeshBuilder.CreateBox("Position of " + vrObject.id, { size: .5 }, this.scene);
       target.parent = parent;
       target.isPickable = false;
       target.isVisible = false;
       target.position = pos;
+      if (xrHelper.handActive()) {
+        // xr hands, this is rotated
+        target.rotation = this.world.xrHelper.hands[side].rotation.toEulerAngles();
+      }
+
       if (vrObject.rotation) {
         var rot = new BABYLON.Vector3(vrObject.rotation.x, vrObject.rotation.y, vrObject.rotation.z);
-        var quat = BABYLON.Quaternion.FromEulerVector(rot);
+        var objectQuat = BABYLON.Quaternion.FromEulerVector(rot);
         //if ( parent == VRSPACEUI.hud.camera ) {
-        quat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(quat);
+        objectQuat = BABYLON.Quaternion.Inverse(VRSPACEUI.hud.camera.absoluteRotation).multiply(objectQuat);
         //} else {
         //quat = BABYLON.Quaternion.Inverse(parent.absoluteRotationQuaternion).multiply(quat);
         //}
-        target.rotation = quat.toEulerAngles()
+
+        if (xrHelper.handActive()) {
+          // xr hands, this is rotated
+          target.rotation = this.world.xrHelper.hands[side].rotation.multiply(objectQuat).toEulerAngles();
+        } else {
+          target.rotation = objectQuat.toEulerAngles();
+        }
       }
       vrObject.target = target;
 
@@ -620,7 +632,7 @@ export class WorldEditor extends WorldListener {
       console.log("took " + vrObject.id);
 
     } catch (err) {
-      console.error(err.stack);
+      console.error("Take error: " + err);
     }
 
   }
@@ -670,7 +682,7 @@ export class WorldEditor extends WorldListener {
    */
   editObject(obj, editing) {
     if (editing) {
-      if ( ! obj.properties ) {
+      if (!obj.properties) {
         obj.properties = {};
       }
       obj.properties.editing = this.worldManager.VRSPACE.me.id;
@@ -718,14 +730,14 @@ export class WorldEditor extends WorldListener {
    * Create a hidden file input.
    */
   createFileInput() {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.id = 'VRSpace-fileInput';
-      input.style = 'display:none';
-      input.accept = '.json';
-      this.setFileInput(input);
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.id = 'VRSpace-fileInput';
+    input.style = 'display:none';
+    input.accept = '.json';
+    this.setFileInput(input);
   }
-  
+
   /**
    * Load saved scene, requires file input html element
    */
@@ -773,17 +785,17 @@ export class WorldEditor extends WorldListener {
    */
   download(result) {
     if (this.fetching || this.activeButton) {
-      console.log("Skipping download, fetching="+this.fetching+" activeButton=",this.activeButton);
+      console.log("Skipping download, fetching=" + this.fetching + " activeButton=", this.activeButton);
       return;
     }
     this.fetching = result;
     VRSPACEUI.indicator.animate();
     VRSPACEUI.indicator.add("Download");
-    VRSpaceAPI.getInstance().endpoint.sketchfab.download(result.uid).then(gltfModel=>{
+    VRSpaceAPI.getInstance().endpoint.sketchfab.download(result.uid).then(gltfModel => {
       this.fetching = null;
       console.log(gltfModel);
       this.createSharedObject(gltfModel.mesh);
-    }).catch(error=>{
+    }).catch(error => {
       if (error.status == 401) {
         console.log("Redirecting to login form")
         this.sketchfabLogin();
@@ -903,7 +915,7 @@ export class WorldEditor extends WorldListener {
         */
         VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates(
           { id: this.carrying.id, scale: { x: scale, y: scale, z: scale }, rotation: { x: rotation.x, y: rotation.y, z: rotation.z } }
-        ).catch(err=>console.error(err));
+        ).catch(err => console.error(err));
         // carried object tracks hud, we have to update holder object rotation or next event just rotates it back
         let parentQuat = VRSPACEUI.hud.camera.absoluteRotation;
         if (this.carrying.target && this.carrying.target.parent !== VRSPACEUI.hud.camera) {
