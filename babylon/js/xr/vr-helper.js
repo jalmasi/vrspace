@@ -38,8 +38,8 @@ export class VRHelper {
     this.buttons = { left: [], right: [] };
     /** left and right thumb and index finger */
     this.hands = {
-      left: {hand: null, thumb:null, index:null, middle:null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,-Math.PI/2)}, 
-      right: {hand: null, thumb:null, index:null, middle: null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,Math.PI/2)} 
+      left: { hand: null, thumb: null, index: null, middle: null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z, -Math.PI / 2) },
+      right: { hand: null, thumb: null, index: null, middle: null, rotation: BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z, Math.PI / 2) }
     };
     /**
      * Near hover radius:
@@ -47,11 +47,11 @@ export class VRHelper {
      * less than this, selection with finger/controller touch
      * (babylonjs internal defaults to 10cm, we set it to 3cm)
      * https://github.com/BabylonJS/Babylon.js/blob/a1a76330a43a210c258c274d19ae736cc409752f/packages/dev/core/src/XR/features/WebXRNearInteraction.ts#L446 
-     */ 
+     */
     this.nearHoverRadius = 0.03;
     /** Babylonjs internal, defaults to 2cm, set to 1cm here */
     this.nearPickRadius = 0.01;
-    
+
     this.squeezeConsumers = [];
     this.triggerListeners = [];
     this.activeController = "none";
@@ -239,7 +239,7 @@ export class VRHelper {
             const side = this.getGripSide(xrController.grip);
             this.controller[side] = xrController;
             xrController.onMotionControllerInitObservable.add((motionController) => {
-              console.log(side+' motion controller: '+motionController.profileId, motionController.getComponentIds());
+              console.log(side + ' motion controller: ' + motionController.profileId, motionController.getComponentIds());
               this.trackMotionController(motionController, side);
             });
           } else if (xrController.inputSource.profiles && xrController.inputSource.profiles.includes("generic-touchscreen")) {
@@ -307,13 +307,13 @@ export class VRHelper {
    * @private 
    */
   notifyHud(xrController) {
-    VRSPACEUI.hud.controllerRemoved(xrController);    
+    VRSPACEUI.hud.controllerRemoved(xrController);
   }
-  
+
   isSelectableMesh(mesh) {
     return VRSPACEUI.isSelectableMesh(mesh) || this.world.isSelectableMesh(mesh);
   }
-  
+
   gamepadTrigger(state) {
     if (this.pickInfo) {
       // scene event
@@ -497,7 +497,7 @@ export class VRHelper {
         }
       };
     } catch (error) {
-      console.log('ERROR '+ error);
+      console.log('ERROR ' + error);
     }
   }
 
@@ -721,9 +721,9 @@ export class VRHelper {
           this.checkPinch("right");
         }
         this.world.trackXrDevices();
-      }      
-    } catch ( err ) {
-      console.error("ERROR in render loop: "+err);
+      }
+    } catch (err) {
+      console.error("ERROR in render loop: " + err);
     }
   }
 
@@ -783,13 +783,15 @@ export class VRHelper {
    * Returns the rotation quaternion of left controller grip
    */
   leftArmRot() {
-    return this.controller.left.pointer.rotationQuaternion;
+    //return this.controller.left.pointer.rotationQuaternion;
+    return this.handRotation('left');
   }
   /**
    * Returns the rotation quaternion of right controller grip
    */
   rightArmRot() {
-    return this.controller.right.pointer.rotationQuaternion;
+    //return this.controller.right.pointer.rotationQuaternion;
+    return this.handRotation('right');
   }
   /**
    * Returns the height of the user, as defined by WebXRCamera
@@ -854,7 +856,7 @@ export class VRHelper {
       // https://forum.babylonjs.com/t/webxr-hand-functions-like-grabbing-in-quest-3/49287/2
       const featureManager = this.vrHelper.baseExperience.featuresManager;
       const xrHandFeature = featureManager.enableFeature(BABYLON.WebXRFeatureName.HAND_TRACKING, "latest", {
-          xrInput: this.vrHelper.input
+        xrInput: this.vrHelper.input
       });
       if (xrHandFeature) {
         console.log("XR Hands enabled");
@@ -878,8 +880,8 @@ export class VRHelper {
           this.hands[side].thumb = null;
           this.hands[side].index = null;
           this.hands[side].middle = null;
-        });        
-      }      
+        });
+      }
       const nearInteraction = featureManager.getEnabledFeature(BABYLON.WebXRFeatureName.NEAR_INTERACTION);
       if (nearInteraction) {
         console.log("Near interaction enabled, setting up...");
@@ -888,11 +890,11 @@ export class VRHelper {
       } else {
         console.log("Near interaction disabled");
       }
-    } catch (error) { 
-      console.log("ERROR "+error);
+    } catch (error) {
+      console.log("ERROR " + error);
     }
   }
-  
+
   getGripSide(grip) {
     if (
       grip.id.toLowerCase().indexOf("left") >= 0 || grip.name.toLowerCase().indexOf("left") >= 0
@@ -903,23 +905,23 @@ export class VRHelper {
     ) {
       return "right";
     } else {
-      console.log("ERROR unknown controller side: "+grip.id+" "+grip.name);
+      console.log("ERROR unknown controller side: " + grip.id + " " + grip.name);
       return '';
     }
   }
-  
+
   checkPinch(side) {
     let hand = this.hands[side]
     //let distance = BABYLON.Vector3.Distance(hand.index.position, hand.thumb.position);
     let distance = BABYLON.Vector3.Distance(hand.middle.position, hand.thumb.position);
 
-    if(this.squeeze[side] == 0 && distance < 0.03) {
+    if (this.squeeze[side] == 0 && distance < 0.03) {
       this.squeeze[side] = 1;
       this.squeezeTracker(1, side, hand.thumb);
-    } else if(this.squeeze[side] == 1 && distance > 0.03){
+    } else if (this.squeeze[side] == 1 && distance > 0.03) {
       this.squeeze[side] = 0;
       this.squeezeTracker(0, side, hand.thumb);
-    }    
+    }
   }
   /**
    * Disable sliding movement and enable teleportation.
@@ -987,30 +989,30 @@ export class VRHelper {
       throw "Unknown movement mode: " + mode;
     }
   }
-  
+
   /**
    * Returns controller/hand position relative to the user.
    * @param {string} side left or right 
    */
-  handPosition(side) {    
+  handPosition(side) {
     const cameraPos = this.camera().position;
     const xrController = this.controller[side];
     // CHECKME: 0, rather than user height?
     const pos = xrController.grip.absolutePosition.subtract(new BABYLON.Vector3(cameraPos.x, 0, cameraPos.z));
     return pos;
   }
-  
+
   /**
    * Returns controller/hand rotation relative to the user.
    * @param {string} side left or right 
    */
   handRotation(side) {
     const xrController = this.controller[side];
-    if ( this.hands[side].hand ) {
+    if (this.hands[side].hand) {
       return xrController.pointer.rotationQuaternion.multiply(this.hands[side].rotation);
     } else {
       return xrController.pointer.rotationQuaternion.clone();
     }
   }
-  
+
 }
