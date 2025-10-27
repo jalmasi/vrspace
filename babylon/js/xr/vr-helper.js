@@ -242,6 +242,7 @@ export class VRHelper {
               console.log(side + ' motion controller: ' + motionController.profileId, motionController.getComponentIds());
               this.trackMotionController(motionController, side);
             });
+            VRSPACEUI.hud.controllerAdded(xrController);
           } else if (xrController.inputSource.profiles && xrController.inputSource.profiles.includes("generic-touchscreen")) {
             console.log("Controller added: " + xrController.inputSource.profiles);
             // this happens in AR, touching something brings up teleportation
@@ -260,7 +261,7 @@ export class VRHelper {
               delete this.touchTimestamp;
             }
           } else {
-            this.notifyHud(xrController);
+            VRSPACEUI.hud.controllerRemoved(xrController);
           }
         });
         this.trackHands();
@@ -299,15 +300,6 @@ export class VRHelper {
     this.trackGamepad();
 
     //console.log("VRHelper initialized", this.vrHelper);
-  }
-
-  /** 
-   * Notify HUD that a controller has been removed, happens quite often with XR hands.
-   * Matters when HUD is attached to the removed hand.
-   * @private 
-   */
-  notifyHud(xrController) {
-    VRSPACEUI.hud.controllerRemoved(xrController);
   }
 
   isSelectableMesh(mesh) {

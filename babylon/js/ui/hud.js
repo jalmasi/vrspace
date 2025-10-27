@@ -111,6 +111,7 @@ export class HUD {
    * Attach HUD to camera it was created with.
    */
   attachToCamera() {
+    this.root.setEnabled(true);
     this.root.parent = this.camera;
     this.root.position = new BABYLON.Vector3(0, this.vertical(), this.distance());
     this.root.rotation = new BABYLON.Vector3(0, 0, 0);
@@ -713,6 +714,7 @@ export class HUD {
    * Attach hud to left hand
    */
   attachToLeftController() {
+    this.root.setEnabled(true);
     this.root.parent = this.vrHelper.controller.left.grip;
     if (this.vrHelper.hands.left.hand) {
       this.root.position = new BABYLON.Vector3(0, 0, this.handOffset);
@@ -731,6 +733,7 @@ export class HUD {
    * Attach hud to right hand
    */
   attachToRightController() {
+    this.root.setEnabled(true);
     this.root.parent = this.vrHelper.controller.right.grip;
     if (this.vrHelper.hands.right.hand) {
       this.root.position = new BABYLON.Vector3(0, 0, this.handOffset);
@@ -769,14 +772,26 @@ export class HUD {
   }
 
   controllerRemoved(xrController) {
-    // alternatively, we may want attach it to  the other hand, 
+    // when a controller is removed, we can attach hud back to the camera
+    // alternatively, we may want attach it to the other hand, 
     // or hide it and attach it again when the controller is back
     if (this.currentController == "left" && this.vrHelper.controller.left == xrController) {
-      this.attachToCamera();
+      //this.attachToCamera();
+      this.root.setEnabled(false);
     } else if (this.currentController == "right" && this.vrHelper.controller.right == xrController) {
-      this.attachToCamera();
+      //this.attachToCamera();
+      this.root.setEnabled(false);
     }
   }
+
+  controllerAdded(xrController) {
+    if (this.currentController == "left" && this.vrHelper.controller.left == xrController) {
+      this.attachToLeftController();
+    } else if (this.currentController == "right" && this.vrHelper.controller.right == xrController) {
+      this.attachToRightController();
+    }
+  }
+
 
   /**
    * Returns true if mesh intersects any of hud elements. Allows to 'grab' the hud with a VR controller.
