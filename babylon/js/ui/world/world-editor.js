@@ -583,8 +583,8 @@ export class WorldEditor extends WorldListener {
       let xrHelper = this.world.xrHelper;
       let side = xrHelper.activeController;
       // CHECKME xr hand manipulation is just soo bad, we may better just turn this off 
-      if ("none" != side) {
-        // for xr hands, this is rotated
+      // keep camera for partent if hands are not allowed
+      if ("none" != side && (VRSPACEUI.allowHands || !xrHelper.handActive())) {
         parent = xrHelper.controller[side].pointer;
       }
 
@@ -604,7 +604,7 @@ export class WorldEditor extends WorldListener {
       target.isPickable = false;
       target.isVisible = false;
       target.position = pos;
-      if (xrHelper.handActive()) {
+      if (xrHelper.handActive() && VRSPACEUI.allowHands) {
         // xr hands, this is rotated
         target.rotation = this.world.xrHelper.hands[side].rotation.toEulerAngles();
       }
@@ -618,7 +618,7 @@ export class WorldEditor extends WorldListener {
         //quat = BABYLON.Quaternion.Inverse(parent.absoluteRotationQuaternion).multiply(quat);
         //}
 
-        if (xrHelper.handActive()) {
+        if (xrHelper.handActive() && VRSPACEUI.allowHands) {
           // xr hands, this is rotated
           target.rotation = this.world.xrHelper.hands[side].rotation.multiply(objectQuat).toEulerAngles();
         } else {
