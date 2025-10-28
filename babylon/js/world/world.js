@@ -264,13 +264,13 @@ export class World {
   as a change listener with WorldManager to process remote events.
   */
   createChatlog() {
-    this.chatLog = ChatLog.getInstance(this.scene);
-    this.chatLog.show();
+    this.chatlog = ChatLog.getInstance(this.scene);
+    this.chatlog.show();
     this.worldManager.addChangeListener((obj, field, node) => this.remoteEvent(obj, field, node));
-    this.chatLog.addListener((text, link) => this.write(text, link));
-    this.chatLog.input.virtualKeyboardEnabled = this.inXR();
-    //this.chatLog.input.virtualKeyboardEnabled = true;
-    this.addSelectionPredicate((mesh) => this.chatLog.isSelectableMesh(mesh));
+    this.chatlog.addListener((text, link) => this.write(text, link));
+    this.chatlog.input.virtualKeyboardEnabled = this.inXR();
+    //this.chatlog.input.virtualKeyboardEnabled = true;
+    this.addSelectionPredicate((mesh) => this.chatlog.isSelectableMesh(mesh));
   }
   /**
    * Returns true if either VR or AR mode is currently active
@@ -366,14 +366,14 @@ export class World {
   }
   /** Called by VR helper after entering XR mode. Default implementation enables virtual keyboard in ChatLog. */
   enterXR() {
-    if (this.chatLog) {
-      this.chatLog.input.virtualKeyboardEnabled = true;
+    if (this.chatlog) {
+      this.chatlog.input.virtualKeyboardEnabled = true;
     }
   }
   /** Called by VR helper after exiting XR. Default implementation turns off ChatLog virtual keyboard.*/
   exitXR() {
-    if (this.chatLog) {
-      this.chatLog.input.virtualKeyboardEnabled = false;
+    if (this.chatlog) {
+      this.chatlog.input.virtualKeyboardEnabled = false;
     }
   }
   /**
@@ -659,7 +659,7 @@ export class World {
    * @param node root node in the scene that has received event, may be null
    */
   remoteEvent(obj, field, node) {
-    if ('wrote' === field && this.chatLog) {
+    if ('wrote' === field && this.chatlog) {
       console.log(obj.id + ' wrote ' + obj.wrote);
       var name = obj.name;
       if (!name) {
@@ -667,9 +667,9 @@ export class World {
         name='o_o';
       }
       if ( typeof obj.wrote === 'object' ) {
-        this.chatLog.log(name, obj.wrote.text, obj.wrote.link);
+        this.chatlog.log(name, obj.wrote.text, obj.wrote.link);
       } else if ( typeof obj.wrote === 'string' ) {
-        this.chatLog.log(name, obj.wrote);
+        this.chatlog.log(name, obj.wrote);
       } else {
         console.error("Unknown type "+ typeof obj.wrote+": ",obj.wrote)
       }
