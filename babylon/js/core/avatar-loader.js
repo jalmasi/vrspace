@@ -175,8 +175,9 @@ export class AvatarLoader extends MeshLoader {
       } else if (typeof object[field + 'Changed'] === 'function') {
         // execute callback after changes are applied
         object[field + 'Changed'](obj, node);
-      } else {
-        console.log("Ignoring unknown event to "+obj+": "+field);
+      //} else {
+        // to noisy, especially when avatars are not humanoid
+        //console.log("Ignoring unknown event to "+obj+": "+field);
       }
     } else {
       console.log("Ignoring unknown event "+field+" to object "+obj.id);

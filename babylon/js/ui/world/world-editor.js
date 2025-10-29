@@ -71,6 +71,7 @@ export class WorldEditor extends WorldListener {
     this.contentBase = VRSPACEUI.contentBase;
     this.worldManager = world.worldManager;
     this.buttons = [];
+    this.movementMode = world.xrHelper.movementMode;
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
@@ -295,12 +296,15 @@ export class WorldEditor extends WorldListener {
       VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z } }).catch(err => console.error(err));
     });
   }
+
   clearGizmo() {
     if (this.gizmo) {
       this.gizmo.dispose();
       this.gizmo = null;
+      this.enableMovement();
     }
   }
+
   /**
    * Called when an object is selected, calls the appropriate action e.g. take, resize etc
    * @param obj root scene object
@@ -504,14 +508,32 @@ export class WorldEditor extends WorldListener {
                 // make an action on the object
                 console.log("Manipulating shared object " + pickedRoot.VRObject.id + " " + pickedRoot.name);
                 this.manipulateObject(pickedRoot, this.activeButton.customAction);
+                // xr hands: disable teleportation
+                this.disableMovement();
+              } else if (this.gizmo) {
+                // xr hands: disable teleportation
+                this.disableMovement();
               }
             }
             break;
           case BABYLON.PointerEventTypes.POINTERUP:
+            this.enableMovement();
             break;
         }
       }
     });
+  }
+
+  enableMovement() {
+    if ("NONE" != this.movementMode && !this.gizmo) {
+      this.world.xrHelper.enableMovement(this.movementMode);
+    }
+  }
+
+  disableMovement() {
+    if ("NONE" != this.movementMode) {
+      this.movementMode = this.world.xrHelper.disableMovement();
+    }
   }
 
   /**

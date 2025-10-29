@@ -960,12 +960,15 @@ export class VRHelper {
 
   /**
    * Disable both teleportation and sliding.
+   * @returns {string} previous movement mode
    */
   disableMovement() {
+    const ret = this.movementMode;
     this.movementMode = "NONE";
     const featureManager = this.vrHelper.baseExperience.featuresManager;
     featureManager.disableFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
     featureManager.disableFeature(BABYLON.WebXRFeatureName.MOVEMENT);
+    return ret;
   }
 
   /**
@@ -977,6 +980,8 @@ export class VRHelper {
       this.enableSliding();
     } else if ("TELEPORT" == mode) {
       this.enableTeleportation();
+    } else if ("NONE" == mode) {
+      console.log("XR Movement mode set to "+mode);
     } else {
       throw "Unknown movement mode: " + mode;
     }
