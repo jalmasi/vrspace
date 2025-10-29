@@ -26,6 +26,7 @@ import { VRObject } from './VRObject.js';
 export class Client {
     /**
      * Constructs a new <code>Client</code>.
+     * Basic client class, adds user-related properties and business logic to   VRObject.
      * @alias Client
      */
     constructor() { 
@@ -82,11 +83,13 @@ export class Client {
         this.animation = undefined;
 
         /** name 
+         * Client name - unique ID.
          * @type {String} 
          */
         this.name = undefined;
 
         /** picture 
+         * URL of the file with avatar/profile picture
          * @type {String} 
          */
         this.picture = undefined;
@@ -97,11 +100,13 @@ export class Client {
         this.sceneProperties = undefined;
 
         /** userHeight 
+         * User's height in real life, used in VR. Transient biometric data.
          * @type {Number} 
          */
         this.userHeight = undefined;
 
         /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
          * @type {Object.<String, String>} 
          */
         this.tokens = undefined;

@@ -35,8 +35,10 @@ import ModelSearchList from './model/ModelSearchList';
 import ModelSearchRequest from './model/ModelSearchRequest';
 import ModelSearchResponse from './model/ModelSearchResponse';
 import ModelTag from './model/ModelTag';
+import PersistentEvent from './model/PersistentEvent';
 import Point from './model/Point';
 import Quaternion from './model/Quaternion';
+import Recording from './model/Recording';
 import Rotation from './model/Rotation';
 import SceneProperties from './model/SceneProperties';
 import ServerCapabilities from './model/ServerCapabilities';
@@ -53,6 +55,7 @@ import WorldStatus from './model/WorldStatus';
 import DataApi from './api/DataApi';
 import GroupsApi from './api/GroupsApi';
 import Oauth2LoginApi from './api/Oauth2LoginApi';
+import RecorderApi from './api/RecorderApi';
 import ServerInfoApi from './api/ServerInfoApi';
 import SharedContentApi from './api/SharedContentApi';
 import SketchfabApi from './api/SketchfabApi';
@@ -233,6 +236,12 @@ export {
     ModelTag,
 
     /**
+     * The PersistentEvent model constructor.
+     * @property {PersistentEvent}
+     */
+    PersistentEvent,
+
+    /**
      * The Point model constructor.
      * @property {Point}
      */
@@ -243,6 +252,12 @@ export {
      * @property {Quaternion}
      */
     Quaternion,
+
+    /**
+     * The Recording model constructor.
+     * @property {Recording}
+     */
+    Recording,
 
     /**
      * The Rotation model constructor.
@@ -339,6 +354,12 @@ export {
     * @property {module:api/Oauth2LoginApi}
     */
     Oauth2LoginApi,
+
+    /**
+    * The RecorderApi service constructor.
+    * @property {module:api/RecorderApi}
+    */
+    RecorderApi,
 
     /**
     * The ServerInfoApi service constructor.

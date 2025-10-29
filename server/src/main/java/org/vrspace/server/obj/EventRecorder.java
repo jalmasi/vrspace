@@ -235,8 +235,8 @@ public class EventRecorder extends User {
     }
   }
 
-  public Collection<PersistentEvent> getEvents() {
-    return events;
-  }
+  /**
+   * public Collection<PersistentEvent> getEvents() { return events; }
+   */
 
 }

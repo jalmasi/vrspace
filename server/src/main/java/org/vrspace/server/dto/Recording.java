@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,31 +22,21 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @Slf4j
 public class Recording implements Command {
-  private String action;
+  /** Recorder name, must be unique */
   private String name;
+  /** Action: record, play, stop, delete */
+  private String action;
 
   public ClientResponse execute(WorldManager worldManager, Client client) {
-    EventRecorder recorder = null;
     if (this.name == null) {
       this.name = "Recorder:" + client.getId();
     }
-    Client recorderClient = worldManager.getClientByName(this.name);
-    if (recorderClient == null) {
-      recorder = new EventRecorder(worldManager, client, this.name);
-      // TODO make these command parameters
-      recorder.setRecordClient(true);
-      recorder.setRecordScene(false);
-      recorder.setLoop(true);
-      worldManager.save(recorder);
-      log.debug("Created new recorder for " + client);
-    } else if (recorderClient instanceof EventRecorder) {
-      recorder = (EventRecorder) recorderClient;
-      log.debug("Found recorder " + recorder);
-    }
+    EventRecorder recorder = getRecorder(worldManager, client, this.name);
     if ("record".equals(this.action)) {
       recorder.init(worldManager, client);
       recorder.start();
@@ -63,13 +54,34 @@ public class Recording implements Command {
       client.getScene().update();
     } else if ("delete".equals(this.action)) {
       recorder.stop();
-      worldManager.remove(client, recorderClient);
+      worldManager.remove(client, recorder);
       // so that recorder reloads:
       client.getScene().dirty();
       client.getScene().update();
+    } else if ("save".equals(this.action)) {
+      return new ClientResponse(recorder.getEvents());
     } else {
       throw new IllegalArgumentException("Invalid action: " + action);
     }
     return null;
   }
+
+  public static EventRecorder getRecorder(WorldManager worldManager, Client client, String name) {
+    EventRecorder recorder = null;
+    Client recorderClient = worldManager.getClientByName(name);
+    if (recorderClient == null) {
+      recorder = new EventRecorder(worldManager, client, name);
+      // TODO make these command parameters
+      recorder.setRecordClient(true);
+      recorder.setRecordScene(false);
+      recorder.setLoop(true);
+      recorder = worldManager.save(recorder);
+      log.debug("Created new recorder " + recorder + " for " + client);
+    } else if (recorderClient instanceof EventRecorder) {
+      recorder = (EventRecorder) recorderClient;
+      log.debug("Found recorder " + recorder);
+    }
+    return recorder;
+  }
+
 }

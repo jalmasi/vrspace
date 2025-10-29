@@ -21,6 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class World {
     /**
      * Constructs a new <code>World</code>.
+     * VRObject container, contains isolated parts of space, like chat room. One   default world is created on startup, others are typically created on demand,   after Enter command is issued.
      * @alias World
      */
     constructor() { 

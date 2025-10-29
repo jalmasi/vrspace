@@ -10,6 +10,9 @@ import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.VREvent;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -25,13 +28,16 @@ import lombok.ToString;
 @Node
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = false)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PersistentEvent extends Entity {
   private long delay;
   private String type;
+  @JsonIgnore
   private VRObject source;
   // Neo4j can't store this:
   @Transient
   private transient Map<String, Object> changes;
+  @JsonIgnore
   // so we store it converted to JSON string:
   private String payload;
   private List<VRObject> add;
@@ -66,6 +72,7 @@ public class PersistentEvent extends Entity {
     }
   }
 
+  @JsonIgnore
   public VREvent getEvent() {
     VREvent ret = new VREvent(this.source);
     // note that payload contains different client id, one of originally recorder
@@ -76,6 +83,7 @@ public class PersistentEvent extends Entity {
     return ret;
   }
 
+  @JsonIgnore
   public Object getMessage() {
     if (this.add != null) {
       return new Add(this.add);

@@ -88,7 +88,7 @@ public class EventRecorderTest {
     client.setScene(scene);
   }
 
-  private void record(EventRecorder recorder) {
+  private void recordEvents(EventRecorder recorder) {
     int expected = 0;
     // recording own event:
     VREvent ownEvent = new VREvent(client, client);
@@ -124,7 +124,7 @@ public class EventRecorderTest {
     recorder.start();
 
     // record, assert changes
-    record(recorder);
+    recordEvents(recorder);
 
     // stop recording
     recorder.stop();
@@ -155,7 +155,7 @@ public class EventRecorderTest {
     recorder.start();
 
     // record, assert changes
-    record(recorder);
+    recordEvents(recorder);
 
     // stop recording
     recorder.stop();
@@ -194,7 +194,7 @@ public class EventRecorderTest {
     recorder.start();
 
     // record, assert changes
-    record(recorder);
+    recordEvents(recorder);
 
     // stop recording
     recorder.stop();
