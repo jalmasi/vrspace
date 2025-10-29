@@ -1,122 +1,124 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
-  <head>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <meta content="utf-8" http-equiv="encoding">
-    <title>VRSpace:World Template</title>
-    ﻿<style type="text/css">
-    html, body {
+<head>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+  <meta content="utf-8" http-equiv="encoding">
+  <title>VRSpace:World Template</title>
+  ﻿<style type="text/css">
+    html,
+    body {
       width: 100%;
-      height:100%;
+      height: 100%;
       margin: 0px;
       padding: 0px;
     }
+
     canvas {
       width: 98%;
-      height:96%;
+      height: 96%;
       padding-left: 0;
       padding-right: 0;
       margin-left: auto;
       margin-right: auto;
       display: block;
     }
-    </style>﻿
-    
-    <!-- MANDATORY babylon.js scripts -->
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
-    <!-- RECOMENDED, OPTIONAL for mobiles -->
-    <script src="/babylon/js/lib/pep.min.js"></script>
-  </head>
+  </style>﻿
 
-  <body>
+  <!-- MANDATORY VRSpace.org scripts -->
+  <script src="/babylon/js/vrspace-min.js" type="module"></script>
+  <script src="/babylon/js/client/openapi/superagent.min.js"></script>
+  <!-- OPTIONAL VRSpace.org scripts: noise, speech, streaming -->
+  <script src="/babylon/js/lib/perlin.js"></script>
+  <script src="/babylon/js/lib/annyang-2.6.1.min.js"></script>
+  <script src="/babylon/js/lib/openvidu-browser-2.30.0.min.js"></script>
 
-    <!-- MANDATORY 3D canvas -->
-    <canvas id="renderCanvas" touch-action="none"></canvas>
+  <!-- MANDATORY babylon.js scripts -->
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+  <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+  <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+  <!-- OPTIONAL dynamic terrain and physics -->
+  <script
+    src="https://cdn.jsdelivr.net/gh/BabylonJS/Extensions@master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"></script>
+  <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+  <!-- RECOMENDED, OPTIONAL for mobiles -->
+  <script src="/babylon/js/lib/pep.min.js"></script>
+</head>
 
-<script>
-var canvas = document.getElementById("renderCanvas"); // Get the canvas element
-var engine = new BABYLON.Engine(canvas, true, { audioEngine: true }); // Generate the BABYLON 3D engine
-var myScene;
+<body>
 
-// Step 1: load world script
-import("./world.js").then( (module) =>{
-  
-  var world = module.WORLD;
+  <!-- MANDATORY 3D canvas -->
+  <canvas id="renderCanvas" touch-action="none"></canvas>
 
-  // Step 2: initialize the world - displays the scene and loads file(s) 
-  world.init(engine, 'CHANGEME').then((s) => {
-    myScene = s;
-    
-    // Step3: now that the scene is created, connect to the server
-    // note that you can load all scripts from demo server
-    import('/babylon/js/vrspace-min.js').then(ui => {
-      var net = new ui.WorldManager(world);
-      
+  <script type="module">
+    import {WorldManager} from '/babylon/js/vrspace-min.js';
+    import {WORLD} from './world.js';
+
+    let canvas = document.getElementById("renderCanvas"); // Get the canvas element
+    // focus canvas so we get keyboard events, otherwise need to click on it first
+    canvas.focus();
+    let engine = new BABYLON.Engine(canvas, true, {audioEngine: true}); // Generate the BABYLON 3D engine
+    let world = WORLD;
+    let myScene = null;
+
+    // Step 2: initialize the world - displays the scene and loads file(s) 
+    world.init(engine, 'CHANGEME').then((s) => {
+      myScene = s;
+
+      // Step3: now that the scene is created, connect to the server
+      // note that you can load all scripts from demo server
+      var net = new WorldManager(world);
+
       // OPTIONAL set your own framerate (default is 5)
       net.fps = 25;
       // with 25 fps no need to create animation in between events
       net.avatarLoader.createAnimations = false;
-      
+
       // OPTIONAL print debug info to console
       // (a lot of debug with 25 fps)
       //net.debug = true; // multi-user debug info
       //net.VRSPACE.debug = true; // network debug info
-      
+
       // RECOMMENDED: set world name
       // all users in the same world share same events
       world.name = 'CHANGEME';
-      
-      // OPTIONAL:
-      // called when an avatar loads, post-process it here
-      net.loadCallback = (obj, avatar) => {
-        console.log('Loaded avatar of user '+obj.id+' from '+obj.mesh, avatar);
-      };
-      
+
       // connect, set own avatar and start the session
-      net.enter({
+      net.enterWith(
         // RECOMMENDED set your avatar url, or be invisible
-        mesh:'https://www.vrspace.org/content/char/male/bruce_lee/scene.gltf', 
-        //mesh:'/babylon/dolphin.glb', 
+        'https://www.vrspace.org/content/char/male/bruce_lee/scene.gltf',
+        //'/babylon/dolphin.glb', 
         // OPTIONAL set your name, MUST be unique
-        name:'someone'+Math.random()
-      });
+        'someone-' + Math.ceil(Math.random() * 100)
+      );
     });
-  });
 
-})
+    // RECOMMENDED Watch for browser/canvas resize events
+    window.addEventListener("resize", () => engine.resize());
 
+    // RECOMMENDED in development - debug layer
+    function debugOnOff() {
+      console.log("Debug: " + myScene.debugLayer.isVisible());
+      if (myScene.debugLayer.isVisible()) {
+        myScene.debugLayer.hide();
+      } else {
+        myScene.debugLayer.show();
+      }
+    }
 
-// RECOMMENDED Watch for browser/canvas resize events
-window.addEventListener("resize", function () {
-    engine.resize();
-});
+  </script>
 
-// RECOMMENDED in development - debug layer
-function debugOnOff() {
-  console.log("Debug: "+myScene.debugLayer.isVisible());
-  if ( myScene.debugLayer.isVisible() ) {
-    myScene.debugLayer.hide();
-  } else {
-    myScene.debugLayer.show();
-  }
-}
+  <!-- RECOMMENDED debug button -->
+  <div style="position:absolute;bottom:10px;right:50%;">
+    <button onClick="debugOnOff()">Debug</button>
+  </div>
 
-</script>
+  <!-- OPTIONAL required for audio/video streaming -->
+  <div id="videos" hidden>
+  </div>
 
-    <!-- RECOMMENDED debug button -->
-    <div style="position:absolute;bottom:10px;right:50%;">
-      <button onClick="debugOnOff()">Debug</button>
-    </div>
-    
-    <!-- OPTIONAL required for audio/video streaming -->
-    <div id="videos" hidden>
-    </div>
-  
-  </body>
+</body>
 
 </html>
