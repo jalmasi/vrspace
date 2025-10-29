@@ -392,10 +392,15 @@ public class WorldManager {
     Ownership own = db.getOwnership(client.getId(), obj.getId());
     // CHECKME: remove invisible objects?
     if (own == null) {
-      throw new SecurityException("Not yours to remove: " + obj.getClass().getSimpleName() + " " + obj.getId());
+      if (db.getOwnersOf(client.getId()).isEmpty()) {
+        log.warn("Client " + client.getId() + " removing public object " + obj);
+      } else {
+        throw new SecurityException("Not yours to remove: " + obj.getClass().getSimpleName() + " " + obj.getId());
+      }
+    } else {
+      db.delete(own);
+      db.save(client);
     }
-    db.delete(own);
-    db.save(client);
     delete(client, obj);
   }
 

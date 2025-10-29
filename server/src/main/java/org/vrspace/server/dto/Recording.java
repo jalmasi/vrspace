@@ -61,6 +61,12 @@ public class Recording implements Command {
       // so that recorder reloads:
       client.getScene().dirty();
       client.getScene().update();
+    } else if ("delete".equals(this.action)) {
+      recorder.stop();
+      worldManager.remove(client, recorderClient);
+      // so that recorder reloads:
+      client.getScene().dirty();
+      client.getScene().update();
     } else {
       throw new IllegalArgumentException("Invalid action: " + action);
     }
