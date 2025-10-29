@@ -58,21 +58,25 @@ export class User {
         this.scale = undefined;
 
         /** permanent 
+         * Permanent objects are always present (e.g. sky)
          * @type {Boolean} 
          */
         this.permanent = undefined;
 
         /** active 
+         * Whether an object is active (can send events). E.g. online users, robots.
          * @type {Boolean} 
          */
         this.active = undefined;
 
         /** mesh 
+         * URL of the file containing the mesh.
          * @type {String} 
          */
         this.mesh = undefined;
 
         /** script 
+         * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
          * @type {String} 
          */
         this.script = undefined;
@@ -122,20 +126,21 @@ export class User {
          */
         this.rightArmPos = undefined;
 
-        /** leftArmPos 
-         * @type {Point} 
-         */
-        this.leftArmPos = undefined;
-
         /** rightArmRot 
          * @type {Quaternion} 
          */
         this.rightArmRot = undefined;
 
-        /** sceneProperties 
-         * @type {SceneProperties} 
+        /** leftArmPos 
+         * @type {Point} 
          */
-        this.sceneProperties = undefined;
+        this.leftArmPos = undefined;
+
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
+         */
+        this.tokens = undefined;
 
         /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
@@ -143,18 +148,19 @@ export class User {
          */
         this.userHeight = undefined;
 
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} 
+        /** sceneProperties 
+         * @type {SceneProperties} 
          */
-        this.tokens = undefined;
+        this.sceneProperties = undefined;
 
         /** properties 
+         * Custom transient object properties
          * @type {Object.<String, Object>} 
          */
         this.properties = undefined;
 
         /** temporary 
+         * Temporary objects will be deleted from the database along with their owner
          * @type {Boolean} 
          */
         this.temporary = undefined;
@@ -235,20 +241,20 @@ export class User {
             if (data.hasOwnProperty('rightArmPos')) {
                 obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
             }
-            if (data.hasOwnProperty('leftArmPos')) {
-                obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
-            }
             if (data.hasOwnProperty('rightArmRot')) {
                 obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
             }
-            if (data.hasOwnProperty('sceneProperties')) {
-                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
+            if (data.hasOwnProperty('leftArmPos')) {
+                obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
+            }
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            if (data.hasOwnProperty('sceneProperties')) {
+                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
@@ -324,13 +330,13 @@ export class User {
         if (data['rightArmPos']) { // data not null
           Point.validateJSON(data['rightArmPos']);
         }
-        // validate the optional field `leftArmPos`
-        if (data['leftArmPos']) { // data not null
-          Point.validateJSON(data['leftArmPos']);
-        }
         // validate the optional field `rightArmRot`
         if (data['rightArmRot']) { // data not null
           Quaternion.validateJSON(data['rightArmRot']);
+        }
+        // validate the optional field `leftArmPos`
+        if (data['leftArmPos']) { // data not null
+          Point.validateJSON(data['leftArmPos']);
         }
         // validate the optional field `sceneProperties`
         if (data['sceneProperties']) { // data not null

@@ -1,7 +1,5 @@
 package org.vrspace.server.api;
 
-import java.util.Collection;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.ClientResponse;
 import org.vrspace.server.dto.Recording;
+import org.vrspace.server.dto.Recording.RecordingData;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.EventRecorder;
-import org.vrspace.server.obj.PersistentEvent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,42 +48,45 @@ public class Recorder extends ClientControllerBase {
   }
 
   /**
-   * Save current recording. WARNING this may be huge.
+   * Save current recording.
    * 
    * @param recorderName unique name of the recorder to save
    * @return serialized events
    */
   @GetMapping("save")
-  public Collection<PersistentEvent> save(String recorderName, HttpSession session) {
+  public RecordingData save(String recorderName, HttpSession session) {
     Client client = findClient(session);
     ClientResponse res = new Recording(recorderName, "save").execute(worldManager, client);
-    @SuppressWarnings("unchecked")
-    Collection<PersistentEvent> events = (Collection<PersistentEvent>) res.getResponse();
-    return events;
+    RecordingData ret = (RecordingData) res.getResponse();
+    return ret;
   }
 
   /**
-   * Load an existing recording. WARNING this may be huge.
+   * Load an existing recording.
    * 
-   * @param recorderName unique name of the recorder to save
+   * @param recorderName unique name of the recorder to be created after load
+   * @param data         recording data serialized to json with save
    */
   @PutMapping("load")
-  public void load(String recorderName, @RequestBody Collection<PersistentEvent> events, HttpSession session) {
+  public void load(String recorderName, @RequestBody RecordingData data, HttpSession session) {
     Client client = findClient(session);
     EventRecorder eventRecorder = Recording.getRecorder(worldManager, client, recorderName);
-    events.forEach(event -> {
+    data.getEvents().forEach(event -> {
       if ("own".equals(event.getType())) {
         event.setSource(eventRecorder);
         try {
           // ensure it can be persisted
           event.setPayload(mapper.writeValueAsString(event.getChanges()));
         } catch (Exception e) {
-          log.error("Can't load recorddec message " + event.getChanges());
+          log.error("Can't load recorded message " + event.getChanges());
         }
       }
     });
-    eventRecorder.setEvents(events);
+    eventRecorder.setLength(data.getLength());
+    eventRecorder.setEvents(data.getEvents());
     worldManager.save(eventRecorder);
+    client.getScene().dirty();
+    client.getScene().update();
   }
 
 }

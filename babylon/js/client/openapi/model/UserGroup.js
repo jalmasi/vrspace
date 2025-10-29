@@ -21,6 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class UserGroup {
     /**
      * Constructs a new <code>UserGroup</code>.
+     * Group of users.
      * @alias UserGroup
      */
     constructor() { 
@@ -37,11 +38,13 @@ export class UserGroup {
         this.name = undefined;
 
         /** temporary 
+         * Temporary groups get deleted automatically
          * @type {Boolean} 
          */
         this.temporary = undefined;
 
         /** direct 
+         * Group intended for direct messaging
          * @type {Boolean} 
          */
         this.direct = undefined;

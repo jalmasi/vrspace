@@ -13,8 +13,8 @@
 
 
 import {ApiClient} from "../ApiClient.js";
-import { PersistentEvent } from '../model/PersistentEvent.js';
 import { Recording } from '../model/Recording.js';
+import { RecordingData } from '../model/RecordingData.js';
 
 /**
 * Recorder service.
@@ -38,20 +38,20 @@ export class RecorderApi {
 
     /**
      * Load an existing recording.
-     * Load an existing recording. WARNING this may be huge.
-     * @param {String} recorderName unique name of the recorder to save
-     * @param {Array.<PersistentEvent>} persistentEvent 
+     * Load an existing recording.
+     * @param {String} recorderName unique name of the recorder to be created after load
+     * @param {RecordingData} recordingData recording data serialized to json with save
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
-    loadWithHttpInfo(recorderName, persistentEvent) {
-      let postBody = persistentEvent;
+    loadWithHttpInfo(recorderName, recordingData) {
+      let postBody = recordingData;
       // verify the required parameter 'recorderName' is set
       if (recorderName === undefined || recorderName === null) {
         throw new Error("Missing the required parameter 'recorderName' when calling load");
       }
-      // verify the required parameter 'persistentEvent' is set
-      if (persistentEvent === undefined || persistentEvent === null) {
-        throw new Error("Missing the required parameter 'persistentEvent' when calling load");
+      // verify the required parameter 'recordingData' is set
+      if (recordingData === undefined || recordingData === null) {
+        throw new Error("Missing the required parameter 'recordingData' when calling load");
       }
 
       let pathParams = {
@@ -77,13 +77,13 @@ export class RecorderApi {
 
     /**
      * Load an existing recording.
-     * Load an existing recording. WARNING this may be huge.
-     * @param {String} recorderName unique name of the recorder to save
-     * @param {Array.<PersistentEvent>} persistentEvent 
+     * Load an existing recording.
+     * @param {String} recorderName unique name of the recorder to be created after load
+     * @param {RecordingData} recordingData recording data serialized to json with save
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
-    load(recorderName, persistentEvent) {
-      return this.loadWithHttpInfo(recorderName, persistentEvent)
+    load(recorderName, recordingData) {
+      return this.loadWithHttpInfo(recorderName, recordingData)
         .then(function(response_and_data) {
           return response_and_data.data;
         });
@@ -140,9 +140,9 @@ export class RecorderApi {
 
     /**
      * Save current recording.
-     * Save current recording. WARNING this may be huge.
+     * Save current recording.
      * @param {String} recorderName unique name of the recorder to save
-     * @return {Promise< Array.<PersistentEvent> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<PersistentEvent>} and HTTP response
+     * @return {Promise< RecordingData >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link RecordingData} and HTTP response
      */
     saveWithHttpInfo(recorderName) {
       let postBody = null;
@@ -164,7 +164,7 @@ export class RecorderApi {
       let authNames = [];
       let contentTypes = [];
       let accepts = ['*/*'];
-      let returnType = [PersistentEvent];
+      let returnType = RecordingData;
       return this.apiClient.callApi(
         '/vrspace/api/recorder/save', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
@@ -174,9 +174,9 @@ export class RecorderApi {
 
     /**
      * Save current recording.
-     * Save current recording. WARNING this may be huge.
+     * Save current recording.
      * @param {String} recorderName unique name of the recorder to save
-     * @return {Promise< Array.<PersistentEvent> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<PersistentEvent>}
+     * @return {Promise< RecordingData >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link RecordingData}
      */
     save(recorderName) {
       return this.saveWithHttpInfo(recorderName)

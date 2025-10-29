@@ -39,6 +39,7 @@ import PersistentEvent from './model/PersistentEvent';
 import Point from './model/Point';
 import Quaternion from './model/Quaternion';
 import Recording from './model/Recording';
+import RecordingData from './model/RecordingData';
 import Rotation from './model/Rotation';
 import SceneProperties from './model/SceneProperties';
 import ServerCapabilities from './model/ServerCapabilities';
@@ -258,6 +259,12 @@ export {
      * @property {Recording}
      */
     Recording,
+
+    /**
+     * The RecordingData model constructor.
+     * @property {RecordingData}
+     */
+    RecordingData,
 
     /**
      * The Rotation model constructor.

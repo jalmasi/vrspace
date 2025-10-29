@@ -21,17 +21,20 @@ import {ApiClient} from '../ApiClient.js';
 export class ModelSearchRequest {
     /**
      * Constructs a new <code>ModelSearchRequest</code>.
+     * Sketchfab model search API parameters, passed to sketchfab as it is. Most  interesting parameters are: q, animated, rigged
      * @alias ModelSearchRequest
      */
     constructor() { 
         
         
         /** q 
+         * Space separated keywords
          * @type {String} 
          */
         this.q = undefined;
 
         /** user 
+         * Searches models by a user (sketchfab username)
          * @type {String} 
          */
         this.user = undefined;
@@ -47,11 +50,13 @@ export class ModelSearchRequest {
         this.categories = undefined;
 
         /** date 
+         * Limit search to a specific period only (in days)
          * @type {Number} 
          */
         this.date = undefined;
 
         /** downloadable 
+         * Always true
          * @type {Boolean} 
          */
         this.downloadable = undefined;
@@ -77,6 +82,7 @@ export class ModelSearchRequest {
         this.max_face_count = undefined;
 
         /** pbr_type 
+         * Filter by PBR type. Set to metalness to search Metalness/Roughness models  only. Set to specular to search Specular/Glossiness models only. Set to true  to search PBR models only. Set to false to search non-PBR models only.
          * @type {String} 
          */
         this.pbr_type = undefined;
@@ -87,21 +93,25 @@ export class ModelSearchRequest {
         this.rigged = undefined;
 
         /** collection 
+         * Searches models by collection (uid)
          * @type {String} 
          */
         this.collection = undefined;
 
         /** sort_by 
+         * How to sort results. When omitted, results are sorted by relevance. One of  likeCount, -likeCount, viewCount, -viewCount, publishedAt, -publishedAt,  processedAt, -processedAt
          * @type {String} 
          */
         this.sort_by = undefined;
 
         /** file_format 
+         * Irrelevant, we always deal with GLTF
          * @type {String} 
          */
         this.file_format = undefined;
 
         /** license 
+         * One of by, by-sa, by-nd, by-nc, by-nc-sa, by-nc-nd, cc0, ed, st
          * @type {String} 
          */
         this.license = undefined;
@@ -142,21 +152,25 @@ export class ModelSearchRequest {
         this.archives_texture_max_resolution = undefined;
 
         /** archives_flavours 
+         * If true, returns all archives flavours, listed by archive type, and sorted by  texture resolution (descending). If false, only the texture with the highest  reslution is returned for each archive type.
          * @type {Boolean} 
          */
         this.archives_flavours = undefined;
 
         /** count 
+         * Items displayed per page, seems ignored by sketchfab but returned in paging
          * @type {Number} 
          */
         this.count = undefined;
 
         /** cursor 
+         * Starting item number, used for paging.
          * @type {Number} 
          */
         this.cursor = undefined;
 
         /** type 
+         * Constant, type=models
          * @type {String} 
          */
         this.type = undefined;

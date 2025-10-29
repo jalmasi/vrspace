@@ -23,6 +23,7 @@ import { UserGroup } from './UserGroup.js';
 export class GroupMember {
     /**
      * Constructs a new <code>GroupMember</code>.
+     * Represents a membership of a user in a group
      * @alias GroupMember
      */
     constructor() { 
@@ -44,11 +45,13 @@ export class GroupMember {
         this.client = undefined;
 
         /** pendingInvite 
+         * Pending invitation, if any
          * @type {String} 
          */
         this.pendingInvite = undefined;
 
         /** pendingRequest 
+         * Pending request to join, if any
          * @type {String} 
          */
         this.pendingRequest = undefined;
@@ -59,6 +62,7 @@ export class GroupMember {
         this.sponsor = undefined;
 
         /** lastUpdate 
+         * Time stamp of last membership update, be it invite, request, or joining the  group
          * @type {Date} 
          */
         this.lastUpdate = undefined;

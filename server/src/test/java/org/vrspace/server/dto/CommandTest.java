@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,8 @@ public class CommandTest {
   public void testRemoveFail() throws Exception {
     when(scene.get(any(ID.class))).thenReturn(new VRObject("1"));
     when(repo.getOwnership(anyString(), anyString())).thenReturn(null);
+    // CHECKME: removal of public objects allowed
+    when(repo.getOwnersOf(anyString())).thenReturn(List.of(new Ownership()));
     Remove remove = new Remove(new VRObject("2")).removeObject(new VRObject("1"));
     ClientRequest request = new ClientRequest(client, remove);
     assertThrows(SecurityException.class, () -> world.dispatch(request));

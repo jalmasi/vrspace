@@ -27,36 +27,43 @@ export class ServerConfiguration {
         
         
         /** guestAllowed 
+         * Guest (without login) access is allowed
          * @type {Boolean} 
          */
         this.guestAllowed = undefined;
 
         /** createWorlds 
+         * Worlds are created on demand
          * @type {Boolean} 
          */
         this.createWorlds = undefined;
 
         /** maxSessions 
+         * Maximum concurrent sessions per server, 0 for unlimited
          * @type {Number} 
          */
         this.maxSessions = undefined;
 
         /** sessionStartTimeout 
+         * Sessions over maxSessions will wait this many seconds to start, 0 for  unlimited
          * @type {Number} 
          */
         this.sessionStartTimeout = undefined;
 
         /** sessionTimeout 
+         * HTTP session timeout.
          * @type {String} 
          */
         this.sessionTimeout = undefined;
 
         /** webSocketClientPath 
+         * WebSocket that clients use to connect
          * @type {String} 
          */
         this.webSocketClientPath = undefined;
 
         /** webSocketServerPath 
+         * WebSocket that other servers use to connect
          * @type {String} 
          */
         this.webSocketServerPath = undefined;

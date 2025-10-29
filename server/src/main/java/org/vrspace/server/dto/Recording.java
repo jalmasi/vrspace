@@ -1,8 +1,11 @@
 package org.vrspace.server.dto;
 
+import java.util.Collection;
+
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.EventRecorder;
+import org.vrspace.server.obj.PersistentEvent;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -59,7 +62,7 @@ public class Recording implements Command {
       client.getScene().dirty();
       client.getScene().update();
     } else if ("save".equals(this.action)) {
-      return new ClientResponse(recorder.getEvents());
+      return new ClientResponse(new RecordingData(recorder.getEvents(), recorder.getLength()));
     } else {
       throw new IllegalArgumentException("Invalid action: " + action);
     }
@@ -82,6 +85,14 @@ public class Recording implements Command {
       log.debug("Found recorder " + recorder);
     }
     return recorder;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class RecordingData {
+    private Collection<PersistentEvent> events;
+    private long length;
   }
 
 }
