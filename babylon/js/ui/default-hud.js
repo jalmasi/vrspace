@@ -579,6 +579,7 @@ export class DefaultHud {
       this.helpMobileButton = this.hud.addButton("Mobile", this.contentBase + "/content/icons/device-mobile.png", () => this.helpImage("help-mobile.jpg"));
       this.helpGamepadButton = this.hud.addButton("Gamepad", this.contentBase + "/content/icons/gamepad.png", () => this.helpImage("help-gamepad.jpg"));
       this.helpGamepadButton = this.hud.addButton("VR", this.contentBase + "/content/icons/device-goggles.png", () => this.helpImage("help-vr.jpg"));
+      this.helpGamepadButton = this.hud.addButton("VR hands", this.contentBase + "/content/icons/hand.png", () => this.helpImage("help-hands.jpg"));
     } else {
       if (this.helpImageArea) {
         this.helpImageArea.dispose();
