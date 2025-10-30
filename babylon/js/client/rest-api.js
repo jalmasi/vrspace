@@ -1,5 +1,6 @@
 import { ApiClient } from './openapi/ApiClient.js';
 import { GroupsApi } from './openapi/api/GroupsApi.js';
+import { RecorderApi } from './openapi/api/RecorderApi.js';
 import { UsersApi } from './openapi/api/UsersApi.js';
 import { WorldsApi } from './openapi/api/WorldsApi.js';
 import { WorldObjectsApi } from './openapi/api/WorldObjectsApi.js';
@@ -42,7 +43,9 @@ export class VRSpaceAPI {
       /** @type {WorldsApi} */
       worlds: new WorldsApi(this.apiClient),
       /** @type {WorldObjectsApi} */
-      objects: new WorldObjectsApi(this.apiClient)
+      objects: new WorldObjectsApi(this.apiClient),
+      /** @type {RecorderApi} */
+      recorder: new RecorderApi(this.apiClient)
     }
     // does not work with node, must be imported from html:
     //ScriptLoader.getInstance(apiBase).loadScriptsToDocument(apiBase + '/babylon/js/client/openapi/superagent.js');
