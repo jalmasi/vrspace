@@ -1,4 +1,4 @@
-import { World, SharedScreencast, Skybox } from '../../../babylon/js/vrspace-min.js';
+import { VRSPACEUI, World, SharedScreencast, Skybox } from '../../../babylon/js/vrspace-min.js';
 
 export class Classroom extends World {
   constructor() {
@@ -42,7 +42,7 @@ export class Classroom extends World {
     return light1;
   }
   async createSkyBox() {
-    return new Skybox(this.scene, "https://www.babylonjs.com/assets/skybox/TropicalSunnyDay").create();
+    return new Skybox(this.scene, VRSPACEUI.contentBase+"/content/skybox/babylon/TropicalSunnyDay").create();
   }
   
   createGround() {

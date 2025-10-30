@@ -162,7 +162,8 @@ export class AvatarLoader extends AvatarSelection {
     particleSystem.colorDead = new BABYLON.Color4(particleSystem.color2.r/10,particleSystem.color2.g/10,particleSystem.color2.b/10,0);
     particleSystem.emitRate = 10;
     particleSystem.particleEmitterType = new BABYLON.SphereParticleEmitter(0.5);
-    particleSystem.particleTexture = new BABYLON.Texture("https://www.babylonjs-playground.com//textures/flare.png", scene); // FIXME: cdn
+    particleSystem.particleTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/textures/flare.png", scene);
+    
     particleSystem.gravity = new BABYLON.Vector3(0, 2, 0);
     particleSystem.minLifeTime = 0.5;
     particleSystem.maxLifeTime = 3;

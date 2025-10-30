@@ -18,7 +18,7 @@ export class Kidville extends World {
   }
   
   async createSkyBox() {
-    return new Skybox(this.scene, "https://www.babylonjs.com/assets/skybox/TropicalSunnyDay").create();
+    return new Skybox(this.scene, VRSPACEUI.contentBase+"/content/skybox/babylon/TropicalSunnyDay").create();
   }
   
   getFloorMeshes() {

@@ -1,4 +1,4 @@
-import { World, Skybox } from '../../../babylon/js/vrspace-min.js';
+import { VRSPACEUI, World, Skybox } from '../../../babylon/js/vrspace-min.js';
 
 export class ServerWorld extends World {
 
@@ -17,7 +17,7 @@ export class ServerWorld extends World {
     let k = this.arms*1.2;
 
     this.particleSystem.emitRate = 1000000;
-    this.particleSystem.particleTexture = new BABYLON.Texture("https://www.babylonjs-playground.com/textures/flare.png", this.scene);
+    this.particleSystem.particleTexture = new BABYLON.Texture(VRSPACEUI.contentBase+"/content/textures/flare.png", this.scene);
 
     this.particleSystem.minSize = .5;
     this.particleSystem.maxSize = 2;
