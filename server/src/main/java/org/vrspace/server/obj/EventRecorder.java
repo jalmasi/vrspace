@@ -60,6 +60,9 @@ public class EventRecorder extends User {
   @Transient
   @JsonIgnore
   ScheduledExecutorService restart;
+  @Transient
+  @JsonIgnore
+  transient private boolean deserialized = false;
 
   public EventRecorder() {
     super();
@@ -177,17 +180,12 @@ public class EventRecorder extends User {
   }
 
   private void playEvent(PersistentEvent event) {
-    try {
-      // neo4j can't store VREvent.changes Map<String,Object>, so we need to recreate
-      // it from stored String payload
-      if (event.getChanges() == null) {
-        VREvent changed = getMapper().readValue(event.getPayload(), VREvent.class);
-        event.setChanges(changed.getChanges());
-      }
-      this.notifyListeners(event.getEvent());
-    } catch (Exception e) {
-      log.error(this.getName() + " Can't play event " + event, e);
+    // neo4j can't store VREvent.changes Map<String,Object>, so we need to recreate
+    // it from stored String payload
+    if (event.getChanges() == null || event.getChanges().isEmpty()) {
+      deserialize(event);
     }
+    this.notifyListeners(event.getEvent());
   }
 
   /**
@@ -235,8 +233,13 @@ public class EventRecorder extends User {
     }
   }
 
-  /**
-   * public Collection<PersistentEvent> getEvents() { return events; }
-   */
-
+  public void deserialize(PersistentEvent event) {
+    try {
+      String value = "{\"changes\":" + event.getPayload() + "}";
+      VREvent changed = getMapper().readValue(value, VREvent.class);
+      event.setChanges(changed.getChanges());
+    } catch (Exception e) {
+      log.error(this.getName() + " Can't deserialize event " + event, e);
+    }
+  }
 }

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
@@ -27,6 +28,7 @@ import lombok.ToString;
 @Data
 @Node
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@NoArgsConstructor
 @ToString(callSuper = false)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PersistentEvent extends Entity {
@@ -38,13 +40,10 @@ public class PersistentEvent extends Entity {
   @Transient
   private transient Map<String, Object> changes;
   @JsonIgnore
-  // so we store it converted to JSON string:
+  // so we store changes converted to JSON string:
   private String payload;
   private List<VRObject> add;
   private List<Map<String, String>> remove;
-
-  public PersistentEvent() {
-  }
 
   private PersistentEvent(long delay, String type) {
     this.delay = delay;
