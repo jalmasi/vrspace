@@ -1,4 +1,4 @@
-import { World, RecorderUI, Skybox } from '../../../babylon/js/vrspace-min.js';
+import { World, RecorderUI, Skybox, DefaultHud } from '../../../babylon/js/vrspace-min.js';
 
 export class WorldTemplate extends World {
   // OPTIONAL:
@@ -64,6 +64,16 @@ export class WorldTemplate extends World {
     super.createPhysics();
   }
   
+  // OPTIONAL:
+  // create your user interface
+  async createUI() {
+    // e.g. if there's no default UI present, we create our own
+    if ( !DefaultHud.instance ) {
+      this.recorderUI = new RecorderUI(this.scene, "Recorder:"+Math.floor(Math.random() * 100));
+      this.recorderUI.show()
+    }
+  }
+
   // OPTIONAL, RECOMMENDED:  
   // executed once the world is loaded
   loaded(file, mesh) {
@@ -80,13 +90,17 @@ export class WorldTemplate extends World {
     // at this point this.worldManager is available
     console.log("CONNECTED as "+welcome.client.id, this.worldManager.VRSPACE.me);
     
-    // OPTIONAL development helpers
-    // event recorder records your events and plays them back
-    var recorder = new RecorderUI(this.scene, "Recorder:"+Math.floor(Math.random() * 100));
-    recorder.showUI()
-    
     // OPTIONAL default actions, like chatlog
     super.entered( welcome );
+    // ... or manipulating the UI
+    /*
+    if (DefaultHud.instance) {
+      setTimeout(()=>{
+        DefaultHud.instance.tools();
+        DefaultHud.instance.recording();
+      },200);
+    }
+    */
   }
 
 }

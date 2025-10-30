@@ -25,6 +25,8 @@ import { HumanoidAvatar } from '../avatar/humanoid-avatar.js';
 import { VideoAvatar } from '../avatar/video-avatar.js';
 import { MediaHelper } from '../core/media-helper.js';
 import { WorldEditorUI } from '../ui/world/worldeditor-ui.js';
+import { RecorderUI } from '../ui/world/recorder-ui.js';
+
 /**
  * Adds default holographic buttons to the HUD.
  */
@@ -55,6 +57,7 @@ export class DefaultHud {
     this.whiteboard = null;
     this.creditArea = null;
     this.worldEditorUI = null;
+    this.recorderUI = null;
     this.miniMap = null;
     this.chatUI = null;
     this.groupEventCount = 0;
@@ -158,18 +161,24 @@ export class DefaultHud {
         this.hud.markActive(this.minimapButton, true);
       }
 
-      this.editButton = this.hud.addButton("World editor", this.contentBase + "/content/icons/world-edit.png", () => this.editWorld(), false);
-      this.editButton.tooltipText = "Edit the world";
-      if (!this.isOnline()) {
-        this.hud.markDisabled(this.editButton, true);
-      }
-
       this.compassButton = this.hud.addButton("Positions", this.contentBase + "/content/icons/location-indicator.png", () => this.compass(), false);
       this.compassButton.tooltipText = "Show positions";
       if (!UserDirectionMonitor.isEnabled()) {
         this.hud.markDisabled(this.compassButton, true);
       } else if (UserDirectionMonitor.instance) {
         this.hud.markActive(this.compassButton, true);
+      }
+
+      this.recordButton = this.hud.addButton("Recorder", this.contentBase + "/content/icons/recording.png", () => this.recording(), false);
+      this.recordButton.tooltipText = "Record yourself";
+      if (!this.isOnline()) {
+        this.hud.markDisabled(this.recordButton, true);
+      }
+
+      this.editButton = this.hud.addButton("World editor", this.contentBase + "/content/icons/world-edit.png", () => this.editWorld(), false);
+      this.editButton.tooltipText = "Edit the world";
+      if (!this.isOnline()) {
+        this.hud.markDisabled(this.editButton, true);
       }
 
       this.saveButton = this.hud.addButton("Save", this.contentBase + "/content/icons/save.png", () => this.save(), false);
@@ -213,6 +222,16 @@ export class DefaultHud {
     } else {
       this.worldEditorUI = new WorldEditorUI(this.scene);
       this.worldEditorUI.show(this.editButton);
+    }
+  }
+
+  recording() {
+    if (this.recorderUI) {
+      this.recorderUI.hide();
+      this.recorderUI = null;
+    } else {
+      this.recorderUI = new RecorderUI(this.scene, "Recorder:"+Math.floor(Math.random() * 100));
+      this.recorderUI.show(this.recordButton);
     }
   }
 

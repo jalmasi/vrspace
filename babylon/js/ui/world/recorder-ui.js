@@ -19,8 +19,16 @@ export class RecorderUI {
     this.recorder = null;
     this.contentBase = VRSPACEUI.contentBase;
   }
-  /** Shows the UI */
-  showUI() {
+  /** 
+   * Shows the UI
+   * @param {*} button option HUD button that activates this submenu  
+   */
+  show(button) {
+    if (button) {
+      VRSPACEUI.hud.showButtons(false, button);
+      VRSPACEUI.hud.newRow();
+    }
+    
     this.recordButton = VRSPACEUI.hud.addButton("REC", this.contentBase + "/content/icons/dot.png", () => this.record(), false);
     VRSPACEUI.hud.markEnabled(this.recordButton);
 
@@ -116,5 +124,10 @@ export class RecorderUI {
     }, false);
     input.addEventListener("cancel", () => document.body.removeChild(input), false);
     input.click();
+  }
+  /** Clear current hud row and display all buttons */
+  hide() {
+    VRSPACEUI.hud.clearRow();
+    VRSPACEUI.hud.showButtons(true);
   }
 }
