@@ -19,7 +19,7 @@
             "type": "image/png"
         }
     ],
-    "start_url": "babylon/avatar-selection-fullscreen.html?fullscreen=true",
+    "start_url": "babylon/avatar-selection.html",
     "display": "fullscreen",
     "theme_color": "#5656f6",
     "background_color": "#000000"

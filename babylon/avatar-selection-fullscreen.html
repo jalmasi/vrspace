@@ -21,39 +21,21 @@
     }
     </style>
 
-    <!-- 
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
-    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/BabylonJS/Extensions@master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"></script>
-
-    <script src="https://cdn.babylonjs.com/v5.57.1/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/v5.57.1/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v5.57.1/gui/babylon.gui.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v5.57.1/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v5.57.1/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/BabylonJS/Extensions@master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"></script>
-    
-    <script src="https://cdn.babylonjs.com/v4.2.1/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/v4.2.1/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v4.2.1/gui/babylon.gui.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v4.2.1/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/v4.2.1/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/BabylonJS/Extensions@master/DynamicTerrain/dist/babylon.dynamicTerrain.min.js"></script>
-     -->
-
     <script src="./js/lib/babylon.js"></script>
     <script src="./js/lib/babylonjs.loaders.min.js"></script>
     <script src="./js/lib/babylon.gui.min.js"></script>
     <script src="./js/lib/babylonjs.materials.min.js"></script>
     <script src="./js/lib/babylonjs.proceduralTextures.min.js"></script>
     <script src="./js/lib/babylon.dynamicTerrain.min.js"></script>
+    <script src="./js/lib/babylonjs.serializers.min.js"></script>
+    <script src="./js/lib/HavokPhysics_umd.js"></script>
 
     <script src="./js/vrspace-min.js" type="module"></script>
     <script src="./js/lib/annyang-2.6.1.min.js"></script>
     <script src="./js/lib/perlin.js"></script>
+    <script src="./js/lib/openvidu-browser-2.30.0.min.js"></script>
+    <script src="./js/client/openapi/superagent.min.js"></script>
+
     </head>
   <body>
 
@@ -85,7 +67,8 @@ var scene;
 
 import("./avatar-selection.js").then( (module) =>{
   
-  var world = module.WORLD;
+  //VRSPACEUI.contentBase="https://www.vrspace.org/";
+  var world = new module.AvatarSelection();
 
   world.init(engine, 'avatar').then((s) => {
     scene = s;
@@ -100,6 +83,11 @@ import("./avatar-selection.js").then( (module) =>{
       //setTimeout(() => document.location.reload(), 5000);
     }
   });
+
+  // drag and drop to chat
+  document.getElementById('renderCanvas').ondragover = (e) => {
+    return false;
+  }
 
   // drag and drop to chat
   document.getElementById('renderCanvas').ondragover = (e) => {
