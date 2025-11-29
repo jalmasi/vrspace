@@ -867,7 +867,6 @@ export class VRHelper {
         // in that case controller grip base mesh disappears, HUD loses parent
         xrHandFeature.onHandRemovedObservable.add((hand) => {
           let side = this.getGripSide(hand.xrController.grip);
-          this.notifyHud(hand.xrController);
           this.hands[side].hand = null;
           this.hands[side].thumb = null;
           this.hands[side].index = null;
