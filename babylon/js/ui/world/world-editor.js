@@ -978,7 +978,6 @@ export class WorldEditor extends WorldListener {
         }
         return false;
       } else if (value == 0) {
-        this.displayButtons(true);
         if (bothOff) {
           this.dropObject();
           this.displayButtons(true);
