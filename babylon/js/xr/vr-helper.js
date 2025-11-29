@@ -964,9 +964,11 @@ export class VRHelper {
   disableMovement() {
     const ret = this.movementMode;
     this.movementMode = "NONE";
-    const featureManager = this.vrHelper.baseExperience.featuresManager;
-    featureManager.disableFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
-    featureManager.disableFeature(BABYLON.WebXRFeatureName.MOVEMENT);
+    if (this.world && this.world.hasXR) {
+      const featureManager = this.vrHelper.baseExperience.featuresManager;
+      featureManager.disableFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
+      featureManager.disableFeature(BABYLON.WebXRFeatureName.MOVEMENT);
+    }
     return ret;
   }
 
