@@ -31,12 +31,12 @@
     "webpack-node-externals": "^2.5.2"
   },
   "dependencies": {
-    "babylonjs": "^6.0.0",
-    "babylonjs-gui": "^6.0.0",
-    "babylonjs-loaders": "^6.0.0",
-    "babylonjs-materials": "^6.0.0",
-    "babylonjs-post-process": "^6.0.0",
-    "babylonjs-procedural-textures": "^6.0.0",
-    "babylonjs-inspector": "^6.0.0"
+    "babylonjs": "^7.0.0",
+    "babylonjs-gui": "^7.0.0",
+    "babylonjs-loaders": "^7.0.0",
+    "babylonjs-materials": "^7.0.0",
+    "babylonjs-post-process": "^7.0.0",
+    "babylonjs-procedural-textures": "^7.0.0",
+    "babylonjs-inspector": "^7.0.0"
   }
 }
