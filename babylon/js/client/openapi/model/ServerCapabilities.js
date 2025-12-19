@@ -27,31 +27,26 @@ export class ServerCapabilities {
         
         
         /** oauth2 
-         * Oauth2 authentication is supported, and the endpoint is available
          * @type {Boolean} 
          */
         this.oauth2 = undefined;
 
         /** remoteBrowser 
-         * Remote browsing with selenium is supported, and the endpoint is available
          * @type {Boolean} 
          */
         this.remoteBrowser = undefined;
 
         /** streamingMedia 
-         * The server supports video/audio streaming
          * @type {Boolean} 
          */
         this.streamingMedia = undefined;
 
         /** sketchfab 
-         * Download of 3d content from sketchfab is allowed
          * @type {Boolean} 
          */
         this.sketchfab = undefined;
 
         /** webPush 
-         * Web Push messages for groups and world invitations are configured
          * @type {Boolean} 
          */
         this.webPush = undefined;

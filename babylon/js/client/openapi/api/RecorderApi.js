@@ -13,8 +13,8 @@
 
 
 import {ApiClient} from "../ApiClient.js";
-import { Recording } from '../model/Recording.js';
 import { RecordingData } from '../model/RecordingData.js';
+import { RecordingStateParameter } from '../model/RecordingStateParameter.js';
 
 /**
 * Recorder service.
@@ -93,7 +93,7 @@ export class RecorderApi {
     /**
      * Do something with a recording: record, stop, play, delete
      * Do something with a recording: record, stop, play, delete
-     * @param {Recording} state Identifies recorder and action to perform.
+     * @param {RecordingStateParameter} state Identifies recorder and action to perform.
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     recordingWithHttpInfo(state) {
@@ -127,7 +127,7 @@ export class RecorderApi {
     /**
      * Do something with a recording: record, stop, play, delete
      * Do something with a recording: record, stop, play, delete
-     * @param {Recording} state Identifies recorder and action to perform.
+     * @param {RecordingStateParameter} state Identifies recorder and action to perform.
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     recording(state) {

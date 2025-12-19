@@ -24,7 +24,6 @@ import { Rotation } from './Rotation.js';
 export class VRObject {
     /**
      * Constructs a new <code>VRObject</code>.
-     * Basic VR Object encapsulates minimal spatial and other properties.
      * @alias VRObject
      */
     constructor() { 
@@ -51,25 +50,21 @@ export class VRObject {
         this.scale = undefined;
 
         /** permanent 
-         * Permanent objects are always present (e.g. sky)
          * @type {Boolean} 
          */
         this.permanent = undefined;
 
         /** active 
-         * Whether an object is active (can send events). E.g. online users, robots.
          * @type {Boolean} 
          */
         this.active = undefined;
 
         /** mesh 
-         * URL of the file containing the mesh.
          * @type {String} 
          */
         this.mesh = undefined;
 
         /** script 
-         * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
          * @type {String} 
          */
         this.script = undefined;
@@ -79,17 +74,15 @@ export class VRObject {
          */
         this.animation = undefined;
 
-        /** properties 
-         * Custom transient object properties
-         * @type {Object.<String, Object>} 
-         */
-        this.properties = undefined;
-
         /** temporary 
-         * Temporary objects will be deleted from the database along with their owner
          * @type {Boolean} 
          */
         this.temporary = undefined;
+
+        /** properties 
+         * @type {Object.<String, Object>} 
+         */
+        this.properties = undefined;
         
         
         
@@ -143,11 +136,11 @@ export class VRObject {
             if (data.hasOwnProperty('animation')) {
                 obj['animation'] = Animation.constructFromObject(data['animation']);
             }
-            if (data.hasOwnProperty('properties')) {
-                obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
-            }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
+            }
+            if (data.hasOwnProperty('properties')) {
+                obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
             }
         }
         return obj;

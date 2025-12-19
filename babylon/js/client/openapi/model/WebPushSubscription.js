@@ -25,6 +25,30 @@ export class WebPushSubscription {
      */
     constructor() { 
         
+        
+        /** id 
+         * @type {String} 
+         */
+        this.id = undefined;
+
+        /** endpoint 
+         * @type {String} 
+         */
+        this.endpoint = undefined;
+
+        /** key 
+         * @type {String} 
+         */
+        this.key = undefined;
+
+        /** auth 
+         * @type {String} 
+         */
+        this.auth = undefined;
+        
+        
+        
+        
         WebPushSubscription.initialize(this);
     }
 
@@ -48,7 +72,7 @@ export class WebPushSubscription {
             obj = obj || new WebPushSubscription();
 
             if (data.hasOwnProperty('id')) {
-                obj['id'] = ApiClient.convertToType(data['id'], 'Number');
+                obj['id'] = ApiClient.convertToType(data['id'], 'String');
             }
             if (data.hasOwnProperty('endpoint')) {
                 obj['endpoint'] = ApiClient.convertToType(data['endpoint'], 'String');
@@ -70,6 +94,10 @@ export class WebPushSubscription {
      */
     static validateJSON(data) {
         // ensure the json data is a string
+        if (data['id'] && !(typeof data['id'] === 'string' || data['id'] instanceof String)) {
+            throw new Error("Expected the field `id` to be a primitive type in the JSON string but got " + data['id']);
+        }
+        // ensure the json data is a string
         if (data['endpoint'] && !(typeof data['endpoint'] === 'string' || data['endpoint'] instanceof String)) {
             throw new Error("Expected the field `endpoint` to be a primitive type in the JSON string but got " + data['endpoint']);
         }
@@ -87,29 +115,6 @@ export class WebPushSubscription {
 
 
 }
-
-
-
-/**
- * @member {Number} id
- */
-WebPushSubscription.prototype['id'] = undefined;
-
-/**
- * @member {String} endpoint
- */
-WebPushSubscription.prototype['endpoint'] = undefined;
-
-/**
- * @member {String} key
- */
-WebPushSubscription.prototype['key'] = undefined;
-
-/**
- * @member {String} auth
- */
-WebPushSubscription.prototype['auth'] = undefined;
-
 
 
 

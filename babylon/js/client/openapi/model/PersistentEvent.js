@@ -22,7 +22,6 @@ import { VRObject } from './VRObject.js';
 export class PersistentEvent {
     /**
      * Constructs a new <code>PersistentEvent</code>.
-     * Persistent version of event that can be stored to the database.
      * @alias PersistentEvent
      */
     constructor() { 

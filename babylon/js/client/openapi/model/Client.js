@@ -26,7 +26,7 @@ import { VRObject } from './VRObject.js';
 export class Client {
     /**
      * Constructs a new <code>Client</code>.
-     * Basic client class, adds user-related properties and business logic to  VRObject.
+     * Basic client class, adds user-related properties and business logic to   VRObject.
      * @alias Client
      */
     constructor() { 
@@ -43,6 +43,7 @@ export class Client {
         this.children = undefined;
 
         /** position 
+         * Position in 3D space, used for spatial operations.
          * @type {Point} 
          */
         this.position = undefined;
@@ -76,12 +77,13 @@ export class Client {
         this.mesh = undefined;
 
         /** script 
-         * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
+         * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
          * @type {String} 
          */
         this.script = undefined;
 
         /** animation 
+         * Currently active animation
          * @type {Animation} 
          */
         this.animation = undefined;
@@ -98,11 +100,10 @@ export class Client {
          */
         this.picture = undefined;
 
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} 
+        /** sceneProperties 
+         * @type {SceneProperties} 
          */
-        this.tokens = undefined;
+        this.sceneProperties = undefined;
 
         /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
@@ -110,22 +111,23 @@ export class Client {
          */
         this.userHeight = undefined;
 
-        /** sceneProperties 
-         * @type {SceneProperties} 
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
          */
-        this.sceneProperties = undefined;
-
-        /** properties 
-         * Custom transient object properties
-         * @type {Object.<String, Object>} 
-         */
-        this.properties = undefined;
+        this.tokens = undefined;
 
         /** temporary 
          * Temporary objects will be deleted from the database along with their owner
          * @type {Boolean} 
          */
         this.temporary = undefined;
+
+        /** properties 
+         * Custom transient object properties
+         * @type {Object.<String, Object>} 
+         */
+        this.properties = undefined;
         
         
         
@@ -188,20 +190,20 @@ export class Client {
             if (data.hasOwnProperty('picture')) {
                 obj['picture'] = ApiClient.convertToType(data['picture'], 'String');
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            if (data.hasOwnProperty('sceneProperties')) {
+                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('sceneProperties')) {
-                obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
-            }
-            if (data.hasOwnProperty('properties')) {
-                obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
+            }
+            if (data.hasOwnProperty('properties')) {
+                obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
             }
         }
         return obj;

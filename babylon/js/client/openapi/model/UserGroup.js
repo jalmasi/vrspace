@@ -21,7 +21,6 @@ import {ApiClient} from '../ApiClient.js';
 export class UserGroup {
     /**
      * Constructs a new <code>UserGroup</code>.
-     * Group of users.
      * @alias UserGroup
      */
     constructor() { 
@@ -38,26 +37,24 @@ export class UserGroup {
         this.name = undefined;
 
         /** temporary 
-         * Temporary groups get deleted automatically
          * @type {Boolean} 
          */
         this.temporary = undefined;
 
         /** direct 
-         * Group intended for direct messaging
          * @type {Boolean} 
          */
         this.direct = undefined;
-
-        /** public 
-         * @type {Boolean} 
-         */
-        this.public = undefined;
 
         /** unread 
          * @type {Number} 
          */
         this.unread = undefined;
+
+        /** public 
+         * @type {Boolean} 
+         */
+        this.public = undefined;
         
         
         
@@ -96,11 +93,11 @@ export class UserGroup {
             if (data.hasOwnProperty('direct')) {
                 obj['direct'] = ApiClient.convertToType(data['direct'], 'Boolean');
             }
-            if (data.hasOwnProperty('public')) {
-                obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
-            }
             if (data.hasOwnProperty('unread')) {
                 obj['unread'] = ApiClient.convertToType(data['unread'], 'Number');
+            }
+            if (data.hasOwnProperty('public')) {
+                obj['public'] = ApiClient.convertToType(data['public'], 'Boolean');
             }
         }
         return obj;

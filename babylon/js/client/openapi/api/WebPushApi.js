@@ -36,8 +36,6 @@ export class WebPushApi {
 
 
     /**
-     * Returns public VAPID key required to create WebPush subscription.
-     * Returns public VAPID key required to create WebPush subscription.
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     getKeyWithHttpInfo() {
@@ -64,8 +62,6 @@ export class WebPushApi {
     }
 
     /**
-     * Returns public VAPID key required to create WebPush subscription.
-     * Returns public VAPID key required to create WebPush subscription.
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     getKey() {
@@ -77,9 +73,7 @@ export class WebPushApi {
 
 
     /**
-     * Subscribe to webpush: this notifies the server that the browser has created a  webpush subscription.
-     * Subscribe to webpush: this notifies the server that the browser has created a  webpush subscription. Requires authorization.
-     * @param {WebPushSubscription} webPushSubscription Subscription data.
+     * @param {WebPushSubscription} webPushSubscription 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     subscribeWithHttpInfo(webPushSubscription) {
@@ -110,9 +104,7 @@ export class WebPushApi {
     }
 
     /**
-     * Subscribe to webpush: this notifies the server that the browser has created a  webpush subscription.
-     * Subscribe to webpush: this notifies the server that the browser has created a  webpush subscription. Requires authorization.
-     * @param {WebPushSubscription} webPushSubscription Subscription data.
+     * @param {WebPushSubscription} webPushSubscription 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     subscribe(webPushSubscription) {
@@ -124,8 +116,6 @@ export class WebPushApi {
 
 
     /**
-     * Removes subscription information from the server, when browser unsubscribes.
-     * Removes subscription information from the server, when browser unsubscribes.  Requires authorization.
      * @param {WebPushSubscription} webPushSubscription 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -157,8 +147,6 @@ export class WebPushApi {
     }
 
     /**
-     * Removes subscription information from the server, when browser unsubscribes.
-     * Removes subscription information from the server, when browser unsubscribes.  Requires authorization.
      * @param {WebPushSubscription} webPushSubscription 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */

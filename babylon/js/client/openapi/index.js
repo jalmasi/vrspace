@@ -13,6 +13,7 @@
 
 
 import ApiClient from './ApiClient';
+import AddObjectRequest from './model/AddObjectRequest';
 import Animation from './model/Animation';
 import ArchiveNested from './model/ArchiveNested';
 import AttachRequest from './model/AttachRequest';
@@ -40,6 +41,7 @@ import Point from './model/Point';
 import Quaternion from './model/Quaternion';
 import Recording from './model/Recording';
 import RecordingData from './model/RecordingData';
+import RecordingStateParameter from './model/RecordingStateParameter';
 import Rotation from './model/Rotation';
 import SceneProperties from './model/SceneProperties';
 import ServerCapabilities from './model/ServerCapabilities';
@@ -50,18 +52,22 @@ import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
 import UserRelated from './model/UserRelated';
 import VRObject from './model/VRObject';
+import WebPushSubscription from './model/WebPushSubscription';
 import Welcome from './model/Welcome';
+import WelcomeWelcome from './model/WelcomeWelcome';
 import World from './model/World';
 import WorldStatus from './model/WorldStatus';
 import DataApi from './api/DataApi';
 import GroupsApi from './api/GroupsApi';
 import Oauth2LoginApi from './api/Oauth2LoginApi';
 import RecorderApi from './api/RecorderApi';
+import RemoteBrowserApi from './api/RemoteBrowserApi';
 import ServerInfoApi from './api/ServerInfoApi';
 import SharedContentApi from './api/SharedContentApi';
 import SketchfabApi from './api/SketchfabApi';
 import TexturesApi from './api/TexturesApi';
 import UsersApi from './api/UsersApi';
+import WebPushApi from './api/WebPushApi';
 import WorldObjectsApi from './api/WorldObjectsApi';
 import WorldsApi from './api/WorldsApi';
 
@@ -103,6 +109,12 @@ export {
      * @property {module:ApiClient}
      */
     ApiClient,
+
+    /**
+     * The AddObjectRequest model constructor.
+     * @property {AddObjectRequest}
+     */
+    AddObjectRequest,
 
     /**
      * The Animation model constructor.
@@ -267,6 +279,12 @@ export {
     RecordingData,
 
     /**
+     * The RecordingStateParameter model constructor.
+     * @property {RecordingStateParameter}
+     */
+    RecordingStateParameter,
+
+    /**
      * The Rotation model constructor.
      * @property {Rotation}
      */
@@ -327,10 +345,22 @@ export {
     VRObject,
 
     /**
+     * The WebPushSubscription model constructor.
+     * @property {WebPushSubscription}
+     */
+    WebPushSubscription,
+
+    /**
      * The Welcome model constructor.
      * @property {Welcome}
      */
     Welcome,
+
+    /**
+     * The WelcomeWelcome model constructor.
+     * @property {WelcomeWelcome}
+     */
+    WelcomeWelcome,
 
     /**
      * The World model constructor.
@@ -369,6 +399,12 @@ export {
     RecorderApi,
 
     /**
+    * The RemoteBrowserApi service constructor.
+    * @property {module:api/RemoteBrowserApi}
+    */
+    RemoteBrowserApi,
+
+    /**
     * The ServerInfoApi service constructor.
     * @property {module:api/ServerInfoApi}
     */
@@ -397,6 +433,12 @@ export {
     * @property {module:api/UsersApi}
     */
     UsersApi,
+
+    /**
+    * The WebPushApi service constructor.
+    * @property {module:api/WebPushApi}
+    */
+    WebPushApi,
 
     /**
     * The WorldObjectsApi service constructor.

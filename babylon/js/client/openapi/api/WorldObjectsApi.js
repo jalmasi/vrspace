@@ -13,7 +13,7 @@
 
 
 import {ApiClient} from "../ApiClient.js";
-import { VRObject } from '../model/VRObject.js';
+import { AddObjectRequest } from '../model/AddObjectRequest.js';
 
 /**
 * WorldObjects service.
@@ -37,15 +37,15 @@ export class WorldObjectsApi {
 
     /**
      * Add a shared object to the world, equivalent of websocket Add command.
-     * Add a shared object to the world, equivalent of websocket Add command. Once  created, the object is immediately published, i.e. pushed to all clients,  including the creator, through websockets. Unlike Add command, that can be  used to create world objects of any class, e.g. Terrain, this can only create  VRObject class instances.
-     * @param {VRObject} vRObject VRObject to create, must not have an id
-     * @return {Promise< VRObject >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link VRObject} and HTTP response
+     * Add a shared object to the world, equivalent of websocket Add command. Once   created, the object is immediately published, i.e. pushed to all clients,   including the creator, through websockets. Unlike Add command, that can be   used to create world objects of any class, e.g. Terrain, this can only create   VRObject class instances.
+     * @param {AddObjectRequest} addObjectRequest VRObject to create, must not have an id
+     * @return {Promise< AddObjectRequest >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link AddObjectRequest} and HTTP response
      */
-    addObjectWithHttpInfo(vRObject) {
-      let postBody = vRObject;
-      // verify the required parameter 'vRObject' is set
-      if (vRObject === undefined || vRObject === null) {
-        throw new Error("Missing the required parameter 'vRObject' when calling addObject");
+    addObjectWithHttpInfo(addObjectRequest) {
+      let postBody = addObjectRequest;
+      // verify the required parameter 'addObjectRequest' is set
+      if (addObjectRequest === undefined || addObjectRequest === null) {
+        throw new Error("Missing the required parameter 'addObjectRequest' when calling addObject");
       }
 
       let pathParams = {
@@ -60,7 +60,7 @@ export class WorldObjectsApi {
       let authNames = [];
       let contentTypes = ['application/json'];
       let accepts = ['*/*'];
-      let returnType = VRObject;
+      let returnType = AddObjectRequest;
       return this.apiClient.callApi(
         '/vrspace/api/world/add', 'PUT',
         pathParams, queryParams, headerParams, formParams, postBody,
@@ -70,12 +70,12 @@ export class WorldObjectsApi {
 
     /**
      * Add a shared object to the world, equivalent of websocket Add command.
-     * Add a shared object to the world, equivalent of websocket Add command. Once  created, the object is immediately published, i.e. pushed to all clients,  including the creator, through websockets. Unlike Add command, that can be  used to create world objects of any class, e.g. Terrain, this can only create  VRObject class instances.
-     * @param {VRObject} vRObject VRObject to create, must not have an id
-     * @return {Promise< VRObject >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link VRObject}
+     * Add a shared object to the world, equivalent of websocket Add command. Once   created, the object is immediately published, i.e. pushed to all clients,   including the creator, through websockets. Unlike Add command, that can be   used to create world objects of any class, e.g. Terrain, this can only create   VRObject class instances.
+     * @param {AddObjectRequest} addObjectRequest VRObject to create, must not have an id
+     * @return {Promise< AddObjectRequest >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link AddObjectRequest}
      */
-    addObject(vRObject) {
-      return this.addObjectWithHttpInfo(vRObject)
+    addObject(addObjectRequest) {
+      return this.addObjectWithHttpInfo(addObjectRequest)
         .then(function(response_and_data) {
           return response_and_data.data;
         });
@@ -84,15 +84,15 @@ export class WorldObjectsApi {
 
     /**
      * Change position, rotation and/or scale of an object.
-     * Change position, rotation and/or scale of an object. All other object  properties are ignored.
-     * @param {VRObject} vRObject 
+     * Change position, rotation and/or scale of an object. All other object   properties are ignored.
+     * @param {AddObjectRequest} addObjectRequest 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
-    objectCoordinatesWithHttpInfo(vRObject) {
-      let postBody = vRObject;
-      // verify the required parameter 'vRObject' is set
-      if (vRObject === undefined || vRObject === null) {
-        throw new Error("Missing the required parameter 'vRObject' when calling objectCoordinates");
+    objectCoordinatesWithHttpInfo(addObjectRequest) {
+      let postBody = addObjectRequest;
+      // verify the required parameter 'addObjectRequest' is set
+      if (addObjectRequest === undefined || addObjectRequest === null) {
+        throw new Error("Missing the required parameter 'addObjectRequest' when calling objectCoordinates");
       }
 
       let pathParams = {
@@ -117,12 +117,12 @@ export class WorldObjectsApi {
 
     /**
      * Change position, rotation and/or scale of an object.
-     * Change position, rotation and/or scale of an object. All other object  properties are ignored.
-     * @param {VRObject} vRObject 
+     * Change position, rotation and/or scale of an object. All other object   properties are ignored.
+     * @param {AddObjectRequest} addObjectRequest 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
-    objectCoordinates(vRObject) {
-      return this.objectCoordinatesWithHttpInfo(vRObject)
+    objectCoordinates(addObjectRequest) {
+      return this.objectCoordinatesWithHttpInfo(addObjectRequest)
         .then(function(response_and_data) {
           return response_and_data.data;
         });

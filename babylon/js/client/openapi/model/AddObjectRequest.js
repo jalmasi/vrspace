@@ -12,39 +12,30 @@
  */
 
 import {ApiClient} from '../ApiClient.js';
+import { VRObject } from './VRObject.js';
 
 /**
- * The Point model module.
- * @module model/Point
+ * The AddObjectRequest model module.
+ * @module model/AddObjectRequest
  * @version v0
  */
-export class Point {
+export class AddObjectRequest {
     /**
-     * Constructs a new <code>Point</code>.
-     * @alias Point
+     * Constructs a new <code>AddObjectRequest</code>.
+     * @alias AddObjectRequest
      */
     constructor() { 
         
         
-        /** x 
-         * @type {Number} 
+        /** VRObject 
+         * @type {VRObject} 
          */
-        this.x = undefined;
-
-        /** y 
-         * @type {Number} 
-         */
-        this.y = undefined;
-
-        /** z 
-         * @type {Number} 
-         */
-        this.z = undefined;
+        this.VRObject = undefined;
         
         
         
         
-        Point.initialize(this);
+        AddObjectRequest.initialize(this);
     }
 
     /**
@@ -56,35 +47,33 @@ export class Point {
     }
 
     /**
-     * Constructs a <code>Point</code> from a plain JavaScript object, optionally creating a new instance.
+     * Constructs a <code>AddObjectRequest</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {Point} obj Optional instance to populate.
-     * @return {Point} The populated <code>Point</code> instance.
+     * @param {AddObjectRequest} obj Optional instance to populate.
+     * @return {AddObjectRequest} The populated <code>AddObjectRequest</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {
-            obj = obj || new Point();
+            obj = obj || new AddObjectRequest();
 
-            if (data.hasOwnProperty('x')) {
-                obj['x'] = ApiClient.convertToType(data['x'], 'Number');
-            }
-            if (data.hasOwnProperty('y')) {
-                obj['y'] = ApiClient.convertToType(data['y'], 'Number');
-            }
-            if (data.hasOwnProperty('z')) {
-                obj['z'] = ApiClient.convertToType(data['z'], 'Number');
+            if (data.hasOwnProperty('VRObject')) {
+                obj['VRObject'] = VRObject.constructFromObject(data['VRObject']);
             }
         }
         return obj;
     }
 
     /**
-     * Validates the JSON data with respect to <code>Point</code>.
+     * Validates the JSON data with respect to <code>AddObjectRequest</code>.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>Point</code>.
+     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>AddObjectRequest</code>.
      */
     static validateJSON(data) {
+        // validate the optional field `VRObject`
+        if (data['VRObject']) { // data not null
+          VRObject.validateJSON(data['VRObject']);
+        }
 
         return true;
     }
@@ -96,5 +85,5 @@ export class Point {
 
 
 
-export default Point;
+export default AddObjectRequest;
 

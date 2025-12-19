@@ -12,30 +12,30 @@
  */
 
 import {ApiClient} from '../ApiClient.js';
-import { WelcomeWelcome } from './WelcomeWelcome.js';
+import { Recording } from './Recording.js';
 
 /**
- * The Welcome model module.
- * @module model/Welcome
+ * The RecordingStateParameter model module.
+ * @module model/RecordingStateParameter
  * @version v0
  */
-export class Welcome {
+export class RecordingStateParameter {
     /**
-     * Constructs a new <code>Welcome</code>.
-     * @alias Welcome
+     * Constructs a new <code>RecordingStateParameter</code>.
+     * @alias RecordingStateParameter
      */
     constructor() { 
         
         
-        /** Welcome 
-         * @type {WelcomeWelcome} 
+        /** Recording 
+         * @type {Recording} 
          */
-        this.Welcome = undefined;
+        this.Recording = undefined;
         
         
         
         
-        Welcome.initialize(this);
+        RecordingStateParameter.initialize(this);
     }
 
     /**
@@ -47,32 +47,32 @@ export class Welcome {
     }
 
     /**
-     * Constructs a <code>Welcome</code> from a plain JavaScript object, optionally creating a new instance.
+     * Constructs a <code>RecordingStateParameter</code> from a plain JavaScript object, optionally creating a new instance.
      * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {Welcome} obj Optional instance to populate.
-     * @return {Welcome} The populated <code>Welcome</code> instance.
+     * @param {RecordingStateParameter} obj Optional instance to populate.
+     * @return {RecordingStateParameter} The populated <code>RecordingStateParameter</code> instance.
      */
     static constructFromObject(data, obj) {
         if (data) {
-            obj = obj || new Welcome();
+            obj = obj || new RecordingStateParameter();
 
-            if (data.hasOwnProperty('Welcome')) {
-                obj['Welcome'] = WelcomeWelcome.constructFromObject(data['Welcome']);
+            if (data.hasOwnProperty('Recording')) {
+                obj['Recording'] = Recording.constructFromObject(data['Recording']);
             }
         }
         return obj;
     }
 
     /**
-     * Validates the JSON data with respect to <code>Welcome</code>.
+     * Validates the JSON data with respect to <code>RecordingStateParameter</code>.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>Welcome</code>.
+     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>RecordingStateParameter</code>.
      */
     static validateJSON(data) {
-        // validate the optional field `Welcome`
-        if (data['Welcome']) { // data not null
-          WelcomeWelcome.validateJSON(data['Welcome']);
+        // validate the optional field `Recording`
+        if (data['Recording']) { // data not null
+          Recording.validateJSON(data['Recording']);
         }
 
         return true;
@@ -85,5 +85,5 @@ export class Welcome {
 
 
 
-export default Welcome;
+export default RecordingStateParameter;
 
