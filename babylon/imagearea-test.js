@@ -107,7 +107,7 @@ export class ImageAreaWorld extends World {
 
   connect() {
     new WorldManager(this);
-    this.worldManager.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
+    this.worldManager.enterWith('https://www.vrspace.org/babylon/dolphin.glb'); 
   }
 
 }
