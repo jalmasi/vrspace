@@ -126,11 +126,11 @@ import('./js/vrspace-min.js').then( (ui) => {
       // create a VRObject with custom properties
       if ( ! obj1 ) {
         net.VRSPACE.createSharedObject({
-          mesh:'//www.vrspace.org/babylon/dolphin.glb',
+          mesh:'https://www.vrspace.org/babylon/dolphin.glb',
           position:{x:touch1.position.x, y:touch1.position.y, z:touch1.position.z},
           properties:{ stringProperty:'whatever', numberProperty:123.45},
           active:true
-        }, (obj)=>{
+        }).then( (obj)=>{
           console.log("Created new VRObject", obj);
           // obj1 = obj; // see addSceneListener below
         });
@@ -150,7 +150,7 @@ import('./js/vrspace-min.js').then( (ui) => {
         o.active = true; // i.e. online client, offline clients are filtered out
         o.name = 'My test client '+Date.now(); // must be unique
         o.position = {x:touch2.position.x, y:touch2.position.y, z:touch2.position.z};
-        net.VRSPACE.createSharedObject(o, (obj)=>{
+        net.VRSPACE.createSharedObject(o).then( (obj)=>{
           console.log("Shared object", obj);
           // no custom event handling, no shared touching
           obj2 = obj;
