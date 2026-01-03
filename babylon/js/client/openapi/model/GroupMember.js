@@ -23,6 +23,7 @@ import { UserGroup } from './UserGroup.js';
 export class GroupMember {
     /**
      * Constructs a new <code>GroupMember</code>.
+     * Represents a membership of a user in a group
      * @alias GroupMember
      */
     constructor() { 
@@ -44,21 +45,25 @@ export class GroupMember {
         this.client = undefined;
 
         /** pendingInvite 
+         * Pending invitation, if any
          * @type {String} 
          */
         this.pendingInvite = undefined;
 
         /** pendingRequest 
+         * Pending request to join, if any
          * @type {String} 
          */
         this.pendingRequest = undefined;
 
         /** sponsor 
+         * The client that invited/approved (sponsored) the member; may be null, or   maybe point to non-existing client. Thus, valid only short term.
          * @type {Client} 
          */
         this.sponsor = undefined;
 
         /** lastUpdate 
+         * Time stamp of last membership update, be it invite, request, or joining the   group
          * @type {Date} 
          */
         this.lastUpdate = undefined;

@@ -101,56 +101,63 @@ export class User {
         this.picture = undefined;
 
         /** humanoid 
+         * Does this client have humanoid avatar, default true
          * @type {Boolean} 
          */
         this.humanoid = undefined;
 
         /** video 
+         * Does this client have video avatar, default false
          * @type {Boolean} 
          */
         this.video = undefined;
 
         /** oauth2provider 
+         * Oauth2 provider ID, transient private property visible only to this user.
          * @type {String} 
          */
         this.oauth2provider = undefined;
 
         /** leftArmPos 
+         * Left arm position, used in VR. Transient biometric data.
          * @type {Point} 
          */
         this.leftArmPos = undefined;
 
-        /** rightArmRot 
+        /** leftArmRot 
+         * Left arm rotation, used in VR. Transient biometric data.
          * @type {Quaternion} 
          */
-        this.rightArmRot = undefined;
+        this.leftArmRot = undefined;
 
         /** rightArmPos 
+         * Right arm position, used in VR. Transient biometric data.
          * @type {Point} 
          */
         this.rightArmPos = undefined;
 
-        /** leftArmRot 
+        /** rightArmRot 
+         * Right arm rotation, used in VR. Transient biometric data.
          * @type {Quaternion} 
          */
-        this.leftArmRot = undefined;
+        this.rightArmRot = undefined;
 
         /** sceneProperties 
          * @type {SceneProperties} 
          */
         this.sceneProperties = undefined;
 
-        /** userHeight 
-         * User's height in real life, used in VR. Transient biometric data.
-         * @type {Number} 
-         */
-        this.userHeight = undefined;
-
         /** tokens 
          * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
          * @type {Object.<String, String>} 
          */
         this.tokens = undefined;
+
+        /** userHeight 
+         * User's height in real life, used in VR. Transient biometric data.
+         * @type {Number} 
+         */
+        this.userHeight = undefined;
 
         /** temporary 
          * Temporary objects will be deleted from the database along with their owner
@@ -237,23 +244,23 @@ export class User {
             if (data.hasOwnProperty('leftArmPos')) {
                 obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
             }
-            if (data.hasOwnProperty('rightArmRot')) {
-                obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
+            if (data.hasOwnProperty('leftArmRot')) {
+                obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
             }
             if (data.hasOwnProperty('rightArmPos')) {
                 obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
             }
-            if (data.hasOwnProperty('leftArmRot')) {
-                obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
+            if (data.hasOwnProperty('rightArmRot')) {
+                obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
             }
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('userHeight')) {
-                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
-            }
             if (data.hasOwnProperty('tokens')) {
                 obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
+            }
+            if (data.hasOwnProperty('userHeight')) {
+                obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
             if (data.hasOwnProperty('temporary')) {
                 obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
@@ -325,17 +332,17 @@ export class User {
         if (data['leftArmPos']) { // data not null
           Point.validateJSON(data['leftArmPos']);
         }
-        // validate the optional field `rightArmRot`
-        if (data['rightArmRot']) { // data not null
-          Quaternion.validateJSON(data['rightArmRot']);
+        // validate the optional field `leftArmRot`
+        if (data['leftArmRot']) { // data not null
+          Quaternion.validateJSON(data['leftArmRot']);
         }
         // validate the optional field `rightArmPos`
         if (data['rightArmPos']) { // data not null
           Point.validateJSON(data['rightArmPos']);
         }
-        // validate the optional field `leftArmRot`
-        if (data['leftArmRot']) { // data not null
-          Quaternion.validateJSON(data['leftArmRot']);
+        // validate the optional field `rightArmRot`
+        if (data['rightArmRot']) { // data not null
+          Quaternion.validateJSON(data['rightArmRot']);
         }
         // validate the optional field `sceneProperties`
         if (data['sceneProperties']) { // data not null

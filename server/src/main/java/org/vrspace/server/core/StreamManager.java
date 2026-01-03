@@ -1,7 +1,5 @@
 package org.vrspace.server.core;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Map;
@@ -109,21 +107,6 @@ public class StreamManager {
         token = session.createConnection(connectionProperties).getToken();
       } else {
         throw e;
-      }
-    }
-    // but the problems with token are when running behind reverse proxy
-    // token returned points to the docker port, DOMAIN_OR_PUBLIC_IP:HTTPS_PORT
-    if (token != null) {
-      try {
-        URI uri = new URI(openViduUrl);
-        String queryPart = token.substring(token.indexOf("?"));
-        String portPart = "";
-        if (uri.getPort() > 0) {
-          portPart = ":" + uri.getPort();
-        }
-        token = "wss://" + uri.getHost() + portPart + queryPart;
-      } catch (URISyntaxException e) {
-        log.error("Invalid OpenVidu URL: " + openViduUrl, e);
       }
     }
     return token;

@@ -39,6 +39,8 @@ public class ServerInfo extends ApiBase {
   private String serverPath;
   @Value("${server.servlet.session.timeout:default}")
   private String sessionTimeout;
+  @Value("#{systemProperties['openvidu.publicurl'] ?: '${openvidu.publicurl:none}' }")
+  private String streamingServerUrl;
 
   @Data
   public static class ServerCapabilities {
@@ -75,6 +77,8 @@ public class ServerInfo extends ApiBase {
     private String webSocketClientPath;
     /** WebSocket that other servers use to connect */
     private String webSocketServerPath;
+    /** Video/audio streaming server URL */
+    private String streamingServerUrl;
   }
 
   @Data
@@ -112,6 +116,7 @@ public class ServerInfo extends ApiBase {
     ret.setSessionTimeout(sessionTimeout);
     ret.setWebSocketClientPath(clientPath);
     ret.setWebSocketServerPath(serverPath);
+    ret.setStreamingServerUrl(streamingServerUrl);
     return ret;
   }
 }

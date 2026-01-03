@@ -52,6 +52,7 @@ export class AvatarSelection extends World {
     this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000 / this.fps;
+    /** @type {VRSpaceAPI} */
     this.api = VRSpaceAPI.getInstance(VRSPACEUI.contentBase);
     this.tokens = {};
     this.serviceWorker = "./serviceworker.js";
@@ -760,7 +761,7 @@ export class AvatarSelection extends World {
       world.WORLD.inVR = this.inVR;
       world.WORLD.inAR = this.inAR;
 
-      var afterLoad = (world) => {
+      var afterLoad = async (world) => {
         world.serverUrl = this.serverUrl;
 
         // TODO refactor this to WorldManager
@@ -776,7 +777,8 @@ export class AvatarSelection extends World {
         this.worldManager.VRSPACE.debug = this.debug; // network debug
         this.worldManager.remoteLogging = false;
 
-        const mediaStreams = OpenViduStreams.getInstance(this.scene, 'videos');
+        const serverConfig = await this.api.endpoint.server.getServerConfig();
+        const mediaStreams = OpenViduStreams.getInstance(this.scene, 'videos', serverConfig.streamingServerUrl);
         mediaStreams.debug = false;
         let avatar = this.video;
         if (this.character) {

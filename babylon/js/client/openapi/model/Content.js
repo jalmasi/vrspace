@@ -21,6 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class Content {
     /**
      * Constructs a new <code>Content</code>.
+     * Basic content class. Early version, not used on its own, likely to change.
      * @alias Content
      */
     constructor() { 

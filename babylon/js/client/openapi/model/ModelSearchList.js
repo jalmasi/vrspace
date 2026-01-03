@@ -27,6 +27,7 @@ import { UserRelated } from './UserRelated.js';
 export class ModelSearchList {
     /**
      * Constructs a new <code>ModelSearchList</code>.
+     * One model returned in search response.
      * @alias ModelSearchList
      */
     constructor() { 

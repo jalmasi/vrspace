@@ -36,6 +36,8 @@ export class DataApi {
 
 
     /**
+     * Delete all user data belonging to the client.
+     * Delete all user data belonging to the client.
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     clearUserDataWithHttpInfo() {
@@ -62,6 +64,8 @@ export class DataApi {
     }
 
     /**
+     * Delete all user data belonging to the client.
+     * Delete all user data belonging to the client.
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     clearUserData() {
@@ -73,6 +77,8 @@ export class DataApi {
 
 
     /**
+     * Delete a value for the given key.
+     * Delete a value for the given key.
      * @param {String} key 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -105,6 +111,8 @@ export class DataApi {
     }
 
     /**
+     * Delete a value for the given key.
+     * Delete a value for the given key.
      * @param {String} key 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
@@ -117,7 +125,9 @@ export class DataApi {
 
 
     /**
-     * @param {String} key 
+     * Get user data for the key
+     * Get user data for the key
+     * @param {String} key specifies which value to get
      * @return {Promise< UserData >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link UserData} and HTTP response
      */
     getUserDataWithHttpInfo(key) {
@@ -149,7 +159,9 @@ export class DataApi {
     }
 
     /**
-     * @param {String} key 
+     * Get user data for the key
+     * Get user data for the key
+     * @param {String} key specifies which value to get
      * @return {Promise< UserData >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link UserData}
      */
     getUserData(key) {
@@ -161,6 +173,8 @@ export class DataApi {
 
 
     /**
+     * List all user data belonging to the client.
+     * List all user data belonging to the client.
      * @return {Promise< Array.<UserData> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<UserData>} and HTTP response
      */
     listUserDataWithHttpInfo() {
@@ -187,6 +201,8 @@ export class DataApi {
     }
 
     /**
+     * List all user data belonging to the client.
+     * List all user data belonging to the client.
      * @return {Promise< Array.<UserData> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<UserData>}
      */
     listUserData() {
@@ -198,7 +214,9 @@ export class DataApi {
 
 
     /**
-     * @param {UserData} userData 
+     * Add or replace existing user data.
+     * Add or replace existing user data.
+     * @param {UserData} userData the key-value pair.
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     setUserDataWithHttpInfo(userData) {
@@ -229,7 +247,9 @@ export class DataApi {
     }
 
     /**
-     * @param {UserData} userData 
+     * Add or replace existing user data.
+     * Add or replace existing user data.
+     * @param {UserData} userData the key-value pair.
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */
     setUserData(userData) {

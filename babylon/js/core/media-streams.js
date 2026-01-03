@@ -24,7 +24,7 @@ export class MediaStreams {
   @param scene Babylonjs scene
   @param {string} htmlElementName
    */
-  constructor(scene, htmlElementName) {
+  constructor(scene, htmlElementName, streamingServerUrl) {
     if (MediaStreams.instance) {
       throw "MediaStreams already instantiated: " + MediaStreams.instance;
     }
@@ -33,6 +33,7 @@ export class MediaStreams {
     // CHECKME null check that element?
     /** @type {HTMLElement} */
     this.htmlElementName = htmlElementName;
+    this.streamingServerUrl = streamingServerUrl;
     /** Function to play video of a client, passed client and stream. Defaults to uknownStream method.*/
     this.playStream = (client, mediaStream) => this.unknownStream(client, mediaStream);
     /** Auto start audio? Default true. @type {boolean} */
@@ -393,9 +394,9 @@ OpenVidu implementation of MediaStreams.
 export class OpenViduStreams extends MediaStreams {
 
   /** @returns {OpenViduStreams} */
-  static getInstance(scene, htmlElementName) {
+  static getInstance(scene, htmlElementName, streamingServerUrl) {
     if (!MediaStreams.instance) {
-      MediaStreams.instance = new OpenViduStreams(scene, htmlElementName);
+      MediaStreams.instance = new OpenViduStreams(scene, htmlElementName, streamingServerUrl);
     }
     return MediaStreams.instance;
   }
@@ -410,6 +411,23 @@ export class OpenViduStreams extends MediaStreams {
       this.OV.enableProdMode(); // Disable logging
     }
     this.session = this.OV.initSession();
+    // hack session to work with reverse proxy
+    if ( this.streamingServerUrl) {
+      this.session.originalProcessToken = this.session.processToken;
+      this.session.processToken = (token)=>{
+        this.session.originalProcessToken(token);
+        console.log("wsUri: "+this.OV.wsUri);
+        // replace host/port from token with real server host/port
+        const url = new URL(this.streamingServerUrl);
+        let portPart = "";
+        if (url.port) {
+          portPart = ":"+url.port;
+        }
+        this.OV.wsUri = "wss://"+url.hostname+portPart+"/openvidu";
+        this.OV.httpUri = "https://"+url.hostname+portPart;
+        console.log("wsUri: "+this.OV.wsUri);
+      };
+    }
     this.session.on('streamCreated', (event) => {
       // client id can be used to match the stream with the avatar
       // server sets the client id as connection user data

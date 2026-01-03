@@ -27,39 +27,52 @@ export class ServerConfiguration {
         
         
         /** guestAllowed 
+         * Guest (without login) access is allowed
          * @type {Boolean} 
          */
         this.guestAllowed = undefined;
 
         /** createWorlds 
+         * Worlds are created on demand
          * @type {Boolean} 
          */
         this.createWorlds = undefined;
 
         /** maxSessions 
+         * Maximum concurrent sessions per server, 0 for unlimited
          * @type {Number} 
          */
         this.maxSessions = undefined;
 
         /** sessionStartTimeout 
+         * Sessions over maxSessions will wait this many seconds to start, 0 for   unlimited
          * @type {Number} 
          */
         this.sessionStartTimeout = undefined;
 
         /** sessionTimeout 
+         * HTTP session timeout.
          * @type {String} 
          */
         this.sessionTimeout = undefined;
 
         /** webSocketClientPath 
+         * WebSocket that clients use to connect
          * @type {String} 
          */
         this.webSocketClientPath = undefined;
 
         /** webSocketServerPath 
+         * WebSocket that other servers use to connect
          * @type {String} 
          */
         this.webSocketServerPath = undefined;
+
+        /** streamingServerUrl 
+         * Video/audio streaming server URL
+         * @type {String} 
+         */
+        this.streamingServerUrl = undefined;
         
         
         
@@ -107,6 +120,9 @@ export class ServerConfiguration {
             if (data.hasOwnProperty('webSocketServerPath')) {
                 obj['webSocketServerPath'] = ApiClient.convertToType(data['webSocketServerPath'], 'String');
             }
+            if (data.hasOwnProperty('streamingServerUrl')) {
+                obj['streamingServerUrl'] = ApiClient.convertToType(data['streamingServerUrl'], 'String');
+            }
         }
         return obj;
     }
@@ -128,6 +144,10 @@ export class ServerConfiguration {
         // ensure the json data is a string
         if (data['webSocketServerPath'] && !(typeof data['webSocketServerPath'] === 'string' || data['webSocketServerPath'] instanceof String)) {
             throw new Error("Expected the field `webSocketServerPath` to be a primitive type in the JSON string but got " + data['webSocketServerPath']);
+        }
+        // ensure the json data is a string
+        if (data['streamingServerUrl'] && !(typeof data['streamingServerUrl'] === 'string' || data['streamingServerUrl'] instanceof String)) {
+            throw new Error("Expected the field `streamingServerUrl` to be a primitive type in the JSON string but got " + data['streamingServerUrl']);
         }
 
         return true;
