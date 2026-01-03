@@ -1,5 +1,7 @@
 package org.vrspace.server.core;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +111,17 @@ public class StreamManager {
         throw e;
       }
     }
+    // but the problems with token are when running behind reverse proxy
+    // token returned points to the docker port, DOMAIN_OR_PUBLIC_IP:HTTPS_PORT
+    if (token != null) {
+      try {
+        URI uri = new URI(openViduUrl);
+        String queryPart = token.substring(token.indexOf("?"));
+        token = "wss://" + uri.getHost() + ":" + uri.getPort() + queryPart;
+      } catch (URISyntaxException e) {
+        log.error("Invalid OpenVidu URL: " + openViduUrl, e);
+      }
+    }
     return token;
   }
 
@@ -166,8 +179,7 @@ public class StreamManager {
         try {
           String token = createConnection(session, sessionData(client, "main"));
           client.setToken(mainConnectionId, token);
-          log.debug(
-              "Client " + client.getId() + " joined session " + client.getWorld().getName() + " with token " + token);
+          log.debug("Client " + client.getId() + " joined session " + client.getWorld().getName() + " with token " + token);
         } catch (OpenViduException e) {
           log.error("Can't generate OpenVidu token", e);
           // TODO failing here probably means the session is invalid, should we remove it?
@@ -208,8 +220,8 @@ public class StreamManager {
         Session session = startStreamingSession(sessionName);
         String token = createConnection(session, sessionData(client, "screen"));
         client.setToken(additionalConnectionId, token);
-        log.debug("Client " + client.getId() + " added connection to session " + client.getWorld().getName()
-            + " with token " + token);
+        log.debug("Client " + client.getId() + " added connection to session " + client.getWorld().getName() + " with token "
+            + token);
         return token;
       } catch (OpenViduException e) {
         log.error("Can't generate OpenVidu token", e);
@@ -236,8 +248,7 @@ public class StreamManager {
           try {
             session.fetch();
             List<Connection> activeConnections = session.getActiveConnections();
-            log.debug(
-                "Disconnecting client " + client.getId() + ", current active connections " + activeConnections.size());
+            log.debug("Disconnecting client " + client.getId() + ", current active connections " + activeConnections.size());
             for (Connection connection : activeConnections) {
               SessionData data = sessionData(connection.getServerData());
               if (client.getId().equals(data.getClientId())) {
