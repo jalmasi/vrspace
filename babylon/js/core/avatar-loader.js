@@ -41,10 +41,10 @@ export class AvatarLoader extends MeshLoader {
   Load a video avatar, attach a listener to it.
   @param {Client} obj 
    */
-  loadStream(obj) {
+  async loadStream(obj) {
     this.log("loading stream for " + obj.id);
 
-    var video = this.avatarFactory(obj);
+    var video = await this.avatarFactory(obj);
     video.mesh.name = obj.mesh;
     // obfuscators get in the way 
     //video.mesh.id = obj.constructor.name+" "+obj.id;
@@ -208,14 +208,14 @@ export class AvatarLoader extends MeshLoader {
    * @param {boolean} [autoStart=false] 
    * @param {boolean} [autoAttach=false]
    */
-  createAvatar(obj, autoStart=false, autoAttach=false) {
+  async createAvatar(obj, autoStart=false, autoAttach=false) {
     let avatar = new VideoAvatar(this.scene, null, this.customOptions);
     avatar.autoStart = autoStart;
     avatar.autoAttach = autoAttach;
     if (obj.picture) {
       avatar.altImage = obj.picture;
     }
-    avatar.show();
+    await avatar.show();
     if (obj.name) {
       avatar.setName(obj.name);
     } else {
