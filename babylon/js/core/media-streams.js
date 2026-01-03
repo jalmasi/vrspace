@@ -192,7 +192,7 @@ export class MediaStreams {
    * @param {number} clientId 
    */
   removeClient(clientId) {
-    for (var i = 0; i < this.clients.length; i++) {
+    for (var i = 0;i < this.clients.length;i++) {
       if (this.clients[i].id == clientId) {
         this.clients.splice(i, 1);
         console.log("Removed client " + clientId);
@@ -209,7 +209,7 @@ export class MediaStreams {
    * @param {SessionData} data 
    */
   findClient(data) {
-    for (var i = 0; i < this.clients.length; i++) {
+    for (var i = 0;i < this.clients.length;i++) {
       const client = this.clients[i];
       // FIXME this implies that the streamToMesh is called before streamingStart
       // this seems to always be the case, but is not guaranteed
@@ -277,7 +277,7 @@ export class MediaStreams {
       throw "Null mesh";
     }
     client.streamToMesh = mesh;
-    for (let i = 0; i < this.subscribers.length; i++) {
+    for (let i = 0;i < this.subscribers.length;i++) {
       let subscriber = this.subscribers[i];
       let data = this.getClientData(subscriber);
       console.log(data);
@@ -411,23 +411,26 @@ export class OpenViduStreams extends MediaStreams {
       this.OV.enableProdMode(); // Disable logging
     }
     this.session = this.OV.initSession();
+    /*
     // hack session to work with reverse proxy
-    if ( this.streamingServerUrl) {
-      this.session.originalProcessToken = this.session.processToken;
-      this.session.processToken = (token)=>{
-        this.session.originalProcessToken(token);
-        console.log("wsUri: "+this.OV.wsUri);
-        // replace host/port from token with real server host/port
-        const url = new URL(this.streamingServerUrl);
-        let portPart = "";
-        if (url.port) {
-          portPart = ":"+url.port;
-        }
-        this.OV.wsUri = "wss://"+url.hostname+portPart+"/openvidu";
-        this.OV.httpUri = "https://"+url.hostname+portPart;
-        console.log("wsUri: "+this.OV.wsUri);
-      };
+    // not required, may be handy for troubleshooting
+    if (this.streamingServerUrl) {
+        this.session.originalProcessToken = this.session.processToken;
+        this.session.processToken = (token) => {
+            this.session.originalProcessToken(token);
+            console.log("wsUri: " + this.OV.wsUri);
+            // replace host/port from token with real server host/port
+            const url = new URL(this.streamingServerUrl);
+            let portPart = "";
+            if (url.port) {
+                portPart = ":" + url.port;
+            }
+            this.OV.wsUri = "wss://" + url.hostname + portPart + "/openvidu";
+            this.OV.httpUri = "https://" + url.hostname + portPart;
+            console.log("wsUri: " + this.OV.wsUri);
+        };
     }
+    */
     this.session.on('streamCreated', (event) => {
       // client id can be used to match the stream with the avatar
       // server sets the client id as connection user data
