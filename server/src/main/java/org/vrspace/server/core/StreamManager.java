@@ -117,7 +117,11 @@ public class StreamManager {
       try {
         URI uri = new URI(openViduUrl);
         String queryPart = token.substring(token.indexOf("?"));
-        token = "wss://" + uri.getHost() + ":" + uri.getPort() + queryPart;
+        String portPart = "";
+        if (uri.getPort() > 0) {
+          portPart = ":" + uri.getPort();
+        }
+        token = "wss://" + uri.getHost() + portPart + queryPart;
       } catch (URISyntaxException e) {
         log.error("Invalid OpenVidu URL: " + openViduUrl, e);
       }
