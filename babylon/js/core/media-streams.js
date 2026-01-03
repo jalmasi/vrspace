@@ -405,8 +405,6 @@ export class OpenViduStreams extends MediaStreams {
    * @param {*} callback function that gets called when stream is created (subscriber,false), starts playing (subscriber,true), and is destroyed (SessionData, undefined)
    */
   async init(callback) {
-    // CHECKME
-    //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.OV = new OpenVidu();
     if (!this.debug) {
       this.OV.enableProdMode(); // Disable logging
@@ -496,8 +494,6 @@ export class OpenViduStreams extends MediaStreams {
    */
   async shareScreen(endCallback) {
     let token = await VRSPACE.startStreaming();
-    // CHECKME
-    //await import(/* webpackIgnore: true */ '../lib/openvidu-browser-2.30.0.min.js');
     this.screenOV = new OpenVidu();
     if (!this.debug) {
       this.screenOV.enableProdMode(); // Disable logging
