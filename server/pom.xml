@@ -90,7 +90,9 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <!-- 
-      <version>1.18.36</version>
+      this version provided with spring
+      version required by other plugins below
+      <version>1.18.42</version>
       <scope>provided</scope> 
       -->
     </dependency>
@@ -312,7 +314,7 @@
                 <path>
                   <groupId>org.projectlombok</groupId>
                   <artifactId>lombok</artifactId>
-                  <version>1.18.36</version>
+                  <version>1.18.42</version>
                 </path>
               </annotationProcessorPaths>
             </configuration>
@@ -480,6 +482,13 @@
                 </configuration>
               </execution>
             </executions>
+            <dependencies>
+                <dependency>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                    <version>1.18.42</version>
+                </dependency>
+            </dependencies>
           </plugin>
 
           <plugin>
