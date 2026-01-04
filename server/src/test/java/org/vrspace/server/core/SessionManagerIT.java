@@ -32,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -53,6 +54,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
+//FIXME:
+@DirtiesContext
 public class SessionManagerIT {
 
   @Mock
@@ -248,8 +251,7 @@ public class SessionManagerIT {
     assertEquals(2, testUser.getPosition().getY(), 0.01);
     assertEquals(3, testUser.getPosition().getZ(), 0.01);
 
-    String string = "{\"object\":{\"User\":\"" + clientId
-        + "\"},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
+    String string = "{\"object\":{\"User\":\"" + clientId + "\"},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     System.err.println(string);
     sendMessage(string);
 
@@ -337,8 +339,8 @@ public class SessionManagerIT {
     assertEquals(2, testUser.getScene().size());
 
     // verify remove command
-    String remove = "{\"command\":{\"Remove\":{\"objects\":[{\"VRObject\":\""
-        + ids.iterator().next().values().iterator().next() + "\"}]}}}";
+    String remove = "{\"command\":{\"Remove\":{\"objects\":[{\"VRObject\":\"" + ids.iterator().next().values().iterator().next()
+        + "\"}]}}}";
     sendMessage(remove);
 
     // verify response received
@@ -413,8 +415,7 @@ public class SessionManagerIT {
     assertEquals(2, client.getListeners().size());
 
     // move and verify movement received by listeners but not by self
-    String string = "{\"object\":{\"User\":\"" + clientId
-        + "\"},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
+    String string = "{\"object\":{\"User\":\"" + clientId + "\"},\"changes\":{\"position\":{\"x\":3.0,\"y\":2.0,\"z\":1.0}}}";
     sendMessage(string);
 
     verify(session, times(3)).sendMessage(any(TextMessage.class));
