@@ -1,0 +1,11 @@
+Model Information:
+* title:	VRSpace_Conference
+* source:	https://sketchfab.com/3d-models/vrspace-conference-aad7732937f34d22a602a3536d9bdd37
+* author:	MrsClara (https://sketchfab.com/MrsClara)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "VRSpace_Conference" (https://sketchfab.com/3d-models/vrspace-conference-aad7732937f34d22a602a3536d9bdd37) by MrsClara (https://sketchfab.com/MrsClara) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

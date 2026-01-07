@@ -4,7 +4,7 @@
     <head>
       <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
       <meta content="utf-8" http-equiv="encoding">
-    <title>VRSpace:Classroom</title>
+    <title>VRSpace:Conference</title>
     ﻿<style type="text/css">
     html, body {
       width: 100%;
@@ -46,7 +46,7 @@ import("./world.js").then( (module) =>{
   
   var world = module.WORLD;
 
-  world.init(engine, 'classroom').then((s) => {
+  world.init(engine, 'conference').then((s) => {
     scene = s;
     
     import('/babylon/js/vrspace-min.js').then(ui => {
