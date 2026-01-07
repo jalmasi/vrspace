@@ -22,11 +22,13 @@
       display: block;
     }
     </style>﻿
-        <script src="https://cdn.babylonjs.com/babylon.js"></script>
-        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
-        <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-        <script src="/babylon/js/vrspace-min.js" type="module"></script>
+      <script src="/babylon/js/lib/babylon.js"></script>
+      <script src="/babylon/js/lib/babylonjs.loaders.min.js"></script>
+      <script src="/babylon/js/lib/babylon.gui.min.js"></script>
+      <script src="/babylon/js/lib/HavokPhysics_umd.js"></script>
+
+      <script src="/babylon/js/vrspace-min.js" type="module"></script>
+      <script src="/babylon/js/client/openapi/superagent.min.js"></script>
     </head>
   <body>
 
@@ -55,8 +57,9 @@ import("./world.js").then( (module) =>{
       world.name = 'classroom';
       
       // connect, set own avatar and start the session
-      net.enter({mesh:'//www.vrspace.org/babylon/dolphin.glb'});
-      
+      net.enterWith(
+        'https://www.vrspace.org/babylon/dolphin.glb'
+      );
     });
   });
 

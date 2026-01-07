@@ -23,14 +23,15 @@
     }
     </style>﻿
     
-    <!-- MANDATORY babylon.js scripts -->
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
-    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
-    <!-- RECOMENDED, OPTIONAL for mobiles -->
-    <script src="/babylon/js/lib/pep.min.js"></script>
+      <script src="/babylon/js/lib/babylon.js"></script>
+      <script src="/babylon/js/lib/babylonjs.loaders.min.js"></script>
+      <script src="/babylon/js/lib/babylon.gui.min.js"></script>
+      <script src="/babylon/js/lib/babylonjs.materials.min.js"></script>
+      <script src="/babylon/js/lib/HavokPhysics_umd.js"></script>
+      <script src="/babylon/js/lib/perlin.js"></script>
+
+      <script src="/babylon/js/vrspace-min.js" type="module"></script>
+      <script src="/babylon/js/client/openapi/superagent.min.js"></script>
   </head>
 
   <body>
@@ -78,12 +79,12 @@ import("./world.js").then( (module) =>{
       };
       
       // connect, set own avatar and start the session
-      net.enter({
+      net.enterWith(
         // RECOMMENDED set your avatar url, or be invisible
-        mesh:'//www.vrspace.org/content/char/male/bruce_lee/scene.gltf', 
+        '//www.vrspace.org/content/char/male/bruce_lee/scene.gltf', 
         // OPTIONAL set your name, MUST be unique
-        name:'someone'+Math.random()
-      });
+        'someone'+Math.random()
+      );
     });
   });
 
