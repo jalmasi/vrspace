@@ -75,7 +75,16 @@ export class GroundGrid {
     if ( !this.active ) {
       return;
     }
-    this.world.ground = this.originalGround;
+    if ( this.originalGround ) {
+      this.world.ground = this.originalGround;
+    }
     this.hide();
+  }
+
+  /**
+   * Clean up used resources 
+   */  
+  dispose() {
+    this.restore();
   }
 }

@@ -69,6 +69,9 @@ export class WorldEditorUI {
     if ( this.skyboxSelector ) {
       this.skyboxSelector.dispose();
     }
+    if ( this.groundGrid ) {
+      this.groundGrid.dispose();
+    }
   }
   
   editWorld(button, vector3WithInfo) {
