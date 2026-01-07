@@ -7,8 +7,6 @@ export class WorldEditorExample extends World {
   }
   async load(callback) {
     // we're not loading any models
-    // but we're displaying UI instead
-    //this.makeUI();
     if ( callback ) {
       // make sure to notify avatar-selection
       callback(this);
@@ -23,6 +21,8 @@ export class WorldEditorExample extends World {
     return this.camera;
   }
 
+  /*
+  Replaced with GroundGrid tool
   async createGround() {
     this.ground = BABYLON.MeshBuilder.CreateDisc("groundGrid", {radius:1000}, this.scene);
     this.ground.rotation = new BABYLON.Vector3( Math.PI/2, 0, 0 );
@@ -38,6 +38,7 @@ export class WorldEditorExample extends World {
     //this.ground.material.alphaMode = BABYLON.Constants.ALPHA_ONEONE; // also fine
     return this.ground;
   }
+  */
   
   async createLights() {
     var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(-1, -1, 0), this.scene);
@@ -64,6 +65,7 @@ export class WorldEditorExample extends World {
     if ( !DefaultHud.instance ) {
       this.worldEditorUI = new WorldEditorUI(this.scene);
       this.worldEditorUI.show();
+      this.worldEditorUI.showGrid();
     }
   }
   
@@ -74,6 +76,7 @@ export class WorldEditorExample extends World {
       setTimeout(()=>{
         DefaultHud.instance.tools();
         DefaultHud.instance.editWorld();
+        DefaultHud.instance.worldEditorUI.showGrid();
       },200);
     }
   }
@@ -81,11 +84,11 @@ export class WorldEditorExample extends World {
   // used in stand-alone mode (i.e. if world is not entered via avatar-selection, but from world.html)  
   connect() {
     this.camera.ellipsoid = new BABYLON.Vector3(.1, .1, .1); // dolphins are not humans
-    this.enterWith('//www.vrspace.org/babylon/dolphin.glb').then(() => {
+    this.enterWith('https://www.vrspace.org/babylon/dolphin.glb').then(() => {
       // we don't really need to do anything here
       //this.worldManager.debug = true; // multi-user debug info
       //this.worldManager.VRSPACE.debug = true; // network debug info
-      this.worldManager.remoteLogging = true;
+      //this.worldManager.remoteLogging = true;
     });
   }
   

@@ -4,6 +4,7 @@ import { World } from '../../world/world.js';
 import { WorldEditor } from './world-editor.js';
 import { TerrainEditor } from './terrain-editor.js';
 import { SkyboxSelector } from './skybox-selector.js';
+import { GroundGrid } from './ground-grid.js'
 
 export class WorldEditorUI {
   constructor(scene) {
@@ -17,8 +18,15 @@ export class WorldEditorUI {
     this.groupApi = this.api.endpoint.groups;
     this.terrainEdit = null;
     this.skyboxEdit = null;
+    this.gridButton = null;
+    /** @type {WorldEditor} */
+    this.worldEditor = null;
+    /** @type {TerrainEditor} */
     this.terrainEditor = null;
+    /** @type {SkyboxSelector} */
     this.skyboxSelector = null;
+    /** @type {GroundGrid} */
+    this.groundGrid = null;
     this.editing = false;
   }
   
@@ -29,6 +37,7 @@ export class WorldEditorUI {
     this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world.png", (b,i)=>this.editWorld(b,i), false);
     this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i), false);
     this.skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i), false);
+    this.gridButton = VRSPACEUI.hud.addButton("Grid", this.contentBase+"/content/icons/grid.png", (b,i)=>this.showGrid(b,i), false);
     if (!World.lastInstance.terrain || World.lastInstance.inAR) {
       this.hud.markDisabled(this.terrainEdit);
     }
@@ -112,5 +121,16 @@ export class WorldEditorUI {
       VRSPACEUI.hud.showButtons(!this.editing, button);
     }
   }
-  
+ 
+  showGrid(button) {
+    if ( this.groundGrid ) {
+      this.groundGrid.hide();
+      this.groundGrid = null;
+      this.hud.markEnabled(this.gridButton);
+    } else {
+      this.groundGrid = new GroundGrid(World.lastInstance);
+      this.groundGrid.show();
+      this.hud.markActive(this.gridButton);
+    }
+  } 
 }
