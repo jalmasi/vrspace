@@ -282,6 +282,7 @@ export class WorldEditor extends WorldListener {
   createGizmo(obj) {
     this.clearGizmo();
     this.gizmo = new BABYLON.BoundingBoxGizmo();
+    this.activate(obj.VRObject,true);
     this.gizmo.attachedMesh = obj;
     this.gizmo.onScaleBoxDragEndObservable.add(() => {
       //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { scale: { x: obj.scaling.x, y: obj.scaling.y, z: obj.scaling.z } });
@@ -299,6 +300,7 @@ export class WorldEditor extends WorldListener {
 
   clearGizmo() {
     if (this.gizmo) {
+      this.activate(this.gizmo.attachedMesh.VRObject,false);
       this.gizmo.dispose();
       this.gizmo = null;
       this.enableMovement();
@@ -413,8 +415,10 @@ export class WorldEditor extends WorldListener {
       newPos.y = obj.position.y + pickInfo.distance;
     }
     if (pickInfo.hit) {
+      this.activate(obj.VRObject,true);
       //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { position: newPos });
       VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, position: newPos }).catch(err => console.error(err));
+      setTimeout(()=>this.activate(obj.VRObject,false),100);
       this.clearGizmo();
     }
   }
@@ -448,7 +452,9 @@ export class WorldEditor extends WorldListener {
   upright(obj) {
     this.clearGizmo();
     //this.worldManager.VRSPACE.sendEvent(obj.VRObject, { rotation: { x: 0, y: obj.rotation.y, z: 0 } });
+    this.activate(obj.VRObject,true);
     VRSpaceAPI.getInstance().endpoint.objects.objectCoordinates({ id: obj.VRObject.id, rotation: { x: 0, y: obj.rotation.y, z: 0 } }).catch(err => console.error(err));
+    setTimeout(()=>this.activate(obj.VRObject,false),100);
   }
 
   /**
@@ -575,6 +581,7 @@ export class WorldEditor extends WorldListener {
 
     try {
       this.carrying = vrObject;
+      this.activate(vrObject,true);
       this.editObject(vrObject, true);
 
       // default position
@@ -677,7 +684,7 @@ export class WorldEditor extends WorldListener {
 
   /**
    * Drop the object. Cleans change listener, invisible object used track the position, and sends one final position to the server.
-   * @param obj VRObject to drop
+   * @param {VRObject} obj VRObject to drop
    */
   drop(obj) {
     console.log("Dropping " + obj.target);
@@ -688,12 +695,14 @@ export class WorldEditor extends WorldListener {
     delete obj.clickHandler;
     delete obj.changeListener;
     this.sendPos(obj);
+    this.activate(obj,false);
 
     if (obj.target) {
       obj.target.parent = null;
       obj.target.dispose();
       obj.target = null;
     }
+    this.carrying = null;
     console.log("dropped " + obj.id);
   }
 
@@ -716,6 +725,9 @@ export class WorldEditor extends WorldListener {
     this.worldManager.VRSPACE.sendEvent(obj, { properties: obj.properties });
   }
 
+  activate(obj, active) {
+    this.worldManager.VRSPACE.sendCommand("Activate", {className:obj.className, id:obj.id, active:active});
+  }
   /**
    * Save current scene: dumps everything using AssetLoader.dump(), and calls VRSPACEUI.saveFile(). 
    */

@@ -94,6 +94,12 @@ export class EventRouter {
       }
       VRSPACEUI.updateAnimation(obj.rescale, node.scaling, obj.scale);
     }
+    /*
+    // this only triggers on currently active objects
+    VRObject.prototype.activeChanged = (obj, node) => {
+      console.log("Active changed", obj);
+    }
+    */
   }
 
   /**
@@ -109,6 +115,23 @@ export class EventRouter {
       return obj.instantiatedEntries.rootNodes[0];
     }
     console.log("ERROR: unknown root for " + obj);
+  }
+  
+  /**
+   * Activate or deactivate an object, set up internal change listener
+   * @param {VRObject} obj 
+   */
+  activate(obj, node) {
+    if (obj.active) {
+      if (!obj._eventRouterListener) {
+        obj._eventRouterListener = (obj, changes) => this.changeObject(obj, changes, node); 
+        obj.addListener(obj._eventRouterListener);
+      }
+    } else {
+      // CHECKME remove the listener
+      obj.removeListener(obj._eventRouterListener);
+      delete obj._eventRouterListener;
+    }
   }
 
   /** Optionally log something */

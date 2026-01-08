@@ -82,6 +82,7 @@ export class AvatarLoader extends MeshLoader {
       }
     }
 
+    // avatar is always active
     obj.addListener((obj, changes) => this.changeObject(obj, changes, parent));
     if (MediaStreams.instance) {
       MediaStreams.instance.streamToMesh(obj, video.mesh);

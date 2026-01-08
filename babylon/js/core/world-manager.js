@@ -89,6 +89,7 @@ export class WorldManager extends EventRouter {
     this.interval = null;
     VRSPACE.addWelcomeListener((welcome) => this.setSessionStatus(true));
     VRSPACE.addSceneListener((e) => this.sceneChanged(e));
+    VRSPACE.addActivationListener((obj) => this.activate(obj));
     /** Enable debug output */
     this.debug = false;
     this.world.worldManager = this;
@@ -278,9 +279,7 @@ export class WorldManager extends EventRouter {
       var node = await instance.init();
       if (node) {
         node.VRObject = obj;
-        if (obj.active) {
-          obj.addListener((obj, changes) => this.changeObject(obj, changes, node));
-        }
+        this.activate(obj, node);
       }
     });
   }

@@ -40,7 +40,7 @@ export class MeshLoader extends EventRouter {
 
       // add listener to process changes - active objects only
       if (obj.active) {
-        obj.addListener((obj, changes) => this.changeObject(obj, changes, mesh));
+        this.activate(obj,mesh);
         // subscribe to media stream here if available
         if (MediaStreams.instance) {
           MediaStreams.instance.streamToMesh(obj, mesh);

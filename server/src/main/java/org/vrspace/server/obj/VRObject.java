@@ -168,7 +168,10 @@ public class VRObject extends Entity {
     if (listeners == null) {
       listeners = new ConcurrentHashMap<ID, VRObject>();
     }
-    listeners.put(new ID(obj), obj);
+    ID id = obj.getObjectId();
+    if (listeners.get(id) == null) {
+      listeners.put(new ID(obj), obj);
+    }
   }
 
   public void removeListener(VRObject obj) {

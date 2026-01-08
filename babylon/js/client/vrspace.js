@@ -87,6 +87,21 @@ export class Welcome {
     this.permanents = [];
   }
 }
+
+/**
+Activate message received when de/activating an object
+ */
+export class Activate {
+  constructor() {
+    /** @type {string} */
+    this.className = null;
+    /** @type {string} */
+    this.id = null;
+    /** @type {boolean} */
+    this.active = false;
+  }
+}
+
 /**
 Basic VRObject, has the same properties as server counterpart.
  */
@@ -156,7 +171,10 @@ export class VRObject extends ID {
   Add a change listener to the object.
    */  
   addListener(listener) {
-    this.listeners.push(listener);
+    var pos = this.listeners.indexOf(listener);
+    if ( pos < 0 ) {
+      this.listeners.push(listener);
+    }
   }
 
   /**
@@ -613,6 +631,7 @@ export class VRSpace {
     this.connectionListeners = [];
     this.dataListeners = [];
     this.sceneListeners = [];
+    this.activationListeners = [];
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.groupListeners = [];
@@ -628,6 +647,7 @@ export class VRSpace {
       object:message=>this.handleEvent(message),
       Add:message=>this.handleAdd(message.Add),
       Remove:message=>this.handleRemove(message.Remove),
+      Activate:message=>this.handleActivate(message.Activate),
       ERROR:message=>this.handleError(message.ERROR),
       Welcome:message=>this.handleWelcome(message.Welcome),
       response:message=>this.handleResponse(message.response),
@@ -699,6 +719,22 @@ export class VRSpace {
     this.removeListener( this.sceneListeners, callback );
   }
 
+  /** 
+  Add an activation listener, that gets called when active property of a VRObject changes.
+  Lister needs to update event model then, i.e. start/stop listening to events from the object.
+  @param {*} callback 
+  */
+  addActivationListener(callback) {
+    return this.addListener( this.activationListeners, callback );
+  }
+
+  /** 
+  Remove an activation listener. 
+  */
+  removeActivationListener(callback) {
+    this.removeListener( this.activationListeners, callback );
+  }
+  
   /** 
   Add a Welcome listener, notified when entering a world. 
   The listener receives Welcome object.
@@ -1316,6 +1352,19 @@ export class VRSpace {
   handleRemove(remove){
     for ( let i=0; i< remove.objects.length; i++ ) {
       this.removeObject(remove.objects[i]);
+    }
+  }
+  /**
+   * Handle Activate message: update the object and call listeners.
+   * @param {Activate} activate
+   */
+  handleActivate(activate){
+    let obj = this.scene.get(new ID(activate.className, activate.id).toString());
+    if (obj) {
+      obj.active = activate.active;
+      this.activationListeners.forEach((listener)=>listener(obj));
+    } else {
+      console.error("Activating unknown object: ",activate);
     }
   }
   /**

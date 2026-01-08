@@ -193,8 +193,8 @@ public class Scene {
   public void offer(Collection<VRObject> objects) {
     Add add = new Add();
     for (VRObject o : objects) {
-      log.debug("Client " + client.getId() + " offered " + o.getId() + " inRange:" + isInRange(o) + " visible:"
-          + isVisible(o) + " contains:" + members.contains(o));
+      log.debug("Client " + client.getId() + " offered " + o.getId() + " inRange:" + isInRange(o) + " visible:" + isVisible(o)
+          + " contains:" + members.contains(o));
       if (!members.contains(o) && isInRange(o) && isVisible(o)) {
         // add to the scene
         members.add(o);
@@ -387,8 +387,7 @@ public class Scene {
    * 
    */
   protected boolean isVisible(VRObject o) {
-    return !o.isDeleted() && !o.isPermanent() && !o.equals(client)
-        && filters.values().stream().allMatch(f -> f.apply(o));
+    return !o.isDeleted() && !o.isPermanent() && !o.equals(client) && filters.values().stream().allMatch(f -> f.apply(o));
   }
 
   /**
@@ -399,13 +398,19 @@ public class Scene {
   }
 
   /**
+   * Retrieve all objects in the scene
+   */
+  public Collection<VRObject> getAll() {
+    return allObjects.values();
+  }
+
+  /**
    * Returns the closest Transform to the specified point
    * 
    * @throws NoSuchElementException if scene is empty
    */
   public VRObject getClosest(double x, double y, double z) {
-    Optional<VRObject> closestMember = members.stream()
-        .min(Comparator.comparing(t -> t.getPosition().getDistance(x, y, z)));
+    Optional<VRObject> closestMember = members.stream().min(Comparator.comparing(t -> t.getPosition().getDistance(x, y, z)));
     return closestMember.get();
   }
 
