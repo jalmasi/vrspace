@@ -94,7 +94,7 @@ public class ElasticSearchSessionListener implements SessionListener {
     ESLogEntry entry = new ESLogEntry();
     entry.timestamp = LocalDateTime.now(ZoneId.of("UTC"));
     entry.duration = 0;
-    Client client = new Client(1L);
+    Client client = new Client("1", "test");
     VRObject object = new VRObject(UUID.randomUUID().toString());
     entry.source = new ID(object);
     entry.client = new ID(client);

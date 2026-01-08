@@ -83,16 +83,16 @@ public class WorldsTest {
   public void testCreateFromInvalidTemplate() throws Exception {
     when(clientFactory.clientNameAttribute()).thenReturn(ClientFactory.CLIENT_NAME_ATTRIBUTE);
     session.setAttribute(ClientFactory.CLIENT_NAME_ATTRIBUTE, "testUser");
-    when(manager.getClientByName(any(String.class))).thenReturn(new Client("testUser"));
+    when(manager.getClientByName(any(String.class))).thenReturn(new Client("1", "testUser"));
 
-    mockMvc.perform(
-        post(ENDPOINT + "/create").param("worldName", "test").param("templateWorldName", "whatever").session(session))
+    mockMvc
+        .perform(post(ENDPOINT + "/create").param("worldName", "test").param("templateWorldName", "whatever").session(session))
         .andExpect(status().isPreconditionRequired());
   }
 
   @Test
   public void testCreateValid() throws Exception {
-    Client client = new Client("testUser");
+    Client client = new Client("1", "testUser");
 
     when(clientFactory.clientNameAttribute()).thenReturn(ClientFactory.CLIENT_NAME_ATTRIBUTE);
     session.setAttribute(ClientFactory.CLIENT_NAME_ATTRIBUTE, "testUser");

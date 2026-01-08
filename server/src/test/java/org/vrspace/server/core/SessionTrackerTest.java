@@ -19,7 +19,7 @@ public class SessionTrackerTest {
     ServerConfig config = new ServerConfig();
     config.setMaxSessions(100);
     SessionTracker tracker = new SessionTracker(config);
-    tracker.addSession(new Client(1L));
+    tracker.addSession(new Client("1", "test"));
   }
 
   @Test
@@ -27,7 +27,7 @@ public class SessionTrackerTest {
     ServerConfig config = new ServerConfig();
     config.setMaxSessions(0);
     SessionTracker tracker = new SessionTracker(config);
-    tracker.addSession(new Client(1L));
+    tracker.addSession(new Client("1", "test"));
   }
 
   @Test
@@ -35,7 +35,7 @@ public class SessionTrackerTest {
     ServerConfig config = new ServerConfig();
     SessionTracker tracker = new SessionTracker(config);
     // test default, whatever that is
-    Client client = new Client(1L);
+    Client client = new Client("1", "test");
     tracker.addSession(client);
     tracker.remove(client);
     // test 0

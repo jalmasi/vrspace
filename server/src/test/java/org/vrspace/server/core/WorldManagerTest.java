@@ -82,7 +82,7 @@ public class WorldManagerTest {
   private ArgumentCaptor<World> capturedWorld;
 
   private Client mockGuestSession(String clientName, ConcurrentWebSocketSessionDecorator s) {
-    Client client = new Client(clientName);
+    Client client = new Client(clientName, clientName);
     client.setSession(s);
     client.setMapper(objectMapper);
     client.setPrivateMapper(privateMapper);

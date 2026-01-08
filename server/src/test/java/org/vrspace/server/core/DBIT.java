@@ -437,8 +437,8 @@ public class DBIT {
   @Test
   @Transactional
   public void testUniqueIndex() throws Exception {
-    repo.save(new Client("test"));
-    assertThrows(DataIntegrityViolationException.class, () -> repo.save(new Client("test")));
+    repo.save(new Client("1", "test"));
+    assertThrows(DataIntegrityViolationException.class, () -> repo.save(new Client("2", "test")));
   }
 
   @Test
@@ -578,7 +578,7 @@ public class DBIT {
     World w1 = repo.save(new World("one"));
     World w2 = repo.save(new World("two"));
     repo.save(new VRObject());
-    repo.save(new Client("aClient"));
+    repo.save(new Client("1", "aClient"));
     List<World> worlds = repo.listWorlds();
     assertEquals(3, worlds.size());
     assertTrue(worlds.contains(w1));

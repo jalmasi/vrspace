@@ -117,15 +117,10 @@ public class Client extends VRObject {
   }
 
   // used in tests
-  public Client(Long id) {
-    this();
-    this.setId(id.toString());
-  }
-
-  // used in tests
-  public Client(String name) {
-    this();
-    this.name = name;
+  public Client(String id, String name) {
+    super();
+    this.setId(id);
+    this.setName(name);
   }
 
   public Client(ConcurrentWebSocketSessionDecorator session) {

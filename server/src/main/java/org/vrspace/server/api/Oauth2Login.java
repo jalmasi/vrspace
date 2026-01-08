@@ -71,8 +71,8 @@ public class Oauth2Login extends ApiBase {
     }
     Map<String, String> oauth2AuthenticationUrls = new HashMap<>();
 
-    clientRegistrations.forEach(
-        registration -> oauth2AuthenticationUrls.put(registration.getRegistrationId(), registration.getClientName()));
+    clientRegistrations
+        .forEach(registration -> oauth2AuthenticationUrls.put(registration.getRegistrationId(), registration.getClientName()));
     return oauth2AuthenticationUrls;
 
   }
@@ -142,7 +142,8 @@ public class Oauth2Login extends ApiBase {
       }
     } else {
       log.debug("Welcome new user: " + name);
-      client = new User(name);
+      client = new User();
+      client.setName(name);
       client.setMesh(avatar);
       client.setIdentity(identity);
       client.setPicture(getPicture(provider, token));

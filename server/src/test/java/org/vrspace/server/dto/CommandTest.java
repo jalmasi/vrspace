@@ -51,7 +51,7 @@ public class CommandTest {
 
   private ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-  private Client client = new Client(1L);
+  private Client client = new Client("1", "test");
 
   @BeforeEach
   public void setUp() throws Exception {

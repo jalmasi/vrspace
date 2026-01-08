@@ -61,6 +61,7 @@ public class SceneTest {
     lenient().when(client.getPosition()).thenReturn(pos);
     lenient().when(world.getRange(any(Client.class), any(Point.class), any(Point.class))).thenReturn(transforms);
     lenient().when(world.getPermanents(any(Client.class))).thenReturn(permanents);
+    lenient().when(client.getObjectId()).thenReturn(new ID("listener", "listener"));
 
     lenient().doNothing().when(client).sendMessage(message.capture());
   }

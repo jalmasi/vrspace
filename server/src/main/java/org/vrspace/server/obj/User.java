@@ -52,10 +52,6 @@ public class User extends Client {
   @Private
   transient private String oauth2provider;
 
-  public User(String name) {
-    super(name);
-  }
-
   @Override
   public int createScene(WorldManager wm) {
     // create scene, TODO: scene filters

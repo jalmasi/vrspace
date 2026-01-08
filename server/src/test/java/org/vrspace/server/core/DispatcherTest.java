@@ -3,6 +3,7 @@ package org.vrspace.server.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -21,6 +22,7 @@ import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Point;
 import org.vrspace.server.obj.VRObject;
+import org.vrspace.server.types.ID;
 import org.vrspace.server.types.Owned;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,6 +49,7 @@ public class DispatcherTest {
     ObjectMapper privateMapper = mapper.copy();
     privateMapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
     dispatcher = new Dispatcher(privateMapper);
+    lenient().when(listener.getObjectId()).thenReturn(new ID("listener", "listener"));
   }
 
   @Test
@@ -124,8 +127,7 @@ public class DispatcherTest {
 
   @Test
   public void testPrivate() throws Exception {
-    Client c = new Client();
-    c.setName("client 1");
+    Client c = new Client("1", "client 1");
     c.setSceneProperties(new SceneProperties());
     c.getSceneProperties().setRange(200);
     printJson(c);
@@ -169,8 +171,8 @@ public class DispatcherTest {
 
   @Test
   public void testOwnedClass() throws Exception {
-    Client c1 = new Client(1L);
-    Client c2 = new Client(2L);
+    Client c1 = new Client("1", "test1");
+    Client c2 = new Client("2", "test2");
     // one client can't change properties of other client
     String payload = "{\"object\":{\"Client\":2},\"changes\":{\"name\":\"client 2\"}}";
     printJson(c2);
@@ -190,7 +192,7 @@ public class DispatcherTest {
       @Owned
       private String something;
     };
-    Client c = new Client(1L);
+    Client c = new Client("1", "test");
     String payload = "{\"object\":{\"VRObject\":2},\"changes\":{\"something\":\"else\"}}";
     printJson(c);
     System.err.println(payload);

@@ -47,9 +47,9 @@ public class GroupManagerTest {
   // too complicated to set up in integration test
   @Test
   public void testWrite() {
-    Client c1 = spy(new Client(1L));
-    Client c2 = spy(new Client(2L));
-    Client c3 = spy(new Client(3L));
+    Client c1 = spy(new Client("1", "test1"));
+    Client c2 = spy(new Client("2", "test2"));
+    Client c3 = spy(new Client("3", "test3"));
     c1.active();
     c2.active();
     c3.passive();
@@ -78,7 +78,7 @@ public class GroupManagerTest {
     verify(c2, times(1)).sendMessage(any());
     verify(c3, times(0)).sendMessage(any());
 
-    assertThrows(SecurityException.class, () -> gm.write(new Client(4L), g1, "Hello world"));
+    assertThrows(SecurityException.class, () -> gm.write(new Client("4", "test4"), g1, "Hello world"));
 
   }
 }
