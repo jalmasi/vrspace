@@ -77,7 +77,7 @@ export class User {
         this.mesh = undefined;
 
         /** script 
-         * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
+         * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
          * @type {String} 
          */
         this.script = undefined;
@@ -118,11 +118,11 @@ export class User {
          */
         this.oauth2provider = undefined;
 
-        /** leftArmPos 
-         * Left arm position, used in VR. Transient biometric data.
+        /** rightArmPos 
+         * Right arm position, used in VR. Transient biometric data.
          * @type {Point} 
          */
-        this.leftArmPos = undefined;
+        this.rightArmPos = undefined;
 
         /** leftArmRot 
          * Left arm rotation, used in VR. Transient biometric data.
@@ -130,11 +130,11 @@ export class User {
          */
         this.leftArmRot = undefined;
 
-        /** rightArmPos 
-         * Right arm position, used in VR. Transient biometric data.
+        /** leftArmPos 
+         * Left arm position, used in VR. Transient biometric data.
          * @type {Point} 
          */
-        this.rightArmPos = undefined;
+        this.leftArmPos = undefined;
 
         /** rightArmRot 
          * Right arm rotation, used in VR. Transient biometric data.
@@ -147,29 +147,29 @@ export class User {
          */
         this.sceneProperties = undefined;
 
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} 
-         */
-        this.tokens = undefined;
-
         /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
          * @type {Number} 
          */
         this.userHeight = undefined;
 
-        /** temporary 
-         * Temporary objects will be deleted from the database along with their owner
-         * @type {Boolean} 
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
          */
-        this.temporary = undefined;
+        this.tokens = undefined;
 
         /** properties 
          * Custom transient object properties
          * @type {Object.<String, Object>} 
          */
         this.properties = undefined;
+
+        /** temporary 
+         * Temporary objects will be deleted from the database along with their owner
+         * @type {Boolean} 
+         */
+        this.temporary = undefined;
         
         
         
@@ -241,14 +241,14 @@ export class User {
             if (data.hasOwnProperty('oauth2provider')) {
                 obj['oauth2provider'] = ApiClient.convertToType(data['oauth2provider'], 'String');
             }
-            if (data.hasOwnProperty('leftArmPos')) {
-                obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
+            if (data.hasOwnProperty('rightArmPos')) {
+                obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
             }
             if (data.hasOwnProperty('leftArmRot')) {
                 obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
             }
-            if (data.hasOwnProperty('rightArmPos')) {
-                obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
+            if (data.hasOwnProperty('leftArmPos')) {
+                obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
             }
             if (data.hasOwnProperty('rightArmRot')) {
                 obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
@@ -256,17 +256,17 @@ export class User {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('temporary')) {
-                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            }
+            if (data.hasOwnProperty('temporary')) {
+                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
             }
         }
         return obj;
@@ -328,17 +328,17 @@ export class User {
         if (data['oauth2provider'] && !(typeof data['oauth2provider'] === 'string' || data['oauth2provider'] instanceof String)) {
             throw new Error("Expected the field `oauth2provider` to be a primitive type in the JSON string but got " + data['oauth2provider']);
         }
-        // validate the optional field `leftArmPos`
-        if (data['leftArmPos']) { // data not null
-          Point.validateJSON(data['leftArmPos']);
+        // validate the optional field `rightArmPos`
+        if (data['rightArmPos']) { // data not null
+          Point.validateJSON(data['rightArmPos']);
         }
         // validate the optional field `leftArmRot`
         if (data['leftArmRot']) { // data not null
           Quaternion.validateJSON(data['leftArmRot']);
         }
-        // validate the optional field `rightArmPos`
-        if (data['rightArmPos']) { // data not null
-          Point.validateJSON(data['rightArmPos']);
+        // validate the optional field `leftArmPos`
+        if (data['leftArmPos']) { // data not null
+          Point.validateJSON(data['leftArmPos']);
         }
         // validate the optional field `rightArmRot`
         if (data['rightArmRot']) { // data not null

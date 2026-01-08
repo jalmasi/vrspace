@@ -74,15 +74,15 @@ export class VRObject {
          */
         this.animation = undefined;
 
-        /** temporary 
-         * @type {Boolean} 
-         */
-        this.temporary = undefined;
-
         /** properties 
          * @type {Object.<String, Object>} 
          */
         this.properties = undefined;
+
+        /** temporary 
+         * @type {Boolean} 
+         */
+        this.temporary = undefined;
         
         
         
@@ -136,11 +136,11 @@ export class VRObject {
             if (data.hasOwnProperty('animation')) {
                 obj['animation'] = Animation.constructFromObject(data['animation']);
             }
-            if (data.hasOwnProperty('temporary')) {
-                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
-            }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            }
+            if (data.hasOwnProperty('temporary')) {
+                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
             }
         }
         return obj;

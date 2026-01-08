@@ -28,7 +28,6 @@ export class CreateWorldOptions {
         
         
         /** worldName 
-         * World name of created world, must be unique, required
          * @type {String} 
          */
         this.worldName = undefined;
@@ -40,7 +39,7 @@ export class CreateWorldOptions {
         this.templateName = undefined;
 
         /** token 
-         * Optional UUID used as world token, required to enter private worlds, defaults   to a random UUID
+         * Optional UUID used as world token, required to enter private worlds, defaults  to a random UUID
          * @type {String} 
          */
         this.token = undefined;

@@ -26,7 +26,7 @@ import { VRObject } from './VRObject.js';
 export class Client {
     /**
      * Constructs a new <code>Client</code>.
-     * Basic client class, adds user-related properties and business logic to   VRObject.
+     * Basic client class, adds user-related properties and business logic to  VRObject.
      * @alias Client
      */
     constructor() { 
@@ -77,7 +77,7 @@ export class Client {
         this.mesh = undefined;
 
         /** script 
-         * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
+         * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
          * @type {String} 
          */
         this.script = undefined;
@@ -105,29 +105,29 @@ export class Client {
          */
         this.sceneProperties = undefined;
 
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
-         * @type {Object.<String, String>} 
-         */
-        this.tokens = undefined;
-
         /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
          * @type {Number} 
          */
         this.userHeight = undefined;
 
-        /** temporary 
-         * Temporary objects will be deleted from the database along with their owner
-         * @type {Boolean} 
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * @type {Object.<String, String>} 
          */
-        this.temporary = undefined;
+        this.tokens = undefined;
 
         /** properties 
          * Custom transient object properties
          * @type {Object.<String, Object>} 
          */
         this.properties = undefined;
+
+        /** temporary 
+         * Temporary objects will be deleted from the database along with their owner
+         * @type {Boolean} 
+         */
+        this.temporary = undefined;
         
         
         
@@ -193,17 +193,17 @@ export class Client {
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
             }
-            if (data.hasOwnProperty('temporary')) {
-                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
+            }
+            if (data.hasOwnProperty('temporary')) {
+                obj['temporary'] = ApiClient.convertToType(data['temporary'], 'Boolean');
             }
         }
         return obj;
