@@ -114,7 +114,7 @@ export class EventRouter {
     } else if (obj.instantiatedEntries) {
       return obj.instantiatedEntries.rootNodes[0];
     }
-    console.log("ERROR: unknown root for " + obj);
+    console.error("ERROR: unknown root for " + obj, obj);
   }
   
   /**

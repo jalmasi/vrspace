@@ -68,7 +68,7 @@ public class Scene {
   public void loadPermanents() {
     this.permanents = world.getPermanents(client);
     // listen to changes to all permanent active objects
-    this.permanents.stream().filter(p -> p.isActive()).forEach(p -> p.addListener(client));
+    this.permanents.stream().forEach(p -> addPermanent(p));
   }
 
   /**

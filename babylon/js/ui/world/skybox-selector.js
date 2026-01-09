@@ -22,6 +22,8 @@ export class SkyboxSelector {
       let obj = await this.world.worldManager.VRSPACE.createSharedObject(object, "Background");
       console.log("Created new Skybox", obj);
       World.lastInstance.sharedSkybox = obj;
+    } else {
+      this.world.worldManager.VRSPACE.sendCommand("Activate", {className:"Background", id:World.lastInstance.sharedSkybox.id, active:true});
     }
   }
 
@@ -91,6 +93,7 @@ export class SkyboxSelector {
       this.panel.dispose();      
     }
     this.boxes = [];
+    this.world.worldManager.VRSPACE.sendCommand("Activate", {className:"Background", id:World.lastInstance.sharedSkybox.id, active:false});
   }
 
   dispose() {
