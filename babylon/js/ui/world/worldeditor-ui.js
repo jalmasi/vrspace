@@ -7,6 +7,8 @@ import { SkyboxSelector } from './skybox-selector.js';
 import { GroundGrid } from './ground-grid.js'
 
 export class WorldEditorUI {
+  /** @type {GroundGrid} */
+  groundGrid = null;
   constructor(scene) {
     this.scene = scene;
     this.hud = VRSPACEUI.hud;
@@ -25,19 +27,17 @@ export class WorldEditorUI {
     this.terrainEditor = null;
     /** @type {SkyboxSelector} */
     this.skyboxSelector = null;
-    /** @type {GroundGrid} */
-    this.groundGrid = null;
     this.editing = false;
   }
-  
+
   show(button) {
     VRSPACEUI.hud.showButtons(false, button);
     VRSPACEUI.hud.newRow();
-    
-    this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase+"/content/icons/world.png", (b,i)=>this.editWorld(b,i), false);
-    this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase+"/content/icons/terrain.png", (b,i)=>this.editTerrain(b,i), false);
-    this.skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase+"/content/icons/sky.png", (b,i)=>this.editSkybox(b,i), false);
-    this.gridButton = VRSPACEUI.hud.addButton("Grid", this.contentBase+"/content/icons/grid.png", (b,i)=>this.showGrid(b,i), false);
+
+    this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase + "/content/icons/world.png", (b, i) => this.editWorld(b, i), false);
+    this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase + "/content/icons/terrain.png", (b, i) => this.editTerrain(b, i), false);
+    this.skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase + "/content/icons/sky.png", (b, i) => this.editSkybox(b, i), false);
+    this.gridButton = VRSPACEUI.hud.addButton("Grid", this.contentBase + "/content/icons/grid.png", (b, i) => this.showGrid(b, i), false);
     if (!World.lastInstance.terrain || World.lastInstance.inAR) {
       this.hud.markDisabled(this.terrainEdit);
     }
@@ -46,10 +46,13 @@ export class WorldEditorUI {
     } else {
       this.skyboxSelector = new SkyboxSelector(World.lastInstance);
     }
-    
+
+    if (WorldEditorUI.groundGrid) {
+      this.hud.markActive(this.gridButton);
+    }
     VRSPACEUI.hud.enableSpeech(true);
   }
-  
+
   hide() {
     VRSPACEUI.hud.clearRow();
     VRSPACEUI.hud.showButtons(true);
@@ -60,30 +63,27 @@ export class WorldEditorUI {
     this.worldEdit.dispose();
     this.terrainEdit.dispose();
     this.skyboxEdit.dispose();
-    if ( this.worldEditor ) {
+    if (this.worldEditor) {
       this.worldEditor.dispose();
     }
-    if ( this.terrainEditor ) {
-      this.terrainEditor.dispose();      
+    if (this.terrainEditor) {
+      this.terrainEditor.dispose();
     }
-    if ( this.skyboxSelector ) {
+    if (this.skyboxSelector) {
       this.skyboxSelector.dispose();
     }
-    if ( this.groundGrid ) {
-      this.groundGrid.dispose();
-    }
   }
-  
+
   editWorld(button, vector3WithInfo) {
     this.editing = !this.editing;
-    console.log("World editor active:"+this.editing);
-    if ( this.editing ) {
+    console.log("World editor active:" + this.editing);
+    if (this.editing) {
       VRSPACEUI.hud.showButtons(!this.editing, button);
       VRSPACEUI.hud.newRow();
       this.worldEditor = new WorldEditor(World.lastInstance, this.fileInputElement);
     } else {
       //while ( VRSPACEUI.hud.rows.length > 1 ) {
-        VRSPACEUI.hud.clearRow();
+      VRSPACEUI.hud.clearRow();
       //}
       this.worldEditor.dispose();
       VRSPACEUI.hud.showButtons(!this.editing, button);
@@ -92,9 +92,9 @@ export class WorldEditorUI {
 
   editTerrain(button, vector3WithInfo) {
     this.editing = !this.editing;
-    console.log("Terrain editor active:"+this.editing);
-    if ( this.editing ) {
-      this.terrainEditor = new TerrainEditor(World.lastInstance);      
+    console.log("Terrain editor active:" + this.editing);
+    if (this.editing) {
+      this.terrainEditor = new TerrainEditor(World.lastInstance);
       World.lastInstance.terrain.mesh().setEnabled(true);
       VRSPACEUI.hud.showButtons(!this.editing, button);
       VRSPACEUI.hud.newRow();
@@ -106,14 +106,14 @@ export class WorldEditorUI {
       this.terrainEditor.dispose();
       VRSPACEUI.hud.showButtons(!this.editing, button);
       // ground is not selectable while editing terrain, but otherwise must be to allow teleportation
-      World.lastInstance.enableFloorSelection(true);      
+      World.lastInstance.enableFloorSelection(true);
     }
   }
 
   editSkybox(button, vector3WithInfo) {
     this.editing = !this.editing;
-    console.log("Skybox editor active:"+this.editing);
-    if ( this.editing ) {
+    console.log("Skybox editor active:" + this.editing);
+    if (this.editing) {
       VRSPACEUI.hud.showButtons(!this.editing, button);
       VRSPACEUI.hud.newRow();
       this.skyboxSelector.show();
@@ -124,16 +124,16 @@ export class WorldEditorUI {
       VRSPACEUI.hud.showButtons(!this.editing, button);
     }
   }
- 
+
   showGrid(button) {
-    if ( this.groundGrid ) {
-      this.groundGrid.hide();
-      this.groundGrid = null;
+    if (WorldEditorUI.groundGrid) {
+      WorldEditorUI.groundGrid.hide();
+      WorldEditorUI.groundGrid = null;
       this.hud.markEnabled(this.gridButton);
     } else {
-      this.groundGrid = new GroundGrid(World.lastInstance);
-      this.groundGrid.show();
+      WorldEditorUI.groundGrid = new GroundGrid(World.lastInstance);
+      WorldEditorUI.groundGrid.show();
       this.hud.markActive(this.gridButton);
     }
-  } 
+  }
 }

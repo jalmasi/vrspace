@@ -15,6 +15,7 @@ export class Skybox {
     this.environmentIntensity = environmentIntensity;
     this.rotation = new BABYLON.Vector3(0,0,0);
     this.infiniteDistance = true;
+    this.skybox = null;
   }
   /**
    * Create a skybox
@@ -89,6 +90,7 @@ export class Skybox {
     World.lastInstance.skyBox.dir = change.texture;
     World.lastInstance.skyBox.dispose();
     World.lastInstance.skyBox.create();
+    World.lastInstance.sharedSkybox.rootMesh = this.skybox;
     // TODO
   }
  

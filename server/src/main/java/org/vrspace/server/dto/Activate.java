@@ -28,6 +28,9 @@ public class Activate implements Command {
     }
     ID activated = new ID(className, id);
     VRObject obj = client.getScene().get(activated);
+    if (obj == null) {
+      throw new IllegalArgumentException("Object not in scene: " + className + " " + id);
+    }
     // check permissions, distribute the event, persist
     // the event is only distributed if object is currently active
     VREvent evt = new VREvent(obj, client);

@@ -202,6 +202,7 @@ export class Terrain extends WorldListener {
   setSharedTerrain(obj) {
     this.sharedTerrain = obj;
     World.lastInstance.sharedTerrain = obj;
+    obj.rootMesh = this.mesh();
     // TODO this should not be required, just route events to terrain object
     obj.addListener((obj,change)=>this.terrainChanged(change));
     if ( obj.points ) {

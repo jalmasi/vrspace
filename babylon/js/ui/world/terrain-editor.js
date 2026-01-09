@@ -35,7 +35,7 @@ export class TerrainEditor {
         World.lastInstance.sharedTerrain = obj;
       });
     } else {
-      this.world.worldManager.VRSPACE.sendCommand("Activate", {className:"Terrain", id:World.lastInstance.sharedTerrain.id, active:true});
+      this.world.worldManager.VRSPACE.sendCommand("Activate", { className: "Terrain", id: World.lastInstance.sharedTerrain.id, active: true });
     }
   }
 
@@ -121,7 +121,7 @@ export class TerrainEditor {
     });
 
     VRSPACEUI.hud.enableSpeech(true);
-    
+
   }
 
   enableMovement(enable) {
@@ -163,7 +163,9 @@ export class TerrainEditor {
   }
 
   dispose() {
-    this.world.worldManager.VRSPACE.sendCommand("Activate", {className:"Terrain", id:World.lastInstance.sharedTerrain.id, active:false});
+    if (World.lastInstance.sharedTerrain) {
+      this.world.worldManager.VRSPACE.sendCommand("Activate", { className: "Terrain", id: World.lastInstance.sharedTerrain.id, active: false });
+    }
     this.world.removeSelectionPredicate(this.selectionPredicate);
     this.world.removeListener(this);
     this.terrain.terrainMaterial.wireframe = false;

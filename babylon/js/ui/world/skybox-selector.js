@@ -14,7 +14,7 @@ export class SkyboxSelector {
   }
 
   async createSharedSkybox() {
-    if ( ! World.lastInstance.sharedSkybox ) {
+    if (!World.lastInstance.sharedSkybox) {
       var object = {
         permanent: true,
         active: true
@@ -23,7 +23,7 @@ export class SkyboxSelector {
       console.log("Created new Skybox", obj);
       World.lastInstance.sharedSkybox = obj;
     } else {
-      this.world.worldManager.VRSPACE.sendCommand("Activate", {className:"Background", id:World.lastInstance.sharedSkybox.id, active:true});
+      this.world.worldManager.VRSPACE.sendCommand("Activate", { className: "Background", id: World.lastInstance.sharedSkybox.id, active: true });
     }
   }
 
@@ -89,11 +89,13 @@ export class SkyboxSelector {
   }
 
   hide() {
-    if ( this.panel ) {
-      this.panel.dispose();      
+    if (this.panel) {
+      this.panel.dispose();
     }
     this.boxes = [];
-    this.world.worldManager.VRSPACE.sendCommand("Activate", {className:"Background", id:World.lastInstance.sharedSkybox.id, active:false});
+    if (World.lastInstance.sharedSkybox) {
+      this.world.worldManager.VRSPACE.sendCommand("Activate", { className: "Background", id: World.lastInstance.sharedSkybox.id, active: false });
+    }
   }
 
   dispose() {

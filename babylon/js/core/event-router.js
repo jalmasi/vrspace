@@ -113,6 +113,8 @@ export class EventRouter {
       return obj.container.meshes[0];
     } else if (obj.instantiatedEntries) {
       return obj.instantiatedEntries.rootNodes[0];
+    } else if (obj.rootMesh) {
+      return obj.rootMesh;
     }
     console.error("ERROR: unknown root for " + obj, obj);
   }
