@@ -3,14 +3,7 @@ package org.vrspace.server.api;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Path;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,15 +25,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-import org.vrspace.server.api.sketchfab.AuthResponse;
-import org.vrspace.server.api.sketchfab.DownloadResponse;
-import org.vrspace.server.api.sketchfab.FileInfo;
-import org.vrspace.server.api.sketchfab.ModelSearchRequest;
-import org.vrspace.server.api.sketchfab.ModelSearchResponse;
+import org.vrspace.server.connect.SketchfabConnector;
+import org.vrspace.server.connect.sketchfab.AuthResponse;
+import org.vrspace.server.connect.sketchfab.DownloadResponse;
+import org.vrspace.server.connect.sketchfab.FileInfo;
+import org.vrspace.server.connect.sketchfab.ModelSearchRequest;
+import org.vrspace.server.connect.sketchfab.ModelSearchResponse;
 import org.vrspace.server.core.ClassUtil;
 import org.vrspace.server.core.FileUtil;
 import org.vrspace.server.core.VRObjectRepository;
-import org.vrspace.server.obj.ContentCategory;
 import org.vrspace.server.obj.GltfModel;
 
 import com.fasterxml.jackson.core.JacksonException;
@@ -73,12 +66,11 @@ import lombok.extern.slf4j.Slf4j;
 public class Sketchfab extends ApiBase {
   public static final String PATH = API_ROOT + "/sketchfab";
   @Autowired
-  ObjectMapper objectMapper;
+  private ObjectMapper objectMapper;
   @Autowired
-  VRObjectRepository db;
-
-  private final String loginUrl = "https://sketchfab.com/oauth2/token/";
-  private final String searchUrl = "https://api.sketchfab.com/v3/search";
+  private VRObjectRepository db;
+  @Autowired
+  private SketchfabConnector connector;
 
   @Value("${sketchfab.clientId:none}")
   private String clientId;
@@ -111,8 +103,8 @@ public class Sketchfab extends ApiBase {
   public LoginResponse sketchfabLogin(HttpServletRequest request) {
     this.referrer = request.getHeader(HttpHeaders.REFERER);
     // CHECKME: return entire url or better structured response?
-    LoginResponse ret = new LoginResponse("https://sketchfab.com/oauth2/authorize/?response_type=code&client_id="
-        + clientId + "&redirect_uri=" + redirectUri);
+    LoginResponse ret = new LoginResponse(
+        "https://sketchfab.com/oauth2/authorize/?response_type=code&client_id=" + clientId + "&redirect_uri=" + redirectUri);
     return ret;
   }
 
@@ -140,7 +132,7 @@ public class Sketchfab extends ApiBase {
 
     RestTemplate restTemplate = new RestTemplate();
     // TODO handle thrown exceptions - 401 unauthorised
-    ResponseEntity<AuthResponse> response = restTemplate.postForEntity(loginUrl, request, AuthResponse.class);
+    ResponseEntity<AuthResponse> response = restTemplate.postForEntity(connector.loginUrl, request, AuthResponse.class);
     log.debug("Login response: " + response);
 
     AuthResponse auth = response.getBody();
@@ -170,7 +162,8 @@ public class Sketchfab extends ApiBase {
     map.add("refresh_token", refreshToken);
 
     RestTemplate restTemplate = new RestTemplate();
-    ResponseEntity<AuthResponse> response = restTemplate.postForEntity(loginUrl, authRequest(map), AuthResponse.class);
+    ResponseEntity<AuthResponse> response = restTemplate.postForEntity(connector.loginUrl, authRequest(map),
+        AuthResponse.class);
     log.debug("Refresh response: " + response);
     return response.getBody();
   }
@@ -186,17 +179,8 @@ public class Sketchfab extends ApiBase {
    */
   @PostMapping("/search")
   public ResponseEntity<ModelSearchResponse> searchModels(@RequestBody ModelSearchRequest params) {
-    HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL)
-        .connectTimeout(Duration.of(10, ChronoUnit.SECONDS)).build();
     try {
-      HttpRequest request = HttpRequest.newBuilder(params.toURI(searchUrl)).timeout(Duration.of(10, ChronoUnit.SECONDS))
-          .GET().build();
-
-      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-      String body = response.body();
-      // log.debug("Sketchfab response: code=" + response.statusCode() + " body=" +
-      // body);
-      ModelSearchResponse ret = objectMapper.readValue(body, ModelSearchResponse.class);
+      ModelSearchResponse ret = connector.searchModels(params);
       return ResponseEntity.ofNullable(ret);
     } catch (JacksonException e) {
       log.error("Internal error", e);
@@ -233,18 +217,16 @@ public class Sketchfab extends ApiBase {
       return new ResponseEntity<GltfModel>(HttpStatus.UNAUTHORIZED);
     }
 
-    GltfModel model;
     Optional<GltfModel> existing = db.findGltfModelByUid(uid);
     if (existing.isPresent()) {
-      model = existing.get();
-      log.warn("Model already already exists: " + existing.get().getId());
+      GltfModel model = existing.get();
       File modelFile = new File(
           ClassUtil.projectHomeDirectory() + "/content/" + model.mainCategory() + "/" + model.getFileName());
       if (modelFile.exists()) {
-        log.warn("Model directory also exists, exiting: " + modelFile);
+        log.debug("Model directory already exists, skipping download: " + modelFile);
         return new ResponseEntity<GltfModel>(model, HttpStatus.OK);
       } else {
-        log.warn("Model directory does not exist, downloading again");
+        log.debug("Model directory does not exist, downloading");
       }
     }
 
@@ -254,17 +236,19 @@ public class Sketchfab extends ApiBase {
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(token);
     HttpEntity<DownloadResponse> entity = new HttpEntity<DownloadResponse>(headers);
-    ResponseEntity<DownloadResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity,
-        DownloadResponse.class);
+    ResponseEntity<DownloadResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, DownloadResponse.class);
     log.debug("Download response: " + response);
     FileInfo gltf = response.getBody().getGltf();
 
     try {
-      // get metadata - categories and stuff
-      model = modelInfo(uid);
+      GltfModel model;
+      // get metadata if not already present - categories and stuff
       if (existing.isPresent()) {
-        model.setId(existing.get().getId());
-        log.warn("Overriding existing model data " + model.getId());
+        // model.setId(existing.get().getId());
+        // log.warn("Overriding existing model data " + model.getId());
+        model = existing.get();
+      } else {
+        model = modelInfo(uid);
       }
       String category = model.mainCategory();
 
@@ -277,6 +261,7 @@ public class Sketchfab extends ApiBase {
       // CHECKME: what else we need to clear out?
       modelName = modelName.replaceAll("\\.", "");
       // destination directory
+      // TODO sanitize directory and file name
       File modelDir = new File(FileUtil.contentDir() + "/" + category + "/" + modelName);
       if (modelDir.exists()) {
         log.warn("Destination directory already exists, download skipped: " + modelDir);
@@ -301,6 +286,7 @@ public class Sketchfab extends ApiBase {
     }
   }
 
+  // this is called ONLY when GltfFile does not exist before download
   private GltfModel modelInfo(String uid) throws JsonMappingException, JsonProcessingException {
     GltfModel ret = new GltfModel();
 
@@ -321,14 +307,7 @@ public class Sketchfab extends ApiBase {
     for (Map<?, ?> category : categories) {
       log.debug("Category: " + category.get("slug") + " " + category.get("name"));
       String catName = (String) category.get("slug");
-      Optional<ContentCategory> oCat = db.findContentCategoryByName(catName);
-      if (oCat.isPresent()) {
-        ret.getCategories().add(oCat.get());
-      } else {
-        ContentCategory cat = new ContentCategory(catName);
-        cat = db.save(cat);
-        ret.getCategories().add(cat);
-      }
+      ret.getCategories().add(connector.updateCategory(catName));
     }
 
     return ret;

@@ -1,4 +1,4 @@
-package org.vrspace.server.api.sketchfab;
+package org.vrspace.server.connect.sketchfab;
 
 import java.lang.reflect.Field;
 import java.net.URI;

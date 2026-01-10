@@ -102,8 +102,7 @@ public class NeoConfig {
 
     // and now indexes
     graphDb.executeTransactionally("CREATE CONSTRAINT worldName IF NOT EXISTS FOR (w:World) REQUIRE w.name IS UNIQUE");
-    graphDb
-        .executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS FOR (c:Client) REQUIRE c.name IS UNIQUE");
+    graphDb.executeTransactionally("CREATE CONSTRAINT clientName IF NOT EXISTS FOR (c:Client) REQUIRE c.name IS UNIQUE");
     graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.worldId)");
     graphDb.executeTransactionally("CREATE INDEX pointCoord IF NOT EXISTS FOR (p:Point) ON (p.x, p.y, p.z)");
     // only single property uniqueness constraints are supported with neo4j 4
@@ -113,6 +112,9 @@ public class NeoConfig {
     // (o:Ownership) ON (o.owner,o.owned)");
     graphDb.executeTransactionally(
         "CREATE INDEX messageTimestamp IF NOT EXISTS FOR (gm:GroupMessage) ON (gm.userGroup,gm.timestamp)");
+    graphDb.executeTransactionally("CREATE CONSTRAINT modelUid IF NOT EXISTS FOR (gm:GltfModel) REQUIRE (gm.uid) IS UNIQUE");
+    graphDb.executeTransactionally(
+        "CREATE CONSTRAINT categoryName IF NOT EXISTS FOR (cc:ContentCategory) REQUIRE (cc.name) IS UNIQUE");
   }
 
   @PreDestroy
