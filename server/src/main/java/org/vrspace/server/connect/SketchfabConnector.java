@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.vrspace.server.connect.sketchfab.ImageInfo;
 import org.vrspace.server.connect.sketchfab.ModelCategory;
+import org.vrspace.server.connect.sketchfab.ModelSearchList;
 import org.vrspace.server.connect.sketchfab.ModelSearchRequest;
 import org.vrspace.server.connect.sketchfab.ModelSearchResponse;
 import org.vrspace.server.core.VRObjectRepository;
@@ -33,6 +35,8 @@ public class SketchfabConnector {
   private ObjectMapper objectMapper;
   @Autowired
   private VRObjectRepository db;
+  @Autowired(required = false)
+  private OllamaConnector ollama;
 
   public final String loginUrl = "https://sketchfab.com/oauth2/token/";
   public final String searchUrl = "https://api.sketchfab.com/v3/search";
@@ -54,8 +58,8 @@ public class SketchfabConnector {
       modelInfo.setDescription(descriptionCleanup.matcher(modelInfo.getDescription()).replaceAll(" "));
 
       Optional<GltfModel> existing = db.findGltfModelByUid(modelInfo.getUid());
+      GltfModel model = new GltfModel();
       if (existing.isEmpty()) {
-        GltfModel model = new GltfModel();
         model.setAuthor(modelInfo.getUser().getUsername()); // CHECKME: or getDisplayName?
         model.setCategories(updateCategories(modelInfo.getCategories()));
         model.setDescription(modelInfo.getDescription());
@@ -64,14 +68,37 @@ public class SketchfabConnector {
         model.setName(modelInfo.getName()); // CHECKME: sanitize?
         model.setUid(modelInfo.getUid());
         model.setUri(modelInfo.getUri()); // CHECKME: getViewerUrl?
+        model.setProcessed(false);
         db.save(model);
         log.debug("Created new GltfFile " + model.getName() + " " + model.getDescription());
       } else {
         log.debug("Existing GltfFile " + modelInfo.getName() + " " + modelInfo.getDescription());
+        model = existing.get();
       }
-
+      postProcess(modelInfo, model);
     });
     return ret;
+  }
+
+  private void postProcess(ModelSearchList modelInfo, GltfModel model) {
+    if (ollama != null) {
+      ImageInfo chosen = null;
+      for (ImageInfo imageInfo : modelInfo.getThumbnails().getImages()) {
+        // we need at least 700x400 pixels for successful recognition
+        if ((imageInfo.getHeight() >= 700 && imageInfo.getWidth() >= 400
+            || imageInfo.getHeight() >= 400 && imageInfo.getWidth() >= 700)
+            && (chosen == null || imageInfo.getHeight() < chosen.getHeight() || imageInfo.getWidth() < chosen.getWidth())) {
+          chosen = imageInfo;
+        }
+      }
+      if (chosen == null || chosen.getHeight() < 400 || chosen.getWidth() < 400) {
+        log.error("Invalid thumbnail chosen:" + chosen + ", choices: " + modelInfo.getThumbnails());
+      } else {
+        log.debug("Chosen thumbnail: " + chosen);
+      }
+      model.setThumbnail(chosen.getUrl());
+      ollama.updateDescriptionFromThumbnail(model);
+    }
   }
 
   private List<ContentCategory> updateCategories(List<ModelCategory> categories) {
@@ -88,4 +115,5 @@ public class SketchfabConnector {
       return db.save(cc);
     }
   }
+
 }

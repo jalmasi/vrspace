@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.data.neo4j.core.schema.Node;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,9 +26,14 @@ public class GltfModel extends Content {
   private String name;
   private String description;
   private String license;
+  private String thumbnail;
   private String author;
   private List<ContentCategory> categories = new ArrayList<ContentCategory>();
   private String mesh;
+  @JsonIgnore
+  private Boolean processed;
+  @JsonIgnore
+  private Boolean failed;
 
   public GltfModel() {
     super();
