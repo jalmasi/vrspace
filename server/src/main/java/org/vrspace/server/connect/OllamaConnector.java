@@ -1,8 +1,11 @@
 package org.vrspace.server.connect;
 
 import java.net.MalformedURLException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.springframework.ai.chat.messages.UserMessage;
@@ -26,14 +29,18 @@ public class OllamaConnector {
   @Autowired
   private VRObjectRepository db;
 
-  private String visionModel = "granite3.2-vision";
+  private String visionModelName = "granite3.2-vision";
   private String visionPrompt = "describe this";
   private OllamaChatModel visionChatModel;
   private Pattern descriptionCleanup = Pattern
       .compile("The image (depicts|displays|shows|appears to be|features)\\s?|\\r?\\n| of the image", Pattern.CASE_INSENSITIVE);
   private Pattern fail = Pattern.compile("unanswerable", Pattern.CASE_INSENSITIVE);
 
+  private String toolsModelName = "mistral-nemo";
+  private OllamaChatModel toolsChatModel;
+
   private ExecutorService imageProcessing = Executors.newSingleThreadExecutor();
+  private LinkedBlockingQueue<Runnable> imageQueue = new LinkedBlockingQueue<>();
 
   public String describeImage(String url) {
     UserMessage userMessage;
@@ -52,7 +59,7 @@ public class OllamaConnector {
       log.error("Processing failed in " + time + "ms");
       return null;
     }
-    description = descriptionCleanup.matcher(description).replaceAll("");// .replaceAll("\\r?\\n", " ");
+    description = descriptionCleanup.matcher(description).replaceAll("");
     description = StringUtils.capitalize(description);
     int size = description.length();
     log.debug(time + "ms, " + size + ": " + description);
@@ -60,10 +67,10 @@ public class OllamaConnector {
   }
 
   public void updateDescriptionFromThumbnail(GltfModel model) {
-    imageProcessing.execute(() -> {
+    Runnable task = () -> {
       if (model.getProcessed() != null && model.getProcessed().booleanValue()) {
         // multiple search requests may enqueue the same model
-        log.debug("Already processed model skipped: " + model);
+        // log.debug("Already processed model skipped: " + model);
         return;
       }
       String description = this.describeImage(model.getThumbnail());
@@ -75,15 +82,48 @@ public class OllamaConnector {
       }
       model.setProcessed(true);
       db.save(model);
-    });
+    };
+    if (imageProcessing.isShutdown()) {
+      imageQueue.add(task);
+    } else {
+      imageProcessing.execute(task);
+    }
 
   }
 
-  private OllamaChatModel visionModel() {
+  public OllamaChatModel visionModel() {
     if (visionChatModel == null) {
       visionChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().build())
-          .defaultOptions(OllamaChatOptions.builder().model(visionModel).build()).build();
+          .defaultOptions(OllamaChatOptions.builder().model(visionModelName).build()).build();
     }
     return visionChatModel;
   }
+
+  public OllamaChatModel toolsModel() {
+    if (toolsChatModel == null) {
+      toolsChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().build())
+          .defaultOptions(OllamaChatOptions.builder()
+              // default numCtx is 2048, way too small
+              .numCtx(16384)
+              // .numCtx(32768) - too much
+              // etc
+              .model(toolsModelName).build())
+          .build();
+    }
+    return toolsChatModel;
+  }
+
+  public void stopImageProcessing(int millis) throws InterruptedException {
+    List<Runnable> tasks = imageProcessing.shutdownNow();
+    tasks.forEach(t -> imageQueue.add(t));
+    imageProcessing.awaitTermination(millis, TimeUnit.MILLISECONDS);
+  }
+
+  public void startImageProcessing() throws InterruptedException {
+    imageProcessing = Executors.newSingleThreadExecutor();
+    while (imageQueue.size() > 0) {
+      imageProcessing.execute(imageQueue.take());
+    }
+  }
+
 }

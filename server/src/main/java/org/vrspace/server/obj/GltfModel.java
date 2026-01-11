@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.data.neo4j.core.schema.Node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,6 +21,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@JsonInclude(Include.NON_EMPTY)
 @Node
 public class GltfModel extends Content {
   private String uid; // TODO: unique index

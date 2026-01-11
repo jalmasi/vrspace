@@ -1,0 +1,45 @@
+package org.vrspace.server.api;
+
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
+import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.vrspace.server.connect.ollama.SearchAgent;
+import org.vrspace.server.connect.ollama.SearchAgent.SearchAgentResponse;
+
+import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
+
+@RestController
+@RequestMapping(Agents.PATH)
+@Slf4j
+public class Agents extends ClientControllerBase {
+  public static final String PATH = API_ROOT + "/agents";
+  public static final String MEMORY_REPOSITORY_ATTRIBUTE = "memory-repository";
+  public static final String SEARCH_MEMORY_ATTRIBUTE = "search-memory";
+
+  @Autowired
+  private SearchAgent searchAgent;
+
+  @PostMapping("/search")
+  public SearchAgentResponse searchAgent(HttpSession session, @RequestBody String query) {
+    ChatMemory memory = (ChatMemory) session.getAttribute(SEARCH_MEMORY_ATTRIBUTE);
+    if (memory == null) {
+      memory = MessageWindowChatMemory.builder().maxMessages(10).chatMemoryRepository(repository(session)).build();
+    }
+    return searchAgent.query(query, memory);
+  }
+
+  private ChatMemoryRepository repository(HttpSession session) {
+    ChatMemoryRepository repository = (ChatMemoryRepository) session.getAttribute(MEMORY_REPOSITORY_ATTRIBUTE);
+    if (repository == null) {
+      repository = new InMemoryChatMemoryRepository();
+    }
+    return repository;
+  }
+}
