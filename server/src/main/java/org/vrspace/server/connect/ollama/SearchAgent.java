@@ -14,6 +14,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vrspace.server.connect.OllamaConnector;
@@ -38,12 +39,12 @@ public class SearchAgent {
   private VRObjectRepository db;
 
   private SystemMessage systemMessage = new SystemMessage("""
-          You are search engine for 3D models.
+          You are a search engine for 3D models.
           Analyze the user query, and search sketchfab by best keywords. Use singular rather than plural.
           Analyze description of each model found, and return UID for each model that match the user query.
       """);
   private Pattern answerPattern = Pattern.compile("(.*)\\n");
-  private Pattern answerCleanup = Pattern.compile("[^\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s:]|\\n");
+  private Pattern answerCleanup = Pattern.compile("[^\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s]|\\n");
   private Pattern uidPattern = Pattern.compile("([a-zA-Z0-9]{32})");
 
   @Data
@@ -55,24 +56,25 @@ public class SearchAgent {
     private boolean success = false;
   }
 
-  public SearchAgentResponse query(String query, ChatMemory memory) {
-    log.info("SearchAgent query " + query);
+  public SearchAgentResponse query(String query, ChatMemory memory, String conversationId) {
+    log.info("SearchAgent query: " + query);
     SearchAgentResponse ret = new SearchAgentResponse();
     try {
-      ollama.stopImageProcessing(5000);
+      ollama.stopImageProcessing(10000);
+      if (memory.get(conversationId).size() == 0) {
+        memory.add(conversationId, systemMessage);
+      }
+      memory.add(conversationId, new UserMessage(query));
+
       long time = System.currentTimeMillis();
-      Prompt prompt = Prompt.builder().messages(systemMessage, new UserMessage(query))
+      Prompt prompt = Prompt.builder().messages(memory.get(conversationId))
           .chatOptions(OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(this)).build()).build();
       ChatResponse response = ollama.toolsModel().call(prompt);
       time = System.currentTimeMillis() - time;
       log.debug("Response in " + time + " ms: " + response);
 
+      memory.add(conversationId, response.getResult().getOutput());
       String answer = response.getResult().getOutput().getText();
-
-      Matcher answerMatcher = answerPattern.matcher(answer);
-      if (answerMatcher.find()) {
-        ret.answer = answerCleanup.matcher(answerMatcher.group()).replaceAll("");
-      }
 
       Matcher uidMatcher = uidPattern.matcher(answer);
       time = System.currentTimeMillis();
@@ -89,17 +91,25 @@ public class SearchAgent {
       log.debug("Loaded " + ret.models.size() + " models in " + time + " ms");
 
       ret.size = ret.models.size();
-      ret.success = ret.size > 0;
+      ret.success = true;
+      ret.answer = answer;
+      if (ret.models.size() > 0) {
+        Matcher answerMatcher = answerPattern.matcher(answer);
+        if (answerMatcher.find()) {
+          ret.answer = answerCleanup.matcher(answerMatcher.group()).replaceAll("");
+        }
+      }
       ollama.startImageProcessing();
     } catch (Exception e) {
+      log.error("Failed to process query " + query, e);
       ret.answer = e.toString();
     }
     return ret;
   }
 
-  @Tool
-  public String sketchfabSearch(String keywords) {
-    log.info("SearchAgent search " + keywords);
+  @Tool(description = "Search sketchfab by kewords")
+  public String sketchfabSearch(@ToolParam(description = "Search keywords separated by space") String keywords) {
+    log.info("SearchAgent search: " + keywords);
     ModelSearchRequest req = new ModelSearchRequest();
     req.setQ(keywords);
     StringBuilder ret = new StringBuilder();
@@ -129,9 +139,10 @@ public class SearchAgent {
   }
 
   private String trimDescription(String description) {
-    if (description.length() > 1024) {
-      log.warn("TODO: description size " + description.length() + " " + description);
-    }
+    // if (description.length() > 1024) {
+    // log.warn("TODO: description size " + description.length() + " " +
+    // description);
+    // }
     return description;
   }
 }

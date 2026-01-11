@@ -15,6 +15,13 @@ import org.vrspace.server.connect.ollama.SearchAgent.SearchAgentResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Communicate with AI agents in virtual worlds. Only available to clients in a
+ * world.
+ * 
+ * @author joe
+ *
+ */
 @RestController
 @RequestMapping(Agents.PATH)
 @Slf4j
@@ -26,19 +33,29 @@ public class Agents extends ClientControllerBase {
   @Autowired
   private SearchAgent searchAgent;
 
+  /**
+   * Sketchfab search agent.
+   * 
+   * @param query
+   */
   @PostMapping("/search")
   public SearchAgentResponse searchAgent(HttpSession session, @RequestBody String query) {
+    // ensure that the client is connected, otherwise every query creates new
+    // session/conversation
+    findClient(session);
     ChatMemory memory = (ChatMemory) session.getAttribute(SEARCH_MEMORY_ATTRIBUTE);
     if (memory == null) {
       memory = MessageWindowChatMemory.builder().maxMessages(10).chatMemoryRepository(repository(session)).build();
+      session.setAttribute(SEARCH_MEMORY_ATTRIBUTE, memory);
     }
-    return searchAgent.query(query, memory);
+    return searchAgent.query(query, memory, session.getId());
   }
 
   private ChatMemoryRepository repository(HttpSession session) {
     ChatMemoryRepository repository = (ChatMemoryRepository) session.getAttribute(MEMORY_REPOSITORY_ATTRIBUTE);
     if (repository == null) {
       repository = new InMemoryChatMemoryRepository();
+      session.setAttribute(MEMORY_REPOSITORY_ATTRIBUTE, repository);
     }
     return repository;
   }
