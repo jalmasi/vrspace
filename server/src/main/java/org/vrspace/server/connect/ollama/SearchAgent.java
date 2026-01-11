@@ -39,12 +39,11 @@ public class SearchAgent {
 
   private SystemMessage systemMessage = new SystemMessage("""
           You are search engine for 3D models.
-          Analyze the user query, and search sketchfab by best keywords.
-          Then, analyze description of each model found, and return models that match the user query.
-          Always include UID of each model returned.
+          Analyze the user query, and search sketchfab by best keywords. Use singular rather than plural.
+          Analyze description of each model found, and return UID for each model that match the user query.
       """);
   private Pattern answerPattern = Pattern.compile("(.*)\\n");
-  private Pattern answerCleanup = Pattern.compile("![\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s]");
+  private Pattern answerCleanup = Pattern.compile("[^\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s:]|\\n");
   private Pattern uidPattern = Pattern.compile("([a-zA-Z0-9]{32})");
 
   @Data
