@@ -132,20 +132,21 @@ export class ChatLog extends TextArea {
    * @param {*} scene 
    * @param {string} title
    * @param {string} [name="ChatLog"] 
+   * @param {string} [inputName="Say"] 
    * @return {ChatLog} 
    */
-  static getInstance(scene, title="main", name="ChatLog") {
+  static getInstance(scene, title="main", name="ChatLog", inputName) {
     if ( ChatLog.instances.hasOwnProperty(ChatLog.instanceId(name,title)) ) {
       return ChatLog.instances[ChatLog.instanceId(name,title)];
     }
-    return new ChatLog(scene, title, name);
+    return new ChatLog(scene, title, name, inputName);
   }
-  constructor(scene, title, name="ChatLog") {
+  constructor(scene, title, name="ChatLog", inputName="Say") {
     super(scene, name, title);
     if ( ChatLog.instances.hasOwnProperty(this.instanceId()) ) {
       throw "Instance already exists: "+this.instanceId();
     }
-    this.input = new ChatLogInput(this, "Say", title);
+    this.input = new ChatLogInput(this, inputName, title);
     this.input.submitName = "send";
     this.input.showNoMatch = false;
     this.inputPrefix = "ME";
@@ -284,7 +285,7 @@ export class ChatLog extends TextArea {
    * Move either left or right, whatever is the current anchor
    */
   moveToAnchor() {
-    //this.position = new BABYLON.Vector3(this.anchor, this.size/2-.025, 0);
+    // TODO parameterize this Z    
     this.position = new BABYLON.Vector3(this.anchor, this.size/2+this.verticalAnchor, 0.2);
     this.group.position = this.position;
   }
@@ -387,6 +388,10 @@ export class ChatLog extends TextArea {
   
   /** XR pointer selection support */
   isSelectableMesh(mesh) {
+    if (super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.buttonStack.isSelectableMesh(mesh)) {
+      console.log('AMAN');
+    }
+
     return super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.buttonStack.isSelectableMesh(mesh);
   }
 }

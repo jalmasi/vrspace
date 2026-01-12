@@ -89,5 +89,6 @@ export class BaseArea {
     if ( this.areaPlane ) {
       this.areaPlane.dispose();
     }
+    this.group.dispose();
   }
 }

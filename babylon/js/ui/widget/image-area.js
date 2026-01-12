@@ -23,7 +23,7 @@ export class ImageArea extends BaseArea {
   }
 
   /** Show the area, optionally also creates manipulation handles */  
-  show () {
+  show() {
     if ( this.visible ) {
       return;
     }

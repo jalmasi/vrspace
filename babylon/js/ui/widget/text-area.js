@@ -32,11 +32,16 @@ export class TextArea extends BaseArea {
     this.text = "";
     /** @type {Label} */
     this.title = null;
+    this.visible = false;
   }
   /**
    * As the name says. Optionally also creates manipulation handles.
    */
-  show () {
+  show() {
+    if ( this.visible ) {
+      return;
+    }
+    this.visible = true;
     this.group.position = this.position;
     
     this.textBlock = new BABYLON.GUI.TextBlock();

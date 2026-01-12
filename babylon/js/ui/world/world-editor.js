@@ -5,7 +5,8 @@ import { World } from '../../world/world.js';
 import { WorldListener } from '../../world/world-listener.js';
 import { VRSpaceAPI } from '../../client/rest-api.js';
 import { ModelSearchRequest } from '../../client/openapi/model/ModelSearchRequest.js';
-import { VRObject } from '../../vrspace-min.js';
+import { ChatLog } from '../widget/chat-log.js';
+import { VRObject } from '../../client/vrspace.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -72,6 +73,7 @@ export class WorldEditor extends WorldListener {
     this.worldManager = world.worldManager;
     this.buttons = [];
     this.movementMode = world.xrHelper.movementMode;
+    this.chatlog = ChatLog.getInstance(this.scene, "Search Prompt", "Search Prompt");
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
@@ -104,10 +106,11 @@ export class WorldEditor extends WorldListener {
     //this.scaleButton = this.makeAButton("Resize", this.contentBase+"/content/icons/resize.png", (o)=>this.resizeObject(o));
     this.gizmoButton = this.makeAButton("Rotate/Scale", this.contentBase + "/content/icons/rotate-resize.png", (o) => this.createGizmo(o));
     this.alignButton = this.makeAButton("Align", this.contentBase + "/content/icons/download.png", (o) => this.alignObject(o));
-    this.alignButton = this.makeAButton("Upright", this.contentBase + "/content/icons/upload.png", (o) => this.upright(o));
+    this.uprightButton = this.makeAButton("Upright", this.contentBase + "/content/icons/upload.png", (o) => this.upright(o));
     this.copyButton = this.makeAButton("Copy", this.contentBase + "/content/icons/copy.png", (o) => this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", this.contentBase + "/content/icons/delete.png", (o) => this.removeObject(o));
     this.searchButton = this.makeAButton("Search", this.contentBase + "/content/icons/zoom.png");
+    this.promptButton = this.makeAButton("Prompt", this.contentBase + "/content/icons/prompt.png");
     this.saveButton = this.makeAButton("Save", this.contentBase + "/content/icons/save.png");
     this.loadButton = this.makeAButton("Load", this.contentBase + "/content/icons/open.png");
 
@@ -117,6 +120,13 @@ export class WorldEditor extends WorldListener {
       }
       this.searchForm();
     });
+    this.promptButton.onPointerDownObservable.add(() => {
+      this.prompt();
+    });
+    if ( this.chatlog && this.chatlog.visible ) {
+      //this.chatlog.hide(false);
+      VRSPACEUI.hud.markActive(this.promptButton);
+    }
     this.saveButton.onPointerDownObservable.add(() => { this.save() });
     this.loadButton.onPointerDownObservable.add(() => { this.load() });
     VRSPACEUI.hud.enableSpeech(true);
@@ -141,6 +151,28 @@ export class WorldEditor extends WorldListener {
       }
     }
   }
+  
+  prompt() {
+    if ( !this.chatlog ) {
+      this.chatlog = ChatLog.getInstance(this.scene, "Search Prompt", "Search Prompt", "Query");
+    }
+    if ( !this.chatlog.visible ) {
+      // newly created chatlog
+      this.chatlog.baseAnchor = 0;
+      this.chatlog.anchor = 0;
+      this.chatlog.width = 1024;
+      this.chatlog.input.virtualKeyboardEnabled = this.world.inXR();
+      this.chatlog.autoHide = false;
+      this.chatlog.show();
+      VRSPACEUI.hud.markActive(this.promptButton);
+    } else {
+      this.chatlog.dispose();
+      this.chatlog = null;
+      VRSPACEUI.hud.markEnabled(this.promptButton);
+    }
+    this.displayButtons(true); // consequence of (ab)using makeButton()
+  }
+  
   /**
    * Disposes of search form and displays HUD buttons
    */
@@ -224,7 +256,7 @@ export class WorldEditor extends WorldListener {
    * @param action callback executed upon clicking on an object in the scene
    */
   makeAButton(text, imageUrl, action) {
-    var button = VRSPACEUI.hud.addButton(text, imageUrl);
+    var button = VRSPACEUI.hud.addButton(text, imageUrl, null, false);
     button.onPointerDownObservable.add(() => {
       if (this.activeButton == button) {
         // already pressed, turn it off
@@ -886,6 +918,9 @@ export class WorldEditor extends WorldListener {
     this.dropObject(); // just in case
     if (this.searchPanel) {
       this.searchPanel.dispose();
+    }
+    if (this.chatlog) {
+      this.chatlog.hide(true);
     }
     this.buttons.forEach((b) => b.dispose());
     this.world.removeSelectionPredicate(this.selectionPredicate);
