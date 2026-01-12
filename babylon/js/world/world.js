@@ -135,6 +135,12 @@ export class World {
   async init(engine, name, scene, callback, baseUrl, file) {
     this.canvas = engine.getInputElement();
     this.engine = engine;
+    this.canvas.addEventListener('keydown', event => {
+      // disable annoying firefox quick search on ' and /
+      if ( event.key == "'" || event.key == "/ ") {
+        event.preventDefault();
+      }
+    });
     // workaround for android chrome 120.0.6099.43 bug, see
     // https://forum.babylonjs.com/t/problems-on-chrome-mobile-since-december-7th-2023/46288/16
     engine.disableUniformBuffers = true
