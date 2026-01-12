@@ -11,9 +11,11 @@ export class LoadProgressIndicator {
   @param scene
   @param camera current camera to bind to
    */
-  constructor(scene, camera) {
+  constructor(scene, camera=scene.activeCamera) {
     this.scene = scene;
     this.camera = camera;
+    this.position = new BABYLON.Vector3(0,-0.1,0.5);
+    this.xrPosition = new BABYLON.Vector3(0,-0.2,0.5);
     this.mesh = null;
     this.totalItems = 0;
     this.currentItem = 0;
@@ -55,9 +57,9 @@ export class LoadProgressIndicator {
       // VRDeviceOrientationFreeCamera
       // WebXRCamera
       if ( this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
-        this.mesh.position = new BABYLON.Vector3(0,-0.2,0.5);
+        this.mesh.position = this.xrPosition;
       } else {
-        this.mesh.position = new BABYLON.Vector3(0,-0.1,0.5);
+        this.mesh.position = this.position;
       }
     }
   }

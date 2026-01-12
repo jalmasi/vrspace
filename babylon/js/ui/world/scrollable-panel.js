@@ -130,6 +130,13 @@ export class ScrollablePanel {
     button.onPointerDownObservable.add(() => callback(button));
 
   }
+  
+  /**
+   * Clear the panel - remove all buttons
+   */
+  clear() {
+    this.panel.children.forEach((button) => { button.dispose() });
+  }
   /**
    * Internally called to show tooltip text on pointer enter
    */

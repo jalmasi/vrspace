@@ -270,7 +270,8 @@ export class World {
     this.chatlog.addListener((text, link) => this.write(text, link));
     this.chatlog.input.virtualKeyboardEnabled = this.inXR();
     //this.chatlog.input.virtualKeyboardEnabled = true;
-    this.addSelectionPredicate((mesh) => this.chatlog.isSelectableMesh(mesh));
+    // refactored into ChatLog:
+    //this.addSelectionPredicate((mesh) => this.chatlog.isSelectableMesh(mesh));
   }
   /**
    * Returns true if either VR or AR mode is currently active

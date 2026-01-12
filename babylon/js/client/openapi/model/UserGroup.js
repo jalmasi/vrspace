@@ -33,6 +33,7 @@ export class UserGroup {
         this.id = undefined;
 
         /** name 
+         * Group name
          * @type {String} 
          */
         this.name = undefined;

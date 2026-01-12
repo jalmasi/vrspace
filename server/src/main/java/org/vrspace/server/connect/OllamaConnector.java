@@ -104,7 +104,8 @@ public class OllamaConnector {
       toolsChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().build())
           .defaultOptions(OllamaChatOptions.builder()
               // default numCtx is 2048, way too small
-              .numCtx(16384)
+              .numCtx(8192)
+              // .numCtx(16384) - swapping with 3d graphics on
               // .numCtx(32768) - too much
               // etc
               .model(toolsModelName).build())

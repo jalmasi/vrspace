@@ -26,7 +26,7 @@ import { VRObject } from './VRObject.js';
 export class Client {
     /**
      * Constructs a new <code>Client</code>.
-     * Basic client class, adds user-related properties and business logic to  VRObject.
+     * Basic client class, adds user-related properties and business logic to   VRObject.
      * @alias Client
      */
     constructor() { 
@@ -77,7 +77,7 @@ export class Client {
         this.mesh = undefined;
 
         /** script 
-         * Script that client runs. To prevent cross-site scripting, this is a read-only  property.
+         * Script that client runs. To prevent cross-site scripting, this is a read-only   property.
          * @type {String} 
          */
         this.script = undefined;
@@ -112,7 +112,7 @@ export class Client {
         this.userHeight = undefined;
 
         /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations  with chatbots etc. Transient, never stored to the database.
+         * Tokens used to access video/audio streaming servers, identify conversations   with chatbots etc. Transient, never stored to the database.
          * @type {Object.<String, String>} 
          */
         this.tokens = undefined;

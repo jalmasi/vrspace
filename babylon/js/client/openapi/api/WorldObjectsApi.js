@@ -37,7 +37,7 @@ export class WorldObjectsApi {
 
     /**
      * Add a shared object to the world, equivalent of websocket Add command.
-     * Add a shared object to the world, equivalent of websocket Add command. Once  created, the object is immediately published, i.e. pushed to all clients,  including the creator, through websockets. Unlike Add command, that can be  used to create world objects of any class, e.g. Terrain, this can only create  VRObject class instances.
+     * Add a shared object to the world, equivalent of websocket Add command. Once   created, the object is immediately published, i.e. pushed to all clients,   including the creator, through websockets. Unlike Add command, that can be   used to create world objects of any class, e.g. Terrain, this can only create   VRObject class instances.
      * @param {AddObjectRequest} addObjectRequest VRObject to create, must not have an id
      * @return {Promise< AddObjectRequest >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link AddObjectRequest} and HTTP response
      */
@@ -70,7 +70,7 @@ export class WorldObjectsApi {
 
     /**
      * Add a shared object to the world, equivalent of websocket Add command.
-     * Add a shared object to the world, equivalent of websocket Add command. Once  created, the object is immediately published, i.e. pushed to all clients,  including the creator, through websockets. Unlike Add command, that can be  used to create world objects of any class, e.g. Terrain, this can only create  VRObject class instances.
+     * Add a shared object to the world, equivalent of websocket Add command. Once   created, the object is immediately published, i.e. pushed to all clients,   including the creator, through websockets. Unlike Add command, that can be   used to create world objects of any class, e.g. Terrain, this can only create   VRObject class instances.
      * @param {AddObjectRequest} addObjectRequest VRObject to create, must not have an id
      * @return {Promise< AddObjectRequest >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link AddObjectRequest}
      */
@@ -84,7 +84,7 @@ export class WorldObjectsApi {
 
     /**
      * Change position, rotation and/or scale of an object.
-     * Change position, rotation and/or scale of an object. All other object  properties are ignored.
+     * Change position, rotation and/or scale of an object. All other object   properties are ignored.
      * @param {AddObjectRequest} addObjectRequest 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
@@ -117,7 +117,7 @@ export class WorldObjectsApi {
 
     /**
      * Change position, rotation and/or scale of an object.
-     * Change position, rotation and/or scale of an object. All other object  properties are ignored.
+     * Change position, rotation and/or scale of an object. All other object   properties are ignored.
      * @param {AddObjectRequest} addObjectRequest 
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}
      */

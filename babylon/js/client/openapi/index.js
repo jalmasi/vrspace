@@ -44,6 +44,7 @@ import RecordingData from './model/RecordingData';
 import RecordingStateParameter from './model/RecordingStateParameter';
 import Rotation from './model/Rotation';
 import SceneProperties from './model/SceneProperties';
+import SearchAgentResponse from './model/SearchAgentResponse';
 import ServerCapabilities from './model/ServerCapabilities';
 import ServerConfiguration from './model/ServerConfiguration';
 import ThumbnailsRelated from './model/ThumbnailsRelated';
@@ -52,22 +53,20 @@ import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
 import UserRelated from './model/UserRelated';
 import VRObject from './model/VRObject';
-import WebPushSubscription from './model/WebPushSubscription';
 import Welcome from './model/Welcome';
 import WelcomeWelcome from './model/WelcomeWelcome';
 import World from './model/World';
 import WorldStatus from './model/WorldStatus';
+import AgentsApi from './api/AgentsApi';
 import DataApi from './api/DataApi';
 import GroupsApi from './api/GroupsApi';
 import Oauth2LoginApi from './api/Oauth2LoginApi';
 import RecorderApi from './api/RecorderApi';
-import RemoteBrowserApi from './api/RemoteBrowserApi';
 import ServerInfoApi from './api/ServerInfoApi';
 import SharedContentApi from './api/SharedContentApi';
 import SketchfabApi from './api/SketchfabApi';
 import TexturesApi from './api/TexturesApi';
 import UsersApi from './api/UsersApi';
-import WebPushApi from './api/WebPushApi';
 import WorldObjectsApi from './api/WorldObjectsApi';
 import WorldsApi from './api/WorldsApi';
 
@@ -297,6 +296,12 @@ export {
     SceneProperties,
 
     /**
+     * The SearchAgentResponse model constructor.
+     * @property {SearchAgentResponse}
+     */
+    SearchAgentResponse,
+
+    /**
      * The ServerCapabilities model constructor.
      * @property {ServerCapabilities}
      */
@@ -345,12 +350,6 @@ export {
     VRObject,
 
     /**
-     * The WebPushSubscription model constructor.
-     * @property {WebPushSubscription}
-     */
-    WebPushSubscription,
-
-    /**
      * The Welcome model constructor.
      * @property {Welcome}
      */
@@ -375,6 +374,12 @@ export {
     WorldStatus,
 
     /**
+    * The AgentsApi service constructor.
+    * @property {module:api/AgentsApi}
+    */
+    AgentsApi,
+
+    /**
     * The DataApi service constructor.
     * @property {module:api/DataApi}
     */
@@ -397,12 +402,6 @@ export {
     * @property {module:api/RecorderApi}
     */
     RecorderApi,
-
-    /**
-    * The RemoteBrowserApi service constructor.
-    * @property {module:api/RemoteBrowserApi}
-    */
-    RemoteBrowserApi,
 
     /**
     * The ServerInfoApi service constructor.
@@ -433,12 +432,6 @@ export {
     * @property {module:api/UsersApi}
     */
     UsersApi,
-
-    /**
-    * The WebPushApi service constructor.
-    * @property {module:api/WebPushApi}
-    */
-    WebPushApi,
 
     /**
     * The WorldObjectsApi service constructor.

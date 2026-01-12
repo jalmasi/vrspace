@@ -78,8 +78,8 @@ export class UsersApi {
 
 
     /**
-     * Verifies that user name is available: if user is not logged in, that there's  no such user, or user's name in the database matches name in current session.
-     * Verifies that user name is available: if user is not logged in, that there's  no such user, or user's name in the database matches name in current session.
+     * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
+     * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
      * @param {String} name user name to verify
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
      */
@@ -112,8 +112,8 @@ export class UsersApi {
     }
 
     /**
-     * Verifies that user name is available: if user is not logged in, that there's  no such user, or user's name in the database matches name in current session.
-     * Verifies that user name is available: if user is not logged in, that there's  no such user, or user's name in the database matches name in current session.
+     * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
+     * Verifies that user name is available: if user is not logged in, that there's   no such user, or user's name in the database matches name in current session.
      * @param {String} name user name to verify
      * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
      */

@@ -69,7 +69,6 @@ public class SketchfabConnector {
         model.setUid(modelInfo.getUid());
         model.setUri(modelInfo.getUri()); // CHECKME: getViewerUrl?
         model.setProcessed(false);
-        db.save(model);
         log.debug("Created new GltfFile " + model.getName() + " " + model.getDescription());
       } else {
         // log.debug("Existing GltfFile " + modelInfo.getName() + " " +
@@ -78,6 +77,7 @@ public class SketchfabConnector {
         modelInfo.setDescription(model.getDescription()); // CHECKME: interferes with postProcess?
       }
       postProcess(modelInfo, model);
+      db.save(model);
     });
     return ret;
   }

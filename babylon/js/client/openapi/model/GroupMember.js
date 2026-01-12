@@ -57,13 +57,13 @@ export class GroupMember {
         this.pendingRequest = undefined;
 
         /** sponsor 
-         * The client that invited/approved (sponsored) the member; may be null, or  maybe point to non-existing client. Thus, valid only short term.
+         * The client that invited/approved (sponsored) the member; may be null, or   maybe point to non-existing client. Thus, valid only short term.
          * @type {Client} 
          */
         this.sponsor = undefined;
 
         /** lastUpdate 
-         * Time stamp of last membership update, be it invite, request, or joining the  group
+         * Time stamp of last membership update, be it invite, request, or joining the   group
          * @type {Date} 
          */
         this.lastUpdate = undefined;

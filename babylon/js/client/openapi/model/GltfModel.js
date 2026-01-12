@@ -22,7 +22,7 @@ import { ContentCategory } from './ContentCategory.js';
 export class GltfModel {
     /**
      * Constructs a new <code>GltfModel</code>.
-     * A 3D Model in GLTF format. Adds unique id, uri and other properties to  Content class. Based on sketchfab models.
+     * A 3D Model in GLTF format. Adds unique id, uri and other properties to   Content class. Based on sketchfab models.
      * @alias GltfModel
      */
     constructor() { 
@@ -67,6 +67,11 @@ export class GltfModel {
          * @type {String} 
          */
         this.license = undefined;
+
+        /** thumbnail 
+         * @type {String} 
+         */
+        this.thumbnail = undefined;
 
         /** author 
          * @type {String} 
@@ -132,6 +137,9 @@ export class GltfModel {
             if (data.hasOwnProperty('license')) {
                 obj['license'] = ApiClient.convertToType(data['license'], 'String');
             }
+            if (data.hasOwnProperty('thumbnail')) {
+                obj['thumbnail'] = ApiClient.convertToType(data['thumbnail'], 'String');
+            }
             if (data.hasOwnProperty('author')) {
                 obj['author'] = ApiClient.convertToType(data['author'], 'String');
             }
@@ -178,6 +186,10 @@ export class GltfModel {
         // ensure the json data is a string
         if (data['license'] && !(typeof data['license'] === 'string' || data['license'] instanceof String)) {
             throw new Error("Expected the field `license` to be a primitive type in the JSON string but got " + data['license']);
+        }
+        // ensure the json data is a string
+        if (data['thumbnail'] && !(typeof data['thumbnail'] === 'string' || data['thumbnail'] instanceof String)) {
+            throw new Error("Expected the field `thumbnail` to be a primitive type in the JSON string but got " + data['thumbnail']);
         }
         // ensure the json data is a string
         if (data['author'] && !(typeof data['author'] === 'string' || data['author'] instanceof String)) {

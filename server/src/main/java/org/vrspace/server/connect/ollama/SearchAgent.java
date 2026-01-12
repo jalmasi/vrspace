@@ -1,8 +1,8 @@
 package org.vrspace.server.connect.ollama;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,7 +52,8 @@ public class SearchAgent {
   public static class SearchAgentResponse {
     private String answer;
     private int size = 0;
-    private List<GltfModel> models = new ArrayList<>();
+    // model can list an UID twice, e.g. as uid and as part of the link, so Set
+    private Set<GltfModel> models = new HashSet<>();
     private boolean success = false;
   }
 
@@ -61,9 +62,10 @@ public class SearchAgent {
     SearchAgentResponse ret = new SearchAgentResponse();
     try {
       ollama.stopImageProcessing(10000);
-      if (memory.get(conversationId).size() == 0) {
-        memory.add(conversationId, systemMessage);
-      }
+      // memory makes sure to keep only one system message
+      // if (memory.get(conversationId).size() == 0) {
+      memory.add(conversationId, systemMessage);
+      // }
       memory.add(conversationId, new UserMessage(query));
 
       long time = System.currentTimeMillis();
@@ -82,6 +84,7 @@ public class SearchAgent {
         String uid = uidMatcher.group();
         Optional<GltfModel> model = db.findGltfModelByUid(uid);
         if (model.isPresent()) {
+          // requires Set
           ret.models.add(model.get());
         } else {
           log.error("Model not found: " + uid);
@@ -139,10 +142,13 @@ public class SearchAgent {
   }
 
   private String trimDescription(String description) {
-    // if (description.length() > 1024) {
-    // log.warn("TODO: description size " + description.length() + " " +
-    // description);
-    // }
+    int length = description.length();
+    if (length > 1024) {
+      description = description.substring(0, 1023);
+      int pos = description.lastIndexOf(".") + 1;
+      description = description.substring(0, pos);
+      log.warn("Description trimmed " + length + " to " + description.length() + ": " + description);
+    }
     return description;
   }
 }

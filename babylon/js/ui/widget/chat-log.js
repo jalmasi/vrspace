@@ -5,6 +5,7 @@ import { GroupMessage } from '../../client/vrspace.js';
 import { VRSpaceAPI } from '../../client/rest-api.js';
 import { GroupsApi } from '../../client/openapi/api/GroupsApi.js';
 import { VRSPACEUI } from '../vrspace-ui.js';
+import { World } from '../../world/world.js';
 
 class ChatLogInput extends TextAreaInput {
   constructor(textArea, inputName = "Write", titleText = null) {
@@ -167,6 +168,7 @@ export class ChatLog extends TextArea {
     ChatLog.instances[this.instanceId()] = this;
     /** @type {GroupsApi} */
     this.groupApi = VRSpaceAPI.getInstance().endpoint.groups;
+    this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
   }
   instanceId() {
     return ChatLog.instanceId(this.name, this.titleText);
@@ -175,7 +177,11 @@ export class ChatLog extends TextArea {
    * Show both TextArea and TextAreaInput, and attach to HUD.
    */
   show() {
+    if ( this.visible ) {
+      return;
+    }
     super.show();
+    World.lastInstance.addSelectionPredicate(this.selectionPredicate);
     this.setActiveInstance();
     this.input.inputPrefix = this.inputPrefix;
     this.input.addListener( text => this.notifyListeners(text,null,this.input.getAttachments()) );
@@ -377,6 +383,7 @@ export class ChatLog extends TextArea {
  
   /** Clean up */
   dispose() {
+    World.lastInstance.removeSelectionPredicate(this.selectionPredicate);
     window.removeEventListener("resize", this.resizeHandler);
     this.input.dispose();
     super.dispose();
@@ -388,10 +395,6 @@ export class ChatLog extends TextArea {
   
   /** XR pointer selection support */
   isSelectableMesh(mesh) {
-    if (super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.buttonStack.isSelectableMesh(mesh)) {
-      console.log('AMAN');
-    }
-
     return super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.buttonStack.isSelectableMesh(mesh);
   }
 }

@@ -21,7 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class ModelSearchRequest {
     /**
      * Constructs a new <code>ModelSearchRequest</code>.
-     * Sketchfab model search API parameters, passed to sketchfab as it is. Most  interesting parameters are: q, animated, rigged
+     * Sketchfab model search API parameters, passed to sketchfab as it is. Most   interesting parameters are: q, animated, rigged
      * @alias ModelSearchRequest
      */
     constructor() { 
@@ -82,7 +82,7 @@ export class ModelSearchRequest {
         this.max_face_count = undefined;
 
         /** pbr_type 
-         * Filter by PBR type. Set to metalness to search Metalness/Roughness models  only. Set to specular to search Specular/Glossiness models only. Set to true  to search PBR models only. Set to false to search non-PBR models only.
+         * Filter by PBR type. Set to metalness to search Metalness/Roughness models   only. Set to specular to search Specular/Glossiness models only. Set to true   to search PBR models only. Set to false to search non-PBR models only.
          * @type {String} 
          */
         this.pbr_type = undefined;
@@ -99,7 +99,7 @@ export class ModelSearchRequest {
         this.collection = undefined;
 
         /** sort_by 
-         * How to sort results. When omitted, results are sorted by relevance. One of  likeCount, -likeCount, viewCount, -viewCount, publishedAt, -publishedAt,  processedAt, -processedAt
+         * How to sort results. When omitted, results are sorted by relevance. One of   likeCount, -likeCount, viewCount, -viewCount, publishedAt, -publishedAt,   processedAt, -processedAt
          * @type {String} 
          */
         this.sort_by = undefined;
@@ -152,7 +152,7 @@ export class ModelSearchRequest {
         this.archives_texture_max_resolution = undefined;
 
         /** archives_flavours 
-         * If true, returns all archives flavours, listed by archive type, and sorted by  texture resolution (descending). If false, only the texture with the highest  reslution is returned for each archive type.
+         * If true, returns all archives flavours, listed by archive type, and sorted by   texture resolution (descending). If false, only the texture with the highest   reslution is returned for each archive type.
          * @type {Boolean} 
          */
         this.archives_flavours = undefined;

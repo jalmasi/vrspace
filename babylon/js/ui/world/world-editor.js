@@ -7,6 +7,7 @@ import { VRSpaceAPI } from '../../client/rest-api.js';
 import { ModelSearchRequest } from '../../client/openapi/model/ModelSearchRequest.js';
 import { ChatLog } from '../widget/chat-log.js';
 import { VRObject } from '../../client/vrspace.js';
+import { LoadProgressIndicator } from '../load-progress-indicator.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -73,7 +74,7 @@ export class WorldEditor extends WorldListener {
     this.worldManager = world.worldManager;
     this.buttons = [];
     this.movementMode = world.xrHelper.movementMode;
-    this.chatlog = ChatLog.getInstance(this.scene, "Search Prompt", "Search Prompt");
+    this.getChatlog();
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
@@ -153,9 +154,7 @@ export class WorldEditor extends WorldListener {
   }
   
   prompt() {
-    if ( !this.chatlog ) {
-      this.chatlog = ChatLog.getInstance(this.scene, "Search Prompt", "Search Prompt", "Query");
-    }
+    this.getChatlog();
     if ( !this.chatlog.visible ) {
       // newly created chatlog
       this.chatlog.baseAnchor = 0;
@@ -163,14 +162,64 @@ export class WorldEditor extends WorldListener {
       this.chatlog.width = 1024;
       this.chatlog.input.virtualKeyboardEnabled = this.world.inXR();
       this.chatlog.autoHide = false;
+      this.chatlog.canClose = true;
+      this.chatlog.onClose = () => this.closeChatlog();
       this.chatlog.show();
+      this.chatlog.addListener((text,link,attachments)=>{
+        this.chatlog.input.setEnabled(false);
+        this.indicator = new LoadProgressIndicator(this.scene);
+        this.indicator.animate();
+        this.indicator.add("prompt");
+        this.indicator.position = new BABYLON.Vector3(0,0,0.5);
+        VRSpaceAPI.getInstance().endpoint.agents.searchAgent(text).then(response=>{
+          console.log(response);
+          this.chatlog.log('Search Agent',response.answer);
+          if ( response.models.length > 0 ) {
+            this.searchPanel.clear();
+            response.models.forEach(model=>{
+              this.searchPanel.addButton(
+                [model.name,
+                'by ' + model.author,
+                (model.length / 1024 / 1024).toFixed(2) + "MB"
+                  //'Faces: '+result.faceCount,
+                  //'Vertices: '+result.vertexCount
+                ],
+                model.thumbnail,
+                () => this.download(model.uid)
+              );
+              
+            });
+          }
+          this.indicator.remove("prompt");
+          this.chatlog.input.setEnabled(true);
+        }).catch(err=>{
+          this.chatlog.input.setEnabled(true);
+          console.error(err);
+          this.indicator.remove("prompt");
+          this.chatlog.log('Search Agent',err.error.message);
+        });
+      });
       VRSPACEUI.hud.markActive(this.promptButton);
     } else {
-      this.chatlog.dispose();
-      this.chatlog = null;
-      VRSPACEUI.hud.markEnabled(this.promptButton);
+      this.closeChatlog();
     }
     this.displayButtons(true); // consequence of (ab)using makeButton()
+  }
+  
+  getChatlog() {
+    if ( !this.chatlog ) {
+      this.chatlog = ChatLog.getInstance(this.scene, "Search Prompt", "Search Prompt", "Query");
+    }
+    return this.chatlog;
+  }
+  closeChatlog() {
+    if ( this.chatlog ) {
+      this.chatlog.dispose();
+      this.chatlog = null;
+    }
+    if ( this.promptButton ) {
+      VRSPACEUI.hud.markEnabled(this.promptButton);
+    }
   }
   
   /**
@@ -238,7 +287,7 @@ export class WorldEditor extends WorldListener {
             //'Vertices: '+result.vertexCount
           ],
           thumbnail.url,
-          () => this.download(result)
+          () => this.download(result.uid)
         );
 
       });
@@ -847,17 +896,17 @@ export class WorldEditor extends WorldListener {
    * Performs REST API call to VRSpace sketchfab endpoint. Should this call fail with 401 Unauthorized, 
    * executes this.sketchfabLogin(). Otherwise, VRSpace server downloads the model from sketchfab,
    * and returns the url, it's added to the scene by calling this.createSharedObject().
-   * @param result search result object
+   * @param {string} uid model uid
    */
-  download(result) {
+  download(uid) {
     if (this.fetching || this.activeButton) {
       console.log("Skipping download, fetching=" + this.fetching + " activeButton=", this.activeButton);
       return;
     }
-    this.fetching = result;
+    this.fetching = uid;
     VRSPACEUI.indicator.animate();
     VRSPACEUI.indicator.add("Download");
-    VRSpaceAPI.getInstance().endpoint.sketchfab.download(result.uid).then(gltfModel => {
+    VRSpaceAPI.getInstance().endpoint.sketchfab.download(uid).then(gltfModel => {
       this.fetching = null;
       console.log(gltfModel);
       this.createSharedObject(gltfModel.mesh);

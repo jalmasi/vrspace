@@ -51,7 +51,7 @@ export class GroupMessage {
         this.content = undefined;
 
         /** link 
-         * URL shared, only one for the time being. May be relative (e.g. for local  worlds) or absolute (external)
+         * URL shared, only one for the time being. May be relative (e.g. for local   worlds) or absolute (external)
          * @type {String} 
          */
         this.link = undefined;

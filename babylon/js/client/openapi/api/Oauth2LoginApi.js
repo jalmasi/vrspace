@@ -35,10 +35,10 @@ export class Oauth2LoginApi {
 
 
     /**
-     * This endpoint requires both user name and authentication provider id (fb,  github, google... as defined in app properties file). The framework then  performs authentication through a series of on-site and off-site redirects.  Only after successful Oauth2 authentication with external provider, the  browser lands here. This method fetches or creates the Client object, and  redirect back to the referring page. Client object is stored in HttpSession,  under key specified by clientFactory.clientAttribute().
-     * This endpoint requires both user name and authentication provider id (fb,  github, google... as defined in app properties file). The framework then  performs authentication through a series of on-site and off-site redirects.  Only after successful Oauth2 authentication with external provider, the  browser lands here. This method fetches or creates the Client object, and  redirect back to the referring page. Client object is stored in HttpSession,  under key specified by clientFactory.clientAttribute().
+     * This endpoint requires both user name and authentication provider id (fb,   github, google... as defined in app properties file). The framework then   performs authentication through a series of on-site and off-site redirects.   Only after successful Oauth2 authentication with external provider, the   browser lands here. This method fetches or creates the Client object, and   redirect back to the referring page. Client object is stored in HttpSession,   under key specified by clientFactory.clientAttribute().
+     * This endpoint requires both user name and authentication provider id (fb,   github, google... as defined in app properties file). The framework then   performs authentication through a series of on-site and off-site redirects.   Only after successful Oauth2 authentication with external provider, the   browser lands here. This method fetches or creates the Client object, and   redirect back to the referring page. Client object is stored in HttpSession,   under key specified by clientFactory.clientAttribute().
      * @param {String} name Login name of the user, local
-     * @param {String} provider Oauth2 authentication provider id , as registered in                  properties file (e.g. github, facebook, google)
+     * @param {String} provider Oauth2 authentication provider id , as registered in                   properties file (e.g. github, facebook, google)
      * @param {String} avatar Optional avatar URI, used only when creating a new user
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
@@ -81,10 +81,10 @@ export class Oauth2LoginApi {
     }
 
     /**
-     * This endpoint requires both user name and authentication provider id (fb,  github, google... as defined in app properties file). The framework then  performs authentication through a series of on-site and off-site redirects.  Only after successful Oauth2 authentication with external provider, the  browser lands here. This method fetches or creates the Client object, and  redirect back to the referring page. Client object is stored in HttpSession,  under key specified by clientFactory.clientAttribute().
-     * This endpoint requires both user name and authentication provider id (fb,  github, google... as defined in app properties file). The framework then  performs authentication through a series of on-site and off-site redirects.  Only after successful Oauth2 authentication with external provider, the  browser lands here. This method fetches or creates the Client object, and  redirect back to the referring page. Client object is stored in HttpSession,  under key specified by clientFactory.clientAttribute().
+     * This endpoint requires both user name and authentication provider id (fb,   github, google... as defined in app properties file). The framework then   performs authentication through a series of on-site and off-site redirects.   Only after successful Oauth2 authentication with external provider, the   browser lands here. This method fetches or creates the Client object, and   redirect back to the referring page. Client object is stored in HttpSession,   under key specified by clientFactory.clientAttribute().
+     * This endpoint requires both user name and authentication provider id (fb,   github, google... as defined in app properties file). The framework then   performs authentication through a series of on-site and off-site redirects.   Only after successful Oauth2 authentication with external provider, the   browser lands here. This method fetches or creates the Client object, and   redirect back to the referring page. Client object is stored in HttpSession,   under key specified by clientFactory.clientAttribute().
      * @param {String} name Login name of the user, local
-     * @param {String} provider Oauth2 authentication provider id , as registered in                  properties file (e.g. github, facebook, google)
+     * @param {String} provider Oauth2 authentication provider id , as registered in                   properties file (e.g. github, facebook, google)
      * @param {String} avatar Optional avatar URI, used only when creating a new user
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
@@ -138,8 +138,8 @@ export class Oauth2LoginApi {
 
 
     /**
-     * First step in Oauth2 Authentication is to obtain valid authentication  provider id.
-     * First step in Oauth2 Authentication is to obtain valid authentication  provider id. This is never called directly though, the browser is redirected  here from the login page. Obtains the provider id from the original request  and sends browser redirect.
+     * First step in Oauth2 Authentication is to obtain valid authentication   provider id.
+     * First step in Oauth2 Authentication is to obtain valid authentication   provider id. This is never called directly though, the browser is redirected   here from the login page. Obtains the provider id from the original request   and sends browser redirect.
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     setProviderWithHttpInfo() {
@@ -166,8 +166,8 @@ export class Oauth2LoginApi {
     }
 
     /**
-     * First step in Oauth2 Authentication is to obtain valid authentication  provider id.
-     * First step in Oauth2 Authentication is to obtain valid authentication  provider id. This is never called directly though, the browser is redirected  here from the login page. Obtains the provider id from the original request  and sends browser redirect.
+     * First step in Oauth2 Authentication is to obtain valid authentication   provider id.
+     * First step in Oauth2 Authentication is to obtain valid authentication   provider id. This is never called directly though, the browser is redirected   here from the login page. Obtains the provider id from the original request   and sends browser redirect.
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     setProvider() {
