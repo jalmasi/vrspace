@@ -844,6 +844,12 @@ export class VRHelper {
 
   trackHands() {
     try {
+      // in Babylon, features have to be enabled before starting the session
+      // in Chrome, all features are available, but the session creation fails if we enable hand tracking on mobile
+      // chicken or egg?
+      if (navigator.userAgent.indexOf("Oculus") < 0) {
+        return;
+      }
       // https://forum.babylonjs.com/t/xr-hands-and-finger-tracking/53436
       // https://forum.babylonjs.com/t/webxr-hand-functions-like-grabbing-in-quest-3/49287/2
       const featureManager = this.vrHelper.baseExperience.featuresManager;
