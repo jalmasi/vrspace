@@ -91,7 +91,7 @@ public class OllamaConnector {
 
   public OllamaChatModel visionModel() {
     if (visionChatModel == null) {
-      visionChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().build())
+      visionChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().baseUrl(config.getUrl()).build())
           .defaultOptions(OllamaChatOptions.builder().model(config.getVisionModel()).build()).build();
     }
     return visionChatModel;
@@ -99,7 +99,7 @@ public class OllamaConnector {
 
   public OllamaChatModel toolsModel() {
     if (toolsChatModel == null) {
-      toolsChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().build()).defaultOptions(
+      toolsChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().baseUrl(config.getUrl()).build()).defaultOptions(
           OllamaChatOptions.builder().numCtx(config.getContextWindowSize()).model(config.getToolsModel()).build()).build();
     }
     return toolsChatModel;

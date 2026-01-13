@@ -159,6 +159,7 @@ export class WorldEditor extends WorldListener {
       // newly created chatlog
       this.chatlog.baseAnchor = 0;
       this.chatlog.anchor = 0;
+      this.chatlog.verticalAnchor = 0.05
       this.chatlog.width = 1024;
       this.chatlog.input.virtualKeyboardEnabled = this.world.inXR();
       this.chatlog.autoHide = false;
@@ -970,6 +971,10 @@ export class WorldEditor extends WorldListener {
     }
     if (this.chatlog) {
       this.chatlog.hide(true);
+    }
+    if (this.indicator) {
+      this.indicator.dispose();
+      this.indicator = null;
     }
     this.buttons.forEach((b) => b.dispose());
     this.world.removeSelectionPredicate(this.selectionPredicate);

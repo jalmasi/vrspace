@@ -2,6 +2,7 @@ package org.vrspace.server.config;
 
 import java.util.regex.Pattern;
 
+import org.springframework.ai.ollama.api.common.OllamaApiConstants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,7 +12,7 @@ import lombok.Data;
 @Data
 @Configuration("ollamaConfig")
 public class OllamaConfig {
-  private String url; // TODO
+  private String url = OllamaApiConstants.DEFAULT_BASE_URL;
   private String visionModel = "granite3.2-vision";
   private String visionPrompt = "describe this";
   private Pattern descriptionCleanup = Pattern
