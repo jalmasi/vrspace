@@ -157,6 +157,7 @@ export class ChatLog extends TextArea {
     this.autoHide = true;
     this.size = .3;
     this.baseAnchor = -.4;
+    this.distance = 0.2;
     // safe in both portrait and lanscape orientation on mobile an pc, just above hud buttons:
     this.verticalAnchor = 0.02;
     this.anchor = this.baseAnchor;
@@ -292,7 +293,7 @@ export class ChatLog extends TextArea {
    */
   moveToAnchor() {
     // TODO parameterize this Z    
-    this.position = new BABYLON.Vector3(this.anchor, this.size/2+this.verticalAnchor, 0.2);
+    this.position = new BABYLON.Vector3(this.anchor, this.size/2+this.verticalAnchor, this.distance);
     this.group.position = this.position;
   }
   /**

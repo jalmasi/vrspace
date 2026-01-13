@@ -159,7 +159,8 @@ export class WorldEditor extends WorldListener {
       // newly created chatlog
       this.chatlog.baseAnchor = 0;
       this.chatlog.anchor = 0;
-      this.chatlog.verticalAnchor = 0.05
+      this.chatlog.verticalAnchor = 0.05;
+      this.chatlog.distance = 0.15; // closer than space chatlog
       this.chatlog.width = 1024;
       this.chatlog.input.virtualKeyboardEnabled = this.world.inXR();
       this.chatlog.autoHide = false;

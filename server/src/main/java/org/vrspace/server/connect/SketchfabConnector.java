@@ -44,6 +44,7 @@ public class SketchfabConnector {
   private Pattern descriptionCleanup = Pattern.compile("\\s+|\\r?\\n");
 
   public ModelSearchResponse searchModels(ModelSearchRequest params) throws IOException, InterruptedException {
+    log.debug("Search: " + params);
     HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL)
         .connectTimeout(Duration.of(10, ChronoUnit.SECONDS)).build();
     HttpRequest request = HttpRequest.newBuilder(params.toURI(searchUrl)).timeout(Duration.of(10, ChronoUnit.SECONDS)).GET()
@@ -69,7 +70,8 @@ public class SketchfabConnector {
         model.setUid(modelInfo.getUid());
         model.setUri(modelInfo.getUri()); // CHECKME: getViewerUrl?
         model.setProcessed(false);
-        log.debug("Created new GltfFile " + model.getName() + " " + model.getDescription());
+        // log.debug("Created new GltfFile " + model.getName() + " " +
+        // model.getDescription());
       } else {
         // log.debug("Existing GltfFile " + modelInfo.getName() + " " +
         // modelInfo.getDescription());
@@ -77,7 +79,11 @@ public class SketchfabConnector {
         modelInfo.setDescription(model.getDescription()); // CHECKME: interferes with postProcess?
       }
       postProcess(modelInfo, model);
-      db.save(model);
+      try {
+        db.save(model);
+      } catch (Exception e) {
+        log.warn("Save failed " + e);
+      }
     });
     return ret;
   }

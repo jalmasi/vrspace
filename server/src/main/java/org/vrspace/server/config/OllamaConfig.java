@@ -15,8 +15,10 @@ public class OllamaConfig {
   private String url = OllamaApiConstants.DEFAULT_BASE_URL;
   private String visionModel = "granite3.2-vision";
   private String visionPrompt = "describe this";
-  private Pattern descriptionCleanup = Pattern
-      .compile("The image (depicts|displays|shows|appears to be|features)\\s?|\\r?\\n| of the image", Pattern.CASE_INSENSITIVE);
+  // TODO: A 3D model|A three-dimensional model of what appears to be
+  private Pattern descriptionCleanup = Pattern.compile(
+      "The image (depicts|displays|shows|appears to be|features)( a 3D model of| a three-dimensional model of)?( what appears to be)?\\s?|\\r?\\n| of the image",
+      Pattern.CASE_INSENSITIVE);
   private Pattern fail = Pattern.compile("unanswerable", Pattern.CASE_INSENSITIVE);
   private String toolsModel = "mistral-nemo";
   // default numCtx is 2048, way too small

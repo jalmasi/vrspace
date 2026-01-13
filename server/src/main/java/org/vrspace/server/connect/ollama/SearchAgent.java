@@ -114,26 +114,49 @@ public class SearchAgent {
   }
 
   @Tool(description = "Search sketchfab by kewords")
-  public String sketchfabSearch(@ToolParam(description = "Search keywords separated by space") String keywords) {
-    log.info("SearchAgent search: " + keywords);
-    ModelSearchRequest req = new ModelSearchRequest();
-    req.setQ(keywords);
+  public String sketchfabSearch(
+      @ToolParam(description = "Search keywords separated by space") String keywords,
+      @ToolParam(description = "Maximum model size, in megabytes") Integer maxSize,
+      @ToolParam(description = "Maximum number of results, default 24") Integer maxResults) {
+    log.info("SearchAgent search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults);
+    // model can use comma rather than space:
+    String[] keywordList = keywords.split(",");
     StringBuilder ret = new StringBuilder();
     try {
-      long time = System.currentTimeMillis();
-      ModelSearchResponse response = sketchfab.searchModels(req);
-      time = System.currentTimeMillis() - time;
-      log.debug("Found " + response.getResults().size() + " models in " + time + " ms");
-      response.getResults().forEach(model -> {
-        ret.append("UID: ");
-        ret.append(model.getUid());
-        ret.append(" Author: ");
-        ret.append(model.getUser().getUsername());
-        ret.append(" Description: ");
-        ret.append(trimDescription(model.getDescription()));
-        ret.append("\n");
-      });
-      ;
+      for (String keyword : keywordList) {
+        ModelSearchRequest req = new ModelSearchRequest();
+        req.setQ(keyword);
+        if (maxSize != null) {
+          while (maxSize > 1000) {
+            log.warn("maxSize=" + maxSize + ", fixing");
+            maxSize = maxSize / 1000;
+          }
+          req.setArchives_max_size(maxSize * 1024 * 1024);
+        }
+        if (maxResults == null) {
+          maxResults = 24;
+        }
+        int results = 0;
+        while (results < maxResults) {
+          long time = System.currentTimeMillis();
+          ModelSearchResponse response = sketchfab.searchModels(req);
+          time = System.currentTimeMillis() - time;
+          log.debug("Found " + response.getResults().size() + " models in " + time + " ms");
+          results += response.getResults().size();
+          response.getResults().forEach(model -> {
+            ret.append("UID: ");
+            ret.append(model.getUid());
+            ret.append(" Author: ");
+            ret.append(model.getUser().getUsername());
+            ret.append(" Description: ");
+            ret.append(trimDescription(model.getDescription()));
+            ret.append("\n");
+          });
+          if (response.getNext() == null) {
+            break;
+          }
+        }
+      }
     } catch (Exception e) {
       log.error("Error searching for " + keywords, e);
       ret.append("ERROR");
@@ -150,7 +173,8 @@ public class SearchAgent {
       description = description.substring(0, 1023);
       int pos = description.lastIndexOf(".") + 1;
       description = description.substring(0, pos);
-      log.warn("Description trimmed " + length + " to " + description.length() + ": " + description);
+      // log.warn("Description trimmed " + length + " to " + description.length() + ":
+      // " + description);
     }
     return description;
   }

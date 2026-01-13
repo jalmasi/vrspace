@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import lombok.Data;
 
 /**
@@ -16,6 +19,7 @@ import lombok.Data;
  *
  */
 @Data
+@JsonInclude(Include.NON_EMPTY)
 public class ModelSearchRequest {
   /** Space separated keywords */
   String q;
@@ -46,12 +50,17 @@ public class ModelSearchRequest {
    * processedAt, -processedAt
    */
   String sort_by;
-  /** Irrelevant, we always deal with GLTF */
+  /**
+   * Irrelevant, we always deal with GLTF, but this seems to specify original file
+   */
   String file_format;
   /** One of by, by-sa, by-nd, by-nc, by-nc-sa, by-nc-nd, cc0, ed, st */
   String license;
   Integer max_uv_layer_count;
-  String available_archive_type;
+  /**
+   * We set this to gltf. Always available, and allows for search limit by size
+   */
+  String available_archive_type = "gltf";
   Integer archives_max_size;
   Integer archives_max_face_count;
   Integer archives_max_vertex_count;
