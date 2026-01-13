@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.content.Media;
@@ -14,10 +13,12 @@ import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
+import org.vrspace.server.config.OllamaConfig;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.GltfModel;
 
@@ -25,18 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
+@ConditionalOnBean(OllamaConfig.class)
 public class OllamaConnector {
   @Autowired
   private VRObjectRepository db;
+  @Autowired
+  private OllamaConfig config;
 
-  private String visionModelName = "granite3.2-vision";
-  private String visionPrompt = "describe this";
   private OllamaChatModel visionChatModel;
-  private Pattern descriptionCleanup = Pattern
-      .compile("The image (depicts|displays|shows|appears to be|features)\\s?|\\r?\\n| of the image", Pattern.CASE_INSENSITIVE);
-  private Pattern fail = Pattern.compile("unanswerable", Pattern.CASE_INSENSITIVE);
 
-  private String toolsModelName = "mistral-nemo";
   private OllamaChatModel toolsChatModel;
 
   private ExecutorService imageProcessing = Executors.newSingleThreadExecutor();
@@ -45,8 +43,8 @@ public class OllamaConnector {
   public String describeImage(String url) {
     UserMessage userMessage;
     try {
-      userMessage = UserMessage.builder().text(visionPrompt).media(new Media(MimeTypeUtils.IMAGE_JPEG, new UrlResource(url)))
-          .build();
+      userMessage = UserMessage.builder().text(config.getVisionPrompt())
+          .media(new Media(MimeTypeUtils.IMAGE_JPEG, new UrlResource(url))).build();
     } catch (MalformedURLException e) {
       log.error("Invalid url: " + url + " - " + e);
       return null;
@@ -55,11 +53,11 @@ public class OllamaConnector {
     long time = System.currentTimeMillis();
     String description = visionModel().call(userMessage);
     time = System.currentTimeMillis() - time;
-    if (fail.matcher(description).find()) {
+    if (config.getFail().matcher(description).find()) {
       log.error("Processing failed in " + time + "ms");
       return null;
     }
-    description = descriptionCleanup.matcher(description).replaceAll("");
+    description = config.getDescriptionCleanup().matcher(description).replaceAll("");
     description = StringUtils.capitalize(description);
     int size = description.length();
     log.debug(time + "ms, " + size + ": " + description);
@@ -94,22 +92,15 @@ public class OllamaConnector {
   public OllamaChatModel visionModel() {
     if (visionChatModel == null) {
       visionChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().build())
-          .defaultOptions(OllamaChatOptions.builder().model(visionModelName).build()).build();
+          .defaultOptions(OllamaChatOptions.builder().model(config.getVisionModel()).build()).build();
     }
     return visionChatModel;
   }
 
   public OllamaChatModel toolsModel() {
     if (toolsChatModel == null) {
-      toolsChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().build())
-          .defaultOptions(OllamaChatOptions.builder()
-              // default numCtx is 2048, way too small
-              .numCtx(8192)
-              // .numCtx(16384) - swapping with 3d graphics on
-              // .numCtx(32768) - too much
-              // etc
-              .model(toolsModelName).build())
-          .build();
+      toolsChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().build()).defaultOptions(
+          OllamaChatOptions.builder().numCtx(config.getContextWindowSize()).model(config.getToolsModel()).build()).build();
     }
     return toolsChatModel;
   }

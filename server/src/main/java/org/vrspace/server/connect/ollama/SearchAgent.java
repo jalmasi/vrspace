@@ -16,7 +16,9 @@ import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
+import org.vrspace.server.config.OllamaConfig;
 import org.vrspace.server.connect.OllamaConnector;
 import org.vrspace.server.connect.SketchfabConnector;
 import org.vrspace.server.connect.sketchfab.ModelSearchRequest;
@@ -30,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
+@ConditionalOnBean(OllamaConfig.class)
 public class SearchAgent {
   @Autowired
   private OllamaConnector ollama;

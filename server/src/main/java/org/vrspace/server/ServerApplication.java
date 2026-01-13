@@ -29,7 +29,10 @@ public class ServerApplication implements ServletContextListener {
   public void contextDestroyed(ServletContextEvent context) {
     log.info("VRSpace servlet context destroyed");
     // stop the application when tomcat tells it to stop
-    ctx.stop();
+    if (ctx != null) {
+      // context is null if app fails to start
+      ctx.stop();
+    }
   }
 
   @Override

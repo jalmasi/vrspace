@@ -5,6 +5,8 @@ import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +32,7 @@ public class Agents extends ClientControllerBase {
   public static final String MEMORY_REPOSITORY_ATTRIBUTE = "memory-repository";
   public static final String SEARCH_MEMORY_ATTRIBUTE = "search-memory";
 
-  @Autowired
+  @Autowired(required = false)
   private SearchAgent searchAgent;
 
   /**
@@ -39,7 +41,10 @@ public class Agents extends ClientControllerBase {
    * @param query
    */
   @PostMapping("/search")
-  public SearchAgentResponse searchAgent(HttpSession session, @RequestBody String query) {
+  public ResponseEntity<SearchAgentResponse> searchAgent(HttpSession session, @RequestBody String query) {
+    if (searchAgent == null) {
+      return new ResponseEntity<SearchAgentResponse>(HttpStatus.NOT_FOUND);
+    }
     // ensure that the client is connected, otherwise every query creates new
     // session/conversation
     findClient(session);
@@ -48,7 +53,7 @@ public class Agents extends ClientControllerBase {
       memory = MessageWindowChatMemory.builder().maxMessages(10).chatMemoryRepository(repository(session)).build();
       session.setAttribute(SEARCH_MEMORY_ATTRIBUTE, memory);
     }
-    return searchAgent.query(query, memory, session.getId());
+    return ResponseEntity.ok(searchAgent.query(query, memory, session.getId()));
   }
 
   private ChatMemoryRepository repository(HttpSession session) {
