@@ -169,8 +169,8 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
   }
 
   /**
-   * WARNING this doesn't return full, useful owned VRObject - position and other
-   * members are missing - use listOwnedObjects instead
+   * WARNING this doesn't return full, useful owned VRObject - position and other members are missing - use listOwnedObjects
+   * instead
    * 
    * @param clientId
    * @return list of all ownerships
@@ -188,8 +188,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
   }
 
   /**
-   * WARNING this doesn't return full, useful owned Entity - position and other
-   * members are missing - use getOwners instead
+   * WARNING this doesn't return full, useful owned Entity - position and other members are missing - use getOwners instead
    * 
    * @return list of all owners
    */
@@ -206,8 +205,8 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
   }
 
   /**
-   * WARNING this doesn't return full, useful owned Entity - e.g. VRObject
-   * position and other members are missing - use getOwnership instead
+   * WARNING this doesn't return full, useful owned Entity - e.g. VRObject position and other members are missing - use
+   * getOwnership instead
    */
   @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE c.id = $ownerId AND obj.id = $ownedId RETURN o,owns,c,owned,obj")

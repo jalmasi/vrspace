@@ -41,6 +41,8 @@ public class SketchfabConnector {
   public final String loginUrl = "https://sketchfab.com/oauth2/token/";
   public final String searchUrl = "https://api.sketchfab.com/v3/search";
 
+  private Pattern convertUuid = Pattern
+      .compile("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)");
   private Pattern descriptionCleanup = Pattern.compile("\\s+|\\r?\\n");
 
   public ModelSearchResponse searchModels(ModelSearchRequest params) throws IOException, InterruptedException {
@@ -58,9 +60,11 @@ public class SketchfabConnector {
     ret.getResults().forEach(modelInfo -> {
       modelInfo.setDescription(descriptionCleanup.matcher(modelInfo.getDescription()).replaceAll(" "));
 
-      Optional<GltfModel> existing = db.findGltfModelByUid(modelInfo.getUid());
-      GltfModel model = new GltfModel();
-      if (existing.isEmpty()) {
+      String uuid = convertUuid.matcher(modelInfo.getUid()).replaceFirst("$1-$2-$3-$4-$5");
+      GltfModel model = db.get(GltfModel.class, uuid);
+      if (model == null) {
+        model = new GltfModel();
+        model.setId(uuid);
         model.setAuthor(modelInfo.getUser().getUsername()); // CHECKME: or getDisplayName?
         model.setCategories(updateCategories(modelInfo.getCategories()));
         model.setDescription(modelInfo.getDescription());
@@ -70,13 +74,10 @@ public class SketchfabConnector {
         model.setUid(modelInfo.getUid());
         model.setUri(modelInfo.getUri()); // CHECKME: getViewerUrl?
         model.setProcessed(false);
-        // log.debug("Created new GltfFile " + model.getName() + " " +
-        // model.getDescription());
+        // log.debug("Created new GltfFile " + model.getId() + " " + model.getName() + " " + model.getDescription());
         model = db.save(model);
       } else {
-        // log.debug("Existing GltfFile " + modelInfo.getName() + " " +
-        // modelInfo.getDescription());
-        model = existing.get();
+        // log.debug("Existing GltfFile " + modelInfo.getName() + " " + modelInfo.getDescription());
         modelInfo.setDescription(model.getDescription()); // CHECKME: interferes with postProcess?
       }
       postProcess(modelInfo, model);
