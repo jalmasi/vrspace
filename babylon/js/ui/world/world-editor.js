@@ -111,6 +111,7 @@ export class WorldEditor extends WorldListener {
     this.copyButton = this.makeAButton("Copy", this.contentBase + "/content/icons/copy.png", (o) => this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", this.contentBase + "/content/icons/delete.png", (o) => this.removeObject(o));
     this.searchButton = this.makeAButton("Search", this.contentBase + "/content/icons/zoom.png");
+    // TODO: check server capabilites
     this.promptButton = this.makeAButton("Prompt", this.contentBase + "/content/icons/prompt.png");
     this.saveButton = this.makeAButton("Save", this.contentBase + "/content/icons/save.png");
     this.loadButton = this.makeAButton("Load", this.contentBase + "/content/icons/open.png");
@@ -973,10 +974,13 @@ export class WorldEditor extends WorldListener {
     if (this.chatlog) {
       this.chatlog.hide(true);
     }
+    /*
+    CHECKME: nothing to dispose?
     if (this.indicator) {
       this.indicator.dispose();
       this.indicator = null;
     }
+    */
     this.buttons.forEach((b) => b.dispose());
     this.world.removeSelectionPredicate(this.selectionPredicate);
     this.world.xrHelper.removeSqueezeConsumer(this.squeeze);
