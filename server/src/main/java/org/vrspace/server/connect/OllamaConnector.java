@@ -15,7 +15,6 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.vrspace.server.config.OllamaConfig;
 import org.vrspace.server.core.PausableThreadPoolExecutor;
-import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.GltfModel;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ConditionalOnBean(OllamaConfig.class)
 public class OllamaConnector {
-  @Autowired
-  private VRObjectRepository db;
   @Autowired
   private OllamaConfig config;
 
@@ -75,7 +72,6 @@ public class OllamaConnector {
           model.setDescription(description);
         }
         model.setProcessed(true);
-        db.save(model);
       } catch (Exception e) {
         log.warn("Processing failed, probable task shutdown " + e);
       }

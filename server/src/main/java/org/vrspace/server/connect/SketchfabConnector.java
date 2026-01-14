@@ -44,7 +44,7 @@ public class SketchfabConnector {
   private Pattern descriptionCleanup = Pattern.compile("\\s+|\\r?\\n");
 
   public ModelSearchResponse searchModels(ModelSearchRequest params) throws IOException, InterruptedException {
-    log.debug("Search: " + params);
+    log.debug("Search: " + params.getQ());
     HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL)
         .connectTimeout(Duration.of(10, ChronoUnit.SECONDS)).build();
     HttpRequest request = HttpRequest.newBuilder(params.toURI(searchUrl)).timeout(Duration.of(10, ChronoUnit.SECONDS)).GET()
@@ -72,6 +72,7 @@ public class SketchfabConnector {
         model.setProcessed(false);
         // log.debug("Created new GltfFile " + model.getName() + " " +
         // model.getDescription());
+        model = db.save(model);
       } else {
         // log.debug("Existing GltfFile " + modelInfo.getName() + " " +
         // modelInfo.getDescription());
@@ -79,11 +80,6 @@ public class SketchfabConnector {
         modelInfo.setDescription(model.getDescription()); // CHECKME: interferes with postProcess?
       }
       postProcess(modelInfo, model);
-      try {
-        db.save(model);
-      } catch (Exception e) {
-        log.warn("Save failed " + e);
-      }
     });
     return ret;
   }
@@ -104,6 +100,7 @@ public class SketchfabConnector {
       }
       model.setThumbnail(chosen.getUrl());
       ollama.updateDescriptionFromThumbnail(model);
+      db.save(model);
     }
   }
 
