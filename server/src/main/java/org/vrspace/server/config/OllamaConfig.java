@@ -13,11 +13,11 @@ import lombok.Data;
 @Configuration("ollamaConfig")
 public class OllamaConfig {
   private String url = OllamaApiConstants.DEFAULT_BASE_URL;
-  private String visionModel = "granite3.2-vision";
+  private String visionModel = "ibm/granite3.3-vision:2b";
   private String visionPrompt = "describe this";
   // TODO: A 3D model|A three-dimensional model of what appears to be
   private Pattern descriptionCleanup = Pattern.compile(
-      "The image (depicts|displays|shows|appears to be|features)( a 3D model of| a three-dimensional model of)?( what appears to be)?\\s?|\\r?\\n| of the image",
+      "The image (you've provided is|depicts|displays|shows|appears to be|features|presents|is)( a)?( 3D model| three-dimensional model| 3D rendering| digital rendering)?( of)?( what appears to be)?\\s?|\\r?\\n| of the image",
       Pattern.CASE_INSENSITIVE);
   private Pattern fail = Pattern.compile("unanswerable", Pattern.CASE_INSENSITIVE);
   private String toolsModel = "mistral-nemo";

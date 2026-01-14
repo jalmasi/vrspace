@@ -52,7 +52,7 @@ public class OllamaConnector {
     description = config.getDescriptionCleanup().matcher(description).replaceAll("");
     description = StringUtils.capitalize(description);
     int size = description.length();
-    log.debug(time + "ms, " + size + ": " + description);
+    log.debug("Processed " + url + " in " + time + "ms, " + size + ": " + description);
     return description;
   }
 
