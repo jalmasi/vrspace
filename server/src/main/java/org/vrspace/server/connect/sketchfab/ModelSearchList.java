@@ -32,4 +32,6 @@ public class ModelSearchList {
   ModelLicense license;
   // does not seem to exist:
   Boolean isPublished;
+  /** Not part of the sketchfab API, we set it if the query requested rigged model */
+  Boolean rigged;
 }

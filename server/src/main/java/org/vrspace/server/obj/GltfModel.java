@@ -13,8 +13,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * A 3D Model in GLTF format. Adds unique id, uri and other properties to
- * Content class. Based on sketchfab models.
+ * A 3D Model in GLTF format. Adds unique id, uri and other properties to Content class. Based on sketchfab models.
  * 
  * @author joe
  *
@@ -24,7 +23,7 @@ import lombok.EqualsAndHashCode;
 @JsonInclude(Include.NON_EMPTY)
 @Node
 public class GltfModel extends Content {
-  private String uid; // TODO: unique index
+  private String uid;
   private String uri;
   private String name;
   private String description;
@@ -33,6 +32,8 @@ public class GltfModel extends Content {
   private String author;
   private List<ContentCategory> categories = new ArrayList<ContentCategory>();
   private String mesh;
+  private Boolean animated;
+  private Boolean rigged;
   @JsonIgnore
   private Boolean processed;
   @JsonIgnore

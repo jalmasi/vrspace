@@ -107,18 +107,22 @@ public class SearchAgent {
       }
       ollama.startImageProcessing();
     } catch (Exception e) {
+      ollama.startImageProcessing();
       log.error("Failed to process query " + query, e);
       ret.answer = e.toString();
     }
     return ret;
   }
 
-  @Tool(description = "Search sketchfab by kewords")
+  @Tool(description = "Search sketchfab web API by kewords")
   public String sketchfabSearch(
       @ToolParam(description = "Search keywords separated by space") String keywords,
       @ToolParam(description = "Maximum model size, in megabytes") Integer maxSize,
+      @ToolParam(description = "Request only animated models") Boolean animated,
+      @ToolParam(description = "Request only rigged models") Boolean rigged,
       @ToolParam(description = "Maximum number of results, default 24") Integer maxResults) {
-    log.info("SearchAgent search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults);
+    log.info("SearchAgent search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults + " animated: " + animated
+        + " rigged: " + rigged);
     // model can use comma rather than space:
     String[] keywordList = keywords.split(",");
     StringBuilder ret = new StringBuilder();
@@ -135,6 +139,15 @@ public class SearchAgent {
         }
         if (maxResults == null) {
           maxResults = 24;
+        } else {
+          // we can set it, but let's prefetch some more
+          // req.setCount(maxResults);
+        }
+        if (animated != null) {
+          req.setAnimated(animated);
+        }
+        if (rigged != null) {
+          req.setRigged(rigged);
         }
         int results = 0;
         while (results < maxResults) {

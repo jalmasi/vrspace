@@ -99,7 +99,7 @@ public class OllamaConnector {
     imageProcessing.pause();
   }
 
-  public void startImageProcessing() throws InterruptedException {
+  public void startImageProcessing() {
     imageProcessing.resume();
   }
 

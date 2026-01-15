@@ -59,6 +59,7 @@ public class SketchfabConnector {
     ModelSearchResponse ret = objectMapper.readValue(body, ModelSearchResponse.class);
     ret.getResults().forEach(modelInfo -> {
       modelInfo.setDescription(descriptionCleanup.matcher(modelInfo.getDescription()).replaceAll(" "));
+      modelInfo.setRigged(params.getRigged());
 
       String uuid = convertUuid.matcher(modelInfo.getUid()).replaceFirst("$1-$2-$3-$4-$5");
       GltfModel model = db.get(GltfModel.class, uuid);
@@ -73,6 +74,8 @@ public class SketchfabConnector {
         model.setName(modelInfo.getName()); // CHECKME: sanitize?
         model.setUid(modelInfo.getUid());
         model.setUri(modelInfo.getUri()); // CHECKME: getViewerUrl?
+        model.setAnimated(modelInfo.getAnimationCount() > 0);
+        model.setRigged(modelInfo.getRigged());
         model.setProcessed(false);
         // log.debug("Created new GltfFile " + model.getId() + " " + model.getName() + " " + model.getDescription());
         model = db.save(model);
