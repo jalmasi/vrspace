@@ -63,8 +63,8 @@ public class SearchAgent {
   public SearchAgentResponse query(String query, ChatMemory memory, String conversationId) {
     log.info("SearchAgent query: " + query);
     SearchAgentResponse ret = new SearchAgentResponse();
+    ollama.stopImageProcessing();
     try {
-      ollama.stopImageProcessing(10000);
       // memory makes sure to keep only one system message
       // if (memory.get(conversationId).size() == 0) {
       memory.add(conversationId, systemMessage);
@@ -105,11 +105,11 @@ public class SearchAgent {
           ret.answer = answerCleanup.matcher(answerMatcher.group()).replaceAll("");
         }
       }
-      ollama.startImageProcessing();
     } catch (Exception e) {
-      ollama.startImageProcessing();
       log.error("Failed to process query " + query, e);
       ret.answer = e.toString();
+    } finally {
+      ollama.startImageProcessing();
     }
     return ret;
   }

@@ -80,7 +80,8 @@ public class SketchfabConnector {
         // log.debug("Created new GltfFile " + model.getId() + " " + model.getName() + " " + model.getDescription());
         model = db.save(model);
       } else {
-        // log.debug("Existing GltfFile " + modelInfo.getName() + " " + modelInfo.getDescription());
+        // log.debug("Existing GltfFile " + modelInfo.getName() + " " + modelInfo.getDescription() + " processed: " +
+        // model.getProcessed());
         modelInfo.setDescription(model.getDescription()); // CHECKME: interferes with postProcess?
       }
       postProcess(modelInfo, model);
@@ -104,7 +105,6 @@ public class SketchfabConnector {
       }
       model.setThumbnail(chosen.getUrl());
       ollama.updateDescriptionFromThumbnail(model);
-      db.save(model);
     }
   }
 

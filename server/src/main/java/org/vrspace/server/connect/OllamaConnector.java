@@ -15,6 +15,7 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.vrspace.server.config.OllamaConfig;
 import org.vrspace.server.core.PausableThreadPoolExecutor;
+import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.GltfModel;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 public class OllamaConnector {
   @Autowired
   private OllamaConfig config;
+  @Autowired
+  private VRObjectRepository db;
 
   private OllamaChatModel visionChatModel;
 
@@ -58,9 +61,12 @@ public class OllamaConnector {
 
   public void updateDescriptionFromThumbnail(GltfModel model) {
     imageProcessing.execute(() -> {
-      if (model.getProcessed() != null && model.getProcessed().booleanValue()) {
+      if (model.getProcessed() != null && model.getProcessed()) {
         // multiple search requests may enqueue the same model
         // log.debug("Already processed model skipped: " + model);
+        return;
+      } else if (model.getFailed() != null && model.getFailed()) {
+        // log.debug("Already failed model skipped: " + model);
         return;
       }
       try {
@@ -70,10 +76,11 @@ public class OllamaConnector {
           model.setFailed(true);
         } else {
           model.setDescription(description);
+          model.setProcessed(true);
         }
-        model.setProcessed(true);
+        db.save(model);
       } catch (Exception e) {
-        log.warn("Processing failed, probable task shutdown " + e);
+        log.warn("Processing failed " + e);
       }
     });
 
@@ -95,12 +102,14 @@ public class OllamaConnector {
     return toolsChatModel;
   }
 
-  public void stopImageProcessing(int millis) throws InterruptedException {
+  public void stopImageProcessing() {
     imageProcessing.pause();
+    log.debug("Image processing paused");
   }
 
   public void startImageProcessing() {
     imageProcessing.resume();
+    log.debug("Image processing resumed");
   }
 
 }
