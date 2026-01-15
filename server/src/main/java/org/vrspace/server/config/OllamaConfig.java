@@ -17,7 +17,7 @@ public class OllamaConfig {
   private String visionPrompt = "describe this";
   // TODO: A 3D model|A three-dimensional model of what appears to be
   private Pattern descriptionCleanup = Pattern.compile(
-      "The image (you've provided is|depicts|displays|shows|appears to be|features|presents|is)( a)?( 3D model| three-dimensional model| 3D rendering| digital rendering| digital painting)?( of| that captures)?( what appears to be)?\\s?|\\r?\\n| of the image",
+      "The image (you've provided is|depicts|displays|shows|appears to be|features|presents|is)( a)?( 3D model| three-dimensional model| 3D rendering| digital rendering| digital painting)?( of| that captures)?( what appears to be)?\\s?|\\r?\\n| of the image|3d rendering of ",
       Pattern.CASE_INSENSITIVE);
   private Pattern fail = Pattern.compile("unanswerable", Pattern.CASE_INSENSITIVE);
   private String toolsModel = "mistral-nemo";
