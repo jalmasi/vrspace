@@ -22,11 +22,9 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Records all events in the world, saves them to the database, plays them back.
- * This is a special case of Client that has no session, but copies scene and
- * properties from the client it impersonates. By overriding Client's
- * sendMessage(), it maintains internal list of received events. Once recording
- * is done, i.e. stop() is called, event list is persisted to the database.
+ * Records all events in the world, saves them to the database, plays them back. This is a special case of Client that has no
+ * session, but copies scene and properties from the client it impersonates. By overriding Client's sendMessage(), it maintains
+ * internal list of received events. Once recording is done, i.e. stop() is called, event list is persisted to the database.
  * 
  * @see PersistentEvent
  * @see Recording
@@ -126,7 +124,7 @@ public class EventRecorder extends User {
           VREvent event = (VREvent) obj;
           if (event.getPayload() == null) {
             // ensure it can be persisted
-            event.setPayload(getMapper().writeValueAsString(event.getChanges()));
+            event.setPayload(getMapper().writeValueAsString(event));
           }
           if (event.getSource() == client) {
             // this only happens when recordClient == true
@@ -153,8 +151,7 @@ public class EventRecorder extends User {
   }
 
   /**
-   * Play recorded client events as own events, optionally restart the loop when
-   * finished.
+   * Play recorded client events as own events, optionally restart the loop when finished.
    */
   public void play() {
     if (this.events.size() > 0 && this.getListeners().size() > 0) {
@@ -189,16 +186,14 @@ public class EventRecorder extends User {
   }
 
   /**
-   * Play back to a client sends all recorded events back to a client, optionally
-   * restarts the loop when finished.
+   * Play back to a client sends all recorded events back to a client, optionally restarts the loop when finished.
    * 
    * @param viewer Client who's viewing the recording
    */
   public void play(Client viewer) {
     log.debug(this.getName() + " Playing " + events.size() + " events to Client " + viewer);
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    events
-        .forEach((event) -> executor.schedule(() -> playEvent(event, viewer), event.getDelay(), TimeUnit.MILLISECONDS));
+    events.forEach((event) -> executor.schedule(() -> playEvent(event, viewer), event.getDelay(), TimeUnit.MILLISECONDS));
     executor.shutdown();
     if (this.loop && this.length != null) {
       restart = Executors.newSingleThreadScheduledExecutor();
@@ -223,8 +218,8 @@ public class EventRecorder extends User {
       if (this.getMapper() == null) {
         this.setMapper(((Client) obj).getMapper());
       }
-      log.debug(getName() + " First listener, loop: " + this.loop + " playing: " + this.playing + " recording: "
-          + this.recording);
+      log.debug(
+          getName() + " First listener, loop: " + this.loop + " playing: " + this.playing + " recording: " + this.recording);
       if (this.loop && !this.playing && !this.recording) {
         this.play();
       }
@@ -235,7 +230,10 @@ public class EventRecorder extends User {
 
   public void deserialize(PersistentEvent event) {
     try {
-      String value = "{\"changes\":" + event.getPayload() + "}";
+      // original payload contains original event, including original object/user id
+      // we need to do all the same, but with a different object
+      // so we take only changes from serialized object
+      String value = event.getPayload();
       VREvent changed = getMapper().readValue(value, VREvent.class);
       event.setChanges(changed.getChanges());
     } catch (Exception e) {

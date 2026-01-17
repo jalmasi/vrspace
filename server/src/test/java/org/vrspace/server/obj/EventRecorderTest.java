@@ -3,7 +3,6 @@ package org.vrspace.server.obj;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.clearInvocations;
@@ -15,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -40,9 +40,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * This is a bad test using hardcoded timeouts. It may fail occasionally until
- * EventRecorder provides some additional notifications, e.g. that the loop has
- * ended.
+ * This is a bad test using hardcoded timeouts. It may fail occasionally until EventRecorder provides some additional
+ * notifications, e.g. that the loop has ended.
  * 
  * @author joe
  *
@@ -236,28 +235,30 @@ public class EventRecorderTest {
   }
 
   @Test
-  public void testEventDeserialization() {
+  public void testEventDeserialization() throws Exception {
     EventRecorder recorder = new EventRecorder();
     recorder.setMapper(mapper);
     PersistentEvent event1 = new PersistentEvent();
     event1.setDelay(10);
     event1.setType("own");
-    event1.setPayload("{\"rotation\": {\"x\": 1,\"y\": 0,\"z\": 0}}");
+    event1.setChanges(Map.of("rotation", new Rotation(1, 0, 0)));
+    event1.setPayload(mapper.writeValueAsString(event1));
     PersistentEvent event2 = new PersistentEvent();
     event2.setDelay(20);
     event2.setType("own");
-    event2.setPayload("{\"rotation\": {\"x\": 2,\"y\": 0,\"z\": 0}}");
+    event2.setChanges(Map.of("rotation", new Rotation(2, 0, 0)));
+    event2.setPayload(mapper.writeValueAsString(event2));
     PersistentEvent event3 = new PersistentEvent();
     event3.setDelay(30);
     event3.setType("own");
-    event3.setPayload("{\"rotation\": {\"x\": 3,\"y\": 0,\"z\": 0}}");
+    event3.setChanges(Map.of("rotation", new Rotation(3, 0, 0)));
+    event3.setPayload(mapper.writeValueAsString(event3));
     recorder.setEvents(List.of(event1, event2, event3));
 
     recorder.getEvents().forEach(event -> {
-      assertNull(event.getChanges());
+      event.setChanges(null);
+      recorder.deserialize(event);
     });
-
-    recorder.getEvents().forEach(event -> recorder.deserialize(event));
 
     recorder.getEvents().forEach(event -> {
       assertNotNull(event.getChanges());
