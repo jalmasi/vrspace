@@ -161,7 +161,6 @@ public class SearchAgent {
           log.debug("Found " + response.getResults().size() + " models in " + time + " ms");
           results += response.getResults().size();
           response.getResults().forEach(model -> {
-            ollama.updateDescriptionFromThumbnail(model.getGltfModel());
             ret.append("UID: ");
             ret.append(model.getUid());
             ret.append(" Author: ");

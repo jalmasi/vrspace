@@ -19,8 +19,8 @@ public class OllamaConfig {
   // TODO: A 3D model|A three-dimensional model of what appears to be
   private Pattern descriptionCleanup = Pattern
       .compile("(The|This) (image|illustration) (you've provided |you provided |you've shared |you shared )?"
-          + "(depicts|displays|shows|appears to be|features|presents|is|illustrates)( an| a)?( whimsical, stylized| charming and whimsical)?"
-          + "( 3D model| three-dimensional model| 3D rendering| digital rendering| digital painting| illustration)?"
+          + "(depicts|displays|shows|appears to be|features|presents|is|illustrates)( an| a)?( whimsical, stylized| stylized, whimsical| charming and whimsical)?"
+          + "( 3D model| three-dimensional model| 3D rendering| digital rendering| digital painting| illustration| depiction)?"
           + "( of| that captures)?( what appears to be)?\\s?| of the image|(3d rendering of |3D-rendered )|\\r?\\n|\\*\\*",
           Pattern.CASE_INSENSITIVE);
   private Pattern fail = Pattern.compile("unanswerable", Pattern.CASE_INSENSITIVE);

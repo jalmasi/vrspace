@@ -35,6 +35,8 @@ public class SketchfabConnector {
   private ObjectMapper objectMapper;
   @Autowired
   private VRObjectRepository db;
+  @Autowired(required = false)
+  private OllamaConnector ollama;
 
   public final String loginUrl = "https://sketchfab.com/oauth2/token/";
   public final String searchUrl = "https://api.sketchfab.com/v3/search";
@@ -45,9 +47,15 @@ public class SketchfabConnector {
 
   public ModelSearchResponse searchModels(ModelSearchRequest params) throws IOException, InterruptedException {
     log.debug("Search: " + params.getQ());
-    HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL)
-        .connectTimeout(Duration.of(10, ChronoUnit.SECONDS)).build();
-    HttpRequest request = HttpRequest.newBuilder(params.toURI(searchUrl)).timeout(Duration.of(10, ChronoUnit.SECONDS)).GET()
+    HttpClient client = HttpClient
+        .newBuilder()
+        .followRedirects(Redirect.NORMAL)
+        .connectTimeout(Duration.of(10, ChronoUnit.SECONDS))
+        .build();
+    HttpRequest request = HttpRequest
+        .newBuilder(params.toURI(searchUrl))
+        .timeout(Duration.of(10, ChronoUnit.SECONDS))
+        .GET()
         .build();
 
     HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
@@ -84,6 +92,10 @@ public class SketchfabConnector {
         modelInfo.setDescription(model.getDescription());
       }
       modelInfo.setGltfModel(model);
+      if (ollama != null) {
+        // we do it here to ensure images are processed on search requests, not just on prompt
+        ollama.updateDescriptionFromThumbnail(model);
+      }
     });
     return ret;
   }
