@@ -72,8 +72,11 @@ public class SearchAgent {
       memory.add(conversationId, new UserMessage(query));
 
       long time = System.currentTimeMillis();
-      Prompt prompt = Prompt.builder().messages(memory.get(conversationId))
-          .chatOptions(OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(this)).build()).build();
+      Prompt prompt = Prompt
+          .builder()
+          .messages(memory.get(conversationId))
+          .chatOptions(OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(this)).build())
+          .build();
       ChatResponse response = ollama.toolsModel().call(prompt);
       time = System.currentTimeMillis() - time;
       log.debug("Response in " + time + " ms: " + response);
@@ -121,8 +124,9 @@ public class SearchAgent {
       @ToolParam(description = "Request only animated models") Boolean animated,
       @ToolParam(description = "Request only rigged models") Boolean rigged,
       @ToolParam(description = "Maximum number of results, default 24") Integer maxResults) {
-    log.info("SearchAgent search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults + " animated: " + animated
-        + " rigged: " + rigged);
+    log
+        .info("SearchAgent search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults + " animated: " + animated
+            + " rigged: " + rigged);
     // model can use comma rather than space:
     String[] keywordList = keywords.split(",");
     StringBuilder ret = new StringBuilder();
@@ -187,9 +191,9 @@ public class SearchAgent {
       description = description.substring(0, 1023);
       int pos = description.lastIndexOf(".") + 1;
       description = description.substring(0, pos);
-      // log.warn("Description trimmed " + length + " to " + description.length() + ":
-      // " + description);
+      log.warn("Description trimmed " + length + " to " + description.length() + ":" + description);
     }
     return description;
   }
+
 }

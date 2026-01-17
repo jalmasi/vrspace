@@ -18,6 +18,7 @@ import org.vrspace.server.core.PausableThreadPoolExecutor;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.GltfModel;
 
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -34,6 +35,8 @@ public class OllamaConnector {
   private OllamaChatModel toolsChatModel;
 
   private PausableThreadPoolExecutor imageProcessing = PausableThreadPoolExecutor.newSingleThreadExecutor();
+
+  private boolean shouldPause = true;
 
   public String describeImage(String url) {
     UserMessage userMessage;
@@ -55,11 +58,11 @@ public class OllamaConnector {
       log.error("Processing failed in " + time + "ms");
       return null;
     }
-    description = config.getDescriptionCleanup().matcher(description).replaceAll("");
-    description = StringUtils.capitalize(description);
-    int size = description.length();
-    log.debug("Processed " + url + " in " + time + "ms, " + size + ": " + description);
-    return description;
+    String updatedDescription = StringUtils
+        .capitalize(config.getDescriptionCleanup().matcher(description).replaceAll("").replaceAll("\\s+", " "));
+    int size = updatedDescription.length();
+    log.debug("Processed " + url + " in " + time + "ms, " + size + ": \n" + description + "\n - " + updatedDescription);
+    return updatedDescription;
   }
 
   public void updateDescriptionFromThumbnail(GltfModel model) {
@@ -81,7 +84,10 @@ public class OllamaConnector {
           model.setDescription(description);
           model.setProcessed(true);
         }
-        db.save(model);
+        if (!imageProcessing.isShutdown()) {
+          // if it's shut down already this only produces error
+          db.save(model);
+        }
       } catch (Exception e) {
         log.warn("Processing failed " + e);
       }
@@ -117,13 +123,22 @@ public class OllamaConnector {
   }
 
   public void stopImageProcessing() {
-    imageProcessing.pause();
-    log.debug("Image processing paused");
+    if (shouldPause) {
+      imageProcessing.pause();
+      log.debug("Image processing paused");
+    }
   }
 
   public void startImageProcessing() {
-    imageProcessing.resume();
-    log.debug("Image processing resumed");
+    if (shouldPause) {
+      imageProcessing.resume();
+      log.debug("Image processing resumed");
+    }
+  }
+
+  @PreDestroy
+  public void shutdown() {
+    imageProcessing.shutdownNow();
   }
 
 }
