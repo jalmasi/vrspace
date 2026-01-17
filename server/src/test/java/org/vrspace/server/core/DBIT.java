@@ -41,6 +41,8 @@ import org.vrspace.server.obj.UserGroup;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @SpringBootTest
 public class DBIT {
 
@@ -58,6 +60,9 @@ public class DBIT {
 
   @Autowired
   WriteBack writeBack;
+
+  @Autowired
+  ObjectMapper objectMapper;
 
   @Test
   @Transactional
@@ -474,7 +479,7 @@ public class DBIT {
     recorder.setRecording(true);
     VREvent event = new VREvent(new Client());
     event.addChange("something", "anything");
-    event.setPayload("{\"something\":\"anything\"}");
+    event.setPayload(objectMapper.writeValueAsString(event));
     recorder.sendMessage(event);
     recorder = repo.save(recorder);
 

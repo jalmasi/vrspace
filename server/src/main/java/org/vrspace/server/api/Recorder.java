@@ -76,9 +76,9 @@ public class Recorder extends ClientControllerBase {
         event.setSource(eventRecorder);
         try {
           // ensure it can be persisted
-          event.setPayload(mapper.writeValueAsString(event.getChanges()));
+          event.setPayload(mapper.writeValueAsString(event));
         } catch (Exception e) {
-          log.error("Can't load recorded message " + event.getChanges());
+          log.error("Can't load recorded message " + event);
         }
       }
     });
