@@ -38,8 +38,11 @@ public class OllamaConnector {
   public String describeImage(String url) {
     UserMessage userMessage;
     try {
-      userMessage = UserMessage.builder().text(config.getVisionPrompt())
-          .media(new Media(MimeTypeUtils.IMAGE_JPEG, new UrlResource(url))).build();
+      userMessage = UserMessage
+          .builder()
+          .text(config.getVisionPrompt())
+          .media(new Media(MimeTypeUtils.IMAGE_JPEG, new UrlResource(url)))
+          .build();
     } catch (MalformedURLException e) {
       log.error("Invalid url: " + url + " - " + e);
       return null;
@@ -88,16 +91,27 @@ public class OllamaConnector {
 
   public OllamaChatModel visionModel() {
     if (visionChatModel == null) {
-      visionChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().baseUrl(config.getUrl()).build())
-          .defaultOptions(OllamaChatOptions.builder().model(config.getVisionModel()).build()).build();
+      visionChatModel = OllamaChatModel
+          .builder()
+          .ollamaApi(OllamaApi.builder().baseUrl(config.getUrl()).build())
+          .defaultOptions(OllamaChatOptions.builder().model(config.getVisionModel()).keepAlive(config.getKeepAlive()).build())
+          .build();
     }
     return visionChatModel;
   }
 
   public OllamaChatModel toolsModel() {
     if (toolsChatModel == null) {
-      toolsChatModel = OllamaChatModel.builder().ollamaApi(OllamaApi.builder().baseUrl(config.getUrl()).build()).defaultOptions(
-          OllamaChatOptions.builder().numCtx(config.getContextWindowSize()).model(config.getToolsModel()).build()).build();
+      toolsChatModel = OllamaChatModel
+          .builder()
+          .ollamaApi(OllamaApi.builder().baseUrl(config.getUrl()).build())
+          .defaultOptions(OllamaChatOptions
+              .builder()
+              .numCtx(config.getContextWindowSize())
+              .model(config.getToolsModel())
+              .keepAlive(config.getKeepAlive())
+              .build())
+          .build();
     }
     return toolsChatModel;
   }

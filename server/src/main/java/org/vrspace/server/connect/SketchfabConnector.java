@@ -35,8 +35,6 @@ public class SketchfabConnector {
   private ObjectMapper objectMapper;
   @Autowired
   private VRObjectRepository db;
-  @Autowired(required = false)
-  private OllamaConnector ollama;
 
   public final String loginUrl = "https://sketchfab.com/oauth2/token/";
   public final String searchUrl = "https://api.sketchfab.com/v3/search";
@@ -78,34 +76,33 @@ public class SketchfabConnector {
         model.setRigged(modelInfo.getRigged());
         model.setProcessed(false);
         // log.debug("Created new GltfFile " + model.getId() + " " + model.getName() + " " + model.getDescription());
+        pickThumbnail(modelInfo, model);
         model = db.save(model);
       } else {
         // log.debug("Existing GltfFile " + modelInfo.getName() + " " + modelInfo.getDescription() + " processed: " +
         // model.getProcessed());
-        modelInfo.setDescription(model.getDescription()); // CHECKME: interferes with postProcess?
+        modelInfo.setDescription(model.getDescription());
       }
-      postProcess(modelInfo, model);
+      modelInfo.setGltfModel(model);
     });
     return ret;
   }
 
-  private void postProcess(ModelSearchList modelInfo, GltfModel model) {
-    if (ollama != null) {
-      ImageInfo chosen = null;
-      for (ImageInfo imageInfo : modelInfo.getThumbnails().getImages()) {
-        // we need at least 700x400 pixels for successful recognition
-        if ((imageInfo.getHeight() >= 700 && imageInfo.getWidth() >= 400
-            || imageInfo.getHeight() >= 400 && imageInfo.getWidth() >= 700)
-            && (chosen == null || imageInfo.getHeight() < chosen.getHeight() || imageInfo.getWidth() < chosen.getWidth())) {
-          chosen = imageInfo;
-        }
+  private void pickThumbnail(ModelSearchList modelInfo, GltfModel model) {
+    ImageInfo chosen = null;
+    for (ImageInfo imageInfo : modelInfo.getThumbnails().getImages()) {
+      // we need at least 700x400 pixels for successful recognition
+      if ((imageInfo.getHeight() >= 700 && imageInfo.getWidth() >= 400
+          || imageInfo.getHeight() >= 400 && imageInfo.getWidth() >= 700)
+          && (chosen == null || imageInfo.getHeight() < chosen.getHeight() || imageInfo.getWidth() < chosen.getWidth())) {
+        chosen = imageInfo;
       }
-      if (chosen == null || chosen.getHeight() < 400 || chosen.getWidth() < 400) {
-        log.error("Invalid thumbnail chosen:" + chosen + ", choices: " + modelInfo.getThumbnails());
-      }
-      model.setThumbnail(chosen.getUrl());
-      ollama.updateDescriptionFromThumbnail(model);
     }
+    if (chosen == null || chosen.getHeight() < 400 || chosen.getWidth() < 400) {
+      chosen = modelInfo.getThumbnails().getImages().get(modelInfo.getThumbnails().getImages().size() - 1);
+      log.error("Invalid thumbnail chosen:" + chosen + ", choices: " + modelInfo.getThumbnails());
+    }
+    model.setThumbnail(chosen.getUrl());
   }
 
   private List<ContentCategory> updateCategories(List<ModelCategory> categories) {

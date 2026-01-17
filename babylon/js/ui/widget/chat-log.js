@@ -53,7 +53,7 @@ class ChatLogInput extends TextAreaInput {
     super.inputFocused(input,focused);
     this.attachButton.isVisible = focused && this.attachments || this.attached.length > 0;
     if ( focused ) {
-      console.log("Focused ", this.textArea);
+      //console.log("Focused ", this.textArea);
       ChatLog.activeInstance = this.textArea;
     }
   }
@@ -341,7 +341,7 @@ export class ChatLog extends TextArea {
   /** @private */
   setActiveInstance() {
     ChatLog.activeInstance = this;
-    console.log("Focused ", this);
+    //console.log("Focused ", this);
   }
   /** @private */
   clearActiveInstance() {

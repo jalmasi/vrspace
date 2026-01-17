@@ -2,9 +2,13 @@ package org.vrspace.server.connect.sketchfab;
 
 import java.util.List;
 
+import org.vrspace.server.obj.GltfModel;
+
 import lombok.Data;
 
-/** One model returned in search response. */
+/**
+ * One model returned in search response. Sketchfab response enriched locally, e.g. rigged and gltfModel.
+ */
 @Data
 public class ModelSearchList {
   String uri;
@@ -34,4 +38,6 @@ public class ModelSearchList {
   Boolean isPublished;
   /** Not part of the sketchfab API, we set it if the query requested rigged model */
   Boolean rigged;
+  /** Model info in the local database, not part of the sketchfab API */
+  GltfModel gltfModel;
 }

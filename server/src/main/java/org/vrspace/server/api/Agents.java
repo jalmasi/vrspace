@@ -18,8 +18,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Communicate with AI agents in virtual worlds. Only available to clients in a
- * world.
+ * Communicate with AI agents in virtual worlds. Only available to clients in a world.
  * 
  * @author joe
  *
@@ -50,6 +49,7 @@ public class Agents extends ClientControllerBase {
     findClient(session);
     ChatMemory memory = (ChatMemory) session.getAttribute(SEARCH_MEMORY_ATTRIBUTE);
     if (memory == null) {
+      log.debug("New chat memory created");
       memory = MessageWindowChatMemory.builder().maxMessages(10).chatMemoryRepository(repository(session)).build();
       session.setAttribute(SEARCH_MEMORY_ATTRIBUTE, memory);
     }
