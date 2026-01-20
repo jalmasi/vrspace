@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.vrspace.server.config.OllamaConfig;
 import org.vrspace.server.connect.ollama.SearchAgent;
 import org.vrspace.server.connect.ollama.SearchAgent.SearchAgentResponse;
 
@@ -33,6 +34,8 @@ public class Agents extends ClientControllerBase {
 
   @Autowired(required = false)
   private SearchAgent searchAgent;
+  @Autowired
+  private OllamaConfig config;
 
   /**
    * Sketchfab search agent.
@@ -49,8 +52,12 @@ public class Agents extends ClientControllerBase {
     findClient(session);
     ChatMemory memory = (ChatMemory) session.getAttribute(SEARCH_MEMORY_ATTRIBUTE);
     if (memory == null) {
-      log.debug("New chat memory created");
-      memory = MessageWindowChatMemory.builder().maxMessages(10).chatMemoryRepository(repository(session)).build();
+      log.debug("New chat memory created, size " + config.getMemorySize());
+      memory = MessageWindowChatMemory
+          .builder()
+          .maxMessages(config.getMemorySize())
+          .chatMemoryRepository(repository(session))
+          .build();
       session.setAttribute(SEARCH_MEMORY_ATTRIBUTE, memory);
     }
     return ResponseEntity.ok(searchAgent.query(query, memory, session.getId()));

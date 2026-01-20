@@ -43,7 +43,7 @@ public class SearchAgent {
 
   private SystemMessage systemMessage = new SystemMessage("""
           You are a search engine for 3D models.
-          Analyze the user query, and search sketchfab by best keywords. Use singular rather than plural.
+          Search sketchfab using up to 3 best keywords from the user query. Use singular rather than plural.
           Analyze description of each model found, and return UID for each model that match the user query.
       """);
   private Pattern answerPattern = Pattern.compile("(.*)\\n");
@@ -70,7 +70,6 @@ public class SearchAgent {
       memory.add(conversationId, systemMessage);
       // }
       memory.add(conversationId, new UserMessage(query));
-
       long time = System.currentTimeMillis();
       Prompt prompt = Prompt
           .builder()
@@ -117,9 +116,9 @@ public class SearchAgent {
     return ret;
   }
 
-  @Tool(description = "Search sketchfab web API by kewords")
+  @Tool(description = "Sketchfab 3D model search web API")
   public String sketchfabSearch(
-      @ToolParam(description = "Search keywords separated by space") String keywords,
+      @ToolParam(description = "Search keywords") String keywords,
       @ToolParam(description = "Maximum model size, in megabytes") Integer maxSize,
       @ToolParam(description = "Request only animated models") Boolean animated,
       @ToolParam(description = "Request only rigged models") Boolean rigged,
@@ -130,6 +129,7 @@ public class SearchAgent {
     // model can use comma rather than space:
     String[] keywordList = keywords.split(",");
     StringBuilder ret = new StringBuilder();
+    int totalResults = 0;
     try {
       for (String keyword : keywordList) {
         ModelSearchRequest req = new ModelSearchRequest();
@@ -169,14 +169,19 @@ public class SearchAgent {
             ret.append(trimDescription(model.getDescription()));
             ret.append("\n");
           });
+          // CHECKME: does adding tags/categories make sense?
           if (response.getNext() == null) {
             break;
           }
         }
+        totalResults += results;
       }
     } catch (Exception e) {
       log.error("Error searching for " + keywords, e);
       ret.append("ERROR");
+    }
+    if (totalResults == 0) {
+      ret.append("no models found that match all keywords");
     }
     String models = ret.toString();
     // log.debug("Models found: " + models);

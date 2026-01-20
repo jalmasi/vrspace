@@ -31,9 +31,14 @@ public class OllamaConfig {
   // private String toolsModel = "ministral-3";
   private String toolsModel = "ministral-3:3b";
   // default numCtx is 2048, way too small
-  // .numCtx(16384) - swapping with 3d graphics on
-  // .numCtx(32768) - too much for 16G VRAM
-  private int contextWindowSize = 8192;
+  // swapping with 3d graphics on and 7-8b model:
+  // private int contextWindowSize = 8192;
+  // too much for 16G VRAM with 7-8b model:
+  // private int contextWindowSize = 16384;
+  // useful with 3b model, takes about 8G VRAM:
+  private int contextWindowSize = 32768;
   /** How long to keep the model in VRAM, -1 means forever, but must have duration */
   private String keepAlive = "-1m";
+  // query+response, +1 for system message
+  private int memorySize = 11;
 }

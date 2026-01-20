@@ -64,7 +64,8 @@ public class OllamaConnector {
             .matcher(config.getDescriptionRemove().matcher(description).replaceAll(""))
             .replaceAll(" "));
     int size = updatedDescription.length();
-    log.debug("Processed " + url + " in " + time + "ms, " + size + ": \n" + description + "\n - " + updatedDescription);
+    // log.debug("Processed " + url + " in " + time + "ms, size " + size + ": \n" + description + "\n - " + updatedDescription);
+    log.debug("Processed " + url + " in " + time + "ms, size " + size);
     return updatedDescription;
   }
 
@@ -103,7 +104,12 @@ public class OllamaConnector {
       visionChatModel = OllamaChatModel
           .builder()
           .ollamaApi(OllamaApi.builder().baseUrl(config.getUrl()).build())
-          .defaultOptions(OllamaChatOptions.builder().model(config.getVisionModel()).keepAlive(config.getKeepAlive()).build())
+          .defaultOptions(OllamaChatOptions
+              .builder()
+              .model(config.getVisionModel())
+              .numCtx(config.getContextWindowSize())
+              .keepAlive(config.getKeepAlive())
+              .build())
           .build();
     }
     return visionChatModel;
