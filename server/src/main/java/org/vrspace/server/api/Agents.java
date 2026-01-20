@@ -34,7 +34,7 @@ public class Agents extends ClientControllerBase {
 
   @Autowired(required = false)
   private SearchAgent searchAgent;
-  @Autowired
+  @Autowired(required = false)
   private OllamaConfig config;
 
   /**
