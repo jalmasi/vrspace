@@ -59,7 +59,10 @@ public class OllamaConnector {
       return null;
     }
     String updatedDescription = StringUtils
-        .capitalize(config.getDescriptionCleanup().matcher(description).replaceAll("").replaceAll("\\s+", " "));
+        .capitalize(config
+            .getDescriptionReplace()
+            .matcher(config.getDescriptionRemove().matcher(description).replaceAll(""))
+            .replaceAll(" "));
     int size = updatedDescription.length();
     log.debug("Processed " + url + " in " + time + "ms, " + size + ": \n" + description + "\n - " + updatedDescription);
     return updatedDescription;

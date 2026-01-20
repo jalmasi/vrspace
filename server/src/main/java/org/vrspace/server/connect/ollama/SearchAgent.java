@@ -186,11 +186,12 @@ public class SearchAgent {
 
   private String trimDescription(String description) {
     int length = description.length();
-    if (length > 1024) {
-      description = description.substring(0, 1023);
+    int limit = 2048;
+    if (length > limit) {
+      description = description.substring(0, limit - 1);
       int pos = description.lastIndexOf(".") + 1;
       description = description.substring(0, pos);
-      log.warn("Description trimmed " + length + " to " + description.length() + ":" + description);
+      log.warn("Description trimmed from " + length + " to " + description.length() + ":" + description);
     }
     return description;
   }
