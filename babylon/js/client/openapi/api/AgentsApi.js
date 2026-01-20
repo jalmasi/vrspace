@@ -36,6 +36,49 @@ export class AgentsApi {
 
 
     /**
+     * @param {String} body 
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
+     */
+    sceneAgentWithHttpInfo(body) {
+      let postBody = body;
+      // verify the required parameter 'body' is set
+      if (body === undefined || body === null) {
+        throw new Error("Missing the required parameter 'body' when calling sceneAgent");
+      }
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = ['application/json'];
+      let accepts = ['*/*'];
+      let returnType = 'String';
+      return this.apiClient.callApi(
+        '/vrspace/api/agents/scene', 'POST',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * @param {String} body 
+     * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
+     */
+    sceneAgent(body) {
+      return this.sceneAgentWithHttpInfo(body)
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
      * Sketchfab search agent.
      * Sketchfab search agent.
      * @param {String} body 

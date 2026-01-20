@@ -119,8 +119,9 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
         Method getter = cls.getMethod("get" + StringUtils.capitalize(f.getName()));
         Embedded e = (Embedded) getter.invoke(obj);
         if (e != null && e.getId() != null) {
-          log.debug("Deleting " + f.getName() + " " + e.getClass().getSimpleName() + ":" + e.getId() + " of "
-              + obj.getClass().getSimpleName() + " " + obj.getId());
+          log
+              .debug("Deleting " + f.getName() + " " + e.getClass().getSimpleName() + ":" + e.getId() + " of "
+                  + obj.getClass().getSimpleName() + " " + obj.getId());
           deleteById(e.getClass(), e.getId());
           e.dispose();
         }
@@ -136,6 +137,8 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
   }
 
   Optional<GltfModel> findGltfModelByUid(String uid);
+
+  Optional<GltfModel> findGltfModelByMesh(String mesh);
 
   Optional<ContentCategory> findContentCategoryByName(String name);
 

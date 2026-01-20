@@ -21,7 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class ModelSearchRequest {
     /**
      * Constructs a new <code>ModelSearchRequest</code>.
-     * Sketchfab model search API parameters, passed to sketchfab as it is. Most   interesting parameters are: q, animated, rigged
+     * Sketchfab model search API parameters, passed to sketchfab as it is. Most interesting parameters are: q, animated, rigged,   archives_max_size
      * @alias ModelSearchRequest
      */
     constructor() { 
@@ -71,6 +71,11 @@ export class ModelSearchRequest {
          */
         this.staffpicked = undefined;
 
+        /** sound 
+         * @type {Boolean} 
+         */
+        this.sound = undefined;
+
         /** min_face_count 
          * @type {Number} 
          */
@@ -82,12 +87,13 @@ export class ModelSearchRequest {
         this.max_face_count = undefined;
 
         /** pbr_type 
-         * Filter by PBR type. Set to metalness to search Metalness/Roughness models   only. Set to specular to search Specular/Glossiness models only. Set to true   to search PBR models only. Set to false to search non-PBR models only.
+         * Filter by PBR type. Set to metalness to search Metalness/Roughness models only. Set to specular to search   Specular/Glossiness models only. Set to true to search PBR models only. Set to false to search non-PBR models only.
          * @type {String} 
          */
         this.pbr_type = undefined;
 
         /** rigged 
+         * false by default. Set to true to search rigged models only. Set to false to search all models
          * @type {Boolean} 
          */
         this.rigged = undefined;
@@ -99,13 +105,13 @@ export class ModelSearchRequest {
         this.collection = undefined;
 
         /** sort_by 
-         * How to sort results. When omitted, results are sorted by relevance. One of   likeCount, -likeCount, viewCount, -viewCount, publishedAt, -publishedAt,   processedAt, -processedAt
+         * How to sort results. When omitted, results are sorted by relevance. One of likeCount, -likeCount, viewCount, -viewCount,   publishedAt, -publishedAt, processedAt, -processedAt
          * @type {String} 
          */
         this.sort_by = undefined;
 
         /** file_format 
-         * Irrelevant, we always deal with GLTF
+         * Irrelevant, we always deal with GLTF, but this seems to specify original file
          * @type {String} 
          */
         this.file_format = undefined;
@@ -122,6 +128,7 @@ export class ModelSearchRequest {
         this.max_uv_layer_count = undefined;
 
         /** available_archive_type 
+         * We set this to gltf. Always available, and allows for search limit by size
          * @type {String} 
          */
         this.available_archive_type = undefined;
@@ -152,13 +159,13 @@ export class ModelSearchRequest {
         this.archives_texture_max_resolution = undefined;
 
         /** archives_flavours 
-         * If true, returns all archives flavours, listed by archive type, and sorted by   texture resolution (descending). If false, only the texture with the highest   reslution is returned for each archive type.
+         * If true, returns all archives flavours, listed by archive type, and sorted by texture resolution (descending). If false,   only the texture with the highest reslution is returned for each archive type.
          * @type {Boolean} 
          */
         this.archives_flavours = undefined;
 
         /** count 
-         * Items displayed per page, seems ignored by sketchfab but returned in paging
+         * Items displayed per page, max 24, default 24
          * @type {Number} 
          */
         this.count = undefined;
@@ -223,6 +230,9 @@ export class ModelSearchRequest {
             }
             if (data.hasOwnProperty('staffpicked')) {
                 obj['staffpicked'] = ApiClient.convertToType(data['staffpicked'], 'Boolean');
+            }
+            if (data.hasOwnProperty('sound')) {
+                obj['sound'] = ApiClient.convertToType(data['sound'], 'Boolean');
             }
             if (data.hasOwnProperty('min_face_count')) {
                 obj['min_face_count'] = ApiClient.convertToType(data['min_face_count'], 'Number');

@@ -21,40 +21,35 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Starts embedded Neo4J with database in directory specified in org.vrspace.db
- * property - only if the property is set. Otherwise, database connection is
- * controlled by the framework, and spring.neo4j.uri,
- * spring.neo4j.authentication.username and spring.neo4j.authentication.password
- * properties.
+ * Starts embedded Neo4J with database in directory specified in org.vrspace.db property - only if the property is set.
+ * Otherwise, database connection is controlled by the framework, and spring.neo4j.uri, spring.neo4j.authentication.username and
+ * spring.neo4j.authentication.password properties.
  * 
  * @author joe
  *
  */
 @Slf4j
 @Configuration
-//@ConditionalOnProperty("org.vrspace.db")
+// @ConditionalOnProperty("org.vrspace.db")
 public class NeoConfig {
   /**
-   * Should the server use embedded database, property org.vrspace.db.embedded,
-   * default true
+   * Should the server use embedded database, property org.vrspace.db.embedded, default true
    */
   @Value("${org.vrspace.db.embedded:#{true}}")
   private boolean embedded;
   /**
-   * Directory containing embedded database, property org.vrspace.db, default
-   * file:./vrspace.db (subdirectory of the server directory)
+   * Directory containing embedded database, property org.vrspace.db, default file:./vrspace.db (subdirectory of the server
+   * directory)
    */
   @Value("${org.vrspace.db:file:./vrspace.db}")
   private String dbPath;
   /**
-   * Recursive removal database directory on startup and shutdown, used in tests.
-   * Property org.vrspace.db.cleanup, default false
+   * Recursive removal database directory on startup and shutdown, used in tests. Property org.vrspace.db.cleanup, default false
    */
   @Value("${org.vrspace.db.cleanup:false}")
   private boolean cleanup;
   /**
-   * Neo4j database URI, defaults to embedded/local database, bolt://localhost.
-   * Property spring.neo4j.uri
+   * Neo4j database URI, defaults to embedded/local database, bolt://localhost. Property spring.neo4j.uri
    */
   @Value("${spring.neo4j.uri:bolt://localhost}")
   private String neoUri;
@@ -97,7 +92,8 @@ public class NeoConfig {
         // .setConfig(GraphDatabaseSettings.allow_upgrade,true)
         .setConfig(BoltConnector.enabled, neoUri.startsWith("bolt:"))
         .setConfig(BoltConnector.listen_address, new SocketAddress("localhost", port))
-        .setConfig(HttpConnector.enabled, neoUri.startsWith("http:")).build();
+        .setConfig(HttpConnector.enabled, neoUri.startsWith("http:"))
+        .build();
     graphDb = managementService.database("neo4j");
 
     // and now indexes
@@ -106,15 +102,19 @@ public class NeoConfig {
     graphDb.executeTransactionally("CREATE INDEX clientWorld IF NOT EXISTS FOR (c:Client) ON (c.worldId)");
     graphDb.executeTransactionally("CREATE INDEX pointCoord IF NOT EXISTS FOR (p:Point) ON (p.x, p.y, p.z)");
     // only single property uniqueness constraints are supported with neo4j 4
-    graphDb.executeTransactionally(
-        "CREATE CONSTRAINT ownership IF NOT EXISTS FOR (o:Ownership) REQUIRE (o.owner,o.owned) IS UNIQUE");
+    graphDb
+        .executeTransactionally(
+            "CREATE CONSTRAINT ownership IF NOT EXISTS FOR (o:Ownership) REQUIRE (o.owner,o.owned) IS UNIQUE");
     // graphDb.executeTransactionally("CREATE INDEX ownership IF NOT EXISTS FOR
     // (o:Ownership) ON (o.owner,o.owned)");
-    graphDb.executeTransactionally(
-        "CREATE INDEX messageTimestamp IF NOT EXISTS FOR (gm:GroupMessage) ON (gm.userGroup,gm.timestamp)");
+    graphDb
+        .executeTransactionally(
+            "CREATE INDEX messageTimestamp IF NOT EXISTS FOR (gm:GroupMessage) ON (gm.userGroup,gm.timestamp)");
     graphDb.executeTransactionally("CREATE CONSTRAINT modelUid IF NOT EXISTS FOR (gm:GltfModel) REQUIRE (gm.uid) IS UNIQUE");
-    graphDb.executeTransactionally(
-        "CREATE CONSTRAINT categoryName IF NOT EXISTS FOR (cc:ContentCategory) REQUIRE (cc.name) IS UNIQUE");
+    graphDb.executeTransactionally("CREATE CONSTRAINT modelMesh IF NOT EXISTS FOR (gm:GltfModel) REQUIRE (gm.mesh) IS UNIQUE");
+    graphDb
+        .executeTransactionally(
+            "CREATE CONSTRAINT categoryName IF NOT EXISTS FOR (cc:ContentCategory) REQUIRE (cc.name) IS UNIQUE");
   }
 
   @PreDestroy

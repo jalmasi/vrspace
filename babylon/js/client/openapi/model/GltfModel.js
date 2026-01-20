@@ -22,7 +22,7 @@ import { ContentCategory } from './ContentCategory.js';
 export class GltfModel {
     /**
      * Constructs a new <code>GltfModel</code>.
-     * A 3D Model in GLTF format. Adds unique id, uri and other properties to   Content class. Based on sketchfab models.
+     * A 3D Model in GLTF format. Adds unique id, uri and other properties to Content class. Based on sketchfab models.
      * @alias GltfModel
      */
     constructor() { 
@@ -87,6 +87,16 @@ export class GltfModel {
          * @type {String} 
          */
         this.mesh = undefined;
+
+        /** animated 
+         * @type {Boolean} 
+         */
+        this.animated = undefined;
+
+        /** rigged 
+         * @type {Boolean} 
+         */
+        this.rigged = undefined;
         
         
         
@@ -148,6 +158,12 @@ export class GltfModel {
             }
             if (data.hasOwnProperty('mesh')) {
                 obj['mesh'] = ApiClient.convertToType(data['mesh'], 'String');
+            }
+            if (data.hasOwnProperty('animated')) {
+                obj['animated'] = ApiClient.convertToType(data['animated'], 'Boolean');
+            }
+            if (data.hasOwnProperty('rigged')) {
+                obj['rigged'] = ApiClient.convertToType(data['rigged'], 'Boolean');
             }
         }
         return obj;

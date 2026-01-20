@@ -44,10 +44,6 @@ public class SketchfabConnector {
       .compile("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)");
   private Pattern descriptionCleanup = Pattern.compile("\\s+|\\r?\\n");
 
-  public ModelSearchResponse searchModels(ModelSearchRequest params) throws IOException, InterruptedException {
-    return searchModels(params, null);
-  }
-
   public ModelSearchResponse searchModels(ModelSearchRequest params, Consumer<GltfModel> postProcess)
       throws IOException, InterruptedException {
     log.debug("Search: " + params.getQ());

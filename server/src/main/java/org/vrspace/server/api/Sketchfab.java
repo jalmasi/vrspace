@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.vrspace.server.connect.OllamaConnector;
 import org.vrspace.server.connect.SketchfabConnector;
 import org.vrspace.server.connect.sketchfab.AuthResponse;
 import org.vrspace.server.connect.sketchfab.DownloadResponse;
@@ -48,14 +50,11 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * You want to download free content from sketchfab, you have to be OAuth2
- * authorized with them. Once done, the server uses the same credentials for all
- * further communication with sketchfab, until restart. This is completely
- * different than Oauth2 used to authenticate with vrspace server, i.e. this is
- * how vrspace server authenticates with sketchfab. Credentials are kept in
- * memory only, but the content is cached locally, under content directory
- * hierarchy, where sketchfab content categories are used for subdirectory name.
- * Content metadata is stored in the database, as GltfModel entities.
+ * You want to download free content from sketchfab, you have to be OAuth2 authorized with them. Once done, the server uses the
+ * same credentials for all further communication with sketchfab, until restart. This is completely different than Oauth2 used
+ * to authenticate with vrspace server, i.e. this is how vrspace server authenticates with sketchfab. Credentials are kept in
+ * memory only, but the content is cached locally, under content directory hierarchy, where sketchfab content categories are
+ * used for subdirectory name. Content metadata is stored in the database, as GltfModel entities.
  * 
  * @author joe
  *
@@ -71,6 +70,8 @@ public class Sketchfab extends ApiBase {
   private VRObjectRepository db;
   @Autowired
   private SketchfabConnector connector;
+  @Autowired(required = false)
+  private OllamaConnector ollama;
 
   @Value("${sketchfab.clientId:none}")
   private String clientId;
@@ -95,9 +96,8 @@ public class Sketchfab extends ApiBase {
   }
 
   /**
-   * Start of the login sequence. Returns the sketchfab login url, containing
-   * client id and redirect url. Client is then expected to open that url and
-   * authorise there. Saves the referrer for later use in callback.
+   * Start of the login sequence. Returns the sketchfab login url, containing client id and redirect url. Client is then
+   * expected to open that url and authorise there. Saves the referrer for later use in callback.
    */
   @GetMapping("/login")
   public LoginResponse sketchfabLogin(HttpServletRequest request) {
@@ -109,10 +109,8 @@ public class Sketchfab extends ApiBase {
   }
 
   /**
-   * Sketchfab oauth2 callback, as explained in
-   * https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided
-   * by client to authorise at sketchfab, and returns 302 redirect to the saved
-   * referrer.
+   * Sketchfab oauth2 callback, as explained in https://sketchfab.com/developers/oauth#implement-auth-code Uses code provided by
+   * client to authorise at sketchfab, and returns 302 redirect to the saved referrer.
    * 
    * @param code provided to the client by sketchfab
    * @return
@@ -162,17 +160,15 @@ public class Sketchfab extends ApiBase {
     map.add("refresh_token", refreshToken);
 
     RestTemplate restTemplate = new RestTemplate();
-    ResponseEntity<AuthResponse> response = restTemplate.postForEntity(connector.loginUrl, authRequest(map),
-        AuthResponse.class);
+    ResponseEntity<AuthResponse> response = restTemplate
+        .postForEntity(connector.loginUrl, authRequest(map), AuthResponse.class);
     log.debug("Refresh response: " + response);
     return response.getBody();
   }
 
   /**
-   * Search free models available at Sketchfab. Search request and response
-   * contain the same data as when querying Sketchfab directly, though with the
-   * different request method (POST vs GET). But, this one allows the server to
-   * get model information.
+   * Search free models available at Sketchfab. Search request and response contain the same data as when querying Sketchfab
+   * directly, though with the different request method (POST vs GET). But, this one allows the server to get model information.
    * 
    * @param params search criteria, recommended minimum is q (query string)
    * @return structured list of models matching the criteria
@@ -180,7 +176,12 @@ public class Sketchfab extends ApiBase {
   @PostMapping("/search")
   public ResponseEntity<ModelSearchResponse> searchModels(@RequestBody ModelSearchRequest params) {
     try {
-      ModelSearchResponse ret = connector.searchModels(params);
+      // FIXME: ugly as it gets
+      Consumer<GltfModel> postProcess = null;
+      if (ollama != null) {
+        postProcess = model -> ollama.updateDescriptionFromThumbnail(model);
+      }
+      ModelSearchResponse ret = connector.searchModels(params, postProcess);
       return ResponseEntity.ofNullable(ret);
     } catch (JacksonException e) {
       log.error("Internal error", e);
@@ -198,15 +199,12 @@ public class Sketchfab extends ApiBase {
   }
 
   /**
-   * Sketchfab download, as explained in
-   * https://sketchfab.com/developers/download-api/downloading-models Requires
-   * successful authentication, returns 401 unauthorised unless the server is
-   * authorised with sketchfab (token exists). In that case, client is expected to
-   * attempt to login.
+   * Sketchfab download, as explained in https://sketchfab.com/developers/download-api/downloading-models Requires successful
+   * authentication, returns 401 unauthorised unless the server is authorised with sketchfab (token exists). In that case,
+   * client is expected to attempt to login.
    * 
    * @param uid     unique id of the model
-   * @param request original request, referrer is saved for later use in case the
-   *                authentication fails
+   * @param request original request, referrer is saved for later use in case the authentication fails
    * @return
    */
   @GetMapping("/download")

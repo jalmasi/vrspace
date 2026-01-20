@@ -12,6 +12,7 @@
  */
 
 import {ApiClient} from '../ApiClient.js';
+import { GltfModel } from './GltfModel.js';
 import { InlineArchives } from './InlineArchives.js';
 import { ModelCategory } from './ModelCategory.js';
 import { ModelLicense } from './ModelLicense.js';
@@ -27,7 +28,7 @@ import { UserRelated } from './UserRelated.js';
 export class ModelSearchList {
     /**
      * Constructs a new <code>ModelSearchList</code>.
-     * One model returned in search response.
+     * One model returned in search response. Sketchfab response enriched locally, e.g. rigged and gltfModel.
      * @alias ModelSearchList
      */
     constructor() { 
@@ -152,6 +153,18 @@ export class ModelSearchList {
          * @type {Boolean} 
          */
         this.isPublished = undefined;
+
+        /** rigged 
+         * Not part of the sketchfab API, we set it if the query requested rigged model
+         * @type {Boolean} 
+         */
+        this.rigged = undefined;
+
+        /** gltfModel 
+         * Model info in the local database, not part of the sketchfab API
+         * @type {GltfModel} 
+         */
+        this.gltfModel = undefined;
         
         
         
@@ -250,6 +263,12 @@ export class ModelSearchList {
             if (data.hasOwnProperty('isPublished')) {
                 obj['isPublished'] = ApiClient.convertToType(data['isPublished'], 'Boolean');
             }
+            if (data.hasOwnProperty('rigged')) {
+                obj['rigged'] = ApiClient.convertToType(data['rigged'], 'Boolean');
+            }
+            if (data.hasOwnProperty('gltfModel')) {
+                obj['gltfModel'] = GltfModel.constructFromObject(data['gltfModel']);
+            }
         }
         return obj;
     }
@@ -331,6 +350,10 @@ export class ModelSearchList {
         // validate the optional field `license`
         if (data['license']) { // data not null
           ModelLicense.validateJSON(data['license']);
+        }
+        // validate the optional field `gltfModel`
+        if (data['gltfModel']) { // data not null
+          GltfModel.validateJSON(data['gltfModel']);
         }
 
         return true;

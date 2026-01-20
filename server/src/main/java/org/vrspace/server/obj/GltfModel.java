@@ -31,6 +31,7 @@ public class GltfModel extends Content {
   private String thumbnail;
   private String author;
   private List<ContentCategory> categories = new ArrayList<ContentCategory>();
+  /** Set once the model is downloaded from sketchfab to the server. This is exactly the same value as in VRObject.mesh. */
   private String mesh;
   private Boolean animated;
   private Boolean rigged;
