@@ -37,6 +37,7 @@ public class OllamaConfig {
   // private int contextWindowSize = 16384;
   // useful with 3b model, takes about 8G VRAM:
   // private int contextWindowSize = 32768;
+  // 11G VRAM with 3b model:
   private int contextWindowSize = 65536;
   /** How long to keep the model in VRAM, -1 means forever, but must have duration */
   private String keepAlive = "-1m";

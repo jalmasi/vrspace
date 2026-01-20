@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -35,8 +36,6 @@ public class SketchfabConnector {
   private ObjectMapper objectMapper;
   @Autowired
   private VRObjectRepository db;
-  @Autowired(required = false)
-  private OllamaConnector ollama;
 
   public final String loginUrl = "https://sketchfab.com/oauth2/token/";
   public final String searchUrl = "https://api.sketchfab.com/v3/search";
@@ -46,6 +45,11 @@ public class SketchfabConnector {
   private Pattern descriptionCleanup = Pattern.compile("\\s+|\\r?\\n");
 
   public ModelSearchResponse searchModels(ModelSearchRequest params) throws IOException, InterruptedException {
+    return searchModels(params, null);
+  }
+
+  public ModelSearchResponse searchModels(ModelSearchRequest params, Consumer<GltfModel> postProcess)
+      throws IOException, InterruptedException {
     log.debug("Search: " + params.getQ());
     HttpClient client = HttpClient
         .newBuilder()
@@ -92,9 +96,8 @@ public class SketchfabConnector {
         modelInfo.setDescription(model.getDescription());
       }
       modelInfo.setGltfModel(model);
-      if (ollama != null) {
-        // we do it here to ensure images are processed on search requests, not just on prompt
-        ollama.updateDescriptionFromThumbnail(model);
+      if (postProcess != null) {
+        postProcess.accept(model);
       }
     });
     return ret;

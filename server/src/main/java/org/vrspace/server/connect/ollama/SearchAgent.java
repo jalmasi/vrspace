@@ -13,16 +13,11 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.support.ToolCallbacks;
-import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import org.vrspace.server.config.OllamaConfig;
 import org.vrspace.server.connect.OllamaConnector;
-import org.vrspace.server.connect.SketchfabConnector;
-import org.vrspace.server.connect.sketchfab.ModelSearchRequest;
-import org.vrspace.server.connect.sketchfab.ModelSearchResponse;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.GltfModel;
 
@@ -36,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SearchAgent {
   @Autowired
   private OllamaConnector ollama;
-  @Autowired
-  private SketchfabConnector sketchfab;
   @Autowired
   private VRObjectRepository db;
 
@@ -74,7 +67,8 @@ public class SearchAgent {
       Prompt prompt = Prompt
           .builder()
           .messages(memory.get(conversationId))
-          .chatOptions(OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(this)).build())
+          .chatOptions(
+              OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(ollama)).toolNames("sketchfabSearch").build())
           .build();
       ChatResponse response = ollama.toolsModel().call(prompt);
       time = System.currentTimeMillis() - time;
@@ -114,91 +108,6 @@ public class SearchAgent {
       ollama.startImageProcessing();
     }
     return ret;
-  }
-
-  @Tool(description = "Sketchfab 3D model search web API")
-  public String sketchfabSearch(
-      @ToolParam(description = "Search keywords") String keywords,
-      @ToolParam(description = "Maximum model size, in megabytes") Integer maxSize,
-      @ToolParam(description = "Request only animated models") Boolean animated,
-      @ToolParam(description = "Request only rigged models") Boolean rigged,
-      @ToolParam(description = "Maximum number of results, default 24") Integer maxResults) {
-    log
-        .info("SearchAgent search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults + " animated: " + animated
-            + " rigged: " + rigged);
-    // model can use comma rather than space:
-    String[] keywordList = keywords.split(",");
-    StringBuilder ret = new StringBuilder();
-    int totalResults = 0;
-    try {
-      for (String keyword : keywordList) {
-        ModelSearchRequest req = new ModelSearchRequest();
-        req.setQ(keyword);
-        if (maxSize != null) {
-          while (maxSize > 1000) {
-            log.warn("maxSize=" + maxSize + ", fixing");
-            maxSize = maxSize / 1000;
-          }
-          req.setArchives_max_size(maxSize * 1024 * 1024);
-        }
-        if (maxResults == null) {
-          maxResults = 24;
-        } else {
-          // we can set it, but let's prefetch some more
-          // req.setCount(maxResults);
-        }
-        if (animated != null) {
-          req.setAnimated(animated);
-        }
-        if (rigged != null) {
-          req.setRigged(rigged);
-        }
-        int results = 0;
-        while (results < maxResults) {
-          long time = System.currentTimeMillis();
-          ModelSearchResponse response = sketchfab.searchModels(req);
-          time = System.currentTimeMillis() - time;
-          log.debug("Found " + response.getResults().size() + " models in " + time + " ms");
-          results += response.getResults().size();
-          response.getResults().forEach(model -> {
-            ret.append("UID: ");
-            ret.append(model.getUid());
-            ret.append(" Author: ");
-            ret.append(model.getUser().getUsername());
-            ret.append(" Description: ");
-            ret.append(trimDescription(model.getDescription()));
-            ret.append("\n");
-          });
-          // CHECKME: does adding tags/categories make sense?
-          if (response.getNext() == null) {
-            break;
-          }
-        }
-        totalResults += results;
-      }
-    } catch (Exception e) {
-      log.error("Error searching for " + keywords, e);
-      ret.append("ERROR");
-    }
-    if (totalResults == 0) {
-      ret.append("no models found that match all keywords");
-    }
-    String models = ret.toString();
-    // log.debug("Models found: " + models);
-    log.debug("Text size: " + models.length());
-    return models;
-  }
-
-  private String trimDescription(String description) {
-    int length = description.length();
-    int limit = 2048;
-    if (length > limit) {
-      description = description.substring(0, limit - 1);
-      int pos = description.lastIndexOf(".") + 1;
-      description = description.substring(0, pos);
-      log.warn("Description trimmed from " + length + " to " + description.length() + ":" + description);
-    }
-    return description;
   }
 
 }
