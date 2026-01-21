@@ -38,6 +38,7 @@ public class SearchAgent {
           You are a search engine for 3D models.
           Search sketchfab using up to 3 best keywords from the user query. Use singular rather than plural.
           Analyze description of each model found, and return UID for each model that match the user query.
+          Try to find 24 matching models.
       """);
   private Pattern answerPattern = Pattern.compile("(.*)\\n");
   private Pattern answerCleanup = Pattern.compile("[^\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s]|\\n");
