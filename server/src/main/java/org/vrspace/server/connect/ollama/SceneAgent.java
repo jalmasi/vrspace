@@ -68,6 +68,10 @@ public class SceneAgent {
     StringBuilder sb = new StringBuilder();
     sb.append("World: ");
     sb.append(client.getWorld().getName());
+    if (client.getName() != null) {
+      sb.append("\nName: ");
+      sb.append(client.getName());
+    }
     sb.append("\nPosition: ");
     sb.append(client.getPosition());
     sb.append("\nRotation: ");
@@ -147,6 +151,13 @@ public class SceneAgent {
         sb.append(id.getClassName());
         sb.append("(");
         sb.append(id.getId());
+        if (obj instanceof Client) {
+          Client c = (Client) obj;
+          if (c.getName() != null) {
+            sb.append(" Name: ");
+            sb.append(c.getName());
+          }
+        }
         sb.append(" Position: ");
         sb.append(obj.getPosition());
         if (obj.getRotation() != null) {
