@@ -179,6 +179,7 @@ export class WorldEditor extends WorldListener {
           this.chatlog.log('Search Agent',response.answer);
           if ( response.models.length > 0 ) {
             this.searchPanel.clear();
+            this.searchPanel.relocatePanel();
             response.models.forEach(model=>{
               this.searchPanel.addButton(
                 [model.name,
