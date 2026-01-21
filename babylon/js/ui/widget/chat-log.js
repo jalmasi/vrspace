@@ -52,7 +52,7 @@ class ChatLogInput extends TextAreaInput {
     super.inputFocused(input,focused);
     this.attachButton.isVisible = focused && this.attachments || this.attached.length > 0;
     if ( focused ) {
-      console.log("Focused ", this.textArea);
+      //console.log("Focused ", this.textArea);
       ChatLog.activeInstance = this.textArea;
     }
   }
@@ -153,6 +153,7 @@ export class ChatLog extends TextArea {
     this.minimizeInput = false;
     this.minimizeTitle = true;
     this.autoHide = true;
+    this.scrollable = true;
     this.size = .3;
     this.baseAnchor = -.4;
     // safe in both portrait and lanscape orientation on mobile an pc, just above hud buttons:
@@ -333,7 +334,7 @@ export class ChatLog extends TextArea {
   /** @private */
   setActiveInstance() {
     ChatLog.activeInstance = this;
-    console.log("Focused ", this);
+    //console.log("Focused ", this);
   }
   /** @private */
   clearActiveInstance() {
