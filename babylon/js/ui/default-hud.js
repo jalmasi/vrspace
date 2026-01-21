@@ -181,7 +181,7 @@ export class DefaultHud {
         this.hud.markDisabled(this.recordButton, true);
       }
 
-      this.saveButton = this.hud.addButton("Save", this.contentBase + "/content/icons/save.png", () => this.save(), false);
+      this.saveButton = this.hud.addButton("Sceneshot", this.contentBase + "/content/icons/photo-camera.png", () => this.sceneshot(), false);
       this.saveButton.tooltipText = "Save&Download";
 
       this.authorsButton = this.hud.addButton("Credits", this.contentBase + "/content/icons/copyleft.png", () => this.credits(), false);
@@ -814,7 +814,7 @@ export class DefaultHud {
   /**
    * Save the current view of the world as HTML file.
    */
-  save() {
+  sceneshot() {
     Sceneshot.saveHtml();
   }
 
