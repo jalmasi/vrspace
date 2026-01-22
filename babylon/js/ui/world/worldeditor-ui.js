@@ -5,6 +5,7 @@ import { WorldEditor } from './world-editor.js';
 import { TerrainEditor } from './terrain-editor.js';
 import { SkyboxSelector } from './skybox-selector.js';
 import { GroundGrid } from './ground-grid.js'
+import { WorldPersistence } from './world-persistence.js';
 
 export class WorldEditorUI {
   /** @type {GroundGrid} */
@@ -38,6 +39,8 @@ export class WorldEditorUI {
     this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase + "/content/icons/terrain.png", (b, i) => this.editTerrain(b, i), false);
     this.skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase + "/content/icons/sky.png", (b, i) => this.editSkybox(b, i), false);
     this.gridButton = VRSPACEUI.hud.addButton("Grid", this.contentBase + "/content/icons/grid.png", (b, i) => this.showGrid(b, i), false);
+    this.saveButton = VRSPACEUI.hud.addButton("Save", this.contentBase + "/content/icons/save.png", (b, i) => new WorldPersistence(World.lastInstance).save(), false);
+    this.loadButton = VRSPACEUI.hud.addButton("Load", this.contentBase + "/content/icons/open.png", (b, i) => new WorldPersistence(World.lastInstance).load(), false);
     if (!World.lastInstance.terrain || World.lastInstance.inAR) {
       this.hud.markDisabled(this.terrainEdit);
     }
@@ -136,4 +139,5 @@ export class WorldEditorUI {
       this.hud.markActive(this.gridButton);
     }
   }
+  
 }

@@ -731,6 +731,19 @@ export class VRSpaceUI {
     return this.selectables.findIndex(s => s.isSelectableMesh(mesh)) > -1;
   }
 
+  progressStart(item) {
+    if ( this.indicator ) {
+      this.indicator.add(item);
+      this.indicator.animate();
+    }
+  }
+  
+  progressEnd(item) {
+    if ( this.indicator ) {
+      this.indicator.remove(item);
+    }
+  }
+  
 }
 
 // this does not ensure singleton in the browser
