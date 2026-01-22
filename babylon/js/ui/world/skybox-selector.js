@@ -13,20 +13,6 @@ export class SkyboxSelector {
     world.addSelectionPredicate(this.selectionPredicate);
   }
 
-  async createSharedSkybox() {
-    if (!World.lastInstance.sharedSkybox) {
-      var object = {
-        permanent: true,
-        active: true
-      };
-      let obj = await this.world.worldManager.VRSPACE.createSharedObject(object, "Background");
-      console.log("Created new Skybox", obj);
-      World.lastInstance.sharedSkybox = obj;
-    } else {
-      this.world.worldManager.VRSPACE.sendCommand("Activate", { className: "Background", id: World.lastInstance.sharedSkybox.id, active: true });
-    }
-  }
-
   makeSkyBox(dir) {
     var skybox = new Skybox(this.scene, dir);
     skybox.infiniteDistance = false;
@@ -84,7 +70,7 @@ export class SkyboxSelector {
 
   }
   async sendChange(dir) {
-    await this.createSharedSkybox();
+    await this.world.createSharedSkybox();
     this.world.worldManager.VRSPACE.sendEvent(this.world.sharedSkybox, { texture: dir });
   }
 

@@ -4,12 +4,10 @@ import { ChatLog } from '../ui/widget/chat-log.js';
 import { WorldManager } from '../core/world-manager.js';
 import { AvatarController } from '../avatar/avatar-controller.js';
 import { Avatar } from '../avatar/avatar.js';
-import { VRSPACE } from '../client/vrspace.js';
+import { Terrain as SharedTerrain, Background, VRSPACE } from '../client/vrspace.js';
 import { WorldListener } from './world-listener.js';
 import { CameraHelper } from '../core/camera-helper.js';
-import { Terrain } from '../terrain/terrain.js';
 import { Skybox } from './skybox.js';
-import { ChatMessage } from '../core/chat-message.js';
 
 /**
 Basic world, intended to be overridden.
@@ -73,13 +71,22 @@ export class World {
     this.xrHelper = null;
     /** Scene meshes, available once the world loads (in loaded, loadingStop, collisions methods) */
     this.sceneMeshes = null;
-    /** Terrain, optionally created in createTerrain() @type {Terrain} */
+    /** Terrain, optionally created in createTerrain() 
+     * @type {Terrain} 
+     */
     this.terrain = null;
-    /** Skybox, optionally created in createSkybox() @type {Skybox} */
+    /** Skybox, optionally created in createSkybox() 
+     * @type {Skybox} */
     this.skyBox = null;
-    /** Terrain VRObject */
+    /** 
+     * Terrain VRObject
+     * @type {SharedTerrain} 
+     */
     this.sharedTerrain = null;
-    /** Background VRObject */
+    /** 
+     * Background VRObject
+     * @type {Background} 
+     */
     this.sharedSkybox = null;
 
     /** Handy reference to VRSpaceUI 
@@ -771,4 +778,60 @@ export class World {
     VRSPACE.removeListener(this.worldListeners, worldListener);
   }
 
+  /**
+   * Create shared Background object if one does not already exist.
+   * Either way, Background is activated, so all users see changes as they happen,
+   * and current local skyBox texture is applied to shared skybox.
+   */
+  async createSharedSkybox() {
+    if (!this.sharedSkybox) {
+      var object = {
+        permanent: true,
+        active: true,
+        texture: this.skyBox?.dir,
+        ambientIntiensity: this.skyBox?.environmentIntensity
+      };
+      this.sharedSkybox = await this.worldManager.VRSPACE.createSharedObject(object, "Background");
+      console.log("Created new Skybox", this.sharedSkybox);
+    } else {
+      this.worldManager.VRSPACE.sendCommand("Activate", { className: "Background", id: this.sharedSkybox.id, active: true });
+      if (this.skyBox && this.skyBox.dir) {
+        this.worldManager.VRSPACE.sendEvent(this.sharedSkybox, {texture:this.skyBox.dir});
+      }
+    }
+  }
+
+  /**
+   * Create shared Terrain object if one does not already exist.
+   * Either way, Terrain is activated, so all users see changes as they happen.
+   * Current terrain colors and texture are also published.
+   * But, elevations are not, as these are random.
+   */
+  async createSharedTerrain() {
+    if (!this.sharedTerrain) {
+      var object = {
+        permanent: true,
+        active: true,
+        specularColor: this.terrain?.terrainMaterial?.specularColor,
+        diffuseColor: this.terrain?.terrainMaterial?.diffuseColor,
+        emissiveColor: this.terrain?.terrainMaterial?.emissiveColor,
+        diffuseTexture: this.terrain?.getTexture(),
+      };
+      this.sharedTerrain = await this.worldManager.VRSPACE.createSharedObject(object, "Terrain");
+      console.log("Created new Terrain", this.sharedTerrain);
+    } else {
+      this.worldManager.VRSPACE.sendCommand("Activate", { className: "Terrain", id: this.sharedTerrain.id, active: true });
+    }
+    if ( this.terrain ) {
+      this.worldManager.VRSPACE.sendEvent(this.sharedTerrain, 
+        { 
+          diffuseTexture: this.terrain.getTexture(),
+          specularColor:  this.terrain.material().specularColor,
+          diffuseColor: this.terrain.material().diffuseColor,
+          emissiveColor: this.terrain.material().emissiveColor
+        }
+      );
+    }
+  }
+  
 }

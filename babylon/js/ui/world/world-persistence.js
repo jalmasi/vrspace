@@ -8,6 +8,7 @@ export class WorldPersistence {
    * @param {HTMLInputElement} [fileInput] 
    */
   constructor(world, fileInput) {
+    /** @type {World} */
     this.world = world;
     this.autoCreateFileInput = true;
     /** @type {HTMLInputElement} */
@@ -22,9 +23,29 @@ export class WorldPersistence {
    */
   save() {
     VRSPACEUI.progressStart("saveFile");
-    const dump = VRSPACEUI.assetLoader.dump();
-    if (Object.keys(dump).length > 0) {
-      VRSPACEUI.saveFile(this.world.name + ".json", JSON.stringify(dump));
+    let scene = {
+      terrain:null,
+      skybox:null,
+      objects:VRSPACEUI.assetLoader.dump()
+    }
+    if (this.world.sharedSkybox) {
+      scene.skybox = {
+        texture: this.world.sharedSkybox.texture,
+        amibentIntensity: this.world.sharedSkybox.amibentIntensity
+      }
+    }
+    if (this.world.sharedTerrain) {
+      console.log(this.world.sharedTerrain);
+      scene.terrain = {
+        diffuseColor:this.world.sharedTerrain.diffuseColor,
+        diffuseTexture:this.world.sharedTerrain.diffuseTexture,
+        emissiveColor:this.world.sharedTerrain.emissiveColor,
+        specularColor:this.world.sharedTerrain.specularColor,
+        points:this.world.sharedTerrain.points
+      }
+    }
+    if (Object.keys(scene.objects).length > 0) {
+      VRSPACEUI.saveFile(this.world.name + ".json", JSON.stringify(scene));
     }
     VRSPACEUI.progressEnd("saveFile");
   }
@@ -41,10 +62,10 @@ export class WorldPersistence {
         VRSPACEUI.progressStart("loadFile");
         console.log("Loading from ", selectedFile);
         const reader = new FileReader();
-        reader.onload = e => {
-          var objects = JSON.parse(e.target.result);
-          console.log(objects);
-          this.publish(objects);
+        reader.onload = async e => {
+          const scene = JSON.parse(e.target.result);
+          console.log("Loaded scene", scene);
+          await this.publish(scene);
           VRSPACEUI.progressEnd("loadFile");
         }
         reader.readAsText(selectedFile);
@@ -77,28 +98,50 @@ export class WorldPersistence {
 
   /**
    * Publish all loaded object to the server
-   * @param objects VRObject array
+   * @param scene scene object, containing world objects, terrain, skybox
    */
-  publish(objects) {
-    for (var url in objects) {
-      var instances = objects[url].instances;
+  async publish(scene) {
+    for (let url in scene.objects) {
+      let instances = scene.objects[url].instances;
       if (!url.startsWith("/")) {
         // relative url, make it relative to world script path
         url = this.baseUrl + url;
       }
-      instances.forEach((instance) => {
-        var mesh = {
+      instances.forEach(async instance => {
+        let mesh = {
           mesh: url,
           active: true,
           position: instance.position,
           rotation: instance.rotation,
           scale: instance.scale
         };
-        VRSPACE.createSharedObject(mesh).then(obj => {
-          console.log("Created new VRObject", obj);
-        });
+        let obj = await VRSPACE.createSharedObject(mesh);
+        console.log("Created new VRObject", obj);
+      });
+    }
+    if (scene.skybox) {
+      // CHECKME: this hangs, why?
+      //this.world.skyBox.setTexture(scene.skybox.texture);
+      await this.world.createSharedSkybox();
+      this.world.worldManager.VRSPACE.sendEvent(this.world.sharedSkybox, { texture: scene.skybox.texture });
+    }
+    if (scene.terrain) {
+      if ( !this.world.terrain ) {
+        this.world.terrain = new Terrain(this.world);
+        this.world.terrain.terrainMaterial = new BABYLON.StandardMaterial("terrainMaterial", this.world.scene);
+        this.world.terrain.init(this.world.scene);
+      }
+      this.world.terrain.material().specularColor = new BABYLON.Color3(scene.terrain.specularColor.r, scene.terrain.specularColor.g, scene.terrain.specularColor.b);
+      this.world.terrain.material().diffuseColor = new BABYLON.Color3(scene.terrain.diffuseColor.r, scene.terrain.diffuseColor.g, scene.terrain.diffuseColor.b);
+      this.world.terrain.material().emissiveColor = new BABYLON.Color3(scene.terrain.emissiveColor.r, scene.terrain.emissiveColor.g, scene.terrain.emissiveColor.b);
+      this.world.terrain.setTexture(scene.terrain.diffuseTexture);
+
+      await this.world.createSharedTerrain();
+      this.terrain?.points?.forEach(point=>{
+        this.worldManager.VRSPACE.sendEvent(World.lastInstance.sharedTerrain, { change: { index: point.index, point: {x:point.x, y:point.y, z:point.z} } });
       });
     }
   }
+  
   
 }
