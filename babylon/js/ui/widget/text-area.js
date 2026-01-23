@@ -32,6 +32,10 @@ export class TextArea extends BaseArea {
     this.text = "";
     /** @type {Label} */
     this.title = null;
+    /** 
+     * Makes this area scrollable when required, i.e. text does not fit on the area.
+     * Must be set before show() is called. 
+     */
     this.scrollable = false;
     this.scrollViewer = null;
   }
@@ -92,7 +96,7 @@ export class TextArea extends BaseArea {
       this.areaPlane,
       this.width,
       this.height,
-      true // CHECKME: handle pointer move events ? Kinda required for scroll viewer
+      this.scrollable // CHECKME: handle pointer move events ? Kinda required for scroll viewer
     );
     this.areaPlane.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
 
