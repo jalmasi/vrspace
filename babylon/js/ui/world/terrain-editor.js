@@ -21,26 +21,8 @@ export class TerrainEditor {
     this.movementMode = null;
   }
 
-  createSharedTerrain() {
-    if (!World.lastInstance.sharedTerrain) {
-      var object = {
-        permanent: true,
-        active: true,
-        specularColor: this.terrain.terrainMaterial.specularColor,
-        diffuseColor: this.terrain.terrainMaterial.diffuseColor,
-        emissiveColor: this.terrain.terrainMaterial.emissiveColor
-      };
-      this.world.worldManager.VRSPACE.createSharedObject(object, "Terrain").then(obj => {
-        console.log("Created new Terrain", obj);
-        World.lastInstance.sharedTerrain = obj;
-      });
-    } else {
-      this.world.worldManager.VRSPACE.sendCommand("Activate", { className: "Terrain", id: World.lastInstance.sharedTerrain.id, active: true });
-    }
-  }
-
-  edit() {
-    this.createSharedTerrain();
+  async edit() {
+    await this.world.createSharedTerrain();
     if (!this.observer) {
       this.observer = this.scene.onPointerObservable.add((pointerInfo) => {
         switch (pointerInfo.type) {
@@ -56,7 +38,7 @@ export class TerrainEditor {
             break;
           case BABYLON.PointerEventTypes.POINTERMOVE:
             if (this.lastIndex >= 0 && pointerInfo.pickInfo.pickedMesh == this.terrain.mesh()) {
-              var newIndex = this.terrain.findIndex(pointerInfo.pickInfo.pickedPoint.x, pointerInfo.pickInfo.pickedPoint.z);
+              let newIndex = this.terrain.findIndex(pointerInfo.pickInfo.pickedPoint.x, pointerInfo.pickInfo.pickedPoint.z);
               if (newIndex != this.lastIndex) {
                 this.lastIndex = newIndex;
                 this.updatePicked(pointerInfo.pickInfo);
@@ -133,19 +115,19 @@ export class TerrainEditor {
   }
 
   updatePicked(pickInfo) {
-    var index = -1;
-    var x = pickInfo.pickedPoint.x;
-    var z = pickInfo.pickedPoint.z;
+    let index = -1;
+    let x = pickInfo.pickedPoint.x;
+    let z = pickInfo.pickedPoint.z;
     if (this.editing) {
-      var online = this.world.isOnline() && World.lastInstance.sharedTerrain;
+      let online = this.world.isOnline() && World.lastInstance.sharedTerrain;
       if (online) {
         // if online, terrain is not refreshed until the server responds with updated height
         index = this.terrain.findIndex(x, z);
         if (index) {
-          var point = this.terrain.point(index);
+          let point = this.terrain.point(index);
           point.y += this.heightIncrement * this.direction;
           // publish updates
-          var change = { change: { index: index, point: point } };
+          let change = { change: { index: index, point: point } };
           this.world.worldManager.VRSPACE.sendEvent(World.lastInstance.sharedTerrain, change);
         } else {
           console.log("ERROR: index " + index + " for " + x + "," + z);

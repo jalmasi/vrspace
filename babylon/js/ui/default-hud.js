@@ -169,19 +169,19 @@ export class DefaultHud {
         this.hud.markActive(this.compassButton, true);
       }
 
-      this.recordButton = this.hud.addButton("Recorder", this.contentBase + "/content/icons/recording.png", () => this.recording(), false);
-      this.recordButton.tooltipText = "Record yourself";
-      if (!this.isOnline()) {
-        this.hud.markDisabled(this.recordButton, true);
-      }
-
       this.editButton = this.hud.addButton("World editor", this.contentBase + "/content/icons/world-edit.png", () => this.editWorld(), false);
       this.editButton.tooltipText = "Edit the world";
       if (!this.isOnline()) {
         this.hud.markDisabled(this.editButton, true);
       }
 
-      this.saveButton = this.hud.addButton("Save", this.contentBase + "/content/icons/save.png", () => this.save(), false);
+      this.recordButton = this.hud.addButton("Recorder", this.contentBase + "/content/icons/recording.png", () => this.recording(), false);
+      this.recordButton.tooltipText = "Record yourself";
+      if (!this.isOnline()) {
+        this.hud.markDisabled(this.recordButton, true);
+      }
+
+      this.saveButton = this.hud.addButton("Sceneshot", this.contentBase + "/content/icons/photo-camera.png", () => this.sceneshot(), false);
       this.saveButton.tooltipText = "Save&Download";
 
       this.authorsButton = this.hud.addButton("Credits", this.contentBase + "/content/icons/copyleft.png", () => this.credits(), false);
@@ -814,7 +814,7 @@ export class DefaultHud {
   /**
    * Save the current view of the world as HTML file.
    */
-  save() {
+  sceneshot() {
     Sceneshot.saveHtml();
   }
 

@@ -416,6 +416,11 @@ export class Terrain extends VRObject {
   constructor() {
     super();
     this.className = 'Terrain';
+    this.diffuseColor = null;
+    this.diffuseTexture = null;
+    this.emissiveColor = null;
+    this.specularColor = null;
+    this.points = null;
   }
 }
 

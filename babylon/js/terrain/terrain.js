@@ -58,6 +58,9 @@ export class Terrain extends WorldListener {
     }
     return this.terrain.mesh;
   }
+  material() {
+    return this.mesh().material;
+  }
   init(scene) {
     this.scene = scene;
     this.buildGrid();
@@ -238,6 +241,14 @@ export class Terrain extends WorldListener {
     this.mesh().material.diffuseTexture = this.terrainTexture;
   }
 
+  /** 
+   * Returns current diffuseTexture, if any
+   * @returns {string} texture url
+   */
+  getTexture() {
+    return this.mesh()?.material?.diffuseTexture?.url;
+  }
+  
   /**
    * WorldListener method, called when an object is added to the scene. 
    * If added object is instance of Terrain, calls setSharedObject().

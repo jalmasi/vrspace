@@ -155,6 +155,7 @@ export class ChatLog extends TextArea {
     this.minimizeInput = false;
     this.minimizeTitle = true;
     this.autoHide = true;
+    this.scrollable = true;
     this.size = .3;
     this.baseAnchor = -.4;
     this.distance = 0.2;

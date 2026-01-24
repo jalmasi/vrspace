@@ -65,11 +65,6 @@ export class WorldEditor extends WorldListener {
     /** @type {World} */
     this.world = world;
     this.scene = world.scene;
-    this.autoCreateFileInput = true;
-    if (fileInput) {
-      this.setFileInput(fileInput);
-      this.autoCreateFileInput = false;
-    }
     this.contentBase = VRSPACEUI.contentBase;
     this.worldManager = world.worldManager;
     this.buttons = [];
@@ -113,8 +108,6 @@ export class WorldEditor extends WorldListener {
     this.searchButton = this.makeAButton("Search", this.contentBase + "/content/icons/zoom.png");
     // TODO: check server capabilites
     this.promptButton = this.makeAButton("Prompt", this.contentBase + "/content/icons/prompt.png");
-    this.saveButton = this.makeAButton("Save", this.contentBase + "/content/icons/save.png");
-    this.loadButton = this.makeAButton("Load", this.contentBase + "/content/icons/open.png");
 
     this.searchButton.onPointerDownObservable.add(() => {
       if (!this.form) {
@@ -129,8 +122,6 @@ export class WorldEditor extends WorldListener {
       //this.chatlog.hide(false);
       VRSPACEUI.hud.markActive(this.promptButton);
     }
-    this.saveButton.onPointerDownObservable.add(() => { this.save() });
-    this.loadButton.onPointerDownObservable.add(() => { this.load() });
     VRSPACEUI.hud.enableSpeech(true);
   }
 
@@ -813,88 +804,6 @@ export class WorldEditor extends WorldListener {
   activate(obj, active) {
     this.worldManager.VRSPACE.sendCommand("Activate", {className:obj.className, id:obj.id, active:active});
   }
-  /**
-   * Save current scene: dumps everything using AssetLoader.dump(), and calls VRSPACEUI.saveFile(). 
-   */
-  save() {
-    this.displayButtons(true);
-    const dump = VRSPACEUI.assetLoader.dump();
-    if (Object.keys(dump).length > 0) {
-      VRSPACEUI.saveFile(this.world.name + ".json", JSON.stringify(dump));
-    }
-  }
-
-  /**
-   * Implements load by adding change listener to file input html element. Called from constructor.
-   * @param fileInput html file input element
-   */
-  setFileInput(fileInput) {
-    this.fileInput = fileInput;
-    fileInput.addEventListener('change', () => {
-      const selectedFile = fileInput.files[0];
-      if (selectedFile) {
-        console.log(selectedFile);
-        const reader = new FileReader();
-        reader.onload = e => {
-          var objects = JSON.parse(e.target.result);
-          console.log(objects);
-          this.publish(objects);
-        }
-        reader.readAsText(selectedFile);
-      }
-    }, false);
-  }
-
-  /**
-   * Create a hidden file input.
-   */
-  createFileInput() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.id = 'VRSpace-fileInput';
-    input.style = 'display:none';
-    input.accept = '.json';
-    this.setFileInput(input);
-  }
-
-  /**
-   * Load saved scene, requires file input html element
-   */
-  load() {
-    this.displayButtons(true);
-    if (!this.fileInput && this.autoCreateFileInput) {
-      console.log("WARNING no file input element, creating one");
-      this.createFileInput();
-    }
-    this.fileInput.click();
-  }
-
-  /**
-   * Publish all loaded object to the server
-   * @param objects VRObject array
-   */
-  publish(objects) {
-    for (var url in objects) {
-      var instances = objects[url].instances;
-      if (!url.startsWith("/")) {
-        // relative url, make it relative to world script path
-        url = this.baseUrl + url;
-      }
-      instances.forEach((instance) => {
-        var mesh = {
-          mesh: url,
-          active: true,
-          position: instance.position,
-          rotation: instance.rotation,
-          scale: instance.scale
-        };
-        this.worldManager.VRSPACE.createSharedObject(mesh).then(obj => {
-          console.log("Created new VRObject", obj);
-        });
-      });
-    }
-  }
-
   /**
    * Search panel selection callback, download selected item.
    * Performs REST API call to VRSpace sketchfab endpoint. Should this call fail with 401 Unauthorized, 

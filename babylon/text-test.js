@@ -198,6 +198,9 @@ export class TextWorld extends World {
     let chatLog = new ChatLog(this.scene);
     chatLog.show();
     chatLog.write("Test write method");
+    for (let i=1; i<=25; i++ ) {
+      chatLog.writeln("Writeln "+i);
+    }
     chatLog.log("tester", "Test link to www.vrspace.org");
     chatLog.logMessage({
       id:"UUID1",
