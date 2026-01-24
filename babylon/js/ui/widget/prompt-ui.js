@@ -3,6 +3,7 @@ import { ChatLog } from './chat-log.js';
 import { LoadProgressIndicator } from '../load-progress-indicator.js';
 import { World } from '../../world/world.js';
 import { VRSpaceAPI } from '../../client/rest-api.js';
+
 /**
  * Special chatlog customized for LLM prompt.
  */
@@ -13,11 +14,24 @@ export class PromptUI extends ChatLog {
   static intance = null;
   static callback = null;
   static button = null;
-  static title = "Search Prompt";
-  static name = "Search Prompt";
-  static inputName = "Query";
-  constructor(world) {
-    super(world.scene, PromptUI.title, PromptUI.name, PromptUI.inputName);
+  static agent='sceneAgent';
+  static agents={
+    searchAgent:{
+      title:"Search Prompt",
+      name: "Search Prompt",
+      inputName :"Query",
+      endpoint:q=>VRSpaceAPI.getInstance().endpoint.agents.searchAgent(q)
+    },
+    sceneAgent:{
+      title:"Scene Prompt",
+      name: "Scene Prompt",
+      inputName :"Query",
+      endpoint:q=>VRSpaceAPI.getInstance().endpoint.agents.sceneAgent(q)
+    }
+  }
+  
+  constructor(world, agent) {
+    super(world.scene, PromptUI.agents[agent].title, PromptUI.agents[agent].name, PromptUI.agents[agent].inputName);
     this.world = world;
     this.baseAnchor = 0;
     this.anchor = 0;
@@ -29,12 +43,17 @@ export class PromptUI extends ChatLog {
     this.canClose = true;
     this.onClose = () => this.close();
     this.indicator = new LoadProgressIndicator(this.scene);
-    this.indicator.animate();
   }
 
-  static getInstance(world, callback, button) {
+  static getInstance(world, agent=PromptUI.agent, callback, button) {
+    PromptUI.agent=agent;
     if (PromptUI.instance == null) {
-      PromptUI.instance = new PromptUI(world);
+      PromptUI.instance = new PromptUI(world, agent)
+    } else {
+      PromptUI.instance.titleText = PromptUI.agents[agent].title;
+      PromptUI.instance.showTitle();
+      PromptUI.instance.name = PromptUI.agents[agent].name; // does not matter
+      PromptUI.instance.input.block.text = PromptUI.agents[agent].inputName;
     }
     if (callback) {
       PromptUI.callback = callback;
@@ -50,11 +69,11 @@ export class PromptUI extends ChatLog {
     this.addListener((text, link, attachments) => {
       this.input.setEnabled(false);
       this.indicator.add("prompt");
+      this.indicator.animate();
       this.indicator.position = new BABYLON.Vector3(0, 0, 0.5);
 
-      VRSpaceAPI.getInstance().endpoint.agents.searchAgent(text).then(response => {
+      PromptUI.agents[PromptUI.agent].endpoint(text).then(response => {
         console.log(response);
-        this.log('Search Agent', response.answer);
         this.indicator.remove("prompt");
         this.input.setEnabled(true);
         PromptUI.callback(response);
@@ -77,7 +96,7 @@ export class PromptUI extends ChatLog {
   static showOrHide() {
     if (!PromptUI.instance) {
       // window closed, reopen it
-      PromptUI.instance = new PromptUI(World.lastInstance);
+      PromptUI.instance = new PromptUI(World.lastInstance, PromptUI.agent);
     }
     if (!PromptUI.instance.visible) {
       PromptUI.instance.show();

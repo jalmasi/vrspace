@@ -5,7 +5,9 @@ import { Form } from './form.js';
 export class InputForm extends Form {
   constructor(inputName = "write", submitName = null) {
     super();
+    this.block = null;
     this.input = null;
+    this.button = null;
     this.inputName = inputName;
     this.submitName = submitName;
     this.height = 512;
@@ -14,7 +16,7 @@ export class InputForm extends Form {
     this.textChangeListeners = [];
     this.buttonCallback = () => {
       // text may be empty string here
-      if ( this.input.text ) {
+      if (this.input.text) {
         this.notifyListeners(this.input.text);
       }
     }
@@ -26,39 +28,38 @@ export class InputForm extends Form {
    */
   init() {
     this.createPanel();
-    
-    let textBlock = this.textBlock(this.inputName + ":")
-    this.inputWidth -= this.fontSize/2*this.inputName.length+20;
-    this.panel.addControl(textBlock);
+
+    this.block = this.textBlock(this.inputName + ":")
+    this.inputWidth -= this.fontSize / 2 * this.inputName.length + 20;
+    this.panel.addControl(this.block);
 
     this.input = this.inputText(this.inputName.trim().toLowerCase());
-    if ( this.enterCallback ) {
+    if (this.enterCallback) {
       // onEnterPressedObservable does not exist in current babylon version
       //this.input.onEnterPressedObservable.add((control) => this.enterCallback(this,control));
-      this.input.onKeyboardEventProcessedObservable.add(event=>{
-        if ( event.keyCode == 13 ) {
+      this.input.onKeyboardEventProcessedObservable.add(event => {
+        if (event.keyCode == 13) {
           this.enterCallback();
         }
       });
     }
     this.addControl(this.input);
 
-    let button;
-    if ( this.submitName ) {
-      button = this.textButton(this.submitName, this.buttonCallback);
+    if (this.submitName) {
+      this.button = this.textButton(this.submitName, this.buttonCallback);
     } else {
-      button = this.submitButton("submit", this.buttonCallback);
+      this.button = this.submitButton("submit", this.buttonCallback);
     }
-    this.addControl(button);
+    this.addControl(this.button);
 
-    this.inputWidth -= button.widthInPixels;
+    this.inputWidth -= this.button.widthInPixels;
     this.input.widthInPixels = this.inputWidth;
-    
+
     this.createPlane(this.size, this.width, this.height);
     this.keyboard();
-    
+
     this.speechInput.start();
-    
+
     return this.plane;
   }
   setEnabled(enable) {
@@ -73,13 +74,13 @@ export class InputForm extends Form {
   /** Remove a listener */
   removeListener(listener) {
     let pos = this.textChangeListeners.indexOf(listener);
-    if ( pos > -1 ) {
-      this.textChangeListeners.splice(pos,1);
+    if (pos > -1) {
+      this.textChangeListeners.splice(pos, 1);
     }
   }
   /** Called to notify listeners */
-  notifyListeners(text=this.input.text) {
-    this.textChangeListeners.forEach(l=>l(text));
+  notifyListeners(text = this.input.text) {
+    this.textChangeListeners.forEach(l => l(text));
   }
   dispose() {
     super.dispose();

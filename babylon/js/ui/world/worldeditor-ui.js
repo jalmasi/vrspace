@@ -6,6 +6,7 @@ import { TerrainEditor } from './terrain-editor.js';
 import { SkyboxSelector } from './skybox-selector.js';
 import { GroundGrid } from './ground-grid.js'
 import { WorldPersistence } from './world-persistence.js';
+import { PromptUI } from '../widget/prompt-ui.js';
 
 export class WorldEditorUI {
   /** @type {GroundGrid} */
@@ -35,6 +36,8 @@ export class WorldEditorUI {
     VRSPACEUI.hud.showButtons(false, button);
     VRSPACEUI.hud.newRow();
 
+    // TODO: check server capabilites
+    this.promptButton = VRSPACEUI.hud.addButton("Prompt", this.contentBase + "/content/icons/prompt.png");
     this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase + "/content/icons/world.png", (b, i) => this.editWorld(b, i), false);
     this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase + "/content/icons/terrain.png", (b, i) => this.editTerrain(b, i), false);
     this.skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase + "/content/icons/sky.png", (b, i) => this.editSkybox(b, i), false);
@@ -53,6 +56,7 @@ export class WorldEditorUI {
     if (WorldEditorUI.groundGrid) {
       this.hud.markActive(this.gridButton);
     }
+    PromptUI.getInstance(World.lastInstance, 'sceneAgent', response=>this.agentResponse(response), this.promptButton);
     VRSPACEUI.hud.enableSpeech(true);
   }
 
@@ -77,6 +81,10 @@ export class WorldEditorUI {
     }
   }
 
+  agentResponse(response) {
+    PromptUI.getInstance().log('Scene Agent', response);
+  }
+  
   editWorld(button, vector3WithInfo) {
     this.editing = !this.editing;
     console.log("World editor active:" + this.editing);
@@ -90,6 +98,8 @@ export class WorldEditorUI {
       //}
       this.worldEditor.dispose();
       VRSPACEUI.hud.showButtons(!this.editing, button);
+      // and pop agent response handler
+      PromptUI.getInstance(World.lastInstance, 'sceneAgent', response=>this.agentResponse(response), this.promptButton);
     }
   }
 

@@ -71,7 +71,7 @@ export class WorldEditor extends WorldListener {
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
-    this.prompt();
+    PromptUI.getInstance(this.world, 'searchAgent', response=>this.agentResponse(response));
 
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
@@ -91,10 +91,6 @@ export class WorldEditor extends WorldListener {
     this.searchPanel = new ScrollablePanel(this.scene, "SearchUI");
   }
 
-  prompt() {
-    return PromptUI.getInstance(this.world, response=>this.agentResponse(response), this.promptButton);
-  }
-  
   /**
   Creates HUD buttons, called from constructor
   */
@@ -109,8 +105,6 @@ export class WorldEditor extends WorldListener {
     this.copyButton = this.makeAButton("Copy", this.contentBase + "/content/icons/copy.png", (o) => this.copyObject(o));
     this.deleteButton = this.makeAButton("Remove", this.contentBase + "/content/icons/delete.png", (o) => this.removeObject(o));
     this.searchButton = this.makeAButton("Search", this.contentBase + "/content/icons/zoom.png");
-    // TODO: check server capabilites
-    this.promptButton = this.makeAButton("Prompt", this.contentBase + "/content/icons/prompt.png");
 
     this.searchButton.onPointerDownObservable.add(() => {
       if (!this.form) {
@@ -118,7 +112,6 @@ export class WorldEditor extends WorldListener {
       }
       this.searchForm();
     });
-    this.promptButton.onPointerDownObservable.add(()=>this.displayButtons(true)); // makeAButton hides them
     VRSPACEUI.hud.enableSpeech(true);
   }
 
@@ -219,6 +212,7 @@ export class WorldEditor extends WorldListener {
   }
 
   agentResponse(response) {
+    PromptUI.getInstance().log('Search Agent', response.answer);
     if ( response.models.length > 0 ) {
       this.searchPanel.clear();
       this.searchPanel.relocatePanel();
