@@ -56,26 +56,8 @@ public class Agents extends ClientControllerBase {
     // ensure that the client is connected, otherwise every query creates new
     // session/conversation
     findClient(session);
-    ChatMemory memory = (ChatMemory) session.getAttribute(SEARCH_MEMORY_ATTRIBUTE);
-    if (memory == null) {
-      log.debug("New chat memory created, size " + config.getMemorySize());
-      memory = MessageWindowChatMemory
-          .builder()
-          .maxMessages(config.getMemorySize())
-          .chatMemoryRepository(repository(session))
-          .build();
-      session.setAttribute(SEARCH_MEMORY_ATTRIBUTE, memory);
-    }
+    ChatMemory memory = getMemory(session, SEARCH_MEMORY_ATTRIBUTE);
     return ResponseEntity.ok(searchAgent.query(query, memory, session.getId()));
-  }
-
-  private ChatMemoryRepository repository(HttpSession session) {
-    ChatMemoryRepository repository = (ChatMemoryRepository) session.getAttribute(MEMORY_REPOSITORY_ATTRIBUTE);
-    if (repository == null) {
-      repository = new InMemoryChatMemoryRepository();
-      session.setAttribute(MEMORY_REPOSITORY_ATTRIBUTE, repository);
-    }
-    return repository;
   }
 
   @PostMapping("/scene")
@@ -86,17 +68,31 @@ public class Agents extends ClientControllerBase {
     // ensure that the client is connected, otherwise every query creates new
     // session/conversation
     Client client = findClient(session);
-    ChatMemory memory = (ChatMemory) session.getAttribute(SCENE_MEMORY_ATTRIBUTE);
+    ChatMemory memory = getMemory(session, SCENE_MEMORY_ATTRIBUTE);
+    return ResponseEntity.ok(sceneAgent.query(client, query, memory, session.getId()));
+  }
+
+  private ChatMemory getMemory(HttpSession session, String memoryAttribute) {
+    ChatMemory memory = (ChatMemory) session.getAttribute(memoryAttribute);
     if (memory == null) {
-      log.debug("New chat memory created, size " + config.getMemorySize());
+      log.debug("New chat memory " + memoryAttribute + " created, size " + config.getMemorySize());
       memory = MessageWindowChatMemory
           .builder()
           .maxMessages(config.getMemorySize())
           .chatMemoryRepository(repository(session))
           .build();
-      session.setAttribute(SCENE_MEMORY_ATTRIBUTE, memory);
+      session.setAttribute(memoryAttribute, memory);
     }
-    return ResponseEntity.ok(sceneAgent.query(client, query, memory, session.getId()));
+    return memory;
+  }
+
+  private ChatMemoryRepository repository(HttpSession session) {
+    ChatMemoryRepository repository = (ChatMemoryRepository) session.getAttribute(MEMORY_REPOSITORY_ATTRIBUTE);
+    if (repository == null) {
+      repository = new InMemoryChatMemoryRepository();
+      session.setAttribute(MEMORY_REPOSITORY_ATTRIBUTE, repository);
+    }
+    return repository;
   }
 
 }
