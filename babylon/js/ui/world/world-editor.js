@@ -5,9 +5,8 @@ import { World } from '../../world/world.js';
 import { WorldListener } from '../../world/world-listener.js';
 import { VRSpaceAPI } from '../../client/rest-api.js';
 import { ModelSearchRequest } from '../../client/openapi/model/ModelSearchRequest.js';
-import { ChatLog } from '../widget/chat-log.js';
 import { VRObject } from '../../client/vrspace.js';
-import { LoadProgressIndicator } from '../load-progress-indicator.js';
+import { PromptUI } from '../widget/prompt-ui.js';
 
 class SearchForm extends Form {
   constructor(callback) {
@@ -69,10 +68,10 @@ export class WorldEditor extends WorldListener {
     this.worldManager = world.worldManager;
     this.buttons = [];
     this.movementMode = world.xrHelper.movementMode;
-    this.getChatlog();
     this.makeUI();
     this.installClickHandler();
     this.createButtons();
+    this.prompt();
 
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
@@ -92,6 +91,10 @@ export class WorldEditor extends WorldListener {
     this.searchPanel = new ScrollablePanel(this.scene, "SearchUI");
   }
 
+  prompt() {
+    return PromptUI.getInstance(this.world, response=>this.agentResponse(response), this.promptButton);
+  }
+  
   /**
   Creates HUD buttons, called from constructor
   */
@@ -115,13 +118,7 @@ export class WorldEditor extends WorldListener {
       }
       this.searchForm();
     });
-    this.promptButton.onPointerDownObservable.add(() => {
-      this.prompt();
-    });
-    if ( this.chatlog && this.chatlog.visible ) {
-      //this.chatlog.hide(false);
-      VRSPACEUI.hud.markActive(this.promptButton);
-    }
+    this.promptButton.onPointerDownObservable.add(()=>this.displayButtons(true)); // makeAButton hides them
     VRSPACEUI.hud.enableSpeech(true);
   }
 
@@ -142,78 +139,6 @@ export class WorldEditor extends WorldListener {
       } else {
         VRSPACEUI.hud.addForm(this.form, 1536, 64);
       }
-    }
-  }
-  
-  prompt() {
-    this.getChatlog();
-    if ( !this.chatlog.visible ) {
-      // newly created chatlog
-      this.chatlog.baseAnchor = 0;
-      this.chatlog.anchor = 0;
-      this.chatlog.verticalAnchor = 0.05;
-      this.chatlog.distance = 0.15; // closer than space chatlog
-      this.chatlog.width = 1024;
-      this.chatlog.input.virtualKeyboardEnabled = this.world.inXR();
-      this.chatlog.autoHide = false;
-      this.chatlog.canClose = true;
-      this.chatlog.onClose = () => this.closeChatlog();
-      this.chatlog.show();
-      this.chatlog.addListener((text,link,attachments)=>{
-        this.chatlog.input.setEnabled(false);
-        this.indicator = new LoadProgressIndicator(this.scene);
-        this.indicator.animate();
-        this.indicator.add("prompt");
-        this.indicator.position = new BABYLON.Vector3(0,0,0.5);
-        VRSpaceAPI.getInstance().endpoint.agents.searchAgent(text).then(response=>{
-          console.log(response);
-          this.chatlog.log('Search Agent',response.answer);
-          if ( response.models.length > 0 ) {
-            this.searchPanel.clear();
-            this.searchPanel.relocatePanel();
-            response.models.forEach(model=>{
-              this.searchPanel.addButton(
-                [model.name,
-                'by ' + model.author,
-                (model.length / 1024 / 1024).toFixed(2) + "MB"
-                  //'Faces: '+result.faceCount,
-                  //'Vertices: '+result.vertexCount
-                ],
-                model.thumbnail,
-                () => this.download(model.uid)
-              );
-              
-            });
-          }
-          this.indicator.remove("prompt");
-          this.chatlog.input.setEnabled(true);
-        }).catch(err=>{
-          this.chatlog.input.setEnabled(true);
-          console.error(err);
-          this.indicator.remove("prompt");
-          this.chatlog.log('Search Agent',err.error.message);
-        });
-      });
-      VRSPACEUI.hud.markActive(this.promptButton);
-    } else {
-      this.closeChatlog();
-    }
-    this.displayButtons(true); // consequence of (ab)using makeButton()
-  }
-  
-  getChatlog() {
-    if ( !this.chatlog ) {
-      this.chatlog = ChatLog.getInstance(this.scene, "Search Prompt", "Search Prompt", "Query");
-    }
-    return this.chatlog;
-  }
-  closeChatlog() {
-    if ( this.chatlog ) {
-      this.chatlog.dispose();
-      this.chatlog = null;
-    }
-    if ( this.promptButton ) {
-      VRSPACEUI.hud.markEnabled(this.promptButton);
     }
   }
   
@@ -293,6 +218,25 @@ export class WorldEditor extends WorldListener {
     this.clearForm();
   }
 
+  agentResponse(response) {
+    if ( response.models.length > 0 ) {
+      this.searchPanel.clear();
+      this.searchPanel.relocatePanel();
+      response.models.forEach(model=>{
+        this.searchPanel.addButton(
+          [model.name,
+          'by ' + model.author,
+          (model.length / 1024 / 1024).toFixed(2) + "MB"
+            //'Faces: '+result.faceCount,
+            //'Vertices: '+result.vertexCount
+          ],
+          model.thumbnail,
+          () => this.download(model.uid)
+        );
+      });
+    }
+  }
+  
   /**
    * Creates a HUD button. Adds customAction field to the button, that is executed if a scene object is clicked on.
    * @param text button text
@@ -881,16 +825,6 @@ export class WorldEditor extends WorldListener {
     if (this.searchPanel) {
       this.searchPanel.dispose();
     }
-    if (this.chatlog) {
-      this.chatlog.hide(true);
-    }
-    /*
-    CHECKME: nothing to dispose?
-    if (this.indicator) {
-      this.indicator.dispose();
-      this.indicator = null;
-    }
-    */
     this.buttons.forEach((b) => b.dispose());
     this.world.removeSelectionPredicate(this.selectionPredicate);
     this.world.xrHelper.removeSqueezeConsumer(this.squeeze);
