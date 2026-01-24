@@ -43,8 +43,15 @@ export class PromptUI extends ChatLog {
     this.canClose = true;
     this.onClose = () => this.close();
     this.indicator = new LoadProgressIndicator(this.scene);
+    this.indicator.position = new BABYLON.Vector3(0,0,0);
+    this.indicator.xrPosition = new BABYLON.Vector3(0,0,0);
   }
 
+  createHandles() {
+    super.createHandles();
+    this.handles.dontMinimize.push(this.indicator.mesh);
+  }
+  
   static getInstance(world, agent=PromptUI.agent, callback, button) {
     PromptUI.agent=agent;
     if (PromptUI.instance == null) {
@@ -70,7 +77,7 @@ export class PromptUI extends ChatLog {
       this.input.setEnabled(false);
       this.indicator.add("prompt");
       this.indicator.animate();
-      this.indicator.position = new BABYLON.Vector3(0, 0, 0.5);
+      this.indicator.mesh.parent = this.areaPlane; 
 
       PromptUI.agents[PromptUI.agent].endpoint(text).then(response => {
         console.log(response);
