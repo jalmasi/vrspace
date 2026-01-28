@@ -15,6 +15,8 @@ export class PromptUI extends ChatLog {
   static callback = null;
   static button = null;
   static agent='sceneAgent';
+  /** Becomes true or false after server info API call */
+  static available=null;
   static agents={
     searchAgent:{
       title:"Search Prompt",
@@ -58,9 +60,11 @@ export class PromptUI extends ChatLog {
       PromptUI.instance = new PromptUI(world, agent)
     } else {
       PromptUI.instance.titleText = PromptUI.agents[agent].title;
-      PromptUI.instance.showTitle();
       PromptUI.instance.name = PromptUI.agents[agent].name; // does not matter
-      PromptUI.instance.input.block.text = PromptUI.agents[agent].inputName;
+      if (PromptUI.instance.visible) {
+        PromptUI.instance.showTitle();
+        PromptUI.instance.input.block.text = PromptUI.agents[agent].inputName;
+      }
     }
     if (callback) {
       PromptUI.callback = callback;
@@ -113,8 +117,21 @@ export class PromptUI extends ChatLog {
     }
   }
 
-  static updateButton(button) {
+  static async updateButton(button) {
     if (button) {
+      if (PromptUI.available == null ) {
+        let capabilities = await VRSpaceAPI.getInstance().endpoint.server.getServerCapabilities();
+        if (capabilities.aiAgents) {
+          PromptUI.available = true;
+        } else {
+          PromptUI.available = false;
+          VRSPACEUI.hud.markDisabled(button);
+          return;
+        }
+      } else if (!PromptUI.available) {
+        VRSPACEUI.hud.markDisabled(button);
+        return;
+      }
       if (PromptUI.button == null || PromptUI.button != button) {
         button.onPointerDownObservable.add(() => PromptUI.showOrHide());
         button.originalDispose = button.dispose;

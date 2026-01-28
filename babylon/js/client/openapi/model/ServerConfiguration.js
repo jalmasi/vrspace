@@ -45,7 +45,7 @@ export class ServerConfiguration {
         this.maxSessions = undefined;
 
         /** sessionStartTimeout 
-         * Sessions over maxSessions will wait this many seconds to start, 0 for   unlimited
+         * Sessions over maxSessions will wait this many seconds to start, 0 for unlimited
          * @type {Number} 
          */
         this.sessionStartTimeout = undefined;

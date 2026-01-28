@@ -74,7 +74,7 @@ public class Agents extends ClientControllerBase {
 
   private ChatMemory getMemory(HttpSession session, String memoryAttribute) {
     ChatMemory memory = (ChatMemory) session.getAttribute(memoryAttribute);
-    if (memory == null) {
+    if (memory == null && config.getMemorySize() > 0) {
       log.debug("New chat memory " + memoryAttribute + " created, size " + config.getMemorySize());
       memory = MessageWindowChatMemory
           .builder()

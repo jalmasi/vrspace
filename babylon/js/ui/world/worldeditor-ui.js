@@ -37,7 +37,7 @@ export class WorldEditorUI {
     VRSPACEUI.hud.newRow();
 
     // TODO: check server capabilites
-    this.promptButton = VRSPACEUI.hud.addButton("Prompt", this.contentBase + "/content/icons/prompt.png");
+    this.promptButton = VRSPACEUI.hud.addButton("Prompt", this.contentBase + "/content/icons/prompt.png", null, false);
     this.worldEdit = VRSPACEUI.hud.addButton("World", this.contentBase + "/content/icons/world.png", (b, i) => this.editWorld(b, i), false);
     this.terrainEdit = VRSPACEUI.hud.addButton("Terrain", this.contentBase + "/content/icons/terrain.png", (b, i) => this.editTerrain(b, i), false);
     this.skyboxEdit = VRSPACEUI.hud.addButton("Skybox", this.contentBase + "/content/icons/sky.png", (b, i) => this.editSkybox(b, i), false);

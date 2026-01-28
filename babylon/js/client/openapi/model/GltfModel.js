@@ -84,6 +84,7 @@ export class GltfModel {
         this.categories = undefined;
 
         /** mesh 
+         * Set once the model is downloaded from sketchfab to the server. This is exactly the same value as in VRObject.mesh.
          * @type {String} 
          */
         this.mesh = undefined;

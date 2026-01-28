@@ -55,6 +55,12 @@ export class ServerCapabilities {
          * @type {Boolean} 
          */
         this.webPush = undefined;
+
+        /** aiAgents 
+         * AI agents are available
+         * @type {Boolean} 
+         */
+        this.aiAgents = undefined;
         
         
         
@@ -95,6 +101,9 @@ export class ServerCapabilities {
             }
             if (data.hasOwnProperty('webPush')) {
                 obj['webPush'] = ApiClient.convertToType(data['webPush'], 'Boolean');
+            }
+            if (data.hasOwnProperty('aiAgents')) {
+                obj['aiAgents'] = ApiClient.convertToType(data['aiAgents'], 'Boolean');
             }
         }
         return obj;

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.vrspace.server.config.OllamaConfig;
 import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.core.StreamManager;
 
@@ -41,6 +42,8 @@ public class ServerInfo extends ApiBase {
   private String sessionTimeout;
   @Value("#{systemProperties['openvidu.publicurl'] ?: '${openvidu.publicurl:none}' }")
   private String streamingServerUrl;
+  @Autowired(required = false)
+  private OllamaConfig ollama;
 
   @Data
   public static class ServerCapabilities {
@@ -54,6 +57,8 @@ public class ServerInfo extends ApiBase {
     private boolean sketchfab;
     /** Web Push messages for groups and world invitations are configured */
     private boolean webPush;
+    /** AI agents are available */
+    private boolean aiAgents;
   }
 
   @Data
@@ -65,8 +70,7 @@ public class ServerInfo extends ApiBase {
     /** Maximum concurrent sessions per server, 0 for unlimited */
     private int maxSessions;
     /**
-     * Sessions over maxSessions will wait this many seconds to start, 0 for
-     * unlimited
+     * Sessions over maxSessions will wait this many seconds to start, 0 for unlimited
      */
     private int sessionStartTimeout;
     /**
@@ -103,6 +107,7 @@ public class ServerInfo extends ApiBase {
     ret.setStreamingMedia(streamManager.isAvailable());
     ret.setSketchfab(sketchfab.isAvailable());
     ret.setWebPush(webPush != null);
+    ret.setAiAgents(ollama != null);
     return ret;
   }
 
