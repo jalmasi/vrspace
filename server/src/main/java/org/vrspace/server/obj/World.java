@@ -5,6 +5,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.vrspace.server.core.WorldManager;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,9 +17,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * VRObject container, contains isolated parts of space, like chat room. One
- * default world is created on startup, others are typically created on demand,
- * after Enter command is issued.
+ * VRObject container, contains isolated parts of space, like chat room. One default world is created on startup, others are
+ * typically created on demand, after Enter command is issued.
  * 
  * @author joe
  *
@@ -25,17 +26,25 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
+@JsonInclude(Include.NON_EMPTY)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Node
 @ToString(callSuper = true)
 @Slf4j
 public class World extends Entity {
   // @Index(unique = true) - NeoConfig creates it
+  /** Unique world name */
   @NonNull
   private String name;
-  // there can be only one
+  /** Optional description of the world */
+  private String description;
+  /** Optional URL of world image displayed on the portal */
+  private String thumbnail;
+  /** There can be only one **/
   private boolean defaultWorld;
+  /** Can all users enter the world */
   private boolean publicWorld = true;
+  /** Temporary worlds are created on demand */
   private boolean temporaryWorld = false;
   @JsonIgnore
   @Transient
@@ -49,9 +58,8 @@ public class World extends Entity {
   }
 
   /**
-   * Called when client enters the world. It may change some client properties,
-   * allow entrance or not, etc. This implementation checks whether the world is
-   * private and owned, and compares the session token.
+   * Called when client enters the world. It may change some client properties, allow entrance or not, etc. This implementation
+   * checks whether the world is private and owned, and compares the session token.
    * 
    * @param c  Client that's asking to enter
    * @param wm WorldManager
@@ -73,8 +81,7 @@ public class World extends Entity {
   }
 
   /**
-   * Called after client exits the world. After the owner (if any) exits the
-   * world, invalidates the token (if any).
+   * Called after client exits the world. After the owner (if any) exits the world, invalidates the token (if any).
    * 
    * @param c  Client exiting the world
    * @param wm WorldManager

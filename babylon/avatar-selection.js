@@ -657,16 +657,20 @@ export class AvatarSelection extends World {
    * Show portals to public worlds avaliable under content/worlds server directory.
    */
   showContentPortals() {
-    var radius = this.room.diameter / 2;
-    var angle = 0;
-    VRSPACEUI.listThumbnails(this.worldDir(), (worlds) => {
-      var angleIncrement = 2 * Math.PI / worlds.length;
-      for (var i = 0; i < worlds.length; i++) {
-        var x = Math.sin(angle) * radius;
-        var z = Math.cos(angle) * radius;
+    let radius = this.room.diameter / 2;
+    let angle = 0;
+    this.api.endpoint.worlds.listAvailable().then(worlds => {
+    //VRSPACEUI.listThumbnails(this.worldDir(), (worlds) => {
+      console.log(worlds);
+      let angleIncrement = 2 * Math.PI / worlds.length;
+      for (let i = 0; i < worlds.length; i++) {
+        let serverFolder = new ServerFolder(this.worldDir()+"/", worlds[i].name, worlds[i].thumbnail);
+        let x = Math.sin(angle) * radius;
+        let z = Math.cos(angle) * radius;
         // heavy performance impact
         //new Portal( this.scene, worlds[i], this.enter, this.shadowGenerator).loadAt( x,0,z, angle);
-        var portal = new Portal(this.scene, worlds[i], (p) => this.enterPortal(p));
+        let portal = new Portal(this.scene, serverFolder, (p) => this.enterPortal(p));
+        portal.description = worlds[i].description;
         this.portals[portal.name] = portal;
         portal.loadAt(x, 0, z, angle);
         angle += angleIncrement;
@@ -675,6 +679,7 @@ export class AvatarSelection extends World {
       this.showActiveUsers();
     });
   }
+  
   // TODO: API client class/library
   showActiveUsers() {
     this.api.endpoint.worlds.users().then(worldStats => {

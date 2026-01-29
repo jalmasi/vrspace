@@ -15,12 +15,13 @@ import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.vrspace.server.api.Worlds.CreateWorldOptions;
+import org.vrspace.server.config.WorldConfig;
 import org.vrspace.server.core.ClientFactory;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
@@ -38,12 +39,14 @@ public class WorldsTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  @MockBean
+  @MockitoBean
   private VRObjectRepository db;
-  @MockBean
+  @MockitoBean
   private ClientFactory clientFactory;
-  @MockBean
+  @MockitoBean
   private WorldManager manager;
+  @MockitoBean
+  private WorldConfig config;
 
   @Captor
   private ArgumentCaptor<World> worldCaptor;
@@ -51,8 +54,13 @@ public class WorldsTest {
   private MockHttpSession session = new MockHttpSession();
 
   @Test
-  public void testList() throws Exception {
-    mockMvc.perform(get(ENDPOINT + "/list").session(session)).andExpect(status().isOk()).andReturn();
+  public void testExisting() throws Exception {
+    mockMvc.perform(get(ENDPOINT + "/listExisting").session(session)).andExpect(status().isOk()).andReturn();
+  }
+
+  @Test
+  public void testAvailable() throws Exception {
+    mockMvc.perform(get(ENDPOINT + "/listAvailable").session(session)).andExpect(status().isOk()).andReturn();
   }
 
   @Test
@@ -65,8 +73,12 @@ public class WorldsTest {
     when(clientFactory.clientNameAttribute()).thenReturn(ClientFactory.CLIENT_NAME_ATTRIBUTE);
     CreateWorldOptions options = new CreateWorldOptions();
     options.setWorldName("WorldName");
-    mockMvc.perform(post(ENDPOINT + "/create").content(objectMapper.writeValueAsString(options))
-        .contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isForbidden());
+    mockMvc
+        .perform(post(ENDPOINT + "/create")
+            .content(objectMapper.writeValueAsString(options))
+            .contentType(MediaType.APPLICATION_JSON)
+            .session(session))
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -75,8 +87,12 @@ public class WorldsTest {
     CreateWorldOptions options = new CreateWorldOptions();
     options.setWorldName("WorldName");
     session.setAttribute(ClientFactory.CLIENT_NAME_ATTRIBUTE, "testUser");
-    mockMvc.perform(post(ENDPOINT + "/create").content(objectMapper.writeValueAsString(options))
-        .contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isForbidden());
+    mockMvc
+        .perform(post(ENDPOINT + "/create")
+            .content(objectMapper.writeValueAsString(options))
+            .contentType(MediaType.APPLICATION_JSON)
+            .session(session))
+        .andExpect(status().isForbidden());
   }
 
   // @Test
@@ -101,8 +117,13 @@ public class WorldsTest {
 
     CreateWorldOptions options = new CreateWorldOptions();
     options.setWorldName("WorldName");
-    MvcResult result = mockMvc.perform(post(ENDPOINT + "/create").content(objectMapper.writeValueAsString(options))
-        .contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isCreated()).andReturn();
+    MvcResult result = mockMvc
+        .perform(post(ENDPOINT + "/create")
+            .content(objectMapper.writeValueAsString(options))
+            .contentType(MediaType.APPLICATION_JSON)
+            .session(session))
+        .andExpect(status().isCreated())
+        .andReturn();
     String token = result.getResponse().getContentAsString();
 
     // wrong format causes IllegalArgumentException:

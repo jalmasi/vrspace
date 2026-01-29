@@ -1,9 +1,18 @@
 package org.vrspace.server.api;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +21,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.vrspace.server.config.WorldConfig;
 import org.vrspace.server.core.ClientFactory;
+import org.vrspace.server.core.FileUtil;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.Welcome;
@@ -21,6 +32,7 @@ import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.World;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,9 +46,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * World controller handles worlds-related operations. Currently only list and
- * count users, publicly available. Eventually it should allow world creation
- * and management for authorized users.
+ * World controller handles worlds-related operations.
  * 
  * @author joe
  *
@@ -53,16 +63,81 @@ public class Worlds extends ClientControllerBase {
   private ClientFactory clientFactory;
   @Autowired
   private WorldManager manager;
+  @Autowired
+  private WorldConfig worldConfig;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-  @GetMapping("/list")
-  public List<World> list() {
+  /**
+   * List worlds currently existing on the server, i.e. all worlds in the database.
+   * 
+   * @return list of existing worlds
+   */
+  @GetMapping("/listExisting")
+  public List<World> listExisting() {
     List<World> worlds = db.listWorlds();
-    log.debug("Worlds: " + worlds);
+    log.debug("Existing worlds: " + worlds);
     return worlds;
   }
 
-  // CHECKME this returns all Clients rather than just users, more methods are
-  // required, or more info in WorldStatus DTO
+  /**
+   * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand. Some
+   * temporary worlds may be existing at the moment, these have id, while non-existing ones do not.
+   * 
+   * @return list of available worlds.
+   */
+  @GetMapping("/listAvailable")
+  public List<World> listAvailable() {
+    // TODO WorldFactory
+    Map<String, World> existingWorlds = listExisting().stream().collect(Collectors.toMap(World::getName, o -> o));
+    Set<String> predefinedWorlds = worldConfig.worldNames();
+    File worldsDir = new File(FileUtil.worldDir());
+    List<String> worldNames = Stream
+        .of(worldsDir.listFiles())
+        .filter(file -> file.isDirectory())
+        .map(File::getName)
+        .collect(Collectors.toList());
+
+    List<World> worlds = new ArrayList<>();
+    for (String name : worldNames) {
+      World world = new World(name);
+      // if the json file exists, use it
+      File jsonFile = new File(worldsDir + "/" + name + ".json");
+      if (jsonFile.canRead()) {
+        try {
+          world = objectMapper.readValue(jsonFile, World.class);
+        } catch (Exception e) {
+          log.error("Can't read file " + jsonFile, e);
+        }
+      }
+      // otherwise, use files available
+      File descriptionFile = new File(worldsDir + "/" + name + ".txt");
+      if (descriptionFile.canRead()) {
+        try {
+          world.setDescription(FileUtils.readFileToString(descriptionFile, Charset.defaultCharset()));
+        } catch (IOException e) {
+          log.error("Can't read file " + descriptionFile, e);
+        }
+      }
+      File thumbnailFile = new File(worldsDir + "/" + name + ".jpg");
+      if (thumbnailFile.canRead()) {
+        world.setThumbnail(thumbnailFile.getName());
+      }
+      world.setTemporaryWorld(!predefinedWorlds.contains(world.getName()));
+      if (existingWorlds.containsKey(name)) {
+        world.setId(existingWorlds.get(name).getId());
+      }
+      worlds.add(world);
+    }
+    return worlds;
+  }
+
+  /**
+   * List worlds, and number users/clients currently in them. Number of clients includes bots etc, totals include disconnected
+   * clients that are still in the world.
+   * 
+   * @return
+   */
   @GetMapping("/users")
   public List<WorldStatus> users() {
     List<WorldStatus> stats = db.countUsers();
@@ -83,8 +158,7 @@ public class Worlds extends ClientControllerBase {
     /** Optional world template to use */
     private String templateName;
     /**
-     * Optional UUID used as world token, required to enter private worlds, defaults
-     * to a random UUID
+     * Optional UUID used as world token, required to enter private worlds, defaults to a random UUID
      */
     private String token;
     /** Optional flag to create public or private world, default false */
@@ -94,9 +168,8 @@ public class Worlds extends ClientControllerBase {
   }
 
   /**
-   * Create a private world, the user must be authenticated. If the world already
-   * exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201
-   * CREATED for created world, or HTTP 200 OK if world already exists.
+   * Create a private world, the user must be authenticated. If the world already exists, owner may change isPublic or
+   * isTemporary parameters. Returns HTTP 201 CREATED for created world, or HTTP 200 OK if world already exists.
    * 
    * @param session automatically passed by framework
    * @param params  world options
@@ -104,8 +177,7 @@ public class Worlds extends ClientControllerBase {
    */
   @PostMapping("/create")
   // CHECKME: DTO or request params?
-  public ResponseEntity<String> createWorld(HttpSession session,
-      @RequestBody(required = true) CreateWorldOptions params) {
+  public ResponseEntity<String> createWorld(HttpSession session, @RequestBody(required = true) CreateWorldOptions params) {
     String userName = currentUserName(session, clientFactory);
     log.debug("Create world, user: " + userName + " parms: " + params);
     if (userName == null) {
@@ -170,15 +242,13 @@ public class Worlds extends ClientControllerBase {
   }
 
   /**
-   * Enter a world, the client must be authenticated. REST equivalent of Enter
-   * command. This is only valid after the websocket connection has been
-   * established.
+   * Enter a world, the client must be authenticated. REST equivalent of Enter command. This is only valid after the websocket
+   * connection has been established.
    * 
    * @param session   automatically passed by framework
    * @param worldName Name of the world to enter
    * @param token     Optional token required to enter private world
-   * @param async     If set, the Welcome answer is sent over the websocket, and
-   *                  this will return null
+   * @param async     If set, the Welcome answer is sent over the websocket, and this will return null
    * @return Welcome message containing only publicly accessible Client attributes
    */
   @PostMapping("/enter")

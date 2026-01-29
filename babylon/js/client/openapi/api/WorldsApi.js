@@ -40,7 +40,7 @@ export class WorldsApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already exists, owner may change isPublic or   isTemporary parameters. Returns HTTP 201 CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
@@ -73,7 +73,7 @@ export class WorldsApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already   exists, owner may change isPublic or isTemporary parameters. Returns HTTP 201   CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already exists, owner may change isPublic or   isTemporary parameters. Returns HTTP 201 CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
@@ -90,7 +90,7 @@ export class WorldsApi {
      * @param {String} worldName Name of the world to enter
      * @param {Object} opts Optional parameters
      * @param {String} [token] Optional token required to enter private world
-     * @param {Boolean} [async] If set, the Welcome answer is sent over the websocket, and                    this will return null
+     * @param {Boolean} [async] If set, the Welcome answer is sent over the websocket, and this will return null
      * @return {Promise< Welcome >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Welcome} and HTTP response
      */
     enterWorldWithHttpInfo(worldName, opts) {
@@ -129,7 +129,7 @@ export class WorldsApi {
      * @param {String} worldName Name of the world to enter
      * @param {Object} opts Optional parameters
      * @param {String} opts.token Optional token required to enter private world
-     * @param {Boolean} opts.async If set, the Welcome answer is sent over the websocket, and                    this will return null
+     * @param {Boolean} opts.async If set, the Welcome answer is sent over the websocket, and this will return null
      * @return {Promise< Welcome >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Welcome}
      */
     enterWorld(worldName, opts) {
@@ -141,9 +141,11 @@ export class WorldsApi {
 
 
     /**
+     * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand.
+     * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand. Some   temporary worlds may be existing at the moment, these have id, while non-existing ones do not.
      * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<World>} and HTTP response
      */
-    listWithHttpInfo() {
+    listAvailableWithHttpInfo() {
       let postBody = null;
 
       let pathParams = {
@@ -160,17 +162,19 @@ export class WorldsApi {
       let accepts = ['*/*'];
       let returnType = [World];
       return this.apiClient.callApi(
-        '/vrspace/api/worlds/list', 'GET',
+        '/vrspace/api/worlds/listAvailable', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, null
       );
     }
 
     /**
+     * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand.
+     * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand. Some   temporary worlds may be existing at the moment, these have id, while non-existing ones do not.
      * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<World>}
      */
-    list() {
-      return this.listWithHttpInfo()
+    listAvailable() {
+      return this.listAvailableWithHttpInfo()
         .then(function(response_and_data) {
           return response_and_data.data;
         });
@@ -178,6 +182,49 @@ export class WorldsApi {
 
 
     /**
+     * List worlds currently existing on the server, i.e. all worlds in the database.
+     * List worlds currently existing on the server, i.e. all worlds in the database.
+     * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<World>} and HTTP response
+     */
+    listExistingWithHttpInfo() {
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = [World];
+      return this.apiClient.callApi(
+        '/vrspace/api/worlds/listExisting', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * List worlds currently existing on the server, i.e. all worlds in the database.
+     * List worlds currently existing on the server, i.e. all worlds in the database.
+     * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<World>}
+     */
+    listExisting() {
+      return this.listExistingWithHttpInfo()
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
+     * List worlds, and number users/clients currently in them.
+     * List worlds, and number users/clients currently in them. Number of clients includes bots etc, totals include disconnected   clients that are still in the world.
      * @return {Promise< Array.<WorldStatus> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<WorldStatus>} and HTTP response
      */
     usersWithHttpInfo() {
@@ -204,6 +251,8 @@ export class WorldsApi {
     }
 
     /**
+     * List worlds, and number users/clients currently in them.
+     * List worlds, and number users/clients currently in them. Number of clients includes bots etc, totals include disconnected   clients that are still in the world.
      * @return {Promise< Array.<WorldStatus> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<WorldStatus>}
      */
     users() {

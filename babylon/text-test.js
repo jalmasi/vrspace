@@ -143,7 +143,7 @@ export class TextWorld extends World {
   testAutoscale(pos, text, width = 512, fontSize = 16) {
     let scaling = new TextArea(this.scene);
     scaling.text = text;
-    scaling.titleText = "Title";
+    scaling.titleText = "Autoscaling length="+text.length;
     scaling.fontSize = fontSize;
     scaling.width = width;
     scaling.size = .1;
@@ -193,6 +193,7 @@ export class TextWorld extends World {
     this.testAutoscale(new BABYLON.Vector3(-10,1,5), "This is autoscaling test");
     this.testAutoscale(new BABYLON.Vector3(-10,2,5), "This is autoscaling test", 256);
     this.testAutoscale(new BABYLON.Vector3(-10,3,5), "This is autoscaling test", 128);
+    this.testAutoscale(new BABYLON.Vector3(-10,4,5), "");
     
     // chatlog test
     let chatLog = new ChatLog(this.scene);

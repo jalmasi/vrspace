@@ -21,6 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class WorldStatus {
     /**
      * Constructs a new <code>WorldStatus</code>.
+     * Current world statistics, client/user count.
      * @alias WorldStatus
      */
     constructor() { 
@@ -40,6 +41,16 @@ export class WorldStatus {
          * @type {Number} 
          */
         this.totalUsers = undefined;
+
+        /** activeClients 
+         * @type {Number} 
+         */
+        this.activeClients = undefined;
+
+        /** totalClients 
+         * @type {Number} 
+         */
+        this.totalClients = undefined;
         
         
         
@@ -74,6 +85,12 @@ export class WorldStatus {
             }
             if (data.hasOwnProperty('totalUsers')) {
                 obj['totalUsers'] = ApiClient.convertToType(data['totalUsers'], 'Number');
+            }
+            if (data.hasOwnProperty('activeClients')) {
+                obj['activeClients'] = ApiClient.convertToType(data['activeClients'], 'Number');
+            }
+            if (data.hasOwnProperty('totalClients')) {
+                obj['totalClients'] = ApiClient.convertToType(data['totalClients'], 'Number');
             }
         }
         return obj;

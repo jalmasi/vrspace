@@ -145,12 +145,16 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
   @Query("MATCH (o:World) RETURN o")
   List<World> listWorlds();
 
-  // CHECKME this actually counts Client rather than User instances
   @Query("MATCH (o:Client) WHERE o.worldId = $worldId RETURN count(*)")
+  int countClients(String worldId);
+
+  @Query("MATCH (o:User) WHERE o.worldId = $worldId RETURN count(*)")
   int countUsers(String worldId);
 
-  // CHECKME this actually counts Client rather than User instances
   @Query("MATCH (o:Client) WHERE o.worldId = $worldId AND o.active = $active RETURN count(*)")
+  int countClients(String worldId, boolean active);
+
+  @Query("MATCH (o:User) WHERE o.worldId = $worldId AND o.active = $active RETURN count(*)")
   int countUsers(String worldId, boolean active);
 
   // queries like this just do not work
@@ -166,6 +170,8 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
       status.setWorldName(world.getName());
       status.setTotalUsers(countUsers(world.getId()));
       status.setActiveUsers(countUsers(world.getId(), true));
+      status.setTotalClients(countClients(world.getId()));
+      status.setActiveClients(countClients(world.getId(), true));
       ret.add(status);
     }
     return ret;
