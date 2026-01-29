@@ -52,7 +52,6 @@ import UserData from './model/UserData';
 import UserGroup from './model/UserGroup';
 import UserRelated from './model/UserRelated';
 import VRObject from './model/VRObject';
-import WebPushSubscription from './model/WebPushSubscription';
 import Welcome from './model/Welcome';
 import WelcomeWelcome from './model/WelcomeWelcome';
 import World from './model/World';
@@ -61,13 +60,11 @@ import DataApi from './api/DataApi';
 import GroupsApi from './api/GroupsApi';
 import Oauth2LoginApi from './api/Oauth2LoginApi';
 import RecorderApi from './api/RecorderApi';
-import RemoteBrowserApi from './api/RemoteBrowserApi';
 import ServerInfoApi from './api/ServerInfoApi';
 import SharedContentApi from './api/SharedContentApi';
 import SketchfabApi from './api/SketchfabApi';
 import TexturesApi from './api/TexturesApi';
 import UsersApi from './api/UsersApi';
-import WebPushApi from './api/WebPushApi';
 import WorldObjectsApi from './api/WorldObjectsApi';
 import WorldsApi from './api/WorldsApi';
 
@@ -345,12 +342,6 @@ export {
     VRObject,
 
     /**
-     * The WebPushSubscription model constructor.
-     * @property {WebPushSubscription}
-     */
-    WebPushSubscription,
-
-    /**
      * The Welcome model constructor.
      * @property {Welcome}
      */
@@ -399,12 +390,6 @@ export {
     RecorderApi,
 
     /**
-    * The RemoteBrowserApi service constructor.
-    * @property {module:api/RemoteBrowserApi}
-    */
-    RemoteBrowserApi,
-
-    /**
     * The ServerInfoApi service constructor.
     * @property {module:api/ServerInfoApi}
     */
@@ -433,12 +418,6 @@ export {
     * @property {module:api/UsersApi}
     */
     UsersApi,
-
-    /**
-    * The WebPushApi service constructor.
-    * @property {module:api/WebPushApi}
-    */
-    WebPushApi,
 
     /**
     * The WorldObjectsApi service constructor.

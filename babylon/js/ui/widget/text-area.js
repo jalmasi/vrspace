@@ -60,7 +60,7 @@ export class TextArea extends BaseArea {
 
     if (this.autoScale) {
       if (!this.text) {
-        //throw new Error( "Text has to be set before autoscaling");
+        this.showTitle(this.size*2);
         return;
       }
       // so we scale height depending on text size and width
@@ -107,12 +107,12 @@ export class TextArea extends BaseArea {
   /**
    * Show title text on top of the area. Title can be changed and displayed any time after show().
    */
-  showTitle() {
+  // titleHeight = twice as high as a text row
+  showTitle(titleHeight = this.size / this.getMaxRows() * 2) {
     if (this.titleText) {
       if (this.title) {
         this.title.dispose();
       }
-      let titleHeight = this.size / this.getMaxRows() * 2; // twice as high as a text row
       this.title = new Label(this.titleText, new BABYLON.Vector3(0, 1.2 * this.size / 2 + titleHeight / 2, 0), this.group);
       this.title.text = this.titleText;
       this.title.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;

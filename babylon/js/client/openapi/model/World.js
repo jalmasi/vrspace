@@ -21,7 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class World {
     /**
      * Constructs a new <code>World</code>.
-     * VRObject container, contains isolated parts of space, like chat room. One  default world is created on startup, others are typically created on demand,  after Enter command is issued.
+     * VRObject container, contains isolated parts of space, like chat room. One default world is created on startup, others are  typically created on demand, after Enter command is issued.
      * @alias World
      */
     constructor() { 
@@ -33,21 +33,37 @@ export class World {
         this.id = undefined;
 
         /** name 
+         * Unique world name
          * @type {String} 
          */
         this.name = undefined;
 
+        /** description 
+         * Optional description of the world
+         * @type {String} 
+         */
+        this.description = undefined;
+
+        /** thumbnail 
+         * Optional URL of world image displayed on the portal
+         * @type {String} 
+         */
+        this.thumbnail = undefined;
+
         /** defaultWorld 
+         * There can be only one
          * @type {Boolean} 
          */
         this.defaultWorld = undefined;
 
         /** publicWorld 
+         * Can all users enter the world
          * @type {Boolean} 
          */
         this.publicWorld = undefined;
 
         /** temporaryWorld 
+         * Temporary worlds are created on demand
          * @type {Boolean} 
          */
         this.temporaryWorld = undefined;
@@ -83,6 +99,12 @@ export class World {
             if (data.hasOwnProperty('name')) {
                 obj['name'] = ApiClient.convertToType(data['name'], 'String');
             }
+            if (data.hasOwnProperty('description')) {
+                obj['description'] = ApiClient.convertToType(data['description'], 'String');
+            }
+            if (data.hasOwnProperty('thumbnail')) {
+                obj['thumbnail'] = ApiClient.convertToType(data['thumbnail'], 'String');
+            }
             if (data.hasOwnProperty('defaultWorld')) {
                 obj['defaultWorld'] = ApiClient.convertToType(data['defaultWorld'], 'Boolean');
             }
@@ -109,6 +131,14 @@ export class World {
         // ensure the json data is a string
         if (data['name'] && !(typeof data['name'] === 'string' || data['name'] instanceof String)) {
             throw new Error("Expected the field `name` to be a primitive type in the JSON string but got " + data['name']);
+        }
+        // ensure the json data is a string
+        if (data['description'] && !(typeof data['description'] === 'string' || data['description'] instanceof String)) {
+            throw new Error("Expected the field `description` to be a primitive type in the JSON string but got " + data['description']);
+        }
+        // ensure the json data is a string
+        if (data['thumbnail'] && !(typeof data['thumbnail'] === 'string' || data['thumbnail'] instanceof String)) {
+            throw new Error("Expected the field `thumbnail` to be a primitive type in the JSON string but got " + data['thumbnail']);
         }
 
         return true;

@@ -1,5 +1,6 @@
 import { ServerFolder } from '../../core/server-folder.js';
 import { VRSPACEUI } from '../vrspace-ui.js';
+import { TextArea } from '../widget/text-area.js';
 
 /**
 Portal is an entrance to other worlds, disabled by default.
@@ -17,6 +18,7 @@ export class Portal {
     this.serverFolder = serverFolder;
     this.callback = callback;
     this.name = serverFolder.name;
+    this.description = null;
     this.subTitle = null;
     this.alwaysShowTitle = false;
     this.imageUrl = null;
@@ -34,7 +36,6 @@ export class Portal {
     this.soundUrl = VRSPACEUI.contentBase + "/babylon/portal/couchhero_portal-idle.mp3";
     this.soundDistance = 5;
     this.soundVolume = .5;
-
   }
   /** handy, returns base url and folder name */
   worldUrl() {
@@ -122,21 +123,7 @@ export class Portal {
     plane.visibility = 0.85;
     this.textures.push(noiseTexture);
 
-    this.title = BABYLON.MeshBuilder.CreatePlane("Text:" + this.name, { height: 2, width: 4 }, this.scene);
-    this.title.parent = this.group;
-    this.title.position = new BABYLON.Vector3(0, 2.5, 0);
-    this.title.isVisible = this.alwaysShowTitle;
-
-    var titleTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.title, 256, 256);
-    this.materials.push(this.title.material);
-
-    this.titleText = new BABYLON.GUI.TextBlock();
-    this.titleText.color = "white";
     this.showTitle();
-
-    titleTexture.addControl(this.titleText);
-    //this.controls.push(titleText); // CHECKME doesn's seem required
-    this.textures.push(titleTexture);
 
     this.attachSound();
 
@@ -178,32 +165,54 @@ export class Portal {
     }
   }
   showTitle() {
-    if (this.titleText) {
+    if (!this.title && (this.isEnabled || this.alwaysShowTitle)) {
+      this.title = new TextArea(this.scene, this.name, this.name);
+      this.title.autoScale = true;
+      this.title.addHandles = false;
+      this.title.addBackground = false;
+      this.title.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      this.title.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      this.title.size = 0.1;
+      //this.title.group.parent = this.group;
+      this.title.position = new BABYLON.Vector3(0, 2.5, 0);
+      //this.title.isVisible = this.alwaysShowTitle; // TODO
+      this.title.text = ""; 
       if (this.subTitle) {
-        this.titleText.text = this.name.toUpperCase() + '\n' + this.subTitle;
-      } else {
-        this.titleText.text = this.name;
+        this.title.text += this.subTitle+"\n";
       }
+      if (this.description) {
+        this.title.text += this.description;
+      }
+      this.title.show();
+      this.title.group.parent = this.group;
     }
   }
   setTitle(title) {
     this.subTitle = title;
+    this.clearTitle();
     this.showTitle();
   }
   getTitle() {
     return this.subTitle;
   }
+  clearTitle() {
+    if (this.title) {
+      this.title.dispose();
+      this.title == null;
+    }
+  }
   /** Enables or disables the portal
   @param enable
    */
   enabled(enable) {
+    this.isEnabled = enable;
     if (enable) {
       this.material.emissiveTexture = this.thumbnail;
+      this.showTitle();
     } else {
       this.material.emissiveTexture = null;
+      this.clearTitle();
     }
-    this.title.isVisible = enable || this.alwaysShowTitle;
-    this.isEnabled = enable;
     this.playSound(enable);
   }
   /** Executes callback on entry */
