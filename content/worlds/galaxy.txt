@@ -1,2 +1,2 @@
-Galaxy made with a particle system.
+Galaxy with a thousand stars, made with a particle system.
 Remote servers can add their portals here.

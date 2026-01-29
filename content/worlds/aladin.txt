@@ -1,1 +1,1 @@
-A small village in the desert, with dynamic terrain.
+A small village in the desert, with dynamic terrain and vegetation.

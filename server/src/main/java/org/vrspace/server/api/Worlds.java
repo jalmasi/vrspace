@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +67,8 @@ public class Worlds extends ClientControllerBase {
   private WorldConfig worldConfig;
   @Autowired
   private ObjectMapper objectMapper;
+  @Autowired
+  private WorldManager worldManager;
 
   /**
    * List worlds currently existing on the server, i.e. all worlds in the database.
@@ -88,8 +90,6 @@ public class Worlds extends ClientControllerBase {
    */
   @GetMapping("/listAvailable")
   public List<World> listAvailable() {
-    // TODO WorldFactory
-    Map<String, World> existingWorlds = listExisting().stream().collect(Collectors.toMap(World::getName, o -> o));
     Set<String> predefinedWorlds = worldConfig.worldNames();
     File worldsDir = new File(FileUtil.worldDir());
     List<String> worldNames = Stream
@@ -100,12 +100,17 @@ public class Worlds extends ClientControllerBase {
 
     List<World> worlds = new ArrayList<>();
     for (String name : worldNames) {
-      World world = new World(name);
+      World world = worldManager.getWorld(name);
+      World updatedWorld = new World();
+      if (world == null) {
+        world = new World(name);
+        updatedWorld.setTemporaryWorld(true);
+      }
       // if the json file exists, use it
       File jsonFile = new File(worldsDir + "/" + name + ".json");
       if (jsonFile.canRead()) {
         try {
-          world = objectMapper.readValue(jsonFile, World.class);
+          updatedWorld = objectMapper.readValue(jsonFile, World.class);
         } catch (Exception e) {
           log.error("Can't read file " + jsonFile, e);
         }
@@ -114,19 +119,31 @@ public class Worlds extends ClientControllerBase {
       File descriptionFile = new File(worldsDir + "/" + name + ".txt");
       if (descriptionFile.canRead()) {
         try {
-          world.setDescription(FileUtils.readFileToString(descriptionFile, Charset.defaultCharset()));
+          updatedWorld.setDescription(FileUtils.readFileToString(descriptionFile, Charset.defaultCharset()));
         } catch (IOException e) {
           log.error("Can't read file " + descriptionFile, e);
         }
       }
       File thumbnailFile = new File(worldsDir + "/" + name + ".jpg");
       if (thumbnailFile.canRead()) {
-        world.setThumbnail(thumbnailFile.getName());
+        updatedWorld.setThumbnail(thumbnailFile.getName());
       }
-      world.setTemporaryWorld(!predefinedWorlds.contains(world.getName()));
-      if (existingWorlds.containsKey(name)) {
-        world.setId(existingWorlds.get(name).getId());
+      boolean predefined = predefinedWorlds.contains(world.getName());
+      updatedWorld.setTemporaryWorld(!predefined);
+
+      // comparison and update ugly as it gets
+      // because we must take ensure not to override or expose token and owner
+      boolean save = ObjectUtils.notEqual(updatedWorld.getDescription(), world.getDescription())
+          || ObjectUtils.notEqual(updatedWorld.getThumbnail(), world.getThumbnail()) || predefined == world.isTemporaryWorld();
+      world.setDescription(updatedWorld.getDescription());
+      world.setThumbnail(updatedWorld.getThumbnail());
+      world.setTemporaryWorld(updatedWorld.isTemporaryWorld());
+
+      if ((predefined || !world.isTemporaryWorld()) && save) {
+        log.debug("Saving modified world " + world);
+        worldManager.saveWorld(world);
       }
+
       worlds.add(world);
     }
     return worlds;
