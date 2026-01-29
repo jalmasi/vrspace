@@ -119,8 +119,9 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
         Method getter = cls.getMethod("get" + StringUtils.capitalize(f.getName()));
         Embedded e = (Embedded) getter.invoke(obj);
         if (e != null && e.getId() != null) {
-          log.debug("Deleting " + f.getName() + " " + e.getClass().getSimpleName() + ":" + e.getId() + " of "
-              + obj.getClass().getSimpleName() + " " + obj.getId());
+          log
+              .debug("Deleting " + f.getName() + " " + e.getClass().getSimpleName() + ":" + e.getId() + " of "
+                  + obj.getClass().getSimpleName() + " " + obj.getId());
           deleteById(e.getClass(), e.getId());
           e.dispose();
         }
@@ -142,12 +143,16 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
   @Query("MATCH (o:World) RETURN o")
   List<World> listWorlds();
 
-  // CHECKME this actually counts Client rather than User instances
   @Query("MATCH (o:Client) WHERE o.worldId = $worldId RETURN count(*)")
+  int countClients(String worldId);
+
+  @Query("MATCH (o:User) WHERE o.worldId = $worldId RETURN count(*)")
   int countUsers(String worldId);
 
-  // CHECKME this actually counts Client rather than User instances
   @Query("MATCH (o:Client) WHERE o.worldId = $worldId AND o.active = $active RETURN count(*)")
+  int countClients(String worldId, boolean active);
+
+  @Query("MATCH (o:User) WHERE o.worldId = $worldId AND o.active = $active RETURN count(*)")
   int countUsers(String worldId, boolean active);
 
   // queries like this just do not work
@@ -163,14 +168,16 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
       status.setWorldName(world.getName());
       status.setTotalUsers(countUsers(world.getId()));
       status.setActiveUsers(countUsers(world.getId(), true));
+      status.setTotalClients(countClients(world.getId()));
+      status.setActiveClients(countClients(world.getId(), true));
       ret.add(status);
     }
     return ret;
   }
 
   /**
-   * WARNING this doesn't return full, useful owned VRObject - position and other
-   * members are missing - use listOwnedObjects instead
+   * WARNING this doesn't return full, useful owned VRObject - position and other members are missing - use listOwnedObjects
+   * instead
    * 
    * @param clientId
    * @return list of all ownerships
@@ -188,8 +195,7 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
   }
 
   /**
-   * WARNING this doesn't return full, useful owned Entity - position and other
-   * members are missing - use getOwners instead
+   * WARNING this doesn't return full, useful owned Entity - position and other members are missing - use getOwners instead
    * 
    * @return list of all owners
    */
@@ -206,8 +212,8 @@ public interface VRObjectRepository extends Neo4jRepository<Entity, String>, VRS
   }
 
   /**
-   * WARNING this doesn't return full, useful owned Entity - e.g. VRObject
-   * position and other members are missing - use getOwnership instead
+   * WARNING this doesn't return full, useful owned Entity - e.g. VRObject position and other members are missing - use
+   * getOwnership instead
    */
   @Query("MATCH (obj:Entity)<-[owned:IS_OWNED]-(o:Ownership)-[owns:IS_OWNER]->(c:Client)"
       + " WHERE c.id = $ownerId AND obj.id = $ownedId RETURN o,owns,c,owned,obj")

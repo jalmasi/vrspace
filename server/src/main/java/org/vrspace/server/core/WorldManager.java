@@ -133,7 +133,7 @@ public class WorldManager {
   // CHECKME world factory?
   private void createWorlds() {
     defaultWorld();
-    for (String worldName : worldConfig.getWorld().keySet()) {
+    for (String worldName : worldConfig.worldNames()) {
       WorldProperties wp = worldConfig.getWorld().get(worldName);
       log.info("Configuring world: " + worldName);
       World world = getWorld(worldName);
@@ -187,14 +187,20 @@ public class WorldManager {
   // CHECKME: should this be here?
   public List<Class<?>> listClasses() {
     // gotta love oneliners :)
-    return mappingContext.getManagedTypes().stream().filter(
-        info -> !Modifier.isAbstract(info.getType().getModifiers()) && Entity.class.isAssignableFrom(info.getType()))
-        .map(i -> i.getType()).collect(Collectors.toList());
+    return mappingContext
+        .getManagedTypes()
+        .stream()
+        .filter(info -> !Modifier.isAbstract(info.getType().getModifiers()) && Entity.class.isAssignableFrom(info.getType()))
+        .map(i -> i.getType())
+        .collect(Collectors.toList());
   }
 
   public World getWorld(String name) {
-    Optional<Entity> existing = cache.values().stream()
-        .filter(o -> o.getClass().equals(World.class) && ((World) o).getName().equals(name)).findFirst();
+    Optional<Entity> existing = cache
+        .values()
+        .stream()
+        .filter(o -> o.getClass().equals(World.class) && ((World) o).getName().equals(name))
+        .findFirst();
     if (existing.isPresent()) {
       return (World) existing.get();
     }
@@ -254,8 +260,7 @@ public class WorldManager {
   }
 
   /**
-   * If the client is currently active, cached version of the client, otherwise
-   * null
+   * If the client is currently active, cached version of the client, otherwise null
    */
   public Client getCachedClient(Client c) {
     Client cachedClient = (Client) get(c.getObjectId());
@@ -415,11 +420,9 @@ public class WorldManager {
   }
 
   /**
-   * Remote user login over websocket. Called from SessionManager, after websocket
-   * session has been established. Uses session security context (principal) to
-   * identify user and fetch/create the appropriate Client object from the
-   * ClientFactory. May create a new guest client, if guest (anonymous)
-   * connections are allowed.
+   * Remote user login over websocket. Called from SessionManager, after websocket session has been established. Uses session
+   * security context (principal) to identify user and fetch/create the appropriate Client object from the ClientFactory. May
+   * create a new guest client, if guest (anonymous) connections are allowed.
    * 
    * @param session websocket session
    * @return Welcome message
@@ -440,8 +443,7 @@ public class WorldManager {
   }
 
   /**
-   * Common login procedure for both users and remote servers. This may change,
-   * same for the time being.
+   * Common login procedure for both users and remote servers. This may change, same for the time being.
    * 
    * @see #login(ConcurrentWebSocketSessionDecorator)
    * @param session       web socket session
@@ -482,16 +484,15 @@ public class WorldManager {
     if (httpSession != null) {
       // may be null in tests
       httpSession.setAttribute(ClientFactory.CLIENT_ID_ATTRIBUTE, client.getId());
-      log.debug(
-          "WebSocket session " + session.getId() + " HttpSession " + httpSession.getId() + " client " + client.getId());
+      log.debug("WebSocket session " + session.getId() + " HttpSession " + httpSession.getId() + " client " + client.getId());
     }
     login(client);
     return enter(client, defaultWorld());
   }
 
   /**
-   * Stage 2 of login, executed once client has been identified. Does not depend
-   * on websocket session, can be used for internal login, e.g. bots.
+   * Stage 2 of login, executed once client has been identified. Does not depend on websocket session, can be used for internal
+   * login, e.g. bots.
    * 
    * @param client
    */
@@ -590,8 +591,7 @@ public class WorldManager {
   }
 
   /**
-   * Exit from a world. Called in two cases: enter, and logout. Clean up the
-   * scene, notify listeners, remove temporary objects.
+   * Exit from a world. Called in two cases: enter, and logout. Clean up the scene, notify listeners, remove temporary objects.
    * 
    * @param client
    */
@@ -655,7 +655,9 @@ public class WorldManager {
     if (world != null) {
       world.exit(client, this);
       // remove temporary world after last client disconnects
-      if (world.isTemporaryWorld() && db.countUsers(world.getId()) == 0) {
+      // CHECKME use last user instead?
+      // TODO this allows event recorder, bots and server-side client instances to keep the world
+      if (world.isTemporaryWorld() && db.countClients(world.getId()) == 0) {
         log.info("Deleting temporary world " + world.getId() + " " + world.getName());
         deleteWorld(world);
       }

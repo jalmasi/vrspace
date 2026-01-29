@@ -1,0 +1,2 @@
+Galaxy made with a particle system.
+Remote servers can add their portals here.

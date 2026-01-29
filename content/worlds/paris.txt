@@ -1,0 +1,2 @@
+A real part of Paris.
+Huge space with a lot of buildings, stress-test for collision detection.

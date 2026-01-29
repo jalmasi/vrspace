@@ -555,8 +555,9 @@ public class DBIT {
     waitFor(writeBack.getDelay());
     writeBack.flush();
     assertEquals(0, writeBack.size());
-    System.err.println("update rate " + writeBack.writeRequests() * 1000.0 / (System.currentTimeMillis() - start)
-        + "/s, writes " + writeBack.writes());
+    System.err
+        .println("update rate " + writeBack.writeRequests() * 1000.0 / (System.currentTimeMillis() - start) + "/s, writes "
+            + writeBack.writes());
 
     long writes = writeBack.writes();
     VRObject o3 = repo.save(new VRObject(0, 0, 0));
@@ -592,7 +593,7 @@ public class DBIT {
 
   @Test
   @Transactional
-  public void testCountUsers() {
+  public void testCountClientsAndUsers() {
     World w1 = repo.save(new World("one"));
     World w2 = repo.save(new World("two"));
 
@@ -606,16 +607,26 @@ public class DBIT {
     c2.setActive(false);
     repo.save(c2);
 
-    int total = repo.countUsers(w1.getId());
-    assertEquals(2, total);
+    User u1 = new User();
+    u1.setWorldId(w1.getId());
+    u1.setActive(true);
+    repo.save(u1);
 
-    int active = repo.countUsers(w1.getId(), true);
-    assertEquals(1, active);
+    User u2 = new User();
+    u2.setWorldId(w1.getId());
+    u2.setActive(false);
+    repo.save(u2);
 
-    int inactive = repo.countUsers(w1.getId(), false);
-    assertEquals(1, inactive);
+    int total = repo.countClients(w1.getId());
+    assertEquals(4, total);
 
-    int empty = repo.countUsers(w2.getId());
+    int active = repo.countClients(w1.getId(), true);
+    assertEquals(2, active);
+
+    int inactive = repo.countClients(w1.getId(), false);
+    assertEquals(2, inactive);
+
+    int empty = repo.countClients(w2.getId());
     assertEquals(0, empty);
 
     Collection<WorldStatus> stats = repo.countUsers();
@@ -624,12 +635,18 @@ public class DBIT {
     assertEquals(3, stats.size());
     for (WorldStatus stat : stats) {
       if ("one".equals(stat.getWorldName())) {
+        assertEquals(2, stat.getActiveClients());
+        assertEquals(4, stat.getTotalClients());
         assertEquals(1, stat.getActiveUsers());
         assertEquals(2, stat.getTotalUsers());
       } else if ("two".equals(stat.getWorldName())) {
+        assertEquals(0, stat.getActiveClients());
+        assertEquals(0, stat.getTotalClients());
         assertEquals(0, stat.getActiveUsers());
         assertEquals(0, stat.getTotalUsers());
       } else if ("default".equals(stat.getWorldName())) {
+        assertEquals(0, stat.getActiveClients());
+        assertEquals(0, stat.getTotalClients());
         assertEquals(0, stat.getActiveUsers());
         assertEquals(0, stat.getTotalUsers());
       } else {

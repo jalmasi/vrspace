@@ -10,8 +10,8 @@ import java.util.zip.ZipInputStream;
 
 public class FileUtil {
   /**
-   * Returns location of downloads directory: either Downloads under user home
-   * directory if exists, or system temporary directory
+   * Returns location of downloads directory: either Downloads under user home directory if exists, or system temporary
+   * directory
    */
   public static File downloadDir() {
     File dir = new File(System.getProperty("user.home") + "/Downloads");
@@ -29,6 +29,13 @@ public class FileUtil {
   }
 
   /**
+   * Returns absolute name of worlds directory, content/worlds.
+   */
+  public static String worldDir() {
+    return contentDir() + "/worlds";
+  }
+
+  /**
    * Returns absolute name of uploaded content directory, public access.
    */
   public static String uploadDir() {
@@ -36,8 +43,8 @@ public class FileUtil {
   }
 
   /**
-   * Returns absolute name of attachment directory. Attachments must not be
-   * accessible over the web, but only through web API to authorized users.
+   * Returns absolute name of attachment directory. Attachments must not be accessible over the web, but only through web API to
+   * authorized users.
    */
   public static String attachmentDir() {
     return ClassUtil.projectHomeDirectory() + "/attachments";
