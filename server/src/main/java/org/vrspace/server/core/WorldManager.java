@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.vrspace.server.config.ServerConfig;
 import org.vrspace.server.config.WorldConfig;
-import org.vrspace.server.config.WorldConfig.WorldProperties;
 import org.vrspace.server.dto.ClientRequest;
 import org.vrspace.server.dto.Command;
 import org.vrspace.server.dto.SceneProperties;
@@ -64,6 +62,9 @@ public class WorldManager {
   protected ServerConfig config; // used in tests
 
   @Autowired
+  protected WorldConfig worldConfig;
+
+  @Autowired
   private VRObjectRepository db;
 
   @Autowired
@@ -88,16 +89,12 @@ public class WorldManager {
   @Autowired
   private Neo4jMappingContext mappingContext;
 
-  @Autowired
-  protected WorldConfig worldConfig;
-
   protected Dispatcher dispatcher;
   protected SessionTracker sessionTracker;
+  private WorldFactory worldFactory;
 
   // used in tests
   protected ConcurrentHashMap<ID, Entity> cache = new ConcurrentHashMap<>();
-
-  private World defaultWorld;
 
   @SuppressWarnings("rawtypes")
   private Map<Class, PersistenceManager> persistors = new HashMap<>();
@@ -127,38 +124,12 @@ public class WorldManager {
       }
     }
     // persistors.put(VRObject.class, pm);
-    createWorlds();
+
+    worldFactory = new WorldFactory(this);
+    worldFactory.createWorlds();
   }
 
   // CHECKME world factory?
-  private void createWorlds() {
-    defaultWorld();
-    for (String worldName : worldConfig.worldNames()) {
-      WorldProperties wp = worldConfig.getWorld().get(worldName);
-      log.info("Configuring world: " + worldName);
-      World world = getWorld(worldName);
-      try {
-        if (world == null) {
-          log.info("World " + worldName + " to be created as " + wp);
-          String className = wp.getType();
-          if (!className.contains(".")) {
-            // using default package
-            className = "org.vrspace.server.obj." + className;
-          }
-          Class<?> c = Class.forName(className);
-          world = (World) c.getDeclaredConstructor().newInstance();
-        } else {
-          log.info("World " + worldName + " already exists : " + world);
-        }
-        BeanUtils.copyProperties(wp, world);
-        db.save(world);
-      } catch (Exception e) {
-        log.error("Error configuring world " + worldName, e);
-      }
-    }
-    log.info("WorldManager ready");
-  }
-
   /**
    * Get a cached VRObject
    * 
@@ -208,32 +179,6 @@ public class WorldManager {
     return (World) updateCache(ret);
   }
 
-  private void deleteWorld(World world) {
-    cache.remove(world.getObjectId());
-    db.deleteWorld(world);
-  }
-
-  // CHECKME World is not VRObject but an Entity; do we need a method to save
-  // Entities?
-  public World saveWorld(World world) {
-    world = db.save(world);
-    cache.put(world.getObjectId(), world);
-    return world;
-  }
-
-  private synchronized World createWorld(String name) {
-    // double-check, once again in synchronized block
-    World world = getWorld(name);
-    if (world == null) {
-      log.info("Creating temporary world on demand: " + name);
-      world = new World(name);
-      world.setTemporaryWorld(true);
-      world = saveWorld(world);
-    }
-    return world;
-  }
-
-  // TODO WorldFactory
   public World getOrCreateWorld(String name) {
     World world = getWorld(name);
     if (world == null) {
@@ -241,12 +186,23 @@ public class WorldManager {
       // automatically created on-demand, and authenticated user creating a world
       // explicitly
       if (config.isCreateWorlds()) {
-        world = createWorld(name);
+        world = worldFactory.createWorld(name);
       } else {
         throw new IllegalArgumentException("Unknown world: " + name);
       }
     }
     return world;
+  }
+
+  public World saveWorld(World world) {
+    world = db.save(world);
+    cache.put(world.getObjectId(), world);
+    return world;
+  }
+
+  protected void deleteWorld(World world) {
+    cache.remove(world.getObjectId());
+    db.deleteWorld(world);
   }
 
   public Client getClient(String id) {
@@ -487,7 +443,7 @@ public class WorldManager {
       log.debug("WebSocket session " + session.getId() + " HttpSession " + httpSession.getId() + " client " + client.getId());
     }
     login(client);
-    return enter(client, defaultWorld());
+    return enter(client, worldFactory.defaultWorld());
   }
 
   /**
@@ -505,18 +461,6 @@ public class WorldManager {
     writeBack.setDelay(config.getWriteBackDelay());
     client.setWriteBack(writeBack);
     cache.put(client.getObjectId(), client);
-  }
-
-  public World defaultWorld() {
-    if (defaultWorld == null) {
-      defaultWorld = getWorld("default");
-      if (defaultWorld == null) {
-        defaultWorld = db.save(new World("default", true));
-        cache.put(defaultWorld.getObjectId(), defaultWorld);
-        log.info("Created default world: " + defaultWorld);
-      }
-    }
-    return defaultWorld;
   }
 
   public Welcome enter(Client client, String worldName) {
@@ -735,5 +679,12 @@ public class WorldManager {
    */
   public VRObjectRepository getDb() {
     return db;
+  }
+
+  /**
+   * @return world factory
+   */
+  public WorldFactory worldFactory() {
+    return worldFactory;
   }
 }
