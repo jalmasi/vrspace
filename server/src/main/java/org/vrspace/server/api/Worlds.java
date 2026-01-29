@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -97,6 +98,8 @@ public class Worlds extends ClientControllerBase {
         .filter(file -> file.isDirectory())
         .map(File::getName)
         .collect(Collectors.toList());
+
+    Collections.sort(worldNames);
 
     List<World> worlds = new ArrayList<>();
     for (String name : worldNames) {
