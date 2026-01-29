@@ -68,6 +68,10 @@ public class SceneAgent {
     StringBuilder sb = new StringBuilder();
     sb.append("World: ");
     sb.append(client.getWorld().getName());
+    if (client.getWorld().getDescription() != null) {
+      sb.append(", ");
+      sb.append(client.getWorld().getDescription());
+    }
     if (client.getName() != null) {
       sb.append("\nName: ");
       sb.append(client.getName());
