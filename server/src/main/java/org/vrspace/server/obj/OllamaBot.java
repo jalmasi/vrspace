@@ -101,6 +101,7 @@ public class OllamaBot extends Bot {
 
   @Override
   public Mono<String> getResponseAsync(Client c, String query) {
+    log.debug("Query from " + c.getId() + " " + query);
     String context = "Query from User " + c.getId() + " Name " + c.getName();
     String message = promptTemplate.render(Map.of("query", query, "context", context));
     memory.add(conversationId, systemMessage);

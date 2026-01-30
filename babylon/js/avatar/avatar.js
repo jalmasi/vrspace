@@ -91,7 +91,7 @@ export class Avatar {
 
   processText(text, limit, lines = []) {
     let line = '';
-    text.split(' ').forEach((word) => {
+    text.split(/[\n ]/).forEach((word) => {
       if ( line.length + word.length > limit ) {
         lines.push(line);
         line = '';
@@ -127,16 +127,33 @@ export class Avatar {
         this.textArea = new TextArea(this.scene, this.name+'-TextArea',this.displayName?this.name:null);
         this.textArea.addHandles = false;
         let lines = this.processText(text, 32, []);
-        this.textArea.height = lines.length * (this.textArea.fontSize+4);
-        this.textArea.width = 16*this.textArea.fontSize;
-        this.textArea.position = this.textPositionRelative().add( new BABYLON.Vector3(0,.2*(lines.length/2),0) );
-        this.textArea.size = .2*lines.length;
-        this.textArea.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-        this.textArea.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+        let maxLines = Math.min(10,lines.length);
+        //this.textArea.position = this.textPositionRelative().add( new BABYLON.Vector3(0,.2*(lines.length/2),0) );
+        this.textArea.position = this.textPositionRelative().add( new BABYLON.Vector3(0,.1*(maxLines/2),0) );
+        //this.textArea.size = .2*lines.length;
+        //this.textArea.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+        //this.textArea.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+        this.textArea.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
         this.textArea.group.parent = this.baseMesh();
         this.textArea.group.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-        this.textArea.show();
-        lines.forEach( line=>this.textArea.writeln(line));
+        //lines.forEach( line=>this.textArea.writeln(line));
+        if ( lines.length > 10 ) {
+          // scroll triggers on writeln
+          this.textArea.scrollable=true;
+          this.textArea.height = 256;
+          this.textArea.width = 512;
+          this.textArea.size = 1;
+          this.textArea.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+          this.textArea.show();
+          this.textArea.writeln(text);
+        } else {
+          // autoscaling only works with preset text
+          this.textArea.autoScale=true;
+          this.textArea.size = .1;
+          this.textArea.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+          this.textArea.text = text;
+          this.textArea.show();
+        }
       }
     }
   }
