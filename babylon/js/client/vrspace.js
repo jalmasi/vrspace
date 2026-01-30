@@ -404,11 +404,20 @@ export class Bot extends User {
     this.className = 'Bot';
   }
 }
+
 export class BotLibre extends Bot {
   constructor() {
     super();
     /** Server-side class name */
     this.className = 'BotLibre';
+  }
+}
+
+export class OllamaBot extends Bot {
+  constructor() {
+    super();
+    /** Server-side class name */
+    this.className = 'OllamaBot';
   }
 }
 
@@ -642,7 +651,7 @@ export class VRSpace {
     this.groupListeners = [];
     /** Listener to response to a command. */
     this.responseListener = null;
-    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, Terrain, VRFile, Game, Background };
+    this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, OllamaBot, Terrain, VRFile, Game, Background };
     //this.pingTimerId = 0;
     // exposing each class
     for( var c in this.sharedClasses ) {

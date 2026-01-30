@@ -17,8 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
- * A Bot is a Client that has no session. It does have own scene, and observes
- * all events in the scene. It also responds to something that user(s) write.
+ * A Bot is a Client that has no session. It does have own scene, and observes all events in the scene. It also responds to
+ * something that user(s) write.
  * 
  * @author joe
  *
@@ -43,8 +43,7 @@ public abstract class Bot extends User {
   }
 
   /**
-   * Self test runs on server startup. Exceptions are logged but otherwise
-   * ignored.
+   * Self test runs on server startup. Exceptions are logged but otherwise ignored.
    * 
    * @throws Exception
    */
@@ -60,19 +59,20 @@ public abstract class Bot extends User {
   }
 
   /**
-   * Utility method - "say" something.
+   * Utility method - "say" something, notify all listeners. Null is silently ignored, as in no response from the bot.
    */
   public void write(String what) {
-    VREvent event = new VREvent(this);
-    Map<String, Object> changes = new HashMap<>();
-    changes.put("wrote", what);
-    event.setChanges(changes);
-    this.notifyListeners(event);
+    if (what != null) {
+      VREvent event = new VREvent(this);
+      Map<String, Object> changes = new HashMap<>();
+      changes.put("wrote", what);
+      event.setChanges(changes);
+      this.notifyListeners(event);
+    }
   }
 
   /**
-   * Process an event. If that's something that a user wrote, calls respondTo
-   * method. Other events are ignored.
+   * Process an event. If that's something that a user wrote, calls respondTo method. Other events are ignored.
    */
   @Override
   public void processEvent(VREvent event) {
@@ -87,16 +87,16 @@ public abstract class Bot extends User {
   }
 
   /**
-   * New objects in the scene, typically a client that has arrived. This
-   * implementation does nothing, utility method for subclasses.
+   * New objects in the scene, typically a client that has arrived. This implementation does nothing, utility method for
+   * subclasses.
    */
   public void objectsAdded(List<VRObject> objects) {
     log.debug("New objects in the scene " + objects);
   }
 
   /**
-   * Objects removed from the scene, typically a client that has left. This
-   * implementation does nothing, utility method for subclasses.
+   * Objects removed from the scene, typically a client that has left. This implementation does nothing, utility method for
+   * subclasses.
    * 
    * @param objects
    */
