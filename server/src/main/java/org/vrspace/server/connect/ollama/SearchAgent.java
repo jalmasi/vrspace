@@ -60,9 +60,10 @@ public class SearchAgent {
     ollama.stopImageProcessing();
     try {
       // memory makes sure to keep only one system message
-      // if (memory.get(conversationId).size() == 0) {
-      memory.add(conversationId, systemMessage);
-      // }
+      // no it does not
+      if (memory.get(conversationId).size() == 0) {
+        memory.add(conversationId, systemMessage);
+      }
       memory.add(conversationId, new UserMessage(query));
       long time = System.currentTimeMillis();
       Prompt prompt = Prompt

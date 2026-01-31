@@ -73,6 +73,7 @@ export class Animation {
   constructor() {
     this.name=null;
     this.loop=false;
+    this.speedRatio=1;
   }
 }
 

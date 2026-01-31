@@ -23,7 +23,7 @@ export class BotController {
     this.avatar = avatar;
     this.vrObject = avatar.VRObject;
     this.animation = new AvatarAnimation(avatar);
-    this.animation.improvise = true;
+    this.animation.improvise = false;
     this.setupIdleTimer();
     this.vrObject.addListener((obj, changes) => this.processChanges(obj, changes));
     this.animationEnd = (animation) => this.animationEnded(animation);
@@ -80,13 +80,13 @@ export class BotController {
 
   startAnimation(animation, loop = false) {
     if (animation && this.animation.contains(animation.name) && animation.name != this.lastAnimation) {
-      //console.log("Sending animation "+animation.name+" loop: "+loop+" speed "+animation.speedRatio);
       this.avatar.startAnimation(animation.name, loop);
       this.lastAnimation = animation.name;
     }
   }
 
   animationEnded(animation) {
+    //console.log("Animation ended", animation);
     this.setupIdleTimer();
     animation.onAnimationGroupEndObservable.remove(this.animationEnd);
   }
@@ -108,6 +108,12 @@ export class BotController {
         animation.onAnimationGroupEndObservable.add(this.animationEnd);
         this.startAnimation(animation);
       }
+    }
+    if (changes['animation']) {
+      // animation is already playing
+      let group = this.avatar.getAnimation(changes['animation'].name);
+      this.lastAnimation = group.name;
+      group.onAnimationGroupEndObservable.add(this.animationEnd);
     }
   }
 }

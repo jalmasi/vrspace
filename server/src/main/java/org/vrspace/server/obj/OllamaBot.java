@@ -14,9 +14,12 @@ import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.ollama.api.common.OllamaApiConstants;
+import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.template.st.StTemplateRenderer;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.vrspace.server.dto.VREvent;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -51,10 +54,13 @@ public class OllamaBot extends Bot {
   private int memorySize = 11;
   @JsonIgnore
   @Transient
-  private SystemMessage systemMessage = new SystemMessage("""
-          You are VirBot, a friendly chatbot in a virtual world.
-          The context contains user information.
-      """);
+  private SystemMessage systemMessage = new SystemMessage(
+      """
+              You are VirBot, a friendly chatbot in a virtual world.
+              World coordinate system x axis points right, y axis points up, z axis points forward. Rotation is counter-clockwise, around the orthogonal axis.
+              Your avatar can perform gestures, and move in the world.
+              The context contains information about user, your avatar, and list of gestures available to you.
+          """);
   @JsonIgnore
   @Transient
   private PromptTemplate promptTemplate = PromptTemplate
@@ -102,10 +108,24 @@ public class OllamaBot extends Bot {
   @Override
   public Mono<String> getResponseAsync(Client c, String query) {
     log.debug("Query from " + c.getId() + " " + query);
-    String context = "Query from User " + c.getId() + " Name " + c.getName();
+    StringBuilder gestures = new StringBuilder();
+    this.getAnimations().forEach(gesture -> {
+      gestures.append(gesture);
+      gestures.append(" ");
+    });
+    String context = "Query from User " + c.getId() + " Name " + c.getName() + " position x=" + c.getPosition().getX() + ",y="
+        + c.getPosition().getY() + ",z=" + c.getPosition().getZ() + " rotation x=" + c.getRotation().getX() + ",y="
+        + c.getRotation().getY() + ",z=" + c.getRotation().getZ() + "\nYour avatar position x=" + getPosition().getX() + ",y="
+        + getPosition().getY() + ",z=" + getPosition().getZ() + " rotation x=" + getRotation().getX() + ",y="
+        + getRotation().getY() + ",z=" + getRotation().getZ() + "\nGestures available: " + gestures.toString();
+
     String message = promptTemplate.render(Map.of("query", query, "context", context));
-    memory.add(conversationId, systemMessage);
+    if (memory.get(conversationId).size() == 0) {
+      memory.add(conversationId, systemMessage);
+    }
     memory.add(conversationId, new UserMessage(message));
+    log.debug("Memory " + conversationId + " size: " + memory.get(conversationId).size());
+    log.debug("Context:\n" + context);
 
     if (processing) {
       return Mono.just(null);
@@ -114,7 +134,11 @@ public class OllamaBot extends Bot {
         try {
           processing = true;
           long time = System.currentTimeMillis();
-          Prompt prompt = Prompt.builder().messages(memory.get(conversationId)).build();
+          Prompt prompt = Prompt
+              .builder()
+              .messages(memory.get(conversationId))
+              .chatOptions(OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(this)).build())
+              .build();
           ChatResponse response = chatModel.call(prompt);
           time = System.currentTimeMillis() - time;
           log.debug("Response in " + time + " ms: \n" + response);
@@ -130,4 +154,29 @@ public class OllamaBot extends Bot {
     }
   }
 
+  @Tool(description = "Perform a gesture")
+  public void gesture(String gestureName) {
+    log.debug("Performing gesture " + gestureName);
+    VREvent event = new VREvent(this, this);
+    event.addChange("animation", new Animation(gestureName, false, 1));
+    notifyListeners(event);
+  }
+
+  @Tool(description = "Move to position")
+  public void move(Double x, Double y, Double z) {
+    log.debug("Moving to " + x + "," + y + "," + z);
+    VREvent event = new VREvent(this, this);
+    this.setPosition(new Point(x, y, z));
+    event.addChange("position", this.getPosition());
+    notifyListeners(event);
+  }
+
+  @Tool(description = "Rotate")
+  public void rotate(Double x, Double y, Double z) {
+    log.debug("Rotating to " + x + "," + y + "," + z);
+    VREvent event = new VREvent(this, this);
+    this.setRotation(new Rotation(x, y, z));
+    event.addChange("rotation", this.getRotation());
+    notifyListeners(event);
+  }
 }

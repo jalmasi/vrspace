@@ -199,7 +199,9 @@ public class SceneAgent {
     log.debug(context);
     String message = promptTemplate.render(Map.of("query", query, "context", context));
 
-    memory.add(conversationId, systemMessage);
+    if (memory.get(conversationId).size() == 0) {
+      memory.add(conversationId, systemMessage);
+    }
     memory.add(conversationId, new UserMessage(message));
     long time = System.currentTimeMillis();
     Prompt prompt = Prompt.builder().messages(memory.get(conversationId)).build();

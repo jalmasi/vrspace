@@ -1729,6 +1729,10 @@ export class HumanoidAvatar extends Avatar {
     }
   }
 
+  getAnimation(animationName) {
+    return this.getAnimationGroups().find(group=>group.name == animationName || group.name == "Clone of " + animationName);
+  }
+  
   /**
   Start a given animation
   @param animationName animation to start
@@ -1899,7 +1903,7 @@ export class HumanoidAvatar extends Avatar {
   animationChanged(obj,node) {
     // FIXME only humanoid avatar has animations, mesh avatar could have them too
     console.log("Animation started",obj);
-    this.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speed);    
+    this.startAnimation(obj.animation.name, obj.animation.loop, obj.animation.speedRatio);    
   }
 
   /**

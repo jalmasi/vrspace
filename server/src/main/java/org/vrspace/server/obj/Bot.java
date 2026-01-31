@@ -18,7 +18,8 @@ import reactor.core.publisher.Mono;
 
 /**
  * A Bot is a Client that has no session. It does have own scene, and observes all events in the scene. It also responds to
- * something that user(s) write.
+ * something that user(s) write. Bots are configured in application.properties file, and instantiated by BotManager on server
+ * startup.
  * 
  * @author joe
  *
@@ -27,13 +28,21 @@ import reactor.core.publisher.Mono;
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public abstract class Bot extends User {
+  /** Gender is advice for client, e.g. voice synthesis */
   private String gender;
+  /** Bot language, e.g. in case it can speak more than one */
   private String lang;
   @JsonIgnore
+  /** Configured URL of chatbot server, not published */
   private String url;
   @JsonIgnore
   @Transient
+  /** Configured bot parameters parameters, available through getParameter() method, not published */
   private Map<String, String> parameterMap = new HashMap<>();
+  @JsonIgnore
+  @Transient
+  /** Available avatar animations, loaded from content/rpm-anim directory. Hint for the bot itself, not published. */
+  private List<String> animations;
 
   /**
    * Returns a parameter from parameter map

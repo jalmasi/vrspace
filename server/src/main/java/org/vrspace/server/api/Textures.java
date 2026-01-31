@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.vrspace.server.core.ClassUtil;
+import org.vrspace.server.core.FileUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(Textures.PATH)
 public class Textures extends ApiBase {
   public static final String PATH = API_ROOT + "/textures";
-  private String contentDir = ClassUtil.projectHomeDirectory() + "/content";
+  private String contentDir = FileUtil.contentDir();
 
   /**
    * List all jpg and png files in content directory hierarchy
@@ -34,8 +34,10 @@ public class Textures extends ApiBase {
     try {
       URI contentUri = new URI("file:" + contentDir);
       log.debug("Listing " + contentUri);
-      List<String> ret = Files.find(Paths.get(contentUri), 10, (path, attr) -> attr.isRegularFile())
-          .map(path -> path.toUri().toString()).map(fileName -> fileName.substring(fileName.indexOf("/content")))
+      List<String> ret = Files
+          .find(Paths.get(contentUri), 10, (path, attr) -> attr.isRegularFile())
+          .map(path -> path.toUri().toString())
+          .map(fileName -> fileName.substring(fileName.indexOf("/content")))
           .filter(fileName -> fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".png"))
           .collect(Collectors.toList());
       return ret;
