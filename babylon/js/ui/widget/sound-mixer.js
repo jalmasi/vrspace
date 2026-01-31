@@ -2,6 +2,7 @@ import { Form } from './form.js';
 import { FormArea } from './form-area.js';
 import { HorizontalSliderPanel } from './slider-panel.js';
 import { MediaStreams } from '../../core/media-streams.js';
+import { BotController } from '../../avatar/bot-controller.js';
 
 class MixerForm extends Form {
   constructor(scene) {
@@ -48,6 +49,7 @@ class MixerForm extends Form {
 
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Other"), this.grid.rowCount, 0);
+    this.showSynthesis();
     this.showSounds(sounds.other);
 
     this.addControl(this.grid);
@@ -58,6 +60,21 @@ class MixerForm extends Form {
     //let texture = VRSPACEUI.hud.addForm(this, 768, this.heightInPixels * 4 + this.smallHeightInPixels * (Math.max(this.grid.rowCount - 3, 1)));
     //texture.background = "#808080";
     //VRSPACEUI.hud.addForm(this,512,512);
+  }
+
+  showSynthesis() {
+    let fontSize = this.fontSize;
+    let heightInPixels = this.heightInPixels;
+    this.fontSize = this.smallFontSize;
+    this.heightInPixels = this.smallHeightInPixels;
+    let row = this.grid.rowCount;
+    this.grid.addRowDefinition(this.heightInPixels, true);
+    this.grid.addControl(this.textBlock("Bot speech"), row, 0);
+    let checkbox = this.checkbox("bot", {isChecked:BotController.speechSynthesisEnabled});
+    checkbox.onIsCheckedChangedObservable.add(value=>BotController.speechSynthesisEnabled=value);
+    this.grid.addControl(checkbox, row, 1);
+    this.fontSize = fontSize;
+    this.heightInPixels = heightInPixels;
   }
 
   showSounds(list) {

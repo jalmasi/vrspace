@@ -1,9 +1,21 @@
+import { Avatar } from './avatar.js';
+/**
+ * Helper to figure out which animation to use, based on names of animation groups. 
+ * Most important ones are idle and walk.
+ * Used by AvatarController and BotController.
+ */
 export class AvatarAnimation {
+  /**
+   * @param {Avatar} avatar 
+   */
   constructor(avatar) {
+    /** @type {Avatar} */
     this.avatar = avatar;
-
+    /** Names of all animations availalbe */
     this.animationNames = [];
-
+    /**
+     * Animation metadata, TODO extract to its own class, document all fields
+     */
     this.animations = {
       walk: {
         substring: 'walk',
@@ -22,8 +34,10 @@ export class AvatarAnimation {
         useShortest: true
       }
     }
-    this.improvise = false;
+    /** Animations other than idle/walk/run */
     this.otherAnimations = [];
+    /** If this is true, processText() may trigger animations */
+    this.improvise = false;
     this.processAnimations();
   }
   /**
@@ -76,18 +90,26 @@ export class AvatarAnimation {
     return this.animationNames.includes(name);
   }
 
+  /** Do we know walk animation? */
   canWalk() {
     return typeof this.walk().group != 'undefined';
   }  
   
+  /** @returns animation metadata object for walk, object.group is actual AnimationGroup */
   walk() {
     return this.animations.walk;
   }
 
+  /** @returns animation metadata object for idle, object.group is actual AnimationGroup */
   idle() {
     return this.animations.idle;
   }
-  
+
+  /**
+   * Process what user/bot said and see if there's any meaningful avatar animation to trigger.
+   * @param {string} text
+   * @returns babylon AnimationGroup or null
+   */  
   processText(text) {
     if ( this.improvise ) {
       // process text and try to find some meaninful animation

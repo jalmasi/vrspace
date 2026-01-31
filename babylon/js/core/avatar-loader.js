@@ -8,8 +8,8 @@ import { MeshLoader } from './mesh-loader.js';
 import { MediaStreams } from './media-streams.js';
 
 export class AvatarLoader extends MeshLoader {
-  constructor(scene, fps, loadCallback, loadErrorHandler){
-    super(loadCallback,loadErrorHandler);
+  constructor(scene, fps, loadCallback, loadErrorHandler) {
+    super(loadCallback, loadErrorHandler);
     this.scene = scene;
     this.fps = fps;
     /** Create animations for movement of avatars, default true. Recommended for low fps.*/
@@ -25,7 +25,7 @@ export class AvatarLoader extends MeshLoader {
     /** Default rotation applied after an avatar loads */
     this.defaultRotation = new BABYLON.Vector3(0, 0, 0);
   }
-  
+
   /** @param {VRObject} obj  */
   load(obj) {
     if (obj.video || obj.mesh == "video") {
@@ -36,7 +36,7 @@ export class AvatarLoader extends MeshLoader {
       this.loadMeshAvatar(obj);
     }
   }
-  
+
   /**
   Load a video avatar, attach a listener to it.
   @param {Client} obj 
@@ -93,7 +93,9 @@ export class AvatarLoader extends MeshLoader {
   }
 
   /** 
-   * Load a 3D avatar, attach a listener to it
+   * Load a 3D avatar, attach a change listener to it. 
+   * Set up audio/video streaming with MediaStreams.
+   * For Bot instances, also creates BotController.
    * @param {VRObject} obj VRObject that represents the user 
    */
   async loadAvatar(obj) {
@@ -125,8 +127,7 @@ export class AvatarLoader extends MeshLoader {
       }
       if (obj.className.indexOf("Bot") >= 0) {
         console.log("Bot loaded");
-        // TODO bot controller
-        obj.avatarController = new BotController(avatar);
+        new BotController(avatar);
       }
       this.notifyLoadListeners(obj, avatar);
     }, (error) => {
@@ -154,7 +155,7 @@ export class AvatarLoader extends MeshLoader {
       avatar.setName(obj.name);
     });
   }
- 
+
   /** Apply remote changes to an avatar (VRObject listener) */
   changeAvatar(obj, changes) {
     this.log('Processing changes on avatar');
@@ -166,7 +167,7 @@ export class AvatarLoader extends MeshLoader {
       this.notifyListeners(obj, field, node);
     }
   }
- 
+
   routeEvent(obj, field, node) {
     if (obj.avatar) {
       let object = obj.avatar;
@@ -176,16 +177,16 @@ export class AvatarLoader extends MeshLoader {
       } else if (typeof object[field + 'Changed'] === 'function') {
         // execute callback after changes are applied
         object[field + 'Changed'](obj, node);
-      //} else {
+        //} else {
         // to noisy, especially when avatars are not humanoid
         //console.log("Ignoring unknown event to "+obj+": "+field);
       }
     } else {
-      console.log("Ignoring unknown event "+field+" to object "+obj.id);
+      console.log("Ignoring unknown event " + field + " to object " + obj.id);
     }
   }
 
-  
+
   /**
    * Creates new Avatar instance from the URL
    * @param url URL to load avatar from 
@@ -209,7 +210,7 @@ export class AvatarLoader extends MeshLoader {
    * @param {boolean} [autoStart=false] 
    * @param {boolean} [autoAttach=false]
    */
-  async createAvatar(obj, autoStart=false, autoAttach=false) {
+  async createAvatar(obj, autoStart = false, autoAttach = false) {
     let avatar = new VideoAvatar(this.scene, null, this.customOptions);
     avatar.autoStart = autoStart;
     avatar.autoAttach = autoAttach;
