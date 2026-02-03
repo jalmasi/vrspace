@@ -168,6 +168,8 @@ public class ContextUtil {
 
   private static void appendRotation(StringBuilder sb, VRObject obj) {
     if (obj.getRotation() != null) {
+      // sb.append(" ");
+      // sb.append(obj.getRotation().toString());
       sb.append(" Rotation: ");
       Rotation rot = obj.getRotation();
       sb.append("x=");

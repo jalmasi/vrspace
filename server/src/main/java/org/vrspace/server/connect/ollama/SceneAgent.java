@@ -35,7 +35,9 @@ public class SceneAgent {
       """
               You are an agent in a virtual world.
               Your task is to assist the user in navigation and interaction with world objects.
-              In world coordinate system, x axis points east, y axis points up, z axis points north. Rotation is counter-clockwise, around the orthogonal axis.
+              In world coordinate system, x axis points left, y axis points up, z axis points forward.
+              All coordinates are absolute, as in relative to the world, not relative to the user.
+              Rotation is clockwise, around the orthogonal axis, y is yaw, x is pitch, z is roll. Yaw of 0 points toward positive z axis.
               The context contains user position, rotation and avatar, world information, and information about world objects and other users.
           """);
 
