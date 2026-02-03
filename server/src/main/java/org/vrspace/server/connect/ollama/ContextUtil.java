@@ -42,7 +42,7 @@ public class ContextUtil {
     sb.append(client.getWorld().getName());
     if (client.getWorld().getDescription() != null) {
       sb.append(", ");
-      sb.append(client.getWorld().getDescription());
+      sb.append(client.getWorld().getDescription().trim());
     }
 
     // object positions and attributes for special objects without URL
@@ -170,11 +170,11 @@ public class ContextUtil {
     if (obj.getRotation() != null) {
       sb.append(" Rotation: ");
       Rotation rot = obj.getRotation();
-      sb.append("pitch=");
+      sb.append("x=");
       sb.append(rot.getX());
-      sb.append(",yaw=");
+      sb.append(",y=");
       sb.append(rot.getY());
-      sb.append("tilt=");
+      sb.append(",z=");
       sb.append(rot.getZ());
       /* TODO quaternion is different
       if (rot.getAngle() != null) {
