@@ -131,6 +131,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
         bot.setScale(props.getPoint(props.getScale()));
       }
 
+      bot.setWorldManager(worldManager);
       worldManager.login(bot);
 
       try {

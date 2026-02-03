@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.annotation.Transient;
+import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Remove;
 import org.vrspace.server.dto.VREvent;
@@ -43,6 +44,10 @@ public abstract class Bot extends User {
   @Transient
   /** Available avatar animations, loaded from content/rpm-anim directory. Hint for the bot itself, not published. */
   private List<String> animations;
+  /** Bots may need access to the database or other WorldManager methods */
+  @JsonIgnore
+  @Transient
+  private WorldManager worldManager;
 
   /**
    * Returns a parameter from parameter map

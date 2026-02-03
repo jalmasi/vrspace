@@ -15,10 +15,10 @@ import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.ollama.api.common.OllamaApiConstants;
 import org.springframework.ai.support.ToolCallbacks;
-import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.vrspace.server.connect.ollama.ContextUtil;
 import org.vrspace.server.dto.VREvent;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -57,24 +57,14 @@ public class OllamaBot extends Bot {
   private SystemMessage systemMessage = new SystemMessage(
       """
               You are VirBot, a friendly chatbot in a virtual world.
-              World coordinate system x axis points right, y axis points up, z axis points forward. Rotation is counter-clockwise, around the orthogonal axis.
               Your avatar can perform gestures, and move in the world.
-              The context contains information about user, your avatar, and list of gestures available to you.
+              Information about your avatar and list of gestures are in the context.
+              The context also contains world and user information, and information about world objects and other users.
+              In world coordinate system, x axis points east, y axis points up, z axis points north. Rotation is counter-clockwise, around the orthogonal axis.
           """);
   @JsonIgnore
   @Transient
-  private PromptTemplate promptTemplate = PromptTemplate
-      .builder()
-      .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
-      .template("""
-              Query: <query>
-
-              Context:
-              --------------------
-              <context>
-              --------------------
-          """)
-      .build();
+  private PromptTemplate promptTemplate = ContextUtil.contextQueryTemplate();
   @JsonIgnore
   @Transient
   private ChatMemory memory;
@@ -113,11 +103,10 @@ public class OllamaBot extends Bot {
       gestures.append(gesture);
       gestures.append(" ");
     });
-    String context = "Query from User " + c.getId() + " Name " + c.getName() + " position x=" + c.getPosition().getX() + ",y="
-        + c.getPosition().getY() + ",z=" + c.getPosition().getZ() + " rotation x=" + c.getRotation().getX() + ",y="
-        + c.getRotation().getY() + ",z=" + c.getRotation().getZ() + "\nYour avatar position x=" + getPosition().getX() + ",y="
-        + getPosition().getY() + ",z=" + getPosition().getZ() + " rotation x=" + getRotation().getX() + ",y="
-        + getRotation().getY() + ",z=" + getRotation().getZ() + "\nGestures available: " + gestures.toString();
+    String context = "Query from User " + c.getId() + " Name " + c.getName();
+    context += "\nGestures available: " + gestures.toString();
+    context += "\nYou are " + ContextUtil.sceneDescription(this, getWorldManager().getDb());
+    log.debug("Context:\n" + context);
 
     String message = promptTemplate.render(Map.of("query", query, "context", context));
     if (memory.get(conversationId).size() == 0) {
