@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * A point (3D coordinate) in space. Embedded in VRObject during serialization,
- * does not exist on its own.
+ * A point (3D coordinate) in space. Embedded in VRObject during serialization, does not exist on its own.
  * 
  * @author joe
  *
@@ -48,8 +47,8 @@ public class Point extends Embedded {
   }
 
   public boolean isInRange(double x, double y, double z, double range) {
-    return this.x >= x - range && this.x <= x + range && this.y >= y - range && this.y <= y + range
-        && this.z >= z - range && this.z <= z + range;
+    return this.x >= x - range && this.x <= x + range && this.y >= y - range && this.y <= y + range && this.z >= z - range
+        && this.z <= z + range;
   }
 
   public Point copy(Point p) {
@@ -73,10 +72,13 @@ public class Point extends Embedded {
     return this;
   }
 
+  public Point subtract(Point point) {
+    return new Point(this.x - point.x, this.y - point.y, this.z - point.z);
+  }
+
   /**
-   * Utility method, confirms that coordinates of this point match the coordinates
-   * of the other point. Method equals() can't be used for that purpose as it
-   * includes object id - requirement for persistence.
+   * Utility method, confirms that coordinates of this point match the coordinates of the other point. Method equals() can't be
+   * used for that purpose as it includes object id - requirement for persistence.
    * 
    * @param p Point to compare
    * @return true if all coordinates are equal

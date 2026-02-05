@@ -1,6 +1,7 @@
 package org.vrspace.server.connect.ollama;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -33,8 +34,9 @@ public class ContextUtil {
       sb.append(" Name: ");
       sb.append(client.getName());
     }
-    appendPosition(sb, client);
-    appendRotation(sb, client);
+    appendZeroCoordinates(sb);
+    // appendPosition(sb, client);
+    // appendRotation(sb, client);
     sb.append(" Avatar: ");
     sb.append(client.getMesh());
     // world info
@@ -45,16 +47,21 @@ public class ContextUtil {
       sb.append(client.getWorld().getDescription().trim());
     }
 
+    Collection<VRObject> scene = client.getScene().getAll();
+    if (scene.size() > 0) {
+      sb.append("\nWorld objects:\n");
+    }
     // object positions and attributes for special objects without URL
-    for (VRObject obj : client.getScene().getAll()) {
+    for (VRObject obj : scene) {
       if (obj.getMesh() == null) {
         ID id = obj.getObjectId();
         sb.append("\n- ");
         sb.append(id.getClassName());
         sb.append(" ");
         sb.append(id.getId());
-        appendPosition(sb, obj);
-        appendRotation(sb, obj);
+        appendPosition(sb, obj, client);
+        // appendPosition(sb, obj);
+        // appendRotation(sb, obj);
         if (obj.getPermanent() != null) {
           sb.append(" Permanent: ");
           sb.append(obj.getPermanent());
@@ -121,8 +128,9 @@ public class ContextUtil {
             sb.append(c.getName());
           }
         }
-        appendPosition(sb, obj);
-        appendRotation(sb, obj);
+        appendPosition(sb, obj, client);
+        // appendPosition(sb, obj);
+        // appendRotation(sb, obj);
         if (obj.getPermanent() != null) {
           sb.append(" Permanent: ");
           sb.append(obj.getPermanent());
@@ -153,6 +161,17 @@ public class ContextUtil {
     return sb.toString();
   }
 
+  private static void appendZeroCoordinates(StringBuilder sb) {
+    sb.append(" Position: ");
+    sb.append("x=0");
+    sb.append(",y=0");
+    sb.append(",z=0");
+    sb.append(" Rotation: ");
+    sb.append("x=0");
+    sb.append(",y=0");
+    sb.append(",z=0");
+  }
+
   private static void appendPosition(StringBuilder sb, VRObject obj) {
     if (obj.getPosition() != null) {
       sb.append(" Position: ");
@@ -166,6 +185,35 @@ public class ContextUtil {
     }
   }
 
+  private static void appendPosition(StringBuilder sb, VRObject obj, Client client) {
+    if (obj.getPosition() != null) {
+      Point point = obj.getPosition().subtract(client.getPosition());
+      // and now rotate point around y in the opposite direction
+      Double originalAngle = Math.atan2(point.getX(), point.getZ());
+      Double angle = originalAngle - client.getRotation().getY();
+      double d = Math.sqrt(point.getX() * point.getX() + point.getZ() * point.getZ());
+      double s = Math.sin(angle);
+      double c = Math.cos(angle);
+      point.setX(s * d);
+      point.setZ(c * d);
+      // CHECKME should works somewhat like this:
+      // point.setX(point.getX() * c + point.getZ() * s);
+      // point.setZ(-point.getX() * s + point.getZ() * c);
+
+      log
+          .debug("Obj: " + obj.getObjectId() + " " + obj.getPosition() + " Client: " + client.getPosition() + " angle: " + angle
+              + " dest: " + point);
+      sb.append(" Position: ");
+      sb.append("x=");
+      sb.append(point.getX());
+      sb.append(",y=");
+      sb.append(point.getY());
+      sb.append(",z=");
+      sb.append(point.getZ());
+    }
+  }
+
+  // LLM can't handle rotations correctly
   private static void appendRotation(StringBuilder sb, VRObject obj) {
     if (obj.getRotation() != null) {
       // sb.append(" ");
