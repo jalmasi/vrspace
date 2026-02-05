@@ -34,9 +34,9 @@ public class ContextUtil {
       sb.append(" Name: ");
       sb.append(client.getName());
     }
-    appendZeroCoordinates(sb);
-    // appendPosition(sb, client);
-    // appendRotation(sb, client);
+    // appendZeroCoordinates(sb);
+    appendPosition(sb, client);
+    appendRotation(sb, client);
     sb.append(" Avatar: ");
     sb.append(client.getMesh());
     // world info
@@ -49,7 +49,7 @@ public class ContextUtil {
 
     Collection<VRObject> scene = client.getScene().getAll();
     if (scene.size() > 0) {
-      sb.append("\nWorld objects:\n");
+      sb.append("\nList of world objects:");
     }
     // object positions and attributes for special objects without URL
     for (VRObject obj : scene) {
@@ -59,8 +59,8 @@ public class ContextUtil {
         sb.append(id.getClassName());
         sb.append(" ");
         sb.append(id.getId());
-        appendPosition(sb, obj, client);
-        // appendPosition(sb, obj);
+        // appendRelativePosition(sb, obj, client);
+        appendPosition(sb, obj);
         // appendRotation(sb, obj);
         if (obj.getPermanent() != null) {
           sb.append(" Permanent: ");
@@ -128,8 +128,8 @@ public class ContextUtil {
             sb.append(c.getName());
           }
         }
-        appendPosition(sb, obj, client);
-        // appendPosition(sb, obj);
+        // appendRelativePosition(sb, obj, client);
+        appendPosition(sb, obj);
         // appendRotation(sb, obj);
         if (obj.getPermanent() != null) {
           sb.append(" Permanent: ");
@@ -185,7 +185,7 @@ public class ContextUtil {
     }
   }
 
-  private static void appendPosition(StringBuilder sb, VRObject obj, Client client) {
+  private static void appendRelativePosition(StringBuilder sb, VRObject obj, Client client) {
     if (obj.getPosition() != null) {
       Point point = obj.getPosition().subtract(client.getPosition());
       // and now rotate point around y in the opposite direction

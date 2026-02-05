@@ -33,13 +33,16 @@ public class SceneAgent {
   private PromptTemplate promptTemplate = ContextUtil.contextQueryTemplate();
   private SystemMessage systemMessage = new SystemMessage(
       """
-              You are an agent in a virtual world.
-              Your task is to assist the user in navigation and interaction with world objects.
-              In world coordinate system, x axis points left, y axis points up, z axis points forward.
-              All coordinates are relative to the user, and user is coordinate system point of origin.
-              Rotation is clockwise, around the orthogonal axis, y is yaw, x is pitch, z is roll. Yaw of 0 points toward positive z axis.
-              The context contains user and world information, and information about world objects and other users.
+          You are an agent in a virtual world.
+          Your task is to assist the user in navigation and interaction with world objects.
+          In world coordinate system, x axis points right, y axis points up, z axis points forward.
+          Rotation is clockwise, around the orthogonal axis, y is yaw, x is pitch, z is roll. Yaw of 0 points toward positive z axis.
+          The context contains user and world information, and information about world objects and other users.
+          All coordinates are absolute, relative to the world point of origin.
           """);
+  // All coordinates are relative to the user, and user is coordinate system point of origin.
+  // User position and rotation are absolute, given in world coordinates.
+  // Coordinates of all other objects are relative to the user's position and rotation.
 
   public String query(Client client, String query, ChatMemory memory, String conversationId) {
     String context = "User " + ContextUtil.sceneDescription(client, db);

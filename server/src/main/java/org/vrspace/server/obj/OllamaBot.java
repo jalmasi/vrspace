@@ -59,7 +59,7 @@ public class OllamaBot extends Bot {
           You are VirBot, a friendly chatbot in a virtual world.
           In world coordinate system, x axis points east, y axis points up, z axis points north. All coordinates are absolute.
           Rotation is counter-clockwise, around the orthogonal axis.
-          Your avatar can perform gestures, and move in the world, but stay at least 1m away from users.
+          Your avatar can perform gestures, and move in the world.
           You can rotate around y axis, 0 means looking north, 3.14 south, 1.57 east, -1.57 west.
           Information about your avatar and list of gestures are in the context.
           The context also contains world and user information, and information about world objects and other users.
@@ -156,6 +156,20 @@ public class OllamaBot extends Bot {
   @Tool(description = "Move to position")
   public void move(Double x, Double y, Double z) {
     log.debug("Moving to " + x + "," + y + "," + z);
+    for (VRObject obj : this.getScene().getAll()) {
+      if (obj.getPosition() != null && obj.getPosition().getDistance(x, y, z) <= 1) {
+        double dx = obj.getPosition().getX() - this.getPosition().getX();
+        double dy = obj.getPosition().getY() - this.getPosition().getY();
+        double dz = obj.getPosition().getZ() - this.getPosition().getZ();
+        if (Math.abs(dx) >= 1) {
+          x -= Math.signum(dx);
+        }
+        if (Math.abs(dz) >= 1) {
+          z -= Math.signum(dz);
+        }
+        log.warn("Destination changed to " + x + "," + y + "," + z + " - object in range: " + obj);
+      }
+    }
     VREvent event = new VREvent(this, this);
     this.setPosition(new Point(x, y, z));
     event.addChange("position", this.getPosition());
