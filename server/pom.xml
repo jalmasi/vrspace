@@ -145,7 +145,7 @@
     <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>neo4j</artifactId>
-      <version>5.26.10</version>
+      <version>5.26.21</version>
     </dependency>
     
     <!-- webpush dependency -->
