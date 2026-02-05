@@ -49,7 +49,8 @@ export class AvatarSelection extends World {
     this.mirror = true;
     this.authenticated = false;
     this.customAnimations = [];
-    this.customAvatarFrame = document.getElementById('customAvatarFrame');
+    // RPM is dead, this no longer works
+    //this.customAvatarFrame = document.getElementById('customAvatarFrame');
     this.trackTime = Date.now();
     this.trackDelay = 1000 / this.fps;
     /** @type {VRSpaceAPI} */
@@ -398,6 +399,7 @@ export class AvatarSelection extends World {
     }
   }
 
+  // RPM is dead, this is dead code
   async createCustomAvatar() {
     this.removeVideoAvatar();
     // based on example from
