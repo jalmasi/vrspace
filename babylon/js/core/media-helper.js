@@ -11,10 +11,10 @@ export class MediaHelper {
     }
   }
   static async checkAudioPermissions() {
-    return MediaHelper.checkPermissions({audio:true});
+    return await MediaHelper.checkPermissions({audio:true});
   }  
   static async checkVideoPermissions() {
-    return MediaHelper.checkPermissions({video:true});
+    return await MediaHelper.checkPermissions({video:true});
   }  
   
   // FIXME this can return device with empty ID 
@@ -40,13 +40,13 @@ export class MediaHelper {
   }
   
   static async selectVideoInput(deviceId) {
-    if (MediaHelper.checkPermissions({video:true})) {
+    if (await MediaHelper.checkPermissions({video:true})) {
       return await MediaHelper.selectDevice(deviceId, "videoinput");
     }
     return null;
   }
   static async selectAudioInput(deviceId) {
-    if(MediaHelper.checkPermissions({audio:true})) {
+    if(await MediaHelper.checkPermissions({audio:true})) {
       return await MediaHelper.selectDevice(deviceId, "audioinput");
     }
     return null;
