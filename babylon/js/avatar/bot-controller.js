@@ -7,7 +7,7 @@ import { Avatar } from './avatar.js';
  */
 export class BotController {
   /** Synthesis can be iritating, enabled by default */
-  static speechSynthesisEnabled = true;
+  static speechSynthesisEnabled = false;
   /**
    * @param {Avatar} avatar 
    */
@@ -58,7 +58,7 @@ export class BotController {
         this.voice = voice;
       }
     });
-    console.log("Voice selected", this.voice);
+    console.log("Voice selected for "+this.avatar.name, this.voice);
   }
 
   /**
@@ -92,8 +92,9 @@ export class BotController {
   }
   
   processChanges(obj, changes) {
-    //console.log("processing changes ",obj,changes);
+    //console.log("processing changes for "+this.avatar.name,obj,changes);
     if (changes['wrote']) {
+      //console.log("processing speech "+this.avatar.name);
       let text = changes.wrote.text;
       if (this.voice && BotController.speechSynthesisEnabled) {
         if (window.speechSynthesis.pending || window.speechSynthesis.speaking) {
@@ -101,6 +102,7 @@ export class BotController {
           window.speechSynthesis.cancel();
         }
         const utter = new SpeechSynthesisUtterance(text);
+        console.log("Speaking "+this.avatar.name,this.voice);
         utter.voice = this.voice;
         window.speechSynthesis.speak(utter);
       }
@@ -111,10 +113,15 @@ export class BotController {
       }
     }
     if (changes['animation']) {
+      let animation = changes['animation'].name;
       // animation is already playing
-      let group = this.avatar.getAnimation(changes['animation'].name);
-      this.lastAnimation = group.name;
-      group.onAnimationGroupEndObservable.add(this.animationEnd);
+      let group = this.avatar.getAnimation(animation);
+      if ( group ) {
+        this.lastAnimation = group.name;
+        group.onAnimationGroupEndObservable.add(this.animationEnd);
+      } else {
+        console.log(this.avatar.name+" tried to play non existing animation "+animation);
+      }
     }
   }
 }

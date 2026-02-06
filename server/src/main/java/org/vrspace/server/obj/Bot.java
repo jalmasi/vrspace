@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.annotation.Transient;
+import org.vrspace.server.core.BotManager;
 import org.vrspace.server.core.WorldManager;
 import org.vrspace.server.dto.Add;
 import org.vrspace.server.dto.Remove;
@@ -50,6 +51,12 @@ public abstract class Bot extends User {
   private WorldManager worldManager;
   @JsonIgnore
   @Transient
+  private BotManager botManager;
+  @JsonIgnore
+  @Transient
+  private boolean async = false;
+  @JsonIgnore
+  @Transient
   protected volatile boolean processing = false;
 
   /**
@@ -84,7 +91,7 @@ public abstract class Bot extends User {
       Map<String, Object> changes = new HashMap<>();
       changes.put("wrote", Map.of("text", what));
       event.setChanges(changes);
-      this.notifyListeners(event);
+      botManager.notifyListeners(this, event);
     }
     processing = false;
   }

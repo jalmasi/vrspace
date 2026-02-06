@@ -127,7 +127,7 @@ public class OllamaBot extends Bot {
             .build();
         ChatResponse response = chatModel.call(prompt);
         time = System.currentTimeMillis() - time;
-        log.debug("Response in " + time + " ms: \n" + response);
+        log.debug(getName() + " Response in " + time + " ms: \n" + response);
         memory.add(conversationId, response.getResult().getOutput());
         sink.success(response.getResult().getOutput().getText());
       } catch (Exception e) {
@@ -140,7 +140,7 @@ public class OllamaBot extends Bot {
 
   @Tool(description = "Perform a gesture")
   public void gesture(String gestureName) {
-    log.debug("Performing gesture " + gestureName);
+    log.debug(getName() + " Performing gesture " + gestureName);
     VREvent event = new VREvent(this, this);
     event.addChange("animation", new Animation(gestureName, false, 1));
     notifyListeners(event);
@@ -148,7 +148,7 @@ public class OllamaBot extends Bot {
 
   @Tool(description = "Move to position")
   public void move(Double x, Double y, Double z) {
-    log.debug("Moving to " + x + "," + y + "," + z);
+    log.debug(getName() + " Moving to " + x + "," + y + "," + z);
     for (VRObject obj : this.getScene().getAll()) {
       if (obj.getPosition() != null && obj.getPosition().getDistance(x, y, z) <= 1) {
         double dx = obj.getPosition().getX() - this.getPosition().getX();
@@ -171,7 +171,7 @@ public class OllamaBot extends Bot {
 
   @Tool(description = "Set rotation around y axis to given angle")
   public void setRotation(@ToolParam(description = "Destination angle in radians") Double angle) {
-    log.debug("Rotating to " + angle);
+    log.debug(getName() + " Rotating to " + angle);
     VREvent event = new VREvent(this, this);
     this.setRotation(new Rotation(0, angle, 0));
     event.addChange("rotation", this.getRotation());
@@ -180,7 +180,7 @@ public class OllamaBot extends Bot {
 
   @Tool(description = "Rotate around y axis for an angle")
   public void rotate(@ToolParam(description = "Additional angle in radians") Double angle) {
-    log.debug("Rotating for " + angle);
+    log.debug(getName() + " Rotating for " + angle);
     VREvent event = new VREvent(this, this);
     this.setRotation(new Rotation(0, this.getRotation().getY() + angle, 0));
     event.addChange("rotation", this.getRotation());
@@ -192,7 +192,7 @@ public class OllamaBot extends Bot {
     Double dx = x - this.getPosition().getX();
     Double dz = z - this.getPosition().getZ();
     Double angle = Math.atan2(dx, dz);
-    log.debug("Looking at " + x + "," + y + "," + z + " angle=" + angle);
+    log.debug(getName() + " Looking at " + x + "," + y + "," + z + " angle=" + angle);
     VREvent event = new VREvent(this, this);
     this.setRotation(new Rotation(0, angle, 0));
     event.addChange("rotation", this.getRotation());

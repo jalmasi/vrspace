@@ -19,14 +19,11 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * BotConfig contains map of BotProperties, with bot name as key. Property names
- * have the following structure: org.vrspace.server.bot.BOTNAME.PROPERTY.
- * Available properties are: name, type, url, world, mesh, position, rotation,
- * scale, params. Properties name, mesh, position, rotation and scale are
- * parameters of bot's avatar. Properties type and url define implementation
- * class (so far only BotLibre) and REST endpoint to call. Property params are
- * custom key-value pairs specific to one bot instance, e.g. application and
- * instance for BotLibre. Used by BotManager.
+ * BotConfig contains map of BotProperties, with bot name as key. Property names have the following structure:
+ * org.vrspace.server.bot.BOTNAME.PROPERTY. Available properties are: name, type, url, world, mesh, position, rotation, scale,
+ * params. Properties name, mesh, position, rotation and scale are parameters of bot's avatar. Properties type and url define
+ * implementation class (so far only BotLibre) and REST endpoint to call. Property params are custom key-value pairs specific to
+ * one bot instance, e.g. application and instance for BotLibre. Used by BotManager.
  * 
  * @author joe
  *
@@ -49,6 +46,7 @@ public class BotConfig {
     private String mesh;
     private String gender;
     private String lang;
+    private boolean async;
     private Map<String, String> parameterMap;
     private List<Double> position;
     private List<Double> rotation;

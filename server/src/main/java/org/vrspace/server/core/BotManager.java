@@ -4,6 +4,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +17,6 @@ import org.vrspace.server.config.BotConfig;
 import org.vrspace.server.config.BotConfig.BotProperties;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Bot;
-import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
 
   private String world = "default";
   private List<String> animationNames;
+  private ExecutorService executor = Executors.newSingleThreadExecutor();
 
   private Class<? extends Bot> getBotClass(String className) throws Exception {
     if (className.indexOf('.') < 0) {
@@ -61,6 +63,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
   }
 
   // TODO refactor this, animations are common for bots and user avatars
+  // NOTE RPM is dead, so that may be pointless
   private void loadAnimations() {
     String animDir = FileUtil.contentDir() + "/rpm-anim";
     try {
@@ -111,6 +114,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
       bot.setGender(props.getGender());
       bot.setLang(props.getLang());
       bot.setAnimations(animationNames);
+      bot.setAsync(props.isAsync());
 
       log.debug(botName + " parameter map: " + props.getParameterMap());
       bot.setParameterMap(props.getParameterMap());
@@ -131,6 +135,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
         bot.setScale(props.getPoint(props.getScale()));
       }
 
+      bot.setBotManager(this);
       bot.setWorldManager(worldManager);
       worldManager.login(bot);
 
@@ -151,14 +156,19 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
 
       bot.setWorld(world);
 
-      // since a bot has no session, attach a listener to notify the session listener
-      bot.addListener(new VRObject() {
-        public void processEvent(VREvent event) {
-          sessionManager.notifyListeners(event);
-        }
-      });
-
       log.info("Intialized " + bot);
+    }
+  }
+
+  public void notifyListeners(Bot bot, VREvent event) {
+    sessionManager.notifyListeners(event);
+    if (bot.isAsync()) {
+      executor.execute(() -> {
+        Thread.yield();
+        bot.notifyListeners(event);
+      });
+    } else {
+      bot.notifyListeners(event);
     }
   }
 
