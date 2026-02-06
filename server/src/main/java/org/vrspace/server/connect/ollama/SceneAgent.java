@@ -16,8 +16,6 @@ import org.vrspace.server.connect.OllamaConnector;
 import org.vrspace.server.core.VRObjectRepository;
 import org.vrspace.server.obj.Client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -28,24 +26,25 @@ public class SceneAgent {
   private OllamaConnector ollama;
   @Autowired
   private VRObjectRepository db;
-  @Autowired
-  ObjectMapper objectMapper;
-  private PromptTemplate promptTemplate = ContextUtil.contextQueryTemplate();
+  private PromptTemplate promptTemplate = ContextHelper.contextQueryTemplate();
+
+  private ContextHelper contextHelper = contextHelper();
+
   private SystemMessage systemMessage = new SystemMessage(
       """
           You are an agent in a virtual world.
           Your task is to assist the user in navigation and interaction with world objects.
-          In world coordinate system, x axis points right, y axis points up, z axis points forward.
-          Rotation is clockwise, around the orthogonal axis, y is yaw, x is pitch, z is roll. Yaw of 0 points toward positive z axis.
-          The context contains user and world information, and information about world objects and other users.
-          All coordinates are absolute, relative to the world point of origin.
+          The context contains user and world information, information about world objects and other users, and their locations from the user's point of view.
           """);
+  // In world coordinate system, x axis points right, y axis points up, z axis points forward.
+  // All coordinates are absolute, relative to the world point of origin.
+  // Rotation is clockwise, around the orthogonal axis, y is yaw, x is pitch, z is roll. Yaw of 0 points toward positive z axis.
   // All coordinates are relative to the user, and user is coordinate system point of origin.
   // User position and rotation are absolute, given in world coordinates.
   // Coordinates of all other objects are relative to the user's position and rotation.
 
   public String query(Client client, String query, ChatMemory memory, String conversationId) {
-    String context = "User " + ContextUtil.sceneDescription(client, db);
+    String context = "User " + contextHelper.sceneDescription(client, db);
     log.debug("Context:\n" + context);
     String message = promptTemplate.render(Map.of("query", query, "context", context));
 
@@ -62,5 +61,11 @@ public class SceneAgent {
     memory.add(conversationId, response.getResult().getOutput());
     String answer = response.getResult().getOutput().getText();
     return answer;
+  }
+
+  private ContextHelper contextHelper() {
+    ContextHelper ret = new ContextHelper();
+    ret.appendDirection = true;
+    return ret;
   }
 }

@@ -19,7 +19,7 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.vrspace.server.connect.ollama.ContextUtil;
+import org.vrspace.server.connect.ollama.ContextHelper;
 import org.vrspace.server.dto.VREvent;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -66,7 +66,7 @@ public class OllamaBot extends Bot {
       """);
   @JsonIgnore
   @Transient
-  private PromptTemplate promptTemplate = ContextUtil.contextQueryTemplate();
+  private PromptTemplate promptTemplate = ContextHelper.contextQueryTemplate();
   @JsonIgnore
   @Transient
   private ChatMemory memory;
@@ -76,6 +76,9 @@ public class OllamaBot extends Bot {
   @JsonIgnore
   @Transient
   private volatile boolean processing = false;
+  @JsonIgnore
+  @Transient
+  private ContextHelper contextHelper = contextHelper();
 
   @Override
   public void selfTest() throws Exception {
@@ -107,7 +110,7 @@ public class OllamaBot extends Bot {
     });
     String context = "Query from User " + c.getId() + " Name " + c.getName();
     context += "\nGestures available: " + gestures.toString();
-    context += "\nYou are " + ContextUtil.sceneDescription(this, getWorldManager().getDb());
+    context += "\nYou are " + contextHelper.sceneDescription(this, getWorldManager().getDb());
 
     String message = promptTemplate.render(Map.of("query", query, "context", context));
     if (memory.get(conversationId).size() == 0) {
@@ -204,6 +207,14 @@ public class OllamaBot extends Bot {
     this.setRotation(new Rotation(0, angle, 0));
     event.addChange("rotation", this.getRotation());
     notifyListeners(event);
+  }
+
+  private ContextHelper contextHelper() {
+    ContextHelper ret = new ContextHelper();
+    ret.appendClientCoordinates = true;
+    ret.appendAbsolute = true;
+    ret.appendRotation = true;
+    return ret;
   }
 
 }

@@ -1,5 +1,6 @@
 package org.vrspace.server.connect.ollama;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,9 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 
 // CHECKME no dependencies on ollama, move to some other package
 @Slf4j
-public class ContextUtil {
+public class ContextHelper {
 
-  public static String sceneDescription(Client client, VRObjectRepository db) {
+  public boolean appendClientCoordinates;
+  public boolean appendAbsolute;
+  public boolean appendRelative;
+  public boolean appendDirection;
+  public boolean appendRotation;
+
+  private DecimalFormat numberFormat = new DecimalFormat("#.##");
+
+  public String sceneDescription(Client client, VRObjectRepository db) {
     HashMap<String, List<VRObject>> grouped = new HashMap<>();
     StringBuilder sb = new StringBuilder();
     // client info
@@ -35,8 +44,10 @@ public class ContextUtil {
       sb.append(client.getName());
     }
     // appendZeroCoordinates(sb);
-    appendPosition(sb, client);
-    appendRotation(sb, client);
+    if (appendClientCoordinates) {
+      appendPosition(sb, client);
+      appendRotation(sb, client);
+    }
     sb.append(" Avatar: ");
     sb.append(client.getMesh());
     // world info
@@ -59,9 +70,6 @@ public class ContextUtil {
         sb.append(id.getClassName());
         sb.append(" ");
         sb.append(id.getId());
-        // appendRelativePosition(sb, obj, client);
-        appendPosition(sb, obj);
-        // appendRotation(sb, obj);
         if (obj.getPermanent() != null) {
           sb.append(" Permanent: ");
           sb.append(obj.getPermanent());
@@ -85,11 +93,11 @@ public class ContextUtil {
             sb.append(" Points:");
             for (TerrainPoint tp : terrain.getPoints()) {
               sb.append(" (x=");
-              sb.append(tp.getX());
+              append(sb, tp.getX());
               sb.append(", y=");
-              sb.append(tp.getY());
+              append(sb, tp.getY());
               sb.append(", z=");
-              sb.append(tp.getZ());
+              append(sb, tp.getZ());
               sb.append(")");
             }
           }
@@ -100,6 +108,7 @@ public class ContextUtil {
           // background.getAmbientIntensity();
         }
       } else {
+        appendCoordinates(sb, obj, client);
         List<VRObject> group = grouped.get(obj.getMesh());
         if (group == null) {
           group = new ArrayList<VRObject>();
@@ -128,9 +137,7 @@ public class ContextUtil {
             sb.append(c.getName());
           }
         }
-        // appendRelativePosition(sb, obj, client);
-        appendPosition(sb, obj);
-        // appendRotation(sb, obj);
+        appendCoordinates(sb, obj, client);
         if (obj.getPermanent() != null) {
           sb.append(" Permanent: ");
           sb.append(obj.getPermanent());
@@ -161,7 +168,18 @@ public class ContextUtil {
     return sb.toString();
   }
 
-  private static void appendZeroCoordinates(StringBuilder sb) {
+  private void appendCoordinates(StringBuilder sb, VRObject obj, Client client) {
+    if (appendAbsolute)
+      appendPosition(sb, obj);
+    if (appendRelative)
+      appendRelativePosition(sb, obj, client);
+    if (appendDirection)
+      appendDirection(sb, obj, client);
+    if (appendRotation)
+      appendRotation(sb, obj);
+  }
+
+  private void appendZeroCoordinates(StringBuilder sb) {
     sb.append(" Position: ");
     sb.append("x=0");
     sb.append(",y=0");
@@ -172,20 +190,61 @@ public class ContextUtil {
     sb.append(",z=0");
   }
 
-  private static void appendPosition(StringBuilder sb, VRObject obj) {
+  private void appendPosition(StringBuilder sb, VRObject obj) {
     if (obj.getPosition() != null) {
       sb.append(" Position: ");
       Point point = obj.getPosition();
       sb.append("x=");
-      sb.append(point.getX());
+      append(sb, point.getX());
       sb.append(",y=");
-      sb.append(point.getY());
+      append(sb, point.getY());
       sb.append(",z=");
-      sb.append(point.getZ());
+      append(sb, point.getZ());
     }
   }
 
-  private static void appendRelativePosition(StringBuilder sb, VRObject obj, Client client) {
+  private void appendDirection(StringBuilder sb, VRObject obj, Client client) {
+    if (obj.getPosition() != null) {
+      Point point = obj.getPosition().subtract(client.getPosition());
+      Double originalAngle = Math.atan2(point.getX(), point.getZ());
+      Double angle = originalAngle - client.getRotation().getY();
+      double d = Math.sqrt(point.getX() * point.getX() + point.getZ() * point.getZ());
+      double x = Math.sin(angle) * d;
+      double z = Math.cos(angle) * d;
+      double y = point.getY();
+      double ax = Math.abs(x);
+      double az = Math.abs(z);
+      double ay = Math.abs(y);
+      String leftRight = "";
+      if (x > 0.01) {
+        leftRight = " right: " + format(ax);
+      } else if (x < 0.01) {
+        leftRight = " left: " + format(ax);
+      }
+      String frontBack = "";
+      if (z > 0.01) {
+        frontBack = " forward: " + format(az);
+      } else if (z < 0.01) {
+        frontBack = " behind: " + format(az);
+      }
+      String upDown = "";
+      if (y > 0.01) {
+        upDown = " above: " + format(ay);
+      } else if (y < 0.01) {
+        upDown = " below: " + format(ay);
+      }
+      if (ax > az) {
+        sb.append(leftRight);
+        sb.append(frontBack);
+      } else {
+        sb.append(frontBack);
+        sb.append(leftRight);
+      }
+      sb.append(upDown);
+    }
+  }
+
+  private void appendRelativePosition(StringBuilder sb, VRObject obj, Client client) {
     if (obj.getPosition() != null) {
       Point point = obj.getPosition().subtract(client.getPosition());
       // and now rotate point around y in the opposite direction
@@ -205,27 +264,27 @@ public class ContextUtil {
               + " dest: " + point);
       sb.append(" Position: ");
       sb.append("x=");
-      sb.append(point.getX());
+      append(sb, point.getX());
       sb.append(",y=");
-      sb.append(point.getY());
+      append(sb, point.getY());
       sb.append(",z=");
-      sb.append(point.getZ());
+      append(sb, point.getZ());
     }
   }
 
   // LLM can't handle rotations correctly
-  private static void appendRotation(StringBuilder sb, VRObject obj) {
+  private void appendRotation(StringBuilder sb, VRObject obj) {
     if (obj.getRotation() != null) {
       // sb.append(" ");
       // sb.append(obj.getRotation().toString());
       sb.append(" Rotation: ");
       Rotation rot = obj.getRotation();
       sb.append("x=");
-      sb.append(rot.getX());
+      append(sb, rot.getX());
       sb.append(",y=");
-      sb.append(rot.getY());
+      append(sb, rot.getY());
       sb.append(",z=");
-      sb.append(rot.getZ());
+      append(sb, rot.getZ());
       /* TODO quaternion is different
       if (rot.getAngle() != null) {
         // quaternion
@@ -249,5 +308,13 @@ public class ContextUtil {
                 --------------------
             """)
         .build();
+  }
+
+  private void append(StringBuilder sb, Double number) {
+    sb.append(format(number));
+  }
+
+  private String format(Double number) {
+    return numberFormat.format(number);
   }
 }
