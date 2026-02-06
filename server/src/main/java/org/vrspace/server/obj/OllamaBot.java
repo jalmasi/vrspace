@@ -55,15 +55,7 @@ public class OllamaBot extends Bot {
   private int memorySize = 11;
   @JsonIgnore
   @Transient
-  private SystemMessage systemMessage = new SystemMessage("""
-          You are VirBot, a friendly chatbot in a virtual world.
-          In world coordinate system, x axis points east, y axis points up, z axis points north. All coordinates are absolute.
-          Rotation is counter-clockwise, around the orthogonal axis.
-          Your avatar can perform gestures, and move in the world.
-          You can rotate around y axis, 0 means looking north, 3.14 south, 1.57 east, -1.57 west.
-          Information about your avatar and list of gestures are in the context.
-          The context also contains world and user information, and information about world objects and other users.
-      """);
+  private SystemMessage systemMessage;
   @JsonIgnore
   @Transient
   private PromptTemplate promptTemplate = ContextHelper.contextQueryTemplate();
@@ -98,6 +90,7 @@ public class OllamaBot extends Bot {
         .chatMemoryRepository(new InMemoryChatMemoryRepository())
         .build();
     conversationId = this.getId();
+    log.info("OllamaBot " + this.getId() + " " + this.getName() + " initialized");
   }
 
   @Override
@@ -114,8 +107,7 @@ public class OllamaBot extends Bot {
 
     String message = promptTemplate.render(Map.of("query", query, "context", context));
     if (memory.get(conversationId).size() == 0) {
-      memory.add(conversationId, systemMessage);
-      log.debug("System message:\n" + systemMessage);
+      memory.add(conversationId, systemMessage());
     }
     memory.add(conversationId, new UserMessage(message));
     log.debug("Memory " + conversationId + " size: " + memory.get(conversationId).size());
@@ -217,4 +209,19 @@ public class OllamaBot extends Bot {
     return ret;
   }
 
+  private SystemMessage systemMessage() {
+    if (systemMessage == null) {
+      systemMessage = new SystemMessage("""
+            You are {botName}, a friendly chatbot in a virtual world.
+            In world coordinate system, x axis points east, y axis points up, z axis points north. All coordinates are absolute.
+            Rotation is counter-clockwise, around the orthogonal axis.
+            Your avatar can perform gestures, and move in the world.
+            You can rotate around y axis, 0 means looking north, 3.14 south, 1.57 east, -1.57 west.
+            Information about your avatar and list of gestures are in the context.
+            The context also contains world and user information, and information about world objects and other users.
+          """.replace("{botName}", getName()));
+      log.debug("System message:\n" + systemMessage);
+    }
+    return systemMessage;
+  }
 }
