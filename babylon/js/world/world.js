@@ -674,7 +674,7 @@ export class World {
    */
   remoteEvent(obj, field, node) {
     if ('wrote' === field && this.chatlog) {
-      console.log(obj.id + ' wrote ' + obj.wrote);
+      console.log(obj.id + ' wrote ',obj.wrote);
       var name = obj.name;
       if (!name) {
         // CHECKME what to display for anonymous users?

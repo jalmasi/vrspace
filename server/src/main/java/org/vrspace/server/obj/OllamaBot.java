@@ -67,9 +67,6 @@ public class OllamaBot extends Bot {
   private String conversationId;
   @JsonIgnore
   @Transient
-  private volatile boolean processing = false;
-  @JsonIgnore
-  @Transient
   private ContextHelper contextHelper = contextHelper();
 
   @Override
@@ -95,13 +92,14 @@ public class OllamaBot extends Bot {
 
   @Override
   public Mono<String> getResponseAsync(Client c, String query) {
-    log.debug("Query from " + c.getId() + " " + query);
+    String clientId = c.getObjectId().getIdString();
+    log.debug("Query from " + clientId + " " + query);
     StringBuilder gestures = new StringBuilder();
     this.getAnimations().forEach(gesture -> {
       gestures.append(gesture);
       gestures.append(" ");
     });
-    String context = "Query from User " + c.getId() + " Name " + c.getName();
+    String context = "Query from " + clientId + " Name " + c.getName();
     context += "\nGestures available: " + gestures.toString();
     context += "\nYou are " + contextHelper.sceneDescription(this, getWorldManager().getDb());
 
@@ -114,30 +112,30 @@ public class OllamaBot extends Bot {
     log.debug("Context:\n" + context);
 
     if (processing) {
-      return Mono.just(null);
-    } else {
-      return Mono.create((sink) -> {
-        try {
-          processing = true;
-          long time = System.currentTimeMillis();
-          Prompt prompt = Prompt
-              .builder()
-              .messages(memory.get(conversationId))
-              .chatOptions(OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(this)).build())
-              .build();
-          ChatResponse response = chatModel.call(prompt);
-          time = System.currentTimeMillis() - time;
-          log.debug("Response in " + time + " ms: \n" + response);
-          memory.add(conversationId, response.getResult().getOutput());
-          processing = false;
-          sink.success(response.getResult().getOutput().getText());
-        } catch (Exception e) {
-          processing = false;
-          log.error("Exception processing user query " + query, e);
-          sink.error(e);
-        }
-      });
+      log.debug("Already processing, ignored message from " + clientId);
+      return Mono.empty();
     }
+
+    processing = true;
+    return Mono.create((sink) -> {
+      try {
+        long time = System.currentTimeMillis();
+        Prompt prompt = Prompt
+            .builder()
+            .messages(memory.get(conversationId))
+            .chatOptions(OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(this)).build())
+            .build();
+        ChatResponse response = chatModel.call(prompt);
+        time = System.currentTimeMillis() - time;
+        log.debug("Response in " + time + " ms: \n" + response);
+        memory.add(conversationId, response.getResult().getOutput());
+        sink.success(response.getResult().getOutput().getText());
+      } catch (Exception e) {
+        processing = false;
+        log.error("Exception processing user query " + query, e);
+        sink.error(e);
+      }
+    });
   }
 
   @Tool(description = "Perform a gesture")
@@ -215,7 +213,7 @@ public class OllamaBot extends Bot {
             You are {botName}, a friendly chatbot in a virtual world.
             In world coordinate system, x axis points east, y axis points up, z axis points north. All coordinates are absolute.
             Rotation is counter-clockwise, around the orthogonal axis.
-            Your avatar can perform gestures, and move in the world.
+            Your avatar can move in the world, and perform gestures, one at a time..
             You can rotate around y axis, 0 means looking north, 3.14 south, 1.57 east, -1.57 west.
             Information about your avatar and list of gestures are in the context.
             The context also contains world and user information, and information about world objects and other users.

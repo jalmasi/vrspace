@@ -48,6 +48,9 @@ public abstract class Bot extends User {
   @JsonIgnore
   @Transient
   private WorldManager worldManager;
+  @JsonIgnore
+  @Transient
+  protected volatile boolean processing = false;
 
   /**
    * Returns a parameter from parameter map
@@ -69,20 +72,21 @@ public abstract class Bot extends User {
    * Get response to something that a client "said", and write it
    */
   public void respondTo(Client c, String what) {
-    getResponseAsync(c, what).subscribe(response -> write(response));
+    getResponseAsync(c, what).onErrorComplete().subscribe(response -> write(response));
   }
 
   /**
    * Utility method - "say" something, notify all listeners. Null is silently ignored, as in no response from the bot.
    */
   public void write(String what) {
-    if (what != null) {
-      VREvent event = new VREvent(this);
+    if (what != null && !what.isEmpty()) {
+      VREvent event = new VREvent(this, this);
       Map<String, Object> changes = new HashMap<>();
-      changes.put("wrote", what);
+      changes.put("wrote", Map.of("text", what));
       event.setChanges(changes);
       this.notifyListeners(event);
     }
+    processing = false;
   }
 
   /**

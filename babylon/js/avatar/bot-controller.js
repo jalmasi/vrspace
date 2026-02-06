@@ -94,16 +94,17 @@ export class BotController {
   processChanges(obj, changes) {
     //console.log("processing changes ",obj,changes);
     if (changes['wrote']) {
+      let text = changes.wrote.text;
       if (this.voice && BotController.speechSynthesisEnabled) {
         if (window.speechSynthesis.pending || window.speechSynthesis.speaking) {
           console.log("Interrupting speech");
           window.speechSynthesis.cancel();
         }
-        const utter = new SpeechSynthesisUtterance(changes.wrote);
+        const utter = new SpeechSynthesisUtterance(text);
         utter.voice = this.voice;
         window.speechSynthesis.speak(utter);
       }
-      let animation = this.animation.processText(changes.wrote);
+      let animation = this.animation.processText(text);
       if (animation) {
         animation.onAnimationGroupEndObservable.add(this.animationEnd);
         this.startAnimation(animation);

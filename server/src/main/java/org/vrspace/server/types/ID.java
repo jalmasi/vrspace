@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.vrspace.server.obj.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +37,7 @@ public class ID {
 
   public ID(Map<String, String> map) {
     if (map.size() != 1) {
-      throw new IllegalArgumentException(
-          "Map has to contain only one element, containing class name (key) and id (value)");
+      throw new IllegalArgumentException("Map has to contain only one element, containing class name (key) and id (value)");
     }
     map.forEach((k, v) -> {
       this.className = k;
@@ -48,5 +49,10 @@ public class ID {
     Map<String, String> ret = new HashMap<String, String>(1);
     ret.put(className, id);
     return ret;
+  }
+
+  @JsonIgnore
+  public String getIdString() {
+    return getClassName() + " " + getId();
   }
 }
