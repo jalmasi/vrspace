@@ -19,6 +19,7 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.retry.support.RetryTemplate;
 import org.vrspace.server.connect.ollama.ContextHelper;
 import org.vrspace.server.dto.VREvent;
 
@@ -77,6 +78,7 @@ public class OllamaBot extends Bot {
     // TODO process parameterMap, getParameter()
     chatModel = OllamaChatModel
         .builder()
+        .retryTemplate(RetryTemplate.builder().maxAttempts(1).build())
         .ollamaApi(OllamaApi.builder().baseUrl(getUrl()).build())
         .defaultOptions(
             OllamaChatOptions.builder().numCtx(getContextWindowSize()).model(getModelName()).keepAlive(getKeepAlive()).build())
