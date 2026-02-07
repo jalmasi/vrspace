@@ -47,6 +47,7 @@ public class BotConfig {
     private String gender;
     private String lang;
     private boolean async;
+    private boolean respondToBots;
     private Map<String, String> parameterMap;
     private List<Double> position;
     private List<Double> rotation;

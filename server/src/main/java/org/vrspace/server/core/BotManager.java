@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ApplicationContextEvent;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 import org.vrspace.server.config.BotConfig;
@@ -24,13 +26,14 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * BotManger component starts right after server startup. For each Bot configured in BotConfig, sets properties, adds it to the
  * world, and starts self test. If it passes, Bot remains in the world as a an active object, otherwise it's marked inactive.
+ * Provides a single threaded executor service for all hosted asynchronous bots.
  * 
  * @author joe
  *
  */
 @Component
 @Slf4j
-public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
+public class BotManager implements ApplicationListener<ApplicationContextEvent> {
   /** Configuration bean */
   @Autowired
   private BotConfig botConfig;
@@ -44,6 +47,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
   private String world = "default";
   private List<String> animationNames;
   private ExecutorService executor = Executors.newSingleThreadExecutor();
+  private boolean active = false;
 
   private Class<? extends Bot> getBotClass(String className) throws Exception {
     if (className.indexOf('.') < 0) {
@@ -84,7 +88,18 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
   }
 
   @Override
-  public void onApplicationEvent(ContextRefreshedEvent event) {
+  public void onApplicationEvent(ApplicationContextEvent event) {
+    if (event instanceof ContextRefreshedEvent) {
+      start();
+      active = true;
+    } else if (event instanceof ContextClosedEvent) {
+      active = false;
+      log.info("BotManager shutting down");
+      executor.shutdownNow();
+    }
+  }
+
+  private void start() {
     log.info("BotManager starting");
     loadAnimations();
     for (String botId : botConfig.getBot().keySet()) {
@@ -115,6 +130,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
       bot.setLang(props.getLang());
       bot.setAnimations(animationNames);
       bot.setAsync(props.isAsync());
+      bot.setRespondToBots(props.isRespondToBots());
 
       log.debug(botName + " parameter map: " + props.getParameterMap());
       bot.setParameterMap(props.getParameterMap());
@@ -143,6 +159,7 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
         worldManager.startSession(bot);
       } catch (SessionException e) {
         log.error(bot + " cannot start session ", e);
+        bot.setActive(false);
         continue;
       }
 
@@ -160,15 +177,25 @@ public class BotManager implements ApplicationListener<ContextRefreshedEvent> {
     }
   }
 
+  /**
+   * Replacement for VRObject.notifyListeners() that Bots need to use for events they generate. Optionally asynchronous
+   * notification, if Bot.async is true. And since bots have no websocket session, also notifies session listeners, e.g. to log
+   * bot actions.
+   * 
+   * @param bot
+   * @param event
+   */
   public void notifyListeners(Bot bot, VREvent event) {
     sessionManager.notifyListeners(event);
-    if (bot.isAsync()) {
-      executor.execute(() -> {
-        Thread.yield();
+    // only notify listeners if shutdown has not started
+    if (active) {
+      if (bot.isAsync()) {
+        executor.execute(() -> {
+          bot.notifyListeners(event);
+        });
+      } else {
         bot.notifyListeners(event);
-      });
-    } else {
-      bot.notifyListeners(event);
+      }
     }
   }
 

@@ -1,6 +1,7 @@
 package org.vrspace.server.obj;
 
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
@@ -132,6 +133,8 @@ public class OllamaBot extends Bot {
         log.debug(getName() + " Response in " + time + " ms: \n" + response);
         memory.add(conversationId, response.getResult().getOutput());
         sink.success(response.getResult().getOutput().getText());
+      } catch (CancellationException ce) {
+        log.debug("Query cancelled");
       } catch (Exception e) {
         processing = false;
         log.error("Exception processing user query " + query, e);
@@ -145,7 +148,7 @@ public class OllamaBot extends Bot {
     log.debug(getName() + " Performing gesture " + gestureName);
     VREvent event = new VREvent(this, this);
     event.addChange("animation", new Animation(gestureName, false, 1));
-    notifyListeners(event);
+    getBotManager().notifyListeners(this, event);
   }
 
   @Tool(description = "Move to position")
@@ -168,7 +171,7 @@ public class OllamaBot extends Bot {
     VREvent event = new VREvent(this, this);
     this.setPosition(new Point(x, y, z));
     event.addChange("position", this.getPosition());
-    notifyListeners(event);
+    getBotManager().notifyListeners(this, event);
   }
 
   @Tool(description = "Set rotation around y axis to given angle")
@@ -177,7 +180,7 @@ public class OllamaBot extends Bot {
     VREvent event = new VREvent(this, this);
     this.setRotation(new Rotation(0, angle, 0));
     event.addChange("rotation", this.getRotation());
-    notifyListeners(event);
+    getBotManager().notifyListeners(this, event);
   }
 
   @Tool(description = "Rotate around y axis for an angle")
@@ -186,7 +189,7 @@ public class OllamaBot extends Bot {
     VREvent event = new VREvent(this, this);
     this.setRotation(new Rotation(0, this.getRotation().getY() + angle, 0));
     event.addChange("rotation", this.getRotation());
-    notifyListeners(event);
+    getBotManager().notifyListeners(this, event);
   }
 
   @Tool(description = "Set your rotation to make your avatar look at given point")
@@ -198,7 +201,7 @@ public class OllamaBot extends Bot {
     VREvent event = new VREvent(this, this);
     this.setRotation(new Rotation(0, angle, 0));
     event.addChange("rotation", this.getRotation());
-    notifyListeners(event);
+    getBotManager().notifyListeners(this, event);
   }
 
   private ContextHelper contextHelper() {

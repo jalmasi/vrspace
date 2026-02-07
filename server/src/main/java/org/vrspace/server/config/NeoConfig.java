@@ -123,7 +123,7 @@ public class NeoConfig {
     if (managementService != null) {
       log.info("Database shutting down...");
       managementService.shutdown();
-      log.info("Database shutting down complete");
+      log.info("Database shutdown complete");
       cleanup();
     }
   }

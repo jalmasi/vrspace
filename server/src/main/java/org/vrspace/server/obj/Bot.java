@@ -45,13 +45,17 @@ public abstract class Bot extends User {
   @Transient
   /** Available avatar animations, loaded from content/rpm-anim directory. Hint for the bot itself, not published. */
   private List<String> animations;
-  /** Bots may need access to the database or other WorldManager methods */
   @JsonIgnore
   @Transient
+  /** Passed to the Bot on creation, as Bots may need access to the database or other WorldManager methods */
   private WorldManager worldManager;
   @JsonIgnore
   @Transient
+  /** Passed to the Bot on creation */
   private BotManager botManager;
+  @JsonIgnore
+  @Transient
+  private boolean respondToBots = false;
   @JsonIgnore
   @Transient
   private boolean async = false;
@@ -73,17 +77,29 @@ public abstract class Bot extends User {
    */
   public abstract void selfTest() throws Exception;
 
+  /**
+   * Response generation method that subclasses need to override.
+   * 
+   * @param c     Client sending the query, typically User instance, may be Bot if respondToBots is true.
+   * @param query Whatever user wrote.
+   * @return Mono that evaluates to the answer.
+   */
   public abstract Mono<String> getResponseAsync(Client c, String query);
 
   /**
-   * Get response to something that a client "said", and write it
+   * Get response to something that a client "said", and write it. If the client is a Bot instance, respond only if
+   * respondToBots is true. Calls getResponseAsync method, and then write if it returns anything. Errors are ignored, assuming
+   * getResponseAsync handles and logs them.
    */
   public void respondTo(Client c, String what) {
-    getResponseAsync(c, what).onErrorComplete().subscribe(response -> write(response));
+    if (!(c instanceof Bot) || respondToBots) {
+      getResponseAsync(c, what).onErrorComplete().subscribe(response -> write(response));
+    }
   }
 
   /**
-   * Utility method - "say" something, notify all listeners. Null is silently ignored, as in no response from the bot.
+   * Utility method - "say" something, notify all listeners. Null and empty argument is silently ignored, as in no response from
+   * the bot.
    */
   public void write(String what) {
     if (what != null && !what.isEmpty()) {
@@ -97,7 +113,7 @@ public abstract class Bot extends User {
   }
 
   /**
-   * Process an event. If that's something that a user wrote, calls respondTo method. Other events are ignored.
+   * Process an event. If that's something that a user/bot wrote, calls respondTo method. Other events are ignored.
    */
   @Override
   public void processEvent(VREvent event) {
@@ -122,8 +138,6 @@ public abstract class Bot extends User {
   /**
    * Objects removed from the scene, typically a client that has left. This implementation does nothing, utility method for
    * subclasses.
-   * 
-   * @param objects
    */
   public void objectsRemoved(List<Map<String, String>> objects) {
     log.debug("Removed objects from the scene " + objects);
