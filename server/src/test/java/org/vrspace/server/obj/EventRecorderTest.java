@@ -226,7 +226,9 @@ public class EventRecorderTest {
   }
 
   private void wait(EventRecorder recorder) throws Exception {
-    log.debug("Waiting for " + recorder.getRestart().isShutdown() + " " + recorder.getRestart().isTerminated());
+    log
+        .debug("Waiting for executor, shutdown:" + recorder.getRestart().isShutdown() + " terminated:"
+            + recorder.getRestart().isTerminated());
     recorder.getRestart().awaitTermination(1, TimeUnit.SECONDS);
     if (recorder.getRestart().isShutdown() && recorder.getRestart().isTerminated()) {
       // give it some more time to process events

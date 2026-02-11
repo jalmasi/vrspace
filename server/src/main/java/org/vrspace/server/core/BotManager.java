@@ -44,7 +44,6 @@ public class BotManager implements ApplicationListener<ApplicationContextEvent> 
   @Autowired
   private SessionManager sessionManager; // FIXME
 
-  private String world = "default";
   private List<String> animationNames;
   private ExecutorService executor = Executors.newSingleThreadExecutor();
   private boolean active = false;
@@ -80,7 +79,7 @@ public class BotManager implements ApplicationListener<ApplicationContextEvent> 
           .filter(fileName -> fileName.toLowerCase().endsWith(".json"))
           .map(fileName -> fileName.substring(0, fileName.indexOf(".json")))
           .collect(Collectors.toList());
-      log.debug("Loaded " + animationNames.size() + " animations");
+      log.debug("Loaded " + animationNames.size() + " animations from " + animDir);
     } catch (Exception e) {
       log.error("Error loading animations from " + animDir, e);
     }
@@ -128,7 +127,12 @@ public class BotManager implements ApplicationListener<ApplicationContextEvent> 
       bot.setMesh(props.getMesh());
       bot.setGender(props.getGender());
       bot.setLang(props.getLang());
-      bot.setAnimations(animationNames);
+      if (props.getAnimations() == null) {
+        bot.setAnimations(animationNames);
+      } else {
+        log.debug(botName + " animations: " + props.getAnimations());
+        bot.setAnimations(props.getAnimations());
+      }
       bot.setAsync(props.isAsync());
       bot.setRespondToBots(props.isRespondToBots());
 
@@ -149,6 +153,9 @@ public class BotManager implements ApplicationListener<ApplicationContextEvent> 
       }
       if (props.hasPoint(props.getScale())) {
         bot.setScale(props.getPoint(props.getScale()));
+      }
+      if (props.getRange() != null) {
+        bot.setRange(props.getRange());
       }
 
       bot.setBotManager(this);

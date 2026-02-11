@@ -43,7 +43,10 @@ public abstract class Bot extends User {
   private Map<String, String> parameterMap = new HashMap<>();
   @JsonIgnore
   @Transient
-  /** Available avatar animations, loaded from content/rpm-anim directory. Hint for the bot itself, not published. */
+  /**
+   * Names of available avatar animations. The list is loaded from content/rpm-anim directory, if loadAnimations is set. It can
+   * be configured and set for each bot separatelly. Hint for the bot itself, not published.
+   */
   private List<String> animations;
   @JsonIgnore
   @Transient
@@ -59,6 +62,9 @@ public abstract class Bot extends User {
   @JsonIgnore
   @Transient
   private boolean async = false;
+  @JsonIgnore
+  @Transient
+  private Double range;
   @JsonIgnore
   @Transient
   protected volatile boolean processing = false;
@@ -88,11 +94,11 @@ public abstract class Bot extends User {
 
   /**
    * Get response to something that a client "said", and write it. If the client is a Bot instance, respond only if
-   * respondToBots is true. Calls getResponseAsync method, and then write if it returns anything. Errors are ignored, assuming
-   * getResponseAsync handles and logs them.
+   * respondToBots is true. Also takes into account bot range, and ignores if client out of range. Calls getResponseAsync
+   * method, and then write if it returns anything. Errors are ignored, assuming getResponseAsync handles and logs them.
    */
   public void respondTo(Client c, String what) {
-    if (!(c instanceof Bot) || respondToBots) {
+    if ((!(c instanceof Bot) || respondToBots) && (range == null || getPosition().isInRange(c.getPosition(), range))) {
       getResponseAsync(c, what).onErrorComplete().subscribe(response -> write(response));
     }
   }
@@ -132,7 +138,7 @@ public abstract class Bot extends User {
    * subclasses.
    */
   public void objectsAdded(List<VRObject> objects) {
-    log.debug("New objects in the scene " + objects);
+    log.debug(getName() + " New objects in the scene " + objects);
   }
 
   /**
@@ -140,7 +146,7 @@ public abstract class Bot extends User {
    * subclasses.
    */
   public void objectsRemoved(List<Map<String, String>> objects) {
-    log.debug("Removed objects from the scene " + objects);
+    log.debug(getName() + " Removed objects from the scene " + objects);
   }
 
   /**

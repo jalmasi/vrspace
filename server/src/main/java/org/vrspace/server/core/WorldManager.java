@@ -448,9 +448,7 @@ public class WorldManager {
 
   /**
    * Stage 2 of login, executed once client has been identified. Does not depend on websocket session, can be used for internal
-   * login, e.g. bots.
-   * 
-   * @param client
+   * login, e.g. bots. Sets internal variables on the client, including new instance of scene properties with default values.
    */
   public void login(Client client) {
     client.setMapper(jackson);
@@ -494,6 +492,14 @@ public class WorldManager {
     return ret;
   }
 
+  /**
+   * The client has set own properties, entered a world, and going online. Starting a session sets client active flag, and
+   * creates the scene for the client by calling createScene() method of the Client implementation.
+   * 
+   * @param client a connected Client, typically User, that starts the session
+   * @return scene size
+   * @throws SessionException if the client with the same name but different id already exists
+   */
   // FIXME: synchronized fixes getRange() errors
   public synchronized int startSession(Client client) throws SessionException {
     if (StringUtils.isNotBlank(client.getName())) {

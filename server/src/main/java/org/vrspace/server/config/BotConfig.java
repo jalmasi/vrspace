@@ -48,10 +48,13 @@ public class BotConfig {
     private String lang;
     private boolean async;
     private boolean respondToBots;
+    private boolean loadAnimations;
     private Map<String, String> parameterMap;
     private List<Double> position;
     private List<Double> rotation;
     private List<Double> scale;
+    private Double range;
+    private List<String> animations;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private String params;

@@ -21,9 +21,8 @@ import org.vrspace.server.types.ID;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * This keeps track of objects visible to the Client. This scene uses
- * coordinates to determine which objects are in range. Scene is updated when
- * client moves more than resolution meters, or when timeout occurs.
+ * This keeps track of objects visible to the Client. This scene uses coordinates to determine which objects are in range. Scene
+ * is updated when client moves more than resolution meters, or when timeout occurs.
  */
 @Slf4j
 public class Scene {
@@ -52,7 +51,7 @@ public class Scene {
   }
 
   /**
-   * Creates new Scene for Client client
+   * Creates new Scene for Client client, with SceneProperties of the client.
    */
   public Scene(WorldManager world, Client client) {
     this.world = world;
@@ -160,10 +159,9 @@ public class Scene {
   }
 
   /**
-   * Offer an object to the scene. Accepted new objects in range and visible
-   * (passing all filters). Objects without positions, or with zero positions are
-   * also accepted, so that new objects become immediately visible. If accepted,
-   * sends Add command to the client.
+   * Offer an object to the scene. Accepted new objects in range and visible (passing all filters). Objects without positions,
+   * or with zero positions are also accepted, so that new objects become immediately visible. If accepted, sends Add command to
+   * the client.
    * 
    * @param o
    */
@@ -184,8 +182,7 @@ public class Scene {
   }
 
   /**
-   * Offer object(s) to the scene. Sends out only one Add command with accepted
-   * objects.
+   * Offer object(s) to the scene. Sends out only one Add command with accepted objects.
    * 
    * @param objects
    * @see #offer(VRObject)
@@ -193,8 +190,9 @@ public class Scene {
   public void offer(Collection<VRObject> objects) {
     Add add = new Add();
     for (VRObject o : objects) {
-      log.debug("Client " + client.getId() + " offered " + o.getId() + " inRange:" + isInRange(o) + " visible:" + isVisible(o)
-          + " contains:" + members.contains(o));
+      log
+          .debug("Client " + client.getId() + " offered " + o.getId() + " inRange:" + isInRange(o) + " visible:" + isVisible(o)
+              + " contains:" + members.contains(o));
       if (!members.contains(o) && isInRange(o) && isVisible(o)) {
         // add to the scene
         members.add(o);
@@ -210,9 +208,8 @@ public class Scene {
   }
 
   /**
-   * Offer some object(s) to scenes of all listeners. E.g. a new object just added
-   * to the space, or client just logged in (starting the session), or entering a
-   * new space.
+   * Offer some object(s) to scenes of all listeners. E.g. a new object just added to the space, or client just logged in
+   * (starting the session), or entering a new space.
    * 
    * @param objects
    * @see #offer(Collection)
@@ -268,9 +265,8 @@ public class Scene {
   }
 
   /**
-   * Unpublish an object: remove it from own scene, and scenes of all clients in
-   * the scene. WorldManager deletes all temporary owned objects when guest client
-   * exits, but they also need to be removed from all scenes.
+   * Unpublish an object: remove it from own scene, and scenes of all clients in the scene. WorldManager deletes all temporary
+   * owned objects when guest client exits, but they also need to be removed from all scenes.
    * 
    * @param obj
    */
@@ -286,8 +282,7 @@ public class Scene {
   }
 
   /**
-   * Notification that a client has logged out - removes it from the scene and
-   * sends Remove message.
+   * Notification that a client has logged out - removes it from the scene and sends Remove message.
    * 
    * @param c
    */
@@ -300,8 +295,7 @@ public class Scene {
   }
 
   /**
-   * Logout this client - notifies all clients in the range that it has logged
-   * out.
+   * Logout this client - notifies all clients in the range that it has logged out.
    * 
    * @see #logout(Client)
    */
@@ -346,9 +340,8 @@ public class Scene {
   }
 
   /**
-   * Remove all objects from the scene, and stop listening to changes. Next call
-   * to update() will reestablish the event model, and may cause sending removal
-   * messages to the client. Also stops listening to changes of permanent objects
+   * Remove all objects from the scene, and stop listening to changes. Next call to update() will reestablish the event model,
+   * and may cause sending removal messages to the client. Also stops listening to changes of permanent objects
    */
   public void removeAll() {
     Remove remove = new Remove();
@@ -382,8 +375,7 @@ public class Scene {
   }
 
   /**
-   * Test Transform against set of filters. Client's transform don't pass the
-   * test.
+   * Test Transform against set of filters. Client's transform don't pass the test.
    * 
    */
   protected boolean isVisible(VRObject o) {

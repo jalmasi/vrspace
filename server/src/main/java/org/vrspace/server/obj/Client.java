@@ -27,8 +27,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Basic client class, adds user-related properties and business logic to
- * VRObject.
+ * Basic client class, adds user-related properties and business logic to VRObject.
  * 
  * @author joe
  *
@@ -63,16 +62,15 @@ public class Client extends VRObject {
   @Transient
   transient private Scene scene;
   /**
-   * Identity is a big unknown yet, will likely get encapsulated in a class. For
-   * the time being, it's something like username@oauth2provider, e.g.
-   * joe@facebook
+   * Identity is a big unknown yet, will likely get encapsulated in a class. For the time being, it's something like
+   * username@oauth2provider, e.g. joe@facebook
    */
   @Private
   @JsonIgnore
   private String identity;
   /**
-   * Tokens used to access video/audio streaming servers, identify conversations
-   * with chatbots etc. Transient, never stored to the database.
+   * Tokens used to access video/audio streaming servers, identify conversations with chatbots etc. Transient, never stored to
+   * the database.
    */
   @Private
   @Transient
@@ -96,15 +94,13 @@ public class Client extends VRObject {
   @Transient
   transient private ObjectMapper mapper;
   /**
-   * Private mapper even serializes private fields (so that client can receive own
-   * secrets)
+   * Private mapper even serializes private fields (so that client can receive own secrets)
    */
   @JsonIgnore
   @Transient
   transient private ObjectMapper privateMapper;
   /**
-   * guest flag hints SceneManager to remove all created/owned object when client
-   * disconnects
+   * guest flag hints SceneManager to remove all created/owned object when client disconnects
    */
   @JsonIgnore
   @Transient
@@ -129,8 +125,8 @@ public class Client extends VRObject {
   }
 
   /**
-   * Process an event received from other active objects, typically other users.
-   * This implementation serializes the event and sends it over websocket.
+   * Process an event received from other active objects, typically other users. This implementation serializes the event and
+   * sends it over websocket.
    */
   @Override
   public void processEvent(VREvent event) {
@@ -200,8 +196,10 @@ public class Client extends VRObject {
   }
 
   /**
-   * Create client's scene, called by WorldManager during login process. Default
-   * client doesn't have a scene.
+   * Create client's scene, called by WorldManager during login process, startSession() specifically. Default client doesn't
+   * have a scene, and default implementation returns 0.
+   * 
+   * @return scene size
    */
   public int createScene(WorldManager wm) {
     return 0;

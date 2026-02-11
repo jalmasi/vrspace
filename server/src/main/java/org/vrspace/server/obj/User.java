@@ -52,6 +52,12 @@ public class User extends Client {
   @Private
   transient private String oauth2provider;
 
+  /**
+   * User does have a Scene, with filter that removes all offline clients. So when the session starts, this method creates new
+   * Scene, updates it, and publishes this User (notifies all Clients that they're here).
+   * 
+   * @return number of objects in the scene
+   */
   @Override
   public int createScene(WorldManager wm) {
     // create scene, TODO: scene filters
