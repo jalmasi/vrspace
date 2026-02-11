@@ -7,7 +7,7 @@ import { Avatar } from './avatar.js';
  */
 export class BotController {
   /** Synthesis can be iritating, enabled by default */
-  static speechSynthesisEnabled = false;
+  static speechSynthesisEnabled = true;
   /**
    * @param {Avatar} avatar 
    */
