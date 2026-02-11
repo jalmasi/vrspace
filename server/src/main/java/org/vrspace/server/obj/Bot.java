@@ -84,6 +84,9 @@ public abstract class Bot extends User {
    * Returns a parameter from parameter map
    */
   public String getParameter(String key) {
+    if (parameterMap == null) {
+      return null;
+    }
     return parameterMap.get(key);
   }
 
@@ -176,6 +179,11 @@ public abstract class Bot extends User {
     } else if (o instanceof Remove) {
       objectsRemoved(((Remove) o).getObjects());
     }
+  }
+
+  /** True if either shouldRespond or responding is true */
+  boolean shouldRespond() {
+    return shouldRespond || responding;
   }
 
   @Override
