@@ -104,6 +104,7 @@ public class OllamaBot extends Bot {
     });
     String context = "Query from " + clientId + " Name " + c.getName();
     context += "\nGestures available: " + gestures.toString();
+    context += "\nResponding to queries: " + isResponding();
     context += "\nYou are " + contextHelper.sceneDescription(this, getWorldManager().getDb());
 
     String message = promptTemplate.render(Map.of("query", query, "context", context));
@@ -204,6 +205,12 @@ public class OllamaBot extends Bot {
     getBotManager().notifyListeners(this, event);
   }
 
+  @Tool(description = "Stop or start responding to user queries")
+  public void responding(boolean responding) {
+    log.debug(getName() + " Responding: " + responding);
+    setResponding(responding);
+  }
+
   private ContextHelper contextHelper() {
     ContextHelper ret = new ContextHelper();
     ret.appendClientCoordinates = true;
@@ -218,9 +225,10 @@ public class OllamaBot extends Bot {
             You are {botName}, a friendly chatbot in a virtual world.
             In world coordinate system, x axis points east, y axis points up, z axis points north. All coordinates are absolute.
             Rotation is counter-clockwise, around the orthogonal axis.
-            Your avatar can move in the world, and perform gestures, one at a time..
+            Your avatar can move in the world, and perform gestures, one at a time.
             You can rotate around y axis, 0 means looking north, 3.14 south, 1.57 east, -1.57 west.
             Information about your avatar and list of gestures are in the context.
+            You can stop or continue responding to queries if instructed so.
             The context also contains world and user information, and information about world objects and other users.
           """.replace("{botName}", getName()));
       log.debug("System message:\n" + systemMessage);

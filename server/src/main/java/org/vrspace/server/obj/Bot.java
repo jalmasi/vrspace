@@ -3,6 +3,7 @@ package org.vrspace.server.obj;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.springframework.data.annotation.Transient;
 import org.vrspace.server.core.BotManager;
@@ -68,6 +69,16 @@ public abstract class Bot extends User {
   @JsonIgnore
   @Transient
   protected volatile boolean processing = false;
+  @JsonIgnore
+  @Transient
+  private boolean responding = true;
+  @JsonIgnore
+  @Transient
+  private boolean shouldRespond = true;
+  @JsonIgnore
+  @Transient
+  // CHECKME this is the same pattern used in SearchAgent.answerCleanup
+  private Pattern queryCleanup = Pattern.compile("[^\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s]|\\n");
 
   /**
    * Returns a parameter from parameter map
@@ -99,6 +110,9 @@ public abstract class Bot extends User {
    */
   public void respondTo(Client c, String what) {
     if ((!(c instanceof Bot) || respondToBots) && (range == null || getPosition().isInRange(c.getPosition(), range))) {
+      String cleanQuery = queryCleanup.matcher(what).replaceAll(" ");
+      // respond anyway if user query mentions the bot by name:
+      shouldRespond = responding || !(c instanceof Bot) && cleanQuery.toLowerCase().contains(getName().toLowerCase());
       getResponseAsync(c, what).onErrorComplete().subscribe(response -> write(response));
     }
   }
@@ -108,7 +122,7 @@ public abstract class Bot extends User {
    * the bot.
    */
   public void write(String what) {
-    if (what != null && !what.isEmpty()) {
+    if ((shouldRespond || responding) && what != null && !what.isEmpty()) {
       VREvent event = new VREvent(this, this);
       Map<String, Object> changes = new HashMap<>();
       changes.put("wrote", Map.of("text", what));
@@ -134,10 +148,11 @@ public abstract class Bot extends User {
   }
 
   /**
-   * New objects in the scene, typically a client that has arrived. This implementation does nothing, utility method for
-   * subclasses.
+   * New objects in the scene, typically a client that has arrived. This implementation sets responding flag to true, to ensure
+   * bots don't stay silent forever.
    */
   public void objectsAdded(List<VRObject> objects) {
+    responding = true;
     log.debug(getName() + " New objects in the scene " + objects);
   }
 
