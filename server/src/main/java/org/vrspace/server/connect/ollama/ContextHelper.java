@@ -92,12 +92,17 @@ public class ContextHelper {
           if (terrain.getPoints() != null && terrain.getPoints().size() > 0) {
             sb.append(" Points:");
             for (TerrainPoint tp : terrain.getPoints()) {
+              /*
               sb.append(" (x=");
               append(sb, tp.getX());
               sb.append(", y=");
               append(sb, tp.getY());
               sb.append(", z=");
               append(sb, tp.getZ());
+              sb.append(")");
+              */
+              sb.append(" (");
+              appendDirection(sb, tp.getX(), tp.getY(), tp.getZ(), client);
               sb.append(")");
             }
           }
@@ -206,42 +211,45 @@ public class ContextHelper {
   private void appendDirection(StringBuilder sb, VRObject obj, Client client) {
     if (obj.getPosition() != null) {
       Point point = obj.getPosition().subtract(client.getPosition());
-      Double originalAngle = Math.atan2(point.getX(), point.getZ());
-      Double angle = originalAngle - client.getRotation().getY();
-      double d = Math.sqrt(point.getX() * point.getX() + point.getZ() * point.getZ());
-      double x = Math.sin(angle) * d;
-      double z = Math.cos(angle) * d;
-      double y = point.getY();
-      double ax = Math.abs(x);
-      double az = Math.abs(z);
-      double ay = Math.abs(y);
-      String leftRight = "";
-      if (x > 0.01) {
-        leftRight = " right: " + format(ax);
-      } else if (x < 0.01) {
-        leftRight = " left: " + format(ax);
-      }
-      String frontBack = "";
-      if (z > 0.01) {
-        frontBack = " forward: " + format(az);
-      } else if (z < 0.01) {
-        frontBack = " behind: " + format(az);
-      }
-      String upDown = "";
-      if (y > 0.01) {
-        upDown = " above: " + format(ay);
-      } else if (y < 0.01) {
-        upDown = " below: " + format(ay);
-      }
-      if (ax > az) {
-        sb.append(leftRight);
-        sb.append(frontBack);
-      } else {
-        sb.append(frontBack);
-        sb.append(leftRight);
-      }
-      sb.append(upDown);
+      appendDirection(sb, point.getX(), point.getY(), point.getZ(), client);
     }
+  }
+
+  void appendDirection(StringBuilder sb, double x, double y, double z, Client client) {
+    Double originalAngle = Math.atan2(x, z);
+    Double angle = originalAngle - client.getRotation().getY();
+    double d = Math.sqrt(x * x + z * z);
+    x = Math.sin(angle) * d;
+    z = Math.cos(angle) * d;
+    double ax = Math.abs(x);
+    double az = Math.abs(z);
+    double ay = Math.abs(y);
+    String leftRight = "";
+    if (x > 0.01) {
+      leftRight = " right: " + format(ax);
+    } else if (x < 0.01) {
+      leftRight = " left: " + format(ax);
+    }
+    String frontBack = "";
+    if (z > 0.01) {
+      frontBack = " forward: " + format(az);
+    } else if (z < 0.01) {
+      frontBack = " behind: " + format(az);
+    }
+    String upDown = "";
+    if (y > 0.01) {
+      upDown = " above: " + format(ay);
+    } else if (y < 0.01) {
+      upDown = " below: " + format(ay);
+    }
+    if (ax > az) {
+      sb.append(leftRight);
+      sb.append(frontBack);
+    } else {
+      sb.append(frontBack);
+      sb.append(leftRight);
+    }
+    sb.append(upDown);
   }
 
   private void appendRelativePosition(StringBuilder sb, VRObject obj, Client client) {

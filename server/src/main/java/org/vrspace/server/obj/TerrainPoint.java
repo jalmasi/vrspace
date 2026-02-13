@@ -12,8 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * A terrain point. Does not extend Point to make sure it doesn't get in the way
- * of range/visibility processing.
+ * A terrain point. Does not extend Point to make sure it doesn't get in the way of range/visibility processing.
  * 
  * @author joe
  *
