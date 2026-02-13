@@ -223,6 +223,7 @@ export class AssetLoader {
     if ( this.containers[url] ) {
       // loaded by asset loader
       var asset = this.containers[url];
+      // container may be null if the object failed to load 
       var container = this.containers[url].container;
       asset.numberOfInstances--;
       if ( instantiatedEntries ) {
@@ -230,7 +231,7 @@ export class AssetLoader {
         instantiatedEntries.rootNodes.forEach( node => node.dispose() );
         instantiatedEntries.skeletons.forEach( node => node.dispose() );
         instantiatedEntries.animationGroups.forEach( node => node.dispose() );
-      } else {
+      } else if (container){
         console.log("Disabling main instance of "+url+", "+asset.numberOfInstances+" remaining");
         // well we can't dispose of container just like that
         container.meshes[0].setEnabled(false);
