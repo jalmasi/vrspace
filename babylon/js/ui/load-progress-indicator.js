@@ -1,4 +1,4 @@
-import {VRSPACEUI} from './vrspace-ui.js';
+import { VRSPACEUI } from './vrspace-ui.js';
 import { CameraHelper } from '../core/camera-helper.js';
 
 /**
@@ -11,11 +11,11 @@ export class LoadProgressIndicator {
   @param scene
   @param camera current camera to bind to
    */
-  constructor(scene, camera=scene.activeCamera) {
+  constructor(scene, camera = scene.activeCamera) {
     this.scene = scene;
     this.camera = camera;
-    this.position = new BABYLON.Vector3(0,-0.1,0.5);
-    this.xrPosition = new BABYLON.Vector3(0,-0.2,0.5);
+    this.position = new BABYLON.Vector3(0, -0.1, 0.5);
+    this.xrPosition = new BABYLON.Vector3(0, -0.2, 0.5);
     this.mesh = null;
     this.totalItems = 0;
     this.currentItem = 0;
@@ -28,50 +28,55 @@ export class LoadProgressIndicator {
     False results in continous rotation.
     */
     this.trackItems = true;
-    var indicator = this;
-    VRSPACEUI.init(scene).then( (ui) => {
-        indicator.mesh = ui.logo.clone("LoadingProgressIndicator");
-        indicator.mesh.scaling.scaleInPlace(0.05);
-        indicator.attachToCamera();
-        indicator.zeroRotation = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X,-Math.PI/2);
-        indicator.mesh.rotationQuaternion = indicator.zeroRotation;
-        indicator.mesh.setEnabled(indicator.totalItems > indicator.currentItem);
-        indicator.log("Loaded logo, current progress "+indicator.currentItem+"/"+indicator.totalItems);
-    });
-    CameraHelper.getInstance(this.scene).addCameraListener( () => {
-      if ( this.scene.activeCamera ) {
+    if (VRSPACEUI.initialized) {
+      this._createIndicatorMesh()
+    } else {
+      VRSPACEUI.init(scene).then((ui) => this._createIndicatorMesh());
+    }
+    CameraHelper.getInstance(this.scene).addCameraListener(() => {
+      if (this.scene.activeCamera) {
         //console.log("Camera changed: "+this.scene.activeCamera.getClassName());
         this.attachToCamera();
       }
     });
+  }
+  _createIndicatorMesh() {
+    this.mesh = VRSPACEUI.logo.clone("LoadingProgressIndicator");
+    this.mesh.scaling.scaleInPlace(0.05);
+    this.attachToCamera();
+    this.zeroRotation = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, -Math.PI / 2);
+    this.mesh.rotationQuaternion = this.zeroRotation;
+    this.mesh.setEnabled(this.totalItems > this.currentItem);
+    this.log("Loaded logo, current progress " + this.currentItem + "/" + this.totalItems);
   }
   _init() {
     this.totalItems = 0;
     this.currentItem = 0;
     this.angle = Math.PI;
   }
+  _setPosition() {
+    if (this.scene.activeCamera.getClassName() == 'WebXRCamera') {
+      this.mesh.position = this.xrPosition;
+    } else {
+      this.mesh.position = this.position;
+    }
+  }
   attachToCamera() {
     this.camera = this.scene.activeCamera;
-    if ( this.mesh ) {
+    if (this.mesh) {
       this.mesh.parent = this.scene.activeCamera;
-      // VRDeviceOrientationFreeCamera
-      // WebXRCamera
-      if ( this.scene.activeCamera.getClassName() == 'WebXRCamera' ) {
-        this.mesh.position = this.xrPosition;
-      } else {
-        this.mesh.position = this.position;
-      }
+      this._setPosition();
     }
   }
   /** Add an item to be tracked. First item added shows the indicator and starts the animation.
   @param item an item to track
    */
   add(item) {
-    if ( this.mesh && ! this.mesh.isEnabled() ) {
+    if (this.mesh && !this.mesh.isEnabled()) {
       this.mesh.setEnabled(true);
     }
     this.totalItems++;
-    this.log("Added "+this.currentItem+"/"+this.totalItems);
+    this.log("Added " + this.currentItem + "/" + this.totalItems);
     this._update();
   }
   /** Remove an item, e.g. loaded file. Last item removed stops the animation and hides the indicator.
@@ -80,10 +85,10 @@ export class LoadProgressIndicator {
   remove(item) {
     this.currentItem++;
     this._update();
-    this.log("Finished "+this.currentItem+"/"+this.totalItems);
-    if ( this.totalItems <= this.currentItem && this.mesh ) {
+    this.log("Finished " + this.currentItem + "/" + this.totalItems);
+    if (this.totalItems <= this.currentItem && this.mesh) {
       this.mesh.setEnabled(false);
-      if ( this.animation ) {
+      if (this.animation) {
         this.scene.unregisterBeforeRender(this.animation);
         delete this.animation;
       }
@@ -94,7 +99,7 @@ export class LoadProgressIndicator {
   animate() {
     this.trackItems = false;
     this.animation = () => { this._update() };
-    this.scene.registerBeforeRender( this.animation );
+    this.scene.registerBeforeRender(this.animation);
   }
   /** 
   Call on load progress event.
@@ -102,34 +107,41 @@ export class LoadProgressIndicator {
   @param item related item, not used, subclasses may use it
   */
   progress(evt, item) {
-    if ( evt ) {
+    if (evt) {
       this.trackItems = false;
       if (evt.lengthComputable) {
         var loaded = evt.loaded / evt.total;
-        this.log("Loaded "+(loaded*100)+"%");
-        if ( this.mesh && this.zeroRotation ) {
+        this.log("Loaded " + (loaded * 100) + "%");
+        if (this.mesh && this.zeroRotation) {
           this.angle += 0.01;
-          this.mesh.rotationQuaternion = this.zeroRotation.multiply( new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,this.angle) );
+          this.mesh.rotationQuaternion = this.zeroRotation.multiply(new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, this.angle));
         }
       } else {
         var dlCount = evt.loaded / (1024 * 1024);
-        this.log("Loaded "+dlCount+" MB" );
-      }      
+        this.log("Loaded " + dlCount + " MB");
+      }
     }
   }
   _update() {
-    if ( this.mesh && this.zeroRotation ) {
-      if ( this.trackItems ) {
-        this.angle = Math.PI*(1+this.currentItem/this.totalItems);
+    if (this.mesh && this.zeroRotation) {
+      this._setPosition();
+      if (this.trackItems) {
+        this.angle = Math.PI * (1 + this.currentItem / this.totalItems);
       } else {
         this.angle += 0.01;
       }
-      this.mesh.rotationQuaternion = this.zeroRotation.multiply( new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,this.angle) );
+      this.mesh.rotationQuaternion = this.zeroRotation.multiply(new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, this.angle));
     }
   }
   log(something) {
-    if ( this.debug ) {
+    if (this.debug) {
       console.log(something);
+    }
+  }
+  dispose() {
+    if (this.mesh) {
+      this.mesh.dispose();
+      this.mesh = null;
     }
   }
 }

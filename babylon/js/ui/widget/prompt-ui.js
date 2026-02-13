@@ -101,6 +101,7 @@ export class PromptUI extends ChatLog {
   close() {
     VRSPACEUI.hud.markEnabled(PromptUI.button);
     this.dispose();
+    this.indicator.dispose();
     PromptUI.instance = null;
   }
 
@@ -113,6 +114,7 @@ export class PromptUI extends ChatLog {
       PromptUI.instance.show();
       VRSPACEUI.hud.markActive(PromptUI.button);
     } else if (VRSPACEUI.hud.isActive(PromptUI.button)) {
+      // CHECKME maybe just minimize it instead?
       PromptUI.instance.close();
     }
   }
