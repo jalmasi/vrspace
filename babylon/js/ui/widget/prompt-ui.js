@@ -31,6 +31,7 @@ export class PromptUI extends ChatLog {
       endpoint: q => VRSpaceAPI.getInstance().endpoint.agents.sceneAgent(q)
     }
   }
+  
   static async agentsEnabled() {
     if (PromptUI.available == null) {
       PromptUI.available = await VRSpaceAPI.getInstance().endpoint.agents.agentsEnabled();
@@ -49,6 +50,7 @@ export class PromptUI extends ChatLog {
     this.input.virtualKeyboardEnabled = this.world.inXR();
     this.autoHide = false;
     this.canClose = true;
+    this.showLinks = false;
     this.onClose = () => this.close();
     this.indicator = new LoadProgressIndicator(this.scene);
     this.indicator.position = new BABYLON.Vector3(0, 0, 0);

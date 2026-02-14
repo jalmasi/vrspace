@@ -162,7 +162,7 @@ public class OllamaConnector {
       @ToolParam(description = "Maximum model size, in megabytes") Integer maxSize,
       @ToolParam(description = "Request only animated models") Boolean animated,
       @ToolParam(description = "Request only rigged models") Boolean rigged,
-      @ToolParam(description = "Maximum number of results, default 24") Integer maxResults) {
+      @ToolParam(description = "Maximum number of results") Integer maxResults) {
     log
         .info("SearchAgent search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults + " animated: " + animated
             + " rigged: " + rigged);
@@ -215,6 +215,8 @@ public class OllamaConnector {
           // CHECKME: does adding tags/categories make sense?
           if (response.getNext() == null) {
             break;
+          } else {
+            req.setCursor(Integer.parseInt(response.getCursors().getNext()));
           }
         }
         totalResults += results;
