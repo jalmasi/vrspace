@@ -41,9 +41,10 @@ public class SearchAgent {
           Search sketchfab using up to 3 best keywords from the user query. Use singular rather than plural.
           Analyze the description of each model found, and return UID for each model that match the user query.
       """);
-  private Pattern answerPattern = Pattern.compile("(.*)\\n");
-  private Pattern answerCleanup = Pattern.compile("[^\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s]|\\n");
   private Pattern uidPattern = Pattern.compile("([a-zA-Z0-9]{32})");
+  private Pattern lineCleanup = Pattern.compile("(?m)^.*([a-zA-Z0-9]{32}).*|^\\p{IsDigit}+\\..*|^.*Description:.*");
+  private Pattern answerCleanup = Pattern.compile("[^\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s]|\\*|#|-");
+  private Pattern whitespaceCleanup = Pattern.compile("\\s+");
 
   @Data
   @NoArgsConstructor
@@ -99,10 +100,15 @@ public class SearchAgent {
       ret.success = true;
       ret.answer = answer;
       if (ret.models.size() > 0) {
+        /*
         Matcher answerMatcher = answerPattern.matcher(answer);
         if (answerMatcher.find()) {
           ret.answer = answerCleanup.matcher(answerMatcher.group()).replaceAll("");
         }
+        */
+        ret.answer = whitespaceCleanup
+            .matcher(answerCleanup.matcher(lineCleanup.matcher(answer).replaceAll("")).replaceAll(""))
+            .replaceAll(" ");
       }
     } catch (Exception e) {
       log.error("Failed to process query " + query, e);
