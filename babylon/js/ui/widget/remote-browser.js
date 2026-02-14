@@ -21,6 +21,7 @@ export class RemoteBrowser extends ImageArea {
     return VRSPACEUI.contentBase+"/vrspace/api/webbrowser"
   }
   async available() {
+    // TODO REST API
     let response = await fetch(this.endpoint()+"/available")
     let result = await response.json();
     return "true" === result;

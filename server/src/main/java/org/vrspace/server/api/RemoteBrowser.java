@@ -32,9 +32,8 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Remote browser support. Receives basic commands, forwards them to the
- * headless browser, creates and returns the screenshot. Screenshots are
- * rendered in 2048x1024 resolution, supposedly optimal to be used as textures.
+ * Remote browser support. Receives basic commands, forwards them to the headless browser, creates and returns the screenshot.
+ * Screenshots are rendered in 2048x1024 resolution, supposedly optimal to be used as textures.
  * 
  * @author joe
  *
@@ -56,7 +55,7 @@ public class RemoteBrowser extends ApiBase {
    * @return true if remote browsing is available
    */
   @GetMapping("/available")
-  public boolean available(HttpSession session) {
+  public boolean browserAvailable(HttpSession session) {
     return config.isSeleniumEnabled();
   }
 
@@ -82,8 +81,7 @@ public class RemoteBrowser extends ApiBase {
   }
 
   /**
-   * Click on a pixel on the screen. This may do nothing or anything, including
-   * opening a new tab.
+   * Click on a pixel on the screen. This may do nothing or anything, including opening a new tab.
    * 
    * @param x       position from left
    * @param y       position from top
@@ -172,8 +170,7 @@ public class RemoteBrowser extends ApiBase {
   }
 
   /**
-   * Close the browser window/tab. Returns to previous tab if any, or returns no
-   * content (http 204 status).
+   * Close the browser window/tab. Returns to previous tab if any, or returns no content (http 204 status).
    * 
    * @param session provided by spring
    * @return screenshot, may be empty if the browser was closed.
@@ -275,8 +272,9 @@ public class RemoteBrowser extends ApiBase {
     synchronized (webSession) {
       JavascriptExecutor jse = (JavascriptExecutor) webSession.webDriver;
 
-      WebElement inputElement = (WebElement) jse.executeScript(
-          "return document.elementFromPoint(arguments[0], arguments[1])", webSession.status().x, webSession.status().y);
+      WebElement inputElement = (WebElement) jse
+          .executeScript("return document.elementFromPoint(arguments[0], arguments[1])", webSession.status().x,
+              webSession.status().y);
       inputElement.sendKeys(text);
       inputElement.submit();
       return new ResponseEntity<>(screenshot(webSession.webDriver), makeHeaders(webSession), HttpStatus.OK);
