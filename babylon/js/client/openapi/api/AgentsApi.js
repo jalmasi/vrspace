@@ -36,6 +36,43 @@ export class AgentsApi {
 
 
     /**
+     * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Boolean} and HTTP response
+     */
+    agentsEnabledWithHttpInfo() {
+      let postBody = null;
+
+      let pathParams = {
+      };
+      let queryParams = {
+      };
+      let headerParams = {
+      };
+      let formParams = {
+      };
+
+      let authNames = [];
+      let contentTypes = [];
+      let accepts = ['*/*'];
+      let returnType = 'Boolean';
+      return this.apiClient.callApi(
+        '/vrspace/api/agents/enabled', 'GET',
+        pathParams, queryParams, headerParams, formParams, postBody,
+        authNames, contentTypes, accepts, returnType, null
+      );
+    }
+
+    /**
+     * @return {Promise< Boolean >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Boolean}
+     */
+    agentsEnabled() {
+      return this.agentsEnabledWithHttpInfo()
+        .then(function(response_and_data) {
+          return response_and_data.data;
+        });
+    }
+
+
+    /**
      * @param {String} body 
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */

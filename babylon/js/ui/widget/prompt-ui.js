@@ -11,27 +11,33 @@ export class PromptUI extends ChatLog {
   /**
    * @type {PromptUI}
    */
-  static intance = null;
+  static instance = null;
   static callback = null;
   static button = null;
-  static agent='sceneAgent';
+  static agent = 'sceneAgent';
   /** Becomes true or false after server info API call */
-  static available=null;
-  static agents={
-    searchAgent:{
-      title:"Search Prompt",
+  static available = null;
+  static agents = {
+    searchAgent: {
+      title: "Search Prompt",
       name: "Search Prompt",
-      inputName :"Query",
-      endpoint:q=>VRSpaceAPI.getInstance().endpoint.agents.searchAgent(q)
+      inputName: "Query",
+      endpoint: q => VRSpaceAPI.getInstance().endpoint.agents.searchAgent(q)
     },
-    sceneAgent:{
-      title:"Scene Prompt",
+    sceneAgent: {
+      title: "Scene Prompt",
       name: "Scene Prompt",
-      inputName :"Query",
-      endpoint:q=>VRSpaceAPI.getInstance().endpoint.agents.sceneAgent(q)
+      inputName: "Query",
+      endpoint: q => VRSpaceAPI.getInstance().endpoint.agents.sceneAgent(q)
     }
   }
-  
+  static async agentsEnabled() {
+    if (PromptUI.available == null) {
+      PromptUI.available = await VRSpaceAPI.getInstance().endpoint.agents.agentsEnabled();
+    }
+    return PromptUI.available;
+  }
+
   constructor(world, agent) {
     super(world.scene, PromptUI.agents[agent].title, PromptUI.agents[agent].name, PromptUI.agents[agent].inputName);
     this.world = world;
@@ -45,17 +51,17 @@ export class PromptUI extends ChatLog {
     this.canClose = true;
     this.onClose = () => this.close();
     this.indicator = new LoadProgressIndicator(this.scene);
-    this.indicator.position = new BABYLON.Vector3(0,0,0);
-    this.indicator.xrPosition = new BABYLON.Vector3(0,0,0);
+    this.indicator.position = new BABYLON.Vector3(0, 0, 0);
+    this.indicator.xrPosition = new BABYLON.Vector3(0, 0, 0);
   }
 
   createHandles() {
     super.createHandles();
     this.handles.dontMinimize.push(this.indicator.mesh);
   }
-  
-  static getInstance(world, agent=PromptUI.agent, callback, button) {
-    PromptUI.agent=agent;
+
+  static getInstance(world, agent = PromptUI.agent, callback, button) {
+    PromptUI.agent = agent;
     if (PromptUI.instance == null) {
       PromptUI.instance = new PromptUI(world, agent)
     } else {
@@ -81,7 +87,7 @@ export class PromptUI extends ChatLog {
       this.input.setEnabled(false);
       this.indicator.add("prompt");
       this.indicator.animate();
-      this.indicator.mesh.parent = this.areaPlane; 
+      this.indicator.mesh.parent = this.areaPlane;
 
       PromptUI.agents[PromptUI.agent].endpoint(text).then(response => {
         console.log(response);
@@ -121,7 +127,7 @@ export class PromptUI extends ChatLog {
 
   static async updateButton(button) {
     if (button) {
-      if (PromptUI.available == null ) {
+      if (PromptUI.available == null) {
         let capabilities = await VRSpaceAPI.getInstance().endpoint.server.getServerCapabilities();
         if (capabilities.aiAgents) {
           PromptUI.available = true;
@@ -137,7 +143,7 @@ export class PromptUI extends ChatLog {
       if (PromptUI.button == null || PromptUI.button != button) {
         button.onPointerDownObservable.add(() => PromptUI.showOrHide());
         button.originalDispose = button.dispose;
-        button.dispose=()=>{
+        button.dispose = () => {
           button.originalDispose();
           PromptUI.instance.hide(true);
         }

@@ -28,7 +28,6 @@ export class CreateWorldOptions {
         
         
         /** worldName 
-         * World name of created world, must be unique, required
          * @type {String} 
          */
         this.worldName = undefined;

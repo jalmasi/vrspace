@@ -7,6 +7,7 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +43,11 @@ public class Agents extends ClientControllerBase {
   private SearchAgent searchAgent;
   @Autowired(required = false)
   private SceneAgent sceneAgent;
+
+  @GetMapping("/enabled")
+  public boolean agentsEnabled() {
+    return searchAgent != null && sceneAgent != null;
+  }
 
   /**
    * Sketchfab search agent.

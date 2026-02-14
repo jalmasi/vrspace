@@ -21,7 +21,7 @@ import {ApiClient} from '../ApiClient.js';
 export class Quaternion {
     /**
      * Constructs a new <code>Quaternion</code>.
-     * Easier than Rotation to propagate quaternions, as it follows quaternion   naming convention (w rather than angle).
+     * Easier than Rotation to propagate quaternions, as it follows quaternion  naming convention (w rather than angle).
      * @alias Quaternion
      */
     constructor() { 

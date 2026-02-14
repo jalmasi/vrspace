@@ -10,6 +10,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.vrspace.server.config.OllamaConfig;
 import org.vrspace.server.connect.OllamaConnector;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 @ConditionalOnBean(OllamaConfig.class)
+@ConditionalOnProperty(name = "org.vrspace.ollama.agents", havingValue = "true")
 public class SceneAgent {
   @Autowired
   private OllamaConnector ollama;

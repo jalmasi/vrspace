@@ -23,7 +23,7 @@ import { VRObject } from './VRObject.js';
 export class WelcomeWelcome {
     /**
      * Constructs a new <code>WelcomeWelcome</code>.
-     * Welcome message is first one sent once the client enters a world. Contains   current Client object, used by the client to identify itself. Optionally it   also contains list of permanent objects.
+     * Welcome message is first one sent once the client enters a world. Contains  current Client object, used by the client to identify itself. Optionally it  also contains list of permanent objects.
      * @alias WelcomeWelcome
      */
     constructor() { 

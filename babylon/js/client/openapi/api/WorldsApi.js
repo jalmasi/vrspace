@@ -40,7 +40,7 @@ export class WorldsApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already exists, owner may change isPublic or   isTemporary parameters. Returns HTTP 201 CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already exists, owner may change isPublic or  isTemporary parameters. Returns HTTP 201 CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
@@ -73,7 +73,7 @@ export class WorldsApi {
 
     /**
      * Create a private world, the user must be authenticated.
-     * Create a private world, the user must be authenticated. If the world already exists, owner may change isPublic or   isTemporary parameters. Returns HTTP 201 CREATED for created world, or HTTP 200 OK if world already exists.
+     * Create a private world, the user must be authenticated. If the world already exists, owner may change isPublic or  isTemporary parameters. Returns HTTP 201 CREATED for created world, or HTTP 200 OK if world already exists.
      * @param {CreateWorldOptions} createWorldOptions world options
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
@@ -142,7 +142,7 @@ export class WorldsApi {
 
     /**
      * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand.
-     * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand. Some   temporary worlds may be existing at the moment, these have id, while non-existing ones do not.
+     * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand. Some  temporary worlds may be existing at the moment, these have id, while non-existing ones do not.
      * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<World>} and HTTP response
      */
     listAvailableWithHttpInfo() {
@@ -170,7 +170,7 @@ export class WorldsApi {
 
     /**
      * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand.
-     * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand. Some   temporary worlds may be existing at the moment, these have id, while non-existing ones do not.
+     * List worlds available on the server, ones found in the content/worlds directory, that can be created on demand. Some  temporary worlds may be existing at the moment, these have id, while non-existing ones do not.
      * @return {Promise< Array.<World> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<World>}
      */
     listAvailable() {
@@ -224,7 +224,7 @@ export class WorldsApi {
 
     /**
      * List worlds, and number users/clients currently in them.
-     * List worlds, and number users/clients currently in them. Number of clients includes bots etc, totals include disconnected   clients that are still in the world.
+     * List worlds, and number users/clients currently in them. Number of clients includes bots etc, totals include disconnected  clients that are still in the world.
      * @return {Promise< Array.<WorldStatus> >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link Array.<WorldStatus>} and HTTP response
      */
     usersWithHttpInfo() {
@@ -252,7 +252,7 @@ export class WorldsApi {
 
     /**
      * List worlds, and number users/clients currently in them.
-     * List worlds, and number users/clients currently in them. Number of clients includes bots etc, totals include disconnected   clients that are still in the world.
+     * List worlds, and number users/clients currently in them. Number of clients includes bots etc, totals include disconnected  clients that are still in the world.
      * @return {Promise< Array.<WorldStatus> >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link Array.<WorldStatus>}
      */
     users() {
