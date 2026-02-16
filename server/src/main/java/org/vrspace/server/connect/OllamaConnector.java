@@ -47,6 +47,7 @@ public class OllamaConnector {
   private OllamaChatModel toolsChatModel;
 
   private PausableThreadPoolExecutor imageProcessing = PausableThreadPoolExecutor.newSingleThreadExecutor();
+  private PausableThreadPoolExecutor vectorSaving = PausableThreadPoolExecutor.newSingleThreadExecutor();
 
   private boolean shouldPause = true;
 
@@ -89,7 +90,8 @@ public class OllamaConnector {
 
   /**
    * Passed as a post-processing function to sketchfab connector search. Adds a task to image processing executor that processes
-   * the image with vision model, and saves generated description of the model to the object and vector databases.
+   * the image with vision model, and asynchronously saves generated description of the model to the object and vector
+   * databases.
    */
   public void updateDescriptionFromThumbnail(GltfModel model) {
     imageProcessing.execute(() -> {
@@ -106,27 +108,32 @@ public class OllamaConnector {
         if (description == null) {
           log.error("Failed " + model);
           model.setFailed(true);
+          db.save(model);
         } else {
           model.setDescription(description);
           model.setProcessed(true);
-        }
-        if (!imageProcessing.isShutdown()) {
-          // if it's shut down already this only produces error
-          long time1 = System.currentTimeMillis();
           db.save(model);
-          time1 = System.currentTimeMillis() - time1;
-          Map<String, Object> metadata = Map.of("id", model.getId());
-          Document doc = new Document(description, metadata); // TODO metadata
-          long time2 = System.currentTimeMillis();
-          store.add(List.of(doc));
-          time2 = System.currentTimeMillis() - time2;
-          log.debug("Model stored in " + time1 + "+" + time2 + " ms");
+          vectorSaving.execute(() -> {
+            save(model);
+          });
         }
       } catch (Exception e) {
         log.warn("Processing failed " + e);
       }
     });
+  }
 
+  private void save(GltfModel model) {
+    if (!imageProcessing.isShutdown()) {
+      // if it's shut down already this only produces error
+      try {
+        Map<String, Object> metadata = Map.of("id", model.getId());
+        Document doc = new Document(trimDescription(model.getDescription()), metadata);
+        store.add(List.of(doc));
+      } catch (Exception e) {
+        log.warn("Vector document saving failed ", e);
+      }
+    }
   }
 
   /**
@@ -173,6 +180,7 @@ public class OllamaConnector {
   public void stopImageProcessing() {
     if (shouldPause) {
       imageProcessing.pause();
+      vectorSaving.pause();
       log.debug("Image processing paused");
     }
   }
@@ -182,6 +190,7 @@ public class OllamaConnector {
    */
   public void startImageProcessing() {
     if (shouldPause) {
+      vectorSaving.resume();
       imageProcessing.resume();
       log.debug("Image processing resumed");
     }
@@ -190,6 +199,7 @@ public class OllamaConnector {
   @PreDestroy
   public void shutdown() {
     imageProcessing.shutdownNow();
+    vectorSaving.shutdownNow();
   }
 
   @Tool(description = "Sketchfab 3D model search web API")
