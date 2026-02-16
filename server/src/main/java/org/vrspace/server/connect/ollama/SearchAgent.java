@@ -38,11 +38,13 @@ public class SearchAgent {
 
   private SystemMessage systemMessage = new SystemMessage("""
           You are a search engine for 3D models.
-          Search sketchfab using up to 3 best keywords from the user query. Use singular rather than plural.
+          Search local vector database for known models.
+          Search for more models on sketchfab, using up to 3 best keywords from the user query. Use singular rather than plural.
           Analyze the description of each model found, and return UID for each model that match the user query.
       """);
   private Pattern uidPattern = Pattern.compile("([a-zA-Z0-9]{32})");
-  private Pattern lineCleanup = Pattern.compile("(?m)^.*([a-zA-Z0-9]{32}).*|^\\p{IsDigit}+\\..*|^.*Description:.*");
+  private Pattern lineCleanup = Pattern
+      .compile("(?m)^.*([a-zA-Z0-9]{32}).*|^\\p{IsDigit}+\\..*|^.*Description:.*^.*Link:.*|^.#.*|^- .*");
   private Pattern answerCleanup = Pattern.compile("[^\\p{Punct}\\p{IsAlphabetic}\\p{IsDigit}\\s]|\\*|#|-");
   private Pattern whitespaceCleanup = Pattern.compile("\\s+");
 
@@ -71,8 +73,7 @@ public class SearchAgent {
       Prompt prompt = Prompt
           .builder()
           .messages(memory.get(conversationId))
-          .chatOptions(
-              OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(ollama)).toolNames("sketchfabSearch").build())
+          .chatOptions(OllamaChatOptions.builder().toolCallbacks(ToolCallbacks.from(ollama)).build())
           .build();
       ChatResponse response = ollama.toolsModel().call(prompt);
       time = System.currentTimeMillis() - time;

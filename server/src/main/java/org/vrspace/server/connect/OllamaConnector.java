@@ -12,6 +12,7 @@ import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -128,7 +129,7 @@ public class OllamaConnector {
       // if it's shut down already this only produces error
       try {
         Map<String, Object> metadata = Map.of("id", model.getId());
-        Document doc = new Document(trimDescription(model.getDescription()), metadata);
+        Document doc = new Document(model.getId(), trimDescription(model.getDescription()), metadata);
         store.add(List.of(doc));
       } catch (Exception e) {
         log.warn("Vector document saving failed ", e);
@@ -210,7 +211,7 @@ public class OllamaConnector {
       @ToolParam(description = "Request only rigged models") Boolean rigged,
       @ToolParam(description = "Maximum number of results") Integer maxResults) {
     log
-        .info("SearchAgent search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults + " animated: " + animated
+        .info("Sketchfab search: " + keywords + " maxSize=" + maxSize + " maxResults=" + maxResults + " animated: " + animated
             + " rigged: " + rigged);
     if (sketchfab == null) {
       return "Sketchfab unavailable";
@@ -223,13 +224,7 @@ public class OllamaConnector {
       for (String keyword : keywordList) {
         ModelSearchRequest req = new ModelSearchRequest();
         req.setQ(keyword);
-        if (maxSize != null) {
-          while (maxSize > 1000) {
-            log.warn("maxSize=" + maxSize + ", fixing");
-            maxSize = maxSize / 1000;
-          }
-          req.setArchives_max_size(maxSize * 1024 * 1024);
-        }
+        req.setArchives_max_size(fixSize(maxSize));
         if (maxResults == null) {
           maxResults = 24;
         } else {
@@ -276,7 +271,53 @@ public class OllamaConnector {
     }
     String models = ret.toString();
     // log.debug("Models found: " + models);
-    log.debug("Text size: " + models.length());
+    log.debug("Sketchfab text size: " + models.length());
+    return models;
+  }
+
+  @Tool(description = "Search local vector database for known 3D models")
+  public String localSearch(
+      @ToolParam(description = "Search query") String query,
+      @ToolParam(description = "Maximum model size, in megabytes") Integer maxSize,
+      @ToolParam(description = "Request only animated models") Boolean animated,
+      @ToolParam(description = "Request only rigged models") Boolean rigged,
+      @ToolParam(description = "Maximum number of results") Integer maxResults) {
+    log
+        .info("Local search: " + query + " maxSize=" + maxSize + " maxResults=" + maxResults + " animated: " + animated
+            + " rigged: " + rigged);
+    maxSize = fixSize(maxSize);
+    StringBuilder ret = new StringBuilder();
+    SearchRequest request = SearchRequest.builder().query(query).topK(maxResults).build();
+    List<Document> docs = store.similaritySearch(request);
+    int totalResults = 0;
+    for (Document doc : docs) {
+      GltfModel model = db.get(GltfModel.class, doc.getId());
+      if (maxSize != null && maxSize < model.getLength()) {
+        continue;
+      }
+      if (animated != null && animated && (model.getAnimated() == null || !model.getAnimated())) {
+        // CHECKME: false?
+        continue;
+      }
+      if (rigged != null && rigged && (model.getRigged() == null || !model.getRigged())) {
+        // CHECKME: false?
+        continue;
+      }
+      ret.append("UID: ");
+      ret.append(model.getUid());
+      ret.append(" Author: ");
+      ret.append(model.getAuthor());
+      ret.append(" Description: ");
+      ret.append(trimDescription(model.getDescription()));
+      ret.append("\n");
+      totalResults++;
+    }
+    if (totalResults == 0) {
+      ret.append("no models found that match all criteria");
+    }
+    String models = ret.toString();
+    // log.debug("Models found: " + models);
+    log.debug("Local text size: " + models.length());
     return models;
   }
 
@@ -292,4 +333,14 @@ public class OllamaConnector {
     return description;
   }
 
+  private Integer fixSize(Integer maxSize) {
+    if (maxSize != null) {
+      while (maxSize > 1000) {
+        log.warn("maxSize=" + maxSize + ", fixing");
+        maxSize = maxSize / 1000;
+      }
+      return maxSize * 1024 * 1024;
+    }
+    return null;
+  }
 }
