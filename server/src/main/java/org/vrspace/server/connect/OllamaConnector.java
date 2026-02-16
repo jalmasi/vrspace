@@ -1,14 +1,18 @@
 package org.vrspace.server.connect;
 
 import java.net.MalformedURLException;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.content.Media;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.io.UrlResource;
@@ -35,6 +39,8 @@ public class OllamaConnector {
   private VRObjectRepository db;
   @Autowired(required = false)
   private SketchfabConnector sketchfab;
+  @Autowired
+  private VectorStore store;
 
   private OllamaChatModel visionChatModel;
 
@@ -44,6 +50,12 @@ public class OllamaConnector {
 
   private boolean shouldPause = true;
 
+  /**
+   * Describe the image: issue API call to Ollama vision model, and post-process the image.
+   * 
+   * @param url image URL
+   * @return generated and post-processed description
+   */
   public String describeImage(String url) {
     UserMessage userMessage;
     try {
@@ -75,6 +87,10 @@ public class OllamaConnector {
     return updatedDescription;
   }
 
+  /**
+   * Passed as a post-processing function to sketchfab connector search. Adds a task to image processing executor that processes
+   * the image with vision model, and saves generated description of the model to the object and vector databases.
+   */
   public void updateDescriptionFromThumbnail(GltfModel model) {
     imageProcessing.execute(() -> {
       if (model.getProcessed() != null && model.getProcessed()) {
@@ -96,7 +112,15 @@ public class OllamaConnector {
         }
         if (!imageProcessing.isShutdown()) {
           // if it's shut down already this only produces error
+          long time1 = System.currentTimeMillis();
           db.save(model);
+          time1 = System.currentTimeMillis() - time1;
+          Map<String, Object> metadata = Map.of("id", model.getId());
+          Document doc = new Document(description, metadata); // TODO metadata
+          long time2 = System.currentTimeMillis();
+          store.add(List.of(doc));
+          time2 = System.currentTimeMillis() - time2;
+          log.debug("Model stored in " + time1 + "+" + time2 + " ms");
         }
       } catch (Exception e) {
         log.warn("Processing failed " + e);
@@ -105,6 +129,9 @@ public class OllamaConnector {
 
   }
 
+  /**
+   * Returns configured vision model.
+   */
   public OllamaChatModel visionModel() {
     if (visionChatModel == null) {
       visionChatModel = OllamaChatModel
@@ -121,6 +148,9 @@ public class OllamaConnector {
     return visionChatModel;
   }
 
+  /**
+   * Returns configured tools model.
+   */
   public OllamaChatModel toolsModel() {
     if (toolsChatModel == null) {
       toolsChatModel = OllamaChatModel
@@ -137,6 +167,9 @@ public class OllamaConnector {
     return toolsChatModel;
   }
 
+  /**
+   * Stop image processing to speed up general chat.
+   */
   public void stopImageProcessing() {
     if (shouldPause) {
       imageProcessing.pause();
@@ -144,6 +177,9 @@ public class OllamaConnector {
     }
   }
 
+  /**
+   * (Re)start stopped image processing.
+   */
   public void startImageProcessing() {
     if (shouldPause) {
       imageProcessing.resume();

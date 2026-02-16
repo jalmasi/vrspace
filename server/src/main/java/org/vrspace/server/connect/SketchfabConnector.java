@@ -44,6 +44,18 @@ public class SketchfabConnector {
       .compile("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)");
   private Pattern descriptionCleanup = Pattern.compile("\\s+|\\r?\\n");
 
+  /**
+   * Issue sketchfab API search request, then process and return results. Creates new GltfModel if it does not exist, and stores
+   * it to the local database. If it does exist, returns that description instead of sketchfab description. Because sketchfab
+   * descriptions rarely describe the model, and Ollama generated the model description from the screenshot. Before returning,
+   * passes the GltfModel to postProcess function.
+   * 
+   * @param params      Search request with keywords and other search parameters.
+   * @param postProcess Optional function performing image post-processing, i.e. generates model description with Ollama.
+   * @return sketchfab search results enriched
+   * @throws IOException          on network error
+   * @throws InterruptedException on shutdown
+   */
   public ModelSearchResponse searchModels(ModelSearchRequest params, Consumer<GltfModel> postProcess)
       throws IOException, InterruptedException {
     log.debug("Search: " + params.getQ());

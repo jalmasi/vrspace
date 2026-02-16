@@ -30,9 +30,10 @@ public class WorldConfig {
   @NoArgsConstructor
   public static class WorldProperties {
     /**
-     * Name of the world class, that extends World and implements custom enter() and exit()
+     * Name of the world class, that extends World and implements custom enter() and exit(). Defaults to
+     * org.vrspace.server.obj.World.
      */
-    private String type;
+    private String type = "org.vrspace.server.obj.World";
     /** Unique world name */
     private String name;
     private String url;
