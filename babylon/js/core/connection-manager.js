@@ -75,7 +75,7 @@ export class ConnectionManager {
               // connection lost, reconnect in progress
               console.log("Reconnecting, user was authenticated: " + this.worldManager.authenticated);
             } else {
-              console.log("connection lost and NOT reconnecting - return to login screen");
+              console.error("connection lost and NOT reconnecting - return to login screen");
               this.closeProgress();
               window.location.reload();
             }

@@ -65,7 +65,11 @@ export class WorldPersistence {
         reader.onload = async e => {
           const scene = JSON.parse(e.target.result);
           console.log("Loaded scene", scene);
-          await this.publish(scene);
+          try {
+            await this.publish(scene);
+          } catch (exception) {
+            console.error("Failed to publish scene", exception);
+          }
           VRSPACEUI.progressEnd("loadFile");
         }
         reader.readAsText(selectedFile);

@@ -650,8 +650,8 @@ export class VRSpace {
     this.welcomeListeners = [];
     this.errorListeners = [];
     this.groupListeners = [];
-    /** Listener to response to a command. */
-    this.responseListener = null;
+    /** Listeners to responses to commands, processed one at a time. */
+    this.responseListeners = [];
     this.sharedClasses = { ID, Rotation, Point, VRObject, SceneProperties, Client, User, RemoteServer, VREvent, SceneEvent, EventRecorder, Bot, BotLibre, OllamaBot, Terrain, VRFile, Game, Background };
     //this.pingTimerId = 0;
     // exposing each class
@@ -1240,12 +1240,15 @@ export class VRSpace {
   }
   
   /**
-  Perform a synchronous call.
+  Perform a synchronous call, used internally by callCommand etc.
+  Enqueues callback, and executes it when the response to command arrives.
+  Successful call chaining depends on server executing them sequentially.
+  REST API calls are better option for synchronous calls.
   @param {string} message JSON string to send
   @param {*} callback function to execute upon receiving the response
    */
-  call( message, callback ) {
-    this.responseListener = callback;
+  async call( message, callback ) {
+    this.responseListeners.push(callback);
     this.send(message);
   }
   
@@ -1413,9 +1416,9 @@ export class VRSpace {
    */
   handleResponse(response){
     this.log("Response to command");
-    if ( typeof this.responseListener === 'function') {
-      var callback = this.responseListener;
-      this.responseListener = null;
+    if ( this.responseListeners.length > 0 ) {
+      let callback = this.responseListeners.shift();
+      // CHECKME: try/catch?
       callback(response);
     }
   }
