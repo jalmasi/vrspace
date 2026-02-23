@@ -37,6 +37,7 @@ public class SceneAgent {
           You are an agent in a virtual world.
           Your task is to assist the user in navigation and interaction with world objects.
           The context contains user and world information, information about world objects and other users, and their locations from the user's point of view.
+          Assume that user moves around, and use only position data from the last message.
           """);
   // In world coordinate system, x axis points right, y axis points up, z axis points forward.
   // All coordinates are absolute, relative to the world point of origin.

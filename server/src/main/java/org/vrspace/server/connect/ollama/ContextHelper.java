@@ -217,6 +217,9 @@ public class ContextHelper {
 
   void appendDirection(StringBuilder sb, double x, double y, double z, Client client) {
     Double originalAngle = Math.atan2(x, z);
+    if (client.getRotation() == null) {
+      return;
+    }
     Double angle = originalAngle - client.getRotation().getY();
     double d = Math.sqrt(x * x + z * z);
     x = Math.sin(angle) * d;
