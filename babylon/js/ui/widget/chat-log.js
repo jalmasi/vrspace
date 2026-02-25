@@ -261,7 +261,7 @@ export class ChatLog extends TextArea {
    * @param {boolean} local FIXME not used  
    */
   log( who, what, link, local ) {
-    this.input.write(what,who);
+    this.input.write(what,who,false);
     if ( link ) {
       // FIXME: called from ListGroupsForm, twice
       // CHECKME: where this metadata idea comes from?
