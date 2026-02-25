@@ -45,7 +45,7 @@ public class Agents extends ClientControllerBase {
   @Autowired(required = false)
   private SceneAgent sceneAgent;
 
-  @GetMapping("/agentsEnabled")
+  @GetMapping("/enabled")
   public boolean agentsEnabled() {
     return searchAgent != null && sceneAgent != null;
   }
