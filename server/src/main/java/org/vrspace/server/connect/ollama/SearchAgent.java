@@ -26,6 +26,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Search agent can query local database or Sketchfab, using tools provided by OllamaConnector. Model UUIDs are extracted from
+ * the answer, models looked up in the local database, answer sanitized and formatted.
+ * 
+ * @author joe
+ *
+ */
 @Component
 @Slf4j
 @ConditionalOnBean(OllamaConfig.class)

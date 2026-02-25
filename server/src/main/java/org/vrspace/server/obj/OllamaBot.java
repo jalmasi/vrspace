@@ -35,6 +35,12 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+/**
+ * LLM Chatbot powered by Ollama. They can chat, move, and perform gestures.
+ * 
+ * @author joe
+ *
+ */
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)

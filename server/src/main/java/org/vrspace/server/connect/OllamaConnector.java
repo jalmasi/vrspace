@@ -30,6 +30,15 @@ import org.vrspace.server.obj.GltfModel;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Component that connects to Ollama, and provides services and tools to agents, bots, and other components. It can generate
+ * image description from the image of a 3D model, and store it to local vector database for later search. Image processing is
+ * done asynchronously, one by one, and optionally paused during search, to keep down resource consumption. Models used for
+ * images and tool calls (search) are configured in properties file, and can be different, or the same one.
+ * 
+ * @author joe
+ *
+ */
 @Component
 @Slf4j
 @ConditionalOnBean(OllamaConfig.class)

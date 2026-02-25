@@ -19,6 +19,13 @@ import org.vrspace.server.obj.Client;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Scene agent has access to the scene of the client. Uses ContextHelper to build the description of the visible part of the
+ * world, and uses it as the context to answer the user query.
+ * 
+ * @author joe
+ *
+ */
 @Component
 @Slf4j
 @ConditionalOnBean(OllamaConfig.class)

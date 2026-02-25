@@ -22,7 +22,8 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Communicate with AI agents in virtual worlds. Only available to clients in a world.
+ * Communicate with AI agents in virtual worlds. Only available to clients in a world. Each agent has own chat memory, but that
+ * may change (conversation context may eventually be passed between agents).
  * 
  * @author joe
  *
@@ -44,13 +45,14 @@ public class Agents extends ClientControllerBase {
   @Autowired(required = false)
   private SceneAgent sceneAgent;
 
-  @GetMapping("/enabled")
+  @GetMapping("/agentsEnabled")
   public boolean agentsEnabled() {
     return searchAgent != null && sceneAgent != null;
   }
 
   /**
-   * Sketchfab search agent.
+   * Semantic and contextual search agent. It can search Sketchfab, or local database, for models that user described. Chat
+   * memory is bound to the client session, and number of messages memorized is configured on the server.
    * 
    * @param query
    */
@@ -66,6 +68,14 @@ public class Agents extends ClientControllerBase {
     return ResponseEntity.ok(searchAgent.query(query, memory, session.getId()));
   }
 
+  /**
+   * Scene agent has access to the scene of the client, so it can answer user queries from the same point of view. Builds the
+   * description of the visible part of the world, and uses it as the context to answer the user query (e.g. what is this, where
+   * is that). Chat memory is bound to the client session, and number of messages memorized is configured on the server.
+   * 
+   * @param query Question related to the scene.
+   * @return the answer given by the agent
+   */
   @PostMapping("/scene")
   public ResponseEntity<String> sceneAgent(HttpSession session, @RequestBody String query) {
     if (sceneAgent == null) {

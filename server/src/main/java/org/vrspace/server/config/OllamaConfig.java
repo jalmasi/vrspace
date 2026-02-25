@@ -9,15 +9,24 @@ import org.springframework.context.annotation.Configuration;
 
 import lombok.Data;
 
+/**
+ * Ollama configuration, loaded from properties file. Available only if org.vrspace.ollama.enabled is true.
+ * 
+ * @author joe
+ *
+ */
 @ConditionalOnProperty(name = "org.vrspace.ollama.enabled", havingValue = "true")
 @Data
 @Configuration
 public class OllamaConfig {
+  /** Defaults to http://localhost:11434 */
   private String url = OllamaApiConstants.DEFAULT_BASE_URL;
+  /** Value of org.vrspace.ollama.model.vision property, defaults to ministral-3:3b */
   @Value("${org.vrspace.ollama.model.vision:ministral-3:3b}")
   // private String visionModel = "ibm/granite3.3-vision:2b";
   // private String visionModel = "ministral-3";
   private String visionModel = "ministral-3:3b";
+  /** Value of org.vrspace.ollama.model.tools property, defaults to ministral-3:3b */
   @Value("${org.vrspace.ollama.model.tools:ministral-3:3b}")
   // private String toolsModel = "mistral-nemo";
   // private String toolsModel = "ministral-3";
@@ -30,15 +39,17 @@ public class OllamaConfig {
   // useful with 3b model, takes about 8G VRAM:
   // private int contextWindowSize = 32768;
   // 11G VRAM with 3b model:
+  /** Value of org.vrspace.ollama.contextWindowSize property, defaults to 65536 (roughly 11GB VRAM with 3b model) */
   @Value("${org.vrspace.ollama.contextWindowSize:65536}")
   private int contextWindowSize = 65536;
   /** How long to keep the model in VRAM, -1 means forever, but must have duration */
   @Value("${org.vrspace.ollama.keepAlive:1m}")
   private String keepAlive = "1m";
   // query+response, +1 for system message
+  /** Value of org.vrspace.ollama.memorySize, defaults to 11 (5x query+response and 1x system message) */
   @Value("${org.vrspace.ollama.memorySize:11}")
   private int memorySize = 11;
-
+  // CHECKME: make these configurable?
   private String visionPrompt = "describe this";
   private Pattern descriptionRemove = Pattern
       .compile("\\r?\\n|\\*\\*|"
