@@ -22,18 +22,44 @@ import org.vrspace.server.types.ID;
 
 import lombok.extern.slf4j.Slf4j;
 
-// CHECKME no dependencies on ollama, move to some other package
+/**
+ * Class that helps with presentation of the world to LLM. Generally, LLMs are bad in dealing with spatial information, spatial
+ * intelligence may be a different than language intelligence. Thus, this attempt to make it somewhat useful: public flags
+ * define what we add to the context. It can add relative or absolute coordinates, rotation of, and direction to world objects.
+ * So, a model could answer questions like where is that user/object etc. Background and terrain information are also added to
+ * the context if present.
+ * 
+ * @author joe
+ *
+ */
 @Slf4j
+// CHECKME no dependencies on ollama, move to some other package?
 public class ContextHelper {
 
+  /** When using absolute world coordinates, we should add current position and rotation of the client */
   public boolean appendClientCoordinates;
+  /** Add absolute coordinates to the context? */
   public boolean appendAbsolute;
+  /** Add coordinates relative to the user position? */
   public boolean appendRelative;
+  /** Add directions (left/right/back/forward) to objects? */
   public boolean appendDirection;
+  /** Add object rotations? */
   public boolean appendRotation;
 
   private DecimalFormat numberFormat = new DecimalFormat("#.##");
 
+  /**
+   * Get description of the scene to be used as (part of) the context. Groups all the objects in current user scene, and returns
+   * a string containing their description. First line of the string contains basic information about the client: id, name,
+   * optionally position and rotation, and avatar URL. Second line contains world info: name and description. Then, the list of
+   * world object follows. For each model, number of instances, URL, description and author are added. For each instance,
+   * coordinates are added, as defined by append flags.
+   * 
+   * @param client
+   * @param db
+   * @return description of the scene
+   */
   public String sceneDescription(Client client, VRObjectRepository db) {
     HashMap<String, List<VRObject>> grouped = new HashMap<>();
     StringBuilder sb = new StringBuilder();
@@ -45,11 +71,13 @@ public class ContextHelper {
     }
     // appendZeroCoordinates(sb);
     if (appendClientCoordinates) {
-      appendPosition(sb, client);
-      appendRotation(sb, client);
+      appendPosition(sb, client.getPosition());
+      appendRotation(sb, client.getRotation());
     }
-    sb.append(" Avatar: ");
-    sb.append(client.getMesh());
+    if (client.getMesh() != null) {
+      sb.append(" Avatar: ");
+      sb.append(client.getMesh());
+    }
     // world info
     sb.append("\nWorld: ");
     sb.append(client.getWorld().getName());
@@ -102,7 +130,8 @@ public class ContextHelper {
               sb.append(")");
               */
               sb.append(" (");
-              appendDirection(sb, tp.getX(), tp.getY(), tp.getZ(), client);
+              // appendDirection(sb, tp.getX(), tp.getY(), tp.getZ(), client);
+              appendCoordinates(sb, client, new Point(tp.getX(), tp.getY(), tp.getZ()), null);
               sb.append(")");
             }
           }
@@ -113,7 +142,7 @@ public class ContextHelper {
           // background.getAmbientIntensity();
         }
       } else {
-        appendCoordinates(sb, obj, client);
+        appendCoordinates(sb, client, obj.getPosition(), obj.getRotation());
         List<VRObject> group = grouped.get(obj.getMesh());
         if (group == null) {
           group = new ArrayList<VRObject>();
@@ -142,7 +171,7 @@ public class ContextHelper {
             sb.append(c.getName());
           }
         }
-        appendCoordinates(sb, obj, client);
+        appendCoordinates(sb, client, obj.getPosition(), obj.getRotation());
         if (obj.getPermanent() != null) {
           sb.append(" Permanent: ");
           sb.append(obj.getPermanent());
@@ -173,15 +202,15 @@ public class ContextHelper {
     return sb.toString();
   }
 
-  private void appendCoordinates(StringBuilder sb, VRObject obj, Client client) {
+  private void appendCoordinates(StringBuilder sb, Client client, Point position, Rotation rotation) {
     if (appendAbsolute)
-      appendPosition(sb, obj);
+      appendPosition(sb, position);
     if (appendRelative)
-      appendRelativePosition(sb, obj, client);
+      appendRelativePosition(sb, position, client);
     if (appendDirection)
-      appendDirection(sb, obj, client);
+      appendDirection(sb, position, client);
     if (appendRotation)
-      appendRotation(sb, obj);
+      appendRotation(sb, rotation);
   }
 
   private void appendZeroCoordinates(StringBuilder sb) {
@@ -195,22 +224,21 @@ public class ContextHelper {
     sb.append(",z=0");
   }
 
-  private void appendPosition(StringBuilder sb, VRObject obj) {
-    if (obj.getPosition() != null) {
+  private void appendPosition(StringBuilder sb, Point position) {
+    if (position != null) {
       sb.append(" Position: ");
-      Point point = obj.getPosition();
       sb.append("x=");
-      append(sb, point.getX());
+      append(sb, position.getX());
       sb.append(",y=");
-      append(sb, point.getY());
+      append(sb, position.getY());
       sb.append(",z=");
-      append(sb, point.getZ());
+      append(sb, position.getZ());
     }
   }
 
-  private void appendDirection(StringBuilder sb, VRObject obj, Client client) {
-    if (obj.getPosition() != null) {
-      Point point = obj.getPosition().subtract(client.getPosition());
+  private void appendDirection(StringBuilder sb, Point position, Client client) {
+    if (position != null) {
+      Point point = position.subtract(client.getPosition());
       appendDirection(sb, point.getX(), point.getY(), point.getZ(), client);
     }
   }
@@ -255,9 +283,9 @@ public class ContextHelper {
     sb.append(upDown);
   }
 
-  private void appendRelativePosition(StringBuilder sb, VRObject obj, Client client) {
-    if (obj.getPosition() != null) {
-      Point point = obj.getPosition().subtract(client.getPosition());
+  private void appendRelativePosition(StringBuilder sb, Point position, Client client) {
+    if (position != null) {
+      Point point = position.subtract(client.getPosition());
       // and now rotate point around y in the opposite direction
       Double originalAngle = Math.atan2(point.getX(), point.getZ());
       Double angle = originalAngle - client.getRotation().getY();
@@ -269,10 +297,6 @@ public class ContextHelper {
       // CHECKME should works somewhat like this:
       // point.setX(point.getX() * c + point.getZ() * s);
       // point.setZ(-point.getX() * s + point.getZ() * c);
-
-      log
-          .debug("Obj: " + obj.getObjectId() + " " + obj.getPosition() + " Client: " + client.getPosition() + " angle: " + angle
-              + " dest: " + point);
       sb.append(" Position: ");
       sb.append("x=");
       append(sb, point.getX());
@@ -284,18 +308,17 @@ public class ContextHelper {
   }
 
   // LLM can't handle rotations correctly
-  private void appendRotation(StringBuilder sb, VRObject obj) {
-    if (obj.getRotation() != null) {
+  private void appendRotation(StringBuilder sb, Rotation rotation) {
+    if (rotation != null) {
       // sb.append(" ");
       // sb.append(obj.getRotation().toString());
       sb.append(" Rotation: ");
-      Rotation rot = obj.getRotation();
       sb.append("x=");
-      append(sb, rot.getX());
+      append(sb, rotation.getX());
       sb.append(",y=");
-      append(sb, rot.getY());
+      append(sb, rotation.getY());
       sb.append(",z=");
-      append(sb, rot.getZ());
+      append(sb, rotation.getZ());
       /* TODO quaternion is different
       if (rot.getAngle() != null) {
         // quaternion
