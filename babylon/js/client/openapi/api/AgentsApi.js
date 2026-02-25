@@ -73,7 +73,9 @@ export class AgentsApi {
 
 
     /**
-     * @param {String} body 
+     * Scene agent has access to the scene of the client, so it can answer user queries from the same point of view.
+     * Scene agent has access to the scene of the client, so it can answer user queries from the same point of view. Builds the   description of the visible part of the world, and uses it as the context to answer the user query (e.g. what is this, where   is that). Chat memory is bound to the client session, and number of messages memorized is configured on the server.
+     * @param {String} body Question related to the scene.
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link String} and HTTP response
      */
     sceneAgentWithHttpInfo(body) {
@@ -104,7 +106,9 @@ export class AgentsApi {
     }
 
     /**
-     * @param {String} body 
+     * Scene agent has access to the scene of the client, so it can answer user queries from the same point of view.
+     * Scene agent has access to the scene of the client, so it can answer user queries from the same point of view. Builds the   description of the visible part of the world, and uses it as the context to answer the user query (e.g. what is this, where   is that). Chat memory is bound to the client session, and number of messages memorized is configured on the server.
+     * @param {String} body Question related to the scene.
      * @return {Promise< String >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link String}
      */
     sceneAgent(body) {
@@ -116,8 +120,8 @@ export class AgentsApi {
 
 
     /**
-     * Sketchfab search agent.
-     * Sketchfab search agent.
+     * Semantic and contextual search agent.
+     * Semantic and contextual search agent. It can search Sketchfab, or local database, for models that user described. Chat   memory is bound to the client session, and number of messages memorized is configured on the server.
      * @param {String} body 
      * @return {Promise< SearchAgentResponse >} a {@link https://www.promisejs.org/|Promise}, with an object containing data of type {@link SearchAgentResponse} and HTTP response
      */
@@ -149,8 +153,8 @@ export class AgentsApi {
     }
 
     /**
-     * Sketchfab search agent.
-     * Sketchfab search agent.
+     * Semantic and contextual search agent.
+     * Semantic and contextual search agent. It can search Sketchfab, or local database, for models that user described. Chat   memory is bound to the client session, and number of messages memorized is configured on the server.
      * @param {String} body 
      * @return {Promise< SearchAgentResponse >} a {@link https://www.promisejs.org/|Promise}, with data of type {@link SearchAgentResponse}
      */

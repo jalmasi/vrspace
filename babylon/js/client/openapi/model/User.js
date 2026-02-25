@@ -112,17 +112,11 @@ export class User {
          */
         this.video = undefined;
 
-        /** oauth2provider 
-         * Oauth2 provider ID, transient private property visible only to this user.
-         * @type {String} 
+        /** rightArmPos 
+         * Right arm position, used in VR. Transient biometric data.
+         * @type {Point} 
          */
-        this.oauth2provider = undefined;
-
-        /** leftArmRot 
-         * Left arm rotation, used in VR. Transient biometric data.
-         * @type {Quaternion} 
-         */
-        this.leftArmRot = undefined;
+        this.rightArmPos = undefined;
 
         /** rightArmRot 
          * Right arm rotation, used in VR. Transient biometric data.
@@ -136,28 +130,34 @@ export class User {
          */
         this.leftArmPos = undefined;
 
-        /** rightArmPos 
-         * Right arm position, used in VR. Transient biometric data.
-         * @type {Point} 
+        /** leftArmRot 
+         * Left arm rotation, used in VR. Transient biometric data.
+         * @type {Quaternion} 
          */
-        this.rightArmPos = undefined;
+        this.leftArmRot = undefined;
+
+        /** oauth2provider 
+         * Oauth2 provider ID, transient private property visible only to this user.
+         * @type {String} 
+         */
+        this.oauth2provider = undefined;
 
         /** sceneProperties 
          * @type {SceneProperties} 
          */
         this.sceneProperties = undefined;
 
-        /** tokens 
-         * Tokens used to access video/audio streaming servers, identify conversations with chatbots etc. Transient, never stored to  the database.
-         * @type {Object.<String, String>} 
-         */
-        this.tokens = undefined;
-
         /** userHeight 
          * User's height in real life, used in VR. Transient biometric data.
          * @type {Number} 
          */
         this.userHeight = undefined;
+
+        /** tokens 
+         * Tokens used to access video/audio streaming servers, identify conversations with chatbots etc. Transient, never stored to  the database.
+         * @type {Object.<String, String>} 
+         */
+        this.tokens = undefined;
 
         /** properties 
          * Custom transient object properties
@@ -238,11 +238,8 @@ export class User {
             if (data.hasOwnProperty('video')) {
                 obj['video'] = ApiClient.convertToType(data['video'], 'Boolean');
             }
-            if (data.hasOwnProperty('oauth2provider')) {
-                obj['oauth2provider'] = ApiClient.convertToType(data['oauth2provider'], 'String');
-            }
-            if (data.hasOwnProperty('leftArmRot')) {
-                obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
+            if (data.hasOwnProperty('rightArmPos')) {
+                obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
             }
             if (data.hasOwnProperty('rightArmRot')) {
                 obj['rightArmRot'] = Quaternion.constructFromObject(data['rightArmRot']);
@@ -250,17 +247,20 @@ export class User {
             if (data.hasOwnProperty('leftArmPos')) {
                 obj['leftArmPos'] = Point.constructFromObject(data['leftArmPos']);
             }
-            if (data.hasOwnProperty('rightArmPos')) {
-                obj['rightArmPos'] = Point.constructFromObject(data['rightArmPos']);
+            if (data.hasOwnProperty('leftArmRot')) {
+                obj['leftArmRot'] = Quaternion.constructFromObject(data['leftArmRot']);
+            }
+            if (data.hasOwnProperty('oauth2provider')) {
+                obj['oauth2provider'] = ApiClient.convertToType(data['oauth2provider'], 'String');
             }
             if (data.hasOwnProperty('sceneProperties')) {
                 obj['sceneProperties'] = SceneProperties.constructFromObject(data['sceneProperties']);
             }
-            if (data.hasOwnProperty('tokens')) {
-                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
-            }
             if (data.hasOwnProperty('userHeight')) {
                 obj['userHeight'] = ApiClient.convertToType(data['userHeight'], 'Number');
+            }
+            if (data.hasOwnProperty('tokens')) {
+                obj['tokens'] = ApiClient.convertToType(data['tokens'], {'String': 'String'});
             }
             if (data.hasOwnProperty('properties')) {
                 obj['properties'] = ApiClient.convertToType(data['properties'], {'String': Object});
@@ -324,13 +324,9 @@ export class User {
         if (data['picture'] && !(typeof data['picture'] === 'string' || data['picture'] instanceof String)) {
             throw new Error("Expected the field `picture` to be a primitive type in the JSON string but got " + data['picture']);
         }
-        // ensure the json data is a string
-        if (data['oauth2provider'] && !(typeof data['oauth2provider'] === 'string' || data['oauth2provider'] instanceof String)) {
-            throw new Error("Expected the field `oauth2provider` to be a primitive type in the JSON string but got " + data['oauth2provider']);
-        }
-        // validate the optional field `leftArmRot`
-        if (data['leftArmRot']) { // data not null
-          Quaternion.validateJSON(data['leftArmRot']);
+        // validate the optional field `rightArmPos`
+        if (data['rightArmPos']) { // data not null
+          Point.validateJSON(data['rightArmPos']);
         }
         // validate the optional field `rightArmRot`
         if (data['rightArmRot']) { // data not null
@@ -340,9 +336,13 @@ export class User {
         if (data['leftArmPos']) { // data not null
           Point.validateJSON(data['leftArmPos']);
         }
-        // validate the optional field `rightArmPos`
-        if (data['rightArmPos']) { // data not null
-          Point.validateJSON(data['rightArmPos']);
+        // validate the optional field `leftArmRot`
+        if (data['leftArmRot']) { // data not null
+          Quaternion.validateJSON(data['leftArmRot']);
+        }
+        // ensure the json data is a string
+        if (data['oauth2provider'] && !(typeof data['oauth2provider'] === 'string' || data['oauth2provider'] instanceof String)) {
+            throw new Error("Expected the field `oauth2provider` to be a primitive type in the JSON string but got " + data['oauth2provider']);
         }
         // validate the optional field `sceneProperties`
         if (data['sceneProperties']) { // data not null
