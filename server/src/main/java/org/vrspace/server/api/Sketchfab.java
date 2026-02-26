@@ -260,7 +260,7 @@ public class Sketchfab extends ApiBase {
       modelName = modelName.replaceAll("\\.", "");
       // destination directory
       // TODO sanitize directory and file name
-      File modelDir = new File(FileUtil.contentDir() + "/" + category + "/" + modelName);
+      File modelDir = new File(FileUtil.contentDir() + "/" + category + "/" + modelName + "-" + uid);
       if (modelDir.exists()) {
         log.warn("Destination directory already exists, download skipped: " + modelDir);
       } else {
