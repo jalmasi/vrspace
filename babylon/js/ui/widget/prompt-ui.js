@@ -113,6 +113,11 @@ export class PromptUI extends ChatLog {
     PromptUI.instance = null;
   }
 
+  // overridden to make dispose() work
+  instanceId() {
+    return ChatLog.instanceId(PromptUI.agents.sceneAgent.name, PromptUI.agents.sceneAgent.title);
+  }
+
   static showOrHide() {
     if (!PromptUI.instance) {
       // window closed, reopen it
