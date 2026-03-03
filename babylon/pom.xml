@@ -117,6 +117,27 @@
       <id>publish</id>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>  
+                <id>enforce-token-variable</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireEnvironmentVariable>
+                       <variableName>NPM_TOKEN</variableName>
+                       <message>ERROR: NPM_TOKEN system variable must be set!</message>
+                    </requireEnvironmentVariable>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+           </plugin>
         
           <!-- do NOT use maven deploy plugin -->
           <plugin>
