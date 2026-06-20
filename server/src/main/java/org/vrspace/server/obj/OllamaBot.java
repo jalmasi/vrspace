@@ -90,7 +90,9 @@ public class OllamaBot extends Bot {
     if (getUrl() == null) {
       setUrl(OllamaApiConstants.DEFAULT_BASE_URL);
     }
-    // TODO process parameterMap, getParameter()
+    configureKeepAlive();
+    configureMemorySize();
+    configureContextWindowSize();
     chatModel = OllamaChatModel
         .builder()
         .retryTemplate(RetryTemplate.builder().maxAttempts(1).build())
@@ -163,6 +165,27 @@ public class OllamaBot extends Bot {
       for (String tool : tools.replaceAll("\\s", "").split(",")) {
         toolNames.add(tool);
       }
+    }
+  }
+
+  private void configureKeepAlive() {
+    String keepAlive = getParameter("keepAlive");
+    if (keepAlive != null) {
+      setKeepAlive(keepAlive);
+    }
+  }
+
+  private void configureMemorySize() {
+    String memorySize = getParameter("memorySize");
+    if (memorySize != null) {
+      setMemorySize(Integer.parseInt(memorySize));
+    }
+  }
+
+  private void configureContextWindowSize() {
+    String contextWindowSize = getParameter("contextWindowSize");
+    if (contextWindowSize != null) {
+      setContextWindowSize(Integer.parseInt(contextWindowSize));
     }
   }
 
