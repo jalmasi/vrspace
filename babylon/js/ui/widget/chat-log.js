@@ -22,8 +22,11 @@ class ChatLogInput extends TextAreaInput {
   init() {
     super.init();
     this.plane.position.y -= 0.02;
-    // we don't want to send a message when focus is lost:
-    this.inputFocusListener = null;
+    // we don't want to send a message when focus is lost, except on mobile:
+    if (!VRSPACEUI.hasTouchScreen()) {
+      // CHECKME: some laptops may have touch screen
+      this.inputFocusListener = null;
+    }
   }
   createPanel() {
     super.createPanel();
@@ -394,7 +397,7 @@ export class ChatLog extends TextArea {
     delete ChatLog.instances[this.instanceId()];
     ChatLog.instanceCount--;
   }
-  
+
   /** XR pointer selection support */
   isSelectableMesh(mesh) {
     return super.isSelectableMesh(mesh) || this.input.isSelectableMesh(mesh) || this.buttonStack.isSelectableMesh(mesh);
