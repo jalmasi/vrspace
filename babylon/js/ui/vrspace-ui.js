@@ -96,7 +96,7 @@ export class VRSpaceUI {
       if (this.logoDir() && this.logoFile) {
         var container = await BABYLON.SceneLoader.LoadAssetContainerAsync(this.logoDir(), this.logoFile, this.scene);
         this.logo = container.meshes[0];
-        for (var i = 0; i < container.meshes; i++) {
+        for (var i = 0;i < container.meshes;i++) {
           container.meshes[i].checkCollisions = false;
         }
         this.logo.name = "VRSpace.org Logo";
@@ -114,7 +114,7 @@ export class VRSpaceUI {
       // not a function:
       //this.audioEngine.unlockAsync();
       */
-      
+
       await this.loadPortal(scene);
       this.initialized = true;
     }
@@ -255,7 +255,7 @@ export class VRSpaceUI {
 
       // first pass:
       // iterate all links, collect avatar directories and fixes
-      for (var i = 0; i < links.length; i++) {
+      for (var i = 0;i < links.length;i++) {
         var link = links[i];
         var href = link.href;
         if (href.indexOf('?') > 0) {
@@ -297,7 +297,7 @@ export class VRSpaceUI {
 
       // first pass:
       // iterate all links, collect avatar directories and fixes
-      for (var i = 0; i < links.length; i++) {
+      for (var i = 0;i < links.length;i++) {
         var link = links[i];
         var href = link.href;
         if (href.indexOf('?') > 0) {
@@ -321,7 +321,7 @@ export class VRSpaceUI {
 
       // second pass: match folders with related files
       var folders = [];
-      for (var i = 0; i < files.length; i++) {
+      for (var i = 0;i < files.length;i++) {
         var fix = null;
         var fixName = files[i] + suffix;
         var index = fixes.indexOf(fixName);
@@ -355,7 +355,7 @@ export class VRSpaceUI {
 
       // first pass:
       // iterate all links, collect avatar directories and fixes
-      for (var i = 0; i < links.length; i++) {
+      for (var i = 0;i < links.length;i++) {
         let link = links[i];
         let href = link.href;
         let baseUri = link.baseURI;
@@ -380,7 +380,7 @@ export class VRSpaceUI {
 
       // second pass: match folders with related files
       var folders = [];
-      for (var i = 0; i < files.length; i++) {
+      for (var i = 0;i < files.length;i++) {
         var fix = null;
         var fixName = files[i] + suffix;
         var index = fixes.indexOf(fixName);
@@ -411,7 +411,7 @@ export class VRSpaceUI {
       }
     }
     var children = node.getChildren();
-    for (var i = 0; i < children.length; i++) {
+    for (var i = 0;i < children.length;i++) {
       this.receiveShadows(children[i], shadows);
     }
   }
@@ -436,7 +436,7 @@ export class VRSpaceUI {
       copy.parent = parent;
     }
     var children = mesh.getChildren();
-    for (var i = 0; i < children.length; i++) {
+    for (var i = 0;i < children.length;i++) {
       this.copyMesh(children[i], copy, replaceParent);
     }
     return copy;
@@ -473,8 +473,8 @@ export class VRSpaceUI {
     zKeys.push({ frame: 0, value: 0 });
     zKeys.push({ frame: 1, value: 0 });
     zAnim.setKeys(zKeys);
-    
-    if ( blendingSpeed ) {
+
+    if (blendingSpeed) {
       group.enableBlending = true;
       group.blendingSpeed = blendingSpeed;
       xAnim.enableBlending = true;
@@ -482,7 +482,7 @@ export class VRSpaceUI {
       yAnim.enableBlending = true;
       yAnim.blendingSpeed = blendingSpeed;
       zAnim.enableBlending = true;
-      zAnim.blendingSpeed = blendingSpeed;      
+      zAnim.blendingSpeed = blendingSpeed;
     }
 
     group.addTargetedAnimation(xAnim, mesh);
@@ -507,7 +507,7 @@ export class VRSpaceUI {
     zAnim.getKeys()[0].value = zOld;
     zAnim.getKeys()[1].value = to.z;
   }
-  
+
   /**
   Utility method - add the animation to be played after the current animation ends.
   If it's already ended, simply calls updateAnimation().
@@ -520,8 +520,8 @@ export class VRSpaceUI {
   chainAnimation(group, node, field, to) {
     try {
       // CHECKME do we want to chain animations before the first one starts playing?
-      if (group.isPlaying ) {
-        const ret = this.createAnimation(node,field,group.fps);
+      if (group.isPlaying) {
+        const ret = this.createAnimation(node, field, group.fps);
         this._appendAnimation(group, ret, to);
         group.onAnimationGroupEndObservable.addOnce(() => {
           ret.play(false);
@@ -695,6 +695,10 @@ export class VRSpaceUI {
     });
   }
 
+  /**
+   * Does the device have touch screen?
+   * Typically used to dermine if the device is mobile, but some laptops also have touch screens.
+   */
   hasTouchScreen() {
     return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
   }
@@ -732,18 +736,18 @@ export class VRSpaceUI {
   }
 
   progressStart(item) {
-    if ( this.indicator ) {
+    if (this.indicator) {
       this.indicator.add(item);
       this.indicator.animate();
     }
   }
-  
+
   progressEnd(item) {
-    if ( this.indicator ) {
+    if (this.indicator) {
       this.indicator.remove(item);
     }
   }
-  
+
 }
 
 // this does not ensure singleton in the browser
