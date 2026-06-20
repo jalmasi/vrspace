@@ -31,9 +31,13 @@ import reactor.core.publisher.Mono;
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public abstract class Bot extends User {
-  /** Gender is advice for client, e.g. voice synthesis */
+  /** Gender is advice for client, e.g. voice synthesis. Android seems to have only female voices. */
   private String gender;
-  /** Bot language, e.g. in case it can speak more than one */
+  /**
+   * Bot language, e.g. in case it can speak more than one. What that means is up to client, current VRSpace client matches the
+   * substring, and matches both underscore and dash. So en will match first english voice, and both en_US and en-US will match
+   * equally.
+   */
   private String lang;
   @JsonIgnore
   /** Configured URL of chatbot server, not published */

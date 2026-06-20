@@ -42,23 +42,41 @@ export class BotController {
   }
 
   processVoices(voices) {
-    console.log("voices", voices);
+    console.log("Searching voices for " + this.vrObject.lang + " " + this.vrObject.gender, voices);
     this.voice = voices[0];
     let langMatch = this.vrObject.lang == null; // null means any matches
     let genderMatch = this.vrObject.gender == null; // null means any matches
     voices.forEach((voice, index) => {
-      // CHECKME this could be easily wrong way to select female voice
-      if (!langMatch && this.vrObject.lang && voice.lang == this.vrObject.lang) {
-        langMatch = true;
-        this.voice = voice;
+      if (this.vrObject.lang) {
+        // android uses underscore, other devices dash
+        let androidLang = this.vrObject.lang.replace("-", "_");
+        let webLang = this.vrObject.lang.replace("_", "-");
+        if (voice.lang.startsWith(androidLang) || voice.lang.startsWith(webLang)) {
+          langMatch = true;
+          // first voice matching the language is taken by default
+          if (!this.voice) {
+            this.voice = voice;
+          }
+        }
       }
-      let female = voice.name.indexOf("Zira") >= 0 || voice.name.indexOf("Female") >= 0;
-      if (!genderMatch && female && this.vrObject.gender && this.vrObject.gender.toLowerCase() === "female") {
-        genderMatch = true;
+      if (this.vrObject.gender) {
+        let gender = this.vrObject.gender.toLowerCase();
+        if (gender === "female" && voice.name.indexOf("Zira") >= 0 || voice.name.indexOf("Female") >= 0) {
+          genderMatch = true;
+        } else if (gender === "male" && voice.name.indexOf("David") >= 0 || voice.name.indexOf("Male") >= 0) {
+          genderMatch = true;
+        }
+      }
+      if (langMatch && genderMatch) {
         this.voice = voice;
+        langMatch = false;
+        genderMatch = false;
       }
     });
-    console.log("Voice selected for "+this.avatar.name, this.voice);
+    if (!this.voice && voices.length > 0) {
+      this.voice = voices[0];
+    }
+    console.log("Voice selected for " + this.avatar.name, this.voice);
   }
 
   /**
@@ -90,7 +108,7 @@ export class BotController {
     this.setupIdleTimer();
     animation.onAnimationGroupEndObservable.remove(this.animationEnd);
   }
-  
+
   processChanges(obj, changes) {
     //console.log("processing changes for "+this.avatar.name,obj,changes);
     if (changes['wrote']) {
@@ -102,7 +120,7 @@ export class BotController {
           window.speechSynthesis.cancel();
         }
         const utter = new SpeechSynthesisUtterance(text);
-        console.log("Speaking "+this.avatar.name,this.voice);
+        console.log("Speaking " + this.avatar.name, this.voice);
         utter.voice = this.voice;
         window.speechSynthesis.speak(utter);
       }
@@ -116,11 +134,11 @@ export class BotController {
       let animation = changes['animation'].name;
       // animation is already playing
       let group = this.avatar.getAnimation(animation);
-      if ( group ) {
+      if (group) {
         this.lastAnimation = group.name;
         group.onAnimationGroupEndObservable.add(this.animationEnd);
       } else {
-        console.log(this.avatar.name+" tried to play non existing animation "+animation);
+        console.log(this.avatar.name + " tried to play non existing animation " + animation);
       }
     }
   }
