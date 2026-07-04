@@ -120,30 +120,24 @@ export class GameTag extends BasicGame {
     }
   }
  
-  startCountdown(delay) {
+  async startCountdown(delay) {
     this.counting = true;
     let countForm = new CountdownForm(delay);
     countForm.init();
-    let timerSound = new BABYLON.Sound(
+    let timerSound = await BABYLON.CreateSoundAsync(
       "clock",
       this.sounds.soundClock,
-      this.scene,
-      null,
       {loop: true, autoplay: true}
     );
     timerSound.play();
-    let tickSound = new BABYLON.Sound(
+    let tickSound = await BABYLON.CreateSoundAsync(
       "clock",
       this.sounds.soundTick,
-      this.scene,
-      null,
       {loop: false, autoplay: true }
     );
-    let startSound = new BABYLON.Sound(
+    let startSound = await BABYLON.CreateSoundAsync(
       "gong",
       this.sounds.soundStart,
-      this.scene,
-      null,
       {loop: false, autoplay: false }
     );
 
@@ -205,23 +199,20 @@ export class GameTag extends BasicGame {
     }
   }
   
-  attachSounds(baseMesh) {
+  async attachSounds(baseMesh) {
     let options = {
       loop: true,
       autoplay: false,
-      streaming: false,
-      panningModel: "linear",
-      maxDistance: 100,
-      spatialSound: true
+      spatialPanningModel: "linear",
+      spatialMaxDistance: 100,
+      spatialEnabled: true,
+      spatialPosition: baseMesh.position
     }
-    let alarm = new BABYLON.Sound(
+    let alarm = await BABYLON.CreateSoundAsync(
       "soundAlarm",
       this.sounds.soundAlarm,
-      this.scene, 
-      null, // callback 
       options
     );
-    alarm.attachToMesh(baseMesh);
     baseMesh.soundAlarm = alarm;
   }
  

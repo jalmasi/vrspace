@@ -279,7 +279,6 @@ export class BasicGame extends BasicScript {
     // or was never attached (SoundPlaying)
     if ( typeof baseMesh[soundName] != "undefined") {
       //console.log("Removing sound "+soundName+" from ",baseMesh);
-      baseMesh[soundName].detachFromMesh();
       baseMesh[soundName].dispose();
       delete baseMesh[soundName];
     } else {

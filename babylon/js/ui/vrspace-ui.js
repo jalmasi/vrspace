@@ -107,15 +107,16 @@ export class VRSpaceUI {
       this.uiMaterial.diffuseColor = new BABYLON.Color3(.2, .2, .3);
       this.uiMaterial.specularColor = new BABYLON.Color3(.05, .05, .05);
 
-      /*
-      TODO
-      this.audioEngine = await BABYLON.CreateAudioEngineAsync();
-      this.audioEngine.unlock();
-      // not a function:
-      //this.audioEngine.unlockAsync();
-      */
+      // TODO
+      this.audioEngine = await BABYLON.CreateAudioEngineAsync({ 
+          volume: 1,
+          listenerAutoUpdate: true,
+          listenerEnabled: true,
+          resumeOnInteraction: true
+      });
+      this.audioEngine.listener.attach(this.scene.activeCamera);
 
-      await this.loadPortal(scene);
+      await this.loadPortal(this.scene);
       this.initialized = true;
     }
     return this;

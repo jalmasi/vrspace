@@ -129,36 +129,28 @@ export class Portal {
 
     return this;
   }
-  attachSound() {
+  async attachSound() {
     if (this.soundUrl) {
-      this.sound = new BABYLON.Sound(
+      this.sound = await BABYLON.CreateSoundAsync(
         "portalSound:" + this.name,
         this.soundUrl,
-        this.scene, null, {
-        loop: true,
-        autoplay: false,
-        spatialSound: true,
-        streaming: false,
-        distanceModel: "linear",
-        maxDistance: this.soundDistance, // default 100, used only when linear
-        panningModel: "equalpower" // or "HRTF"
-      });
-      this.sound.attachToMesh(this.group);
-      this.sound.setVolume(this.soundVolume);
+        {
+          loop: true,
+          autoplay: false,
+          spatialEnabled: true,
+          spatialPosition: this.group.position,
+          spatialDistanceModel: "linear",
+          spatialMaxDistance: this.soundDistance, // default 100, used only when linear
+          spatialPanningModel: "equalpower" // or "HRTF"
+        }
+      );
+      this.sound.volume = this.soundVolume;
     }
   }
   playSound(enable) {
     if (this.sound) {
       if (enable) {
-        /*
-        TODO audio V2 
-        VRSPACEUI.audioEngine.audioContext?.resume();
-        VRSPACEUI.audioEngine.setGlobalVolume(1);
-        */
         this.sound.play();
-        // chrome hacks
-        BABYLON.Engine.audioEngine.audioContext?.resume();
-        BABYLON.Engine.audioEngine.setGlobalVolume(1);
       } else if (this.sound) {
         this.sound.stop();
       }
@@ -176,9 +168,9 @@ export class Portal {
       //this.title.group.parent = this.group;
       this.title.position = new BABYLON.Vector3(0, 2.5, 0);
       //this.title.isVisible = this.alwaysShowTitle; // TODO
-      this.title.text = ""; 
+      this.title.text = "";
       if (this.subTitle) {
-        this.title.text += this.subTitle+"\n";
+        this.title.text += this.subTitle + "\n";
       }
       if (this.description) {
         this.title.text += this.description;

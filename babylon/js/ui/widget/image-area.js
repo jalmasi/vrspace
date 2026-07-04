@@ -134,7 +134,7 @@ export class ImageArea extends BaseArea {
   }
 
   /** Load video texture from the url, and by default also creates and plays the spatial sound. */
-  loadVideo(url, playSound=true) {
+  async loadVideo(url, playSound=true) {
     let texture = new BABYLON.VideoTexture(null, url, this.scene);
     this.texturesDispose();
     this.material.diffuseTexture = texture;
@@ -142,19 +142,19 @@ export class ImageArea extends BaseArea {
     this.fullyVisible();
     console.log("Loaded video "+url+" playing sound: "+playSound);
     if ( playSound ) {
-      this.sound = new BABYLON.Sound(
+      this.sound = await BABYLON.CreateSoundAsync(
         "videoTextureSound",
         texture.video,
-        this.scene, null, {
+        {
           //loop: true,
           autoplay: true,
-          spatialSound: true,
+          spatialEnabled: true,
+          spatialPosition: this.areaPlane.position,
           //streaming: false,
-          distanceModel: "linear",
-          maxDistance: 10,
-          panningModel: "equalpower" // or "HRTF"
+          spatialDistanceModel: "linear",
+          spatialMaxDistance: 10,
+          spatialPanningModel: "equalpower" // or "HRTF"
         });
-      this.sound.attachToMesh(this.areaPlane);
       this.attachVolumeControl();
     }
     console.log(texture.video.videoWidth+"x"+texture.video.videoHeight);

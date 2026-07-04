@@ -12,13 +12,13 @@ export class MediaStreams {
   static defaultDistance = 50;
   /** Default values for streaming sound, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions */
   static soundProperties = {
-    maxDistance: MediaStreams.defaultDistance,
+    spatialMaxDistance: MediaStreams.defaultDistance,
     volume: 1,
-    panningModel: "equalpower", // or "HRTF"
-    distanceModel: "linear", // or inverse, or exponential
-    maxDistance: 50, // default 50, babylon default 100, used only when linear
-    rolloffFactor: 1, // default 1, used only when exponential
-    refDistance: 1 // default 1, used only when exponential
+    spatialPanningModel: "equalpower", // or "HRTF"
+    spatialDistanceModel: "linear", // or inverse, or exponential
+    spatialMaxDistance: 50, // default 50, babylon default 100, used only when linear
+    //rolloffFactor: 1, // default 1, used only when exponential
+    //refDistance: 1 // default 1, used only when exponential
   }
   /**
   @param scene Babylonjs scene
@@ -306,15 +306,15 @@ export class MediaStreams {
   @param options custom sound options, defaults to soundProperties, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions
   @returns created babylon Sound object, or null if stream contains no audio tracks
    */
-  attachAudioStream(mesh, mediaStream, options = MediaStreams.soundProperties) {
+  async attachAudioStream(mesh, mediaStream, options = MediaStreams.soundProperties) {
     let audioTracks = mediaStream.getAudioTracks();
     if (audioTracks && audioTracks.length > 0) {
       //console.log("Attaching audio stream to mesh "+mesh.id, audioTracks[0]);
       let properties = {
         loop: false,
         autoplay: true,
-        spatialSound: true,
-        streaming: true
+        spatialEnabled: true,
+        spatialPosition: mesh.position
       }
       for (let p of Object.keys(options)) {
         properties[p] = options[p];
@@ -324,14 +324,11 @@ export class MediaStreams {
       if (typeof mesh.VRObject != "undefined" && typeof mesh.VRObject.getNameOrId == "function") {
         name = "voice:" + mesh.VRObject.getNameOrId();
       }
-      let voice = new BABYLON.Sound(
+      let voice = await BABYLON.CreateStreamingSoundAsync(
         name,
         mediaStream,
-        this.scene,
-        null, // callback 
         properties
       );
-      voice.attachToMesh(mesh); // sets voice._connectedTransformNode = mesh
 
       // all sounds go here:
       //console.log("Scene main sound track", scene.mainSoundTrack, mesh); // and scene.mainSoundTrack.soundColection array contains all sounds

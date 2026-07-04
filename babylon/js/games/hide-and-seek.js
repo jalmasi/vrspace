@@ -235,81 +235,67 @@ export class HideAndSeek extends BasicGame {
     }
   }
   
-  attachSounds(baseMesh) {
+  async attachSounds(baseMesh) {
     let options = {
       loop: false,
       autoplay: false,
-      streaming: false,
-      panningModel: "linear",
-      maxDistance: 100,
-      spatialSound: true
+      spatialDistanceModel: "linear",
+      spatialMaxDistance: 100,
+      spatialEnabled: true,
+      spatialPositon: baseMesh.position      
     }
-    let fail = new BABYLON.Sound(
+    let fail = await BABYLON.CreateSoundAsync(
       "fail",
       this.sounds.soundFail,
-      this.scene, 
-      null, // callback 
       options
     );
-    fail.attachToMesh(baseMesh);
+    //fail.attachToMesh(baseMesh);
     baseMesh.soundFail = fail;
 
-    let victory = new BABYLON.Sound(
+    let victory = await BABYLON.CreateSoundAsync(
       "victory",
       this.sounds.soundVictory,
-      this.scene, 
-      null, // callback 
       options
     );
-    victory.attachToMesh(baseMesh);
+    //victory.attachToMesh(baseMesh);
     baseMesh.soundVictory = victory;
 
     options.loop = true;
 
-    let alarm = new BABYLON.Sound(
+    let alarm = await BABYLON.CreateSoundAsync(
       "alarm",
       this.sounds.soundAlarm,
-      this.scene, 
-      null, // callback 
       options
     );
-    alarm.attachToMesh(baseMesh);
+    //alarm.attachToMesh(baseMesh);
     baseMesh.soundAlarm = alarm;
     
-    let seek = new BABYLON.Sound(
+    let seek = await BABYLON.CreateSoundAsync(
       "alarm",
       this.sounds.soundSeek,
-      this.scene, 
-      null, // callback 
       options
     );
-    seek.attachToMesh(baseMesh);
+    //seek.attachToMesh(baseMesh);
     baseMesh.soundSeek = seek;
   }
   
-  startCountdown(delay, chatLog) {
+  async startCountdown(delay, chatLog) {
     let countForm = new CountdownForm(delay);
     countForm.init();
-    let timerSound = new BABYLON.Sound(
+    let timerSound = await BABYLON.CreateSoundAsync(
       "clock",
       this.sounds.soundClock,
-      this.scene,
-      null,
       {loop: true, autoplay: true}
     );
     timerSound.play();
-    let tickSound = new BABYLON.Sound(
+    let tickSound = await BABYLON.CreateSoundAsync(
       "clock",
       this.sounds.soundTick,
-      this.scene,
-      null,
       {loop: false, autoplay: true }
     );
-    let startSound = new BABYLON.Sound(
+    let startSound = await BABYLON.CreateSoundAsync(
       "gong",
       this.sounds.soundStart,
-      this.scene,
-      null,
       {loop: false, autoplay: false }
     );
     
@@ -360,7 +346,7 @@ export class HideAndSeek extends BasicGame {
     }
   }
   
-  remoteChange(vrObject, changes) {
+  async remoteChange(vrObject, changes) {
     console.log("Remote changes for "+vrObject.id, changes);
     if ( changes.joined ) {
       this.totalPlayers++;
@@ -401,11 +387,9 @@ export class HideAndSeek extends BasicGame {
     } else if ( changes.end && this.playing) {
       this.playing = false;
       this.showGameStatus();
-      let endSound = new BABYLON.Sound(
+      let endSound = await BABYLON.CreateSoundAsync(
         "gong",
         this.sounds.soundEnd,
-        this.scene,
-        null,
         {loop: false, autoplay: true }
       );
       endSound.play();

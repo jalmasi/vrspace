@@ -242,12 +242,12 @@ export class Form {
     return keyboard;
   }
   
-  addSound(plane=this.plane, keyboard=this.vKeyboard) {
-    this.sound = new BABYLON.Sound(
+  async addSound(plane=this.plane, keyboard=this.vKeyboard) {
+    this.sound = await BABYLON.CreateSoundAsync(
       "keyboardSound",
       this.soundUrl,
+      {spatialPosition: plane.position}
     );
-    this.sound.attachToMesh(plane);
     keyboard.onKeyPressObservable.add(()=>{
       this.sound.play();
     });
