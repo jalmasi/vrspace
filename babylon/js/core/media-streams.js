@@ -323,6 +323,8 @@ export class MediaStreams {
       if (typeof mesh.VRObject != "undefined" && typeof mesh.VRObject.getNameOrId == "function") {
         name = "voice:" + mesh.VRObject.getNameOrId();
       }
+      // TODO not supported in babylon sound engine v2
+      // https://forum.babylonjs.com/t/audioenginev2-upgrade-questions/63740/3
       let voice = await BABYLON.CreateStreamingSoundAsync(
         name,
         mediaStream,
