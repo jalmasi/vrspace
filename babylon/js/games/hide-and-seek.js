@@ -241,15 +241,14 @@ export class HideAndSeek extends BasicGame {
       autoplay: false,
       spatialDistanceModel: "linear",
       spatialMaxDistance: 100,
-      spatialEnabled: true,
-      spatialPositon: baseMesh.position      
+      spatialEnabled: true
     }
     let fail = await BABYLON.CreateSoundAsync(
       "fail",
       this.sounds.soundFail,
       options
     );
-    //fail.attachToMesh(baseMesh);
+    fail.spatial.attach(baseMesh, true);
     baseMesh.soundFail = fail;
 
     let victory = await BABYLON.CreateSoundAsync(
@@ -257,7 +256,7 @@ export class HideAndSeek extends BasicGame {
       this.sounds.soundVictory,
       options
     );
-    //victory.attachToMesh(baseMesh);
+    victory.spatial.attach(baseMesh, true);
     baseMesh.soundVictory = victory;
 
     options.loop = true;
@@ -267,7 +266,7 @@ export class HideAndSeek extends BasicGame {
       this.sounds.soundAlarm,
       options
     );
-    //alarm.attachToMesh(baseMesh);
+    alarm.spatial.attach(baseMesh, true);
     baseMesh.soundAlarm = alarm;
     
     let seek = await BABYLON.CreateSoundAsync(
@@ -275,7 +274,7 @@ export class HideAndSeek extends BasicGame {
       this.sounds.soundSeek,
       options
     );
-    //seek.attachToMesh(baseMesh);
+    seek.spatial.attach(baseMesh, true);
     baseMesh.soundSeek = seek;
   }
   

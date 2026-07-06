@@ -245,9 +245,9 @@ export class Form {
   async addSound(plane=this.plane, keyboard=this.vKeyboard) {
     this.sound = await BABYLON.CreateSoundAsync(
       "keyboardSound",
-      this.soundUrl,
-      {spatialPosition: plane.position}
+      this.soundUrl
     );
+    this.sound.spatial.attach(plane, true);
     keyboard.onKeyPressObservable.add(()=>{
       this.sound.play();
     });

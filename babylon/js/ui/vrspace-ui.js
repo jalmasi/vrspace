@@ -114,7 +114,7 @@ export class VRSpaceUI {
           listenerEnabled: true,
           resumeOnInteraction: true
       });
-      this.audioEngine.listener.attach(this.scene.activeCamera);
+      this.audioEngine.listener.attach(this.scene.activeCamera, true);
 
       await this.loadPortal(this.scene);
       this.initialized = true;

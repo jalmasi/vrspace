@@ -138,13 +138,13 @@ export class Portal {
           loop: true,
           autoplay: false,
           spatialEnabled: true,
-          spatialPosition: this.group.position,
           spatialDistanceModel: "linear",
           spatialMaxDistance: this.soundDistance, // default 100, used only when linear
           spatialPanningModel: "equalpower" // or "HRTF"
         }
       );
       this.sound.volume = this.soundVolume;
+      this.sound.spatial.attach(this.group, true);
     }
   }
   playSound(enable) {

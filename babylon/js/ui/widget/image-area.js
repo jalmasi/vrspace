@@ -149,12 +149,12 @@ export class ImageArea extends BaseArea {
           //loop: true,
           autoplay: true,
           spatialEnabled: true,
-          spatialPosition: this.areaPlane.position,
           //streaming: false,
           spatialDistanceModel: "linear",
           spatialMaxDistance: 10,
           spatialPanningModel: "equalpower" // or "HRTF"
         });
+      this.sound.spatial.attach(this.areaPlane, true);
       this.attachVolumeControl();
     }
     console.log(texture.video.videoWidth+"x"+texture.video.videoHeight);

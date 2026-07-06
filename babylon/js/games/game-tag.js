@@ -205,14 +205,14 @@ export class GameTag extends BasicGame {
       autoplay: false,
       spatialPanningModel: "linear",
       spatialMaxDistance: 100,
-      spatialEnabled: true,
-      spatialPosition: baseMesh.position
+      spatialEnabled: true
     }
     let alarm = await BABYLON.CreateSoundAsync(
       "soundAlarm",
       this.sounds.soundAlarm,
       options
     );
+    alarm.spatial.attach(baseMesh,true);
     baseMesh.soundAlarm = alarm;
   }
  

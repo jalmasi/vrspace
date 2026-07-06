@@ -313,8 +313,7 @@ export class MediaStreams {
       let properties = {
         loop: false,
         autoplay: true,
-        spatialEnabled: true,
-        spatialPosition: mesh.position
+        spatialEnabled: true
       }
       for (let p of Object.keys(options)) {
         properties[p] = options[p];
@@ -329,6 +328,7 @@ export class MediaStreams {
         mediaStream,
         properties
       );
+      voice.spatial.attach(mesh, true);
 
       // all sounds go here:
       //console.log("Scene main sound track", scene.mainSoundTrack, mesh); // and scene.mainSoundTrack.soundColection array contains all sounds
