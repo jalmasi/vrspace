@@ -120,6 +120,8 @@ export class ButtonStack {
     let x = this.scaling.x*link.buttons.length+this.position.x+link.getText().length/(Label.fontRatio*2)*this.scaling.x;
     let pos = new BABYLON.Vector3(x,this.position.y,this.position.z);
     let label = new Label(link.getText(),pos,this.parent);
+    // TODO label autoalign can't handle scaling
+    label.autoAlign = false;
     //label.background = "black";
     label.display();
     label.textPlane.scaling = this.scaling;

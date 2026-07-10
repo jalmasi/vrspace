@@ -21,7 +21,9 @@ public class StreamingSession implements Command {
 
   @Override
   public ClientResponse execute(WorldManager manager, Client client) throws ClassNotFoundException, SessionException {
-    if ("start".equals(action)) {
+    if (!manager.getStreamManager().isAvailable()) {
+      throw new UnsupportedOperationException("Streaming unavailable");
+    } else if ("start".equals(action)) {
       return new ClientResponse(manager.getStreamManager().addConnection(client));
     } else if ("stop".equals(action)) {
       manager.getStreamManager().closeConection(client);
