@@ -5,6 +5,7 @@ Provides interface to WorldManager, that manages all clients and their streams.
 
 import { VRSPACE, Client } from '../client/vrspace.js';
 import { SessionData } from '../client/vrspace.js';
+import { VRSPACEUI } from '../ui/vrspace-ui.js';
 
 export class MediaStreams {
   /** There can be only one @type { MediaStreams }*/
@@ -12,11 +13,10 @@ export class MediaStreams {
   static defaultDistance = 50;
   /** Default values for streaming sound, see https://doc.babylonjs.com/typedoc/interfaces/BABYLON.ISoundOptions */
   static soundProperties = {
-    spatialMaxDistance: MediaStreams.defaultDistance,
     volume: 1,
     spatialPanningModel: "equalpower", // or "HRTF"
     spatialDistanceModel: "linear", // or inverse, or exponential
-    spatialMaxDistance: 50, // default 50, babylon default 100, used only when linear
+    spatialMaxDistance: MediaStreams.defaultDistance, // default 50, babylon default 100, used only when linear
     //rolloffFactor: 1, // default 1, used only when exponential
     //refDistance: 1 // default 1, used only when exponential
   }
@@ -323,13 +323,12 @@ export class MediaStreams {
       if (typeof mesh.VRObject != "undefined" && typeof mesh.VRObject.getNameOrId == "function") {
         name = "voice:" + mesh.VRObject.getNameOrId();
       }
-      // TODO not supported in babylon sound engine v2
+      // TODO figure it out with babylon sound engine v2
       // https://forum.babylonjs.com/t/audioenginev2-upgrade-questions/63740/3
-      let voice = await BABYLON.CreateStreamingSoundAsync(
-        name,
-        mediaStream,
-        properties
-      );
+      let node = new MediaStreamAudioSourceNode(VRSPACEUI.audioEngine._audioContext, { mediaStream: mediaStream });
+      //let voice = await BABYLON.CreateSoundSourceAsync(name, node, {spatialEnabled:true}); // defaults
+      let voice = await BABYLON.CreateSoundSourceAsync(name, node, properties);
+      console.log("Voice", voice);
       voice.spatial.attach(mesh, true);
 
       // all sounds go here:
