@@ -1,6 +1,7 @@
 import { ServerFolder } from '../../core/server-folder.js';
 import { VRSPACEUI } from '../vrspace-ui.js';
 import { TextArea } from '../widget/text-area.js';
+import { SpeechInput } from '../../core/speech-input.js';
 
 /**
 Portal is an entrance to other worlds, disabled by default.
@@ -17,6 +18,7 @@ export class Portal {
     /** @type {ServerFolder} */
     this.serverFolder = serverFolder;
     this.callback = callback;
+    this.command = "portal";
     this.name = serverFolder.name;
     this.description = null;
     this.subTitle = null;
@@ -36,6 +38,7 @@ export class Portal {
     this.soundUrl = VRSPACEUI.contentBase + "/babylon/portal/couchhero_portal-idle.mp3";
     this.soundDistance = 5;
     this.soundVolume = .5;
+    this.speechInput = new SpeechInput();
   }
   /** handy, returns base url and folder name */
   worldUrl() {
@@ -66,6 +69,7 @@ export class Portal {
       this.scene.onPointerObservable.remove(this.pointerTracker);
       delete this.pointerTracker;
     }
+    this.speechInput.dispose();
   }
   /** Load and display portal at given coordinates. Copies existing portal mesh to new coordinates and angle.
   @param x
@@ -127,8 +131,22 @@ export class Portal {
 
     this.attachSound();
 
+    this.attachSpeech();
+
     return this;
   }
+  
+  attachSpeech() {
+    let command = this.command + " " + this.name;
+    console.log("Activating on "+command);
+    this.speechInput.addCommand(command,
+      () => {
+        if ( this.isEnabled ) this.enter();
+      }
+    );
+    this.speechInput.start();
+  }
+  
   attachSound() {
     if (this.soundUrl) {
       this.sound = new BABYLON.Sound(
@@ -147,6 +165,7 @@ export class Portal {
       this.sound.setVolume(this.soundVolume);
     }
   }
+  
   playSound(enable) {
     if (this.sound) {
       if (enable) {
@@ -164,6 +183,7 @@ export class Portal {
       }
     }
   }
+  
   showTitle() {
     if (!this.title && (this.isEnabled || this.alwaysShowTitle)) {
       this.title = new TextArea(this.scene, this.name, this.name);
@@ -176,9 +196,9 @@ export class Portal {
       //this.title.group.parent = this.group;
       this.title.position = new BABYLON.Vector3(0, 2.5, 0);
       //this.title.isVisible = this.alwaysShowTitle; // TODO
-      this.title.text = ""; 
+      this.title.text = "";
       if (this.subTitle) {
-        this.title.text += this.subTitle+"\n";
+        this.title.text += this.subTitle + "\n";
       }
       if (this.description) {
         this.title.text += this.description;
