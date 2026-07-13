@@ -1,3 +1,4 @@
+import { SpeechInput } from '../../core/speech-input.js';
 import { Label } from './label.js';
 import { VRSPACEUI } from '../vrspace-ui.js'
 
@@ -36,6 +37,8 @@ export class Buttons {
     this.textures = [];
     this.materials = [];
     this.pointerTracker = null;
+    this.speechInput = new SpeechInput();
+    this.speechInput.addNoMatch((phrases) => this.noMatch(phrases));
     //this.display();
   }
 
@@ -48,6 +51,7 @@ export class Buttons {
     this.controls.forEach(e => e.dispose());
     this.textures.forEach(e => e.dispose());
     this.materials.forEach(e => e.dispose());
+    this.speechInput.dispose();
     console.log("Disposed of buttons " + this.title);
   }
 
@@ -55,6 +59,11 @@ export class Buttons {
   setHeight(height) {
     let scale = height / this.options.length;
     this.group.scaling = new BABYLON.Vector3(scale, scale, scale);
+  }
+
+  /** Called by default on speech recognition mismatch */
+  noMatch(phrases) {
+    console.log('no match:', phrases)
   }
 
   /** Display the menu, adds a pointer observable */
@@ -71,7 +80,9 @@ export class Buttons {
     this.unselectedMaterial.disableLighting = true;
     this.materials.push(this.unselectedMaterial);
 
+    let commandPrefix = "";
     if (this.title && this.title.length > 0) {
+      commandPrefix = this.title + " ";
       let height = 1.5;
       let titleLabel = new Label(this.title, new BABYLON.Vector3(0, this.spacing * height, 0), this.group);
       titleLabel.height = height;
@@ -87,9 +98,23 @@ export class Buttons {
       } else {
         var option = this.options[i];
       }
+      let command = commandPrefix;
       if (this.showOptionNumber) {
-        option = (i+1)+". "+option;
+        let optionNumber = (i + 1);
+        option = optionNumber + ". " + option;
+        command += optionNumber;
+      } else {
+        command += option;
       }
+      command = command.toLowerCase();
+      this.speechInput.addCommand(command,
+        () => {
+          if (i != this.selectedOption || this.turnOff) {
+            this.select(i);
+          }
+        }
+      );
+
       this.groupWidth = Math.max(this.groupWidth, option.length);
 
       let buttonLabel = new Label(option, new BABYLON.Vector3(this.buttonHeight, -i * this.spacing, 0), this.group);
@@ -139,6 +164,9 @@ export class Buttons {
       this.materials.push(backgroundMaterial);
       backPlane.material = backgroundMaterial;
     }
+
+    this.speechInput.start();
+
   }
 
   /** Select an option, executed when a button is pressed.
