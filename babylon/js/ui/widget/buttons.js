@@ -5,7 +5,7 @@ import { VRSPACEUI } from '../vrspace-ui.js'
  */
 export class Buttons {
   /**
-  @param scene
+  @param scene babylonjs scene
   @param title string displayed above the menu
   @param options array of options, string labels or objects
   @param callback executed when button is activated
@@ -19,19 +19,24 @@ export class Buttons {
     this.property = property;
     this.buttonHeight = 1;
     this.spacing = 1.1;
+    /** Can we turn off the current selection? Default false. */
+    this.turnOff = false;
+    /** Prefix the button with a number? Default false. */
+    this.showOptionNumber = false;
     this.color = "white";
+    this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    // from here on, state variables:
     //this.background = true; //experimental
     this.group = new BABYLON.TransformNode("ButtonGroup:" + this.title, scene);
     this.groupWidth = 0;
     this.buttons = [];
     this.selectedOption = -1;
-    this.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     this.controls = [];
     this.textures = [];
     this.materials = [];
     this.pointerTracker = null;
-    this.display();
+    //this.display();
   }
 
   /** Dispose of everything */
@@ -81,6 +86,9 @@ export class Buttons {
         var option = this.options[i][this.property];
       } else {
         var option = this.options[i];
+      }
+      if (this.showOptionNumber) {
+        option = (i+1)+". "+option;
       }
       this.groupWidth = Math.max(this.groupWidth, option.length);
 

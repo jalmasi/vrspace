@@ -336,6 +336,7 @@ export class AvatarSelection extends World {
       var buttons = new Buttons(this.scene, "Avatars", folders, (dir) => this.createAvatarSelection(dir), "name");
       buttons.setHeight(.5);
       buttons.group.position = new BABYLON.Vector3(.3, 2.2, this.buttonsZ);
+      buttons.display();
       buttons.select(0);
       this.mainButtons = buttons;
     });
@@ -351,6 +352,8 @@ export class AvatarSelection extends World {
         var buttons = new Buttons(this.scene, folder.name, avatars, (dir) => this.loadCharacter(dir), "name");
         buttons.setHeight(0.1 * Math.min(20, avatars.length));
         buttons.group.position = new BABYLON.Vector3(1, 2.2, this.buttonsZ);
+        buttons.showOptionNumber = true;
+        buttons.display();
         this.characterButtons = buttons;
       });
     } else if (folder.name == "video") {
@@ -558,8 +561,10 @@ export class AvatarSelection extends World {
     }
     this.animationSelection = new Buttons(this.scene, "Animations", names, (name) => this.startAnimation(name));
     this.animationSelection.turnOff = true;
+    this.animationSelection.showOptionNumber = true;
     this.animationSelection.setHeight(Math.min(2, names.length / 10));
     this.animationSelection.group.position = new BABYLON.Vector3(-1.5, 2.2, this.buttonsZ);
+    this.animationSelection.display();
   }
 
   startAnimation(name) {
