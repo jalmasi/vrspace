@@ -83,7 +83,7 @@ public class ModelSearchRequest {
   String type = "models";
 
   public URI toURI(String url) {
-    UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
     for (Field field : getClass().getDeclaredFields()) {
       try {
         Object val = field.get(this);

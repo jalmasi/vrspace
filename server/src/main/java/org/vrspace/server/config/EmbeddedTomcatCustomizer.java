@@ -7,9 +7,9 @@ import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.tomcat.TomcatContextCustomizer;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.stereotype.Component;
 import org.vrspace.server.core.ClassUtil;
@@ -17,11 +17,9 @@ import org.vrspace.server.core.ClassUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Adds content and client (babylon) directories to content path, and enables
- * directory listings. Conditional on property
- * server.servlet.register-default-servlet, as it may mess up tomcat context
- * config and break the application startup (of executable jar that uses vrspace
- * as library). TODO: paths should be configurable
+ * Adds content and client (babylon) directories to content path, and enables directory listings. Conditional on property
+ * server.servlet.register-default-servlet, as it may mess up tomcat context config and break the application startup (of
+ * executable jar that uses vrspace as library). TODO: paths should be configurable
  * 
  * @author joe
  *

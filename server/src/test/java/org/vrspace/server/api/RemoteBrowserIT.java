@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.junit.jupiter.EnabledIf;
@@ -38,39 +38,45 @@ public class RemoteBrowserIT {
     assumeTrue(isAvailable());
 
     // browse to a well-known page;)
-    MvcResult getResult = mockMvc.perform(get(ENDPOINT + "/get?url=https://www.vrspace.org").session(session))
-        .andExpect(status().isOk()).andReturn();
+    MvcResult getResult = mockMvc
+        .perform(get(ENDPOINT + "/get?url=https://www.vrspace.org").session(session))
+        .andExpect(status().isOk())
+        .andReturn();
     assertScreenshot(getResult);
 
     // click; this opens a new tab
-    MvcResult clickResult = mockMvc.perform(get(ENDPOINT + "/click?x=1800&y=12").session(session))
-        .andExpect(status().isOk()).andExpect(header().longValue("history-position", 0))
-        .andExpect(header().longValue("history-length", 0)).andReturn();
+    MvcResult clickResult = mockMvc
+        .perform(get(ENDPOINT + "/click?x=1800&y=12").session(session))
+        .andExpect(status().isOk())
+        .andExpect(header().longValue("history-position", 0))
+        .andExpect(header().longValue("history-length", 0))
+        .andReturn();
     assertScreenshot(clickResult);
 
     // scroll down
-    MvcResult scrollResult = mockMvc.perform(get(ENDPOINT + "/scroll?pixels=512").session(session))
-        .andExpect(status().isOk()).andReturn();
+    MvcResult scrollResult = mockMvc
+        .perform(get(ENDPOINT + "/scroll?pixels=512").session(session))
+        .andExpect(status().isOk())
+        .andReturn();
     assertScreenshot(scrollResult);
 
     // back, also closes the tab
-    MvcResult backResult = mockMvc.perform(get(ENDPOINT + "/back").session(session)).andExpect(status().isOk())
-        .andReturn();
+    MvcResult backResult = mockMvc.perform(get(ENDPOINT + "/back").session(session)).andExpect(status().isOk()).andReturn();
     assertScreenshot(backResult);
 
     // forward, does nothing
-    MvcResult forwardResult = mockMvc.perform(get(ENDPOINT + "/forward").session(session)).andExpect(status().isOk())
+    MvcResult forwardResult = mockMvc
+        .perform(get(ENDPOINT + "/forward").session(session))
+        .andExpect(status().isOk())
         .andReturn();
     assertScreenshot(forwardResult);
 
     // open another tab again
-    clickResult = mockMvc.perform(get(ENDPOINT + "/click?x=1800&y=12").session(session)).andExpect(status().isOk())
-        .andReturn();
+    clickResult = mockMvc.perform(get(ENDPOINT + "/click?x=1800&y=12").session(session)).andExpect(status().isOk()).andReturn();
     assertScreenshot(clickResult);
 
     // close a tab
-    MvcResult closeResult = mockMvc.perform(get(ENDPOINT + "/close").session(session)).andExpect(status().isOk())
-        .andReturn();
+    MvcResult closeResult = mockMvc.perform(get(ENDPOINT + "/close").session(session)).andExpect(status().isOk()).andReturn();
     assertScreenshot(closeResult);
 
     // close the browser
