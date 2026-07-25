@@ -5,7 +5,13 @@ import { SpeechInput } from '../../core/speech-input.js';
 
 /**
 Portal is an entrance to other worlds, disabled by default.
- */
+Once enabled, user enters by clicking on it, or by voice command.
+Voice activation is by command + name, or by command + prefix, since names may hard to pronounce/recognize.
+Portal prefix+name, subtitle and description are displayed above the portal.
+Portal thumbnail is used as emissive texture on enabled portal, automatically set from relatedUrl of provided serverFolder.
+Enabled portals play default sound.
+General usage is simple: construct, optionally set parameters, call loadAt(). 
+*/
 export class Portal {
   /** Create a portal
   @param scene babylonjs scene
@@ -19,6 +25,9 @@ export class Portal {
     this.serverFolder = serverFolder;
     this.callback = callback;
     this.command = "portal";
+    /** If set, portal name is prefixed by this prefix */
+    this.prefix = null;
+    this.prefixSeparator = ". ";
     this.name = serverFolder.name;
     this.description = null;
     this.subTitle = null;
@@ -135,18 +144,21 @@ export class Portal {
 
     return this;
   }
-  
+
   attachSpeech() {
     let command = this.command + " " + this.name;
-    console.log("Activating on "+command);
+    if (this.prefix) {
+      command = this.command + " " + this.prefix;
+    }
+    console.log("Portal "+this.name+" voice command " + command);
     this.speechInput.addCommand(command,
       () => {
-        if ( this.isEnabled ) this.enter();
+        if (this.isEnabled) this.enter();
       }
     );
     this.speechInput.start();
   }
-  
+
   attachSound() {
     if (this.soundUrl) {
       this.sound = new BABYLON.Sound(
@@ -165,7 +177,7 @@ export class Portal {
       this.sound.setVolume(this.soundVolume);
     }
   }
-  
+
   playSound(enable) {
     if (this.sound) {
       if (enable) {
@@ -183,10 +195,14 @@ export class Portal {
       }
     }
   }
-  
+
   showTitle() {
     if (!this.title && (this.isEnabled || this.alwaysShowTitle)) {
-      this.title = new TextArea(this.scene, this.name, this.name);
+      if (this.prefix) {
+        this.title = new TextArea(this.scene, this.name, this.prefix+this.prefixSeparator+this.name);
+      } else {
+        this.title = new TextArea(this.scene, this.name, this.name);
+      }
       this.title.autoScale = true;
       this.title.addHandles = false;
       this.title.addBackground = false;

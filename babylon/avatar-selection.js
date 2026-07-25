@@ -679,6 +679,7 @@ export class AvatarSelection extends World {
         let portal = new Portal(this.scene, serverFolder, (p) => this.enterPortal(p));
         portal.description = worlds[i].description;
         this.portals[portal.name] = portal;
+        portal.prefix = i+1;
         portal.loadAt(x, 0, z, angle);
         angle += angleIncrement;
       }
