@@ -28,6 +28,7 @@ export class SpeechInput {
       "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine"
     };
     this.spoke = false;
+    this.publishingAudio = false;
     this.constructor.instances.push(this);
     // this should go to static block but then jsdoc fails:
     if (!this.constructor.touchListener) {
@@ -39,8 +40,10 @@ export class SpeechInput {
   }
   continue() {
     if (this.constructor.active && this.constructor.android && !MediaStreams.instance) {
+    //if (this.constructor.active && this.constructor.android) {
       //console.log("Android speech recognition (re) starting");
       if (MediaStreams.instance) {
+        this.publishingAudio = MediaStreams.instance.publishingAudio;
         MediaStreams.instance.publishAudio(false);
       }
       annyang.start({ autoRestart: false, continuous: true });
@@ -139,7 +142,7 @@ export class SpeechInput {
       // silence/stop
       //console.log("Speech recognition ended in silence");
       if (MediaStreams.instance) {
-        MediaStreams.instance.publishAudio(true);
+        MediaStreams.instance.publishAudio(this.publishingAudio);
       }
     }
   }
