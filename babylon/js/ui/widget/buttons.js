@@ -98,22 +98,28 @@ export class Buttons {
       } else {
         var option = this.options[i];
       }
-      let command = commandPrefix;
+      let command = commandPrefix.toLowerCase();
       if (this.showOptionNumber) {
-        let optionNumber = (i + 1);
+        let optionNumber = (i + 1).toString();
         option = optionNumber + ". " + option;
-        command += optionNumber;
+        this.speechInput.addCommand(command,
+          (number) => {
+            if (optionNumber == number && (i != this.selectedOption || this.turnOff)) {
+              this.select(i);
+            }
+          }, 
+          "*number"
+        );
       } else {
-        command += option;
-      }
-      command = command.toLowerCase();
-      this.speechInput.addCommand(command,
-        () => {
-          if (i != this.selectedOption || this.turnOff) {
-            this.select(i);
+        command += option.toLowerCase();
+        this.speechInput.addCommand(command,
+          () => {
+            if (i != this.selectedOption || this.turnOff) {
+              this.select(i);
+            }
           }
-        }
-      );
+        );
+      }
 
       this.groupWidth = Math.max(this.groupWidth, option.length);
 

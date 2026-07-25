@@ -150,7 +150,7 @@ export class Portal {
     if (this.prefix) {
       command = this.command + " " + this.prefix;
     }
-    console.log("Portal "+this.name+" voice command " + command);
+    //console.log("Portal "+this.name+" voice command " + command);
     this.speechInput.addCommand(command,
       () => {
         if (this.isEnabled) this.enter();

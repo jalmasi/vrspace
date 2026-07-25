@@ -12,10 +12,21 @@ export class SpeechInput {
   static touchListener = null;
   constructor() {
     this.commands = {};
+    this.callbacks = {};
     this.noMatch = null;
     this.onlyLetters = false;
     this.lowercase = true;
     this.removePeriod = true;
+    /** android hack: numbers less than 10 are recognized as words, so, convert to numbers */
+    this.convertNumbers = true;
+    this.numberMap = {
+      "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+      "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9"
+    };
+    this.numberWords = {
+      "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
+      "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine"
+    };
     this.spoke = false;
     this.constructor.instances.push(this);
     // this should go to static block but then jsdoc fails:
@@ -35,26 +46,52 @@ export class SpeechInput {
       annyang.start({ autoRestart: false, continuous: true });
     }
   }
-  addCommand(command, callback, text) {
-    if (text) {
-      text = " " + text;
+  /**
+   * Add a voice command.
+   * @param {string} command
+   * @param {*} callback function to call on command
+   * @param {string} [arg] arbitrary argument to the command, passed to callback
+   */
+  addCommand(command, callback, arg) {
+    command = command.trim();
+    if (arg) {
+      var text = " " + arg.trim();
     } else {
-      text = "";
+      var text = "";
     }
-    let callbacks = [callback];
-    if (this.commands[command]) {
+    if (this.callbacks[command]) {
       // adding another callback to existing command
-      callbacks.push(callback);
-      console.log("Callback added to " + command, callbacks);
+      //console.log("Callback added to " + command+" "+arg);
+    } else {
+      this.callbacks[command] = [];
     }
-    this.commands[command + text] = (text) => this.callback(command, text, callbacks);
+    this.callbacks[command].push((text) => callback(text));
+
+    this.commands[command + text] = (text) => this.callback(command, text);
     // microsoft apparently attempts to add punctuation
-    this.commands[command + '.' + text] = (text) => this.callback(command, text, callbacks);
-    this.commands[command + ',' + text] = (text) => this.callback(command, text, callbacks);
+    this.commands[command + '.' + text] = (text) => this.callback(command, text);
+    this.commands[command + ',' + text] = (text) => this.callback(command, text);
+    if (this.convertNumbers) {
+      let words = command.split(' ');
+      let addCommand = false;
+      for (let i = 0;i < words.length;i++) {
+        if (this.numberWords[words[i]]) {
+          words[i] = this.numberWords[words[i]];
+          addCommand = true;
+        }
+      }
+      if (addCommand) {
+        this.commands[words.join(' ') + text] = (text) => this.callback(command, text);
+      }
+    }
   }
 
-  callback(command, text, callbacks) {
-    //console.log("Executing "+text, callback);
+  /**
+   * Called after speech, to process text, according to lowercase, onlyLetters, removePeriod, convertNumbers flags, 
+   * and then call user provided callback functions.
+   */
+  callback(command, text) {
+    console.log("Executing " + command + " " + text);
     if (text) {
       if (this.lowercase) {
         text = text.toLowerCase();
@@ -65,11 +102,24 @@ export class SpeechInput {
       if (this.removePeriod && text.endsWith(".")) {
         text = text.substring(0, text.length - 1);
       }
+      if (this.convertNumbers) {
+        let number = this.numberMap[text];
+        if (number) {
+          text = number;
+        }
+      }
     }
     this.spoke = true;
-    //console.log("Spoke:"+ command+" "+text);
-    callbacks.forEach(callback => callback(text));
+    console.log("Spoke: " + command + " " + text, this.callbacks[command]);
+    this.callbacks[command].forEach(callback => {
+      try {
+        callback(text);
+      } catch (error) {
+        console.error(error);
+      }
+    });
   }
+
   callNoMatch(phrases) {
     this.spoke = true;
     //console.log("Spoke:"+ phrases);
@@ -156,6 +206,7 @@ export class SpeechInput {
         // annyang expects array of phrases as argument
         annyang.removeCommands(Object.keys(this.commands));
         //console.log(' disabled commands:', Object.keys(this.commands));
+        this.callbacks = null;
       }
       if (this.noMatch) {
         annyang.removeCallback('resultNoMatch', this.noMatchCallback);
