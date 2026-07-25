@@ -1,4 +1,4 @@
-import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, HumanoidAvatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud, ServerFolder, Skybox } from './js/vrspace-min.js';
+import { VRSPACEUI, VRSpaceAPI, World, Buttons, LogoRoom, Portal, WorldManager, HumanoidAvatar, VideoAvatar, AvatarController, OpenViduStreams, ServerFile, LoginForm, DefaultHud, ServerFolder, Skybox, SpeechInput } from './js/vrspace-min.js';
 
 export class AvatarSelection extends World {
   constructor() {
@@ -769,6 +769,8 @@ export class AvatarSelection extends World {
       this.beforeEnter(this);
     }
     this.loginForm.dispose();
+    // disable speech recognition on android, allow webrtc streaming by default
+    this.hud.speech(SpeechInput.isEnabled() && !SpeechInput.android);
     import(worldUrl + '/' + worldScript).then((world) => {
 
       world.WORLD.inVR = this.inVR;

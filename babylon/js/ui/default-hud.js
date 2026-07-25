@@ -230,7 +230,7 @@ export class DefaultHud {
       this.recorderUI.hide();
       this.recorderUI = null;
     } else {
-      this.recorderUI = new RecorderUI(this.scene, "Recorder:"+Math.floor(Math.random() * 100));
+      this.recorderUI = new RecorderUI(this.scene, "Recorder:" + Math.floor(Math.random() * 100));
       this.recorderUI.show(this.recordButton);
     }
   }
@@ -418,7 +418,9 @@ export class DefaultHud {
   }
 
   async displayMic() {
+    if (!this.micButton) return;
     if (MediaStreams.instance && await MediaHelper.checkAudioPermissions()) {
+      console.log("Mic: "+MediaStreams.instance.publishingAudio);
       if (MediaStreams.instance.publishingAudio) {
         this.micButton.imageUrl = this.contentBase + "/content/icons/microphone.png";
       } else {
@@ -431,6 +433,9 @@ export class DefaultHud {
 
   toggleMic(enabled = !MediaStreams.instance.publishingAudio) {
     if (MediaStreams.instance) {
+      if (enabled && SpeechInput.android) {
+        this.speech(false);
+      }
       MediaStreams.instance.publishAudio(enabled);
       this.displayMic();
     }
@@ -524,10 +529,15 @@ export class DefaultHud {
       this.state.speech = enable;
       SpeechInput.enabled = enable;
       this.hud.enableSpeech(enable);
-      if (this.state.speech) {
-        this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition.png";
-      } else {
-        this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition-off.png";
+      if (this.speechButton) {
+        if (this.state.speech) {
+          this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition.png";
+          if (SpeechInput.android) {
+            this.toggleMic(false);
+          }
+        } else {
+          this.speechButton.imageUrl = this.contentBase + "/content/icons/voice-recognition-off.png";
+        }
       }
     } else {
       this.hud.markDisabled(this.speechButton);
@@ -784,7 +794,7 @@ export class DefaultHud {
   upload(input) {
     console.log("Files: ", input.files);
     // we load only one, but still
-    for (let i = 0; i < input.files.length; i++) {
+    for (let i = 0;i < input.files.length;i++) {
       const file = input.files[i];
       console.log("Uploading ", file);
       let camera = this.scene.activeCamera;

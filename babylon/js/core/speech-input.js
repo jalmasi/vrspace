@@ -39,11 +39,11 @@ export class SpeechInput {
     }
   }
   continue() {
-    if (this.constructor.active && this.constructor.android && !MediaStreams.instance) {
-    //if (this.constructor.active && this.constructor.android) {
+    //if (this.constructor.active && this.constructor.android && !MediaStreams.instance) {
+    if (this.constructor.active && this.constructor.android) {
       //console.log("Android speech recognition (re) starting");
-      if (MediaStreams.instance) {
-        this.publishingAudio = MediaStreams.instance.publishingAudio;
+      if (MediaStreams.instance && MediaStreams.instance.publishingAudio) {
+        this.publishingAudio == MediaStreams.instance.publishingAudio;
         MediaStreams.instance.publishAudio(false);
       }
       annyang.start({ autoRestart: false, continuous: true });
@@ -191,6 +191,7 @@ export class SpeechInput {
     if (annyang) {
       //console.log("speech recognition stopped");
       annyang.abort();
+      annyang.removeCallback('end', this.end);
       this.constructor.active = false;
     }
   }

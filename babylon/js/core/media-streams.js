@@ -155,10 +155,10 @@ export class MediaStreams {
   @param {boolean} enabled 
    */
   publishAudio(enabled) {
-    if (this.publisher) {
+    if (this.publisher && enabled != this.publishingAudio) {
+      this.publishingAudio = enabled; // CHECKME: is it safe, should it be called after publishAudio()?
       this.publisher.publishAudio(enabled);
-      console.log("Publishing audio: " + enabled + " stream audio: " + this.publisher.stream.audioActive);
-      this.publishingAudio = enabled;
+      console.error("Publishing audio: " + enabled + " stream audio: " + this.publisher.stream.audioActive);
     }
   }
 
