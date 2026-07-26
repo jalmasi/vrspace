@@ -217,8 +217,10 @@ export class SpeechInput {
         //console.log(' disabled commands:', Object.keys(this.commands));
         this.callbacks = null;
       }
-      if (this.noMatch) {
+      if (this.noMatch || this.noMatchCallback) {
         annyang.removeCallback('resultNoMatch', this.noMatchCallback);
+        this.noMatch = null;
+        this.noMatchCallback = null;
       }
       if (this.end) {
         annyang.removeCallback('end', this.end);
