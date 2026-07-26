@@ -1,5 +1,7 @@
 import { Skybox } from "../../world/skybox.js";
 import { World } from "../../world/world.js";
+import { SpeechInput } from '../../core/speech-input.js';
+import { Label } from '../widget/label.js';
 
 export class SkyboxSelector {
   /**
@@ -11,6 +13,9 @@ export class SkyboxSelector {
     // add own selection predicate to the world
     this.selectionPredicate = (mesh) => this.isSelectableMesh(mesh);
     world.addSelectionPredicate(this.selectionPredicate);
+    //this.enableSpeech = SpeechInput.available();
+    this.enableSpeech = SpeechInput.isEnabled();
+    this.speechInput = null;
   }
 
   makeSkyBox(dir) {
@@ -37,6 +42,8 @@ export class SkyboxSelector {
     manager.addControl(this.panel);
     this.panel.linkToTransformNode(anchor);
 
+    let index = 0;
+    this.speechInput = new SpeechInput();
     VRSPACEUI.listMatchingFiles(VRSPACEUI.contentBase + "/content/skybox/", list => {
       // list is ServerFolder array
       list.forEach(sf => {
@@ -61,13 +68,31 @@ export class SkyboxSelector {
                 button.onPointerDownObservable.add(() => this.sendChange(box.dir));
                 this.boxes.push(box.skybox);
                 this.panel.addControl(button);
+                this.addText(button, index++);
               }
             }
           });
+          if (this.enableSpeech) {
+            //this.speechInput.addNoMatch(what=>console.log(what));
+            this.speechInput.start();
+          }
         }, ".jpg");
       });
     });
-
+  }
+  addText(button, index) {
+    //console.log("Adding " + index, button);
+    let row = Math.ceil((index+1) / this.panel.columns);
+    let col = index % this.panel.columns + 1;
+    let text = String.fromCharCode(64 + row)+col;
+    let label = new Label(text, new BABYLON.Vector3(0, 0, -0.6), button.mesh);
+    label.text = text;
+    label.height = 0.2;
+    label.display();
+    this.speechInput.addCommand(text, () => {
+      console.log("Skybox selected: " + text);
+      button.onPointerDownObservable.observers.forEach(observer => observer.callback());
+    });
   }
   async sendChange(dir) {
     await this.world.createSharedSkybox();
@@ -81,6 +106,9 @@ export class SkyboxSelector {
     this.boxes = [];
     if (World.lastInstance.sharedSkybox) {
       this.world.worldManager.VRSPACE.sendCommand("Activate", { className: "Background", id: World.lastInstance.sharedSkybox.id, active: false });
+    }
+    if (this.speechInput) {
+      this.speechInput.dispose();
     }
   }
 

@@ -49,7 +49,8 @@ export class ScrollablePanel {
 
     // same material used for all buttons in this UI:
     this.buttonNext.backMaterial.alpha = .5;
-    this.enableSpeech = SpeechInput.available();
+    //this.enableSpeech = SpeechInput.available();
+    this.enableSpeech = SpeechInput.isEnabled();
     this.speechInput = null;
     if (this.enableSpeech) {
       this.panel.columns++;
