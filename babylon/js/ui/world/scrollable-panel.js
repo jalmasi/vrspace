@@ -83,7 +83,11 @@ export class ScrollablePanel {
     this.uiRoot.rotation = new BABYLON.Vector3(0, 0, 0);
     this.panel.linkToTransformNode();
 
-    this.panel.children.forEach((button) => { button.dispose() });
+    let controls = this.panel.children.slice();
+    controls.forEach((button) => {
+      this.panel.removeControl(button); 
+      button.dispose();
+    });
 
     this.buttonPrev.isVisible = hasPrevious;
     this.buttonPrev.onPointerDownObservable.clear();
