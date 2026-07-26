@@ -1,6 +1,7 @@
 import { VRSPACEUI } from '../vrspace-ui.js';
 import { TextWriter } from '../../core/text-writer.js';
 import { TextArea } from '../widget/text-area.js';
+import { SpeechInput } from '../../core/speech-input.js';
 
 /**
  * A 3D panel displayed in the world, with arbitrary number of holographic buttons.
@@ -48,6 +49,15 @@ export class ScrollablePanel {
 
     // same material used for all buttons in this UI:
     this.buttonNext.backMaterial.alpha = .5;
+    this.enableSpeech = SpeechInput.available();
+    this.speechInput = null;
+    if (this.enableSpeech) {
+      this.panel.columns++;
+      this.buttonPrev.position.x = -4.2;
+      this.buttonNext.position.x = 4.4;
+    }
+    this.currentRow = 0;
+    this.selectedButton = null;
   }
 
   /**
@@ -83,8 +93,72 @@ export class ScrollablePanel {
     this.buttonNext.onPointerDownObservable.clear();
     this.buttonNext.onPointerDownObservable.add(onNext);
 
+    if (this.speechInput) {
+      this.speechInput.dispose();
+      this.speechInput = null;
+    }
+    if (this.enableSpeech) {
+      this.speechInput = new SpeechInput();
+      this.speechInput.addNoMatch((phrases) => console.log('no match:', phrases));
+      if (hasNext) {
+        this.speechInput.addCommand("next", () => onNext());
+      }
+      if (hasPrevious) {
+        this.speechInput.addCommand("previous", () => onPrevious());
+      }
+      // button in the bottom-left corner
+      this.cornerButton = this.makeLabel("get");
+      this.cornerButton.isVisible = false;
+      this.speechInput.addCommand("get", () => {
+        if (this.selectedButton) {
+          this.selectedButton.onPointerDownObservable.observers.forEach(observer => observer.callback(this.selectedButton));
+          this.selectedButton.onPointerOutObservable.observers.forEach(observer => observer.callback())
+          this.selectedButton = null;
+          this.cornerButton.isVisible = false;
+        }
+      });
+      // column buttons
+      for (let i = 1;i < this.panel.columns;i++) {
+        let char = String.fromCharCode(64 + i);
+        this.makeLabel(char);
+        this.speechInput.addCommand(char, (value) => {
+          console.log("Selected button "+char+value);
+          this.selectedButton = this.getButtonAt(value,char);
+          if (this.selectedButton) {
+            this.selectedButton.onPointerOutObservable.observers.forEach(observer => observer.callback())
+            this.selectedButton.onPointerEnterObservable.observers.forEach(observer => observer.callback())
+            this.cornerButton.isVisible = true;
+          }
+        },
+        "*value");
+      }
+      this.currentRow = 1;
+    }
   }
 
+  makeLabel(char) {
+    let button = new BABYLON.GUI.HolographicButton(char);
+    this.panel.addControl(button);
+
+    var text = new BABYLON.GUI.TextBlock();
+    text.text = char;
+    text.color = "white";
+    text.fontSize = 96;
+    button.content = text;
+
+    button.plateMaterial.disableLighting = true;
+    button.mesh.scaling = new BABYLON.Vector3(.5, .5, .5);
+    return button;    
+  }
+  
+  getButtonAt(row,col) {
+    // CHECKME: requires side buttons
+    let colNumber = col.charCodeAt(0)-64; 
+    let rowNumber = parseInt(row);
+    let index = rowNumber*this.panel.columns + colNumber;
+    return this.panel.children[index];
+  }
+  
   /**
    * Call this after all buttons are added. Optionally relocates the panel.
    */
@@ -97,19 +171,26 @@ export class ScrollablePanel {
       this.uiRoot.position = this.previousCoord.pos;
       this.uiRoot.rotation = this.previousCoord.rot;
     }
+    if (this.enableSpeech) {
+      this.speechInput.start();
+    }
   }
 
   /**
    * Create and add a holographic button to the panel.
-   * @param text to be rendered on pointer over, String or array of String
-   * @param image url to display over the button
-   * @param callback function called on pointer down, takes the button as the argument
+   * @param {string|array} text to be rendered on pointer over, String or array of String
+   * @param {string} image url to display over the button
+   * @param {*} callback function called on pointer down, takes the button as the argument
    */
   addButton(text, image, callback) {
     if (typeof (text) === "string") {
       text = [text];
     }
 
+    if (this.enableSpeech && this.panel.children.length % this.panel.columns == 0) {
+      this.makeLabel("" + this.currentRow);
+      this.currentRow++;
+    }
     var button = new BABYLON.GUI.HolographicButton(text[0]);
     this.panel.addControl(button);
     button.mesh.isNearPickable = VRSPACEUI.allowHands;
@@ -128,9 +209,8 @@ export class ScrollablePanel {
       this.buttonTextClear(button.node);
     });
     button.onPointerDownObservable.add(() => callback(button));
-
   }
-  
+
   /**
    * Clear the panel - remove all buttons
    */
@@ -173,6 +253,9 @@ export class ScrollablePanel {
       this.textArea.dispose();
       this.textArea = null;
     }
+    if (this.cornerButton && this.cornerButton.isVisible) {
+      this.cornerButton.isVisible = false;
+    }
   }
 
   /**
@@ -185,6 +268,9 @@ export class ScrollablePanel {
     if (this.writer) {
       // currently we can't dispose of writer
       //this.writer.dispose();
+    }
+    if (this.speechInput) {
+      this.speechInput.dispose();
     }
     this.buttonPrev.dispose();
     this.buttonNext.dispose();

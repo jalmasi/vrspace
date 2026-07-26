@@ -71,6 +71,11 @@ export class SpeechInput {
     this.callbacks[command].push((text) => callback(text));
 
     this.commands[command + text] = (text) => this.callback(command, text);
+    if (arg) {
+      // the above requires pause (e.g. say B 3)
+      // this one catches without pause (B3)
+      this.commands[command + arg] = (text) => this.callback(command, text);
+    }
     // microsoft apparently attempts to add punctuation
     this.commands[command + '.' + text] = (text) => this.callback(command, text);
     this.commands[command + ',' + text] = (text) => this.callback(command, text);
