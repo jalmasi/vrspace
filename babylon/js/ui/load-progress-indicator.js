@@ -44,7 +44,7 @@ export class LoadProgressIndicator {
     this.mesh = VRSPACEUI.logo.clone("LoadingProgressIndicator");
     this.mesh.scaling.scaleInPlace(0.05);
     this.attachToCamera();
-    this.zeroRotation = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, -Math.PI / 2);
+    this.zeroRotation = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, -Math.PI / 2);
     this.mesh.rotationQuaternion = this.zeroRotation;
     this.mesh.setEnabled(this.totalItems > this.currentItem);
     this.log("Loaded logo, current progress " + this.currentItem + "/" + this.totalItems);
@@ -114,7 +114,7 @@ export class LoadProgressIndicator {
         this.log("Loaded " + (loaded * 100) + "%");
         if (this.mesh && this.zeroRotation) {
           this.angle += 0.01;
-          this.mesh.rotationQuaternion = this.zeroRotation.multiply(new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, this.angle));
+          this.mesh.rotationQuaternion = this.zeroRotation.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, this.angle));
         }
       } else {
         var dlCount = evt.loaded / (1024 * 1024);
@@ -130,7 +130,7 @@ export class LoadProgressIndicator {
       } else {
         this.angle += 0.01;
       }
-      this.mesh.rotationQuaternion = this.zeroRotation.multiply(new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, this.angle));
+      this.mesh.rotationQuaternion = this.zeroRotation.multiply(BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, this.angle));
     }
   }
   log(something) {

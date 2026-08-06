@@ -46,8 +46,8 @@ export class VideoAvatar extends Avatar {
       this.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
       this.mesh.position = new BABYLON.Vector3( 0, this.radius, 0);
       this.mesh.material = new BABYLON.StandardMaterial("WebCamMat", this.scene);
-      this.mesh.material.emissiveColor = new BABYLON.Color3.White();
-      this.mesh.material.specularColor = new BABYLON.Color3.Black();
+      this.mesh.material.emissiveColor = BABYLON.Color3.White();
+      this.mesh.material.specularColor = BABYLON.Color3.Black();
  
       // used for collision detection (3rd person view)
       this.mesh.ellipsoid = new BABYLON.Vector3(this.radius, this.radius, this.radius);

@@ -600,7 +600,7 @@ export class VRSpaceUI {
   updateQuaternionAnimationFromVec(group, from, to) {
     // 'to' is a Vector3, 'from' is current rotationQuaternion
     // we have to rotate around to.y axis
-    let dest = new BABYLON.Quaternion.FromEulerAngles(0, to.y, 0);
+    let dest = BABYLON.Quaternion.FromEulerAngles(0, to.y, 0);
     return this.updateQuaternionAnimation(group, from, dest);
   }
 

@@ -158,7 +158,7 @@ class AvatarMovement {
         let rotY = ref * Math.PI - this.world.camera3p.alpha;
         let avatarMesh = this.avatar.baseMesh();
         // convert alpha and beta to mesh rotation.y and rotation.x
-        avatarMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, rotY);
+        avatarMesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, rotY);
         this.movementTracker.rotation.y = rotY;
       }
       this.world.scene.registerBeforeRender(this.applyRotationToMesh);
@@ -621,7 +621,7 @@ export class AvatarController {
       this.updateCamera(pos.x, pos.y + this.world.xrHelper.camera().ellipsoid.y * 2 - this.world.xrHelper.camera().ellipsoidOffset.y, pos.z);
       // messes up pretty much everything
       //let rotY = this.movement.movementTracker.rotation.y;
-      //this.world.xrHelper.camera().rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
+      //this.world.xrHelper.camera().rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,rotY);
     }
 
     // apply rotation to 1st person camera

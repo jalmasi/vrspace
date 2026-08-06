@@ -90,7 +90,7 @@ export class Portal {
     this.angle = angle;
     this.group = new BABYLON.TransformNode('Portal:' + this.name);
     this.group.position = new BABYLON.Vector3(x, y, z);
-    this.group.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, angle);
+    this.group.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, angle);
     this.group.Portal = this;
 
     if (this.shadowGenerator) {

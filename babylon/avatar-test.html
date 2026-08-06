@@ -117,7 +117,7 @@ import('./js/vrspace-min.js').then( (ui) => {
             }
           }
           if ( p.pickedMesh == leftSphere ) {
-            character.body.leftArm.pointerQuat = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,angle);
+            character.body.leftArm.pointerQuat = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,angle);
             console.log("Angle: "+angle);
             angle += .1;
             //character.userHeight = 2.5;
@@ -127,7 +127,7 @@ import('./js/vrspace-min.js').then( (ui) => {
             character.lookAt(leftSphere.position);
           }
           if ( p.pickedMesh == rightSphere ) {
-            character.body.rightArm.pointerQuat = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,angle);
+            character.body.rightArm.pointerQuat = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z,angle);
             console.log("Angle: "+angle);
             angle += .1;
             //character.userHeight = 1.2;

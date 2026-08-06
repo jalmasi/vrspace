@@ -57,7 +57,7 @@ export class AvatarLoader extends AvatarSelection {
 
         avatar.setPosition(pos);
         // CHECKME GLTF characters are facing the user when loaded
-        avatar.setRotation( new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle));
+        avatar.setRotation( BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle));
 
         if ( callback ) {
           callback( avatar );
@@ -110,7 +110,7 @@ export class AvatarLoader extends AvatarSelection {
         if ( ! avatar.caption ) {
           var group = new BABYLON.TransformNode();
           group.position = new BABYLON.Vector3( pos.x*0.9,1,pos.z*0.9 );
-          //group.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle);
+          //group.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle);
           group.rotationQuaternion = rot;
 
           var titlePlane = BABYLON.MeshBuilder.CreatePlane("Text"+avatar.folder.name, {height:1.5,width:6}, scene);
@@ -139,7 +139,7 @@ export class AvatarLoader extends AvatarSelection {
     selectButton.position = new BABYLON.Vector3( pos.x*0.9,0.2,pos.z*0.9 );
     //selectButton.scaling = new BABYLON.Vector3( 1.5,1.5,1.5 );
     selectButton.scaling = new BABYLON.Vector3( .2, .2, .2 );
-    //selectButton.node.rotationQuaternion =  new BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle);
+    //selectButton.node.rotationQuaternion =  BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y,angle);
     selectButton.node.rotationQuaternion = rot;
 
     selectButtons.push(selectButton);
