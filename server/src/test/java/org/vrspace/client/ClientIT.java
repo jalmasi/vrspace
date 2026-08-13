@@ -29,8 +29,11 @@ public class ClientIT {
   @Test
   public void testConnect() throws Exception {
     VRSpaceClient client = connectToVRSpace();
-    client.connectAndEnterSync("galaxy", Map.of("url", serverConfig.getServerUrl(), "thumbnail",
-        serverConfig.getServerThumbnail(), "description", serverConfig.getServerDescripton()));
+    client
+        .connectAndEnterSync("galaxy",
+            Map
+                .of("url", serverConfig.getServerUrl(), "thumbnail", serverConfig.getServerThumbnail(), "description",
+                    serverConfig.getServerDescripton()));
     assertEquals(0, client.getErrorCount());
     Thread.sleep(1000 * 60 * 60);
   }
@@ -38,7 +41,8 @@ public class ClientIT {
   private VRSpaceClient connectToVRSpace() {
     URI uri = URI.create("ws://localhost:8080/vrspace/server");
     // URI uri = URI.create("wss://www.vrspace.org/vrspace/server");
-    VRSpaceClient client = new VRSpaceClient(uri, mapper).addMessageListener((s) -> messageReceived(s))
+    VRSpaceClient client = new VRSpaceClient(uri, mapper)
+        .addMessageListener((s) -> messageReceived(s))
         .addWelcomeListener(w -> welcomeReceived(w));
     return client;
   }
@@ -58,9 +62,11 @@ public class ClientIT {
     for (int i = 0; i < 10; i++) {
       VRSpaceClient client = connectToVRSpace();
       // client.connectAndEnter("galaxy");
-      client.connectAndEnterSync("galaxy",
-          Map.of("url", serverConfig.getServerUrl(), "thumbnail", serverConfig.getServerThumbnail(), "description",
-              serverConfig.getServerDescripton() + i, "available", "" + (Math.floorMod(i, 2) == 0)));
+      client
+          .connectAndEnterSync("galaxy",
+              Map
+                  .of("url", serverConfig.getServerUrl(), "thumbnail", serverConfig.getServerThumbnail(), "description",
+                      serverConfig.getServerDescripton() + i, "available", "" + (Math.floorMod(i, 2) == 0)));
     }
     Thread.sleep(1000 * 60 * 60);
   }

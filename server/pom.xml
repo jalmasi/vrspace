@@ -219,20 +219,22 @@
         <artifactId>commons-io</artifactId>
         <version>2.19.0</version>
     </dependency>
+    <!-- httpclient required by openvidu (5) and web-push (4) -->
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
       <version>5.4.4</version>
     </dependency>
+    <!-- required by httpclient5, versions managed because of security -->
     <dependency>
       <groupId>org.apache.httpcomponents.core5</groupId>
       <artifactId>httpcore5</artifactId>
-      <version>5.3.4</version>
+      <version>5.4.3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents.core5</groupId>
       <artifactId>httpcore5-h2</artifactId>
-      <version>5.3.4</version>
+      <version>5.4.3</version>
     </dependency>
 
     <!-- required to send push notifications -->
