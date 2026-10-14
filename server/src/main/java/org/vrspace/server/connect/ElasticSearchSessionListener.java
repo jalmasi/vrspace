@@ -26,6 +26,8 @@ import org.vrspace.server.dto.Enter;
 import org.vrspace.server.dto.VREvent;
 import org.vrspace.server.obj.Client;
 import org.vrspace.server.obj.Ownership;
+import org.vrspace.server.obj.Point;
+import org.vrspace.server.obj.Rotation;
 import org.vrspace.server.obj.VRObject;
 import org.vrspace.server.obj.World;
 import org.vrspace.server.types.ID;
@@ -50,8 +52,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * ElasticSearch session listener forwards all events to an ES node,
- * asynchronously.
+ * ElasticSearch session listener forwards all events to an ES node, asynchronously.
  * 
  * https://www.elastic.co/guide/en/elasticsearch/client/java-api-client/current/index.html
  * 
@@ -82,8 +83,10 @@ public class ElasticSearchSessionListener implements SessionListener {
     log.info("Session listener configured for " + url);
 
     // Create the low-level client
-    RestClient restClient = RestClient.builder(HttpHost.create(url))
-        .setDefaultHeaders(new Header[] { new BasicHeader("Authorization", "ApiKey " + apiKey) }).build();
+    RestClient restClient = RestClient
+        .builder(HttpHost.create(url))
+        .setDefaultHeaders(new Header[] { new BasicHeader("Authorization", "ApiKey " + apiKey) })
+        .build();
 
     // Create the transport with a Jackson mapper
     ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper(objectMapper));
@@ -109,6 +112,9 @@ public class ElasticSearchSessionListener implements SessionListener {
     entry.error = new ESErrorMessage("VRSpace session connector starting up", new RuntimeException("Test exception"));
     entry.changes = new HashMap<>();
     entry.changes.put("url", "https://www.vrspace.org");
+    entry.changes.put("position", new Point(1.1, 2.2, 3.3));
+    entry.changes.put("rotation", new Rotation(1.1, 2.2, 3.3, 4.4));
+    entry.changes.put("scale", new Point(1.1, 2.2, 3.3));
 
     asyncClient.index(IndexRequest.of(i -> i.index(index).document(entry))).whenComplete((response, exception) -> {
       if (exception != null) {
