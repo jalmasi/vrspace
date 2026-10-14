@@ -223,7 +223,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
-      <version>5.4.4</version>
+      <version>5.6.3</version>
     </dependency>
     <!-- required by httpclient5, versions managed because of security -->
     <dependency>
