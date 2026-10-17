@@ -1,6 +1,8 @@
 package org.vrspace.server;
 
+import org.springframework.ai.vectorstore.neo4j.autoconfigure.Neo4jVectorStoreAutoConfiguration;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootApplication
 @ServletComponentScan
 @Slf4j
+@EnableAutoConfiguration(exclude = Neo4jVectorStoreAutoConfiguration.class)
 public class ServerApplication implements ServletContextListener {
   private static ConfigurableApplicationContext ctx;
 

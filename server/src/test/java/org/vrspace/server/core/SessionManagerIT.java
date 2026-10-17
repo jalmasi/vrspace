@@ -54,7 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
-//FIXME:
+// FIXME:
 @DirtiesContext
 public class SessionManagerIT {
 
@@ -279,7 +279,6 @@ public class SessionManagerIT {
   public void testAddRemove() throws Exception {
     login();
     startSession();
-
     // String add =
     // "{\"command\":{\"Add\":{\"objects\":[{\"VRObject\":{\"position\":{\"x\":3,\"y\":2,\"z\":1}}},
     // {\"VRObject\":{}}]}}}";
@@ -293,7 +292,10 @@ public class SessionManagerIT {
     // verify response to add command
     List<WebSocketMessage<?>> allValues = message.getAllValues();
     // make sure to ignore any PingMessage
-    List<TextMessage> values = allValues.stream().filter(m -> TextMessage.class.isInstance(m)).map(m -> (TextMessage) m)
+    List<TextMessage> values = allValues
+        .stream()
+        .filter(m -> TextMessage.class.isInstance(m))
+        .map(m -> (TextMessage) m)
         .collect(Collectors.toList());
     String addResponse = ((TextMessage) values.get(3)).getPayload();
     ClientResponse rIds = mapper.readValue(addResponse, ClientResponse.class);
