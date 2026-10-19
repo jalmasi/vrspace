@@ -61,4 +61,10 @@ public class Neo4jVectorStoreConfig {
         .build();
   }
 
+  @Bean
+  @ConditionalOnMissingBean
+  Neo4jVectorStoreProperties vectorStoreProperties() {
+    return new Neo4jVectorStoreProperties();
+  }
+
 }
