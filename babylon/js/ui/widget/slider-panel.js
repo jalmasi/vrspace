@@ -78,7 +78,8 @@ class SliderPanel {
         } else {
           this.slider.value = num;
         }
-        this.header.text = text + ": " + value;
+        //this.header.text = text + ": " + value;
+        this.showValue(this.slider.value);
       }
     }, "*value");
     

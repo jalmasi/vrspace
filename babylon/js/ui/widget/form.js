@@ -133,7 +133,7 @@ export class Form {
    * Creates and returns a named RadioButton
    */
   radio(name, params) {
-    var radioButton= new BABYLON.GUI.RadioButton('radio:'+name);
+    var radioButton = new BABYLON.GUI.RadioButton('radio:'+name);
     return this._common(radioButton, name, params);
   }
   /**
@@ -244,7 +244,7 @@ export class Form {
   
   addSound(plane=this.plane, keyboard=this.vKeyboard) {
     this.sound = new BABYLON.Sound(
-      "keyboardSound",
+      "keyboard sound",
       this.soundUrl,
     );
     this.sound.attachToMesh(plane);

@@ -31,7 +31,7 @@ class MixerForm extends Form {
 
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Main volume"), 0, 0);
-    this.grid.addControl(this.slider(volume => this.scene.mainSoundTrack.setVolume(volume / 100), this.scene.mainSoundTrack._outputAudioNode.gain.value * 100, this.fontSize * 0.7), 0, 1);
+    this.grid.addControl(this.slider("Main volume", volume => this.scene.mainSoundTrack.setVolume(volume / 100), this.scene.mainSoundTrack._outputAudioNode.gain.value * 100, this.fontSize * 0.7), 0, 1);
 
     this.grid.addRowDefinition(this.heightInPixels, true);
     this.grid.addControl(this.textBlock("Avatars"), this.grid.rowCount, 0);
@@ -60,6 +60,7 @@ class MixerForm extends Form {
     //let texture = VRSPACEUI.hud.addForm(this, 768, this.heightInPixels * 4 + this.smallHeightInPixels * (Math.max(this.grid.rowCount - 3, 1)));
     //texture.background = "#808080";
     //VRSPACEUI.hud.addForm(this,512,512);
+    this.speechInput.start();
   }
 
   showSynthesis() {
@@ -69,8 +70,8 @@ class MixerForm extends Form {
     this.heightInPixels = this.smallHeightInPixels;
     let row = this.grid.rowCount;
     this.grid.addRowDefinition(this.heightInPixels, true);
-    this.grid.addControl(this.textBlock("Bot speech"), row, 0);
-    let checkbox = this.checkbox("bot", {isChecked:BotController.speechSynthesisEnabled});
+    this.grid.addControl(this.textBlock("Robots"), row, 0);
+    let checkbox = this.checkbox("robots", {isChecked:BotController.speechSynthesisEnabled});
     checkbox.onIsCheckedChangedObservable.add(value=>BotController.speechSynthesisEnabled=value);
     this.grid.addControl(checkbox, row, 1);
     this.fontSize = fontSize;
@@ -87,13 +88,13 @@ class MixerForm extends Form {
       this.grid.addRowDefinition(this.heightInPixels, true);
       // CHECKME: sound names?
       this.grid.addControl(this.textBlock(sound.name), row, 0);
-      this.grid.addControl(this.slider(value => sound.setVolume(value / 100), sound.getVolume() * 100), row, 1);
+      this.grid.addControl(this.slider(sound.name, value => sound.setVolume(value / 100), sound.getVolume() * 100), row, 1);
     }
     this.fontSize = fontSize;
     this.heightInPixels = heightInPixels;
   }
 
-  slider(callback, value = 100, fontSize = this.smallFontSize / 2) {
+  slider(text, callback, value = 100, fontSize = this.smallFontSize / 2) {
     let sliderPanel = new HorizontalSliderPanel("", 1, 100, value);
     sliderPanel.panel.height = "100%";
     sliderPanel.slider.height = "50%";
@@ -102,6 +103,7 @@ class MixerForm extends Form {
     //sliderPanel.panel.isVertical = true;
     sliderPanel.setDecimals(0);
     sliderPanel.slider.onValueChangedObservable.add(value => callback(value));
+    sliderPanel.speechCommand(this.speechInput, text);
     return sliderPanel.panel;
   }
 }

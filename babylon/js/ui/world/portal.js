@@ -162,7 +162,7 @@ export class Portal {
   attachSound() {
     if (this.soundUrl) {
       this.sound = new BABYLON.Sound(
-        "portalSound:" + this.name,
+        "portal sound " + this.name,
         this.soundUrl,
         this.scene, null, {
         loop: true,
