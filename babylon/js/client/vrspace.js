@@ -985,7 +985,7 @@ export class VRSpace {
     } else if ( typeof value == 'boolean') {
       return '"'+field+'":'+value;
     } else {
-      console.log("Unsupported datatype "+typeof value+", ignored user event "+field+"="+value);
+      console.error("Unsupported datatype "+typeof value+", ignored user event "+field+"="+value);
       return '';
     }
   }

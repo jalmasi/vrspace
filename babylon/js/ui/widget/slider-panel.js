@@ -57,7 +57,32 @@ class SliderPanel {
     this.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(this.plane,width,height);
     this.advancedTexture.addControl(this.panel);
     return this.plane;
-  }  
+  }
+  
+  speechCommand(speechInput, text) {
+    speechInput.addCommand(text, (value) => {
+      console.log("setting " + text + " to " + value);
+      if ("one" == value) {
+        value = "1";
+      } else if ("zero" == value) {
+        value = "0";
+      }
+      if (isNaN(value)) {
+        console.log('Unrecognized input value: ' + value);
+      } else {
+        let num = parseFloat(value);
+        if (num > this.slider.maximum) {
+          this.slider.value = this.slider.maximum;
+        } else if (num < this.slider.minimum) {
+          this.slider.value = this.slider.minimum;
+        } else {
+          this.slider.value = num;
+        }
+        this.header.text = text + ": " + value;
+      }
+    }, "*value");
+    
+  }
 }
 
 /**

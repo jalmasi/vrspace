@@ -234,11 +234,13 @@ export class Terrain extends WorldListener {
    */  
   setTexture(imgUrl) {
     console.log("New texture: "+imgUrl);
-    if ( this.terrainTexture ) {
-      this.terrainTexture.dispose();
+    if ( imgUrl ) {
+      if ( this.terrainTexture ) {
+        this.terrainTexture.dispose();
+      }
+      this.terrainTexture = new BABYLON.Texture(imgUrl, this.scene);
+      this.mesh().material.diffuseTexture = this.terrainTexture;      
     }
-    this.terrainTexture = new BABYLON.Texture(imgUrl, this.scene);
-    this.mesh().material.diffuseTexture = this.terrainTexture;
   }
 
   /** 

@@ -832,7 +832,7 @@ export class World {
     if ( this.terrain ) {
       this.worldManager.VRSPACE.sendEvent(this.sharedTerrain, 
         { 
-          diffuseTexture: this.terrain.getTexture(),
+          diffuseTexture: this.terrain.getTexture()||null,
           specularColor:  this.terrain.material().specularColor,
           diffuseColor: this.terrain.material().diffuseColor,
           emissiveColor: this.terrain.material().emissiveColor

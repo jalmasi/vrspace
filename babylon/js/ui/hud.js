@@ -483,27 +483,7 @@ export class HUD {
     this.controls.push(sliderPanel.panel);
 
     if (text) {
-      this.speechInput.addCommand(text, (value) => {
-        console.log("setting " + text + " to " + value);
-        if ("one" == value) {
-          value = "1";
-        } else if ("zero" == value) {
-          value = "0";
-        }
-        if (isNaN(value)) {
-          console.log('Unrecognized input value: ' + value);
-        } else {
-          let num = parseFloat(value);
-          if (num > slider.maximum) {
-            slider.value = slider.maximum;
-          } else if (num < slider.minimum) {
-            slider.value = slider.minimum;
-          } else {
-            slider.value = num;
-          }
-          header.text = text + ": " + value;
-        }
-      }, "*value");
+      sliderPanel.speechCommand(this.speechInput, text);
     }
 
     return sliderPanel.slider;
